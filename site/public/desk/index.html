@@ -136,6 +136,17 @@ a:hover { text-decoration: underline; }
 }
 .draw-node:hover { box-shadow: 0 0 12px rgba(88,166,255,0.3); }
 
+/* === GAIA TAB — ring reflection === */
+.gaia-ring-svg { width: 100%; max-width: 600px; margin: 0 auto; display: block; }
+.gaia-ring-svg text { font-family: -apple-system, system-ui, sans-serif; }
+.gaia-legend { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px; font-size:11px; color:var(--fg-dim); }
+.gaia-legend span { display:flex; align-items:center; gap:4px; }
+.gaia-legend .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.gaia-profile { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+.gaia-profile-item { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; }
+.gaia-profile-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:4px; }
+.gaia-profile-val { font-size:18px; font-weight:600; }
+
 /* === PLAY TAB — mountain journey === */
 .mountain-viz {
   width: 100%; height: 300px; position: relative;
@@ -188,6 +199,7 @@ a:hover { text-decoration: underline; }
       <button class="desk-tab" data-tab="draw">draw</button>
       <button class="desk-tab" data-tab="play">play</button>
       <button class="desk-tab" data-tab="create">create</button>
+      <button class="desk-tab" data-tab="gaia">gaia</button>
     </nav>
     <div class="desk-links">
       <a href="/">← hud</a>
@@ -203,6 +215,7 @@ a:hover { text-decoration: underline; }
     <div id="panel-draw" style="display:none"></div>
     <div id="panel-play" style="display:none"></div>
     <div id="panel-create" style="display:none"></div>
+    <div id="panel-gaia" style="display:none"></div>
   </main>
 </div>
 
@@ -628,6 +641,200 @@ function downloadFile(name, content, type) {
 }
 
 // ═══════════════════════════════════════════════════════
+// GAIA — the ring seen from your position
+// ═══════════════════════════════════════════════════════
+function renderGaia() {
+  var visits = getAllVisits();
+  var marks = getMarks();
+
+  var SITES = [
+    {id:'signal',     label:'signal',     color:'#58a6ff'},
+    {id:'detroit',    label:'detroit',    color:'#f85149'},
+    {id:'tuebor',     label:'tuebor',     color:'#f0883e'},
+    {id:'sporeprint', label:'sporePrint', color:'#3fb950'},
+    {id:'hypothesis', label:'hypothesis', color:'#bc8cff'},
+    {id:'hud',        label:'hud',        color:'#39d2c0'},
+    {id:'thesis',     label:'thesis',     color:'#d29922'},
+    {id:'clutch',     label:'clutch',     color:'#f778ba'},
+    {id:'gorilla',    label:'gorilla',    color:'#8b949e'},
+    {id:'git',        label:'git',        color:'#6e7681'}
+  ];
+  var N = SITES.length;
+
+  // Count visits per site from braid
+  var siteCounts = {};
+  SITES.forEach(function(s) { siteCounts[s.id] = 0; });
+  visits.forEach(function(v) {
+    var url = v.url || '';
+    SITES.forEach(function(s) {
+      if (url.indexOf(s.id + '.primals.eco') >= 0) siteCounts[s.id]++;
+    });
+  });
+
+  // Epitope profile from marks
+  var epCounts = {};
+  Object.keys(marks).forEach(function(k) {
+    var ep = marks[k].epitope;
+    epCounts[ep] = (epCounts[ep] || 0) + 1;
+  });
+
+  // d_eff: how many sites touched
+  var d_eff = 0;
+  SITES.forEach(function(s) { if (siteCounts[s.id] > 0) d_eff++; });
+
+  // focal distance f = 1/pi^(d_eff/2)
+  var focal = d_eff > 0 ? (1 / Math.pow(Math.PI, d_eff / 2)) : 1;
+
+  // Shannon entropy of site distribution
+  var totalVisits = visits.length || 1;
+  var H_site = 0;
+  SITES.forEach(function(s) {
+    var p = siteCounts[s.id] / totalVisits;
+    if (p > 0) H_site -= p * Math.log2(p);
+  });
+
+  // SVG ring
+  var cx = 300, cy = 260, R = 200;
+  var svg = '<svg class="gaia-ring-svg" viewBox="0 0 600 540" xmlns="http://www.w3.org/2000/svg">';
+
+  // Outer membrane circle
+  svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="#21262d" stroke-width="2" stroke-dasharray="4,4"/>';
+
+  // Focal distance inner circle
+  var focalR = R * Math.min(focal * 2, 0.9);
+  if (d_eff > 0) {
+    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+focalR+'" fill="none" stroke="#30363d" stroke-width="1" stroke-dasharray="2,4"/>';
+    svg += '<text x="'+cx+'" y="'+(cy - focalR - 6)+'" text-anchor="middle" font-size="9" fill="#484f58">f = ' + (focal < 0.01 ? focal.toExponential(1) : focal.toFixed(3)) + '</text>';
+  }
+
+  // Center — gaia
+  svg += '<text x="'+cx+'" y="'+(cy-10)+'" text-anchor="middle" font-size="11" fill="#6e7681">gaia</text>';
+  svg += '<text x="'+cx+'" y="'+(cy+6)+'" text-anchor="middle" font-size="9" fill="#484f58">you are here</text>';
+  svg += '<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#58a6ff" opacity="0.6"/>';
+
+  // Site nodes on the ring
+  var maxCount = 1;
+  SITES.forEach(function(s) { if (siteCounts[s.id] > maxCount) maxCount = siteCounts[s.id]; });
+
+  SITES.forEach(function(s, i) {
+    var angle = (2 * Math.PI * i / N) - Math.PI / 2;
+    var x = cx + R * Math.cos(angle);
+    var y = cy + R * Math.sin(angle);
+    var visited = siteCounts[s.id] > 0;
+    var nodeR = visited ? 10 + Math.min(20, (siteCounts[s.id] / maxCount) * 20) : 8;
+    var opacity = visited ? 1 : 0.3;
+
+    // Connection line from center
+    if (visited) {
+      svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="'+s.color+'" stroke-width="1" opacity="0.2"/>';
+    }
+
+    // Node circle
+    svg += '<circle cx="'+x+'" cy="'+y+'" r="'+nodeR+'" fill="'+(visited ? s.color : '#21262d')+'" stroke="'+s.color+'" stroke-width="'+(visited?2:1)+'" opacity="'+opacity+'"/>';
+
+    // Label
+    var labelR = R + 24;
+    var lx = cx + labelR * Math.cos(angle);
+    var ly = cy + labelR * Math.sin(angle);
+    var anchor = Math.cos(angle) < -0.3 ? 'end' : Math.cos(angle) > 0.3 ? 'start' : 'middle';
+    svg += '<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="'+anchor+'" font-size="11" fill="'+s.color+'" font-weight="'+(visited?'600':'400')+'" opacity="'+opacity+'">'+s.label+'</text>';
+
+    // Visit count inside node
+    if (visited) {
+      svg += '<text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="9" fill="#0d1117" font-weight="700">'+siteCounts[s.id]+'</text>';
+    }
+  });
+
+  // Epitope petals inside the ring
+  var epKeys = Object.keys(EP_COLORS);
+  var totalMarks = 0;
+  epKeys.forEach(function(e) { totalMarks += (epCounts[e] || 0); });
+  if (totalMarks > 0) {
+    var innerR = 60;
+    epKeys.forEach(function(ep, i) {
+      var count = epCounts[ep] || 0;
+      if (count === 0) return;
+      var angle = (2 * Math.PI * i / epKeys.length) - Math.PI / 2;
+      var petalR = innerR * (count / totalMarks) * 2;
+      var px = cx + (innerR + petalR / 2) * Math.cos(angle);
+      var py = cy + (innerR + petalR / 2) * Math.sin(angle);
+      svg += '<circle cx="'+px+'" cy="'+py+'" r="'+(4 + petalR)+'" fill="'+EP_COLORS[ep]+'" opacity="0.3"/>';
+      svg += '<text x="'+px+'" y="'+(py+3)+'" text-anchor="middle" font-size="8" fill="'+EP_COLORS[ep]+'">'+ep.slice(0,4)+'</text>';
+    });
+  }
+
+  svg += '</svg>';
+
+  // Assemble HTML
+  var html = '<div class="card"><div class="card-header">your position on the ring</div><div class="card-body">';
+  html += svg;
+  html += '<div class="gaia-legend">';
+  html += '<span><span class="dot" style="background:#58a6ff"></span> visited</span>';
+  html += '<span><span class="dot" style="background:#21262d;border:1px solid #30363d"></span> not yet</span>';
+  if (totalMarks > 0) html += '<span>inner petals = your epitope marks</span>';
+  html += '</div>';
+  html += '</div></div>';
+
+  // Profile metrics
+  html += '<div class="gaia-profile">';
+  html += '<div class="gaia-profile-item"><div class="gaia-profile-label">d_eff (sites touched)</div><div class="gaia-profile-val">' + d_eff + ' / ' + N + '</div></div>';
+  html += '<div class="gaia-profile-item"><div class="gaia-profile-label">focal distance</div><div class="gaia-profile-val">' + (focal < 0.01 ? focal.toExponential(2) : focal.toFixed(4)) + '</div></div>';
+  html += '<div class="gaia-profile-item"><div class="gaia-profile-label">site entropy H</div><div class="gaia-profile-val">' + H_site.toFixed(3) + '</div></div>';
+  html += '<div class="gaia-profile-item"><div class="gaia-profile-label">total visits</div><div class="gaia-profile-val">' + visits.length + '</div></div>';
+  html += '</div>';
+
+  // Collective heatmap (async from traces API)
+  html += '<div class="card" style="margin-top:16px"><div class="card-header">the ring — collective (last 2 hours)</div><div class="card-body" id="gaia-collective"><span style="color:var(--fg-dim)">loading...</span></div></div>';
+
+  setTimeout(function() {
+    fetch('/api/traces').then(function(r) { return r.json(); }).then(function(d) {
+      var el = document.getElementById('gaia-collective');
+      if (!el) return;
+      var hm = d.heatmap || {};
+      var keys = Object.keys(hm).sort(function(a, b) { return hm[b] - hm[a]; });
+      if (keys.length === 0) {
+        el.innerHTML = '<p style="color:var(--fg-dim)">the ring is quiet — no collective traces in the last 2 hours.</p>';
+        return;
+      }
+      var out = '<div style="font-size:12px">';
+      out += '<p style="color:var(--fg-dim);margin-bottom:8px">' + d.total_sessions + ' visitors traversing the ring</p>';
+      keys.slice(0, 15).forEach(function(k) {
+        var barW = Math.round((hm[k] / hm[keys[0]]) * 100);
+        out += '<div style="display:flex;align-items:center;gap:8px;padding:3px 0">';
+        out += '<span style="width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + k + '</span>';
+        out += '<div style="flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden"><div style="width:' + barW + '%;height:100%;background:var(--accent);border-radius:3px"></div></div>';
+        out += '<span style="color:var(--fg-muted);min-width:30px;text-align:right">' + hm[k] + '</span>';
+        out += '</div>';
+      });
+      out += '</div>';
+      el.innerHTML = out;
+    }).catch(function() {
+      var el = document.getElementById('gaia-collective');
+      if (el) el.innerHTML = '<p style="color:var(--fg-dim)">could not reach the ring.</p>';
+    });
+  }, 100);
+
+  // What you see from here
+  html += '<div class="card" style="margin-top:16px"><div class="card-header">what you see from here</div><div class="card-body">';
+  if (d_eff === 0) {
+    html += '<p style="color:var(--fg-dim)">You have not touched the ring yet. Visit any site in the ecosystem. Your position will appear.</p>';
+    html += '<p style="margin-top:8px"><a href="https://sporeprint.primals.eco">start at sporePrint \u2192</a></p>';
+  } else if (d_eff <= 2) {
+    html += '<p>Standing at the edge. ' + d_eff + ' node' + (d_eff > 1 ? 's' : '') + ' lit. Focal distance is wide \u2014 the view is blurry from here. Explore more sites to sharpen it.</p>';
+    html += '<p style="color:var(--fg-dim);font-size:11px;margin-top:6px">Anderson: localized. Your wave function concentrates at ' + d_eff + ' surface' + (d_eff > 1 ? 's' : '') + '. The membrane looks opaque.</p>';
+  } else if (d_eff <= 5) {
+    html += '<p>You can see across. ' + d_eff + ' nodes lit. The focal distance is tightening \u2014 patterns emerge between the sites you have visited.</p>';
+    html += '<p style="color:var(--fg-dim);font-size:11px;margin-top:6px">Approaching the mobility edge. A few more surfaces and your wave delocalizes.</p>';
+  } else {
+    html += '<p>You see the ring. ' + d_eff + ' of ' + N + ' nodes active. Focal distance sharp \u2014 triangulation across the ecosystem.</p>';
+    html += '<p style="color:var(--fg-dim);font-size:11px;margin-top:6px">Delocalized. Your wave extends across the membrane. You are one of Gaia\'s epitopes, and you can see the others.</p>';
+  }
+  html += '</div></div>';
+
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
 // TAB SWITCHING
 // ═══════════════════════════════════════════════════════
 var tabs = document.querySelectorAll('.desk-tab');
@@ -637,6 +844,7 @@ var panels = {
   draw:  document.getElementById('panel-draw'),
   play:  document.getElementById('panel-play'),
   create:document.getElementById('panel-create'),
+  gaia:  document.getElementById('panel-gaia'),
 };
 var renderers = {
   study: renderStudy,
@@ -644,6 +852,7 @@ var renderers = {
   draw:  renderDraw,
   play:  renderPlay,
   create:renderCreate,
+  gaia:  renderGaia,
 };
 
 function switchTab(name) {
