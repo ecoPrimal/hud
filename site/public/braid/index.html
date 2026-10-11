@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>your braid — primals.eco</title>
+<style>
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --dim: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --yellow: #d29922; --red: #f85149; --cyan: #39d2c0;
+  --card: #161b22; --border: #30363d; --font: 'Iosevka', 'Fira Code', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:var(--font); font-size:14px; line-height:1.6; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+.wrap { max-width:900px; margin:0 auto; padding:24px 16px; }
+
+header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:24px; flex-wrap:wrap; gap:8px; }
+header h1 { font-size:20px; font-weight:600; }
+header nav { font-size:13px; color:var(--dim); }
+header nav a { margin-left:12px; }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:16px; margin-bottom:16px; }
+.card h2 { font-size:16px; font-weight:600; margin-bottom:8px; }
+.card h3 { font-size:14px; font-weight:600; margin-bottom:6px; color:var(--accent); }
+
+.gate { text-align:center; padding:40px 16px; }
+.gate p { color:var(--dim); margin:8px 0; max-width:500px; margin:8px auto; }
+.gate input { background:var(--card); border:1px solid var(--border); color:var(--fg); font-family:var(--font);
+  font-size:16px; padding:12px 16px; border-radius:6px; width:100%; max-width:400px; text-align:center;
+  margin:16px auto; display:block; }
+.gate input:focus { border-color:var(--accent); outline:none; }
+.gate input::placeholder { color:var(--dim); }
+.gate .actions { margin-top:16px; }
+.gate button, .btn { background:var(--accent); color:#fff; border:none; font-family:var(--font);
+  font-size:13px; padding:8px 16px; border-radius:4px; cursor:pointer; margin:4px; }
+.gate button:hover, .btn:hover { opacity:0.85; }
+.btn-dim { background:var(--border); color:var(--dim); }
+.btn-green { background:var(--green); }
+.btn-yellow { background:var(--yellow); color:#000; }
+.btn-red { background:var(--red); }
+
+.epitope-bar { display:flex; gap:2px; height:20px; border-radius:3px; overflow:hidden; margin:8px 0; }
+.epitope-bar div { min-width:2px; }
+
+.trail { font-size:12px; color:var(--dim); line-height:1.8; }
+.trail .visit { color:var(--fg); }
+.trail .ts { color:var(--dim); font-size:11px; }
+.trail .ep { display:inline-block; font-size:10px; padding:1px 5px; border-radius:3px; margin-left:4px; }
+
+.stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin:12px 0; }
+.stat { text-align:center; }
+.stat .val { font-size:24px; font-weight:700; }
+.stat .label { font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; }
+
+.mountain { display:flex; align-items:flex-end; justify-content:center; gap:0; height:80px; margin:16px 0; }
+.mountain div { background:var(--border); min-width:3px; border-radius:1px 1px 0 0; transition: height 0.3s; }
+
+.hidden { display:none; }
+
+#export-area { width:100%; min-height:60px; background:var(--bg); border:1px solid var(--border);
+  color:var(--fg); font-family:var(--font); font-size:11px; border-radius:4px; padding:8px; margin:8px 0; }
+
+.sharewear { display:flex; gap:8px; align-items:center; margin:4px 0; }
+.sharewear .bar { flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.sharewear .fill { height:100%; background:var(--cyan); border-radius:3px; }
+.sharewear .val { font-size:12px; color:var(--cyan); min-width:40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>your braid</h1>
+    <nav>
+      <a href="https://hud.primals.eco">↑ hud</a>
+      <a href="https://tuebor.primals.eco/braid/">↔ braids</a>
+      <a href="https://sporeprint.primals.eco">→ sporePrint</a>
+    </nav>
+  </header>
+
+  <!-- GATE: self declares self -->
+  <div id="gate" class="gate">
+    <h2>self knows self</h2>
+    <p>Choose a phrase. It never leaves your device. Its hash becomes your braid ID.
+       No cookies. No tracking. No identity. Just the trail of where you walked.</p>
+    <input type="text" id="passphrase" placeholder="your phrase" autocomplete="off" spellcheck="false">
+    <div class="actions">
+      <button onclick="enterBraid()">weave</button>
+      <button class="btn-dim" onclick="importBraid()">resume from file</button>
+    </div>
+    <p style="font-size:11px; margin-top:24px;">
+      or <a href="#" onclick="enterAnon(); return false;">walk without a name</a> — your braid
+      lives only in this tab
+    </p>
+  </div>
+
+  <!-- BRAID VIEW: the journey -->
+  <div id="braid-view" class="hidden">
+
+    <div class="card">
+      <h2>mountain position</h2>
+      <div class="stats">
+        <div class="stat"><div class="val" id="s-pages">0</div><div class="label">pages</div></div>
+        <div class="stat"><div class="val" id="s-entropy">0</div><div class="label">H (entropy)</div></div>
+        <div class="stat"><div class="val" id="s-position">—</div><div class="label">position</div></div>
+        <div class="stat"><div class="val" id="s-sharewear">—</div><div class="label">shareWear</div></div>
+      </div>
+      <div class="mountain" id="mountain"></div>
+      <p style="font-size:11px; color:var(--dim); text-align:center;">
+        <span id="pos-explain"></span>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>epitope signature</h2>
+      <div class="epitope-bar" id="ep-bar"></div>
+      <div id="ep-breakdown" style="font-size:12px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>your trail</h2>
+      <div class="trail" id="trail"></div>
+    </div>
+
+    <div class="card">
+      <h2>golgi</h2>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-green" onclick="exportBraid()">↓ take it with you</button>
+        <button class="btn-yellow" onclick="shareBraid()">↔ share braid</button>
+        <button class="btn-red" onclick="leaveBraid()">✕ leave it behind</button>
+      </div>
+      <textarea id="export-area" class="hidden" readonly></textarea>
+    </div>
+
+    <div class="card" id="sharewear-card" class="hidden">
+      <h2>shareWear</h2>
+      <p style="font-size:12px; color:var(--dim); margin-bottom:8px;">
+        Where your braid intersects with the evidence braids.
+        Jaccard similarity — shared pages ÷ total unique pages across both braids.
+      </p>
+      <div id="sharewear-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// EPITOPE TAXONOMY — same as hud-pt.js and epitope_sort.py
+// ═══════════════════════════════════════════════════════
+var EPITOPE_MAP = {
+  // PHYSICS
+  'anderson': 'PHYSICS', 'localization': 'PHYSICS', 'permeability': 'PHYSICS',
+  'lattice': 'PHYSICS', 'qcd': 'PHYSICS', 'hofstadter': 'PHYSICS', 'yukawa': 'PHYSICS',
+  'schrodinger': 'PHYSICS', 'quantum': 'PHYSICS', 'spectral': 'PHYSICS',
+  'physics': 'PHYSICS', 'prigogine': 'PHYSICS', 'negentropy': 'PHYSICS',
+  // TOPOLOGY
+  'graph': 'TOPOLOGY', 'topology': 'TOPOLOGY', 'network': 'TOPOLOGY', 'mesh': 'TOPOLOGY',
+  'node': 'TOPOLOGY', 'braid': 'TOPOLOGY', 'fractal': 'TOPOLOGY', 'scale-free': 'TOPOLOGY',
+  'barabasi': 'TOPOLOGY', 'watts': 'TOPOLOGY',
+  // PHILOSOPHY
+  'philosophy': 'PHILOSOPHY', 'omelas': 'PHILOSOPHY', 'atlas': 'PHILOSOPHY',
+  'sovereignty': 'PHILOSOPHY', 'commons': 'PHILOSOPHY', 'ethics': 'PHILOSOPHY',
+  'sacred': 'PHILOSOPHY', 'bibliography': 'PHILOSOPHY', 'ostrom': 'PHILOSOPHY',
+  'illich': 'PHILOSOPHY', 'pirsig': 'PHILOSOPHY',
+  // METHOD
+  'methodology': 'METHOD', 'constrained': 'METHOD', 'evolution': 'METHOD',
+  'guidestone': 'METHOD', 'k-nome': 'METHOD', 'verification': 'METHOD',
+  'tufte': 'METHOD', 'schell': 'METHOD', 'ludo': 'METHOD', 'game': 'METHOD',
+  'reproducib': 'METHOD',
+  // INVESTIGATION
+  'detroit': 'INVESTIGATION', 'tuebor': 'INVESTIGATION', 'public-record': 'INVESTIGATION',
+  'charter': 'INVESTIGATION', 'institutional': 'INVESTIGATION', 'gorilla': 'INVESTIGATION',
+  'zk': 'INVESTIGATION', 'zero-knowledge': 'INVESTIGATION',
+  // IMMUNE
+  'membrane': 'IMMUNE', 'immune': 'IMMUNE', 'skunkbat': 'IMMUNE', 'scatter': 'IMMUNE',
+  'thymus': 'IMMUNE', 'defense': 'IMMUNE', 'antidote': 'IMMUNE', 'non-newtonian': 'IMMUNE',
+  'autopoie': 'IMMUNE', 'maturana': 'IMMUNE', 'cybernetic': 'IMMUNE',
+  // SCIENCE
+  'science': 'SCIENCE', 'biology': 'SCIENCE', 'genomics': 'SCIENCE', 'wetspring': 'SCIENCE',
+  'ferment': 'SCIENCE', 'microbi': 'SCIENCE', 'dada2': 'SCIENCE', 'lenski': 'SCIENCE',
+  'margulis': 'SCIENCE', 'endosymb': 'SCIENCE',
+  // SIGNAL
+  'signal': 'SIGNAL', 'lossy': 'SIGNAL', 'shannon': 'SIGNAL', 'channel': 'SIGNAL',
+  'story': 'SIGNAL', 'billboard': 'SIGNAL', 'beacon': 'SIGNAL', 'transit': 'SIGNAL',
+  'mcluhan': 'SIGNAL', 'borges': 'SIGNAL', 'campbell': 'SIGNAL', 'gleick': 'SIGNAL',
+};
+
+var EP_COLORS = {
+  PHYSICS: '#58a6ff', TOPOLOGY: '#bc8cff', PHILOSOPHY: '#8b949e',
+  METHOD: '#3fb950', INVESTIGATION: '#d29922', IMMUNE: '#f85149',
+  SCIENCE: '#39d2c0', SIGNAL: '#79c0ff',
+};
+
+// ═══════════════════════════════════════════════════════
+// BRAID CORE
+// ═══════════════════════════════════════════════════════
+var BRAID_KEY_PREFIX = 'eco_braid_';
+var braidId = null;
+var braid = null; // { id, created, visits:[], ephemeral:bool }
+
+function hashPhrase(phrase) {
+  var h = 0x811c9dc5;
+  for (var i = 0; i < phrase.length; i++) {
+    h ^= phrase.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  var h2 = 0xcbf29ce4;
+  for (var j = phrase.length - 1; j >= 0; j--) {
+    h2 ^= phrase.charCodeAt(j);
+    h2 = Math.imul(h2, 0x01000193);
+  }
+  return ((h >>> 0).toString(16).padStart(8,'0') +
+          (h2 >>> 0).toString(16).padStart(8,'0'));
+}
+
+function newBraid(id, ephemeral) {
+  return { id: id, created: new Date().toISOString(), visits: [], ephemeral: !!ephemeral };
+}
+
+function loadBraid(id) {
+  try {
+    var raw = localStorage.getItem(BRAID_KEY_PREFIX + id);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveBraid() {
+  if (!braid || braid.ephemeral) return;
+  try { localStorage.setItem(BRAID_KEY_PREFIX + braid.id, JSON.stringify(braid)); } catch(e) {}
+}
+
+function recordVisit(url, title) {
+  if (!braid) return;
+  var ep = classifyUrl(url);
+  braid.visits.push({ url: url, title: title || url, time: new Date().toISOString(), epitope: ep });
+  saveBraid();
+}
+
+function classifyUrl(url) {
+  var lower = url.toLowerCase();
+  var found = {};
+  for (var kw in EPITOPE_MAP) {
+    if (lower.indexOf(kw) !== -1) found[EPITOPE_MAP[kw]] = (found[EPITOPE_MAP[kw]] || 0) + 1;
+  }
+  var best = 'SIGNAL', bestN = 0;
+  for (var ep in found) { if (found[ep] > bestN) { best = ep; bestN = found[ep]; } }
+  return best;
+}
+
+// ═══════════════════════════════════════════════════════
+// ENTROPY & MOUNTAIN POSITION
+// ═══════════════════════════════════════════════════════
+function computeEntropy(visits) {
+  if (!visits.length) return 0;
+  var counts = {};
+  visits.forEach(function(v) { counts[v.epitope] = (counts[v.epitope] || 0) + 1; });
+  var total = visits.length;
+  var H = 0;
+  for (var ep in counts) {
+    var p = counts[ep] / total;
+    if (p > 0) H -= p * Math.log2(p);
+  }
+  return H;
+}
+
+function mountainPosition(H, nPages) {
+  // High entropy + few pages = ascending (exploring many topics broadly)
+  // Low entropy + many pages = descending (deep in one topic, building)
+  // Moderate entropy + moderate pages = summit (seeing the whole)
+  if (nPages < 3) return { pos: 'base', label: 'setting out', color: '#8b949e' };
+  if (H > 2.2) return { pos: 'ascending', label: 'ascending — finding', color: '#58a6ff' };
+  if (H > 1.2) return { pos: 'summit', label: 'summit — seeing', color: '#d29922' };
+  return { pos: 'descending', label: 'descending — making', color: '#3fb950' };
+}
+
+// ═══════════════════════════════════════════════════════
+// SHAREWEAR — Jaccard similarity with tuebor braids
+// ═══════════════════════════════════════════════════════
+var TUEBOR_BRAIDS = [
+  { name: 'banks', pages: ['graph','network','infrastructure','payment','board','funding','management'] },
+  { name: 'barrett', pages: ['appoints','board','litigation','charter','school'] },
+  { name: 'rogers', pages: ['oversight','enforcement','journalism','charter','school','board','funding'] },
+  { name: 'agc', pages: ['management','infrastructure','payment','charter','school','funding'] },
+  { name: 'state-bar-upl', pages: ['enforcement','oversight'] },
+];
+
+function computeShareWear(visits) {
+  var userPages = {};
+  visits.forEach(function(v) {
+    var parts = v.url.replace(/https?:\/\//, '').split('/').filter(Boolean);
+    parts.forEach(function(p) { userPages[p.toLowerCase()] = true; });
+  });
+  var userSet = Object.keys(userPages);
+  if (!userSet.length) return [];
+
+  return TUEBOR_BRAIDS.map(function(tb) {
+    var intersection = 0, union = {};
+    userSet.forEach(function(p) { union[p] = true; });
+    tb.pages.forEach(function(p) {
+      union[p] = true;
+      if (userPages[p]) intersection++;
+    });
+    var jaccard = intersection / Object.keys(union).length;
+    return { name: tb.name, jaccard: jaccard };
+  }).filter(function(s) { return s.jaccard > 0; }).sort(function(a,b) { return b.jaccard - a.jaccard; });
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render() {
+  if (!braid) return;
+  var visits = braid.visits;
+  var H = computeEntropy(visits);
+  var pos = mountainPosition(H, visits.length);
+  var sw = computeShareWear(visits);
+
+  document.getElementById('s-pages').textContent = visits.length;
+  document.getElementById('s-entropy').textContent = H.toFixed(2);
+  document.getElementById('s-position').textContent = pos.pos === 'base' ? '—' :
+    pos.pos === 'ascending' ? '↑' : pos.pos === 'summit' ? '◉' : '↓';
+  document.getElementById('s-position').style.color = pos.color;
+  document.getElementById('pos-explain').textContent = pos.label;
+  document.getElementById('s-sharewear').textContent = sw.length ? sw[0].jaccard.toFixed(2) : '—';
+
+  // Epitope bar
+  var epCounts = {};
+  visits.forEach(function(v) { epCounts[v.epitope] = (epCounts[v.epitope] || 0) + 1; });
+  var bar = document.getElementById('ep-bar');
+  bar.innerHTML = '';
+  var total = visits.length || 1;
+  for (var ep in EP_COLORS) {
+    var c = epCounts[ep] || 0;
+    if (c > 0) {
+      var d = document.createElement('div');
+      d.style.width = (c / total * 100) + '%';
+      d.style.background = EP_COLORS[ep];
+      d.title = ep + ': ' + c;
+      bar.appendChild(d);
+    }
+  }
+  var bd = document.getElementById('ep-breakdown');
+  bd.innerHTML = Object.keys(epCounts).sort(function(a,b) { return (epCounts[b]||0) - (epCounts[a]||0); })
+    .map(function(e) {
+      return '<span style="color:' + EP_COLORS[e] + '">' + e + '</span>: ' + epCounts[e];
+    }).join(' · ');
+
+  // Mountain visualization
+  var mt = document.getElementById('mountain');
+  mt.innerHTML = '';
+  var buckets = 30;
+  var heights = new Array(buckets).fill(0);
+  visits.forEach(function(v, i) {
+    var bucket = Math.floor(i / Math.max(1, visits.length / buckets));
+    if (bucket >= buckets) bucket = buckets - 1;
+    heights[bucket]++;
+  });
+  var maxH = Math.max.apply(null, heights) || 1;
+  for (var bi = 0; bi < buckets; bi++) {
+    var bar2 = document.createElement('div');
+    var pct = heights[bi] / maxH;
+    bar2.style.height = Math.max(2, pct * 70) + 'px';
+    bar2.style.width = (100 / buckets) + '%';
+    var midDist = Math.abs(bi - buckets/2) / (buckets/2);
+    bar2.style.background = 'hsl(' + (200 + midDist * 60) + ', 50%, ' + (30 + pct * 30) + '%)';
+    mt.appendChild(bar2);
+  }
+
+  // Trail
+  var trail = document.getElementById('trail');
+  trail.innerHTML = visits.slice().reverse().slice(0, 50).map(function(v) {
+    var t = new Date(v.time);
+    var ts = t.toLocaleDateString() + ' ' + t.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    return '<div><span class="visit">' + escHtml(v.title || v.url) + '</span>' +
+      ' <span class="ep" style="background:' + EP_COLORS[v.epitope] + '22;color:' + EP_COLORS[v.epitope] + '">' +
+      v.epitope + '</span>' +
+      ' <span class="ts">' + ts + '</span></div>';
+  }).join('');
+
+  // ShareWear
+  var swCard = document.getElementById('sharewear-card');
+  var swList = document.getElementById('sharewear-list');
+  if (sw.length) {
+    swCard.classList.remove('hidden');
+    swList.innerHTML = sw.map(function(s) {
+      return '<div class="sharewear">' +
+        '<span style="min-width:100px">' + s.name + '</span>' +
+        '<div class="bar"><div class="fill" style="width:' + (s.jaccard * 100) + '%"></div></div>' +
+        '<span class="val">' + (s.jaccard * 100).toFixed(0) + '%</span></div>';
+    }).join('');
+  }
+}
+
+function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ═══════════════════════════════════════════════════════
+// GATE ACTIONS
+// ═══════════════════════════════════════════════════════
+window.enterBraid = function() {
+  var phrase = document.getElementById('passphrase').value.trim();
+  if (!phrase) return;
+  braidId = hashPhrase(phrase);
+  braid = loadBraid(braidId) || newBraid(braidId, false);
+  recordVisit(location.href, document.title);
+  showBraid();
+};
+
+window.enterAnon = function() {
+  braidId = 'anon_' + Date.now().toString(36);
+  braid = newBraid(braidId, true);
+  recordVisit(location.href, document.title);
+  showBraid();
+};
+
+window.importBraid = function() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var imported = JSON.parse(ev.target.result);
+        if (imported && imported.id && imported.visits) {
+          braid = imported;
+          braid.ephemeral = false;
+          braidId = braid.id;
+          saveBraid();
+          showBraid();
+        }
+      } catch(err) { alert('could not read braid file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+window.exportBraid = function() {
+  if (!braid) return;
+  var area = document.getElementById('export-area');
+  var json = JSON.stringify(braid, null, 2);
+  area.value = json;
+  area.classList.remove('hidden');
+  // Also trigger download
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'braid-' + braid.id.slice(0,8) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+window.shareBraid = function() {
+  if (!braid) return;
+  var area = document.getElementById('export-area');
+  area.value = JSON.stringify(braid, null, 2);
+  area.classList.remove('hidden');
+  area.select();
+  try { document.execCommand('copy'); } catch(e) {}
+};
+
+window.leaveBraid = function() {
+  if (!braid) return;
+  if (!confirm('leave this braid behind? it will be removed from this device.')) return;
+  if (!braid.ephemeral) {
+    try { localStorage.removeItem(BRAID_KEY_PREFIX + braid.id); } catch(e) {}
+  }
+  braid = null;
+  braidId = null;
+  document.getElementById('braid-view').classList.add('hidden');
+  document.getElementById('gate').classList.remove('hidden');
+};
+
+function showBraid() {
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('braid-view').classList.remove('hidden');
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// CROSS-SITE BRAID TRACKER
+// Listen for navigation via postMessage from other sites
+// and record visits from the braid tracker snippet
+// ═══════════════════════════════════════════════════════
+window.addEventListener('message', function(e) {
+  if (!braid) return;
+  try {
+    var msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (msg && msg.type === 'braid-visit') {
+      recordVisit(msg.url, msg.title);
+      render();
+    }
+  } catch(err) {}
+});
+
+// Auto-resume: check if there's a saved braid
+(function autoResume() {
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf(BRAID_KEY_PREFIX) === 0) {
+        var raw = localStorage.getItem(key);
+        if (raw) {
+          var candidate = JSON.parse(raw);
+          if (candidate && candidate.visits && candidate.visits.length > 0) {
+            braid = candidate;
+            braidId = candidate.id;
+            showBraid();
+            return;
+          }
+        }
+      }
+    }
+  } catch(e) {}
+})();
+
+})();
+</script>
+</body>
+</html>

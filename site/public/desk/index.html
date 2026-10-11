@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>desk — primals.eco</title>
+<meta name="description" content="Your workspace on the membrane. Study your marks. Write from your notes. Draw connections. Play the epitope sort.">
+<meta name="robots" content="noindex">
+<style>
+:root {
+  --bg: #0d1117; --bg-alt: #0a0c12;
+  --surface: #161b22; --surface2: #1c2030; --surface3: #21262d;
+  --border: #30363d; --border-active: #58a6ff;
+  --fg: #c9d1d9; --fg-dim: #8b949e; --fg-muted: #484f58;
+  --accent: #58a6ff; --accent-dim: rgba(88,166,255,0.12);
+  --green: #3fb950; --red: #f85149; --yellow: #d29922;
+  --purple: #bc8cff; --cyan: #39d2c0; --orange: #d29922;
+
+  /* golden ratio panels */
+  --phi: 1.618;
+  --sidebar-w: 220px;
+  --header-h: 42px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  background: var(--bg); color: var(--fg);
+  font-size: 13px; line-height: 1.55;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* === LAYOUT === */
+.desk {
+  display: grid; height: 100vh;
+  grid-template-rows: var(--header-h) 1fr;
+  grid-template-columns: 1fr;
+}
+
+/* === HEADER === */
+.desk-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+}
+.desk-title {
+  font-family: "Iosevka","Fira Code",monospace;
+  font-size: 14px; color: var(--fg); font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.desk-nav { display: flex; gap: 2px; margin-left: 24px; }
+.desk-tab {
+  background: none; border: none; color: var(--fg-dim);
+  font-family: inherit; font-size: 12px; padding: 8px 14px;
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.desk-tab:hover { color: var(--fg); }
+.desk-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.desk-links {
+  margin-left: auto; display: flex; gap: 12px;
+  font-size: 11px; color: var(--fg-dim);
+}
+.desk-links a { color: var(--fg-dim); font-size: 11px; }
+.desk-links a:hover { color: var(--accent); }
+
+/* === MAIN PANEL === */
+.desk-main {
+  overflow-y: auto; padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg);
+}
+
+/* === CARDS === */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; margin-bottom: 16px; overflow: hidden;
+}
+.card-header {
+  padding: 12px 16px; font-size: 12px; font-weight: 600;
+  color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-body { padding: 16px; }
+
+/* === EPITOPE PILL === */
+.ep-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+  border: 1px solid; margin: 0 2px;
+}
+
+/* === STUDY TAB === */
+.study-group { margin-bottom: 20px; }
+.study-group-label {
+  font-size: 11px; color: var(--fg-dim); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.study-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.3);
+}
+.study-item:last-child { border-bottom: none; }
+.study-item a { font-size: 13px; }
+.study-item .study-time { font-size: 11px; color: var(--fg-muted); margin-left: auto; }
+
+/* === WRITE TAB === */
+.write-entry { margin-bottom: 16px; }
+.write-page {
+  font-size: 11px; color: var(--fg-dim); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.write-note {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 12px; font-size: 13px;
+  color: var(--fg); line-height: 1.5; white-space: pre-wrap;
+}
+
+/* === DRAW TAB === */
+.draw-canvas {
+  width: 100%; height: calc(100vh - var(--header-h) - 80px);
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: 6px; position: relative; overflow: hidden;
+}
+.draw-node {
+  position: absolute; background: var(--surface);
+  border: 2px solid; border-radius: 50%;
+  width: 50px; height: 50px; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 9px; text-align: center; cursor: grab;
+  transition: box-shadow 0.2s;
+}
+.draw-node:hover { box-shadow: 0 0 12px rgba(88,166,255,0.3); }
+
+/* === PLAY TAB — mountain journey === */
+.mountain-viz {
+  width: 100%; height: 300px; position: relative;
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.mountain-path { position: absolute; bottom: 0; left: 0; right: 0; }
+
+/* === EMPTY STATE === */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--fg-dim);
+}
+.empty-state h3 { font-size: 18px; color: var(--fg); margin-bottom: 8px; }
+.empty-state p { max-width: 400px; margin: 0 auto 16px; line-height: 1.6; }
+.empty-state a { color: var(--accent); }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: flex; gap: 24px; padding: 12px 0; margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-val { font-size: 20px; font-weight: 600; color: var(--fg); }
+.stat-label { font-size: 10px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* === EXPORT === */
+.export-btn {
+  background: var(--accent-dim); border: 1px solid var(--accent);
+  color: var(--accent); padding: 6px 14px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 12px;
+  transition: all 0.15s;
+}
+.export-btn:hover { background: var(--accent); color: #fff; }
+
+@media(max-width: 700px) {
+  .desk-nav { gap: 0; }
+  .desk-tab { padding: 8px 10px; font-size: 11px; }
+  .desk-links { display: none; }
+  .desk-main { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="desk">
+  <header class="desk-header">
+    <span class="desk-title">⊞ desk</span>
+    <nav class="desk-nav">
+      <button class="desk-tab active" data-tab="study">study</button>
+      <button class="desk-tab" data-tab="write">write</button>
+      <button class="desk-tab" data-tab="draw">draw</button>
+      <button class="desk-tab" data-tab="play">play</button>
+      <button class="desk-tab" data-tab="create">create</button>
+    </nav>
+    <div class="desk-links">
+      <a href="/">← hud</a>
+      <a href="/braid/">⟠ braid</a>
+      <a href="https://sporeprint.primals.eco">sporePrint</a>
+      <a href="https://tuebor.primals.eco">tuebor</a>
+    </div>
+  </header>
+
+  <main class="desk-main" id="desk-main">
+    <div id="panel-study"></div>
+    <div id="panel-write" style="display:none"></div>
+    <div id="panel-draw" style="display:none"></div>
+    <div id="panel-play" style="display:none"></div>
+    <div id="panel-create" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var BRAID_KEY_PREFIX = 'eco_braid_';
+var MARKS_KEY = 'eco_marks';
+var EP_COLORS = {
+  PHYSICS:'#58a6ff', TOPOLOGY:'#bc8cff', PHILOSOPHY:'#8b949e',
+  METHOD:'#3fb950', INVESTIGATION:'#d29922', IMMUNE:'#f85149',
+  SCIENCE:'#39d2c0', SIGNAL:'#79c0ff',
+};
+var EPITOPE_MAP = {
+  'anderson':'PHYSICS','localization':'PHYSICS','permeability':'PHYSICS',
+  'lattice':'PHYSICS','qcd':'PHYSICS','hofstadter':'PHYSICS','quantum':'PHYSICS',
+  'graph':'TOPOLOGY','topology':'TOPOLOGY','network':'TOPOLOGY','mesh':'TOPOLOGY',
+  'braid':'TOPOLOGY','fractal':'TOPOLOGY',
+  'philosophy':'PHILOSOPHY','omelas':'PHILOSOPHY','atlas':'PHILOSOPHY',
+  'sovereignty':'PHILOSOPHY','commons':'PHILOSOPHY','bibliography':'PHILOSOPHY',
+  'methodology':'METHOD','constrained':'METHOD','evolution':'METHOD',
+  'guidestone':'METHOD','tufte':'METHOD','schell':'METHOD','ludo':'METHOD',
+  'detroit':'INVESTIGATION','tuebor':'INVESTIGATION','public-record':'INVESTIGATION',
+  'charter':'INVESTIGATION','institutional':'INVESTIGATION','gorilla':'INVESTIGATION',
+  'membrane':'IMMUNE','immune':'IMMUNE','skunkbat':'IMMUNE','scatter':'IMMUNE',
+  'signal':'SIGNAL','lossy':'SIGNAL','shannon':'SIGNAL','channel':'SIGNAL',
+  'science':'SCIENCE','biology':'SCIENCE','genomics':'SCIENCE','ferment':'SCIENCE',
+  'story':'SIGNAL','billboard':'SIGNAL','beacon':'SIGNAL','transit':'SIGNAL',
+};
+
+function classify(url) {
+  var l = url.toLowerCase(), found = {}, best = 'SIGNAL', bestN = 0;
+  for (var kw in EPITOPE_MAP) {
+    if (l.indexOf(kw) !== -1) found[EPITOPE_MAP[kw]] = (found[EPITOPE_MAP[kw]]||0) + 1;
+  }
+  for (var ep in found) { if (found[ep] > bestN) { best = ep; bestN = found[ep]; } }
+  return best;
+}
+
+function epPill(ep) {
+  var c = EP_COLORS[ep] || '#8b949e';
+  return '<span class="ep-pill" style="color:'+c+';border-color:'+c+'44">'+ep+'</span>';
+}
+
+function findAllBraids() {
+  var braids = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf(BRAID_KEY_PREFIX) === 0) {
+        var raw = localStorage.getItem(key);
+        if (raw) {
+          var b = JSON.parse(raw);
+          if (b && b.visits) braids.push({ key: key, braid: b });
+        }
+      }
+    }
+  } catch(e) {}
+  return braids;
+}
+
+function getMarks() {
+  try { return JSON.parse(localStorage.getItem(MARKS_KEY) || '{}'); } catch(e) { return {}; }
+}
+
+function getAllVisits() {
+  var visits = [];
+  var braids = findAllBraids();
+  braids.forEach(function(b) {
+    b.braid.visits.forEach(function(v) { visits.push(v); });
+  });
+  return visits;
+}
+
+function getAllSongs() {
+  var songs = {};
+  var braids = findAllBraids();
+  braids.forEach(function(b) {
+    if (b.braid.songs) {
+      for (var url in b.braid.songs) {
+        songs[url] = { text: b.braid.songs[url], title: b.braid.visits
+          ? (b.braid.visits.find(function(v){return v.url === url;}) || {}).title || url
+          : url
+        };
+      }
+    }
+  });
+  return songs;
+}
+
+function timeAgo(iso) {
+  var d = new Date(iso), now = new Date();
+  var s = Math.floor((now - d) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+function computeEntropy(visits) {
+  var counts = {}, total = visits.length;
+  visits.forEach(function(v) { counts[v.epitope] = (counts[v.epitope]||0)+1; });
+  var H = 0;
+  for (var ep in counts) {
+    var p = counts[ep] / total;
+    if (p > 0) H -= p * Math.log2(p);
+  }
+  return H;
+}
+
+function groupByEpitope(items, epKey) {
+  var groups = {};
+  items.forEach(function(item) {
+    var ep = item[epKey || 'epitope'] || 'SIGNAL';
+    if (!groups[ep]) groups[ep] = [];
+    groups[ep].push(item);
+  });
+  return groups;
+}
+
+// ═══════════════════════════════════════════════════════
+// STUDY — reading list from marks
+// ═══════════════════════════════════════════════════════
+function renderStudy() {
+  var marks = getMarks();
+  var entries = [];
+  for (var url in marks) {
+    entries.push({ url: url, title: marks[url].title || url, epitope: marks[url].epitope || classify(url), time: marks[url].time });
+  }
+
+  if (entries.length === 0) {
+    return '<div class="empty-state">' +
+      '<h3>nothing marked yet</h3>' +
+      '<p>As you explore the membrane, use <strong>★ mark</strong> on pages that catch your eye. They\'ll appear here as your reading list.</p>' +
+      '<p><a href="https://sporeprint.primals.eco">start exploring →</a></p>' +
+    '</div>';
+  }
+
+  var groups = groupByEpitope(entries);
+  var html = '<div class="stats-bar">' +
+    '<div class="stat-item"><div class="stat-val">' + entries.length + '</div><div class="stat-label">marked</div></div>' +
+    '<div class="stat-item"><div class="stat-val">' + Object.keys(groups).length + '</div><div class="stat-label">epitopes</div></div>' +
+    '<div class="stat-item"><div class="stat-val">' + computeEntropy(entries).toFixed(2) + '</div><div class="stat-label">H (entropy)</div></div>' +
+  '</div>';
+
+  var epOrder = ['PHYSICS','TOPOLOGY','PHILOSOPHY','METHOD','INVESTIGATION','IMMUNE','SCIENCE','SIGNAL'];
+  epOrder.forEach(function(ep) {
+    if (!groups[ep]) return;
+    var c = EP_COLORS[ep];
+    html += '<div class="study-group">' +
+      '<div class="study-group-label" style="color:'+c+'">' + ep + ' (' + groups[ep].length + ')</div>';
+    groups[ep].sort(function(a,b) { return (b.time||'') > (a.time||'') ? 1 : -1; });
+    groups[ep].forEach(function(e) {
+      html += '<div class="study-item">' +
+        '<a href="' + e.url + '" target="_blank">' + e.title + '</a>' +
+        '<span class="study-time">' + (e.time ? timeAgo(e.time) : '') + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// WRITE — notes from songs
+// ═══════════════════════════════════════════════════════
+function renderWrite() {
+  var songs = getAllSongs();
+  var urls = Object.keys(songs);
+
+  if (urls.length === 0) {
+    return '<div class="empty-state">' +
+      '<h3>no notes yet</h3>' +
+      '<p>Use <strong>♪ sing</strong> on any page to leave a note. Your notes live in your braid — never sent to a server.</p>' +
+      '<p>Your songs will appear here as a notebook.</p>' +
+    '</div>';
+  }
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+    '<span style="color:var(--fg-dim);font-size:12px">' + urls.length + ' pages with notes</span>' +
+    '<button class="export-btn" id="export-md">export as markdown</button>' +
+  '</div>';
+
+  urls.forEach(function(url) {
+    var s = songs[url];
+    var ep = classify(url);
+    html += '<div class="write-entry">' +
+      '<div class="write-page">' +
+        epPill(ep) +
+        ' <a href="' + url + '" target="_blank">' + s.title + '</a>' +
+      '</div>' +
+      '<div class="write-note">' + escHtml(s.text) + '</div>' +
+    '</div>';
+  });
+
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAW — epitope connection map
+// ═══════════════════════════════════════════════════════
+function renderDraw() {
+  var visits = getAllVisits();
+  if (visits.length < 2) {
+    return '<div class="empty-state">' +
+      '<h3>not enough trail yet</h3>' +
+      '<p>Explore more pages across the membrane. As your trail grows, the draw canvas maps the connections between the epitopes you\'ve touched.</p>' +
+    '</div>';
+  }
+
+  var counts = {};
+  visits.forEach(function(v) { counts[v.epitope] = (counts[v.epitope]||0)+1; });
+  var eps = Object.keys(counts).sort(function(a,b) { return counts[b] - counts[a]; });
+  var total = visits.length;
+
+  var html = '<div class="card"><div class="card-header">your epitope map</div><div class="card-body">';
+  html += '<div class="draw-canvas" id="draw-area">';
+
+  var cx = 400, cy = 200, r = 150;
+  eps.forEach(function(ep, i) {
+    var angle = (2 * Math.PI * i / eps.length) - Math.PI/2;
+    var x = cx + r * Math.cos(angle) - 25;
+    var y = cy + r * Math.sin(angle) - 25;
+    var size = 30 + Math.min(50, (counts[ep]/total) * 150);
+    var c = EP_COLORS[ep];
+    html += '<div class="draw-node" style="left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;border-color:'+c+';color:'+c+'">' +
+      ep + '<br>' + counts[ep] +
+    '</div>';
+  });
+
+  html += '</div></div></div>';
+
+  // Connections list
+  html += '<div class="card"><div class="card-header">epitope transitions</div><div class="card-body">';
+  var transitions = {};
+  for (var i = 1; i < visits.length; i++) {
+    var from = visits[i-1].epitope, to = visits[i].epitope;
+    if (from !== to) {
+      var key = from + ' → ' + to;
+      transitions[key] = (transitions[key]||0) + 1;
+    }
+  }
+  var tKeys = Object.keys(transitions).sort(function(a,b) { return transitions[b] - transitions[a]; });
+  if (tKeys.length === 0) {
+    html += '<p style="color:var(--fg-dim)">All visits in one epitope — no transitions yet.</p>';
+  } else {
+    tKeys.slice(0,15).forEach(function(t) {
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
+        '<span style="font-size:12px">' + t + '</span>' +
+        '<span style="margin-left:auto;color:var(--fg-dim);font-size:11px">×' + transitions[t] + '</span>' +
+      '</div>';
+    });
+  }
+  html += '</div></div>';
+
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// PLAY — mountain journey visualization
+// ═══════════════════════════════════════════════════════
+function renderPlay() {
+  var visits = getAllVisits();
+  if (visits.length < 1) {
+    return '<div class="empty-state">' +
+      '<h3>the mountain awaits</h3>' +
+      '<p>Every page you visit adds a step to the path. The mountain reveals itself as your epitope signature diversifies.</p>' +
+      '<p><a href="https://sporeprint.primals.eco/science/">climb from science →</a></p>' +
+    '</div>';
+  }
+
+  var H = computeEntropy(visits);
+  var pos = visits.length < 3 ? 'setting out' : H > 2.2 ? 'ascending — exploring broadly' : H > 1.2 ? 'summit — seeing the whole' : 'descending — building deep';
+
+  var html = '<div class="card"><div class="card-header">your mountain</div><div class="card-body">';
+
+  // Stats
+  html += '<div class="stats-bar">' +
+    '<div class="stat-item"><div class="stat-val">' + visits.length + '</div><div class="stat-label">steps</div></div>' +
+    '<div class="stat-item"><div class="stat-val">' + H.toFixed(2) + '</div><div class="stat-label">H (entropy)</div></div>' +
+    '<div class="stat-item"><div class="stat-val" style="font-size:14px">' + pos + '</div><div class="stat-label">position</div></div>' +
+  '</div>';
+
+  // Mountain path ASCII art
+  var counts = {};
+  visits.forEach(function(v) { counts[v.epitope] = (counts[v.epitope]||0)+1; });
+  var eps = Object.keys(counts).sort(function(a,b) { return counts[b] - counts[a]; });
+
+  html += '<div style="font-family:monospace;font-size:11px;line-height:1.4;padding:16px;background:var(--bg-alt);border-radius:6px">';
+  var maxCount = Math.max.apply(null, eps.map(function(e) { return counts[e]; }));
+  eps.forEach(function(ep) {
+    var c = EP_COLORS[ep];
+    var barLen = Math.round((counts[ep] / maxCount) * 40);
+    var bar = '';
+    for (var i = 0; i < barLen; i++) bar += '█';
+    html += '<span style="color:'+c+'">' + pad(ep, 14) + ' ' + bar + ' ' + counts[ep] + '</span>\n';
+  });
+  html += '</div>';
+
+  // Recent journey
+  html += '<h3 style="margin-top:20px;color:var(--fg-dim);font-size:12px;text-transform:uppercase;letter-spacing:0.05em">recent path</h3>';
+  var recent = visits.slice(-20).reverse();
+  recent.forEach(function(v) {
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)">' +
+      epPill(v.epitope) +
+      ' <a href="' + v.url + '" target="_blank" style="font-size:12px">' + (v.title||v.url).slice(0,60) + '</a>' +
+      '<span style="margin-left:auto;color:var(--fg-muted);font-size:10px">' + timeAgo(v.time) + '</span>' +
+    '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// CREATE — forge a story from marks + songs
+// ═══════════════════════════════════════════════════════
+function renderCreate() {
+  var marks = getMarks();
+  var songs = getAllSongs();
+  var markCount = Object.keys(marks).length;
+  var songCount = Object.keys(songs).length;
+
+  if (markCount === 0 && songCount === 0) {
+    return '<div class="empty-state">' +
+      '<h3>forge something</h3>' +
+      '<p>Mark pages you find important. Sing notes on them. Come back here to weave them into a story — a shareable braid of the things that caught your eye.</p>' +
+    '</div>';
+  }
+
+  var html = '<div class="card"><div class="card-header">forge a braid</div><div class="card-body">';
+  html += '<p style="color:var(--fg-dim);margin-bottom:16px">Your marks and songs, woven together. Export as a shareable page.</p>';
+
+  html += '<div class="stats-bar">' +
+    '<div class="stat-item"><div class="stat-val">' + markCount + '</div><div class="stat-label">marks</div></div>' +
+    '<div class="stat-item"><div class="stat-val">' + songCount + '</div><div class="stat-label">songs</div></div>' +
+  '</div>';
+
+  // Show marks with their songs interspersed
+  for (var url in marks) {
+    var m = marks[url];
+    var ep = m.epitope || classify(url);
+    html += '<div style="margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:4px;border-left:3px solid '+(EP_COLORS[ep]||'#8b949e')+'">';
+    html += '<div style="display:flex;align-items:center;gap:8px">' +
+      epPill(ep) + ' <a href="' + url + '" target="_blank">' + (m.title || url) + '</a>' +
+    '</div>';
+    if (songs[url]) {
+      html += '<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:4px;font-size:12px;color:var(--fg);white-space:pre-wrap">' +
+        escHtml(songs[url].text) + '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div style="margin-top:16px;display:flex;gap:8px">' +
+    '<button class="export-btn" id="export-braid-md">export as markdown</button>' +
+    '<button class="export-btn" id="export-braid-json" style="border-color:var(--purple);color:var(--purple)">export as JSON</button>' +
+  '</div>';
+
+  html += '</div></div>';
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function pad(s, n) {
+  while (s.length < n) s += ' ';
+  return s;
+}
+
+function exportMarkdown() {
+  var songs = getAllSongs();
+  var md = '# Desk Notes — primals.eco\n\n';
+  md += '_Exported ' + new Date().toISOString().slice(0,10) + '_\n\n';
+  for (var url in songs) {
+    var s = songs[url];
+    var ep = classify(url);
+    md += '## ' + s.title + '\n\n';
+    md += '**Epitope:** ' + ep + '  \n';
+    md += '**URL:** ' + url + '\n\n';
+    md += s.text + '\n\n---\n\n';
+  }
+  downloadFile('desk-notes.md', md, 'text/markdown');
+}
+
+function exportBraidMd() {
+  var marks = getMarks();
+  var songs = getAllSongs();
+  var md = '# My Braid — primals.eco\n\n';
+  md += '_Forged ' + new Date().toISOString().slice(0,10) + '_\n\n';
+  for (var url in marks) {
+    var m = marks[url];
+    var ep = m.epitope || classify(url);
+    md += '## ' + (m.title || url) + '\n\n';
+    md += '**Epitope:** ' + ep + '  \n';
+    md += '**URL:** ' + url + '\n\n';
+    if (songs[url]) md += songs[url].text + '\n\n';
+    md += '---\n\n';
+  }
+  downloadFile('braid.md', md, 'text/markdown');
+}
+
+function exportBraidJson() {
+  var braids = findAllBraids();
+  var marks = getMarks();
+  var data = { exported: new Date().toISOString(), braids: braids.map(function(b){return b.braid;}), marks: marks };
+  downloadFile('braid.json', JSON.stringify(data, null, 2), 'application/json');
+}
+
+function downloadFile(name, content, type) {
+  var blob = new Blob([content], {type: type});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+var tabs = document.querySelectorAll('.desk-tab');
+var panels = {
+  study: document.getElementById('panel-study'),
+  write: document.getElementById('panel-write'),
+  draw:  document.getElementById('panel-draw'),
+  play:  document.getElementById('panel-play'),
+  create:document.getElementById('panel-create'),
+};
+var renderers = {
+  study: renderStudy,
+  write: renderWrite,
+  draw:  renderDraw,
+  play:  renderPlay,
+  create:renderCreate,
+};
+
+function switchTab(name) {
+  tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
+  for (var p in panels) {
+    panels[p].style.display = p === name ? '' : 'none';
+    if (p === name) panels[p].innerHTML = renderers[p]();
+  }
+  // Bind export buttons after render
+  setTimeout(function() {
+    var expMd = document.getElementById('export-md');
+    if (expMd) expMd.addEventListener('click', exportMarkdown);
+    var expBMd = document.getElementById('export-braid-md');
+    if (expBMd) expBMd.addEventListener('click', exportBraidMd);
+    var expBJ = document.getElementById('export-braid-json');
+    if (expBJ) expBJ.addEventListener('click', exportBraidJson);
+  }, 50);
+}
+
+tabs.forEach(function(t) {
+  t.addEventListener('click', function() { switchTab(this.dataset.tab); });
+});
+
+// Boot
+switchTab('study');
+
+})();
+</script>
+</body>
+</html>

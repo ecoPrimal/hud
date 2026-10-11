@@ -1,0 +1,353 @@
+/* biomeOS HUD — dark theme, information-dense dashboard */
+
+:root {
+  --bg-primary: #0d1117;
+  --bg-card: #161b22;
+  --bg-deep: #010409;
+  --border: #21262d;
+  --border-light: #30363d;
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --text-dim: #484f58;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --danger: #e74c3c;
+  --warning: #f1c40f;
+  --orange: #ff6b35;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.hud-header {
+  border-bottom: 1px solid var(--border);
+  padding: 0.6em 1.5em;
+  background: var(--bg-deep);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.hud-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.hud-pulse {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.hud-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+.hud-title:hover { color: var(--text-primary); }
+.hud-subtitle {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.hud-links {
+  display: flex;
+  gap: 0.4em;
+  list-style: none;
+  flex-wrap: wrap;
+}
+.hud-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.78em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.hud-links a:hover {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.08);
+}
+
+/* ── Main ── */
+.hud-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.2em 1.5em;
+}
+
+/* ── Billboard ── */
+.hud-billboard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.5em;
+  margin-bottom: 1.2em;
+  display: none;
+}
+.hud-billboard-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  margin-bottom: 0.5em;
+}
+.hud-billboard-label {
+  font-family: monospace;
+  font-size: 0.8em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.hud-billboard-msg {
+  font-family: Georgia, serif;
+  font-size: 1.05em;
+  color: #e8e8e8;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ── Summary Strip ── */
+.hud-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8em;
+  margin-bottom: 1.2em;
+}
+.hud-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+  text-align: center;
+}
+.hud-stat-value {
+  font-size: 1.8em;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  line-height: 1.2;
+}
+.hud-stat-label {
+  font-size: 0.7em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.2em;
+}
+
+/* ── Dashboard Grid ── */
+.hud-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1em;
+  margin-bottom: 1.2em;
+}
+@media (max-width: 860px) {
+  .hud-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Cards ── */
+.hud-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+}
+.hud-card-title {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.8em;
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--border);
+}
+.hud-card-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Tables ── */
+.hud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82em;
+}
+.hud-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.hud-table td {
+  padding: 4px 6px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+.hud-table tbody tr:hover {
+  background: rgba(88, 166, 255, 0.04);
+}
+
+/* ── Epitope grid ── */
+.hud-epitope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.7em;
+}
+
+/* ── Footer ── */
+.hud-footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5em;
+  text-align: center;
+  font-size: 0.8em;
+  color: var(--text-dim);
+  max-width: 1400px;
+  margin: 2em auto 0;
+}
+.hud-footer a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+.hud-footer a:hover { text-decoration: underline; }
+.hud-footer p { margin: 0.3em 0; }
+.hud-eco {
+  color: var(--text-muted);
+  margin-top: 0.8em !important;
+}
+
+/* ── petalTongue viz ── */
+/* pt-viz rules moved to dimensional cost section */
+
+/* ── Utilities ── */
+.mono { font-family: 'Courier New', monospace; }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.text-green { color: var(--accent-green); }
+.text-blue { color: var(--accent-blue); }
+.text-orange { color: var(--orange); }
+.text-muted { color: var(--text-muted); }
+.text-dim { color: var(--text-dim); }
+
+/* ═══════════════════════════════════════════════════════════
+   Dimensional Cost Layout — C(n) ∝ π^(n/2)
+   Panel visual weight scales with data dimensionality.
+   baseCamp 52: GoG + Manim = Full Life
+   ═══════════════════════════════════════════════════════════ */
+
+/* Fixed 2-column grid — clean alignment, no orphan cells */
+.hud-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 1em;
+}
+
+/* 3D panels: full width (span both columns) */
+.hud-card[data-dim="3"] {
+  grid-column: 1 / -1;
+}
+/* 4D panels: full width, taller for matrix density */
+.hud-card[data-dim="4"] {
+  grid-column: 1 / -1;
+}
+/* 1D panels: single column but shorter height */
+.hud-card[data-dim="1"] .pt-viz {
+  min-height: 80px;
+}
+.hud-card[data-dim="1"] .pt-viz svg {
+  max-height: 180px;
+}
+/* 2D panels: standard single column */
+.hud-card[data-dim="2"] .pt-viz svg {
+  max-height: 260px;
+}
+/* 3D/4D panels: taller to match dimensional cost */
+.hud-card[data-dim="3"] .pt-viz svg,
+.hud-card[data-dim="4"] .pt-viz svg {
+  max-height: 340px;
+}
+
+/* Panels with no data collapse — zero viewport cost */
+.hud-card[data-alive="false"] {
+  display: none;
+}
+
+/* Alive panels — subtle transition on appearance */
+.hud-card[data-alive="true"] {
+  border-color: #21262d;
+  transition: border-color 0.3s, opacity 0.3s;
+  opacity: 1;
+}
+.hud-card[data-alive="true"]:hover {
+  border-color: var(--accent-blue);
+}
+
+/* Dimensional cost label — right-aligned in header */
+.hud-dim-cost {
+  font-family: 'Courier New', monospace;
+  font-size: 0.65em;
+  color: var(--text-dim);
+  float: right;
+  margin-top: 0.1em;
+}
+
+/* SVG chart container — fill available width properly */
+.pt-viz {
+  min-height: 100px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pt-viz svg {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 280px;
+  display: block;
+}
+.pt-viz:empty::after {
+  content: '⏳ waiting for petalTongue...';
+  color: var(--text-dim);
+  font-size: 0.72em;
+  font-style: italic;
+}
+
+/* Mobile: single column */
+@media (max-width: 860px) {
+  .hud-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #epitope-index {
+    column-count: 1 !important;
+  }
+}
