@@ -6,8 +6,9 @@
   'use strict';
 
   var SITES = [
-    { id: 'signal',     url: 'https://signal.primals.eco',     label: 'signal' },
-    { id: 'detroit',    url: 'https://detroit.primals.eco',     label: 'detroit' },
+    { id: 'barry',      url: 'https://barry.primals.eco',       label: 'barry' },
+    { id: 'signal',     url: 'https://signal.primals.eco',      label: 'signal' },
+    { id: 'detroit',    url: 'https://detroit.primals.eco',      label: 'detroit' },
     { id: 'tuebor',     url: 'https://tuebor.primals.eco',      label: 'tuebor' },
     { id: 'sporeprint', url: 'https://sporeprint.primals.eco',  label: 'sporePrint' },
     { id: 'hypothesis', url: 'https://hypothesis.primals.eco',  label: 'hypothesis' },

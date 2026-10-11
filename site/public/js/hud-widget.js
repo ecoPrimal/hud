@@ -70,15 +70,16 @@
     '<div class="hw-section"><div class="hw-section-title">Epitope Organisms</div><div id="hw-organisms" class="hw-org-grid"></div></div>'+
     '<div class="hw-section"><div class="hw-section-title">Geography</div><div id="hw-geo"></div></div>'+
     '<div class="hw-section"><div class="hw-section-title">Ecosystem</div><div id="hw-eco">'+
-      '<a class="hw-link" href="https://hud.primals.eco">HUD</a>'+
+      '<a class="hw-link" href="https://barry.primals.eco">barry</a>'+
       '<a class="hw-link" href="https://signal.primals.eco">signal</a>'+
       '<a class="hw-link" href="https://detroit.primals.eco">detroit</a>'+
-      '<a class="hw-link" href="https://hypothesis.primals.eco">hypothesis</a>'+
-      '<a class="hw-link" href="https://thesis.primals.eco">thesis</a>'+
       '<a class="hw-link" href="https://tuebor.primals.eco">tuebor</a>'+
-      '<a class="hw-link" href="https://lansing.primals.eco">lansing</a>'+
-      '<a class="hw-link" href="https://clutch.primals.eco">clutch</a>'+
       '<a class="hw-link" href="https://sporeprint.primals.eco">sporePrint</a>'+
+      '<a class="hw-link" href="https://hypothesis.primals.eco">hypothesis</a>'+
+      '<a class="hw-link" href="https://hud.primals.eco">hud</a>'+
+      '<a class="hw-link" href="https://thesis.primals.eco">thesis</a>'+
+      '<a class="hw-link" href="https://clutch.primals.eco">clutch</a>'+
+      '<a class="hw-link" href="https://gorilla.primals.eco">gorilla</a>'+
       '<a class="hw-link" href="https://git.primals.eco">git</a>'+
     '</div></div>';
 

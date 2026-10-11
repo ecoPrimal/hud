@@ -205,8 +205,85 @@ function NanowireRenderer(config) {
     return html + '</div>';
   }
 
+  function renderChord(b) {
+    var cats = b.categories || [];
+    var flows = b.flows || [];
+    var n = cats.length;
+    if (!n) return '';
+    var maxV = Math.max.apply(null, flows.concat([1]));
+    var html = '<div style="overflow-x:auto;font-size:0.65em">' +
+      '<table style="border-collapse:separate;border-spacing:1px;width:100%">' +
+      '<tr><td style="padding:3px;color:' + C.muted + '">→</td>';
+    for (var c = 0; c < n; c++) html += '<td style="padding:3px;color:' + C.dim + ';text-align:center;font-weight:600">' + esc(cats[c]) + '</td>';
+    html += '</tr>';
+    for (var r = 0; r < n; r++) {
+      html += '<tr><td style="padding:3px;color:' + C.fg + ';font-weight:600">' + esc(cats[r]) + '</td>';
+      for (var ci = 0; ci < n; ci++) {
+        var v = flows[r * n + ci] || 0;
+        var intensity = maxV > 0 ? v / maxV : 0;
+        var bg = r === ci ? 'rgba(88,166,255,0.08)' : 'rgba(88,166,255,' + (0.05 + intensity * 0.7).toFixed(2) + ')';
+        html += '<td style="padding:3px;text-align:center;background:' + bg + ';color:' + (intensity > 0.5 ? '#fff' : C.dim) + ';border-radius:2px">' + (v > 0 ? fmtNum(v) : '\u00b7') + '</td>';
+      }
+      html += '</tr>';
+    }
+    return html + '</table></div>';
+  }
+
+  function renderForceGraph(b) {
+    var nodes = b.nodes || [];
+    var edges = b.edges || [];
+    if (nodes.length < 2) return '';
+    var W = Math.min(b.width || 600, 600), H = Math.min(b.height || 400, 400);
+    var cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.38;
+    var PI = Math.PI;
+    var tiers = {};
+    nodes.forEach(function(n) {
+      var t = n.tier || n.kind || 'other';
+      if (!tiers[t]) tiers[t] = [];
+      tiers[t].push(n);
+    });
+    var tierKeys = Object.keys(tiers).sort();
+    var pos = {};
+    tierKeys.forEach(function(tk, ti) {
+      var r = tierKeys.length === 1 ? R * 0.6 : R * (0.15 + 0.85 * ti / (tierKeys.length - 1));
+      var group = tiers[tk];
+      group.forEach(function(n, ni) {
+        var angle = -PI / 2 + (ni / group.length) * 2 * PI;
+        pos[n.id] = {x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), tier: tk, label: n.label || n.id};
+      });
+    });
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-height:' + H + 'px;font-family:monospace">';
+    svg += '<rect width="' + W + '" height="' + H + '" fill="' + C.card + '" rx="4"/>';
+    edges.forEach(function(e) {
+      var s = pos[e.source], t = pos[e.target];
+      if (s && t) svg += '<line x1="' + s.x.toFixed(1) + '" y1="' + s.y.toFixed(1) + '" x2="' + t.x.toFixed(1) + '" y2="' + t.y.toFixed(1) + '" stroke="' + C.border + '" stroke-width="0.5" stroke-opacity="0.3"/>';
+    });
+    var deg = {};
+    edges.forEach(function(e) { deg[e.source] = (deg[e.source] || 0) + 1; deg[e.target] = (deg[e.target] || 0) + 1; });
+    var labelCut = Math.max(Math.floor(nodes.length / 8), 2);
+    Object.keys(pos).forEach(function(id) {
+      var p = pos[id];
+      var color = pickColor(tierKeys.indexOf(p.tier) >= 0 ? tierKeys.indexOf(p.tier) : 0, tierKeys.length);
+      var r = Math.min(2 + (deg[id] || 0) * 0.3, 6);
+      svg += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + color + '" opacity="0.8"/>';
+      if ((deg[id] || 0) >= labelCut) {
+        svg += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - r - 2).toFixed(1) + '" fill="' + C.dim + '" font-size="5" text-anchor="middle">' + esc(p.label.substring(0, 18)) + '</text>';
+      }
+    });
+    var lgY = 12;
+    tierKeys.forEach(function(tk, ti) {
+      var color = pickColor(ti, tierKeys.length);
+      svg += '<circle cx="12" cy="' + lgY + '" r="3" fill="' + color + '" opacity="0.8"/>';
+      svg += '<text x="20" y="' + (lgY + 3) + '" fill="' + C.dim + '" font-size="6">' + esc(tk) + ' (' + tiers[tk].length + ')</text>';
+      lgY += 12;
+    });
+    svg += '</svg>';
+    return svg;
+  }
+
   function renderDonut(b) {
     var segments = b.segments || [];
+    if (!segments.length && b.slices) segments = b.slices;
     if (!segments.length && b.categories && b.values) {
       segments = b.categories.map(function(c, i) { return {label: c, value: b.values[i]}; });
     }
@@ -255,6 +332,8 @@ function NanowireRenderer(config) {
       case 'faceted_bar':   html = renderFacetedBar(binding); break;
       case 'faceted_gauge': html = renderFacetedGauge(binding); break;
       case 'donut':         html = renderDonut(binding); break;
+      case 'chord':         html = renderChord(binding); break;
+      case 'force_graph':   html = renderForceGraph(binding); break;
       default:              html = renderBar(binding); break;
     }
 
