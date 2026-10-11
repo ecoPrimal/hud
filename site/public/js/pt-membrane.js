@@ -173,7 +173,7 @@ window.PtMembrane = function(deps) {
     var bPos = {};
     bodies.forEach(function(b) { bPos[b.id] = {x:cx+BR*Math.cos(b.angle), y:cy+BR*Math.sin(b.angle)}; });
     el('path', {d:'M '+bPos.is.x.toFixed(1)+' '+bPos.is.y.toFixed(1)+' L '+bPos.was.x.toFixed(1)+' '+bPos.was.y.toFixed(1)+' L '+bPos.willbe.x.toFixed(1)+' '+bPos.willbe.y.toFixed(1)+' Z', fill:'none', stroke:'#c9d1d9', 'stroke-width':0.5, 'stroke-opacity':0.12, 'stroke-dasharray':'4,6', id:'mg-body-tri'}, wbG);
-    [{from:'is',to:'was',label:'E = IS/WAS',color:'#e85d3a'},{from:'was',to:'willbe',label:'m = NP/WAS',color:'#6e7681'},{from:'willbe',to:'is',label:'c\u00b2 = IS/NP',color:'#5ab87a'}].forEach(function(e) {
+    [{from:'is',to:'was',label:'observer \u2192 observed',color:'#e85d3a'},{from:'was',to:'willbe',label:'observed \u2192 predicted',color:'#6e7681'},{from:'willbe',to:'is',label:'predicted \u2192 observer',color:'#5ab87a'}].forEach(function(e) {
       txt(wbG, ((bPos[e.from].x+bPos[e.to].x)/2).toFixed(1), ((bPos[e.from].y+bPos[e.to].y)/2).toFixed(1), e.label, e.color, 5.5, {opacity:0.4, 'dominant-baseline':'central'});
     });
     bodies.forEach(function(b) {
@@ -208,10 +208,14 @@ window.PtMembrane = function(deps) {
     // \u2550\u2550 IS layer: live particles \u2550\u2550
     pGroup = el('g', {id:'mg-is'}, svg);
 
-    // center + legend
-    txt(svg, cx, cy-8, 'epitopes', '#8b949e', 9);
-    txt(svg, cx, cy+6, aliveSet.size+'/'+PANELS.length+' alive', '#6e7681', 7, {id:'mg-alive-count'});
+    // center: datum = observation = \u03c0^(3/2)
+    // The 3 bodies (IS/WAS/WILLBE) triangulate every datum.
+    // A datum IS an observation. Observation costs C(3) = \u03c0^(3/2).
+    txt(svg, cx, cy-16, 'datum', '#8b949e', 9);
+    txt(svg, cx, cy-2, '= observation', '#6e7681', 6.5);
+    txt(svg, cx, cy+12, aliveSet.size+'/'+PANELS.length+' alive', '#6e7681', 7, {id:'mg-alive-count'});
     var lgG = el('g', {id:'mg-legend'}, svg);
+    txt(lgG, 14, H-66, 'datum = observation = C(3) = \u03c0^(3/2) \u2248 5.57', '#8b949e', 7, {'text-anchor':'start'});
     txt(lgG, 14, H-55, 'focal distance = 1/C(n) = 1/\u03c0^(n/2)', '#6e7681', 7, {'text-anchor':'start'});
     [['1D: \u221a\u03c0 \u2248 1.77 \u2192 f = 0.56','#9b59b6'],['2D: \u03c0 \u2248 3.14 \u2192 f = 0.32','#4a8fb8'],['3D: \u03c0^1.5 \u2248 5.57 \u2192 f = 0.18','#5ab87a'],['4D: \u03c0\u00b2 \u2248 9.87 \u2192 f = 0.10','#e85d3a']].forEach(function(leg, i) {
       var ly = H-43+i*11;

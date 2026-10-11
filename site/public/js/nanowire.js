@@ -79,7 +79,19 @@ function NanowireRenderer(config) {
 
   // ═══════════════════════════════════════════════════════
   // SHAPE = f(data) — inner membrane geometry
-  // 3 datum triangulate 1 vector: form × face × function
+  //
+  // datum = observation = C(3) = π^(3/2) ≈ 5.57
+  //
+  // To observe anything requires 3 bodies:
+  //   IS (observer)  ×  WAS (observed)  ×  WILLBE (observation)
+  // These triangulate the datum. Cost = π^(3/2).
+  // π^(n/2) is the n-ball volume numerator — the "raw"
+  // volume of observation space before Γ normalization.
+  //
+  // Below 3: insufficient to observe (1D=axis, 2D=plane).
+  // At 3: triangulated — datum becomes observation.
+  // Above 3: redundant — cross-validation, matrix views.
+  //
   // dim → shape: 1D=lens, 2D=plane, 3D=hex, 4D=octagon
   // ═══════════════════════════════════════════════════════
 
