@@ -11,55 +11,55 @@
 
   var PANELS = [
     {id: 'summary-kpis',     title: 'Live Signal',               sub: 'RPS, fleet IPs, human IPs, fleet %, machine confidence.',
-     dim: 2, eq: 'C(2) = \u03c0 \u2248 3.14',    cat: 'SIGNAL',        full: true},
+     dim: 2, eq: 'C(2) = \u03c0 \u2248 3.14',    cat: 'fire',   full: true},
     {id: 'bingo',            title: 'Bingo Cube',                 sub: 'Attention \u00d7 Curiosity \u00d7 Interaction.',
-     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'IMMUNE'},
+     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'membrane'},
     {id: 'fp-scatter',       title: 'Fingerprint Space',          sub: 'UA pool \u00d7 IP count \u00d7 behavioral shape.',
-     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'IMMUNE'},
+     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'membrane'},
     {id: 'organism-profile',  title: 'Organism Profile',          sub: 'Per-organism IPs \u00d7 UA pool \u00d7 blame%. Each facet = one fingerprint cluster.',
-     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'IMMUNE',        full: true},
+     dim: 3, eq: 'C(3) = \u03c0^1.5 \u2248 5.57', cat: 'membrane', full: true},
     {id: 'epitope-summary',  title: 'Epitope Summary',            sub: 'Organism detection counts.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'IMMUNE'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'membrane'},
     {id: 'entity-pop',       title: 'Entity Population',          sub: 'Request volume by classified entity.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'SIGNAL'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'collision',        title: 'Collision Detection',         sub: 'Coordination patterns.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'IMMUNE'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'immune'},
     {id: 'asn',              title: 'ASN Infrastructure',          sub: 'Where traffic originates.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'TOPOLOGY'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'paths',            title: 'Path Classification',         sub: 'What the fleet targets.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'METHOD'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'offenders',        title: 'Top Offenders',               sub: 'Highest-volume sources.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'INVESTIGATION'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'targets',          title: 'Target Repos',                sub: 'Which repos targeted.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'INVESTIGATION'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'geo',              title: 'Geographic Distribution',     sub: 'Requests per country.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'SIGNAL'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'subnets',          title: 'Network Blocks',              sub: 'Subnet concentration.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'TOPOLOGY'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire'},
     {id: 'honesty',          title: 'Fleet Honesty',               sub: 'Proportion of honest traffic.',
-     dim: 1, eq: 'C(1) = \u221a\u03c0 \u2248 1.77',   cat: 'IMMUNE'},
+     dim: 1, eq: 'C(1) = \u221a\u03c0 \u2248 1.77',   cat: 'immune'},
     {id: 'timing-cv',        title: 'Timing CV',                   sub: 'Coefficient of variation.',
-     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'IMMUNE'},
+     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'immune'},
     {id: 'timing-interval',  title: 'Timing Interval',             sub: 'Mean ms between requests.',
-     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'IMMUNE'},
+     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'immune'},
     {id: 'epitope-mx',       title: 'Epitope Matrix',              sub: 'Organisms \u00d7 features.',
-     dim: 4, eq: 'C(4) = \u03c0\u00b2 \u2248 9.87',   cat: 'IMMUNE'},
+     dim: 4, eq: 'C(4) = \u03c0\u00b2 \u2248 9.87',   cat: 'membrane'},
     {id: 'geo-mx',           title: 'Geographic \u00d7 Entity',         sub: 'Country \u00d7 entity type.',
-     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'TOPOLOGY'},
+     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'fire'},
     {id: 'comparative',      title: 'Comparative Fingerprints',    sub: 'Entity \u00d7 feature matrix.',
-     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'IMMUNE'},
+     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'membrane'},
     {id: 'entity-matrix',    title: 'Entity Behavioral Matrix',    sub: 'Full comparison across all entities.',
-     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'IMMUNE',        full: true},
+     dim: 4, eq: 'C(4) = \u03c0\u00b2',           cat: 'membrane', full: true},
     {id: 'relay-selectivity', title: 'Anderson Selectivity',       sub: 'S = max(P) \u2212 min(P) \u2014 live.',
-     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'PHYSICS'},
+     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'immune'},
     {id: 'relay-permeability',title: 'Per-Mode Permeability',      sub: 'Observed P per transport mode.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'PHYSICS'},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'immune'},
     {id: 'entity-gauges',    title: 'Entity Timing Gauges',        sub: 'Per-entity timing CV. Low CV = machine.',
-     dim: 2, eq: 'C(2) = \u03c0',            cat: 'IMMUNE',        full: true},
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'immune', full: true},
     {id: 'entity-detail',    title: 'Entity Behavioral Profile',   sub: 'Per-entity Chrome Lag, Blame%, RPS.',
-     dim: 3, eq: 'C(3) = \u03c0^1.5',        cat: 'IMMUNE',        full: true},
+     dim: 3, eq: 'C(3) = \u03c0^1.5',        cat: 'membrane', full: true},
     {id: 'organism-lang',    title: 'Accept-Language',              sub: 'Human vs machine tell \u2014 donut.',
-     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'IMMUNE'},
+     dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'membrane'},
   ];
 
   function epitopeSort(panels, aliveSet) {
@@ -74,20 +74,10 @@
   }
 
   var CAT_COLORS = {
-    PHYSICS: '#e85d3a', TOPOLOGY: '#9b59b6', PHILOSOPHY: '#3fb950',
-    METHOD: '#58a6ff', INVESTIGATION: '#f1c40f', IMMUNE: '#ff6b35',
-    SCIENCE: '#e8e8e8', SIGNAL: '#4a8fb8'
+    fire: '#e85d3a', sound: '#4a8fb8', membrane: '#5ab87a', immune: '#9b59b6'
   };
 
   var EPITOPE_INDEX = [
-    {epitope:'PHYSICS',title:'Physics & Mathematics',sub:'Anderson localization, dimensional analysis, lattice QCD, spectral theory',color:'#e85d3a',sites:[{name:'Anderson Localization',url:'https://detroit.primals.eco/analysis/anderson-localization/',domain:'detroit'},{name:'Anderson Permeability',url:'https://detroit.primals.eco/analysis/anderson-permeability/',domain:'detroit'},{name:'Mass-Energy Equivalence',url:'https://sporeprint.primals.eco/science/32-mass-energy-equivalence/',domain:'sporePrint'},{name:'Neuromorphic Sovereign Driver',url:'https://sporeprint.primals.eco/science/26-neuromorphic-sovereign-driver/',domain:'sporePrint'},{name:'Dimensional Cost Layout',url:'https://sporeprint.primals.eco/science/52-dimensional-cost-petal-tongue-gog/',domain:'sporePrint'},{name:'WDM + GPU Pipeline',url:'https://sporeprint.primals.eco/products/lattice-qcd/',domain:'sporePrint'},{name:'Spectral Analysis',url:'https://sporeprint.primals.eco/science/44-spectral-fingerprint-anderson/',domain:'sporePrint'},{name:'Mobility Edge',url:'https://sporeprint.primals.eco/science/46-mobility-edge-entropy-rps/',domain:'sporePrint'}]},
-    {epitope:'TOPOLOGY',title:'Graph Theory & Topology',sub:'Institutional capture graph, the machine, network structure, entity formation',color:'#9b59b6',sites:[{name:'Institutional Capture Graph',url:'https://detroit.primals.eco/analysis/institutional-capture-graph/',domain:'detroit'},{name:'The Machine',url:'https://detroit.primals.eco/analysis/the-machine/',domain:'detroit'},{name:'Leak in the Dyke',url:'https://detroit.primals.eco/analysis/leak-in-the-dyke/',domain:'detroit'},{name:'Flower to Wilk',url:'https://detroit.primals.eco/analysis/the-flower-to-wilk/',domain:'detroit'},{name:'Corporate Network (Lara)',url:'https://detroit.primals.eco/analysis/corporate-network-lara/',domain:'detroit'},{name:'Entity Formation',url:'https://detroit.primals.eco/connections/entity-formation/',domain:'detroit'},{name:'Honeycomb Prism',url:'https://sporeprint.primals.eco/science/38-honeycomb-prism-floating-pointer/',domain:'sporePrint'},{name:'BingoCube Prismatic Injection',url:'https://sporeprint.primals.eco/methodology/bingocube-prismatic-injection/',domain:'sporePrint'},{name:'Focal Point Geometry',url:'https://sporeprint.primals.eco/science/53-focal-point-geometry/',domain:'sporePrint'}]},
-    {epitope:'PHILOSOPHY',title:'Philosophy & Purpose',sub:'The many rooms, sovereignty, temptation of kingdoms, constrained architecture',color:'#3fb950',sites:[{name:'The Many Rooms',url:'https://sporeprint.primals.eco/philosophy/the-many-rooms/',domain:'sporePrint'},{name:'Temptation of Kingdoms',url:'https://sporeprint.primals.eco/philosophy/the-temptation-of-kingdoms/',domain:'sporePrint'},{name:'Sovereignty',url:'https://sporeprint.primals.eco/trails/sovereignty/',domain:'sporePrint'},{name:'Philosophy Thread',url:'https://sporeprint.primals.eco/trails/philosophy-thread/',domain:'sporePrint'},{name:'Introduction',url:'https://sporeprint.primals.eco/thesis/01-introduction/',domain:'sporePrint'},{name:'Thesis',url:'https://thesis.primals.eco/',domain:'thesis'}]},
-    {epitope:'METHOD',title:'Methodology & Architecture',sub:'Signal sensing, data braid, provenance, artisan method, composition',color:'#58a6ff',sites:[{name:'Signal Sensing Receptor',url:'https://sporeprint.primals.eco/methodology/signal-sensing-receptor/',domain:'sporePrint'},{name:'The Artisan Method',url:'https://detroit.primals.eco/analysis/the-artisan-method/',domain:'detroit'},{name:'Data Braid PCA Staff',url:'https://detroit.primals.eco/analysis/data-braid-pca-staff/',domain:'detroit'},{name:'Provenance',url:'https://sporeprint.primals.eco/trails/provenance/',domain:'sporePrint'},{name:'NF Pipeline',url:'https://sporeprint.primals.eco/trails/nf-pipeline/',domain:'sporePrint'},{name:'ScyBorg Composition',url:'https://sporeprint.primals.eco/methodology/scyborg/',domain:'sporePrint'}]},
-    {epitope:'INVESTIGATION',title:'Investigation & Evidence',sub:'FOIA documents, entities, actors, judges, coverage, network mapping',color:'#f1c40f',sites:[{name:'TCR-22-12 Evidence',url:'https://detroit.primals.eco/evidence/tcr-22-12/',domain:'detroit'},{name:'MDE FOIA Sep25',url:'https://detroit.primals.eco/evidence/mde-foia-sep25/',domain:'detroit'},{name:'How to Build an OS',url:'https://detroit.primals.eco/analysis/how-to-build-an-os/',domain:'detroit'},{name:'Institutional Response',url:'https://detroit.primals.eco/analysis/institutional-response/',domain:'detroit'},{name:'Political Connections',url:'https://detroit.primals.eco/network/political/',domain:'detroit'},{name:'Judges Network',url:'https://detroit.primals.eco/network/judges/',domain:'detroit'},{name:'Professional Enablers',url:'https://detroit.primals.eco/network/professional-enablers/',domain:'detroit'},{name:'Hemlock FOIA',url:'https://tuebor.primals.eco/investigate/hemlock-foia/',domain:'tuebor'},{name:'Clutch Investigation',url:'https://clutch.primals.eco/',domain:'clutch'}]},
-    {epitope:'IMMUNE',title:'Immune System & Defense',sub:'Reflexive immune, epitope bridge, collision detection, adversarial analysis',color:'#ff6b35',sites:[{name:'Reflexive Immune Epitope Bridge',url:'https://sporeprint.primals.eco/science/41-reflexive-immune-epitope-bridge/',domain:'sporePrint'},{name:'Collision Detection',url:'https://hud.primals.eco/',domain:'hud'},{name:'Anderson Selectivity',url:'https://hud.primals.eco/',domain:'hud'},{name:'Cross-Mirror Observation',url:'https://sporeprint.primals.eco/science/47-cross-mirror-observation/',domain:'sporePrint'}]},
-    {epitope:'SIGNAL',title:'Signal & Observation',sub:'Billboard, observatory, HUD, real-time membrane watching',color:'#4a8fb8',sites:[{name:'Billboard \u2014 Live',url:'https://signal.primals.eco/billboard',domain:'signal'},{name:'Observatory',url:'https://signal.primals.eco/',domain:'signal'},{name:'HUD \u2014 biomeOS',url:'https://hud.primals.eco/',domain:'hud'},{name:'Hypothesis Dashboard',url:'https://hypothesis.primals.eco/',domain:'hypothesis'}]},
-    {epitope:'SCIENCE',title:'Science Papers \u2014 baseCamp',sub:'The research log, 58 papers and counting',color:'#e8e8e8',sites:[{name:'sporePrint Science Index',url:'https://sporeprint.primals.eco/science/',domain:'sporePrint'},{name:'Signal Transit Membrane Meteorology',url:'https://sporeprint.primals.eco/science/56-signal-transit-membrane-meteorology/',domain:'sporePrint'},{name:'Tufte Pipeline Wiring',url:'https://sporeprint.primals.eco/science/58-tufte-pipeline-wiring/',domain:'sporePrint'},{name:'Git Source',url:'https://git.primals.eco/ecoPrimals/',domain:'git'}]}
   ];
 
   function buildEpitopeIndex() {
@@ -143,12 +133,9 @@
   var iono = window.PtIonosphere();
 
   // ═══════════════════════════════════════════════════════
-  // PETAL BRIDGE — WebSocket + rendering
+  // NANOWIRE 2014 direct renderer, no WebSocket
   // ═══════════════════════════════════════════════════════
-  var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  var pt = PetalBridge({
-    wsUrl: wsProto + '//' + location.host + '/ws',
-    domain: 'hud',
+  var pt = NanowireRenderer({
     statusEl: 'pt-status',
     metricsEl: 'pt-metrics',
     maxHeight: 280,
