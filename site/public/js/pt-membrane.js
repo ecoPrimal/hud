@@ -165,15 +165,20 @@ window.PtMembrane = function(deps) {
     // \u2550\u2550 WILLBE layer: three-body predictive \u2550\u2550
     var wbG = el('g', {id:'mg-willbe'}, svg);
     var BR = R*(PI/8);
+    // V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6) — immune recombination as observation
+    // V = Variable  = IS     (\u03c6=\u03c0/2, purely imaginary, uncertain)
+    // J = Joining   = WAS    (\u03c6=0, real, known, collapsed)
+    // D = Diversity = WILLBE (\u03c6=\u03c0, inverted, prediction = \u2212knowledge)
+    // (D) is optional: V\u00b7J = \u03c0 (2D), V\u00b7D\u00b7J = \u03c0^(3/2) (3D)
     var bodies = [
-      {id:'is', label:'IS', sub:'energy \u2248 4\u03c0', angle:-PI/2, color:'#e85d3a'},
-      {id:'was', label:'WAS', sub:'ground', angle:-PI/2+TAU/3, color:'#4a8fb8'},
-      {id:'willbe', label:'WILLBE', sub:'predict \u2248 1/d', angle:-PI/2+2*TAU/3, color:'#5ab87a'}
+      {id:'is', label:'IS', sub:'V \u00b7 e^(i\u03c0/2)', angle:-PI/2, color:'#e85d3a'},
+      {id:'was', label:'WAS', sub:'J \u00b7 e^0 = real', angle:-PI/2+TAU/3, color:'#4a8fb8'},
+      {id:'willbe', label:'WILLBE', sub:'(D) \u00b7 e^(i\u03c0) = \u22121', angle:-PI/2+2*TAU/3, color:'#5ab87a'}
     ];
     var bPos = {};
     bodies.forEach(function(b) { bPos[b.id] = {x:cx+BR*Math.cos(b.angle), y:cy+BR*Math.sin(b.angle)}; });
     el('path', {d:'M '+bPos.is.x.toFixed(1)+' '+bPos.is.y.toFixed(1)+' L '+bPos.was.x.toFixed(1)+' '+bPos.was.y.toFixed(1)+' L '+bPos.willbe.x.toFixed(1)+' '+bPos.willbe.y.toFixed(1)+' Z', fill:'none', stroke:'#c9d1d9', 'stroke-width':0.5, 'stroke-opacity':0.12, 'stroke-dasharray':'4,6', id:'mg-body-tri'}, wbG);
-    [{from:'is',to:'was',label:'observer \u2192 observed',color:'#e85d3a'},{from:'was',to:'willbe',label:'observed \u2192 predicted',color:'#6e7681'},{from:'willbe',to:'is',label:'predicted \u2192 observer',color:'#5ab87a'}].forEach(function(e) {
+    [{from:'is',to:'was',label:'V \u2192 J',color:'#e85d3a'},{from:'was',to:'willbe',label:'J \u2192 (D)',color:'#6e7681'},{from:'willbe',to:'is',label:'(D) \u2192 V',color:'#5ab87a'}].forEach(function(e) {
       txt(wbG, ((bPos[e.from].x+bPos[e.to].x)/2).toFixed(1), ((bPos[e.from].y+bPos[e.to].y)/2).toFixed(1), e.label, e.color, 5.5, {opacity:0.4, 'dominant-baseline':'central'});
     });
     bodies.forEach(function(b) {
@@ -208,14 +213,14 @@ window.PtMembrane = function(deps) {
     // \u2550\u2550 IS layer: live particles \u2550\u2550
     pGroup = el('g', {id:'mg-is'}, svg);
 
-    // center: datum = observation = \u03c0^(3/2)
-    // The 3 bodies (IS/WAS/WILLBE) triangulate every datum.
-    // A datum IS an observation. Observation costs C(3) = \u03c0^(3/2).
-    txt(svg, cx, cy-16, 'datum', '#8b949e', 9);
-    txt(svg, cx, cy-2, '= observation', '#6e7681', 6.5);
-    txt(svg, cx, cy+12, aliveSet.size+'/'+PANELS.length+' alive', '#6e7681', 7, {id:'mg-alive-count'});
+    // center: V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6)
+    // The 3 bodies (V/J/D = IS/WAS/WILLBE) triangulate every datum.
+    txt(svg, cx, cy-22, 'V(D)J', '#8b949e', 9.5, {'font-weight':'bold'});
+    txt(svg, cx, cy-8, '= \u03c0^(3/2)\u00b7e^(i\u03c6)', '#6e7681', 7);
+    txt(svg, cx, cy+6, 'datum = observation', '#484f58', 5.5);
+    txt(svg, cx, cy+18, aliveSet.size+'/'+PANELS.length+' alive', '#6e7681', 7, {id:'mg-alive-count'});
     var lgG = el('g', {id:'mg-legend'}, svg);
-    txt(lgG, 14, H-66, 'datum = observation = C(3) = \u03c0^(3/2) \u2248 5.57', '#8b949e', 7, {'text-anchor':'start'});
+    txt(lgG, 14, H-66, 'V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6)   V\u00b7J=\u03c0  V\u00b7D\u00b7J=\u03c0^(3/2)', '#8b949e', 7, {'text-anchor':'start'});
     txt(lgG, 14, H-55, 'focal distance = 1/C(n) = 1/\u03c0^(n/2)', '#6e7681', 7, {'text-anchor':'start'});
     [['1D: \u221a\u03c0 \u2248 1.77 \u2192 f = 0.56','#9b59b6'],['2D: \u03c0 \u2248 3.14 \u2192 f = 0.32','#4a8fb8'],['3D: \u03c0^1.5 \u2248 5.57 \u2192 f = 0.18','#5ab87a'],['4D: \u03c0\u00b2 \u2248 9.87 \u2192 f = 0.10','#e85d3a']].forEach(function(leg, i) {
       var ly = H-43+i*11;

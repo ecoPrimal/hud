@@ -418,6 +418,7 @@ function NanowireRenderer(config) {
     return {n: n, total: sum, min: min, max: max, mean: mean, sigma: sigma};
   }
 
+  // V(D)J tense rotation: φ=0 (WAS/J, real), π/2 (IS/V, imaginary), π (WILLBE/D, inverted)
   function tenseUncertainty(sigma, n, tense) {
     if (tense === 'was') return null;
     if (n < 2 || sigma === 0) return null;

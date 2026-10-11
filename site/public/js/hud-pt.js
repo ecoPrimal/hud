@@ -7,8 +7,9 @@
 
   var PI = Math.PI;
 
-  // datum = observation: C(3) = π^(3/2) — the cost of triangulation
-  // π^(n/2) = n-ball volume numerator. At n=3, observation resolves.
+  // V(D)J = π^(3/2)·e^(iφ) — immune recombination as observation
+  // V·J = π (2D, without diversity). V·D·J = π^(3/2) (3D, with diversity).
+  // π^(n/2) = n-ball volume numerator. (D) is optional — it adds diversity.
   function dimCost(n) { return Math.pow(PI, n / 2); }
 
   var PANELS = [
