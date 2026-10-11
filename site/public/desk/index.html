@@ -1017,6 +1017,15 @@ function renderWeave() {
   if (savedLevel === 5 && activeEpitopes >= 6) cubeLevel = 5;
   if (savedLevel === 3) cubeLevel = 3;
 
+  // Compute perplexity (effective number of active axes)
+  var H_shape = 0;
+  sorted.forEach(function(k) {
+    if (shape[k] > 0) H_shape -= shape[k] * Math.log(shape[k]);
+  });
+  var PP = Math.exp(H_shape);
+  var focal = 1 / Math.pow(Math.PI, PP / 2);
+  var piCost = Math.pow(Math.PI, PP / 2);
+
   var html = '';
 
   // ═══════════════════════════════════════════════════════
@@ -1025,7 +1034,16 @@ function renderWeave() {
   html += '<div class="weave-section">';
   html += '<h3>your face</h3>';
   html += '<div class="card"><div class="card-body">';
-  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">Your bingoCube face. 8 epitopes + center. Drag cells to rearrange \u2014 the arrangement is your sort. The fidget is the classification.</p>';
+
+  // Axis labels — your top 2 epitopes ARE your axes
+  if (top2.length >= 2) {
+    html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:8px">Your axes: ';
+    html += '<strong style="color:' + EP_COLORS[top2[0]] + '">' + top2[0] + '</strong> (primary receptor) \u00d7 ';
+    html += '<strong style="color:' + EP_COLORS[top2[1]] + '">' + top2[1] + '</strong> (secondary receptor). ';
+    html += 'Each axis receives one type of signal. Drag to rearrange \u2014 the fidget is the sort.</p>';
+  } else {
+    html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:8px">Your bingoCube face. Drag cells to rearrange \u2014 the fidget is the sort.</p>';
+  }
 
   // Prime chain indicator
   html += '<div class="cube-level-indicator" style="margin-bottom:12px;justify-content:center">';
@@ -1034,7 +1052,7 @@ function renderWeave() {
     var isUnlocked = p <= cubeLevel;
     html += '<span class="prime-dot ' + (isActive ? 'active' : (isUnlocked ? '' : 'locked')) + '">' + p + '</span>';
   });
-  html += '<span style="margin-left:4px">prime chain</span>';
+  html += '<span style="margin-left:4px">prime chain \u00b7 ' + PP.toFixed(1) + ' active axes</span>';
   html += '</div>';
 
   html += '<div id="cube-face-container"></div>';
@@ -1052,9 +1070,34 @@ function renderWeave() {
 
   html += '</div></div></div>';
 
+  // ═══════════════════════════════════════════════════════
+  // COMPRESSION CHAIN — ∞ → 8 → PP → f = 1/π^(PP/2)
+  // ═══════════════════════════════════════════════════════
+  html += '<div class="weave-section">';
+  html += '<h3>the compression</h3>';
+  html += '<div class="card"><div class="card-body">';
+  html += '<div style="font-family:monospace;font-size:12px;line-height:2;text-align:center">';
+
+  html += '<div style="color:var(--fg-dim)">\u221e dimensions of experience</div>';
+  html += '<div style="color:var(--fg-muted)">\u2193 epitope sort</div>';
+  html += '<div><strong style="color:var(--fg)">8</strong> <span style="color:var(--fg-dim)">categories (the shape)</span></div>';
+  html += '<div style="color:var(--fg-muted)">\u2193 entropy compression</div>';
+  html += '<div><strong style="color:var(--accent)">' + PP.toFixed(2) + '</strong> <span style="color:var(--fg-dim)">effective axes (perplexity e<sup>H</sup>)</span></div>';
+  html += '<div style="color:var(--fg-muted)">\u2193 \u03c0 prices the observation</div>';
+  html += '<div>f = 1/\u03c0<sup>' + (PP/2).toFixed(1) + '</sup> = <strong style="color:var(--accent)">' + (focal < 0.001 ? focal.toExponential(2) : focal.toFixed(4)) + '</strong></div>';
+
+  html += '</div>';
+
+  html += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px">';
+  html += '<p style="color:var(--fg-dim);margin-bottom:4px">The cost of your point of view: <strong style="color:var(--fg)">\u03c0<sup>' + (PP/2).toFixed(1) + '</sup> \u2248 ' + piCost.toFixed(2) + '</strong></p>';
+  html += '<p style="color:var(--fg-dim)">Each axis costs \u221a\u03c0. One receptor = \u221a\u03c0 \u2248 1.77. Two = \u03c0 \u2248 3.14. You can never compress to 1 \u2014 because 1 would mean zero axes, zero observation, zero shape. The minimum cost of seeing is \u221a\u03c0.</p>';
+  html += '</div>';
+
+  html += '</div></div></div>';
+
   // Section: Shape bars (compact)
   html += '<div class="weave-section">';
-  html += '<h3>shape vector (private)</h3>';
+  html += '<h3>shape vector (private) \u00b7 ' + activeEpitopes + ' axes active</h3>';
   html += '<div class="card"><div class="card-body">';
   sorted.forEach(function(ep) {
     if (shape[ep] === 0) return;
