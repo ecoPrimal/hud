@@ -16,17 +16,17 @@ window.PtMembrane = function(deps) {
   var mgLastFrame = 0;
   var mgAnimId = null;
   var MAX_PARTICLES = 60;
-  var mgTransitRates = {PHYSICS: 0, TOPOLOGY: 0, PHILOSOPHY: 0, METHOD: 0, INVESTIGATION: 0, IMMUNE: 0, SCIENCE: 0, SIGNAL: 0};
+  var mgTransitRates = {fire: 0, membrane: 0, immune: 0, sound: 0};
   var mgTransitRPS = 0;
   var mgPrevDash = null;
-  var mgCatAccum = {PHYSICS: 0, TOPOLOGY: 0, PHILOSOPHY: 0, METHOD: 0, INVESTIGATION: 0, IMMUNE: 0, SCIENCE: 0, SIGNAL: 0};
+  var mgCatAccum = {fire: 0, membrane: 0, immune: 0, sound: 0};
 
   function entityToCategory(label) {
-    if (/Anthropic|OpenAI|Meta|Google|Amazon|Apple|Microsoft|ByteDance|Yandex|Baidu/i.test(label)) return 'INVESTIGATION';
-    if (/Ghost|proxy|VPN|Tor/i.test(label)) return 'IMMUNE';
-    if (/Bot|crawler|spider|scanner/i.test(label)) return 'IMMUNE';
-    if (/Human|organic/i.test(label)) return 'SIGNAL';
-    return 'SIGNAL';
+    if (/Anthropic|OpenAI|Meta|Google|Amazon|Apple|Microsoft|ByteDance|Yandex|Baidu/i.test(label)) return 'fire';
+    if (/Ghost|proxy|VPN|Tor/i.test(label)) return 'immune';
+    if (/Bot|crawler|spider|scanner/i.test(label)) return 'membrane';
+    if (/Human|organic/i.test(label)) return 'sound';
+    return 'fire';
   }
 
   function spawnTransitParticle(panelId) {
@@ -56,7 +56,7 @@ window.PtMembrane = function(deps) {
     var rps = dash.rps || 0;
     mgTransitRPS = rps;
     var entities = (topo && topo.entities) || [];
-    var catTotals = {PHYSICS: 0, TOPOLOGY: 0, PHILOSOPHY: 0, METHOD: 0, INVESTIGATION: 0, IMMUNE: 0, SCIENCE: 0, SIGNAL: 0};
+    var catTotals = {fire: 0, membrane: 0, immune: 0, sound: 0};
     var totalReqs = 0;
     entities.forEach(function(e) {
       var cat = entityToCategory(e.label || '');
@@ -87,6 +87,23 @@ window.PtMembrane = function(deps) {
         pulseTangent('organism-profile');
       }
     }
+    // Update three-body values from dashboard
+    var tb = dash.threebody_pi;
+    if (tb && tb.emc2) {
+      var isV = document.getElementById("mg-body-val-is");
+      var wasV = document.getElementById("mg-body-val-was");
+      var wbV = document.getElementById("mg-body-val-willbe");
+      if (isV) isV.textContent = "E = " + tb.emc2.energy.toFixed(2) + " \u2248 4\u03c0";
+      if (wasV) wasV.textContent = "m = " + tb.emc2.mass.toFixed(3);
+      if (wbV) wbV.textContent = "c\u00b2 = " + tb.emc2.c_squared.toFixed(2) + " \u2248 3\u03c0";
+      // Pulse body rings proportional to values
+      var isR = document.getElementById("mg-body-ring-is");
+      var wasR = document.getElementById("mg-body-ring-was");
+      var wbR = document.getElementById("mg-body-ring-willbe");
+      if (isR) isR.setAttribute("r", (12 + tb.emc2.energy * 0.5).toFixed(1));
+      if (wasR) wasR.setAttribute("r", (12 + tb.emc2.mass * 4).toFixed(1));
+      if (wbR) wbR.setAttribute("r", (12 + tb.emc2.c_squared * 0.6).toFixed(1));
+    }
     mgPrevDash = JSON.parse(JSON.stringify(dash));
   }
 
@@ -96,11 +113,10 @@ window.PtMembrane = function(deps) {
     mgSvgEl = el;
     var W = MG.W, H = MG.H, cx = MG.cx, cy = MG.cy, R = MG.R;
     var NS = 'http://www.w3.org/2000/svg';
-    var catOrder = ['PHYSICS', 'TOPOLOGY', 'PHILOSOPHY', 'METHOD', 'INVESTIGATION', 'IMMUNE', 'SCIENCE', 'SIGNAL'];
+    var catOrder = ['fire', 'membrane', 'immune', 'sound'];
     var catPanels = {};
     catOrder.forEach(function(c) { catPanels[c] = []; });
     PANELS.forEach(function(p) { if (catPanels[p.cat]) catPanels[p.cat].push(p); });
-    catOrder = catOrder.filter(function(c) { return catPanels[c].length > 0; });
     var totalPanels = PANELS.length;
     var TAU = 2 * PI;
     var GAP = 0.04;
@@ -143,7 +159,7 @@ window.PtMembrane = function(deps) {
       svg.appendChild(arc);
       mgArcGlow[cat] = 0;
       var midA = start + span / 2;
-      var catLabels = {PHYSICS:'physics',TOPOLOGY:'topology',PHILOSOPHY:'philosophy',METHOD:'method',INVESTIGATION:'investigation',IMMUNE:'immune',SCIENCE:'science',SIGNAL:'signal'};
+      var catLabels = {fire:'signal',membrane:'membrane',immune:'immune',sound:'beacon'};
       var lbl = document.createElementNS(NS, 'text');
       lbl.setAttribute('x', (cx + (R + 22) * Math.cos(midA)).toFixed(1));
       lbl.setAttribute('y', (cy + (R + 22) * Math.sin(midA)).toFixed(1));
@@ -216,12 +232,74 @@ window.PtMembrane = function(deps) {
         db.textContent = p.dim + 'D'; svg.appendChild(db);
       });
     });
+
+    // ── Three-body interior: IS / WAS / WILLBE ──
+    var BODY_R = R * 0.40;
+    var bodyDefs = [
+      {id:"is",     label:"IS",     sub:"energy \u2248 4\u03c0",  angle: -Math.PI/2,              color:"#e85d3a"},
+      {id:"was",    label:"WAS",    sub:"ground",                    angle: -Math.PI/2 + 2*Math.PI/3, color:"#4a8fb8"},
+      {id:"willbe", label:"WILLBE", sub:"predict \u2248 1/d",      angle: -Math.PI/2 + 4*Math.PI/3, color:"#5ab87a"}
+    ];
+    var bodyPos = {};
+    bodyDefs.forEach(function(b) {
+      bodyPos[b.id] = {x: cx + BODY_R * Math.cos(b.angle), y: cy + BODY_R * Math.sin(b.angle)};
+    });
+    // Orbital triangle
+    var triD = "M " + bodyPos.is.x.toFixed(1) + " " + bodyPos.is.y.toFixed(1)
+      + " L " + bodyPos.was.x.toFixed(1) + " " + bodyPos.was.y.toFixed(1)
+      + " L " + bodyPos.willbe.x.toFixed(1) + " " + bodyPos.willbe.y.toFixed(1) + " Z";
+    var tri = document.createElementNS(NS, "path");
+    tri.setAttribute("d", triD); tri.setAttribute("fill", "none");
+    tri.setAttribute("stroke", "#c9d1d9"); tri.setAttribute("stroke-width", "0.5");
+    tri.setAttribute("stroke-opacity", "0.12"); tri.setAttribute("stroke-dasharray", "4,6");
+    tri.id = "mg-body-tri"; svg.appendChild(tri);
+    // Edge labels: E, m, c2 on triangle sides
+    var edgeLabels = [
+      {from:"is",to:"was",     label:"E = IS/WAS",    color:"#e85d3a"},
+      {from:"was",to:"willbe", label:"m = NP/WAS",    color:"#6e7681"},
+      {from:"willbe",to:"is",  label:"c\u00b2 = IS/NP", color:"#5ab87a"}
+    ];
+    edgeLabels.forEach(function(e) {
+      var ax = (bodyPos[e.from].x + bodyPos[e.to].x) / 2;
+      var ay = (bodyPos[e.from].y + bodyPos[e.to].y) / 2;
+      var el = document.createElementNS(NS, "text");
+      el.setAttribute("x", ax.toFixed(1)); el.setAttribute("y", ay.toFixed(1));
+      el.setAttribute("text-anchor", "middle"); el.setAttribute("dominant-baseline", "central");
+      el.setAttribute("fill", e.color); el.setAttribute("font-size", "5.5");
+      el.setAttribute("opacity", "0.4"); el.textContent = e.label; svg.appendChild(el);
+    });
+    // Body nodes
+    bodyDefs.forEach(function(b) {
+      var pos = bodyPos[b.id];
+      var ring = document.createElementNS(NS, "circle");
+      ring.setAttribute("cx", pos.x.toFixed(1)); ring.setAttribute("cy", pos.y.toFixed(1));
+      ring.setAttribute("r", "16"); ring.setAttribute("fill", "none");
+      ring.setAttribute("stroke", b.color); ring.setAttribute("stroke-width", "0.5");
+      ring.setAttribute("stroke-opacity", "0.18"); ring.setAttribute("stroke-dasharray", "2,3");
+      ring.id = "mg-body-ring-" + b.id; svg.appendChild(ring);
+      var dot = document.createElementNS(NS, "circle");
+      dot.setAttribute("cx", pos.x.toFixed(1)); dot.setAttribute("cy", pos.y.toFixed(1));
+      dot.setAttribute("r", "4.5"); dot.setAttribute("fill", b.color);
+      dot.setAttribute("opacity", "0.6"); dot.setAttribute("filter", "url(#mg-glow)");
+      dot.id = "mg-body-" + b.id; svg.appendChild(dot);
+      var lbl = document.createElementNS(NS, "text");
+      lbl.setAttribute("x", pos.x.toFixed(1)); lbl.setAttribute("y", (pos.y - 20).toFixed(1));
+      lbl.setAttribute("text-anchor", "middle"); lbl.setAttribute("fill", b.color);
+      lbl.setAttribute("font-size", "8.5"); lbl.setAttribute("opacity", "0.85");
+      lbl.setAttribute("font-weight", "bold"); lbl.textContent = b.label; svg.appendChild(lbl);
+      var sub = document.createElementNS(NS, "text");
+      sub.setAttribute("x", pos.x.toFixed(1)); sub.setAttribute("y", (pos.y + 24).toFixed(1));
+      sub.setAttribute("text-anchor", "middle"); sub.setAttribute("fill", "#6e7681");
+      sub.setAttribute("font-size", "5.5"); sub.setAttribute("opacity", "0.45");
+      sub.id = "mg-body-val-" + b.id; sub.textContent = b.sub; svg.appendChild(sub);
+    });
+
     mgParticleGroup = document.createElementNS(NS, 'g');
     mgParticleGroup.id = 'mg-particles'; svg.appendChild(mgParticleGroup);
     var cl1 = document.createElementNS(NS, 'text');
     cl1.setAttribute('x', cx); cl1.setAttribute('y', cy - 8);
     cl1.setAttribute('text-anchor', 'middle'); cl1.setAttribute('fill', '#8b949e');
-    cl1.setAttribute('font-size', '9'); cl1.textContent = 'membrane'; svg.appendChild(cl1);
+    cl1.setAttribute('font-size', '9'); cl1.textContent = 'epitopes'; svg.appendChild(cl1);
     var cl2 = document.createElementNS(NS, 'text');
     cl2.setAttribute('x', cx); cl2.setAttribute('y', cy + 6);
     cl2.setAttribute('text-anchor', 'middle'); cl2.setAttribute('fill', '#6e7681');
@@ -276,8 +354,8 @@ window.PtMembrane = function(deps) {
     mgLastFrame = now;
     var NS = 'http://www.w3.org/2000/svg';
     var cx = MG.cx, cy = MG.cy, R = MG.R;
-    var catOrder2 = ['PHYSICS', 'TOPOLOGY', 'PHILOSOPHY', 'METHOD', 'INVESTIGATION', 'IMMUNE', 'SCIENCE', 'SIGNAL'];
-    catOrder2.forEach(function(cat) {
+    var catOrder = ['fire', 'membrane', 'immune', 'sound'];
+    catOrder.forEach(function(cat) {
       var rate = mgTransitRates[cat] || 0;
       if (rate <= 0) return;
       mgCatAccum[cat] += rate * dt;
