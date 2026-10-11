@@ -111,7 +111,9 @@
     PANELS.forEach(function(p) {
       var catColor = CAT_COLORS[p.cat] || '#6e7681';
       var cls = p.full ? 'hud-card hud-card-full' : 'hud-card';
-      html += '<div class="' + cls + '" id="panel-' + p.id + '" data-dim="' + p.dim + '" data-alive="false" data-cat="' + p.cat + '" style="border-left:3px solid ' + catColor + '"><div class="hud-card-title">' + p.title + '<span class="hud-dim-cost">' + p.eq + '</span></div><div style="color:#6e7681;font-size:0.75em;margin-bottom:0.5em">' + p.sub + '</div><div id="pt-' + p.id + '" class="pt-viz"></div></div>';
+      var borderW = Math.max(2, Math.min(6, Math.round(1 + p.dim * 1.2)));
+      var shapeGlyph = p.dim === 1 ? '\u25cb' : p.dim === 2 ? '\u25a1' : p.dim === 3 ? '\u25b3' : '\u25c7';
+      html += '<div class="' + cls + '" id="panel-' + p.id + '" data-dim="' + p.dim + '" data-alive="false" data-cat="' + p.cat + '" style="border-left:' + borderW + 'px solid ' + catColor + '"><div class="hud-card-title"><span style="color:' + catColor + ';margin-right:4px;font-size:0.9em;opacity:0.7">' + shapeGlyph + '</span>' + p.title + '<span class="hud-dim-cost">' + p.eq + '</span></div><div style="color:#6e7681;font-size:0.75em;margin-bottom:0.5em">' + p.sub + '</div><div id="pt-' + p.id + '" class="pt-viz"></div></div>';
     });
     html += '<div id="pt-relay-meta" style="grid-column:1/-1;padding:0 1em"></div>';
     el.innerHTML = html;
@@ -139,12 +141,35 @@
   // ═══════════════════════════════════════════════════════
   // NANOWIRE 2014 direct renderer, no WebSocket
   // ═══════════════════════════════════════════════════════
-  var pt = NanowireRenderer({
+  // Panel dim lookup — shape = f(dim)
+  var panelDim = {};
+  PANELS.forEach(function(p) { panelDim[p.id] = p.dim; });
+
+  var ptRaw = NanowireRenderer({
     statusEl: 'pt-status',
     metricsEl: 'pt-metrics',
     maxHeight: 280,
     onConnect: function() { pt.requestMetrics(); }
   });
+  // Wrap renderBinding: auto-inject dim from panel map
+  // Shape viewport activates per dimension
+  var pt = {
+    connect: function() { ptRaw.connect(); },
+    renderBinding: function(binding, targetId) {
+      if (binding && binding.id && panelDim[binding.id] && !binding.dim) {
+        binding.dim = panelDim[binding.id];
+      }
+      return ptRaw.renderBinding(binding, targetId);
+    },
+    isConnected: function() { return ptRaw.isConnected(); },
+    requestMetrics: function() { return ptRaw.requestMetrics(); },
+    updateStatus: function(s) { return ptRaw.updateStatus(s); },
+    rpc: function(m, p) { return ptRaw.rpc(m, p); },
+    computeStats: ptRaw.computeStats,
+    tenseUncertainty: ptRaw.tenseUncertainty,
+    dimClipDefs: ptRaw.dimClipDefs,
+    dimBorderSvg: ptRaw.dimBorderSvg
+  };
 
   // ═══════════════════════════════════════════════════════
   // PANEL RENDERING — data \u2192 GoG bindings

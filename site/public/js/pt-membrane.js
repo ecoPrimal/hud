@@ -184,6 +184,27 @@ window.PtMembrane = function(deps) {
       txt(wbG, p.x.toFixed(1), (p.y+24).toFixed(1), b.sub, '#6e7681', 5.5, {opacity:0.45, id:'mg-body-val-'+b.id});
     });
 
+    // \u2550\u2550 TRIANGULATION layer: 3 datum \u2192 1 vector \u2550\u2550
+    // Each panel node's position is triangulated by:
+    //   angle (form) \u2192 IS body    \u2014 where on the arc
+    //   focalR (face) \u2192 WAS body  \u2014 how deep inside
+    //   dim (function) \u2192 WILLBE body \u2014 what complexity
+    var triG = el('g', {id:'mg-triangulation', opacity:0}, svg);
+    PANELS.forEach(function(p) {
+      var g = geo[p.id];
+      if (!g) return;
+      var nearest = bodies[0], minD = Infinity;
+      bodies.forEach(function(b) {
+        var dx = g.px - bPos[b.id].x, dy = g.py - bPos[b.id].y;
+        var d = Math.sqrt(dx*dx + dy*dy);
+        if (d < minD) { minD = d; nearest = b; }
+      });
+      el('line', {x1:g.px.toFixed(1), y1:g.py.toFixed(1),
+        x2:bPos[nearest.id].x.toFixed(1), y2:bPos[nearest.id].y.toFixed(1),
+        stroke:nearest.color, 'stroke-width':0.3, 'stroke-opacity':0.08,
+        'stroke-dasharray':'1,4', id:'mg-tri-'+p.id}, triG);
+    });
+
     // \u2550\u2550 IS layer: live particles \u2550\u2550
     pGroup = el('g', {id:'mg-is'}, svg);
 
@@ -265,6 +286,9 @@ window.PtMembrane = function(deps) {
 
   function render() {
     if (!built) build();
+    var triLayer = document.getElementById('mg-triangulation');
+    var aliveCount = aliveSet.size;
+    if (triLayer) triLayer.setAttribute('opacity', aliveCount > 3 ? '1' : '0');
     aliveSet.forEach(function(pid) {
       var d=document.getElementById('mg-dot-'+pid);
       if(d){d.setAttribute('opacity','1');d.setAttribute('filter','url(#mg-glow)');}
@@ -272,6 +296,8 @@ window.PtMembrane = function(deps) {
       if(fl) fl.setAttribute('stroke-opacity','0.3');
       var fd=document.getElementById('mg-fd-'+pid);
       if(fd){fd.setAttribute('opacity','0.5');fd.setAttribute('r','2.5');}
+      var tri=document.getElementById('mg-tri-'+pid);
+      if(tri) tri.setAttribute('stroke-opacity','0.15');
     });
   }
 

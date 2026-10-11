@@ -10,20 +10,11 @@
   --text-secondary: #8b949e;
   --text-muted: #6e7681;
   --text-dim: #484f58;
-  --ep-method: #58a6ff;
-  --ep-philosophy: #3fb950;
-  --ep-immune: #ff6b35;
-  --ep-investigation: #f1c40f;
-  --ep-physics: #e85d3a;
-  --ep-topology: #9b59b6;
-  --ep-signal: #4a8fb8;
-  --ep-science: #e8e8e8;
-  /* semantic aliases — what the human expresses */
-  --accent-blue: var(--ep-method);
-  --accent-green: var(--ep-philosophy);
-  --danger: var(--ep-immune);
-  --warning: var(--ep-investigation);
-  --orange: var(--ep-immune);
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --danger: #e74c3c;
+  --warning: #f1c40f;
+  --orange: #ff6b35;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -281,27 +272,47 @@ body {
   gap: 1em;
 }
 
-/* 3D panels: full width (span both columns) */
-.hud-card[data-dim="3"] {
-  grid-column: 1 / -1;
+/* ═══════════════════════════════════════════════════════
+   Shape ≡ f(data) — 3 datum triangulate 1 vector
+   form (dim) × face (alive) × function (cat)
+   Border-radius: lens→plane→faceted as dim grows
+   Border-left: thicker = more data axes
+   ═══════════════════════════════════════════════════════ */
+
+/* 1D: lens — single axis of freedom, soft edges */
+.hud-card[data-dim="1"] {
+  border-radius: 16px;
+  border-left-width: 2px;
 }
-/* 4D panels: full width, taller for matrix density */
-.hud-card[data-dim="4"] {
-  grid-column: 1 / -1;
-}
-/* 1D panels: single column but shorter height */
 .hud-card[data-dim="1"] .pt-viz {
   min-height: 80px;
 }
 .hud-card[data-dim="1"] .pt-viz svg {
   max-height: 180px;
 }
-/* 2D panels: standard single column */
+/* 2D: plane — two axes, standard softness */
+.hud-card[data-dim="2"] {
+  border-radius: 8px;
+  border-left-width: 3px;
+}
 .hud-card[data-dim="2"] .pt-viz svg {
   max-height: 260px;
 }
-/* 3D/4D panels: taller to match dimensional cost */
-.hud-card[data-dim="3"] .pt-viz svg,
+/* 3D: triangulated — sharper, structured, spans both columns */
+.hud-card[data-dim="3"] {
+  grid-column: 1 / -1;
+  border-radius: 4px;
+  border-left-width: 4px;
+}
+.hud-card[data-dim="3"] .pt-viz svg {
+  max-height: 340px;
+}
+/* 4D: faceted — minimal radius, maximum structure, full span */
+.hud-card[data-dim="4"] {
+  grid-column: 1 / -1;
+  border-radius: 2px;
+  border-left-width: 5px;
+}
 .hud-card[data-dim="4"] .pt-viz svg {
   max-height: 340px;
 }
@@ -345,7 +356,7 @@ body {
   display: block;
 }
 .pt-viz:empty::after {
-  content: '⏳ waiting for petalTongue...';
+  content: '⏳ waiting for data...';
   color: var(--text-dim);
   font-size: 0.72em;
   font-style: italic;

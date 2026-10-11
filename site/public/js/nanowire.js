@@ -77,6 +77,74 @@ function NanowireRenderer(config) {
     return String(n);
   }
 
+  // ═══════════════════════════════════════════════════════
+  // SHAPE = f(data) — inner membrane geometry
+  // 3 datum triangulate 1 vector: form × face × function
+  // dim → shape: 1D=lens, 2D=plane, 3D=hex, 4D=octagon
+  // ═══════════════════════════════════════════════════════
+
+  function dimClipDefs(dim, w, h) {
+    // Returns SVG <defs> with a clipPath based on dimensionality
+    // 1D: elliptical lens — one axis of freedom
+    // 2D: rectangle (no clip needed) — standard plane
+    // 3D: hexagonal — 3 datum triangulation creates 6 facets
+    // 4D: octagonal — higher faceting for matrix data
+    if (dim === 1) {
+      var cx = w/2, cy = h/2, rx = w*0.48, ry = h*0.42;
+      return '<defs><clipPath id="dim-clip"><ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '"/></clipPath></defs>';
+    }
+    if (dim === 3) {
+      // hexagon: 6 vertices
+      var pts = [];
+      for (var i = 0; i < 6; i++) {
+        var a = Math.PI * i / 3 - Math.PI / 6;
+        pts.push((w/2 + w*0.48 * Math.cos(a)).toFixed(1) + ',' +
+                 (h/2 + h*0.48 * Math.sin(a)).toFixed(1));
+      }
+      return '<defs><clipPath id="dim-clip"><polygon points="' + pts.join(' ') + '"/></clipPath></defs>';
+    }
+    if (dim >= 4) {
+      // octagon: 8 vertices
+      var pts = [];
+      for (var i = 0; i < 8; i++) {
+        var a = Math.PI * i / 4 - Math.PI / 8;
+        pts.push((w/2 + w*0.49 * Math.cos(a)).toFixed(1) + ',' +
+                 (h/2 + h*0.49 * Math.sin(a)).toFixed(1));
+      }
+      return '<defs><clipPath id="dim-clip"><polygon points="' + pts.join(' ') + '"/></clipPath></defs>';
+    }
+    return ''; // dim 2: no clip, full rectangle
+  }
+
+  function dimBorderSvg(dim, w, h, color) {
+    // Draws a subtle shape border at the edges of the viewport
+    // This is the "sheen" — the visual boundary that shows the shape
+    if (!color) color = C.dim;
+    if (dim === 1) {
+      var cx = w/2, cy = h/2, rx = w*0.48, ry = h*0.42;
+      return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="' + color + '" stroke-width="0.5" stroke-opacity="0.15"/>';
+    }
+    if (dim === 3) {
+      var pts = [];
+      for (var i = 0; i < 6; i++) {
+        var a = Math.PI * i / 3 - Math.PI / 6;
+        pts.push((w/2 + w*0.48 * Math.cos(a)).toFixed(1) + ',' +
+                 (h/2 + h*0.48 * Math.sin(a)).toFixed(1));
+      }
+      return '<polygon points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="0.5" stroke-opacity="0.12"/>';
+    }
+    if (dim >= 4) {
+      var pts = [];
+      for (var i = 0; i < 8; i++) {
+        var a = Math.PI * i / 4 - Math.PI / 8;
+        pts.push((w/2 + w*0.49 * Math.cos(a)).toFixed(1) + ',' +
+                 (h/2 + h*0.49 * Math.sin(a)).toFixed(1));
+      }
+      return '<polygon points="' + pts.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="0.5" stroke-opacity="0.12"/>';
+    }
+    return '';
+  }
+
   function pickColor(i, total) {
     var palette = [C.fire, C.sound, C.green, C.yellow, C.purple, C.pink, C.blue, C.orange];
     return palette[i % palette.length];
@@ -497,6 +565,24 @@ function NanowireRenderer(config) {
       default:              html = renderBar(binding); break;
     }
 
+    // If binding specifies a dimension, wrap in shape viewport
+    var dim = binding.dim || 0;
+    if (dim && dim !== 2 && html.indexOf('<svg') === 0) {
+      // Parse SVG width/height for clip generation
+      var wMatch = html.match(/viewBox="0 0 (\d+) (\d+)"/);
+      if (wMatch) {
+        var svgW = parseInt(wMatch[1]), svgH = parseInt(wMatch[2]);
+        var clipDefs = dimClipDefs(dim, svgW, svgH);
+        var shapeBorder = dimBorderSvg(dim, svgW, svgH, binding.shapeColor || null);
+        if (clipDefs) {
+          // Insert clip defs after <svg...> and wrap content in clip group
+          html = html.replace(/(<svg[^>]*>)/, '$1' + clipDefs + '<g clip-path="url(#dim-clip)">');
+          html = html.replace(/<\/svg>$/, '</g>' + shapeBorder + '</svg>');
+        } else if (shapeBorder) {
+          html = html.replace(/<\/svg>$/, shapeBorder + '</svg>');
+        }
+      }
+    }
     el.innerHTML = html;
     return Promise.resolve();
   }
@@ -509,7 +595,9 @@ function NanowireRenderer(config) {
     updateStatus: updateStatus,
     isConnected: isConnected,
     computeStats: computeStats,
-    tenseUncertainty: tenseUncertainty
+    tenseUncertainty: tenseUncertainty,
+    dimClipDefs: dimClipDefs,
+    dimBorderSvg: dimBorderSvg
   };
 }
 
