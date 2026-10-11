@@ -37,12 +37,24 @@ var EP_COLORS = {
 };
 
 function classify(url) {
-  var l = url.toLowerCase(), found = {}, best = 'SIGNAL', bestN = 0;
+  return classifyText(url);
+}
+
+function classifyText(text) {
+  var l = text.toLowerCase(), found = {}, best = 'SIGNAL', bestN = 0;
   for (var kw in EPITOPE_MAP) {
     if (l.indexOf(kw) !== -1) found[EPITOPE_MAP[kw]] = (found[EPITOPE_MAP[kw]]||0) + 1;
   }
   for (var ep in found) { if (found[ep] > bestN) { best = ep; bestN = found[ep]; } }
   return best;
+}
+
+function classifyAllText(text) {
+  var l = text.toLowerCase(), found = {};
+  for (var kw in EPITOPE_MAP) {
+    if (l.indexOf(kw) !== -1) found[EPITOPE_MAP[kw]] = (found[EPITOPE_MAP[kw]]||0) + 1;
+  }
+  return found;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -105,7 +117,10 @@ function getSong(url) {
   if (!found) return '';
   var braid = found.braid;
   if (!braid.songs) return '';
-  return braid.songs[url] || '';
+  var s = braid.songs[url];
+  if (!s) return '';
+  if (typeof s === 'string') return s;
+  return s.text || '';
 }
 
 function saveSong(url, text) {
@@ -113,8 +128,10 @@ function saveSong(url, text) {
   if (!found) return;
   var braid = found.braid;
   if (!braid.songs) braid.songs = {};
-  if (text.trim()) { braid.songs[url] = text.trim(); }
-  else { delete braid.songs[url]; }
+  if (text.trim()) {
+    var ep = classifyText(text + ' ' + url);
+    braid.songs[url] = { text: text.trim(), epitope: ep, time: new Date().toISOString() };
+  } else { delete braid.songs[url]; }
   saveBraid(found.key, braid);
 }
 

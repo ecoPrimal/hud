@@ -147,6 +147,34 @@ a:hover { text-decoration: underline; }
 .gaia-profile-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:4px; }
 .gaia-profile-val { font-size:18px; font-weight:600; }
 
+/* === SHAPE BAR CHART (gaia tab) === */
+.shape-bar-row { display:flex; align-items:center; gap:8px; padding:3px 0; }
+.shape-bar-label { width:100px; font-size:11px; text-align:right; }
+.shape-bar-track { flex:1; height:12px; background:var(--surface); border-radius:3px; overflow:hidden; position:relative; }
+.shape-bar-fill { height:100%; border-radius:3px; transition:width 0.4s; }
+.shape-bar-val { min-width:42px; font-size:11px; color:var(--fg-muted); text-align:right; }
+
+/* === WEAVE TAB — progressive trust === */
+.weave-section { margin-bottom:24px; }
+.weave-section h3 { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-dim); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+.weave-commitment { font-family:monospace; font-size:11px; background:var(--surface); padding:8px 12px; border-radius:4px; word-break:break-all; color:var(--fg-dim); user-select:all; }
+.weave-round { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:16px; margin-bottom:12px; }
+.weave-round-header { font-size:13px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.weave-round-header .round-num { background:var(--accent); color:var(--bg); width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
+.weave-input { background:var(--bg-alt); border:1px solid var(--border); color:var(--fg); font-family:monospace; font-size:12px; padding:6px 10px; border-radius:4px; width:100%; }
+.weave-input:focus { border-color:var(--accent); outline:none; }
+.weave-btn { background:none; border:1px solid var(--border); color:var(--fg); font-family:inherit; font-size:12px; padding:6px 14px; border-radius:4px; cursor:pointer; }
+.weave-btn:hover { border-color:var(--accent); color:var(--accent); }
+.weave-btn.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+.weave-btn.primary:hover { opacity:0.9; }
+.weave-result { margin-top:8px; padding:8px 12px; border-radius:4px; font-size:12px; }
+.weave-result.match { background:rgba(63,185,80,0.12); border:1px solid rgba(63,185,80,0.3); color:#3fb950; }
+.weave-result.partial { background:rgba(210,153,34,0.12); border:1px solid rgba(210,153,34,0.3); color:#d29922; }
+.weave-result.none { background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.3); color:#f85149; }
+.weave-mirror { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; }
+.weave-mirror-half { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; }
+.weave-mirror-half h4 { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:8px; }
+
 /* === PLAY TAB — mountain journey === */
 .mountain-viz {
   width: 100%; height: 300px; position: relative;
@@ -200,6 +228,7 @@ a:hover { text-decoration: underline; }
       <button class="desk-tab" data-tab="play">play</button>
       <button class="desk-tab" data-tab="create">create</button>
       <button class="desk-tab" data-tab="gaia">gaia</button>
+      <button class="desk-tab" data-tab="weave">weave</button>
     </nav>
     <div class="desk-links">
       <a href="/">← hud</a>
@@ -216,6 +245,7 @@ a:hover { text-decoration: underline; }
     <div id="panel-play" style="display:none"></div>
     <div id="panel-create" style="display:none"></div>
     <div id="panel-gaia" style="display:none"></div>
+    <div id="panel-weave" style="display:none"></div>
   </main>
 </div>
 
@@ -248,12 +278,71 @@ var EPITOPE_MAP = {
 };
 
 function classify(url) {
-  var l = url.toLowerCase(), found = {}, best = 'SIGNAL', bestN = 0;
+  return classifyText(url);
+}
+
+function classifyText(text) {
+  var l = text.toLowerCase(), found = {}, best = 'SIGNAL', bestN = 0;
   for (var kw in EPITOPE_MAP) {
     if (l.indexOf(kw) !== -1) found[EPITOPE_MAP[kw]] = (found[EPITOPE_MAP[kw]]||0) + 1;
   }
   for (var ep in found) { if (found[ep] > bestN) { best = ep; bestN = found[ep]; } }
   return best;
+}
+
+// Compute the full 8-dimensional epitope shape from ALL input
+function computeShape() {
+  var EP_KEYS = Object.keys(EP_COLORS);
+  var counts = {};
+  EP_KEYS.forEach(function(k) { counts[k] = 0; });
+
+  // Visits (weighted 1×)
+  getAllVisits().forEach(function(v) {
+    var ep = v.epitope || classify(v.url);
+    counts[ep] = (counts[ep] || 0) + 1;
+  });
+
+  // Marks (weighted 3× — intentional action)
+  var marks = getMarks();
+  for (var url in marks) {
+    var ep = marks[url].epitope || classify(url);
+    counts[ep] = (counts[ep] || 0) + 3;
+  }
+
+  // Songs (weighted 5× — creative investment)
+  var braids = findAllBraids();
+  braids.forEach(function(b) {
+    if (!b.braid.songs) return;
+    for (var sUrl in b.braid.songs) {
+      var song = b.braid.songs[sUrl];
+      var ep;
+      if (typeof song === 'object' && song.epitope) {
+        ep = song.epitope;
+      } else {
+        var text = (typeof song === 'string') ? song : (song.text || '');
+        ep = classifyText(text + ' ' + sUrl);
+      }
+      counts[ep] = (counts[ep] || 0) + 5;
+    }
+  });
+
+  // Braid marks (weighted 3×)
+  braids.forEach(function(b) {
+    if (!b.braid.marks) return;
+    b.braid.marks.forEach(function(m) {
+      var ep = m.epitope || classify(m.url);
+      counts[ep] = (counts[ep] || 0) + 3;
+    });
+  });
+
+  // Normalize to probability vector
+  var total = 0;
+  EP_KEYS.forEach(function(k) { total += counts[k]; });
+  var shape = {};
+  EP_KEYS.forEach(function(k) { shape[k] = total > 0 ? counts[k] / total : 0; });
+  shape._total = total;
+  shape._counts = counts;
+  return shape;
 }
 
 function epPill(ep) {
@@ -783,6 +872,37 @@ function renderGaia() {
   html += '<div class="gaia-profile-item"><div class="gaia-profile-label">total visits</div><div class="gaia-profile-val">' + visits.length + '</div></div>';
   html += '</div>';
 
+  // Full epitope shape (all input)
+  var shape = computeShape();
+  if (shape._total > 0) {
+    html += '<div class="card" style="margin-top:16px"><div class="card-header">your shape — all input through the epitope sort</div><div class="card-body">';
+    html += '<p style="color:var(--fg-dim);font-size:11px;margin-bottom:12px">Visits ×1 · Marks ×3 · Songs ×5. Weighted by intentional investment. Only you see this.</p>';
+    var epKeys = Object.keys(EP_COLORS);
+    var maxVal = 0;
+    epKeys.forEach(function(k) { if (shape[k] > maxVal) maxVal = shape[k]; });
+    epKeys.sort(function(a,b) { return shape[b] - shape[a]; });
+    epKeys.forEach(function(ep) {
+      var pct = (shape[ep] * 100).toFixed(1);
+      var barW = maxVal > 0 ? Math.round((shape[ep] / maxVal) * 100) : 0;
+      html += '<div class="shape-bar-row">';
+      html += '<div class="shape-bar-label" style="color:' + EP_COLORS[ep] + '">' + ep + '</div>';
+      html += '<div class="shape-bar-track"><div class="shape-bar-fill" style="width:' + barW + '%;background:' + EP_COLORS[ep] + '"></div></div>';
+      html += '<div class="shape-bar-val">' + pct + '%</div>';
+      html += '<div class="shape-bar-val" style="min-width:30px;color:var(--fg-muted)">' + (shape._counts[ep] || 0) + '</div>';
+      html += '</div>';
+    });
+    // Top 2 summary
+    var top2 = epKeys.slice(0, 2);
+    html += '<p style="margin-top:12px;font-size:12px;color:var(--fg)">Your shape leans <strong style="color:' + EP_COLORS[top2[0]] + '">' + top2[0] + '</strong>';
+    if (top2.length > 1 && shape[top2[1]] > 0) {
+      var ratio = shape[top2[1]] > 0 ? (shape[top2[0]] / shape[top2[1]]).toFixed(1) : '∞';
+      html += ' with <strong style="color:' + EP_COLORS[top2[1]] + '">' + top2[1] + '</strong> secondary (ratio ' + ratio + ':1)';
+    }
+    html += '.</p>';
+    html += '<p style="font-size:11px;color:var(--fg-dim);margin-top:4px">This is your epitope shape. It lives here, in your browser. The membrane never sees it.</p>';
+    html += '</div></div>';
+  }
+
   // Collective heatmap (async from traces API)
   html += '<div class="card" style="margin-top:16px"><div class="card-header">the ring — collective (last 2 hours)</div><div class="card-body" id="gaia-collective"><span style="color:var(--fg-dim)">loading...</span></div></div>';
 
@@ -835,6 +955,276 @@ function renderGaia() {
 }
 
 // ═══════════════════════════════════════════════════════
+// WEAVE — BingoCube progressive trust comparison
+// ═══════════════════════════════════════════════════════
+function renderWeave() {
+  var shape = computeShape();
+  var EP_KEYS = Object.keys(EP_COLORS);
+
+  if (shape._total === 0) {
+    return '<div class="empty-state">' +
+      '<h3>no shape yet</h3>' +
+      '<p>Explore the membrane. Visit pages. Mark what matters. Sing notes. Your shape forms from what you touch.</p>' +
+      '<p>Once your shape exists, the weave lets you find alignment with others \u2014 progressively, without revealing everything.</p>' +
+      '<p><a href="https://sporeprint.primals.eco/science/">start exploring \u2192</a></p>' +
+    '</div>';
+  }
+
+  // Sort by descending value for display
+  var sorted = EP_KEYS.slice().sort(function(a,b) { return shape[b] - shape[a]; });
+  var top2 = sorted.slice(0, 2).filter(function(k) { return shape[k] > 0; });
+
+  var html = '';
+
+  // Section 1: Your Shape (private view)
+  html += '<div class="weave-section">';
+  html += '<h3>your shape (private)</h3>';
+  html += '<div class="card"><div class="card-body">';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">This is your epitope shape \u2014 computed from everything you have touched on the membrane. It lives in your browser. Only you see it.</p>';
+  sorted.forEach(function(ep) {
+    if (shape[ep] === 0) return;
+    var pct = (shape[ep] * 100).toFixed(1);
+    var maxVal = shape[sorted[0]];
+    var barW = maxVal > 0 ? Math.round((shape[ep] / maxVal) * 100) : 0;
+    html += '<div class="shape-bar-row">';
+    html += '<div class="shape-bar-label" style="color:' + EP_COLORS[ep] + '">' + ep + '</div>';
+    html += '<div class="shape-bar-track"><div class="shape-bar-fill" style="width:' + barW + '%;background:' + EP_COLORS[ep] + '"></div></div>';
+    html += '<div class="shape-bar-val">' + pct + '%</div>';
+    html += '</div>';
+  });
+  html += '</div></div></div>';
+
+  // Section 2: Your Commitment
+  html += '<div class="weave-section">';
+  html += '<h3>your commitment</h3>';
+  html += '<div class="card"><div class="card-body">';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">A cryptographic commitment proves you have a shape without revealing what it is. Share the commitment hash \u2014 it says nothing about your shape until you choose to reveal more.</p>';
+  html += '<div class="weave-commitment" id="weave-commitment-hash">computing...</div>';
+  html += '<button class="weave-btn" style="margin-top:8px" id="weave-copy-commit">copy commitment</button>';
+  html += '</div></div></div>';
+
+  // Section 3: Round 1 — Coarse Alignment
+  html += '<div class="weave-section">';
+  html += '<h3>round 1 \u2014 coarse alignment</h3>';
+  html += '<div class="weave-round">';
+  html += '<div class="weave-round-header"><span class="round-num">1</span> top 2 categories</div>';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">Your top 2 (shareable): <strong style="color:' + EP_COLORS[top2[0]] + '">' + top2[0] + '</strong>';
+  if (top2.length > 1) html += ' + <strong style="color:' + EP_COLORS[top2[1]] + '">' + top2[1] + '</strong>';
+  html += '. Share these \u2014 they reveal your emphasis, not your exact shape.</p>';
+  html += '<div style="margin-bottom:8px"><label style="font-size:11px;color:var(--fg-dim)">enter the other\u2019s top 2 (comma-separated):</label></div>';
+  html += '<input class="weave-input" id="weave-r1-input" placeholder="e.g. INVESTIGATION, PHILOSOPHY" style="margin-bottom:8px"/>';
+  html += '<button class="weave-btn primary" id="weave-r1-compare">compare</button>';
+  html += '<div id="weave-r1-result"></div>';
+  html += '</div></div>';
+
+  // Section 4: Round 2 — Gradient
+  html += '<div class="weave-section">';
+  html += '<h3>round 2 \u2014 gradient</h3>';
+  html += '<div class="weave-round">';
+  html += '<div class="weave-round-header"><span class="round-num">2</span> ratio between top 2</div>';
+  if (top2.length >= 2 && shape[top2[1]] > 0) {
+    var myRatio = (shape[top2[0]] / shape[top2[1]]).toFixed(2);
+    html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">Your ratio: <strong>' + top2[0] + ' / ' + top2[1] + ' = ' + myRatio + '</strong>. A ratio near 1 means balanced. Higher means steeper focus on the first category.</p>';
+    html += '<div style="margin-bottom:8px"><label style="font-size:11px;color:var(--fg-dim)">enter the other\u2019s ratio:</label></div>';
+    html += '<input class="weave-input" id="weave-r2-input" placeholder="e.g. 1.35" style="margin-bottom:8px"/>';
+    html += '<button class="weave-btn primary" id="weave-r2-compare">compare</button>';
+    html += '<div id="weave-r2-result"></div>';
+  } else {
+    html += '<p style="font-size:12px;color:var(--fg-dim)">Need at least 2 active categories. Keep exploring.</p>';
+  }
+  html += '</div></div>';
+
+  // Section 5: Round 3 — Full Shape Exchange (the mirror)
+  html += '<div class="weave-section">';
+  html += '<h3>round 3 \u2014 the mirror</h3>';
+  html += '<div class="weave-round">';
+  html += '<div class="weave-round-header"><span class="round-num">3</span> full shape exchange</div>';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:8px">Your full shape (shareable after trust is established):</p>';
+  var myShapeStr = sorted.filter(function(k) { return shape[k] > 0; }).map(function(k) { return k + ':' + (shape[k] * 100).toFixed(1); }).join(', ');
+  html += '<div class="weave-commitment" style="font-size:12px;margin-bottom:12px">' + myShapeStr + '</div>';
+  html += '<button class="weave-btn" id="weave-copy-shape" style="margin-bottom:16px">copy your shape</button>';
+  html += '<div style="margin-bottom:8px"><label style="font-size:11px;color:var(--fg-dim)">paste the other\u2019s shape:</label></div>';
+  html += '<input class="weave-input" id="weave-r3-input" placeholder="e.g. INVESTIGATION:45.0, TOPOLOGY:28.0, PHILOSOPHY:10.0" style="margin-bottom:8px"/>';
+  html += '<button class="weave-btn primary" id="weave-r3-compare">compare \u2014 see the mirror</button>';
+  html += '<div id="weave-r3-result"></div>';
+  html += '</div></div>';
+
+  // Explanation
+  html += '<div class="card"><div class="card-body">';
+  html += '<p style="font-size:12px;color:var(--fg-dim)"><strong>Others are the mirror.</strong> You do not know your own shape until you see how it differs from someone else\u2019s. ';
+  html += 'The BingoCube protocol makes the comparison possible: coarse first, then finer, then full. Each round builds trust. Each round requires consent. ';
+  html += 'No accounts. No profiles. No identity. Just shapes meeting shapes.</p>';
+  html += '</div></div>';
+
+  // Bind event handlers after render
+  setTimeout(function() { bindWeaveHandlers(shape, sorted, top2); }, 50);
+
+  return html;
+}
+
+function bindWeaveHandlers(shape, sorted, top2) {
+  var EP_KEYS = Object.keys(EP_COLORS);
+
+  // Compute commitment hash (SHA-256 via SubtleCrypto)
+  var shapeArr = sorted.map(function(k) { return shape[k].toFixed(6); });
+  var nonce = new Uint8Array(16);
+  crypto.getRandomValues(nonce);
+  var nonceHex = Array.from(nonce).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+  var commitData = shapeArr.join(',') + '|' + nonceHex;
+
+  crypto.subtle.digest('SHA-256', new TextEncoder().encode(commitData)).then(function(hashBuf) {
+    var hashHex = Array.from(new Uint8Array(hashBuf)).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+    var el = document.getElementById('weave-commitment-hash');
+    if (el) el.textContent = hashHex;
+  });
+
+  // Copy commitment
+  var copyCommit = document.getElementById('weave-copy-commit');
+  if (copyCommit) copyCommit.addEventListener('click', function() {
+    var el = document.getElementById('weave-commitment-hash');
+    if (el && navigator.clipboard) navigator.clipboard.writeText(el.textContent);
+  });
+
+  // Copy shape
+  var copyShape = document.getElementById('weave-copy-shape');
+  if (copyShape) copyShape.addEventListener('click', function() {
+    var str = sorted.filter(function(k) { return shape[k] > 0; }).map(function(k) { return k + ':' + (shape[k] * 100).toFixed(1); }).join(', ');
+    if (navigator.clipboard) navigator.clipboard.writeText(str);
+  });
+
+  // Round 1: coarse alignment comparison
+  var r1btn = document.getElementById('weave-r1-compare');
+  if (r1btn) r1btn.addEventListener('click', function() {
+    var input = document.getElementById('weave-r1-input').value.trim().toUpperCase();
+    var theirTop2 = input.split(/[,\s]+/).filter(function(s) { return s.length > 0; }).slice(0, 2);
+    var resultEl = document.getElementById('weave-r1-result');
+    if (theirTop2.length < 1) { resultEl.innerHTML = '<p style="color:var(--fg-dim)">Enter at least one category.</p>'; return; }
+
+    var overlap = top2.filter(function(t) { return theirTop2.indexOf(t) >= 0; });
+    if (overlap.length === 2) {
+      resultEl.innerHTML = '<div class="weave-result match">Both top categories match: <strong>' + overlap.join(', ') + '</strong>. Strong alignment. Proceed to round 2.</div>';
+    } else if (overlap.length === 1) {
+      resultEl.innerHTML = '<div class="weave-result partial">One overlap: <strong>' + overlap[0] + '</strong>. Partial alignment. You share an emphasis but differ on the secondary.</div>';
+    } else {
+      resultEl.innerHTML = '<div class="weave-result none">No overlap in top 2. Different angles of approach. That\u2019s information too \u2014 complementary shapes can be valuable.</div>';
+    }
+  });
+
+  // Round 2: gradient comparison
+  var r2btn = document.getElementById('weave-r2-compare');
+  if (r2btn) r2btn.addEventListener('click', function() {
+    var theirRatio = parseFloat(document.getElementById('weave-r2-input').value.trim());
+    var resultEl = document.getElementById('weave-r2-result');
+    if (isNaN(theirRatio) || theirRatio <= 0) { resultEl.innerHTML = '<p style="color:var(--fg-dim)">Enter a positive number.</p>'; return; }
+
+    var myRatio = top2.length >= 2 && shape[top2[1]] > 0 ? shape[top2[0]] / shape[top2[1]] : Infinity;
+    var diff = Math.abs(myRatio - theirRatio);
+    var relDiff = diff / Math.max(myRatio, theirRatio);
+
+    if (relDiff < 0.15) {
+      resultEl.innerHTML = '<div class="weave-result match">Gradients are close (yours: ' + myRatio.toFixed(2) + ', theirs: ' + theirRatio.toFixed(2) + '). Similar emphasis balance. Proceed to full shape exchange.</div>';
+    } else if (relDiff < 0.4) {
+      resultEl.innerHTML = '<div class="weave-result partial">Gradients are in the same range (yours: ' + myRatio.toFixed(2) + ', theirs: ' + theirRatio.toFixed(2) + '). Same general lean, different intensity.</div>';
+    } else {
+      resultEl.innerHTML = '<div class="weave-result none">Different gradients (yours: ' + myRatio.toFixed(2) + ', theirs: ' + theirRatio.toFixed(2) + '). One of you focuses harder on the top category.</div>';
+    }
+  });
+
+  // Round 3: full shape comparison — the mirror
+  var r3btn = document.getElementById('weave-r3-compare');
+  if (r3btn) r3btn.addEventListener('click', function() {
+    var input = document.getElementById('weave-r3-input').value.trim();
+    var resultEl = document.getElementById('weave-r3-result');
+    var theirShape = {};
+    EP_KEYS.forEach(function(k) { theirShape[k] = 0; });
+
+    input.split(/[,\s]+/).forEach(function(chunk) {
+      var parts = chunk.split(':');
+      if (parts.length === 2) {
+        var cat = parts[0].toUpperCase().trim();
+        var val = parseFloat(parts[1]);
+        if (EP_KEYS.indexOf(cat) >= 0 && !isNaN(val)) theirShape[cat] = val / 100;
+      }
+    });
+
+    var theirTotal = 0;
+    EP_KEYS.forEach(function(k) { theirTotal += theirShape[k]; });
+    if (theirTotal === 0) { resultEl.innerHTML = '<p style="color:var(--fg-dim)">Could not parse shape. Use format: CATEGORY:value, CATEGORY:value</p>'; return; }
+
+    // Normalize their shape
+    EP_KEYS.forEach(function(k) { theirShape[k] /= theirTotal; });
+
+    // Build the mirror
+    var mirrorHtml = '<div class="weave-mirror">';
+
+    // Left: you
+    mirrorHtml += '<div class="weave-mirror-half"><h4>you</h4>';
+    sorted.forEach(function(ep) {
+      if (shape[ep] === 0 && theirShape[ep] === 0) return;
+      var myPct = (shape[ep] * 100).toFixed(1);
+      mirrorHtml += '<div class="shape-bar-row">';
+      mirrorHtml += '<div class="shape-bar-label" style="color:' + EP_COLORS[ep] + ';width:70px;font-size:10px">' + ep.slice(0,5) + '</div>';
+      mirrorHtml += '<div class="shape-bar-track"><div class="shape-bar-fill" style="width:' + Math.round(shape[ep] / shape[sorted[0]] * 100) + '%;background:' + EP_COLORS[ep] + '"></div></div>';
+      mirrorHtml += '<div class="shape-bar-val">' + myPct + '</div>';
+      mirrorHtml += '</div>';
+    });
+    mirrorHtml += '</div>';
+
+    // Right: them
+    var theirSorted = EP_KEYS.slice().sort(function(a,b) { return theirShape[b] - theirShape[a]; });
+    var theirMax = theirShape[theirSorted[0]] || 1;
+    mirrorHtml += '<div class="weave-mirror-half"><h4>the other</h4>';
+    theirSorted.forEach(function(ep) {
+      if (theirShape[ep] === 0 && shape[ep] === 0) return;
+      var theirPct = (theirShape[ep] * 100).toFixed(1);
+      mirrorHtml += '<div class="shape-bar-row">';
+      mirrorHtml += '<div class="shape-bar-label" style="color:' + EP_COLORS[ep] + ';width:70px;font-size:10px">' + ep.slice(0,5) + '</div>';
+      mirrorHtml += '<div class="shape-bar-track"><div class="shape-bar-fill" style="width:' + Math.round(theirShape[ep] / theirMax * 100) + '%;background:' + EP_COLORS[ep] + '"></div></div>';
+      mirrorHtml += '<div class="shape-bar-val">' + theirPct + '</div>';
+      mirrorHtml += '</div>';
+    });
+    mirrorHtml += '</div>';
+    mirrorHtml += '</div>';
+
+    // Compute cosine similarity
+    var dotProd = 0, magA = 0, magB = 0;
+    EP_KEYS.forEach(function(k) {
+      dotProd += shape[k] * theirShape[k];
+      magA += shape[k] * shape[k];
+      magB += theirShape[k] * theirShape[k];
+    });
+    var cosine = (magA > 0 && magB > 0) ? dotProd / (Math.sqrt(magA) * Math.sqrt(magB)) : 0;
+
+    // Narrative
+    var narrative = '';
+    if (cosine > 0.95) {
+      narrative = '<div class="weave-result match">Cosine similarity: <strong>' + cosine.toFixed(3) + '</strong>. Nearly the same shape. You see the membrane from almost the same angle. Rare alignment.</div>';
+    } else if (cosine > 0.8) {
+      narrative = '<div class="weave-result match">Cosine similarity: <strong>' + cosine.toFixed(3) + '</strong>. Strong alignment. Same core emphasis with different secondary interests. Complementary.</div>';
+    } else if (cosine > 0.5) {
+      narrative = '<div class="weave-result partial">Cosine similarity: <strong>' + cosine.toFixed(3) + '</strong>. Moderate overlap. You share some ground but approach from different angles.</div>';
+    } else {
+      narrative = '<div class="weave-result none">Cosine similarity: <strong>' + cosine.toFixed(3) + '</strong>. Different shapes. You see different parts of the membrane. That difference is itself information \u2014 what they see, you might be missing.</div>';
+    }
+
+    // Difference analysis
+    var diffs = EP_KEYS.map(function(k) { return { ep: k, diff: theirShape[k] - shape[k] }; }).sort(function(a,b) { return Math.abs(b.diff) - Math.abs(a.diff); });
+    var insight = '<p style="font-size:12px;margin-top:12px"><strong>The mirror shows:</strong></p><ul style="font-size:12px;margin-top:4px;padding-left:20px">';
+    diffs.slice(0, 3).forEach(function(d) {
+      if (Math.abs(d.diff) < 0.01) return;
+      if (d.diff > 0) {
+        insight += '<li>Their <strong style="color:' + EP_COLORS[d.ep] + '">' + d.ep + '</strong> is stronger (+' + (d.diff*100).toFixed(1) + '%) \u2014 they see something there you haven\u2019t focused on</li>';
+      } else {
+        insight += '<li>Your <strong style="color:' + EP_COLORS[d.ep] + '">' + d.ep + '</strong> is stronger (+' + (Math.abs(d.diff)*100).toFixed(1) + '%) \u2014 you bring something they lack</li>';
+      }
+    });
+    insight += '</ul>';
+
+    resultEl.innerHTML = mirrorHtml + narrative + insight;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
 // TAB SWITCHING
 // ═══════════════════════════════════════════════════════
 var tabs = document.querySelectorAll('.desk-tab');
@@ -845,6 +1235,7 @@ var panels = {
   play:  document.getElementById('panel-play'),
   create:document.getElementById('panel-create'),
   gaia:  document.getElementById('panel-gaia'),
+  weave: document.getElementById('panel-weave'),
 };
 var renderers = {
   study: renderStudy,
@@ -853,6 +1244,7 @@ var renderers = {
   play:  renderPlay,
   create:renderCreate,
   gaia:  renderGaia,
+  weave: renderWeave,
 };
 
 function switchTab(name) {
