@@ -313,6 +313,164 @@ function NanowireRenderer(config) {
   }
 
   // ═══════════════════════════════════════════════════════
+  // TENSE-AWARE STATISTICS — i² uncertainty model
+  //
+  // WAS  (past):    known, σ_past = null — wavefunction collapsed
+  // IS   (now):     measured, ±σ/√n — i² rotation active
+  // WILLBE (next):  predicted, ±σ√(1+1/n) — i hasn't squared yet
+  //
+  // past_n = [null] — the past IS Known, no uncertainty band
+  // ═══════════════════════════════════════════════════════
+
+  function computeStats(vals) {
+    if (!vals || !vals.length) return null;
+    var n = vals.length;
+    var sum = 0, min = Infinity, max = -Infinity;
+    for (var i = 0; i < n; i++) {
+      sum += vals[i];
+      if (vals[i] < min) min = vals[i];
+      if (vals[i] > max) max = vals[i];
+    }
+    var mean = sum / n;
+    var ssq = 0;
+    for (var j = 0; j < n; j++) ssq += (vals[j] - mean) * (vals[j] - mean);
+    var sigma = n > 1 ? Math.sqrt(ssq / (n - 1)) : 0;
+    return {n: n, total: sum, min: min, max: max, mean: mean, sigma: sigma};
+  }
+
+  function tenseUncertainty(sigma, n, tense) {
+    if (tense === 'was') return null;
+    if (n < 2 || sigma === 0) return null;
+    if (tense === 'willbe') return sigma * Math.sqrt(1 + 1 / n);
+    return sigma / Math.sqrt(n);
+  }
+
+  var TENSE_STYLE = {
+    was:    {color: '#6e7681', band: null,      label: 'WAS',    icon: '\u25c0', note: 'past = [null] — Known'},
+    is:     {color: '#58a6ff', band: '#58a6ff', label: 'IS',     icon: '\u25cf', note: 'i\u00b2 = \u2212 1 — uncertainty active'},
+    willbe: {color: '#bc8cff', band: '#bc8cff', label: 'WILLBE', icon: '\u25b6', note: 'i not yet squared — prediction widens'}
+  };
+
+  function renderRangeBar(b) {
+    var cats = b.categories || [];
+    var vals = b.values || [];
+    var tenses = b.tenses || [];
+    var sigmas = b.sigmas || [];
+    if (!cats.length) return '';
+    var st = computeStats(vals);
+    if (!st) return '';
+    var maxVal = st.max + (Math.max.apply(null, sigmas.concat([0])) || st.sigma);
+    if (maxVal <= 0) maxVal = 1;
+    var rows = '';
+    for (var i = 0; i < cats.length; i++) {
+      var v = vals[i] || 0;
+      var tense = tenses[i] || b.tense || 'is';
+      var ts = TENSE_STYLE[tense] || TENSE_STYLE.is;
+      var sig = sigmas[i] !== undefined ? sigmas[i] : tenseUncertainty(st.sigma, st.n, tense);
+      var pct = Math.max((v / maxVal) * 100, 0.5);
+      var color = pickColor(i, cats.length);
+      rows += '<div style="display:flex;align-items:center;gap:6px;margin:3px 0;font-size:0.72em">' +
+        '<span style="min-width:90px;color:' + C.fg + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+        '<span style="color:' + ts.color + ';font-size:0.7em;margin-right:3px" title="' + ts.label + '">' + ts.icon + '</span>' +
+        esc(cats[i]) + '</span>' +
+        '<div style="flex:1;position:relative;height:18px">' +
+        '<div style="position:absolute;left:0;top:2px;width:100%;height:14px;background:' + C.border + ';border-radius:2px"></div>' +
+        '<div style="position:absolute;left:0;top:2px;width:' + pct.toFixed(1) + '%;height:14px;background:' + color + ';border-radius:2px;opacity:0.85;transition:width 0.5s"></div>';
+      if (sig !== null && sig > 0) {
+        var loV = Math.max(0, v - sig);
+        var hiV = v + sig;
+        var loPct = (loV / maxVal) * 100;
+        var hiPct = Math.min((hiV / maxVal) * 100, 100);
+        var bandW = hiPct - loPct;
+        rows += '<div style="position:absolute;left:' + loPct.toFixed(1) + '%;top:0;width:' + bandW.toFixed(1) +
+          '%;height:18px;border:1px solid ' + ts.band + ';border-radius:2px;opacity:0.4;box-sizing:border-box" ' +
+          'title="\u00b1' + sig.toFixed(2) + '"></div>' +
+          '<div style="position:absolute;left:' + loPct.toFixed(1) + '%;top:0;width:1px;height:18px;background:' + ts.band + ';opacity:0.6"></div>' +
+          '<div style="position:absolute;left:' + hiPct.toFixed(1) + '%;top:0;width:1px;height:18px;background:' + ts.band + ';opacity:0.6"></div>';
+      }
+      rows += '</div>' +
+        '<span style="min-width:60px;text-align:right;color:' + C.dim + ';font-size:0.85em">' + fmtNum(v) +
+        (sig !== null ? '<span style="color:' + ts.color + ';font-size:0.8em"> \u00b1' + sig.toFixed(1) + '</span>' : '') +
+        '</span></div>';
+    }
+    return '<div style="padding:4px 0">' + rows + '</div>';
+  }
+
+  function renderDataCard(b) {
+    var vals = b.values || [];
+    var tense = b.tense || 'is';
+    var ts = TENSE_STYLE[tense] || TENSE_STYLE.is;
+    var st = computeStats(vals);
+    if (!st) return '<div style="color:' + C.muted + ';font-size:0.75em;padding:8px">No data</div>';
+    var unc = tenseUncertainty(st.sigma, st.n, tense);
+    var uncStr = unc !== null ? '\u00b1' + unc.toFixed(2) : '\u2014';
+    var glyph = ts.icon;
+    var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0">';
+    var cells = [
+      {k: 'Total',  v: fmtNum(st.total)},
+      {k: 'Range',  v: fmtNum(st.min) + ' \u2013 ' + fmtNum(st.max)},
+      {k: 'n',      v: String(st.n)},
+      {k: '\u03bc (mean)', v: st.mean.toFixed(2)},
+      {k: '\u03c3',        v: st.sigma.toFixed(2)},
+      {k: '\u00b1 (' + ts.label + ')', v: uncStr}
+    ];
+    for (var i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      html += '<div style="text-align:center;border:1px solid ' + C.border + ';border-radius:4px;padding:6px">' +
+        '<div style="font-size:0.65em;color:' + C.muted + '">' + esc(c.k) + '</div>' +
+        '<div style="font-size:1.1em;font-weight:600;color:' + (i === 5 ? ts.color : C.fg) + '">' + c.v + '</div></div>';
+    }
+    html += '</div>';
+    html += '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:0.65em;color:' + C.muted + '">' +
+      '<span style="color:' + ts.color + '">' + glyph + ' ' + ts.label + '</span>' +
+      '<span>\u2014 ' + ts.note + '</span>';
+    if (b.unit) html += '<span style="margin-left:auto;color:' + C.dim + '">' + esc(b.unit) + '</span>';
+    html += '</div>';
+    if (vals.length > 2) {
+      html += renderMiniDist(vals, tense, st);
+    }
+    return html;
+  }
+
+  function renderMiniDist(vals, tense, st) {
+    var ts = TENSE_STYLE[tense] || TENSE_STYLE.is;
+    var W = 280, H = 60;
+    var n = vals.length;
+    var sorted = vals.slice().sort(function(a, b) { return a - b; });
+    var buckets = Math.min(Math.max(Math.ceil(Math.sqrt(n)), 3), 20);
+    var range = st.max - st.min;
+    if (range === 0) range = 1;
+    var step = range / buckets;
+    var counts = new Array(buckets).fill(0);
+    for (var i = 0; i < n; i++) {
+      var bi = Math.min(Math.floor((sorted[i] - st.min) / step), buckets - 1);
+      counts[bi]++;
+    }
+    var maxC = Math.max.apply(null, counts.concat([1]));
+    var bw = (W - 20) / buckets;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-height:' + H + 'px;font-family:monospace">';
+    svg += '<rect width="' + W + '" height="' + H + '" fill="' + C.card + '" rx="3"/>';
+    for (var b = 0; b < buckets; b++) {
+      var bh = (counts[b] / maxC) * (H - 16);
+      var bx = 10 + b * bw;
+      svg += '<rect x="' + bx.toFixed(1) + '" y="' + (H - 6 - bh).toFixed(1) + '" width="' + (bw - 1).toFixed(1) +
+        '" height="' + bh.toFixed(1) + '" fill="' + ts.color + '" opacity="0.6" rx="1"/>';
+    }
+    var unc = tenseUncertainty(st.sigma, st.n, tense);
+    if (unc !== null) {
+      var meanPx = 10 + ((st.mean - st.min) / range) * (W - 20);
+      var uncPx = (unc / range) * (W - 20);
+      svg += '<rect x="' + (meanPx - uncPx).toFixed(1) + '" y="2" width="' + (uncPx * 2).toFixed(1) +
+        '" height="' + (H - 4) + '" fill="' + ts.band + '" opacity="0.12" rx="2"/>';
+      svg += '<line x1="' + meanPx.toFixed(1) + '" y1="2" x2="' + meanPx.toFixed(1) + '" y2="' + (H - 4) +
+        '" stroke="' + ts.color + '" stroke-width="1" stroke-dasharray="2,2"/>';
+    }
+    svg += '<text x="' + (W - 4) + '" y="' + (H - 1) + '" fill="' + C.muted + '" font-size="5" text-anchor="end">distribution</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  // ═══════════════════════════════════════════════════════
   // DISPATCH — route binding to correct renderer
   // ═══════════════════════════════════════════════════════
 
@@ -334,6 +492,8 @@ function NanowireRenderer(config) {
       case 'donut':         html = renderDonut(binding); break;
       case 'chord':         html = renderChord(binding); break;
       case 'force_graph':   html = renderForceGraph(binding); break;
+      case 'range_bar':     html = renderRangeBar(binding); break;
+      case 'data_card':     html = renderDataCard(binding); break;
       default:              html = renderBar(binding); break;
     }
 
@@ -347,7 +507,9 @@ function NanowireRenderer(config) {
     renderBinding: renderBinding,
     requestMetrics: requestMetrics,
     updateStatus: updateStatus,
-    isConnected: isConnected
+    isConnected: isConnected,
+    computeStats: computeStats,
+    tenseUncertainty: tenseUncertainty
   };
 }
 
