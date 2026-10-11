@@ -7,7 +7,7 @@
 <style>
 :root {
   --bg: #0d1117; --fg: #c9d1d9; --dim: #8b949e; --accent: #58a6ff;
-  --green: #3fb950; --yellow: #d29922; --red: #f85149; --cyan: #39d2c0;
+  --ep-philosophy: #3fb950; --ep-investigation: #f1c40f; --ep-immune: #ff6b35; --ep-science: #e8e8e8;
   --card: #161b22; --border: #30363d; --font: 'Iosevka', 'Fira Code', monospace;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -38,9 +38,9 @@ header nav a { margin-left:12px; }
   font-size:13px; padding:8px 16px; border-radius:4px; cursor:pointer; margin:4px; }
 .gate button:hover, .btn:hover { opacity:0.85; }
 .btn-dim { background:var(--border); color:var(--dim); }
-.btn-green { background:var(--green); }
-.btn-yellow { background:var(--yellow); color:#000; }
-.btn-red { background:var(--red); }
+.btn-green { background:var(--ep-philosophy); }
+.btn-yellow { background:var(--ep-investigation); color:#000; }
+.btn-red { background:var(--ep-immune); }
 
 .epitope-bar { display:flex; gap:2px; height:20px; border-radius:3px; overflow:hidden; margin:8px 0; }
 .epitope-bar div { min-width:2px; }
@@ -65,8 +65,8 @@ header nav a { margin-left:12px; }
 
 .sharewear { display:flex; gap:8px; align-items:center; margin:4px 0; }
 .sharewear .bar { flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
-.sharewear .fill { height:100%; background:var(--cyan); border-radius:3px; }
-.sharewear .val { font-size:12px; color:var(--cyan); min-width:40px; }
+.sharewear .fill { height:100%; background:var(--ep-science); border-radius:3px; }
+.sharewear .val { font-size:12px; color:var(--ep-science); min-width:40px; }
 </style>
 </head>
 <body>
@@ -192,9 +192,9 @@ var EPITOPE_MAP = {
 };
 
 var EP_COLORS = {
-  PHYSICS: '#58a6ff', TOPOLOGY: '#bc8cff', PHILOSOPHY: '#8b949e',
-  METHOD: '#3fb950', INVESTIGATION: '#d29922', IMMUNE: '#f85149',
-  SCIENCE: '#39d2c0', SIGNAL: '#79c0ff',
+  PHYSICS: '#e85d3a', TOPOLOGY: '#9b59b6', PHILOSOPHY: '#3fb950',
+  METHOD: '#58a6ff', INVESTIGATION: '#f1c40f', IMMUNE: '#ff6b35',
+  SCIENCE: '#e8e8e8', SIGNAL: '#4a8fb8',
 };
 
 // ═══════════════════════════════════════════════════════
@@ -275,9 +275,9 @@ function mountainPosition(H, nPages) {
   // Low entropy + many pages = descending (deep in one topic, building)
   // Moderate entropy + moderate pages = summit (seeing the whole)
   if (nPages < 3) return { pos: 'base', label: 'setting out', color: '#8b949e' };
-  if (H > 2.2) return { pos: 'ascending', label: 'ascending — finding', color: '#58a6ff' };
-  if (H > 1.2) return { pos: 'summit', label: 'summit — seeing', color: '#d29922' };
-  return { pos: 'descending', label: 'descending — making', color: '#3fb950' };
+  if (H > 2.2) return { pos: 'ascending', label: 'ascending \u2014 finding', color: '#58a6ff' };
+  if (H > 1.2) return { pos: 'summit', label: 'summit \u2014 seeing', color: '#4a8fb8' };
+  return { pos: 'descending', label: 'descending \u2014 making', color: '#3fb950' };
 }
 
 // ═══════════════════════════════════════════════════════

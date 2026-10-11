@@ -31,9 +31,9 @@ var EPITOPE_MAP = {
 };
 
 var EP_COLORS = {
-  PHYSICS:'#58a6ff', TOPOLOGY:'#bc8cff', PHILOSOPHY:'#8b949e',
-  METHOD:'#3fb950', INVESTIGATION:'#d29922', IMMUNE:'#f85149',
-  SCIENCE:'#39d2c0', SIGNAL:'#79c0ff',
+  PHYSICS:'#e85d3a', TOPOLOGY:'#9b59b6', PHILOSOPHY:'#3fb950',
+  METHOD:'#58a6ff', INVESTIGATION:'#f1c40f', IMMUNE:'#ff6b35',
+  SCIENCE:'#e8e8e8', SIGNAL:'#4a8fb8',
 };
 
 function classify(url) {
@@ -179,7 +179,7 @@ function buildWidget() {
     '  font-family:inherit; font-size:11px; padding:4px 10px; border-radius:3px;',
     '  cursor:pointer; margin:0 3px; transition:all 0.15s;',
     '}',
-    '#eco-membrane-widget button:hover { border-color:#58a6ff; color:#58a6ff; }',
+    '#eco-membrane-widget button:hover { border-color:#4a8fb8; color:#4a8fb8; }',
     '#eco-membrane-widget button[title]:hover::after {',
     '  content:attr(title); position:absolute; bottom:calc(100% + 6px);',
     '  left:50%; transform:translateX(-50%); background:#161b22;',
@@ -188,8 +188,8 @@ function buildWidget() {
     '  pointer-events:none;',
     '}',
     '#eco-membrane-widget button { position:relative; }',
-    '#eco-membrane-widget button.active { background:#58a6ff22; border-color:#58a6ff; color:#58a6ff; }',
-    '#eco-membrane-widget button.marked { background:#d2992222; border-color:#d29922; color:#d29922; }',
+    '#eco-membrane-widget button.active { background:rgba(74,143,184,0.13); border-color:#4a8fb8; color:#4a8fb8; }',
+    '#eco-membrane-widget button.marked { background:rgba(241,196,15,0.13); border-color:#f1c40f; color:#f1c40f; }',
     '#eco-membrane-widget .widget-toggle {',
     '  position:absolute; top:-20px; right:12px; background:rgba(13,17,23,0.92);',
     '  border:1px solid rgba(48,54,61,0.6); border-bottom:none; border-radius:4px 4px 0 0;',
