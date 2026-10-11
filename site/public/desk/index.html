@@ -1095,6 +1095,128 @@ function renderWeave() {
 
   html += '</div></div></div>';
 
+  // ═══════════════════════════════════════════════════════
+  // π INVERSION — set all numbers to π, work backwards
+  // ═══════════════════════════════════════════════════════
+  html += '<div class="weave-section">';
+  html += '<h3>the \u03c0 inversion</h3>';
+  html += '<div class="card"><div class="card-body">';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">Every integer in the system expressed as \u03c0<sup>x</sup>. If x is clean (rational, or \u03c0-related), the integer might be an approximation of something deeper.</p>';
+
+  // Compute π inversions for system constants and visitor measurements
+  var PIV = Math.PI;
+  var logPi = Math.log(PIV);
+
+  // System constants
+  var inversions = [
+    { label: 'sites on ring', integer: 10, desc: 'N surfaces' },
+    { label: 'epitope categories', integer: 8, desc: 'k receptors' },
+    { label: '3\u00d73 board', integer: 9, desc: 'L\u00b2 cells' },
+    { label: '5\u00d75 board', integer: 25, desc: 'L\u00b2 cells' },
+    { label: '7\u00d77 board', integer: 49, desc: 'L\u00b2 cells (future)' },
+  ];
+
+  // Visitor measurements
+  if (PP > 0) {
+    inversions.push({ label: 'your PP (perplexity)', integer: null, val: PP, desc: 'effective axes' });
+    inversions.push({ label: 'your focal distance', integer: null, val: focal, desc: 'f' });
+    inversions.push({ label: 'your entropy H', integer: null, val: H_shape, desc: 'nats' });
+    if (piCost > 0) inversions.push({ label: 'your observation cost', integer: null, val: piCost, desc: '\u03c0^(PP/2)' });
+  }
+
+  html += '<table style="width:100%;font-size:12px;border-collapse:collapse">';
+  html += '<tr style="border-bottom:1px solid var(--border);color:var(--fg-dim)">';
+  html += '<th style="text-align:left;padding:4px">quantity</th>';
+  html += '<th style="text-align:right;padding:4px">value</th>';
+  html += '<th style="text-align:right;padding:4px">\u03c0<sup>x</sup></th>';
+  html += '<th style="text-align:right;padding:4px">x</th>';
+  html += '<th style="text-align:left;padding:4px">nearest clean x</th>';
+  html += '<th style="text-align:right;padding:4px">\u03c0<sup>clean</sup></th>';
+  html += '<th style="text-align:right;padding:4px">\u0394</th>';
+  html += '</tr>';
+
+  inversions.forEach(function(inv) {
+    var v = inv.integer !== null ? inv.integer : inv.val;
+    if (v <= 0) return;
+    var x = Math.log(v) / logPi;
+
+    // Find nearest "clean" x: integer, half-integer, or π-related
+    var candidates = [];
+    for (var i = -4; i <= 5; i++) { candidates.push({ x: i, label: '' + i }); }
+    for (var i = -3; i <= 5; i++) { candidates.push({ x: i + 0.5, label: i + '\u00bd' }); }
+    candidates.push({ x: 1/PIV, label: '1/\u03c0' });
+    candidates.push({ x: PIV/2, label: '\u03c0/2' });
+    candidates.push({ x: PIV, label: '\u03c0' });
+    candidates.push({ x: Math.E, label: 'e' });
+    candidates.push({ x: Math.E/2, label: 'e/2' });
+    candidates.push({ x: 2/PIV, label: '2/\u03c0' });
+    candidates.push({ x: Math.log(2)/logPi, label: 'log\u03c0(2)' });
+    candidates.push({ x: Math.log(Math.E)/logPi, label: 'log\u03c0(e)' });
+
+    var best = candidates[0], bestDist = Math.abs(x - candidates[0].x);
+    candidates.forEach(function(c) {
+      var d = Math.abs(x - c.x);
+      if (d < bestDist) { best = c; bestDist = d; }
+    });
+
+    var piClean = Math.pow(PIV, best.x);
+    var delta = v - piClean;
+    var closeness = Math.abs(delta / v);
+    var color = closeness < 0.02 ? '#3fb950' : closeness < 0.1 ? '#d29922' : 'var(--fg-dim)';
+
+    html += '<tr style="border-bottom:1px solid rgba(48,54,61,0.3)">';
+    html += '<td style="padding:4px;color:var(--fg-dim)">' + inv.label + '</td>';
+    html += '<td style="padding:4px;text-align:right;font-weight:600">' + (inv.integer !== null ? inv.integer : v.toFixed(3)) + '</td>';
+    html += '<td style="padding:4px;text-align:right;color:var(--fg-muted)">\u03c0<sup>' + x.toFixed(3) + '</sup></td>';
+    html += '<td style="padding:4px;text-align:right;font-family:monospace">' + x.toFixed(4) + '</td>';
+    html += '<td style="padding:4px;color:' + color + '">\u03c0<sup>' + best.label + '</sup></td>';
+    html += '<td style="padding:4px;text-align:right;color:' + color + '">' + piClean.toFixed(3) + '</td>';
+    html += '<td style="padding:4px;text-align:right;color:' + color + '">' + (delta >= 0 ? '+' : '') + delta.toFixed(3) + ' (' + (closeness * 100).toFixed(1) + '%)</td>';
+    html += '</tr>';
+  });
+  html += '</table>';
+
+  // The highlight: 10 sites vs π²
+  html += '<div style="margin-top:12px;padding:10px;background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.2);border-radius:4px;font-size:12px">';
+  html += '<p><strong style="color:#3fb950">\u03c0\u00b2 \u2248 9.870</strong> — the ring has <strong>10</strong> sites. The gap is ' + (10 - PIV*PIV).toFixed(3) + '. ';
+  html += 'If the natural number of observation surfaces is \u03c0\u00b2, the tenth site is excess \u2014 or the fractional surface (0.130) is the curvature of the observation space at this point.</p>';
+  html += '<p style="margin-top:6px">The gap 10 \u2212 \u03c0\u00b2 = ' + (10 - PIV*PIV).toFixed(4) + '. Compare: \u03c0 \u2212 3 = ' + (PIV - 3).toFixed(4) + '. ';
+  html += 'Not the same \u2014 but both are the remainder when an integer rounds a \u03c0-quantity. The question is whether these remainders encode geometry.</p>';
+  html += '</div>';
+
+  // The π-local computation
+  html += '<div style="margin-top:12px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-size:12px">';
+  html += '<p><strong>Hyperlocalized \u03c0</strong>: on a curved surface (the probability simplex has positive curvature from the Fisher metric), the effective value of \u03c0 changes with position.</p>';
+
+  // Compute local curvature effect on π
+  // On the (k-1)-simplex with Fisher metric, curvature is K = 1/(4k) approximately
+  // For a shape far from centroid, the geodesic curvature modifies π
+  var k = 8;
+  // Distance from centroid (uniform) in Fisher metric ≈ 2*arccos(Σ√(p_i/k))
+  var bhattSum = 0;
+  sorted.forEach(function(ep) { bhattSum += Math.sqrt(shape[ep] * k); });
+  bhattSum /= k;
+  var fisherDist = 2 * Math.acos(Math.min(1, bhattSum));
+
+  // On sphere of radius R=2, circumference of circle at geodesic dist r:
+  // C = 2πR·sin(r/R) → π_local = C/(2r) = π·R·sin(r/R)/r
+  var R = 2;
+  var piLocal = fisherDist > 0.001 ? PIV * R * Math.sin(fisherDist / R) / fisherDist : PIV;
+  var piDeviation = piLocal - PIV;
+
+  html += '<p style="margin-top:6px">Your distance from the centroid (Fisher metric): <strong>' + fisherDist.toFixed(4) + '</strong></p>';
+  html += '<p>\u03c0<sub>local</sub> at your position: <strong style="color:var(--accent)">' + piLocal.toFixed(6) + '</strong> (deviation: ' + (piDeviation >= 0 ? '+' : '') + piDeviation.toFixed(6) + ')</p>';
+  if (piDeviation < -0.001) {
+    html += '<p style="color:var(--fg-dim)">Your \u03c0 is smaller than flat \u03c0. You are on a positively curved region of the simplex \u2014 concentrated shape, contracted angular measure.</p>';
+  } else if (piDeviation > 0.001) {
+    html += '<p style="color:var(--fg-dim)">Your \u03c0 is larger than flat \u03c0. Unusual \u2014 this would indicate negative curvature.</p>';
+  } else {
+    html += '<p style="color:var(--fg-dim)">Your \u03c0 is near-flat. You are close to the centroid of the simplex \u2014 broad, uniform engagement.</p>';
+  }
+  html += '</div>';
+
+  html += '</div></div></div>';
+
   // Section: Shape bars (compact)
   html += '<div class="weave-section">';
   html += '<h3>shape vector (private) \u00b7 ' + activeEpitopes + ' axes active</h3>';
