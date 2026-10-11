@@ -175,6 +175,41 @@ a:hover { text-decoration: underline; }
 .weave-mirror-half { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; }
 .weave-mirror-half h4 { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:8px; }
 
+/* === CUBE FACE — bingoCube visual board === */
+.cube-face { display:grid; gap:4px; width:fit-content; margin:0 auto; user-select:none; }
+.cube-face.L3 { grid-template-columns:repeat(3, 90px); grid-template-rows:repeat(3, 90px); }
+.cube-face.L5 { grid-template-columns:repeat(5, 64px); grid-template-rows:repeat(5, 64px); }
+.cube-cell {
+  border-radius:6px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; cursor:grab;
+  border:2px solid transparent; transition:all 0.2s;
+  position:relative; overflow:hidden;
+}
+.cube-cell:hover { border-color:var(--accent); transform:scale(1.04); z-index:1; }
+.cube-cell.dragging { opacity:0.4; transform:scale(0.95); }
+.cube-cell.drag-over { border-color:#fff; border-style:dashed; }
+.cube-cell .cell-label { font-size:9px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; z-index:1; }
+.cube-cell .cell-val { font-size:16px; font-weight:700; z-index:1; }
+.cube-cell.L5 .cell-label { font-size:7px; }
+.cube-cell.L5 .cell-val { font-size:12px; }
+.cube-cell .cell-fill {
+  position:absolute; bottom:0; left:0; right:0;
+  transition:height 0.4s; border-radius:0 0 4px 4px;
+}
+.cube-cell.center-cell { border:2px solid var(--accent); }
+.cube-cell.center-cell .cell-label { color:var(--accent); }
+.cube-controls { display:flex; gap:8px; justify-content:center; margin-top:12px; align-items:center; }
+.cube-level-indicator {
+  display:flex; gap:4px; align-items:center; font-size:11px; color:var(--fg-dim);
+}
+.cube-level-indicator .prime-dot {
+  width:12px; height:12px; border-radius:50%; display:inline-flex;
+  align-items:center; justify-content:center; font-size:8px; font-weight:700;
+  border:1px solid var(--border);
+}
+.cube-level-indicator .prime-dot.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+.cube-level-indicator .prime-dot.locked { background:var(--surface); color:var(--fg-dim); }
+
 /* === PLAY TAB — mountain journey === */
 .mountain-viz {
   width: 100%; height: 300px; position: relative;
@@ -974,13 +1009,53 @@ function renderWeave() {
   var sorted = EP_KEYS.slice().sort(function(a,b) { return shape[b] - shape[a]; });
   var top2 = sorted.slice(0, 2).filter(function(k) { return shape[k] > 0; });
 
+  // Determine cube level (prime chain)
+  var activeEpitopes = sorted.filter(function(k) { return shape[k] > 0; }).length;
+  var cubeLevel = activeEpitopes >= 6 ? 5 : 3;
+  var savedLevel = null;
+  try { savedLevel = parseInt(localStorage.getItem('eco_cube_level')); } catch(e) {}
+  if (savedLevel === 5 && activeEpitopes >= 6) cubeLevel = 5;
+  if (savedLevel === 3) cubeLevel = 3;
+
   var html = '';
 
-  // Section 1: Your Shape (private view)
+  // ═══════════════════════════════════════════════════════
+  // THE FACE — bingoCube visual board
+  // ═══════════════════════════════════════════════════════
   html += '<div class="weave-section">';
-  html += '<h3>your shape (private)</h3>';
+  html += '<h3>your face</h3>';
   html += '<div class="card"><div class="card-body">';
-  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">This is your epitope shape \u2014 computed from everything you have touched on the membrane. It lives in your browser. Only you see it.</p>';
+  html += '<p style="font-size:12px;color:var(--fg-dim);margin-bottom:12px">Your bingoCube face. 8 epitopes + center. Drag cells to rearrange \u2014 the arrangement is your sort. The fidget is the classification.</p>';
+
+  // Prime chain indicator
+  html += '<div class="cube-level-indicator" style="margin-bottom:12px;justify-content:center">';
+  [3,5,7,11,13].forEach(function(p) {
+    var isActive = p === cubeLevel;
+    var isUnlocked = p <= cubeLevel;
+    html += '<span class="prime-dot ' + (isActive ? 'active' : (isUnlocked ? '' : 'locked')) + '">' + p + '</span>';
+  });
+  html += '<span style="margin-left:4px">prime chain</span>';
+  html += '</div>';
+
+  html += '<div id="cube-face-container"></div>';
+
+  // Controls
+  html += '<div class="cube-controls">';
+  if (activeEpitopes >= 6 && cubeLevel === 3) {
+    html += '<button class="weave-btn primary" id="cube-evolve">evolve to 5\u00d75</button>';
+  } else if (cubeLevel === 5) {
+    html += '<button class="weave-btn" id="cube-devolve">simplify to 3\u00d73</button>';
+  }
+  html += '<button class="weave-btn" id="cube-shuffle">shuffle</button>';
+  html += '<button class="weave-btn" id="cube-export-img">export face</button>';
+  html += '</div>';
+
+  html += '</div></div></div>';
+
+  // Section: Shape bars (compact)
+  html += '<div class="weave-section">';
+  html += '<h3>shape vector (private)</h3>';
+  html += '<div class="card"><div class="card-body">';
   sorted.forEach(function(ep) {
     if (shape[ep] === 0) return;
     var pct = (shape[ep] * 100).toFixed(1);
@@ -1057,13 +1132,329 @@ function renderWeave() {
   html += '</div></div>';
 
   // Bind event handlers after render
-  setTimeout(function() { bindWeaveHandlers(shape, sorted, top2); }, 50);
+  setTimeout(function() {
+    renderCubeFace(shape, sorted, cubeLevel);
+    bindWeaveHandlers(shape, sorted, top2, cubeLevel);
+  }, 50);
 
   return html;
 }
 
-function bindWeaveHandlers(shape, sorted, top2) {
+// ═══════════════════════════════════════════════════════
+// CUBE FACE — bingoCube board renderer + drag-to-sort fidget
+// ═══════════════════════════════════════════════════════
+
+// Subcategories for 5×5 expansion
+var EP_SUBS = {
+  PHYSICS:       ['wave','lattice','spectral'],
+  TOPOLOGY:      ['graph','mesh','braid'],
+  PHILOSOPHY:    ['ethics','commons','atlas'],
+  METHOD:        ['tools','tufte','evolution'],
+  INVESTIGATION: ['evidence','actors','charter'],
+  IMMUNE:        ['membrane','scatter','antidote'],
+  SCIENCE:       ['biology','genomics','data'],
+  SIGNAL:        ['channel','beacon','transit'],
+};
+
+function getCubeArrangement(L) {
+  var key = 'eco_cube_arrange_' + L;
+  try {
+    var saved = localStorage.getItem(key);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function saveCubeArrangement(L, arr) {
+  try { localStorage.setItem('eco_cube_arrange_' + L, JSON.stringify(arr)); } catch(e) {}
+}
+
+function defaultArrangement3(sorted) {
+  // 3×3: 8 epitopes + center ★
+  // Place strongest categories in corners/edges, center is ★
+  var positions = [0,1,2,3, /* skip 4=center */ 5,6,7,8];
+  var arr = new Array(9);
+  for (var i = 0; i < 8 && i < sorted.length; i++) {
+    arr[positions[i]] = { type:'epitope', key:sorted[i] };
+  }
+  arr[4] = { type:'center' };
+  return arr;
+}
+
+function defaultArrangement5(sorted, shape) {
+  // 5×5: 25 cells. Each of 8 epitopes gets 3 subcategory cells = 24 + center
+  var arr = new Array(25);
+  // Layout: epitopes spiral outward from center
+  // Center = cell 12
+  arr[12] = { type:'center' };
+  // Place each epitope's 3 subcells in adjacent blocks
+  var blocks = [
+    [0,1,5],    [2,3,7],    [4,9,14],
+    [6,11,16],  [8,13,18],  [10,15,20],
+    [17,21,22], [19,23,24],
+  ];
+  for (var i = 0; i < 8 && i < sorted.length; i++) {
+    var subs = EP_SUBS[sorted[i]] || ['a','b','c'];
+    var block = blocks[i];
+    for (var j = 0; j < 3; j++) {
+      arr[block[j]] = { type:'sub', key:sorted[i], sub:subs[j], subIdx:j };
+    }
+  }
+  // Fill any remaining nulls
+  for (var k = 0; k < 25; k++) {
+    if (!arr[k]) arr[k] = { type:'empty' };
+  }
+  return arr;
+}
+
+function renderCubeFace(shape, sorted, L) {
+  var container = document.getElementById('cube-face-container');
+  if (!container) return;
+
+  var arr = getCubeArrangement(L);
+  if (!arr) {
+    arr = L === 3 ? defaultArrangement3(sorted) : defaultArrangement5(sorted, shape);
+    saveCubeArrangement(L, arr);
+  }
+
+  var grid = document.createElement('div');
+  grid.className = 'cube-face L' + L;
+  grid.id = 'cube-face-grid';
+
+  var maxVal = shape[sorted[0]] || 1;
+
+  arr.forEach(function(cell, idx) {
+    var div = document.createElement('div');
+    div.className = 'cube-cell' + (L === 5 ? ' L5' : '');
+    div.dataset.idx = idx;
+    div.draggable = true;
+
+    if (cell.type === 'center') {
+      div.classList.add('center-cell');
+      var dEff = sorted.filter(function(k) { return shape[k] > 0; }).length;
+      div.style.background = 'var(--bg-alt)';
+      div.innerHTML = '<div class="cell-val" style="color:var(--accent)">\u2605</div>' +
+        '<div class="cell-label" style="color:var(--fg-dim)">d=' + dEff + '</div>';
+    } else if (cell.type === 'epitope') {
+      var ep = cell.key;
+      var val = shape[ep] || 0;
+      var intensity = maxVal > 0 ? val / maxVal : 0;
+      var color = EP_COLORS[ep] || '#8b949e';
+      var bgAlpha = Math.max(0.08, intensity * 0.35);
+      div.style.background = hexToRgba(color, bgAlpha);
+      div.style.borderColor = hexToRgba(color, 0.3);
+      var fillH = Math.round(intensity * 100);
+      div.innerHTML = '<div class="cell-fill" style="height:' + fillH + '%;background:' + hexToRgba(color, 0.25) + '"></div>' +
+        '<div class="cell-val" style="color:' + color + '">' + (val * 100).toFixed(0) + '</div>' +
+        '<div class="cell-label" style="color:' + color + '">' + ep.slice(0,5) + '</div>';
+    } else if (cell.type === 'sub') {
+      var ep = cell.key;
+      var val = shape[ep] || 0;
+      var subWeight = val / 3;
+      var color = EP_COLORS[ep] || '#8b949e';
+      var intensity = maxVal > 0 ? val / maxVal : 0;
+      var bgAlpha = Math.max(0.05, intensity * 0.25);
+      div.style.background = hexToRgba(color, bgAlpha);
+      div.style.borderColor = hexToRgba(color, 0.15);
+      var fillH = Math.round(intensity * 80);
+      div.innerHTML = '<div class="cell-fill" style="height:' + fillH + '%;background:' + hexToRgba(color, 0.15) + '"></div>' +
+        '<div class="cell-val" style="color:' + color + ';font-size:10px">' + (cell.sub || '') + '</div>' +
+        '<div class="cell-label" style="color:' + hexToRgba(color, 0.7) + '">' + ep.slice(0,4) + '</div>';
+    } else {
+      div.style.background = 'var(--surface)';
+      div.innerHTML = '<div class="cell-label" style="color:var(--fg-dim)">\u00b7</div>';
+    }
+
+    // Drag handlers (the fidget)
+    div.addEventListener('dragstart', function(e) {
+      e.dataTransfer.setData('text/plain', idx);
+      this.classList.add('dragging');
+    });
+    div.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+    div.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('drag-over');
+    });
+    div.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+    div.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      var fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      var toIdx = parseInt(this.dataset.idx);
+      if (fromIdx !== toIdx && !isNaN(fromIdx) && !isNaN(toIdx)) {
+        // Swap cells
+        var temp = arr[fromIdx];
+        arr[fromIdx] = arr[toIdx];
+        arr[toIdx] = temp;
+        saveCubeArrangement(L, arr);
+        renderCubeFace(shape, sorted, L);
+      }
+    });
+
+    grid.appendChild(div);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+
+  // Touch-based fidget for mobile
+  var touchFrom = null;
+  grid.addEventListener('touchstart', function(e) {
+    var cell = e.target.closest('.cube-cell');
+    if (cell) {
+      touchFrom = parseInt(cell.dataset.idx);
+      cell.classList.add('dragging');
+    }
+  }, { passive: true });
+  grid.addEventListener('touchend', function(e) {
+    var cells = grid.querySelectorAll('.cube-cell');
+    cells.forEach(function(c) { c.classList.remove('dragging', 'drag-over'); });
+    if (touchFrom === null) return;
+    var touch = e.changedTouches[0];
+    var el = document.elementFromPoint(touch.clientX, touch.clientY);
+    var cell = el ? el.closest('.cube-cell') : null;
+    if (cell) {
+      var toIdx = parseInt(cell.dataset.idx);
+      if (touchFrom !== toIdx && !isNaN(touchFrom) && !isNaN(toIdx)) {
+        var temp = arr[touchFrom];
+        arr[touchFrom] = arr[toIdx];
+        arr[toIdx] = temp;
+        saveCubeArrangement(L, arr);
+        renderCubeFace(shape, sorted, L);
+      }
+    }
+    touchFrom = null;
+  });
+  grid.addEventListener('touchmove', function(e) {
+    if (touchFrom === null) return;
+    var touch = e.touches[0];
+    var el = document.elementFromPoint(touch.clientX, touch.clientY);
+    var cell = el ? el.closest('.cube-cell') : null;
+    var cells = grid.querySelectorAll('.cube-cell');
+    cells.forEach(function(c) { c.classList.remove('drag-over'); });
+    if (cell && parseInt(cell.dataset.idx) !== touchFrom) {
+      cell.classList.add('drag-over');
+    }
+  }, { passive: true });
+}
+
+function hexToRgba(hex, alpha) {
+  var r = parseInt(hex.slice(1,3), 16);
+  var g = parseInt(hex.slice(3,5), 16);
+  var b = parseInt(hex.slice(5,7), 16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+function exportCubeFace() {
+  var grid = document.getElementById('cube-face-grid');
+  if (!grid) return;
+  var cells = grid.querySelectorAll('.cube-cell');
+  var L = grid.classList.contains('L5') ? 5 : 3;
+  var cellSize = L === 3 ? 90 : 64;
+  var gap = 4;
+  var pad = 16;
+  var totalSize = L * cellSize + (L - 1) * gap + 2 * pad;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = totalSize;
+  canvas.height = totalSize + 30;
+  var ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  cells.forEach(function(cell, i) {
+    var row = Math.floor(i / L);
+    var col = i % L;
+    var x = pad + col * (cellSize + gap);
+    var y = pad + row * (cellSize + gap);
+
+    // Cell background
+    var bg = getComputedStyle(cell).backgroundColor;
+    ctx.fillStyle = bg || 'rgba(33,38,45,0.5)';
+    ctx.beginPath();
+    ctx.roundRect(x, y, cellSize, cellSize, 6);
+    ctx.fill();
+
+    // Cell border
+    var bc = getComputedStyle(cell).borderColor;
+    if (bc && bc !== 'rgba(0, 0, 0, 0)') {
+      ctx.strokeStyle = bc;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Text
+    var valEl = cell.querySelector('.cell-val');
+    var labelEl = cell.querySelector('.cell-label');
+    if (valEl) {
+      ctx.fillStyle = getComputedStyle(valEl).color || '#c9d1d9';
+      ctx.font = (L === 3 ? '16' : '12') + 'px -apple-system,system-ui,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(valEl.textContent, x + cellSize/2, y + cellSize/2);
+    }
+    if (labelEl) {
+      ctx.fillStyle = getComputedStyle(labelEl).color || '#8b949e';
+      ctx.font = (L === 3 ? '9' : '7') + 'px -apple-system,system-ui,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelEl.textContent, x + cellSize/2, y + cellSize/2 + 14);
+    }
+  });
+
+  // Footer text
+  ctx.fillStyle = '#484f58';
+  ctx.font = '10px -apple-system,system-ui,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('bingoCube face \u00b7 primals.eco', canvas.width/2, canvas.height - 8);
+
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'bingocube-face-' + L + 'x' + L + '.png';
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  });
+}
+
+function bindWeaveHandlers(shape, sorted, top2, cubeLevel) {
   var EP_KEYS = Object.keys(EP_COLORS);
+
+  // Cube face controls
+  var evolveBtn = document.getElementById('cube-evolve');
+  if (evolveBtn) evolveBtn.addEventListener('click', function() {
+    try { localStorage.setItem('eco_cube_level', '5'); } catch(e) {}
+    switchTab('weave');
+  });
+  var devolveBtn = document.getElementById('cube-devolve');
+  if (devolveBtn) devolveBtn.addEventListener('click', function() {
+    try { localStorage.setItem('eco_cube_level', '3'); } catch(e) {}
+    switchTab('weave');
+  });
+  var shuffleBtn = document.getElementById('cube-shuffle');
+  if (shuffleBtn) shuffleBtn.addEventListener('click', function() {
+    var L = cubeLevel;
+    var arr = L === 3 ? defaultArrangement3(sorted) : defaultArrangement5(sorted, shape);
+    // Fisher-Yates shuffle (skip center)
+    var centerIdx = L === 3 ? 4 : 12;
+    var indices = [];
+    for (var i = 0; i < arr.length; i++) { if (i !== centerIdx) indices.push(i); }
+    for (var k = indices.length - 1; k > 0; k--) {
+      var j = Math.floor(Math.random() * (k + 1));
+      var tmp = arr[indices[k]];
+      arr[indices[k]] = arr[indices[j]];
+      arr[indices[j]] = tmp;
+    }
+    saveCubeArrangement(L, arr);
+    renderCubeFace(shape, sorted, L);
+  });
+  var exportBtn = document.getElementById('cube-export-img');
+  if (exportBtn) exportBtn.addEventListener('click', exportCubeFace);
 
   // Compute commitment hash (SHA-256 via SubtleCrypto)
   var shapeArr = sorted.map(function(k) { return shape[k].toFixed(6); });
