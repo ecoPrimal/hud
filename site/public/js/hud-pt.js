@@ -60,6 +60,10 @@
      dim: 3, eq: 'C(3) = \u03c0^1.5',        cat: 'membrane', full: true},
     {id: 'organism-lang',    title: 'Accept-Language',              sub: 'Human vs machine tell \u2014 donut.',
      dim: 1, eq: 'C(1) = \u221a\u03c0',           cat: 'membrane'},
+    {id: 'signal-data',     title: 'Signal Data \u2014 i\u00b2',     sub: 'Total \u00b7 Range \u00b7 \u03c3 \u00b7 Distribution. All IS-tense (live measurement).',
+     dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire',   full: true},
+    {id: 'entity-tense',    title: 'Entity Tense \u00b1\u03c3',     sub: 'Fleet=IS (\u00b1\u03c3/\u221an). Honest=WAS (known). No band on past.',
+     dim: 3, eq: 'C(3) = \u03c0^1.5',        cat: 'immune', full: true},
   ];
 
   function epitopeSort(panels, aliveSet) {
@@ -216,6 +220,41 @@
     if (entities.length > 1) markAlive('entity-matrix');
     buildAcceptLanguageDonut(pt, clusters);
     if (clusters.length > 0) markAlive('organism-lang');
+
+    // ── Tense Data ── i\u00b2 uncertainty model ──
+    // Live signal = IS tense. Past observations = WAS (known, no band).
+    if (entities.length > 1) {
+      var eReqs = [], eTenses = [], eLabels = [];
+      entities.forEach(function(e) {
+        if (e.total_requests > 5) {
+          eLabels.push(e.label.replace(/ \(.*\)/, ''));
+          eReqs.push(e.total_requests);
+          eTenses.push(e.is_honest ? 'was' : 'is');
+        }
+      });
+      if (eReqs.length > 1) {
+        markAlive('entity-tense');
+        pt.renderBinding({
+          channel_type: 'range_bar', id: 'entity-tense',
+          label: 'Entity Tense \u2014 Fleet (IS \u00b1\u03c3) vs Honest (WAS = Known)',
+          categories: eLabels, values: eReqs, tenses: eTenses, unit: 'requests'
+        }, 'pt-entity-tense');
+      }
+    }
+    if (dash.total_requests > 0) {
+      var sigVals = [
+        dash.rps || 0,
+        dash.fleet_ips || 0,
+        dash.human_ips || 0,
+        dash.fleet_pct || 0
+      ];
+      markAlive('signal-data');
+      pt.renderBinding({
+        channel_type: 'data_card', id: 'signal-data',
+        label: 'Signal Data \u2014 IS tense (i\u00b2 = \u22121, uncertainty active)',
+        values: sigVals, tense: 'is', unit: 'live metrics'
+      }, 'pt-signal-data');
+    }
   }
 
   // ═══════════════════════════════════════════════════════
