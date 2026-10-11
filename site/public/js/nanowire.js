@@ -553,6 +553,125 @@ function NanowireRenderer(config) {
   // ═══════════════════════════════════════════════════════
   // DISPATCH — route binding to correct renderer
   // ═══════════════════════════════════════════════════════
+  // PI SORT — digits are not digits
+  // Each "digit" n is the uncertainty band [C(n-1), C(n)]
+  // Band width grows by √π each step. 4 = gap between 3 and 5.
+  // The math itself as an epitope sort.
+  // ═══════════════════════════════════════════════════════
+
+  function renderPiSort(b) {
+    var panels = b.panels || [];
+    var PI = Math.PI, SPI = Math.sqrt(PI);
+    var W = 560, H = 260;
+    var maxDim = 6;
+    var maxCost = Math.pow(PI, maxDim / 2);
+    var pad = {l: 50, r: 20, t: 30, b: 50};
+    var plotW = W - pad.l - pad.r;
+    var plotH = H - pad.t - pad.b;
+
+    // Use log scale for x-axis since bands grow geometrically
+    var logMin = 0;  // log(1) = 0
+    var logMax = Math.log(maxCost);
+
+    function xOf(cost) { return pad.l + (Math.log(cost) / logMax) * plotW; }
+    function yOf(row, total) { return pad.t + plotH * (row + 0.5) / total; }
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;font-family:Courier New,monospace">';
+    svg += '<rect width="' + W + '" height="' + H + '" fill="' + C.card + '" rx="4"/>';
+
+    // Title
+    svg += '<text x="' + (W / 2) + '" y="18" fill="' + C.fg + '" font-size="9" text-anchor="middle">digits are not digits \u2014 \u03c0^(n/2) uncertainty bands</text>';
+
+    // Draw uncertainty bands
+    var bandColors = ['#9b59b6', '#4a8fb8', '#5ab87a', '#e85d3a', '#f1c40f', '#ff6b35'];
+    var bandLabels = ['axis', 'plane', 'datum', 'gap', '', ''];
+    var bandNotes = ['1 measurement', '2 axes', 'observation', '3 \u2194 5', 'redundant', ''];
+
+    for (var n = 1; n <= maxDim; n++) {
+      var lo = Math.pow(PI, (n - 1) / 2);
+      var hi = Math.pow(PI, n / 2);
+      var x1 = xOf(lo), x2 = xOf(hi);
+      var bw = x2 - x1;
+      var by = pad.t;
+      var bh = plotH;
+      var col = bandColors[(n - 1) % bandColors.length];
+      var op = n === 4 ? 0.12 : 0.06;
+
+      // Band rectangle
+      svg += '<rect x="' + x1.toFixed(1) + '" y="' + by + '" width="' + bw.toFixed(1) + '" height="' + bh + '" fill="' + col + '" opacity="' + op + '"/>';
+
+      // Band border
+      svg += '<line x1="' + x2.toFixed(1) + '" y1="' + by + '" x2="' + x2.toFixed(1) + '" y2="' + (by + bh) + '" stroke="' + col + '" stroke-width="0.5" stroke-opacity="0.3"/>';
+
+      // Band label at top
+      var midX = (x1 + x2) / 2;
+      svg += '<text x="' + midX.toFixed(1) + '" y="' + (by + 14) + '" fill="' + col + '" font-size="8" text-anchor="middle" font-weight="bold">' + n + 'D</text>';
+      if (bandLabels[n - 1]) {
+        svg += '<text x="' + midX.toFixed(1) + '" y="' + (by + 24) + '" fill="' + col + '" font-size="5.5" text-anchor="middle" opacity="0.7">' + bandLabels[n - 1] + '</text>';
+      }
+
+      // Width annotation at bottom
+      var width = hi - lo;
+      svg += '<text x="' + midX.toFixed(1) + '" y="' + (by + bh + 12) + '" fill="' + C.dim + '" font-size="5.5" text-anchor="middle">\u0394=' + width.toFixed(2) + '</text>';
+
+      // Cost value at bottom
+      svg += '<text x="' + x2.toFixed(1) + '" y="' + (by + bh + 24) + '" fill="' + C.muted + '" font-size="5" text-anchor="middle">' + hi.toFixed(2) + '</text>';
+    }
+
+    // "4 = the gap" annotation
+    var gap4x1 = xOf(Math.pow(PI, 1.5));
+    var gap4x2 = xOf(Math.pow(PI, 2));
+    svg += '<text x="' + ((gap4x1 + gap4x2) / 2).toFixed(1) + '" y="' + (pad.t + plotH - 8) + '" fill="#e85d3a" font-size="6" text-anchor="middle" opacity="0.8">the gap</text>';
+
+    // Plot panels within their bands
+    var dimGroups = {};
+    panels.forEach(function(p) {
+      var d = p.dim || 2;
+      if (!dimGroups[d]) dimGroups[d] = [];
+      dimGroups[d].push(p);
+    });
+
+    var catColors = {fire: '#e85d3a', sound: '#4a8fb8', membrane: '#5ab87a', immune: '#9b59b6'};
+    var glyphs = {1: '\u25cb', 2: '\u25a1', 3: '\u25b3', 4: '\u25c7'};
+
+    Object.keys(dimGroups).forEach(function(d) {
+      var dim = parseInt(d);
+      var group = dimGroups[d];
+      var lo = Math.pow(PI, (dim - 1) / 2);
+      var hi = Math.pow(PI, dim / 2);
+
+      group.forEach(function(p, i) {
+        // Place within band — spread evenly
+        var t = group.length === 1 ? 0.5 : i / (group.length - 1);
+        var cost = lo + (hi - lo) * (0.1 + 0.8 * t);
+        var px = xOf(cost);
+        var py = yOf(i, Math.max(group.length, 1));
+        var col = catColors[p.cat] || C.dim;
+        var alive = p.alive;
+        var r = alive ? 3.5 : 2;
+        var op = alive ? 0.9 : 0.3;
+
+        svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + r + '" fill="' + col + '" opacity="' + op + '"' + (alive ? ' filter="url(#mg-glow)"' : '') + '/>';
+
+        // Label
+        var short = p.title.length > 12 ? p.title.substring(0, 12) : p.title;
+        svg += '<text x="' + (px + r + 3).toFixed(1) + '" y="' + (py + 2).toFixed(1) + '" fill="' + C.dim + '" font-size="5" opacity="' + (alive ? 0.8 : 0.4) + '">' + short + '</text>';
+      });
+    });
+
+    // √π ratio arrow
+    svg += '<text x="' + pad.l + '" y="' + (H - 8) + '" fill="' + C.muted + '" font-size="5.5">each band \u00d7\u221a\u03c0 \u2248 1.77 wider</text>';
+
+    // "observation" marker at C(3)
+    var obsX = xOf(Math.pow(PI, 1.5));
+    svg += '<line x1="' + obsX.toFixed(1) + '" y1="' + pad.t + '" x2="' + obsX.toFixed(1) + '" y2="' + (pad.t + plotH) + '" stroke="#5ab87a" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="3,3"/>';
+    svg += '<text x="' + obsX.toFixed(1) + '" y="' + (H - 2) + '" fill="#5ab87a" font-size="5" text-anchor="middle">\u03c0^(3/2) = datum</text>';
+
+    svg += '</svg>';
+    return svg;
+  }
+
+  // ═══════════════════════════════════════════════════════
 
   function renderBinding(binding, targetId) {
     if (!binding) return Promise.resolve();
@@ -574,6 +693,7 @@ function NanowireRenderer(config) {
       case 'force_graph':   html = renderForceGraph(binding); break;
       case 'range_bar':     html = renderRangeBar(binding); break;
       case 'data_card':     html = renderDataCard(binding); break;
+      case 'pi_sort':      html = renderPiSort(binding); break;
       default:              html = renderBar(binding); break;
     }
 

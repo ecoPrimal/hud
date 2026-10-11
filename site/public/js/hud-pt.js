@@ -66,6 +66,8 @@
      dim: 2, eq: 'C(2) = \u03c0',            cat: 'fire',   full: true},
     {id: 'entity-tense',    title: 'Entity Tense \u00b1\u03c3',     sub: 'Fleet=IS (\u00b1\u03c3/\u221an). Honest=WAS (known). No band on past.',
      dim: 3, eq: 'C(3) = \u03c0^1.5',        cat: 'immune', full: true},
+    {id: 'pi-sort',         title: '\u03c0 Sort \u2014 Digits Are Not Digits', sub: 'Each dim = uncertainty band [C(n\u22121), C(n)]. Width \u00d7\u221a\u03c0 each step. 4 = the gap between 3 and 5.',
+     dim: 2, eq: 'C(n) = \u03c0^(n/2)',      cat: 'membrane', full: true},
   ];
 
   function epitopeSort(panels, aliveSet) {
@@ -281,6 +283,17 @@
         label: 'Signal Data \u2014 IS tense (i\u00b2 = \u22121, uncertainty active)',
         values: sigVals, tense: 'is', unit: 'live metrics'
       }, 'pt-signal-data');
+
+    // Pi sort — the math as an epitope sort
+    // Digits are not digits: each n = uncertainty band [C(n-1), C(n)]
+    var piPanels = PANELS.map(function(p) {
+      return {dim: p.dim, cat: p.cat, title: p.title, alive: aliveSet.has(p.id)};
+    });
+    markAlive('pi-sort');
+    pt.renderBinding({
+      channel_type: 'pi_sort', id: 'pi-sort',
+      panels: piPanels
+    }, 'pt-pi-sort');
     }
   }
 
