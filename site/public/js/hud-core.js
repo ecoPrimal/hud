@@ -309,6 +309,59 @@
   }
 
   // ── Poll ──
+
+  // ── Tower Health ──
+  var ORGAN_COLORS = {
+    skunkBat:'#e85d75', petalTongue:'#f778ba', squirrel:'#a6e3a1',
+    bearDog:'#ff6b35', songBird:'#4a8fb8', nestGate:'#9b59b6',
+    loamSpine:'#f1c40f', rhizoCrypt:'#58a6ff', swarmVine:'#3fb950',
+    sweetGrass:'#e8e8e8', barraCuda:'#ff9f43'
+  };
+
+  function loadTower(){
+    fetch('/tower.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(t){
+      var el=document.getElementById('d-tower');
+      if(!el) return;
+      el.innerHTML='';
+
+      // alive/total header
+      var hdr=document.createElement('div');
+      hdr.style.cssText='display:flex;gap:12px;align-items:baseline;margin-bottom:8px;';
+      var aliveColor=t.alive===t.total?'#3fb950':'#f1c40f';
+      if(t.alive<t.total*0.7) aliveColor='#e85d75';
+      hdr.innerHTML=
+        '<span style="font-size:1.4em;font-weight:700;color:'+aliveColor+'">'+t.alive+'/'+t.total+'</span>'+
+        '<span style="font-size:0.75em;color:#8b949e">organs alive</span>'+
+        '<span style="font-size:0.85em;color:#6e7681">ratio '+t.ratio.toFixed(2)+'</span>';
+      el.appendChild(hdr);
+
+      // organ grid
+      var grid=document.createElement('div');
+      grid.style.cssText='display:flex;flex-wrap:wrap;gap:6px;';
+      var sorted=Object.keys(t.organs).sort();
+      for(var i=0;i<sorted.length;i++){
+        var name=sorted[i];
+        var org=t.organs[name];
+        var c=ORGAN_COLORS[name]||'#6e7681';
+        var dot=org.alive?'●':'○';
+        var dotColor=org.alive?c:'#484f58';
+        var chip=document.createElement('div');
+        chip.style.cssText='border:1px solid #21262d;border-radius:4px;padding:3px 8px;font-size:0.78em;display:flex;align-items:center;gap:4px;';
+        var ver=org.version&&org.version!=='unknown'?' <span style="color:#484f58;font-size:0.85em">v'+org.version+'</span>':'';
+        var up='';
+        if(org.uptime_s&&org.uptime_s>0){
+          var h=Math.floor(org.uptime_s/3600);
+          var d=Math.floor(h/24);
+          up=' <span style="color:#484f58;font-size:0.8em">'+(d>0?d+'d ':'')+h%24+'h</span>';
+        }
+        chip.innerHTML='<span style="color:'+dotColor+'">'+dot+'</span>'+
+          '<span style="color:#c9d1d9">'+name+'</span>'+ver+up;
+        grid.appendChild(chip);
+      }
+      el.appendChild(grid);
+    }).catch(function(){});
+  }
   loadDash(); setInterval(loadDash,8000);
   loadPresence(); setInterval(loadPresence,10000);
+  loadTower(); setInterval(loadTower,15000);
 })();
