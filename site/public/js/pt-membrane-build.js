@@ -425,6 +425,37 @@ window._membraneBuild = function(mc) {
     txt(solarG, cx, cy, '\u03c0', '#c9d1d9', 5,
       {opacity:0, id:'mg-pi-mirror-label'});
 
+    // ═══ V, D, J π-BODIES: each role = π, V×D×J = π³ = 31 ═══
+    // V (Variable/IS) — outer orbit, the changing boundary
+    // D (Diversity/WILLBE) — null center, the unevaluated potential
+    // J (Joining/WAS) — inner core, the conserved reality
+    var vdjBodyG = el('g', {id:'mg-vdj-bodies', opacity:1}, svg);
+
+    // V ring — Variable / IS — the membrane boundary where things change
+    el('circle', {cx:cx, cy:cy, r:8, fill:'none', stroke:'#e85d3a',
+      'stroke-width':0.8, opacity:0.05, id:'mg-v-ring',
+      'stroke-dasharray':'4 3'}, vdjBodyG);
+    txt(vdjBodyG, cx + 22, cy - 30, 'V=0', '#e85d3a', 3.5,
+      {opacity:0.15, id:'mg-v-label', 'dominant-baseline':'central'});
+
+    // D ring — Diversity / WILLBE — the null space, unevaluated
+    el('circle', {cx:cx, cy:cy, r:4, fill:'none', stroke:'#58a6ff',
+      'stroke-width':0.6, opacity:0.05, id:'mg-d-ring',
+      'stroke-dasharray':'2 4'}, vdjBodyG);
+    txt(vdjBodyG, cx - 22, cy - 30, 'D=0', '#58a6ff', 3.5,
+      {opacity:0.15, id:'mg-d-label', 'dominant-baseline':'central'});
+
+    // J ring — Joining / WAS — the conserved core
+    el('circle', {cx:cx, cy:cy, r:6, fill:'none', stroke:'#5ab87a',
+      'stroke-width':0.7, opacity:0.05, id:'mg-j-ring',
+      'stroke-dasharray':'3 2'}, vdjBodyG);
+    txt(vdjBodyG, cx, cy + 35, 'J=0', '#5ab87a', 3.5,
+      {opacity:0.15, id:'mg-j-label', 'dominant-baseline':'central'});
+
+    // VDJ product label — V×D×J → π³ ≈ 31
+    txt(vdjBodyG, cx, cy + 45, 'V\u00d7D\u00d7J=0 [collapsed]', '#c9d1d9', 3,
+      {opacity:0.15, id:'mg-vdj-product', 'dominant-baseline':'central'});
+
     // ═══ NULL SPACE DATA: floats at ∅, viewed from both sides ═══
     // Dashboard data rendered as semi-transparent values at the null point.
     // Both observer (inner) and Gaia (outer) see the same data.

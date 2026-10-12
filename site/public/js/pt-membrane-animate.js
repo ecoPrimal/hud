@@ -1227,6 +1227,70 @@ window._membraneAnimate = function(mc, now) {
         'nd-jerror':    nd.j_error !== undefined ? 'J\u0394' + nd.j_error.toFixed(1) : ''
       };
 
+      // ── V, D, J as π-bodies ──
+      // Each role IS π. V×D×J = π³ = 31 = max particles.
+      var vPi = nd.v_pi || 0;
+      var dPi = nd.d_pi || 0;
+      var jPi = nd.j_pi || 0;
+      var vdjProd = nd.vdj_product || 0;
+      var vdjErr = nd.vdj_product_error || 1;
+
+      // V body ring — outer orbit, color of IS (orange/fire)
+      var vRing = document.getElementById('mg-v-ring');
+      if (vRing) {
+        var vR = 8 + vPi * 3;
+        vRing.setAttribute('r', vR.toFixed(1));
+        vRing.setAttribute('opacity', (vPi > 0 ? 0.3 + vPi / PI * 0.4 : 0.05).toFixed(2));
+        vRing.setAttribute('stroke-dashoffset', (t * 40).toFixed(1));
+      }
+      // V body label
+      var vLabel = document.getElementById('mg-v-label');
+      if (vLabel) {
+        vLabel.textContent = 'V=' + vPi.toFixed(2);
+        vLabel.setAttribute('opacity', (vPi > 0 ? 0.6 : 0.15).toFixed(2));
+      }
+
+      // D body ring — at null center, color of WILLBE (blue)
+      var dRing = document.getElementById('mg-d-ring');
+      if (dRing) {
+        var dR = 4 + dPi * 2;
+        dRing.setAttribute('r', dR.toFixed(1));
+        dRing.setAttribute('opacity', (dPi > 0 ? 0.3 + dPi / PI * 0.4 : 0.05).toFixed(2));
+        dRing.setAttribute('stroke-dashoffset', (t * -25).toFixed(1));
+      }
+      var dLabel = document.getElementById('mg-d-label');
+      if (dLabel) {
+        dLabel.textContent = 'D=' + dPi.toFixed(2);
+        dLabel.setAttribute('opacity', (dPi > 0 ? 0.6 : 0.15).toFixed(2));
+      }
+
+      // J body ring — inner core, color of WAS (green)
+      var jRing = document.getElementById('mg-j-ring');
+      if (jRing) {
+        var jR = 6 + jPi * 2;
+        jRing.setAttribute('r', jR.toFixed(1));
+        jRing.setAttribute('opacity', (jPi > 0 ? 0.3 + jPi / PI * 0.4 : 0.05).toFixed(2));
+        jRing.setAttribute('stroke-dashoffset', (t * 15).toFixed(1));
+      }
+      var jLabel = document.getElementById('mg-j-label');
+      if (jLabel) {
+        jLabel.textContent = 'J=' + jPi.toFixed(2);
+        jLabel.setAttribute('opacity', (jPi > 0 ? 0.6 : 0.15).toFixed(2));
+      }
+
+      // VDJ product label — V×D×J → π³
+      var vdjLabel = document.getElementById('mg-vdj-product');
+      if (vdjLabel) {
+        var budgetStr = 'V\u00d7D\u00d7J=' + vdjProd.toFixed(1);
+        if (vdjProd > 0) {
+          budgetStr += ' (\u03c0\u00b3\u00b1' + (vdjErr * 100).toFixed(0) + '%)';
+        } else {
+          budgetStr += ' [collapsed]';
+        }
+        vdjLabel.textContent = budgetStr;
+        vdjLabel.setAttribute('opacity', (0.3 + (1 - vdjErr) * 0.5).toFixed(2));
+      }
+
       // Null point: midpoint of focal-to-reflection bounce
       var nullCX = (focalX + reflX) / 2;
       var nullCY = (focalY + reflY) / 2;
