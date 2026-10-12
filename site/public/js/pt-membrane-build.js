@@ -278,6 +278,29 @@ window._membraneBuild = function(mc) {
       fill:'none', stroke:'#ffffff', 'stroke-width':0.3,
       'stroke-opacity':0.2, id:'mg-pin-ring'}, convG);
 
+    // ── Null-tense: ∅IS, ∅WAS, ∅WILLBE — the observation itself ──
+    // Not the thing (+). Not the reflection (−). The ACT of looking.
+    // ∅IS  = the observation happening now (collapses into measurement)
+    // ∅WAS = the null past — observation that was made but left no trace
+    // ∅WILLBE = the null future — measurement that hasn't happened yet
+    // They orbit ON the pin ring — at the boundary between + and −.
+    // Angle: body angle + π/2 (orthogonal — neither toward nor away)
+    var nullTense = [
+      {id:'null-is',     label:'\u2205IS',     color:'#e85d3a', sourceIdx:0},
+      {id:'null-was',    label:'\u2205WAS',    color:'#4a8fb8', sourceIdx:1},
+      {id:'null-willbe', label:'\u2205WILLBE', color:'#5ab87a', sourceIdx:2}
+    ];
+    var nullTenseG = el('g', {id:'mg-null-tense'}, convG);
+    nullTense.forEach(function(nt) {
+      el('circle', {cx:cx, cy:cy, r:1.0,
+        fill:nt.color, opacity:0.12,
+        id:'mg-body-'+nt.id}, nullTenseG);
+      txt(nullTenseG, cx, cy, nt.label, nt.color, 4,
+        {opacity:0.08, id:'mg-tense-'+nt.id, 'text-anchor':'middle',
+         'dominant-baseline':'central'});
+    });
+    mc.nullTense = nullTense;
+
     // ── Prime splitting: from pin → 3 → up the primes per π ──
     // The pin splits to 3 bodies, which split up the primes.
     // Primes to ⌊π³⌋=31: 2,3,5,7,11,13,17,19,23,29,31
@@ -1004,7 +1027,9 @@ window._membraneBuild = function(mc) {
     var BR_MAX = R * (PI/8); // maximum spread radius
     var cbrt = Math.pow(PI, 1/3);
 
-    // 3 identities, each with tense + recombination overlaid
+    // 3 bodies + 3 anti-bodies, reflected through [∅]D
+    // +bodies orbit outside null. -bodies orbit inside null (inverted radius, +π angle).
+    // The anti-body IS the body observed observing back. -1 = what IS sees when it looks inward.
     var bodies = [
       {id:'is',     tense:'IS',     vdj:'V',   sub:'Variable',
        angle:-PI/2, color:'#e85d3a'},
@@ -1012,6 +1037,17 @@ window._membraneBuild = function(mc) {
        angle:-PI/2+TAU/3, color:'#4a8fb8'},
       {id:'willbe', tense:'WILLBE', vdj:'(D)', sub:'Diversity',
        angle:-PI/2+2*TAU/3, color:'#5ab87a'}
+    ];
+    // Anti-bodies: the reflection. Same structure, negative index.
+    // Orbit at 1/π of BR (inside null), angle +π (across the center).
+    // Ghost opacity — they exist but aren't solid. The reflection isn't the thing.
+    var antiBodies = [
+      {id:'anti-is',     tense:'\u0305IS',     vdj:'V\u0305',   sub:'Observed',
+       sourceIdx:0, color:'#e85d3a'},
+      {id:'anti-was',    tense:'\u0305WAS',    vdj:'J\u0305',   sub:'Forgotten',
+       sourceIdx:1, color:'#4a8fb8'},
+      {id:'anti-willbe', tense:'\u0305WILLBE', vdj:'D\u0305',   sub:'Predicted',
+       sourceIdx:2, color:'#5ab87a'}
     ];
 
     // ═══ CONES & RODS: the retina of the membrane ═══
@@ -1106,7 +1142,37 @@ window._membraneBuild = function(mc) {
         {opacity:0.45, id:'mg-body-val-'+b.id});
     });
 
-    // Product display at center
+    // ── Anti-bodies: the -1, -2, -3 reflections ──
+    // Mirror triangle (dashed, inverted)
+    el('path', {d:'M '+cx+' '+cy+' L '+cx+' '+cy+' L '+cx+' '+cy+' Z',
+      fill:'none', stroke:'#c9d1d9', 'stroke-width':0.3,
+      'stroke-opacity':0.06, 'stroke-dasharray':'1,4', id:'mg-anti-body-tri'}, wbG);
+
+    antiBodies.forEach(function(ab) {
+      // Ghost ring — thinner, dashed, low opacity
+      el('circle', {cx:cx, cy:cy, r:10,
+        fill:'none', stroke:ab.color, 'stroke-width':0.3,
+        'stroke-opacity':0.08, 'stroke-dasharray':'1,3',
+        id:'mg-body-ring-'+ab.id}, wbG);
+      // Ghost dot — smaller, semi-transparent
+      el('circle', {cx:cx, cy:cy, r:2.5,
+        fill:ab.color, opacity:0.2,
+        id:'mg-body-'+ab.id}, wbG);
+      // Anti-tense label
+      txt(wbG, cx, cy-12, ab.tense, ab.color, 5.5,
+        {opacity:0.2, id:'mg-tense-'+ab.id});
+      // Anti-VDJ label
+      txt(wbG, cx, cy-4, ab.vdj, ab.color, 4.5,
+        {opacity:0.15, id:'mg-vdj-'+ab.id});
+      // Anti-sub label
+      txt(wbG, cx, cy+10, ab.sub, '#484f58', 4,
+        {opacity:0.1, id:'mg-sub-'+ab.id});
+    });
+
+    // Store anti-bodies on mc for animate
+    mc.antiBodies = antiBodies;
+
+    // Product display at center — now includes anti-product
     txt(wbG, cx, cy+44, 'IS\u00d7WAS\u00d7WILLBE = \u03c0', '#c9d1d9', 5.5,
       {opacity:0.5, id:'mg-product'});
 

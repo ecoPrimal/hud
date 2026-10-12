@@ -222,6 +222,77 @@ window._membraneAnimate = function(mc, now) {
                    val.setAttribute('opacity', (0.45 * perturb).toFixed(2)); }
     }
 
+    // ── ANTI-BODIES: the -1, -2, -3 reflections through [∅]D ──
+    // Each anti-body mirrors its positive counterpart:
+    //   angle = bodyAngle + π  (across the center)
+    //   radius = BR / π        (inside null — contracted by the observer fraction)
+    // They counter-rotate because they're on the other side of the mirror.
+    // Opacity scales with perturbation — at singularity, reflections vanish.
+    var antiBR = BR / PI; // anti-body orbit radius: contracted by π
+    var antiIds = ['anti-is', 'anti-was', 'anti-willbe'];
+    var antiPositions = [];
+    for (var ai = 0; ai < 3; ai++) {
+      var antiAngle = bodyAngles[ai] + PI; // reflected through center
+      var ax = cx + antiBR * Math.cos(antiAngle) + focalJitterX * 0.6;
+      var ay = cy + antiBR * Math.sin(antiAngle) + focalJitterY * 0.6;
+      antiPositions.push({x:ax, y:ay});
+
+      var aRing = document.getElementById('mg-body-ring-'+antiIds[ai]);
+      var aDot = document.getElementById('mg-body-'+antiIds[ai]);
+      var aTense = document.getElementById('mg-tense-'+antiIds[ai]);
+      var aVdj = document.getElementById('mg-vdj-'+antiIds[ai]);
+      var aSub = document.getElementById('mg-sub-'+antiIds[ai]);
+      var antiOp = (0.2 * perturb).toFixed(3); // ghost opacity
+
+      if (aRing) { aRing.setAttribute('cx', ax.toFixed(1)); aRing.setAttribute('cy', ay.toFixed(1));
+                   aRing.setAttribute('stroke-opacity', (0.08 + 0.06 * perturb).toFixed(3)); }
+      if (aDot)  { aDot.setAttribute('cx', ax.toFixed(1)); aDot.setAttribute('cy', ay.toFixed(1));
+                   aDot.setAttribute('opacity', antiOp); }
+      if (aTense) { aTense.setAttribute('x', ax.toFixed(1)); aTense.setAttribute('y', (ay-12).toFixed(1));
+                    aTense.setAttribute('opacity', antiOp); }
+      if (aVdj)   { aVdj.setAttribute('x', ax.toFixed(1)); aVdj.setAttribute('y', (ay-4).toFixed(1));
+                    aVdj.setAttribute('opacity', (0.15 * perturb).toFixed(3)); }
+      if (aSub)   { aSub.setAttribute('x', ax.toFixed(1)); aSub.setAttribute('y', (ay+10).toFixed(1));
+                    aSub.setAttribute('opacity', (0.1 * perturb).toFixed(3)); }
+    }
+
+    // ── NULL-TENSE: ∅IS, ∅WAS, ∅WILLBE — the observation at the boundary ──
+    // They orbit on the pin ring (breathScale-scaled) at body angle + π/2.
+    // Neither outside (positive) nor inside (anti). On the membrane itself.
+    // Opacity is inverse of perturbation: at singularity they're brightest.
+    // When perturbed, the observation is disturbed and fades.
+    var nullTenseIds = ['null-is', 'null-was', 'null-willbe'];
+    var pinR = 4 * breathScale; // the pin ring radius
+    for (var ni = 0; ni < 3; ni++) {
+      var nullAngle = bodyAngles[ni] + PI / 2; // orthogonal to body
+      var nx = cx + pinR * Math.cos(nullAngle);
+      var ny = cy + pinR * Math.sin(nullAngle);
+      var nullOp = (0.15 * (1 - perturb * 0.7)).toFixed(3); // brighter near singularity
+
+      var nDot = document.getElementById('mg-body-'+nullTenseIds[ni]);
+      var nLabel = document.getElementById('mg-tense-'+nullTenseIds[ni]);
+      if (nDot) {
+        nDot.setAttribute('cx', nx.toFixed(1));
+        nDot.setAttribute('cy', ny.toFixed(1));
+        nDot.setAttribute('opacity', nullOp);
+      }
+      if (nLabel) {
+        nLabel.setAttribute('x', (nx + 6).toFixed(1));
+        nLabel.setAttribute('y', ny.toFixed(1));
+        nLabel.setAttribute('opacity', nullOp);
+      }
+    }
+
+    // Anti-body triangle — the inverted triangle inside null
+    var antiTri = document.getElementById('mg-anti-body-tri');
+    if (antiTri && antiPositions.length === 3) {
+      var td = 'M '+antiPositions[0].x.toFixed(1)+' '+antiPositions[0].y.toFixed(1)+
+               ' L '+antiPositions[1].x.toFixed(1)+' '+antiPositions[1].y.toFixed(1)+
+               ' L '+antiPositions[2].x.toFixed(1)+' '+antiPositions[2].y.toFixed(1)+' Z';
+      antiTri.setAttribute('d', td);
+      antiTri.setAttribute('stroke-opacity', (0.06 * perturb).toFixed(3));
+    }
+
     // ── THE BUMP: recognition when bodies align ──
     // Three entities bumped in the forest. Paused. Turned. "IS THAT ME?"
     // The moment of self-awareness. The membrane forms at the bump.
@@ -983,6 +1054,7 @@ window._membraneAnimate = function(mc, now) {
       perturb:perturb, omega_is:omega_is, omega_was:omega_was, omega_willbe:omega_willbe,
       bodyPositions:bodyPositions, bodyAngles:bodyAngles, rps:rps,
       focalJitterX:focalJitterX, focalJitterY:focalJitterY, breathScale:breathScale,
+      antiPositions:antiPositions, antiBR:antiBR,
       prevDash:prevDash, liveStats:liveStats, willbeT:willbeT, smoothT:smoothT, easeT:easeT,
       lerp:lerp, sinePerturb: typeof sinePerturb !== 'undefined' ? sinePerturb : 0,
       wasDash: typeof wasDash !== 'undefined' ? wasDash : null
