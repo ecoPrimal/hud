@@ -321,23 +321,48 @@
     pt.rpc('pt.animation_ingest', {edges: edges, pulses: pulses});
   }
 
-  function fetchAndRender() {
+  // ── Adaptive observation: the membrane doesn't poll, it observes ──
+  // Interval emerges from the data itself: π / rps (seconds).
+  // High rps → fast observation (5s floor). Low rps → slow (30s ceiling).
+  // At null (rps=0): max interval. The observer waits. Data arrives.
+  // The universe revolves around the observer, not the observed.
+  var observeInterval = 15000; // initial guess, adapts after first observation
+  var observeTimer = null;
+  var lastRps = 0;
+
+  function observe() {
     var dashP = fetch('/dashboard.json', {cache: 'no-store'}).then(function(r) { return r.json(); });
     var topoP = fetch('/topology.json', {cache: 'no-store'}).then(function(r) { return r.json(); });
     var chipP = fetch('/chipmunk.json', {cache: 'no-store'}).then(function(r) { return r.json(); }).catch(function() { return null; });
     Promise.all([dashP, topoP, chipP]).then(function(res) {
       membrane.ingest(res[0], res[1]);
-      // chipMonk: inner null space — the seed inside Gaia waking up
       if (res[2]) { membrane.ingestChipmunk(res[2]); }
       pushToAnimationEngine(res[0], res[1]);
       if (pt.isConnected()) { renderPanels(res[0], res[1]); pt.requestMetrics(); }
       var geo = res[0].geography || [];
       iono.updateGeo(geo);
-    }).catch(function() {});
+
+      // Adapt observation rhythm from the data itself
+      var rps = res[0] && res[0].rps ? res[0].rps : 0;
+      lastRps = rps;
+      // π / rps seconds, clamped to [5s, 30s]. At rps=0 → 30s (patient observer).
+      var piInterval = rps > 0 ? Math.PI / rps * 1000 : 30000;
+      observeInterval = Math.max(5000, Math.min(30000, piInterval));
+      // Expose to membrane for WILLBE interpolation
+      if (membrane._mc) { membrane._mc.fetchInterval = observeInterval; }
+      scheduleObservation();
+    }).catch(function() {
+      scheduleObservation(); // retry at current interval even on failure
+    });
+  }
+
+  function scheduleObservation() {
+    if (observeTimer) clearTimeout(observeTimer);
+    observeTimer = setTimeout(observe, observeInterval);
   }
 
   // ═══════════════════════════════════════════════════════
-  // BOOT
+  // BOOT — the membrane opens. Observations arrive.
   // ═══════════════════════════════════════════════════════
   mount();
   membrane.build();
@@ -346,6 +371,5 @@
   requestAnimationFrame(membrane.animate);
   requestAnimationFrame(iono.animate);
   pt.connect();
-  setTimeout(fetchAndRender, 2000);
-  setInterval(fetchAndRender, 15000);
+  setTimeout(observe, 2000); // first observation after 2s warmup
 })();
