@@ -1,7 +1,16 @@
-// pt-membrane.js — membrane focal-point SVG + transit animation
-// π-budget: ⌊π³⌋=31 max particles · WAS/IS/WILLBE epitope layers
-// Abstracted: el() + txt() primitives compress SVG DOM creation
-// Evolve: grouped layers make adding new elements structural
+// pt-membrane.js — [∅]D null dimension. The shape of data.
+// All values are self. The membrane touches itself.
+// Selectively permeable exactly at itself — P(self)=1.
+//
+// IS × WAS × WILLBE = π. Each body = π^(1/3).
+// 1/0 = [∅] = null. The dimension before dimension.
+// Over, under, above, and inside itself — overlay and layover.
+//
+// The ring is closed. 3 closed rings at 120° = sphere.
+// Panels distributed across the entire continuum, not sectioned.
+// The coil winds categories through each other at rate V(D)J.
+// C(n) = π^(n/2) = observation cost. Product = π. Gap = √π.
+// π-budget: ⌊π³⌋=31 max particles
 window.PtMembrane = function(deps) {
   var PI = deps.PI, dimCost = deps.dimCost, PANELS = deps.PANELS;
   var CAT_COLORS = deps.CAT_COLORS, aliveSet = deps.aliveSet;
@@ -11,8 +20,29 @@ window.PtMembrane = function(deps) {
   var pGroup, built = false, lastFrame = 0;
   var MAX_P = Math.floor(PI*PI*PI);
   var rates = {fire:0,membrane:0,immune:0,sound:0}, rps = 0, prevDash = null;
+  var livePerturb = -1; // -1 = no live data, use sine wave
+  var chipmunkData = null; // inner null space — squirrel/chipMonk state
   var catAccum = {fire:0,membrane:0,immune:0,sound:0};
   var CATS = ['fire','membrane','immune','sound'];
+  // Live stats for ionosphere band display — updated by ingest()
+  var liveStats = {
+    rps: 0, fleetIps: 0, humanIps: 0, fleetPct: 0,
+    totalReqs: 0, entityCount: 0, aliveCount: 0
+  };
+  // Dimensional shape classification — ○□△◇ at module scope so animate() can see it
+  var DIM_SHAPES = [
+    {dim:1, sym:'\u25cb', color:'#9b59b6', count:0, names:[]},  // ○ circle
+    {dim:2, sym:'\u25a1', color:'#e85d3a', count:0, names:[]},  // □ square
+    {dim:3, sym:'\u25b3', color:'#5ab87a', count:0, names:[]},  // △ triangle
+    {dim:4, sym:'\u25c7', color:'#4a8fb8', count:0, names:[]}   // ◇ diamond
+  ];
+  if (PANELS && PANELS.length) {
+    PANELS.forEach(function(p) {
+      var dsi = Math.min(Math.max((p.dim || 1) - 1, 0), 3);
+      DIM_SHAPES[dsi].count++;
+      DIM_SHAPES[dsi].names.push(p.id);
+    });
+  }
 
   function el(tag, a, par) {
     var e = document.createElementNS(NS, tag);
@@ -34,6 +64,27 @@ window.PtMembrane = function(deps) {
     if (/Bot|crawler|spider|scanner/i.test(label)) return 'membrane';
     if (/Human|organic/i.test(label)) return 'sound';
     return 'fire';
+  }
+
+  // V(D)J interleave: distribute panels across the continuum.
+  // Round-robin by category — the coil winding.
+  // fire, membrane, immune, fire, membrane, immune...
+  // Not sectioned. Mixed at the rate of the interleave.
+  function vdjShuffle(panels) {
+    var buckets = {};
+    CATS.forEach(function(c) { buckets[c] = []; });
+    panels.forEach(function(p) {
+      if (buckets[p.cat]) buckets[p.cat].push(p);
+    });
+    var result = [], maxLen = 0;
+    var activeCats = CATS.filter(function(c) { return buckets[c].length > 0; });
+    activeCats.forEach(function(c) { maxLen = Math.max(maxLen, buckets[c].length); });
+    for (var i = 0; i < maxLen; i++) {
+      activeCats.forEach(function(c) {
+        if (i < buckets[c].length) result.push(buckets[c][i]);
+      });
+    }
+    return result;
   }
 
   function spawnParticle(pid) {
@@ -61,6 +112,14 @@ window.PtMembrane = function(deps) {
       ct[entityToCategory(e.label||'')] += e.total_requests||0;
       tot += e.total_requests||0;
     });
+    // Store live stats for ionosphere band display
+    liveStats.rps = dash.rps || 0;
+    liveStats.fleetIps = dash.fleet_ips || 0;
+    liveStats.humanIps = dash.human_ips || 0;
+    liveStats.fleetPct = dash.fleet_pct || 0;
+    liveStats.totalReqs = dash.total_requests || 0;
+    liveStats.entityCount = ents.length;
+    liveStats.aliveCount = aliveSet.size;
     var s = tot > 0 ? (rps*0.3)/tot : 0;
     CATS.forEach(function(c) { rates[c] = ct[c]*s; });
     CATS.forEach(function(c) {
@@ -77,227 +136,149 @@ window.PtMembrane = function(deps) {
     }
     var tb = dash.threebody_pi;
     if (tb && tb.emc2) {
-      var map = {is:['energy',0.5], was:['mass',4], willbe:['c_squared',0.6]};
-      var fmt = {is:function(v){return 'E = '+v.toFixed(2)+' \u2248 4\u03c0';}, was:function(v){return 'm = '+v.toFixed(3);}, willbe:function(v){return 'c\u00b2 = '+v.toFixed(2)+' \u2248 3\u03c0';}};
+      // Each body's value normalized to π^(1/3) scale
+      var vals = {
+        is: tb.emc2.energy || 0,
+        was: tb.emc2.mass || 0,
+        willbe: tb.emc2.c_squared || 0
+      };
       ['is','was','willbe'].forEach(function(b) {
-        var val = tb.emc2[map[b][0]];
+        var v = vals[b];
         var vE = document.getElementById('mg-body-val-'+b);
-        if (vE) vE.textContent = fmt[b](val);
+        if (vE) vE.textContent = '\u03c0^(1/3) \u00d7 ' + (v / Math.pow(PI, 1/3)).toFixed(2);
         var rE = document.getElementById('mg-body-ring-'+b);
-        if (rE) rE.setAttribute('r', (12+val*map[b][1]).toFixed(1));
+        if (rE) {
+          var scale = b === 'was' ? 4 : (b === 'willbe' ? 0.6 : 0.5);
+          rE.setAttribute('r', (12 + v * scale).toFixed(1));
+        }
       });
+      var product = document.getElementById('mg-product');
+      if (product && vals.is > 0 && vals.was > 0 && vals.willbe > 0) {
+        var norm = (vals.is * vals.was * vals.willbe);
+        var ratio = norm > 0 ? (PI / norm) : 0;
+        product.textContent = 'IS\u00d7WAS\u00d7WILLBE \u2192 \u03c0 (' + ratio.toFixed(3) + ')';
+      }
+    }
+    // ── [∅]D null dimension from Rust epitope sort ──
+    var nd = dash.null_dimension;
+    if (nd) {
+      // Live perturbation from the Rust sort — overrides the sine animation
+      if (typeof nd.perturbation === 'number') {
+        livePerturb = nd.perturbation;
+      }
+      // VDJ map: update body labels with live classification
+      var vdjNames = ['burst_ratio','reading_deficit','ua_pool_poverty',
+                      'sec_fetch_monotone','session_absent','referer_self_loop'];
+      var vdjMap = nd.vdj_map || [];
+      if (vdjMap.length === 6) {
+        var bodyVdj = {is:[], was:[], willbe:[]};
+        for (var vi = 0; vi < 6; vi++) {
+          var role = vdjMap[vi];
+          if (role === 'V') bodyVdj.is.push(vdjNames[vi]);
+          else if (role === 'J') bodyVdj.was.push(vdjNames[vi]);
+          else bodyVdj.willbe.push(vdjNames[vi]);
+        }
+        var subIds = {is:'mg-sub-is', was:'mg-sub-was', willbe:'mg-sub-willbe'};
+        ['is','was','willbe'].forEach(function(b) {
+          var subEl = document.getElementById(subIds[b]);
+          if (subEl && bodyVdj[b].length > 0) {
+            subEl.textContent = bodyVdj[b].join(', ');
+          }
+        });
+      }
+      // Show live product error
+      if (typeof nd.product === 'number') {
+        var prodEl = document.getElementById('mg-product');
+        if (prodEl) {
+          var err = nd.product_error || 0;
+          prodEl.textContent = 'IS\u00d7WAS\u00d7WILLBE = '
+            + nd.product.toFixed(4)
+            + ' (\u03c0\u00b1' + (err*100).toFixed(1) + '%)';
+        }
+      }
+      // Show live observer fraction
+      if (typeof nd.observer_fraction === 'number') {
+        var obsEl = document.getElementById('mg-observer');
+        if (obsEl) {
+          obsEl.textContent = 'observer = ' + nd.observer_fraction.toFixed(6)
+            + ' (the irrational remainder)';
+        }
+      }
+      // Show J error — is the organism mature or learning?
+      if (typeof nd.j_error === 'number') {
+        var jEq = document.getElementById('mg-j-eq');
+        if (jEq) {
+          var state = nd.j_error > 0.1 ? 'mature' : (nd.j_error < -0.1 ? 'learning' : 'equilibrium');
+          jEq.textContent = 'J\u2093rr = ' + (nd.j_error > 0 ? '+' : '') + nd.j_error.toFixed(3)
+            + ' (' + state + ')';
+        }
+      }
     }
     prevDash = JSON.parse(JSON.stringify(dash));
   }
 
-  function build() {
-    var host = document.getElementById('membrane-focal-svg');
-    if (!host) return;
-    var W=MG.W, H=MG.H, cx=MG.cx, cy=MG.cy, R=MG.R;
-    var TAU = 2*PI, GAP = PI/80;
-
-    var svg = el('svg', {viewBox:'0 0 '+W+' '+H});
-    svg.style.cssText = 'width:100%;max-height:460px;font-family:"Courier New",monospace';
-
-    var defs = el('defs', null, svg);
-    defs.innerHTML = '<radialGradient id="mg-bg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#1a1a2e" stop-opacity="0.6"/><stop offset="100%" stop-color="#0d1117" stop-opacity="0.9"/></radialGradient><filter id="mg-glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="mg-pulse"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
-    el('rect', {width:W, height:H, fill:'url(#mg-bg)', rx:8}, svg);
-    txt(svg, W/2, 22, 'Membrane \u2014 signal transit through the lens', '#c9d1d9', 11);
-
-    // \u2550\u2550 WAS layer: static structure \u2550\u2550
-    var wasG = el('g', {id:'mg-was'}, svg);
-    var catPanels = {}; CATS.forEach(function(c){catPanels[c]=[];});
-    PANELS.forEach(function(p){if(catPanels[p.cat]) catPanels[p.cat].push(p);});
-    var total = PANELS.length, usable = TAU - GAP*CATS.length;
-    var arcStarts = {}, arcSpans = {}, theta = -PI/2;
-    CATS.forEach(function(cat) {
-      var span = (catPanels[cat].length/total)*usable;
-      arcStarts[cat] = theta; arcSpans[cat] = span;
-      theta += span + GAP;
-    });
-    var catLabels = {fire:'signal',membrane:'membrane',immune:'immune',sound:'beacon'};
-    CATS.forEach(function(cat) {
-      var color = CAT_COLORS[cat]||'#6e7681';
-      var start = arcStarts[cat], span = arcSpans[cat], end = start+span;
-      var x1=cx+R*Math.cos(start), y1=cy+R*Math.sin(start);
-      var x2=cx+R*Math.cos(end), y2=cy+R*Math.sin(end);
-      el('path', {d:'M '+x1.toFixed(1)+' '+y1.toFixed(1)+' A '+R+' '+R+' 0 '+(span>PI?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1), fill:'none', stroke:color, 'stroke-width':2.5, 'stroke-opacity':0.5, id:'mg-arc-'+cat}, wasG);
-      arcGlow[cat] = 0;
-      var mid = start+span/2;
-      txt(wasG, (cx+(R+22)*Math.cos(mid)).toFixed(1), (cy+(R+22)*Math.sin(mid)).toFixed(1), catLabels[cat]||cat, color, 8, {opacity:0.7, 'dominant-baseline':'central'});
-    });
-    CATS.forEach(function(cat) {
-      var panels = catPanels[cat], start = arcStarts[cat], span = arcSpans[cat];
-      var color = CAT_COLORS[cat]||'#6e7681';
-      panels.forEach(function(p, i) {
-        var t = panels.length===1 ? 0.5 : i/(panels.length-1);
-        var angle = start + span*(0.1+0.8*t);
-        var px=cx+R*Math.cos(angle), py=cy+R*Math.sin(angle);
-        var txd=-Math.sin(angle), tyd=Math.cos(angle);
-        var cost = dimCost(p.dim), fd = 1/cost;
-        var tLen=fd*120, fR=fd*R*0.85;
-        var nxd=-Math.cos(angle), nyd=-Math.sin(angle);
-        var fx=px+nxd*fR, fy=py+nyd*fR;
-        var alive = aliveSet.has(p.id), op = alive?1:0.25;
-        geo[p.id] = {angle:angle, px:px, py:py, fx:fx, fy:fy, cat:p.cat, dim:p.dim, color:color, focalR:fR, R:R};
-        el('line', {x1:(px-txd*tLen).toFixed(1), y1:(py-tyd*tLen).toFixed(1), x2:(px+txd*tLen).toFixed(1), y2:(py+tyd*tLen).toFixed(1), stroke:color, 'stroke-width':1, 'stroke-opacity':(op*0.6).toFixed(2)}, wasG);
-        el('line', {x1:px.toFixed(1), y1:py.toFixed(1), x2:fx.toFixed(1), y2:fy.toFixed(1), stroke:color, 'stroke-width':0.5, 'stroke-opacity':0.3, 'stroke-dasharray':'3,3', id:'mg-fl-'+p.id}, wasG);
-        el('circle', {cx:fx.toFixed(1), cy:fy.toFixed(1), r:alive?2.5:1.5, fill:color, opacity:(op*0.5).toFixed(2), id:'mg-fd-'+p.id}, wasG);
-        var dotR = alive ? Math.max(5-fd*2,2) : 2.5;
-        var da = {cx:px.toFixed(1), cy:py.toFixed(1), r:dotR.toFixed(1), fill:color, opacity:op.toFixed(2), id:'mg-dot-'+p.id};
-        if (alive) da.filter = 'url(#mg-glow)';
-        el('circle', da, wasG);
-        var lDist = R+38+(p.dim>2?6:0);
-        var lx=cx+lDist*Math.cos(angle), ly=cy+lDist*Math.sin(angle);
-        var rot = angle*180/PI;
-        if (rot > 90 && rot < 270) rot += 180;
-        if (rot < -90 && rot > -270) rot += 180;
-        var anchor = (angle>PI/2 && angle<PI*1.5) ? 'end' : 'start';
-        if (Math.abs(angle-PI/2)<0.2 || Math.abs(angle+PI/2)<0.2) anchor = 'middle';
-        var short = p.title.length>14 ? p.title.substring(0,14) : p.title;
-        txt(wasG, lx.toFixed(1), ly.toFixed(1), short, color, 7, {opacity:(op*0.85).toFixed(2), 'text-anchor':anchor, 'dominant-baseline':'central', transform:'rotate('+rot.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')'});
-        var bDist = R+52+(p.dim>2?6:0);
-        var bx=cx+bDist*Math.cos(angle), by=cy+bDist*Math.sin(angle);
-        txt(wasG, bx.toFixed(1), by.toFixed(1), p.dim+'D', '#6e7681', 6, {opacity:(op*0.6).toFixed(2), 'text-anchor':anchor, 'dominant-baseline':'central', transform:'rotate('+rot.toFixed(1)+' '+bx.toFixed(1)+' '+by.toFixed(1)+')'});
-      });
-    });
-
-    // \u2550\u2550 WILLBE layer: three-body predictive \u2550\u2550
-    var wbG = el('g', {id:'mg-willbe'}, svg);
-    var BR = R*(PI/8);
-    // V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6) — immune recombination as observation
-    // V = Variable  = IS     (\u03c6=\u03c0/2, purely imaginary, uncertain)
-    // J = Joining   = WAS    (\u03c6=0, real, known, collapsed)
-    // D = Diversity = WILLBE (\u03c6=\u03c0, inverted, prediction = \u2212knowledge)
-    // (D) is optional: V\u00b7J = \u03c0 (2D), V\u00b7D\u00b7J = \u03c0^(3/2) (3D)
-    var bodies = [
-      {id:'is', label:'IS', sub:'V \u00b7 e^(i\u03c0/2)', angle:-PI/2, color:'#e85d3a'},
-      {id:'was', label:'WAS', sub:'J \u00b7 e^0 = real', angle:-PI/2+TAU/3, color:'#4a8fb8'},
-      {id:'willbe', label:'WILLBE', sub:'(D) \u00b7 e^(i\u03c0) = \u22121', angle:-PI/2+2*TAU/3, color:'#5ab87a'}
-    ];
-    var bPos = {};
-    bodies.forEach(function(b) { bPos[b.id] = {x:cx+BR*Math.cos(b.angle), y:cy+BR*Math.sin(b.angle)}; });
-    el('path', {d:'M '+bPos.is.x.toFixed(1)+' '+bPos.is.y.toFixed(1)+' L '+bPos.was.x.toFixed(1)+' '+bPos.was.y.toFixed(1)+' L '+bPos.willbe.x.toFixed(1)+' '+bPos.willbe.y.toFixed(1)+' Z', fill:'none', stroke:'#c9d1d9', 'stroke-width':0.5, 'stroke-opacity':0.12, 'stroke-dasharray':'4,6', id:'mg-body-tri'}, wbG);
-    [{from:'is',to:'was',label:'V \u2192 J',color:'#e85d3a'},{from:'was',to:'willbe',label:'J \u2192 (D)',color:'#6e7681'},{from:'willbe',to:'is',label:'(D) \u2192 V',color:'#5ab87a'}].forEach(function(e) {
-      txt(wbG, ((bPos[e.from].x+bPos[e.to].x)/2).toFixed(1), ((bPos[e.from].y+bPos[e.to].y)/2).toFixed(1), e.label, e.color, 5.5, {opacity:0.4, 'dominant-baseline':'central'});
-    });
-    bodies.forEach(function(b) {
-      var p = bPos[b.id];
-      el('circle', {cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:16, fill:'none', stroke:b.color, 'stroke-width':0.5, 'stroke-opacity':0.18, 'stroke-dasharray':'2,3', id:'mg-body-ring-'+b.id}, wbG);
-      el('circle', {cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:4.5, fill:b.color, opacity:0.6, filter:'url(#mg-glow)', id:'mg-body-'+b.id}, wbG);
-      txt(wbG, p.x.toFixed(1), (p.y-20).toFixed(1), b.label, b.color, 8.5, {opacity:0.85, 'font-weight':'bold'});
-      txt(wbG, p.x.toFixed(1), (p.y+24).toFixed(1), b.sub, '#6e7681', 5.5, {opacity:0.45, id:'mg-body-val-'+b.id});
-    });
-
-    // \u2550\u2550 TRIANGULATION layer: 3 datum \u2192 1 vector \u2550\u2550
-    // Each panel node's position is triangulated by:
-    //   angle (form) \u2192 IS body    \u2014 where on the arc
-    //   focalR (face) \u2192 WAS body  \u2014 how deep inside
-    //   dim (function) \u2192 WILLBE body \u2014 what complexity
-    var triG = el('g', {id:'mg-triangulation', opacity:0}, svg);
-    PANELS.forEach(function(p) {
-      var g = geo[p.id];
-      if (!g) return;
-      var nearest = bodies[0], minD = Infinity;
-      bodies.forEach(function(b) {
-        var dx = g.px - bPos[b.id].x, dy = g.py - bPos[b.id].y;
-        var d = Math.sqrt(dx*dx + dy*dy);
-        if (d < minD) { minD = d; nearest = b; }
-      });
-      el('line', {x1:g.px.toFixed(1), y1:g.py.toFixed(1),
-        x2:bPos[nearest.id].x.toFixed(1), y2:bPos[nearest.id].y.toFixed(1),
-        stroke:nearest.color, 'stroke-width':0.3, 'stroke-opacity':0.08,
-        'stroke-dasharray':'1,4', id:'mg-tri-'+p.id}, triG);
-    });
-
-    // \u2550\u2550 IS layer: live particles \u2550\u2550
-    pGroup = el('g', {id:'mg-is'}, svg);
-
-    // center: V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6)
-    // The 3 bodies (V/J/D = IS/WAS/WILLBE) triangulate every datum.
-    txt(svg, cx, cy-22, 'V(D)J', '#8b949e', 9.5, {'font-weight':'bold'});
-    txt(svg, cx, cy-8, '= \u03c0^(3/2)\u00b7e^(i\u03c6)', '#6e7681', 7);
-    txt(svg, cx, cy+6, 'datum = observation', '#484f58', 5.5);
-    txt(svg, cx, cy+18, aliveSet.size+'/'+PANELS.length+' alive', '#6e7681', 7, {id:'mg-alive-count'});
-    var lgG = el('g', {id:'mg-legend'}, svg);
-    txt(lgG, 14, H-66, 'V(D)J = \u03c0^(3/2)\u00b7e^(i\u03c6)   V\u00b7J=\u03c0  V\u00b7D\u00b7J=\u03c0^(3/2)', '#8b949e', 7, {'text-anchor':'start'});
-    txt(lgG, 14, H-55, 'focal distance = 1/C(n) = 1/\u03c0^(n/2)', '#6e7681', 7, {'text-anchor':'start'});
-    [['1D: \u221a\u03c0 \u2248 1.77 \u2192 f = 0.56','#9b59b6'],['2D: \u03c0 \u2248 3.14 \u2192 f = 0.32','#4a8fb8'],['3D: \u03c0^1.5 \u2248 5.57 \u2192 f = 0.18','#5ab87a'],['4D: \u03c0\u00b2 \u2248 9.87 \u2192 f = 0.10','#e85d3a']].forEach(function(leg, i) {
-      var ly = H-43+i*11;
-      el('circle', {cx:18, cy:ly-3, r:3, fill:leg[1], opacity:0.7}, lgG);
-      txt(lgG, 26, ly, leg[0], '#6e7681', 6.5, {'text-anchor':'start'});
-    });
-    [[W-160,'signal transit',2,'#58a6ff',0.8],[W-98,'alive',3,'#5ab87a',1],[W-62,'dormant',2,'#6e7681',0.25]].forEach(function(l) {
-      el('circle', {cx:l[0], cy:H-33, r:l[2], fill:l[3], opacity:l[4]}, lgG);
-      txt(lgG, l[0]+7, H-30, l[1], '#6e7681', 6.5, {'text-anchor':'start'});
-    });
-    txt(lgG, W-10, H-14, '\u03c0-budget: \u230a\u03c0\u00b3\u230b=' + MAX_P + ' particles', '#484f58', 5.5, {'text-anchor':'end'});
-
-    host.innerHTML = ''; host.appendChild(svg);
-    built = true;
+  function ingestChipmunk(data) {
+    chipmunkData = data;
   }
 
+  // Great circle arc: project a 3D circle tilted by (tiltX, tiltZ) onto 2D
+  function greatCirclePath(cx, cy, R, tiltX, tiltZ, steps) {
+    var pts = [];
+    for (var i = 0; i <= steps; i++) {
+      var t = (i / steps) * 2 * PI;
+      var x3 = R * Math.cos(t);
+      var y3 = R * Math.sin(t) * Math.cos(tiltX);
+      var z3 = R * Math.sin(t) * Math.sin(tiltX);
+      var x2 = x3 * Math.cos(tiltZ) - z3 * Math.sin(tiltZ);
+      var y2 = y3;
+      pts.push((cx + x2).toFixed(1) + ' ' + (cy + y2).toFixed(1));
+    }
+    return 'M ' + pts.join(' L ');
+  }
+
+  // Coil path: helix winding N times around the ring
+  function coilPath(cx, cy, R, offset, turns, steps) {
+    var pts = [];
+    for (var i = 0; i <= steps; i++) {
+      var t = (i / steps) * 2 * PI;
+      var coilAngle = t * turns + offset;
+      var coilR = R + Math.sin(coilAngle) * 8;
+      pts.push((cx + coilR * Math.cos(t)).toFixed(1) + ' ' + (cy + coilR * Math.sin(t)).toFixed(1));
+    }
+    return 'M ' + pts.join(' L ');
+  }
+
+
+  // ── Shared context for split files ──
+  var _mc = {PI:PI, MG:MG, NS:NS, geo:geo, particles:particles, pulses:pulses,
+    arcGlow:arcGlow, MAX_P:MAX_P, NS:NS, rates:rates, CATS:CATS, catAccum:catAccum,
+    liveStats:liveStats, livePerturb:function(){return livePerturb;},
+    setLivePerturb:function(v){livePerturb=v;},
+    rps:function(){return rps;}, prevDash:function(){return prevDash;},
+    PANELS:PANELS, CAT_COLORS:CAT_COLORS, aliveSet:aliveSet,
+    DIM_SHAPES:DIM_SHAPES, dimCost:dimCost,
+    el:el, txt:txt, vdjShuffle:vdjShuffle, spawnParticle:spawnParticle,
+    coilPath:coilPath, greatCirclePath:greatCirclePath,
+    chipmunkData:function(){return chipmunkData;},
+    pGroup:null, built:false, lastFrame:0};
+
+  function build() {
+    window._membraneBuild(_mc);
+    built = true; _mc.built = true;
+    pGroup = _mc.pGroup;
+  }
   function animate(now) {
     if (!built || !pGroup) { requestAnimationFrame(animate); return; }
-    var dt = lastFrame ? (now-lastFrame)/1000 : 0.016;
-    if (dt > 0.1) dt = 0.1;
-    lastFrame = now;
-    var cx=MG.cx, cy=MG.cy, R=MG.R;
-    CATS.forEach(function(cat) {
-      var r = rates[cat]||0; if (r<=0) return;
-      catAccum[cat] += r*dt;
-      while (catAccum[cat] >= 1 && particles.length < MAX_P) {
-        catAccum[cat]--;
-        var cands = []; aliveSet.forEach(function(id){var g=geo[id]; if(g&&g.cat===cat) cands.push(id);});
-        if (cands.length) spawnParticle(cands[Math.floor(Math.random()*cands.length)]);
-      }
-    });
-    if (rps===0 && Math.random() < 0.2*dt*60) {
-      var arr = []; aliveSet.forEach(function(id){arr.push(id);});
-      if (arr.length) spawnParticle(arr[Math.floor(Math.random()*arr.length)]);
-    }
-    var rm = [];
-    particles.forEach(function(p, i) {
-      p.r -= p.speed*dt;
-      if (p.r > R+10) p.opacity = Math.min(p.opacity+dt*3, 0.85);
-      else if (p.r > R-5) { p.opacity=1; p.size*=1+dt*2; arcGlow[p.cat]=Math.min((arcGlow[p.cat]||0)+0.15, 1); }
-      else { p.opacity = Math.max(p.opacity-dt*2.5, 0); p.size = Math.max(p.size-dt*2, 0.5); }
-      if (p.r<=p.targetR || p.opacity<=0.01) {
-        rm.push(i); pulse(p.id);
-        if (p.el&&p.el.parentNode) p.el.parentNode.removeChild(p.el);
-        return;
-      }
-      if (!p.el) p.el = el('circle', {fill:p.color}, pGroup);
-      p.el.setAttribute('cx', (cx+p.r*Math.cos(p.angle)).toFixed(1));
-      p.el.setAttribute('cy', (cy+p.r*Math.sin(p.angle)).toFixed(1));
-      p.el.setAttribute('r', p.size.toFixed(1));
-      p.el.setAttribute('opacity', p.opacity.toFixed(2));
-    });
-    for (var i=rm.length-1; i>=0; i--) particles.splice(rm[i], 1);
-    var totalRate = 0; CATS.forEach(function(c){totalRate+=rates[c]||0;});
-    CATS.forEach(function(cat) {
-      var g = arcGlow[cat]||0;
-      var base = totalRate>0 ? ((rates[cat]||0)/totalRate)*0.5 : 0;
-      if (g>base) arcGlow[cat] = Math.max(g-dt*0.3, base);
-      var a = document.getElementById('mg-arc-'+cat);
-      if (a) { a.setAttribute('stroke-width',(2.5+g*3).toFixed(1)); a.setAttribute('stroke-opacity',(0.5+g*0.4).toFixed(2)); }
-    });
-    Object.keys(pulses).forEach(function(pid) {
-      var p = pulses[pid]; p.scale *= p.decay;
-      if (p.scale<1.05) { delete pulses[pid]; var d=document.getElementById('mg-dot-'+pid); if(d&&aliveSet.has(pid)) d.setAttribute('filter','url(#mg-glow)'); return; }
-      var d = document.getElementById('mg-dot-'+pid);
-      if (d) { var g=geo[pid]; var br=g?Math.max(5-(1/dimCost(g.dim))*2,2):3; d.setAttribute('r',(br*p.scale).toFixed(1)); }
-    });
-    var ac = document.getElementById('mg-alive-count');
-    if (ac) { var l=aliveSet.size+'/'+PANELS.length+' alive'; if(rps>0) l+=' \u00b7 '+rps.toFixed(1)+' rps'; ac.textContent=l; }
+    _mc.rpsVal = rps; _mc.prevDashVal = prevDash;
+    _mc.livePerturb = livePerturb;
+    window._membraneAnimate(_mc, now);
+    lastFrame = _mc.lastFrame;
     requestAnimationFrame(animate);
   }
-
   function render() {
     if (!built) build();
     var triLayer = document.getElementById('mg-triangulation');
-    var aliveCount = aliveSet.size;
-    if (triLayer) triLayer.setAttribute('opacity', aliveCount > 3 ? '1' : '0');
+    if (triLayer) triLayer.setAttribute('opacity', aliveSet.size > 3 ? '1' : '0');
     aliveSet.forEach(function(pid) {
       var d=document.getElementById('mg-dot-'+pid);
       if(d){d.setAttribute('opacity','1');d.setAttribute('filter','url(#mg-glow)');}
@@ -310,5 +291,5 @@ window.PtMembrane = function(deps) {
     });
   }
 
-  return {build:build, animate:animate, render:render, ingest:ingest, entityToCategory:entityToCategory, panelGeo:geo};
+  return {build:build, animate:animate, render:render, ingest:ingest, ingestChipmunk:ingestChipmunk, entityToCategory:entityToCategory, panelGeo:geo};
 };

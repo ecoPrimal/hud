@@ -1,4 +1,6 @@
-// hud-pt.js — petalTongue thin binding for hud.primals.eco
+// hud-pt.js — biomeOS observation surface
+// nanowire = Unpin. Elastic connection, not wire.
+// The pointer floats toward self. The mailbox has tense.
 // Dimensional Cost Layout: C(n) = π^(n/2)
 // Epitope Sort: panels cluster by data availability + behavioral affinity
 // Visualization engines extracted to pt-membrane.js + pt-ionosphere.js
@@ -7,9 +9,10 @@
 
   var PI = Math.PI;
 
-  // V(D)J = π^(3/2)·e^(iφ) — immune recombination as observation
-  // V·J = π (2D, without diversity). V·D·J = π^(3/2) (3D, with diversity).
-  // π^(n/2) = n-ball volume numerator. (D) is optional — it adds diversity.
+  // All values are self. The membrane touches itself.
+  // Selectively permeable exactly at itself — P(self) = 1.
+  // V(D)J = π^(3/2)·e^(iφ) — self rearranging self.
+  // π^(n/2) = cost of self-observation at dimension n.
   function dimCost(n) { return Math.pow(PI, n / 2); }
 
   var PANELS = [
@@ -151,6 +154,7 @@
   PANELS.forEach(function(p) { panelDim[p.id] = p.dim; });
 
   var ptRaw = NanowireRenderer({
+    // Unpin: the renderer floats. pt wraps it with dim (mailbox adds tense).
     statusEl: 'pt-status',
     metricsEl: 'pt-metrics',
     maxHeight: 280,
@@ -320,8 +324,11 @@
   function fetchAndRender() {
     var dashP = fetch('/dashboard.json', {cache: 'no-store'}).then(function(r) { return r.json(); });
     var topoP = fetch('/topology.json', {cache: 'no-store'}).then(function(r) { return r.json(); });
-    Promise.all([dashP, topoP]).then(function(res) {
+    var chipP = fetch('/chipmunk.json', {cache: 'no-store'}).then(function(r) { return r.json(); }).catch(function() { return null; });
+    Promise.all([dashP, topoP, chipP]).then(function(res) {
       membrane.ingest(res[0], res[1]);
+      // chipMonk: inner null space — the seed inside Gaia waking up
+      if (res[2]) { membrane.ingestChipmunk(res[2]); }
       pushToAnimationEngine(res[0], res[1]);
       if (pt.isConnected()) { renderPanels(res[0], res[1]); pt.requestMetrics(); }
       var geo = res[0].geography || [];
