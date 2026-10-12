@@ -10,6 +10,12 @@ window._membraneAnimate = function(mc, now) {
   var MAX_P=mc.MAX_P, dimCost=mc.dimCost, spawnParticle=mc.spawnParticle;
   var rps=mc.rpsVal, prevDash=mc.prevDashVal, livePerturb=mc.livePerturb;
   var TIERS=mc.TIERS;
+    // Numeric lerp: a + (b-a)*t. Returns a if b is missing.
+    function lerp(a, b, t) {
+      if (typeof b !== 'number') return a;
+      if (typeof a !== 'number') return b;
+      return a + (b - a) * t;
+    }
     var dt = mc.lastFrame ? (now-mc.lastFrame)/1000 : 0.016;
     if (dt > 0.1) dt = 0.1;
     var cx=MG.cx, cy=MG.cy, R=MG.R;
@@ -74,7 +80,35 @@ window._membraneAnimate = function(mc, now) {
     var TAU = 2 * PI;
     var breathRate = TAU / 12;
     var sinePerturb = (Math.sin(now * 0.001 * breathRate - PI/2) + 1) / 2;
-    var perturb = livePerturb >= 0 ? livePerturb : sinePerturb;
+
+    // ── IS×WAS×WILLBE temporal interpolation ──
+    // willbeT: 0 right after fetch (pure IS), approaches 1 at next fetch (predicting WILLBE).
+    // The jitter at willbeT→1 IS the prediction uncertainty — the tear between IS and WILLBE.
+    // This replaces the hard snap-then-freeze pattern.
+    var wasDash = mc.wasDash ? mc.wasDash() : null;
+    var isDash = mc.isDash ? mc.isDash() : null;
+    var fetchTs = mc.fetchTs ? mc.fetchTs() : 0;
+    var fetchInterval = mc.fetchInterval || 15000;
+    var willbeT = fetchTs > 0 ? Math.min(1.0, (now - fetchTs) / fetchInterval) : 0;
+
+    // Smooth perturbation: lerp from WAS→IS, with easing
+    // Early in cycle: mostly IS (smooth). Late: prediction tension increases.
+    var easeT = willbeT * willbeT; // quadratic ease-in: calm at start, tense at end
+    var wasPerturb = wasDash && wasDash.null_dimension ? wasDash.null_dimension.perturbation : -1;
+    var isPerturb = livePerturb;
+    var perturb;
+    if (isPerturb >= 0 && wasPerturb >= 0) {
+      // Interpolate: start at IS value, drift toward WAS×IS average as we predict
+      var basePerturb = isPerturb;
+      var drift = (isPerturb - wasPerturb) * easeT * 0.3; // gentle prediction drift
+      perturb = Math.max(0, Math.min(1, basePerturb + drift));
+      // Add breath at WILLBE end — the uncertainty shimmers
+      perturb += sinePerturb * easeT * 0.08;
+    } else if (isPerturb >= 0) {
+      perturb = isPerturb + sinePerturb * easeT * 0.05;
+    } else {
+      perturb = sinePerturb;
+    }
     var BR = R * (PI/8) * perturb;
 
     // ── Evolve tier alive status from live data ──
@@ -1205,8 +1239,22 @@ window._membraneAnimate = function(mc, now) {
       var ndOpacity = 0.05 + 0.15 * stability;
       nullDataG.setAttribute('opacity', ndOpacity.toFixed(3));
 
-      // Extract dashboard values
-      var nd = prevDash.null_dimension || {};
+      // Extract dashboard values — lerp numeric fields between WAS and IS
+      var ndIS = prevDash.null_dimension || {};
+      var ndWAS = wasDash && wasDash.null_dimension ? wasDash.null_dimension : ndIS;
+      // Smooth transition: use easeT (quadratic) so values settle then drift
+      var smoothT = willbeT < 0.1 ? willbeT * 10 : 1; // snap in first 10%, then stable
+      var nd = {};
+      // Copy all non-numeric fields from IS
+      for (var ndk in ndIS) { nd[ndk] = ndIS[ndk]; }
+      // Lerp numeric fields from WAS→IS over first 10% of cycle (smooth arrival)
+      var numericFields = ['perturbation','observer_fraction','j_error','tempo',
+        'self_awareness','product','product_error','v_pi','d_pi','j_pi',
+        'vdj_product','vdj_product_error'];
+      for (var nfi = 0; nfi < numericFields.length; nfi++) {
+        var fld = numericFields[nfi];
+        nd[fld] = lerp(ndWAS[fld], ndIS[fld], smoothT);
+      }
       var an = prevDash.anderson_selectivity || {};
       var bc = prevDash.bingo_cube_summary || {};
       var mg = prevDash.membrane_geometry || {};

@@ -22,6 +22,14 @@ window.PtMembrane = function(deps) {
   var rates = {fire:0,membrane:0,immune:0,sound:0}, rps = 0, prevDash = null;
   var livePerturb = -1; // -1 = no live data, use sine wave
   var chipmunkData = null; // inner null space — squirrel/chipMonk state
+  // IS×WAS×WILLBE temporal interpolation:
+  // wasDash = previous fetch, isDash = current fetch, willbeT = lerp factor
+  // At t=0 after fetch: willbeT=0 (pure IS). At t=15s: willbeT→1 (predicting WILLBE).
+  // The jitter tear at willbeT→1 IS the prediction uncertainty.
+  var wasDash = null;  // the previous dashboard snapshot (WAS)
+  var isDash = null;   // the current dashboard snapshot (IS)
+  var fetchTs = 0;     // timestamp of last fetch
+  var fetchInterval = 15000; // ms between fetches
   var catAccum = {fire:0,membrane:0,immune:0,sound:0};
   var CATS = ['fire','membrane','immune','sound'];
   // Live stats for ionosphere band display — updated by ingest()
@@ -214,6 +222,10 @@ window.PtMembrane = function(deps) {
         }
       }
     }
+    // Temporal shift: WAS ← previous IS. IS ← new data.
+    wasDash = prevDash ? JSON.parse(JSON.stringify(prevDash)) : null;
+    isDash = JSON.parse(JSON.stringify(dash));
+    fetchTs = performance.now();
     prevDash = JSON.parse(JSON.stringify(dash));
   }
 
@@ -260,6 +272,10 @@ window.PtMembrane = function(deps) {
     el:el, txt:txt, vdjShuffle:vdjShuffle, spawnParticle:spawnParticle,
     coilPath:coilPath, greatCirclePath:greatCirclePath,
     chipmunkData:function(){return chipmunkData;},
+    wasDash:function(){return wasDash;},
+    isDash:function(){return isDash;},
+    fetchTs:function(){return fetchTs;},
+    fetchInterval:fetchInterval,
     pGroup:null, built:false, lastFrame:0};
 
   function build() {
