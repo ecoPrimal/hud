@@ -35,7 +35,10 @@ window.PtMembrane = function(deps) {
   // Live stats for ionosphere band display — updated by ingest()
   var liveStats = {
     rps: 0, fleetIps: 0, humanIps: 0, fleetPct: 0,
-    totalReqs: 0, entityCount: 0, aliveCount: 0
+    totalReqs: 0, entityCount: 0, aliveCount: 0,
+    presenceIs: 0, presenceNearby: 0, presenceWas: 0,
+    passages: [], wakeLvl: 0, sigma: 1.0, depthLayer: 'null',
+    negentropyBits: 0, tempo: 0
   };
   // Dimensional shape classification — ○□△◇ at module scope so animate() can see it
   var DIM_SHAPES = [
@@ -231,6 +234,28 @@ window.PtMembrane = function(deps) {
 
   function ingestChipmunk(data) {
     chipmunkData = data;
+    if (!data) return;
+    // Extract presence data for the animation
+    var membrane = data.membrane || [];
+    for (var mi = 0; mi < membrane.length; mi++) {
+      var meta = membrane[mi].metadata || {};
+      var pres = meta.presence;
+      if (pres) {
+        liveStats.presenceIs = (pres.is && pres.is.count) || 0;
+        liveStats.presenceNearby = (pres.nearby && pres.nearby.count) || 0;
+        liveStats.presenceWas = (pres.was && pres.was.count) || 0;
+        liveStats.passages = meta.passages || [];
+      }
+    }
+    // Depth chain awareness
+    var depth = data.depth || {};
+    liveStats.wakeLvl = data.wake_level || 0;
+    liveStats.sigma = depth.sigma || (1 - (data.wake_level || 0));
+    liveStats.depthLayer = depth.layer || 'null';
+    // Jitte from negentropy
+    var jitte = data.jitte || {};
+    liveStats.negentropyBits = jitte.negentropy_bits || 0;
+    liveStats.tempo = jitte.tempo || 0;
   }
 
   // Great circle arc: project a 3D circle tilted by (tiltX, tiltZ) onto 2D

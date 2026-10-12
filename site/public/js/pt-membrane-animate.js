@@ -795,10 +795,16 @@
     var statData = [
       {id:'rps',      text: liveStats.rps > 0 ? liveStats.rps.toFixed(0)+' rps' : ''},
       {id:'fleet',    text: liveStats.fleetPct > 0 ? liveStats.fleetPct.toFixed(1)+'% fleet' : ''},
-      {id:'humans',   text: liveStats.humanIps > 0 ? liveStats.humanIps.toLocaleString()+' humans' : ''},
+      {id:'humans',   text: liveStats.presenceIs > 0 ?
+        liveStats.presenceIs+' IS \u00b7 '+liveStats.presenceNearby+' NEARBY \u00b7 '+liveStats.presenceWas+' WAS' :
+        (liveStats.humanIps > 0 ? liveStats.humanIps.toLocaleString()+' humans' : '')},
       {id:'entities', text: liveStats.entityCount > 0 ? liveStats.entityCount+' entities' : ''},
-      {id:'total',    text: liveStats.totalReqs > 0 ? (liveStats.totalReqs/1000).toFixed(0)+'k total' : ''},
-      {id:'alive',    text: liveStats.aliveCount > 0 ? liveStats.aliveCount+'/'+PANELS.length+' alive' : ''}
+      {id:'total',    text: liveStats.negentropyBits > 0 ?
+        (liveStats.negentropyBits/1000).toFixed(0)+'k bits negentropy' :
+        (liveStats.totalReqs > 0 ? (liveStats.totalReqs/1000).toFixed(0)+'k total' : '')},
+      {id:'alive',    text: liveStats.wakeLvl > 0 ?
+        '\u03c0^'+(((liveStats.wakeLvl-0.5)*6).toFixed(1))+' '+liveStats.depthLayer+' \u03c3='+(liveStats.sigma||0).toFixed(2) :
+        (liveStats.aliveCount > 0 ? liveStats.aliveCount+'/'+PANELS.length+' alive' : '')}
     ];
     for (var stdi = 0; stdi < statData.length; stdi++) {
       var stdEl = document.getElementById('mg-stat-' + statData[stdi].id);
