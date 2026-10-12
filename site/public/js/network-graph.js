@@ -438,6 +438,8 @@
     var svg = ctx.svg;
     var defs = svg.querySelector('defs') || svgEl('defs', {});
     if (!defs.parentNode) svg.insertBefore(defs, svg.firstChild);
+    var blur = svgEl('filter', { id: 'sigma-blur', x: '-50%', y: '-50%', width: '200%', height: '200%' }, defs);
+    svgEl('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '4' }, blur);
     Object.keys(FLOW_COLORS).forEach(function(ft) {
       var m = svgEl('marker', { id: 'arrow-' + ft, viewBox: '0 0 10 10',
         refX: '28', refY: '5', markerWidth: '5', markerHeight: '5', orient: 'auto' }, defs);
@@ -452,12 +454,16 @@
   function drawEdges(ctx) {
     ctx.linkElements = [];
     var svg = ctx.svg, nm = ctx.nodeMap;
+    var EVIDENCE_DASH = { documented: 'none', observed: 'none', inferred: '6,4', contextual: '3,3' };
+    var EVIDENCE_OPACITY = { documented: '0.7', observed: '0.5', inferred: '0.3', contextual: '0.15' };
     ctx.filteredLinks.forEach(function(link) {
       var s = nm[link.source], t = nm[link.target];
       if (!s || !t) return;
       var flowActive = activeFlows && link.flow;
       var isFlowMatch = !activeFlows || (activeFlows && activeFlows[link.flow]);
       var useFlowColor = activeFlows && link.flow;
+      var ev = link.evidence || 'contextual';
+      var sigma = link.sigma || 0.5;
 
       var attrs = { x1: s.x, y1: s.y, x2: t.x, y2: t.y };
       if (useFlowColor && isFlowMatch) {
@@ -465,8 +471,12 @@
       } else if (activeFlows && !isFlowMatch) {
         Object.assign(attrs, { stroke: '#555', 'stroke-width': '1', 'stroke-opacity': '0.1' });
       } else {
+        var baseOpacity = showSort ? EVIDENCE_OPACITY[ev] : '0.5';
+        var dash = showSort ? EVIDENCE_DASH[ev] : 'none';
         Object.assign(attrs, { stroke: LINK_COLORS[link.type] || '#95a5a6',
-          'stroke-width': link.type === 'money' ? '3' : '1.5', 'stroke-opacity': '0.5' });
+          'stroke-width': Math.max(0.5, (link.weight || 0.5) * 3).toFixed(1),
+          'stroke-opacity': baseOpacity });
+        if (dash !== 'none') attrs['stroke-dasharray'] = dash;
         if (activeFlows) attrs['marker-end'] = 'url(#arrow-default)';
       }
       var line = svgEl('line', attrs, svg);
@@ -476,6 +486,7 @@
       }
       line.dataset.source = link.source; line.dataset.target = link.target;
       line.dataset.flow = link.flow || ''; line.dataset.count = link._count || 1;
+      line.dataset.evidence = ev; line.dataset.sigma = sigma;
       ctx.linkElements.push(line);
 
       if (link._count && link._count > 2) {
@@ -528,6 +539,11 @@
           sr.style.opacity = String(n.confidence || 0.5);
         }
         if (showSort) g.style.opacity = String(n.opacity || 0.25);
+        var nodeSigma = n.sigma || 0.3;
+        if (showSort && nodeSigma > 0.2) {
+          var blur = svgEl('circle', { r: r + nodeSigma * 12, fill: (COLORS[n.type] || '#95a5a6'),
+            opacity: String(nodeSigma * 0.3), filter: 'url(#sigma-blur)' }, g);
+        }
         var circle = svgEl('circle', { r: r, fill: COLORS[n.type] || '#95a5a6', stroke: '#fff',
           'stroke-width': r > 20 ? '2.5' : '1.5' }, g);
         circle.style.transition = 'r 0.2s, stroke-width 0.2s';
@@ -633,8 +649,11 @@
 
     var sortStr = '';
     if (n.classification && n.classification !== 'unknown') {
+      var sigma = n.sigma || 0.3;
+      var sigmaBar = sigma < 0.15 ? '░' : sigma < 0.3 ? '▒' : '▓';
       sortStr = '<br><span style="color:' + (SORT_COLORS[n.classification] || '#7f8c8d') + ';font-size:10px;font-weight:600">◉ ' +
-        n.classification.toUpperCase() + ' (' + Math.round((n.confidence || 0) * 100) + '%)</span>';
+        n.classification.toUpperCase() + ' (' + Math.round((n.confidence || 0) * 100) + '% ±' + Math.round(sigma * 100) + ')</span>';
+      sortStr += '<br><span style="font-size:9px;opacity:0.4">σ=' + sigma.toFixed(2) + ' ' + sigmaBar + '</span>';
       if (n.sort_note) sortStr += '<br><span style="font-size:10px;opacity:0.6">' + n.sort_note + '</span>';
     }
 
@@ -724,6 +743,25 @@
       var sortedCount = ctx.filteredNodes.filter(function(n) { return n.classification && n.classification !== 'unknown'; }).length;
       var st = svgText(sortedCount + '/' + ctx.filteredNodes.length + ' sorted', { x: 20, y: y + 4, fill: 'currentColor', 'font-size': '9' }, svg);
       st.style.opacity = '0.5';
+      y += 24;
+
+      svgText('Evidence quality:', { x: 20, y: y + 4, fill: '#8b949e', 'font-size': '9', 'font-weight': '600' }, svg);
+      y += 16;
+      var evLegend = [
+        { dash: 'none', opacity: '0.7', label: 'Documented (FEC/court)', tense: 'WAS' },
+        { dash: 'none', opacity: '0.5', label: 'Observed (public record)', tense: 'IS' },
+        { dash: '6,4', opacity: '0.3', label: 'Inferred (structural)', tense: 'NEARBY' },
+        { dash: '3,3', opacity: '0.15', label: 'Contextual (analysis)', tense: 'WILLBE' },
+      ];
+      evLegend.forEach(function(item) {
+        var el = svgEl('line', { x1: 14, y1: y, x2: 26, y2: y, stroke: '#8b949e',
+          'stroke-width': '2', 'stroke-opacity': item.opacity }, svg);
+        if (item.dash !== 'none') el.setAttribute('stroke-dasharray', item.dash);
+        svgText(item.label, { x: 32, y: y + 3, fill: 'currentColor', 'font-size': '8', 'font-weight': '400' }, svg).style.opacity = '0.5';
+        y += 14;
+      });
+      y += 6;
+      svgText('σ = uncertainty band (blur radius)', { x: 20, y: y + 4, fill: 'currentColor', 'font-size': '8' }, svg).style.opacity = '0.3';
       y += 20;
     }
   }
