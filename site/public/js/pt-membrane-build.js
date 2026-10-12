@@ -753,6 +753,20 @@
         {opacity: 0.2, 'font-weight':'bold', id: 'mg-epi-label-' + oi});
       txt(orbitG, cx, cy, epiNames9[oi], '#6e7681', 3.5,
         {opacity: 0.12, id: 'mg-epi-name-' + oi});
+      // Fold: 3-step dot-line-curve chain per epitope (3 bounces to catchable)
+      for (var fi = 0; fi < 3; fi++) {
+        el('circle', {cx:cx, cy:cy, r: 1.2 - fi * 0.2,
+          fill: oColor, opacity: 0, id: 'mg-epi-fold-dot-' + oi + '-' + fi}, orbitG);
+        if (fi % 2 === 0) {
+          el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
+            stroke: oColor, 'stroke-width': 0.3, 'stroke-opacity': 0,
+            id: 'mg-epi-fold-link-' + oi + '-' + fi}, orbitG);
+        } else {
+          el('path', {d:'M '+cx+' '+cy, fill:'none',
+            stroke: oColor, 'stroke-width': 0.3, 'stroke-opacity': 0,
+            id: 'mg-epi-fold-link-' + oi + '-' + fi}, orbitG);
+        }
+      }
     }
   }
 

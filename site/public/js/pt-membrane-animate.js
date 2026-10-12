@@ -349,6 +349,45 @@
       if (eLabel) { eLabel.setAttribute('x', ox.toFixed(1)); eLabel.setAttribute('y', (oy-7).toFixed(1)); }
       var eName = document.getElementById('mg-epi-name-' + oi);
       if (eName) { eName.setAttribute('x', ox.toFixed(1)); eName.setAttribute('y', (oy+8).toFixed(1)); }
+
+      // Fold: 3-bounce dot-line-curve chain from each epitope
+      // Bounce 1: hard (line), Bounce 2: soft (curve), Bounce 3: catch
+      // Each fold gets smaller — energy dissipating
+      var foldPos = [{x: ox, y: oy}];
+      var foldAngle = oAngle + PI;
+      for (var fi = 0; fi < 3; fi++) {
+        var fprev = foldPos[fi];
+        var fR = (3 - fi) * perturb;
+        var fRate = PI * (1.7 + fi * 0.31 + oi * 0.07);
+        var fA = t * fRate + foldAngle + fi * PI + PI/4;
+        var fx = fprev.x + fR * Math.cos(fA);
+        var fy = fprev.y + fR * Math.sin(fA);
+        foldPos.push({x: fx, y: fy});
+        var fDot = document.getElementById('mg-epi-fold-dot-' + oi + '-' + fi);
+        if (fDot) {
+          fDot.setAttribute('cx', fx.toFixed(1)); fDot.setAttribute('cy', fy.toFixed(1));
+          fDot.setAttribute('opacity', (0.15 * perturb * (1 - fi * 0.25)).toFixed(3));
+        }
+        var fLink = document.getElementById('mg-epi-fold-link-' + oi + '-' + fi);
+        if (fLink) {
+          if (fi % 2 === 0) {
+            fLink.setAttribute('x1', fprev.x.toFixed(1)); fLink.setAttribute('y1', fprev.y.toFixed(1));
+            fLink.setAttribute('x2', fx.toFixed(1)); fLink.setAttribute('y2', fy.toFixed(1));
+          } else {
+            var fmx = (fprev.x + fx) / 2, fmy = (fprev.y + fy) / 2;
+            var fdx = fx - fprev.x, fdy = fy - fprev.y;
+            var flen = Math.sqrt(fdx*fdx + fdy*fdy) || 1;
+            var fperp = flen * 0.5 * ((oi + fi) % 2 === 0 ? 1 : -1);
+            var fcpx = fmx + (-fdy/flen) * fperp;
+            var fcpy = fmy + (fdx/flen) * fperp;
+            fLink.setAttribute('d',
+              'M ' + fprev.x.toFixed(1) + ' ' + fprev.y.toFixed(1) +
+              ' Q ' + fcpx.toFixed(1) + ' ' + fcpy.toFixed(1) +
+              ' ' + fx.toFixed(1) + ' ' + fy.toFixed(1));
+          }
+          fLink.setAttribute('stroke-opacity', (0.1 * perturb * (1 - fi * 0.2)).toFixed(3));
+        }
+      }
     }
   }
 
