@@ -912,9 +912,10 @@
     }
   }
 
-  // ═══ DOUBLE HELIX + DEPTH SPIRAL ═══
-  // DNA of observation: self × non-self counter-rotating.
+  // ═══ TRIPLE HELIX + DEPTH SPIRAL ═══
+  // DNA of observation: self ↻ × non-self ↺ × null ⟲ (anti-twist).
   // Depth: observer→negate→null→awareness→ghost→celestial→geodesic.
+  // π body stack: 1/π³ → 1/π² → 1/π → 1 → π → π² → π³
   function helixDepth(wbG) {
     var helixG = el('g', {id:'mg-helix'}, wbG);
     el('path', {d:'M '+cx+' '+cy, fill:'none',
@@ -923,6 +924,9 @@
     el('path', {d:'M '+cx+' '+cy, fill:'none',
       stroke:'#e85d3a', 'stroke-width':0.8, 'stroke-opacity':0.15,
       'stroke-dasharray':'4,3', id:'mg-helix-nonself'}, helixG);
+    el('path', {d:'M '+cx+' '+cy, fill:'none',
+      stroke:'#58a6ff', 'stroke-width':0.5, 'stroke-opacity':0.08,
+      'stroke-dasharray':'2,5', id:'mg-helix-null'}, helixG);
     for (var hci = 0; hci < 6; hci++) {
       el('circle', {cx:cx, cy:cy, r:1.5,
         fill:'none', stroke:'#c9d1d9', 'stroke-width':0.5,
@@ -938,22 +942,35 @@
       'stroke-opacity':0.03, 'stroke-dasharray':'1,12',
       id:'mg-counter-inner'}, helixG);
 
-    // Depth spiral: 7 layers, epicyclic chain, π torque between layers
+    // Depth spiral: 7 layers = π body stack (1/π³ → π³)
+    // Three chiralities: twist (forward), reverse, anti
     var depthG = el('g', {id:'mg-depth'}, wbG);
     var depthLayers = [
-      {name:'observer',  color:'#c9d1d9'},
-      {name:'negate',    color:'#e85d3a'},
-      {name:'null',      color:'#58a6ff'},
-      {name:'awareness', color:'#5ab87a'},
-      {name:'ghost',     color:'#8b949e'},
-      {name:'celestial', color:'#d2a8ff'},
-      {name:'geodesic',  color:'#f0e68c'}
+      {name:'observer',  color:'#c9d1d9', power:-3},
+      {name:'negate',    color:'#e85d3a', power:-2},
+      {name:'null',      color:'#58a6ff', power:-1},
+      {name:'awareness', color:'#5ab87a', power: 0},
+      {name:'ghost',     color:'#8b949e', power: 1},
+      {name:'celestial', color:'#d2a8ff', power: 2},
+      {name:'geodesic',  color:'#f0e68c', power: 3}
     ];
+    // Forward twist links
     for (var dli = 0; dli < 7; dli++) {
       el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
         stroke: depthLayers[dli].color, 'stroke-width': 0.5,
         'stroke-opacity': 0.2, id: 'mg-depth-link-' + dli}, depthG);
     }
+    // Reverse twist links (geodesic→observer return path)
+    for (var rli = 0; rli < 7; rli++) {
+      el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
+        stroke: depthLayers[6 - rli].color, 'stroke-width': 0.3,
+        'stroke-opacity': 0.08, 'stroke-dasharray':'3,4',
+        id: 'mg-depth-rev-' + rli}, depthG);
+    }
+    // Anti-twist path (cubic nesting, neither chirality)
+    el('path', {d:'M '+cx+' '+cy, fill:'none',
+      stroke:'#58a6ff', 'stroke-width':0.4, 'stroke-opacity':0.06,
+      'stroke-dasharray':'1,3', id:'mg-depth-anti'}, depthG);
     depthLayers.forEach(function(layer, i) {
       el('circle', {cx:cx, cy:cy, r: 2.5 - i * 0.2,
         fill: layer.color, opacity: 0.5, id: 'mg-depth-' + i}, depthG);

@@ -352,9 +352,13 @@
     }
   }
 
-  // ═══ DEPTH SPIRAL: epicyclic chain from [∅]D ═══
+  // ═══ DEPTH SPIRAL: π body stack with twist triad ═══
+  // Forward twist: observer→geodesic (1/π³ → π³)
+  // Reverse twist: geodesic→observer (π³ → 1/π³) return path
+  // Anti-twist: cubic nesting, neither chirality
   function animDepth(ac) {
     var t = ac.t, perturb = ac.perturb;
+    // Forward twist — the standard epicyclic chain
     var depthPos = [{x: cx, y: cy}];
     for (var di = 0; di < 7; di++) {
       var dprev = depthPos[di];
@@ -380,6 +384,36 @@
         dLink.setAttribute('x2', ddx.toFixed(1)); dLink.setAttribute('y2', ddy.toFixed(1));
         dLink.setAttribute('stroke-opacity', (0.15 * perturb).toFixed(3));
       }
+    }
+    // Reverse twist — same chain running backward (geodesic→observer)
+    var revPos = [{x: cx, y: cy}];
+    for (var ri = 0; ri < 7; ri++) {
+      var rprev = revPos[ri];
+      var rR = (4 + (6 - ri) * 1.5) * perturb;
+      var rRate = PI * (1 + (6 - ri) * 0.13);
+      var rAngle = -t * rRate + (6 - ri) * PI + PI/3;
+      var rdx = rprev.x + rR * Math.cos(rAngle);
+      var rdy = rprev.y + rR * Math.sin(rAngle);
+      revPos.push({x: rdx, y: rdy});
+      var rLink = document.getElementById('mg-depth-rev-' + ri);
+      if (rLink) {
+        rLink.setAttribute('x1', rprev.x.toFixed(1)); rLink.setAttribute('y1', rprev.y.toFixed(1));
+        rLink.setAttribute('x2', rdx.toFixed(1)); rLink.setAttribute('y2', rdy.toFixed(1));
+        rLink.setAttribute('stroke-opacity', (0.08 * perturb).toFixed(3));
+      }
+    }
+    // Anti-twist — cubic nesting path through all 7 positions
+    var antiEl = document.getElementById('mg-depth-anti');
+    if (antiEl && depthPos.length >= 8) {
+      var antiPts = [];
+      for (var ai = 0; ai < 8; ai++) {
+        var fwd = depthPos[ai], rev = revPos[Math.min(ai, 7)];
+        var ax = (fwd.x + rev.x) / 2 + Math.sin(t * PI * PI + ai) * 2 * perturb;
+        var ay = (fwd.y + rev.y) / 2 + Math.cos(t * PI * PI + ai) * 2 * perturb;
+        antiPts.push(ax.toFixed(1) + ' ' + ay.toFixed(1));
+      }
+      antiEl.setAttribute('d', 'M ' + antiPts.join(' L '));
+      antiEl.setAttribute('stroke-opacity', (0.06 * perturb).toFixed(3));
     }
   }
 
@@ -504,13 +538,13 @@
     }
   }
 
-  // ═══ DOUBLE HELIX: self × non-self counter-rotating ═══
+  // ═══ TRIPLE HELIX: self ↻ × non-self ↺ × null ⟲ ═══
   function animHelix(ac) {
     var t = ac.t, perturb = ac.perturb, BR = ac.BR;
     var helixRMax = BR * 1.8 + 8;
     var helixTurns = PI;
     var HSTEPS = 48;
-    var hSelfPts = [], hNonPts = [];
+    var hSelfPts = [], hNonPts = [], hNullPts = [];
     for (var hsi = 0; hsi <= HSTEPS; hsi++) {
       var f = hsi / HSTEPS;
       var hr = f * helixRMax;
@@ -518,6 +552,10 @@
       hSelfPts.push((cx+hr*Math.cos(hsa)).toFixed(1)+' '+(cy+hr*Math.sin(hsa)).toFixed(1));
       var hna = t * ac.omega_was + PI + f * helixTurns * TAU * -1;
       hNonPts.push((cx+hr*Math.cos(hna)).toFixed(1)+' '+(cy+hr*Math.sin(hna)).toFixed(1));
+      // Null strand: anti-twist — cubic frequency, offset by TAU/3
+      var hnla = t * ac.omega_was * ac.omega_was * ac.omega_was + TAU/3 + f * helixTurns * TAU * (Math.sin(f*PI)*0.5);
+      var hnlr = hr * 0.7;
+      hNullPts.push((cx+hnlr*Math.cos(hnla)).toFixed(1)+' '+(cy+hnlr*Math.sin(hnla)).toFixed(1));
     }
     var hSelfEl = document.getElementById('mg-helix-self');
     if (hSelfEl) { hSelfEl.setAttribute('d', 'M '+hSelfPts.join(' L '));
@@ -525,6 +563,9 @@
     var hNonEl = document.getElementById('mg-helix-nonself');
     if (hNonEl) { hNonEl.setAttribute('d', 'M '+hNonPts.join(' L '));
                   hNonEl.setAttribute('stroke-opacity', (0.15*perturb).toFixed(3)); }
+    var hNullEl = document.getElementById('mg-helix-null');
+    if (hNullEl) { hNullEl.setAttribute('d', 'M '+hNullPts.join(' L '));
+                   hNullEl.setAttribute('stroke-opacity', (0.08*perturb).toFixed(3)); }
     for (var hci = 0; hci < 6; hci++) {
       var hcF = (2*hci+1) / (4*PI);
       var hcR = hcF * helixRMax;
