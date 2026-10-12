@@ -155,6 +155,92 @@
     return '#58a6ff';
   }
 
+  // ── Presence Observer ──
+  var EP_COLORS = {
+    INVESTIGATION:'#f1c40f', IMMUNE:'#ff6b35', TOPOLOGY:'#9b59b6',
+    PHILOSOPHY:'#3fb950', SCIENCE:'#e8e8e8', SIGNAL:'#4a8fb8',
+    METHOD:'#58a6ff', MEMBRANE:'#a6e3a1', OTHER:'#6e7681'
+  };
+
+  function loadPresence(){
+    fetch('/presence.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(p){
+      var el=document.getElementById('d-presence');
+      if(!el) return;
+      el.innerHTML='';
+
+      // IS / NEARBY / WAS counts
+      var counts=document.createElement('div');
+      counts.style.cssText='display:flex;gap:16px;margin-bottom:10px;align-items:baseline;';
+      var isColor=p.is.count>0?'#3fb950':'#6e7681';
+      counts.innerHTML=
+        '<span style="font-size:1.6em;font-weight:700;color:'+isColor+'">'+p.is.count+'</span>'+
+        '<span style="font-size:0.75em;color:#8b949e">IS</span>'+
+        '<span style="font-size:1.1em;font-weight:600;color:#58a6ff">'+p.nearby.count+'</span>'+
+        '<span style="font-size:0.75em;color:#8b949e">NEARBY</span>'+
+        '<span style="font-size:0.9em;color:#6e7681">'+p.was.count+'</span>'+
+        '<span style="font-size:0.75em;color:#6e7681">WAS</span>';
+      el.appendChild(counts);
+
+      // Epitope gravity bar
+      if(p.epitope_gravity&&Object.keys(p.epitope_gravity).length){
+        var bar=document.createElement('div');
+        bar.style.cssText='display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;';
+        var total=0;
+        Object.values(p.epitope_gravity).forEach(function(v){total+=v.count;});
+        Object.keys(p.epitope_gravity).forEach(function(ep){
+          var seg=document.createElement('div');
+          var pct=total>0?Math.round(p.epitope_gravity[ep].count/total*100):0;
+          seg.style.cssText='height:100%;background:'+(EP_COLORS[ep]||'#6e7681')+';width:'+pct+'%;';
+          seg.title=ep+': '+p.epitope_gravity[ep].count+' ('+pct+'%)';
+          bar.appendChild(seg);
+        });
+        el.appendChild(bar);
+
+        // Epitope labels
+        var labels=document.createElement('div');
+        labels.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;';
+        Object.keys(p.epitope_gravity).forEach(function(ep){
+          var c=EP_COLORS[ep]||'#6e7681';
+          labels.innerHTML+='<span style="font-size:0.68em;color:'+c+'">●'+ep+' '+p.epitope_gravity[ep].count+'</span>';
+        });
+        el.appendChild(labels);
+      }
+
+      // IS pages — what they're reading right now
+      if(p.is_pages&&p.is_pages.length){
+        var pages=document.createElement('div');
+        pages.style.cssText='margin-top:6px;';
+        p.is_pages.slice(0,5).forEach(function(pg){
+          var row=document.createElement('div');
+          row.style.cssText='display:flex;gap:6px;align-items:center;font-size:0.72em;margin:2px 0;';
+          var c=EP_COLORS[pg.epitope]||'#6e7681';
+          var ago=pg.ago_s<60?pg.ago_s+'s':Math.round(pg.ago_s/60)+'m';
+          row.innerHTML='<span style="color:'+c+';width:6px;height:6px;border-radius:50%;background:'+c+';display:inline-block"></span>'+
+            '<span style="color:#c9d1d9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+pg.host+pg.path+'</span>'+
+            '<span style="color:#6e7681">'+ago+' ago</span>';
+          pages.appendChild(row);
+        });
+        el.appendChild(pages);
+      }
+
+      // Returners with epitope shift
+      if(p.returners&&p.returners.total_shifters>0){
+        var ret=document.createElement('div');
+        ret.style.cssText='margin-top:8px;font-size:0.7em;color:#8b949e;border-top:1px solid #21262d;padding-top:6px;';
+        ret.innerHTML='↩ '+p.returners.total_shifters+' humans returned with a different epitope';
+        if(p.returners.recent&&p.returners.recent.length){
+          p.returners.recent.slice(0,3).forEach(function(r){
+            var bc=EP_COLORS[r.brought]||'#6e7681';
+            var lc=EP_COLORS[r.left_with]||'#6e7681';
+            ret.innerHTML+='<div style="margin:2px 0"><span style="color:'+bc+'">'+r.brought+'</span> → <span style="color:'+lc+'">'+r.left_with+'</span> ('+r.journey+' shifts, '+r.visits+' visits)</div>';
+          });
+        }
+        el.appendChild(ret);
+      }
+    }).catch(function(){});
+  }
+
   // ── Poll ──
   loadDash(); setInterval(loadDash,8000);
+  loadPresence(); setInterval(loadPresence,10000);
 })();
