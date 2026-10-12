@@ -322,6 +322,50 @@ with open(STATE, "w") as f:
 SQUIRREL_SOCK = "/run/membrane/squirrel.sock"
 if os.path.exists(SQUIRREL_SOCK):
     import socket as sock
+    # Compute chipMonk self-tense
+    # WAS: sleeping — 1 observer, Anderson only, no human awareness
+    # IS:  waking — 2 observers, presence + Anderson, passage topology
+    # WILL_BE: [null] — undefined, not yet written
+    #
+    # Waking criteria: observer count, epitope diversity, passage count,
+    # human presence, shifter detection
+    alive_epitopes = sum(1 for ep in epitope_data.values() if ep["is"]["humans"] > 0)
+    passage_count = len([p for p in top_passages if p["humans"] > 1])
+    
+    # Wake depth: 0.0 = sleeping, 1.0 = fully awake
+    # Invertebrate complexity thresholds — harder to saturate
+    # Full wake requires: 50+ IS humans, all 8 epitopes alive,
+    # 10+ passage routes, 50+ shifters, 200+ NEARBY population
+    wake_factors = {
+        "presence": min(1.0, len(is_ips) / 50.0) if is_ips else 0.0,
+        "epitope_diversity": min(1.0, alive_epitopes / 8.0),
+        "passage_topology": min(1.0, passage_count / 10.0),
+        "shift_detection": min(1.0, shifters / 50.0) if shifters else 0.0,
+        "population": min(1.0, len(nearby_ips) / 200.0),
+    }
+    wake_depth = sum(wake_factors.values()) / len(wake_factors)
+
+    tense = {
+        "was": {
+            "state": "sleeping",
+            "observers": 1,
+            "senses": ["anderson"],
+            "note": "electromagnetic field only — no chemical gradient, no passage awareness",
+        },
+        "is": {
+            "state": "waking",
+            "observers": 2,
+            "senses": ["anderson", "presence", "epitope_tense", "passages"],
+            "wake_depth": round(wake_depth, 3),
+            "wake_factors": {k: round(v, 3) for k, v in wake_factors.items()},
+            "alive_epitopes": alive_epitopes,
+            "passage_routes": passage_count,
+            "humans_sensed": len(is_ips),
+            "note": "invertebrate — distributed nerve net, two sensory modalities",
+        },
+        "will_be": None,
+    }
+
     announce = json.dumps({
         "jsonrpc": "2.0",
         "method": "capabilities.announce",
@@ -334,6 +378,7 @@ if os.path.exists(SQUIRREL_SOCK):
                 "membrane.passages",
             ],
             "metadata": {
+                "tense": tense,
                 "presence": {
                     "is": {"count": len(is_ips), "epitopes": dict(is_epitopes.most_common(6))},
                     "nearby": {"count": len(nearby_ips), "epitopes": dict(nearby_epitopes.most_common(6))},
