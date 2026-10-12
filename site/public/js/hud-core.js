@@ -223,6 +223,74 @@
         el.appendChild(pages);
       }
 
+      // Epitope tense — each epitope IS/NEARBY/WAS
+      if(p.epitope_tense&&Object.keys(p.epitope_tense).length){
+        var etDiv=document.createElement('div');
+        etDiv.style.cssText='margin-top:10px;border-top:1px solid #21262d;padding-top:8px;';
+        var etTitle=document.createElement('div');
+        etTitle.style.cssText='font-size:0.7em;color:#8b949e;margin-bottom:6px;';
+        etTitle.textContent='epitope tense';
+        etDiv.appendChild(etTitle);
+
+        var sorted=Object.entries(p.epitope_tense).sort(function(a,b){return b[1].nearby.humans-a[1].nearby.humans;});
+        sorted.forEach(function(pair){
+          var ep=pair[0],t=pair[1];
+          var c=EP_COLORS[ep]||'#6e7681';
+          var row=document.createElement('div');
+          row.style.cssText='display:flex;align-items:center;gap:6px;margin:3px 0;font-size:0.7em;';
+
+          // Epitope name + IS dot
+          var isAlive=t.is.humans>0;
+          var dot='<span style="width:6px;height:6px;border-radius:50%;background:'+(isAlive?c:'#21262d')+';display:inline-block"></span>';
+          var name='<span style="color:'+c+';width:90px;display:inline-block">'+ep+'</span>';
+
+          // Tense counts
+          var tense='<span style="color:'+(isAlive?'#3fb950':'#6e7681')+'">'+t.is.humans+'</span>'+
+            '<span style="color:#484f58;margin:0 2px">/</span>'+
+            '<span style="color:#58a6ff">'+t.nearby.humans+'</span>'+
+            '<span style="color:#484f58;margin:0 2px">/</span>'+
+            '<span style="color:#6e7681">'+t.was.humans+'</span>';
+
+          // Passage arrows
+          var passages=Object.entries(t.passages_to||{}).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+          var arrows='';
+          if(passages.length){
+            arrows=passages.map(function(p){
+              var tc=EP_COLORS[p[0]]||'#6e7681';
+              return '<span style="color:'+tc+'">'+p[0]+'</span><span style="color:#484f58">('+p[1]+')</span>';
+            }).join(' ');
+            arrows='<span style="color:#484f58;margin-left:4px">→ </span>'+arrows;
+          }
+
+          row.innerHTML=dot+name+tense+arrows;
+          etDiv.appendChild(row);
+        });
+        el.appendChild(etDiv);
+      }
+
+      // Top passages — where humans travel between epitopes
+      if(p.passages&&p.passages.length){
+        var passDiv=document.createElement('div');
+        passDiv.style.cssText='margin-top:8px;border-top:1px solid #21262d;padding-top:6px;';
+        var passTitle=document.createElement('div');
+        passTitle.style.cssText='font-size:0.7em;color:#8b949e;margin-bottom:4px;';
+        passTitle.textContent='passages';
+        passDiv.appendChild(passTitle);
+
+        p.passages.slice(0,6).forEach(function(pg){
+          var row=document.createElement('div');
+          row.style.cssText='font-size:0.68em;margin:2px 0;display:flex;gap:4px;align-items:center;';
+          var fc=EP_COLORS[pg.from]||'#6e7681';
+          var tc=EP_COLORS[pg.to]||'#6e7681';
+          row.innerHTML='<span style="color:'+fc+'">'+pg.from+'</span>'+
+            '<span style="color:#484f58">→</span>'+
+            '<span style="color:'+tc+'">'+pg.to+'</span>'+
+            '<span style="color:#484f58;margin-left:auto">'+pg.humans+' humans</span>';
+          passDiv.appendChild(row);
+        });
+        el.appendChild(passDiv);
+      }
+
       // Returners with epitope shift
       if(p.returners&&p.returners.total_shifters>0){
         var ret=document.createElement('div');
