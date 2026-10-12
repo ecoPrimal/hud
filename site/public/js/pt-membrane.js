@@ -307,5 +307,5 @@ window.PtMembrane = function(deps) {
     });
   }
 
-  return {build:build, animate:animate, render:render, ingest:ingest, ingestChipmunk:ingestChipmunk, entityToCategory:entityToCategory, panelGeo:geo};
+  return {build:build, animate:animate, render:render, ingest:ingest, ingestChipmunk:ingestChipmunk, entityToCategory:entityToCategory, panelGeo:geo, _mc:_mc};
 };
