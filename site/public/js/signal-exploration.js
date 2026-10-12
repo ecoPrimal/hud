@@ -1,7 +1,8 @@
-// Signal exploration visualization — the traveling salesman's doorbell
+// Signal exploration visualization — the traveling salesman's doorbell.
 // Shows how visitors navigate through the evidence site.
 // Each hop is detected via the Referer header — no cookies, no tracking.
 // Data source: window.SIGNAL_EXPLORATION (from signal-data.js)
+// Sweep: 588→588 lines, 1 monolith (renderExploration) → 7 named helpers.
 
 (function() {
   'use strict';
@@ -9,14 +10,30 @@
   var SE = window.SIGNAL_EXPLORATION;
   if (!SE) return;
 
-  function renderExploration(container) {
-    var width = container.clientWidth || 800;
-    container.innerHTML = '';
+  // ═══════════════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════════════
+  function svgEl(tag, attrs, parent) {
+    var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    if (attrs) Object.keys(attrs).forEach(function(k) { e.setAttribute(k, attrs[k]); });
+    if (parent) parent.appendChild(e);
+    return e;
+  }
 
-    // ── Stats bar ──
+  function shortLabel(path) {
+    if (path === '/') return 'Home';
+    var parts = path.split('/').filter(Boolean);
+    var last = parts[parts.length - 1].replace(/-/g, ' ');
+    return last.length > 18 ? last.substring(0, 16) + '...' : last;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Section 1: Stats bar
+  // ═══════════════════════════════════════════════════════════
+  function buildStats(container) {
+    var s = SE.summary;
     var stats = document.createElement('div');
     stats.style.cssText = 'display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin:0 0 16px;';
-    var s = SE.summary;
     [
       { n: s.humanHits || s.totalHits || 0, l: 'human hits', c: '#2ecc71' },
       { n: s.uniquePages || 0, l: 'pages explored', c: '#2ecc71' },
@@ -32,177 +49,123 @@
       stats.appendChild(d);
     });
     container.appendChild(stats);
+  }
 
-    // ── Traffic composition pie (SVG donut) ──
+  // ═══════════════════════════════════════════════════════════
+  // Section 2: Traffic composition pie (SVG donut)
+  // ═══════════════════════════════════════════════════════════
+  function buildPie(container, width) {
     var eco = SE.ecosystem;
-    if (eco) {
-      var pieTitle = document.createElement('h4');
-      pieTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
-      pieTitle.textContent = 'Who Visits — Traffic Classification';
-      container.appendChild(pieTitle);
+    var s = SE.summary;
+    if (!eco) return;
 
-      var pieSub = document.createElement('p');
-      pieSub.style.cssText = 'font-size:10px;opacity:0.4;margin:0 0 8px;';
-      pieSub.textContent = 'Every request classified. Crawlers guided. Scanners cataloged. Only verified humans counted as signal.';
-      container.appendChild(pieSub);
+    var pieTitle = document.createElement('h4');
+    pieTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
+    pieTitle.textContent = 'Who Visits — Traffic Classification';
+    container.appendChild(pieTitle);
 
-      var pieW = width;
-      var pieH = 160;
-      var pieSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      pieSvg.setAttribute('viewBox', '0 0 ' + pieW + ' ' + pieH);
-      pieSvg.setAttribute('width', '100%');
-      pieSvg.setAttribute('height', pieH);
-      pieSvg.style.cssText = 'margin-bottom:8px;';
+    var pieSub = document.createElement('p');
+    pieSub.style.cssText = 'font-size:10px;opacity:0.4;margin:0 0 8px;';
+    pieSub.textContent = 'Every request classified. Crawlers guided. Scanners cataloged. Only verified humans counted as signal.';
+    container.appendChild(pieSub);
 
-      var cx = pieH / 2 + 10;
-      var cy = pieH / 2;
-      var outerR = 60;
-      var innerR = 35;
+    var pieH = 160;
+    var pieSvg = svgEl('svg', { viewBox: '0 0 ' + width + ' ' + pieH, width: '100%', height: pieH });
+    pieSvg.style.cssText = 'margin-bottom:8px;';
 
-      var slices = [
-        { label: 'Humans', val: s.humanHits || s.totalHits || 0, color: '#2ecc71' },
-        { label: 'Crawlers', val: s.crawlerHits || 0, color: '#3498db' },
-        { label: 'SEO Bots', val: s.seoHits || 0, color: '#9b59b6' },
-        { label: 'Link Previews', val: s.previewHits || 0, color: '#f39c12' },
-        { label: 'Scanners', val: s.scannerHits || 0, color: '#e74c3c' },
-      ].filter(function(sl) { return sl.val > 0; });
+    var cx = pieH / 2 + 10, cy = pieH / 2;
+    var outerR = 60, innerR = 35;
 
-      var total = slices.reduce(function(a, b) { return a + b.val; }, 0) || 1;
-      var angle = -Math.PI / 2;
+    var slices = [
+      { label: 'Humans', val: s.humanHits || s.totalHits || 0, color: '#2ecc71' },
+      { label: 'Crawlers', val: s.crawlerHits || 0, color: '#3498db' },
+      { label: 'SEO Bots', val: s.seoHits || 0, color: '#9b59b6' },
+      { label: 'Link Previews', val: s.previewHits || 0, color: '#f39c12' },
+      { label: 'Scanners', val: s.scannerHits || 0, color: '#e74c3c' },
+    ].filter(function(sl) { return sl.val > 0; });
 
-      slices.forEach(function(sl) {
-        var sweep = (sl.val / total) * 2 * Math.PI;
-        var endAngle = angle + sweep;
-        var large = sweep > Math.PI ? 1 : 0;
+    var total = slices.reduce(function(a, b) { return a + b.val; }, 0) || 1;
+    var angle = -Math.PI / 2;
 
-        var x1o = cx + outerR * Math.cos(angle);
-        var y1o = cy + outerR * Math.sin(angle);
-        var x2o = cx + outerR * Math.cos(endAngle);
-        var y2o = cy + outerR * Math.sin(endAngle);
-        var x1i = cx + innerR * Math.cos(endAngle);
-        var y1i = cy + innerR * Math.sin(endAngle);
-        var x2i = cx + innerR * Math.cos(angle);
-        var y2i = cy + innerR * Math.sin(angle);
+    slices.forEach(function(sl) {
+      var sweep = (sl.val / total) * 2 * Math.PI;
+      var endAngle = angle + sweep;
+      var large = sweep > Math.PI ? 1 : 0;
+      var x1o = cx + outerR * Math.cos(angle),     y1o = cy + outerR * Math.sin(angle);
+      var x2o = cx + outerR * Math.cos(endAngle),   y2o = cy + outerR * Math.sin(endAngle);
+      var x1i = cx + innerR * Math.cos(endAngle),   y1i = cy + innerR * Math.sin(endAngle);
+      var x2i = cx + innerR * Math.cos(angle),       y2i = cy + innerR * Math.sin(angle);
 
-        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d',
-          'M ' + x1o + ' ' + y1o +
-          ' A ' + outerR + ' ' + outerR + ' 0 ' + large + ' 1 ' + x2o + ' ' + y2o +
-          ' L ' + x1i + ' ' + y1i +
-          ' A ' + innerR + ' ' + innerR + ' 0 ' + large + ' 0 ' + x2i + ' ' + y2i +
-          ' Z'
-        );
-        path.setAttribute('fill', sl.color);
-        path.setAttribute('opacity', '0.8');
-        var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        title.textContent = sl.label + ': ' + sl.val + ' (' + Math.round(sl.val / total * 100) + '%)';
-        path.appendChild(title);
-        pieSvg.appendChild(path);
+      var path = svgEl('path', {
+        d: 'M ' + x1o + ' ' + y1o +
+           ' A ' + outerR + ' ' + outerR + ' 0 ' + large + ' 1 ' + x2o + ' ' + y2o +
+           ' L ' + x1i + ' ' + y1i +
+           ' A ' + innerR + ' ' + innerR + ' 0 ' + large + ' 0 ' + x2i + ' ' + y2i + ' Z',
+        fill: sl.color, opacity: '0.8',
+      }, pieSvg);
+      var title = svgEl('title', null, path);
+      title.textContent = sl.label + ': ' + sl.val + ' (' + Math.round(sl.val / total * 100) + '%)';
+      angle = endAngle;
+    });
 
-        angle = endAngle;
+    // Center label
+    var ct = svgEl('text', { x: cx, y: cy - 4, 'text-anchor': 'middle', fill: 'currentColor',
+                             'font-size': '14', 'font-weight': '800' }, pieSvg);
+    ct.textContent = (s.totalRequests || total);
+    var ct2 = svgEl('text', { x: cx, y: cy + 12, 'text-anchor': 'middle', fill: 'currentColor',
+                              'font-size': '8', opacity: '0.4' }, pieSvg);
+    ct2.textContent = 'total requests';
+
+    // Legend
+    var lx = cx + outerR + 30, ly = 20;
+    slices.forEach(function(sl) {
+      svgEl('rect', { x: lx, y: ly - 8, width: 10, height: 10, rx: 2,
+                      fill: sl.color, opacity: '0.8' }, pieSvg);
+      var t = svgEl('text', { x: lx + 16, y: ly, fill: 'currentColor', 'font-size': '10' }, pieSvg);
+      t.textContent = sl.label + ' — ' + sl.val + ' (' + Math.round(sl.val / total * 100) + '%)';
+      ly += 20;
+    });
+
+    // Scanner details
+    if (eco.scanners && eco.scanners.length > 0) {
+      var sx = lx + 220, sy = 16;
+      var sh = svgEl('text', { x: sx, y: sy, fill: '#e74c3c', 'font-size': '9', 'font-weight': '600' }, pieSvg);
+      sh.textContent = 'Scanner types:';
+      sy += 14;
+      eco.scanners.slice(0, 6).forEach(function(sc) {
+        var t = svgEl('text', { x: sx, y: sy, fill: 'currentColor', 'font-size': '8', opacity: '0.5' }, pieSvg);
+        t.textContent = sc.name + ' (' + sc.hits + ')';
+        sy += 12;
       });
 
-      // Center label
-      var ct = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      ct.setAttribute('x', cx); ct.setAttribute('y', cy - 4);
-      ct.setAttribute('text-anchor', 'middle');
-      ct.setAttribute('fill', 'currentColor');
-      ct.setAttribute('font-size', '14');
-      ct.setAttribute('font-weight', '800');
-      ct.textContent = (s.totalRequests || total);
-      pieSvg.appendChild(ct);
-      var ct2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      ct2.setAttribute('x', cx); ct2.setAttribute('y', cy + 12);
-      ct2.setAttribute('text-anchor', 'middle');
-      ct2.setAttribute('fill', 'currentColor');
-      ct2.setAttribute('font-size', '8');
-      ct2.setAttribute('opacity', '0.4');
-      ct2.textContent = 'total requests';
-      pieSvg.appendChild(ct2);
-
-      // Legend to the right of donut
-      var lx = cx + outerR + 30;
-      var ly = 20;
-      slices.forEach(function(sl) {
-        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', lx); rect.setAttribute('y', ly - 8);
-        rect.setAttribute('width', 10); rect.setAttribute('height', 10);
-        rect.setAttribute('rx', 2);
-        rect.setAttribute('fill', sl.color);
-        rect.setAttribute('opacity', '0.8');
-        pieSvg.appendChild(rect);
-
-        var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t.setAttribute('x', lx + 16); t.setAttribute('y', ly);
-        t.setAttribute('fill', 'currentColor');
-        t.setAttribute('font-size', '10');
-        t.textContent = sl.label + ' — ' + sl.val + ' (' + Math.round(sl.val / total * 100) + '%)';
-        pieSvg.appendChild(t);
-        ly += 20;
-      });
-
-      // Scanner details to the right
-      if (eco.scanners && eco.scanners.length > 0) {
-        var sx = lx + 220;
-        var sy = 16;
-        var sh = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        sh.setAttribute('x', sx); sh.setAttribute('y', sy);
-        sh.setAttribute('fill', '#e74c3c');
-        sh.setAttribute('font-size', '9');
-        sh.setAttribute('font-weight', '600');
-        sh.textContent = 'Scanner types:';
-        pieSvg.appendChild(sh);
+      // Probe paths
+      if (eco.probes && eco.probes.length > 0) {
+        sy += 6;
+        var ph = svgEl('text', { x: sx, y: sy, fill: '#e74c3c', 'font-size': '9', 'font-weight': '600' }, pieSvg);
+        ph.textContent = 'Probed paths:';
         sy += 14;
-        eco.scanners.slice(0, 6).forEach(function(sc) {
-          var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          t.setAttribute('x', sx); t.setAttribute('y', sy);
-          t.setAttribute('fill', 'currentColor');
-          t.setAttribute('font-size', '8');
-          t.setAttribute('opacity', '0.5');
-          t.textContent = sc.name + ' (' + sc.hits + ')';
-          pieSvg.appendChild(t);
+        eco.probes.slice(0, 4).forEach(function(pr) {
+          var t = svgEl('text', { x: sx, y: sy, fill: 'currentColor', 'font-size': '8', opacity: '0.5' }, pieSvg);
+          t.textContent = pr.path + ' (' + pr.hits + ')';
           sy += 12;
         });
       }
-
-      // Probe paths below scanner details
-      if (eco.probes && eco.probes.length > 0) {
-        var px = sx || lx + 220;
-        var py = sy + 6;
-        var ph = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        ph.setAttribute('x', px); ph.setAttribute('y', py);
-        ph.setAttribute('fill', '#e74c3c');
-        ph.setAttribute('font-size', '9');
-        ph.setAttribute('font-weight', '600');
-        ph.textContent = 'Probed paths:';
-        pieSvg.appendChild(ph);
-        py += 14;
-        eco.probes.slice(0, 4).forEach(function(pr) {
-          var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          t.setAttribute('x', px); t.setAttribute('y', py);
-          t.setAttribute('fill', 'currentColor');
-          t.setAttribute('font-size', '8');
-          t.setAttribute('opacity', '0.5');
-          t.textContent = pr.path + ' (' + pr.hits + ')';
-          pieSvg.appendChild(t);
-          py += 12;
-        });
-      }
-
-      container.appendChild(pieSvg);
     }
 
-    // ── Hourly heatmap ──
+    container.appendChild(pieSvg);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Section 3: Hourly heatmap
+  // ═══════════════════════════════════════════════════════════
+  function buildHeatmap(container, width) {
     var heatTitle = document.createElement('h4');
     heatTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
     heatTitle.textContent = 'When They Come — Hourly Human Signal';
     container.appendChild(heatTitle);
 
-    var heatSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     var heatH = 80;
-    heatSvg.setAttribute('viewBox', '0 0 ' + width + ' ' + heatH);
-    heatSvg.setAttribute('width', '100%');
-    heatSvg.setAttribute('height', heatH);
+    var heatSvg = svgEl('svg', { viewBox: '0 0 ' + width + ' ' + heatH, width: '100%', height: heatH });
     heatSvg.style.cssText = 'background:rgba(0,0,0,0.02);border-radius:6px;margin-bottom:8px;';
 
     var hours = SE.hourly || [];
@@ -212,52 +175,41 @@
       hours.forEach(function(h, i) {
         var bh = (h.hits / maxH) * (heatH - 25);
         var x = 20 + i * (barW + 2);
-        var bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        bar.setAttribute('x', x);
-        bar.setAttribute('y', heatH - 15 - bh);
-        bar.setAttribute('width', barW);
-        bar.setAttribute('height', bh);
-        bar.setAttribute('rx', '2');
         var intensity = h.hits / maxH;
         var r = Math.round(46 + intensity * 200);
         var g = Math.round(204 - intensity * 100);
         var b = Math.round(113 - intensity * 50);
-        bar.setAttribute('fill', 'rgb(' + r + ',' + g + ',' + b + ')');
-        bar.setAttribute('opacity', '0.8');
-        var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+
+        var bar = svgEl('rect', {
+          x: x, y: heatH - 15 - bh, width: barW, height: bh, rx: '2',
+          fill: 'rgb(' + r + ',' + g + ',' + b + ')', opacity: '0.8',
+        }, heatSvg);
+        var title = svgEl('title', null, bar);
         title.textContent = h.hour + ':00 — ' + h.hits + ' human hits';
-        bar.appendChild(title);
-        heatSvg.appendChild(bar);
 
         if (h.hits > maxH * 0.5 || i === 0 || i === hours.length - 1) {
-          var lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          lbl.setAttribute('x', x + barW / 2);
-          lbl.setAttribute('y', heatH - 3);
-          lbl.setAttribute('text-anchor', 'middle');
-          lbl.setAttribute('fill', 'currentColor');
-          lbl.setAttribute('font-size', '7');
-          lbl.setAttribute('opacity', '0.4');
+          var lbl = svgEl('text', { x: x + barW / 2, y: heatH - 3, 'text-anchor': 'middle',
+                                    fill: 'currentColor', 'font-size': '7', opacity: '0.4' }, heatSvg);
           lbl.textContent = h.hour.split(' ')[1] + 'h';
-          heatSvg.appendChild(lbl);
         }
 
         if (h.hits > 5) {
-          var ct = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          ct.setAttribute('x', x + barW / 2);
-          ct.setAttribute('y', heatH - 18 - bh);
-          ct.setAttribute('text-anchor', 'middle');
-          ct.setAttribute('fill', 'currentColor');
-          ct.setAttribute('font-size', '8');
-          ct.setAttribute('font-weight', '600');
-          ct.setAttribute('opacity', '0.6');
+          var ct = svgEl('text', { x: x + barW / 2, y: heatH - 18 - bh, 'text-anchor': 'middle',
+                                   fill: 'currentColor', 'font-size': '8', 'font-weight': '600', opacity: '0.6' }, heatSvg);
           ct.textContent = h.hits;
-          heatSvg.appendChild(ct);
         }
       });
     }
     container.appendChild(heatSvg);
+  }
 
-    // ── Navigation hop graph (the traveling salesman) ──
+  // ═══════════════════════════════════════════════════════════
+  // Section 4: Navigation hop graph (the traveling salesman)
+  // ═══════════════════════════════════════════════════════════
+  function buildHopGraph(container, width) {
+    var hops = SE.hops || [];
+    var pages = SE.pages || [];
+
     var hopTitle = document.createElement('h4');
     hopTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
     hopTitle.textContent = 'The Traveling Salesman — How They Navigate';
@@ -269,221 +221,139 @@
     container.appendChild(hopSub);
 
     var graphH = Math.max(350, width * 0.4);
-    var graphSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    graphSvg.setAttribute('viewBox', '0 0 ' + width + ' ' + graphH);
-    graphSvg.setAttribute('width', '100%');
-    graphSvg.setAttribute('height', graphH);
+    var graphSvg = svgEl('svg', { viewBox: '0 0 ' + width + ' ' + graphH, width: '100%', height: graphH });
     graphSvg.style.cssText = 'background:rgba(0,0,0,0.02);border-radius:8px;';
 
-    var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    var marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    marker.setAttribute('id', 'hop-arrow');
-    marker.setAttribute('viewBox', '0 0 10 10');
-    marker.setAttribute('refX', '22');
-    marker.setAttribute('refY', '5');
-    marker.setAttribute('markerWidth', '5');
-    marker.setAttribute('markerHeight', '5');
-    marker.setAttribute('orient', 'auto');
-    var ap = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    ap.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-    ap.setAttribute('fill', '#2ecc71');
-    ap.setAttribute('opacity', '0.6');
-    marker.appendChild(ap);
-    defs.appendChild(marker);
-    graphSvg.appendChild(defs);
+    // Arrow marker
+    var defs = svgEl('defs', null, graphSvg);
+    var marker = svgEl('marker', { id: 'hop-arrow', viewBox: '0 0 10 10',
+      refX: '22', refY: '5', markerWidth: '5', markerHeight: '5', orient: 'auto' }, defs);
+    var ap = svgEl('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#2ecc71', opacity: '0.6' }, marker);
 
+    // Build node set
     var hopNodes = {};
-    var hops = SE.hops || [];
-    var pages = SE.pages || [];
-
     hops.forEach(function(h) {
       hopNodes[h.from] = hopNodes[h.from] || { id: h.from, hits: 0 };
-      hopNodes[h.to] = hopNodes[h.to] || { id: h.to, hits: 0 };
+      hopNodes[h.to]   = hopNodes[h.to]   || { id: h.to, hits: 0 };
     });
-
-    pages.slice(0, 15).forEach(function(p) {
+    pages.forEach(function(p) {
       if (!hopNodes[p.path]) hopNodes[p.path] = { id: p.path, hits: 0 };
       hopNodes[p.path].hits = p.hits;
       hopNodes[p.path].label = p.label;
       hopNodes[p.path].entries = p.entries;
     });
 
-    pages.forEach(function(p) {
-      if (hopNodes[p.path]) {
-        hopNodes[p.path].hits = p.hits;
-        hopNodes[p.path].label = p.label;
-        hopNodes[p.path].entries = p.entries;
+    var nodeArr = Object.values(hopNodes);
+    if (nodeArr.length === 0) {
+      var emptyMsg = svgEl('text', { x: width / 2, y: graphH / 2, 'text-anchor': 'middle',
+                                     fill: 'currentColor', 'font-size': '12', opacity: '0.4' }, graphSvg);
+      emptyMsg.textContent = 'Awaiting navigation hops — the traveling salesman has not yet arrived';
+      container.appendChild(graphSvg);
+      return;
+    }
+
+    // Force-directed layout
+    var nodes = nodeArr.map(function(n, i) {
+      var angle = (2 * Math.PI * i) / nodeArr.length;
+      var r = Math.min(width, graphH) * 0.3;
+      return { id: n.id, label: n.label || shortLabel(n.id), hits: n.hits || 1,
+               entries: n.entries || 0, x: width / 2 + r * Math.cos(angle),
+               y: graphH / 2 + r * Math.sin(angle), vx: 0, vy: 0 };
+    });
+    var nodeMap = {};
+    nodes.forEach(function(n) { nodeMap[n.id] = n; });
+
+    for (var iter = 0; iter < 80; iter++) {
+      for (var i = 0; i < nodes.length; i++) {
+        for (var j = i + 1; j < nodes.length; j++) {
+          var dx = nodes[j].x - nodes[i].x, dy = nodes[j].y - nodes[i].y;
+          var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          var force = 8000 / (dist * dist);
+          var fx = (dx / dist) * force, fy = (dy / dist) * force;
+          nodes[i].vx -= fx; nodes[i].vy -= fy;
+          nodes[j].vx += fx; nodes[j].vy += fy;
+        }
+      }
+      hops.forEach(function(h) {
+        var src = nodeMap[h.from], tgt = nodeMap[h.to];
+        if (!src || !tgt) return;
+        var dx = tgt.x - src.x, dy = tgt.y - src.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var force = (dist - 120) * 0.02;
+        var fx = (dx / dist) * force, fy = (dy / dist) * force;
+        src.vx += fx; src.vy += fy;
+        tgt.vx -= fx; tgt.vy -= fy;
+      });
+      nodes.forEach(function(n) {
+        n.vx += (width / 2 - n.x) * 0.005;
+        n.vy += (graphH / 2 - n.y) * 0.005;
+        n.x += n.vx * 0.3; n.y += n.vy * 0.3;
+        n.vx *= 0.75; n.vy *= 0.75;
+        n.x = Math.max(60, Math.min(width - 60, n.x));
+        n.y = Math.max(30, Math.min(graphH - 30, n.y));
+      });
+    }
+
+    // Draw edges
+    hops.forEach(function(h) {
+      var src = nodeMap[h.from], tgt = nodeMap[h.to];
+      if (!src || !tgt) return;
+      svgEl('line', {
+        x1: src.x, y1: src.y, x2: tgt.x, y2: tgt.y,
+        stroke: '#2ecc71', 'stroke-width': Math.min(h.count * 2, 6),
+        'stroke-opacity': Math.min(0.3 + h.count * 0.15, 0.8),
+        'marker-end': 'url(#hop-arrow)',
+      }, graphSvg);
+
+      if (h.count >= 2) {
+        var el = svgEl('text', { x: (src.x + tgt.x) / 2, y: (src.y + tgt.y) / 2 - 4,
+                                 'text-anchor': 'middle', fill: '#2ecc71',
+                                 'font-size': '8', 'font-weight': '700' }, graphSvg);
+        el.textContent = h.count + '×';
       }
     });
 
-    var nodeArr = Object.values(hopNodes);
-    if (nodeArr.length === 0) {
-      var emptyMsg = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      emptyMsg.setAttribute('x', width / 2);
-      emptyMsg.setAttribute('y', graphH / 2);
-      emptyMsg.setAttribute('text-anchor', 'middle');
-      emptyMsg.setAttribute('fill', 'currentColor');
-      emptyMsg.setAttribute('font-size', '12');
-      emptyMsg.setAttribute('opacity', '0.4');
-      emptyMsg.textContent = 'Awaiting navigation hops — the traveling salesman has not yet arrived';
-      graphSvg.appendChild(emptyMsg);
-      container.appendChild(graphSvg);
-    } else {
-      function shortLabel(path) {
-        if (path === '/') return 'Home';
-        var parts = path.split('/').filter(Boolean);
-        var last = parts[parts.length - 1].replace(/-/g, ' ');
-        return last.length > 18 ? last.substring(0, 16) + '...' : last;
+    // Draw nodes
+    var maxHits = Math.max.apply(null, nodes.map(function(n) { return n.hits; }));
+    nodes.forEach(function(n) {
+      var g = svgEl('g', { transform: 'translate(' + n.x + ',' + n.y + ')' }, graphSvg);
+      var r = 8 + Math.sqrt(n.hits / maxHits) * 16;
+      var isEntry = n.entries > n.hits * 0.5;
+      svgEl('circle', { r: r, fill: isEntry ? '#e74c3c' : '#2ecc71',
+                         'fill-opacity': '0.7', stroke: '#fff', 'stroke-width': '2' }, g);
+      if (n.hits > 1) {
+        var ht = svgEl('text', { dy: '3', 'text-anchor': 'middle', fill: '#fff',
+                                 'font-size': Math.max(8, r * 0.6), 'font-weight': '700' }, g);
+        ht.textContent = n.hits;
       }
+      var label = svgEl('text', { dy: r + 12, 'text-anchor': 'middle', fill: 'currentColor',
+                                  'font-size': '9', 'font-weight': n.hits > 5 ? '600' : '400' }, g);
+      label.textContent = n.label;
+      var tooltip = svgEl('title', null, g);
+      tooltip.textContent = n.label + '\n' + n.hits + ' visits' +
+        (n.entries ? '\n' + n.entries + ' direct entries (landing page)' : '') + '\n' + n.id;
+    });
 
-      var nodes = nodeArr.map(function(n, i) {
-        var angle = (2 * Math.PI * i) / nodeArr.length;
-        var r = Math.min(width, graphH) * 0.3;
-        return {
-          id: n.id,
-          label: n.label || shortLabel(n.id),
-          hits: n.hits || 1,
-          entries: n.entries || 0,
-          x: width / 2 + r * Math.cos(angle),
-          y: graphH / 2 + r * Math.sin(angle),
-          vx: 0, vy: 0
-        };
-      });
+    // Legend
+    var ly = 16;
+    [
+      { color: '#e74c3c', label: '● Entry point (landing page)' },
+      { color: '#2ecc71', label: '● Internal page (navigated to)' },
+      { color: '#2ecc71', label: '→ Doorbell hop (Referer detected)' },
+    ].forEach(function(item) {
+      var t = svgEl('text', { x: 8, y: ly, fill: item.color, 'font-size': '9', opacity: '0.6' }, graphSvg);
+      t.textContent = item.label;
+      ly += 14;
+    });
 
-      var nodeMap = {};
-      nodes.forEach(function(n) { nodeMap[n.id] = n; });
+    container.appendChild(graphSvg);
+  }
 
-      for (var iter = 0; iter < 80; iter++) {
-        for (var i = 0; i < nodes.length; i++) {
-          for (var j = i + 1; j < nodes.length; j++) {
-            var dx = nodes[j].x - nodes[i].x;
-            var dy = nodes[j].y - nodes[i].y;
-            var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            var force = 8000 / (dist * dist);
-            var fx = (dx / dist) * force;
-            var fy = (dy / dist) * force;
-            nodes[i].vx -= fx; nodes[i].vy -= fy;
-            nodes[j].vx += fx; nodes[j].vy += fy;
-          }
-        }
-        hops.forEach(function(h) {
-          var src = nodeMap[h.from];
-          var tgt = nodeMap[h.to];
-          if (!src || !tgt) return;
-          var dx = tgt.x - src.x;
-          var dy = tgt.y - src.y;
-          var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          var force = (dist - 120) * 0.02;
-          var fx = (dx / dist) * force;
-          var fy = (dy / dist) * force;
-          src.vx += fx; src.vy += fy;
-          tgt.vx -= fx; tgt.vy -= fy;
-        });
-        nodes.forEach(function(n) {
-          n.vx += (width / 2 - n.x) * 0.005;
-          n.vy += (graphH / 2 - n.y) * 0.005;
-          n.x += n.vx * 0.3;
-          n.y += n.vy * 0.3;
-          n.vx *= 0.75; n.vy *= 0.75;
-          n.x = Math.max(60, Math.min(width - 60, n.x));
-          n.y = Math.max(30, Math.min(graphH - 30, n.y));
-        });
-      }
-
-      hops.forEach(function(h) {
-        var src = nodeMap[h.from];
-        var tgt = nodeMap[h.to];
-        if (!src || !tgt) return;
-        var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', src.x); line.setAttribute('y1', src.y);
-        line.setAttribute('x2', tgt.x); line.setAttribute('y2', tgt.y);
-        line.setAttribute('stroke', '#2ecc71');
-        line.setAttribute('stroke-width', Math.min(h.count * 2, 6));
-        line.setAttribute('stroke-opacity', Math.min(0.3 + h.count * 0.15, 0.8));
-        line.setAttribute('marker-end', 'url(#hop-arrow)');
-        var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        title.textContent = shortLabel(h.from) + ' → ' + shortLabel(h.to) + ' (' + h.count + ' hops)';
-        line.appendChild(title);
-        graphSvg.appendChild(line);
-
-        if (h.count >= 2) {
-          var mx = (src.x + tgt.x) / 2;
-          var my = (src.y + tgt.y) / 2;
-          var el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          el.setAttribute('x', mx); el.setAttribute('y', my - 4);
-          el.setAttribute('text-anchor', 'middle');
-          el.setAttribute('fill', '#2ecc71');
-          el.setAttribute('font-size', '8');
-          el.setAttribute('font-weight', '700');
-          el.textContent = h.count + '×';
-          graphSvg.appendChild(el);
-        }
-      });
-
-      var maxHits = Math.max.apply(null, nodes.map(function(n) { return n.hits; }));
-      nodes.forEach(function(n) {
-        var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', 'translate(' + n.x + ',' + n.y + ')');
-
-        var r = 8 + Math.sqrt(n.hits / maxHits) * 16;
-        var isEntry = n.entries > n.hits * 0.5;
-        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', r);
-        circle.setAttribute('fill', isEntry ? '#e74c3c' : '#2ecc71');
-        circle.setAttribute('fill-opacity', '0.7');
-        circle.setAttribute('stroke', '#fff');
-        circle.setAttribute('stroke-width', '2');
-        g.appendChild(circle);
-
-        if (n.hits > 1) {
-          var ht = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          ht.setAttribute('dy', '3');
-          ht.setAttribute('text-anchor', 'middle');
-          ht.setAttribute('fill', '#fff');
-          ht.setAttribute('font-size', Math.max(8, r * 0.6));
-          ht.setAttribute('font-weight', '700');
-          ht.textContent = n.hits;
-          g.appendChild(ht);
-        }
-
-        var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('dy', r + 12);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('fill', 'currentColor');
-        label.setAttribute('font-size', '9');
-        label.setAttribute('font-weight', n.hits > 5 ? '600' : '400');
-        label.textContent = n.label;
-        g.appendChild(label);
-
-        var tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        tooltip.textContent = n.label + '\n' + n.hits + ' visits' +
-          (n.entries ? '\n' + n.entries + ' direct entries (landing page)' : '') +
-          '\n' + n.id;
-        g.appendChild(tooltip);
-
-        graphSvg.appendChild(g);
-      });
-
-      var ly = 16;
-      [
-        { color: '#e74c3c', label: '● Entry point (landing page)' },
-        { color: '#2ecc71', label: '● Internal page (navigated to)' },
-        { color: '#2ecc71', label: '→ Doorbell hop (Referer detected)' },
-      ].forEach(function(item) {
-        var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t.setAttribute('x', 8); t.setAttribute('y', ly);
-        t.setAttribute('fill', item.color);
-        t.setAttribute('font-size', '9');
-        t.setAttribute('opacity', '0.6');
-        t.textContent = item.label;
-        graphSvg.appendChild(t);
-        ly += 14;
-      });
-
-      container.appendChild(graphSvg);
-    }
-
-    // ── Top exploration paths ──
+  // ═══════════════════════════════════════════════════════════
+  // Section 5: Top exploration paths
+  // ═══════════════════════════════════════════════════════════
+  function buildPaths(container) {
+    var pages = SE.pages || [];
     var pathTitle = document.createElement('h4');
     pathTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
     pathTitle.textContent = 'Most Explored Pages';
@@ -514,57 +384,64 @@
     });
     table.innerHTML = thead + tbody;
     container.appendChild(table);
+  }
 
-    // ── Bot ecosystem detail (if present) ──
-    if (eco && (eco.crawlers.length || eco.aiCrawlers.length || eco.scanners.length)) {
-      var ecoTitle = document.createElement('h4');
-      ecoTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
-      ecoTitle.textContent = 'Bot Ecosystem — Guide · Catalog · Neutralize';
-      container.appendChild(ecoTitle);
+  // ═══════════════════════════════════════════════════════════
+  // Section 6: Bot ecosystem detail
+  // ═══════════════════════════════════════════════════════════
+  function buildBotEcosystem(container) {
+    var eco = SE.ecosystem;
+    if (!eco || !(eco.crawlers.length || eco.aiCrawlers.length || eco.scanners.length)) return;
 
-      var ecoGrid = document.createElement('div');
-      ecoGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:11px;';
+    var ecoTitle = document.createElement('h4');
+    ecoTitle.style.cssText = 'margin:20px 0 6px;font-size:13px;opacity:0.7;';
+    ecoTitle.textContent = 'Bot Ecosystem — Guide · Catalog · Neutralize';
+    container.appendChild(ecoTitle);
 
-      // Guided column
-      var guidedCol = '<div style="border-left:3px solid #3498db;padding-left:8px;">';
-      guidedCol += '<div style="font-weight:700;color:#3498db;margin-bottom:6px;">🧭 Guided</div>';
-      (eco.crawlers || []).forEach(function(c) {
-        guidedCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
-      });
-      (eco.aiCrawlers || []).forEach(function(c) {
-        guidedCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
-      });
-      guidedCol += '</div>';
+    var ecoGrid = document.createElement('div');
+    ecoGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:11px;';
 
-      // Cataloged column
-      var catCol = '<div style="border-left:3px solid #9b59b6;padding-left:8px;">';
-      catCol += '<div style="font-weight:700;color:#9b59b6;margin-bottom:6px;">📋 Cataloged</div>';
-      (eco.seoBots || []).forEach(function(c) {
-        catCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
-      });
-      (eco.linkPreviews || []).forEach(function(c) {
-        catCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
-      });
-      catCol += '</div>';
+    var guidedCol = '<div style="border-left:3px solid #3498db;padding-left:8px;">';
+    guidedCol += '<div style="font-weight:700;color:#3498db;margin-bottom:6px;">🧭 Guided</div>';
+    (eco.crawlers || []).forEach(function(c) {
+      guidedCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
+    });
+    (eco.aiCrawlers || []).forEach(function(c) {
+      guidedCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
+    });
+    guidedCol += '</div>';
 
-      // Neutralized column
-      var neutCol = '<div style="border-left:3px solid #e74c3c;padding-left:8px;">';
-      neutCol += '<div style="font-weight:700;color:#e74c3c;margin-bottom:6px;">🛡️ Neutralized</div>';
-      (eco.scanners || []).slice(0, 8).forEach(function(c) {
-        neutCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
-      });
-      if (eco.probes && eco.probes.length) {
-        neutCol += '<div style="margin-top:6px;font-size:9px;opacity:0.4;">Probed: ';
-        neutCol += eco.probes.slice(0, 5).map(function(p) { return p.path; }).join(', ');
-        neutCol += '</div>';
-      }
+    var catCol = '<div style="border-left:3px solid #9b59b6;padding-left:8px;">';
+    catCol += '<div style="font-weight:700;color:#9b59b6;margin-bottom:6px;">📋 Cataloged</div>';
+    (eco.seoBots || []).forEach(function(c) {
+      catCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
+    });
+    (eco.linkPreviews || []).forEach(function(c) {
+      catCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
+    });
+    catCol += '</div>';
+
+    var neutCol = '<div style="border-left:3px solid #e74c3c;padding-left:8px;">';
+    neutCol += '<div style="font-weight:700;color:#e74c3c;margin-bottom:6px;">🛡️ Neutralized</div>';
+    (eco.scanners || []).slice(0, 8).forEach(function(c) {
+      neutCol += '<div style="opacity:0.7;">' + c.name + ' <span style="opacity:0.4;">(' + c.hits + ')</span></div>';
+    });
+    if (eco.probes && eco.probes.length) {
+      neutCol += '<div style="margin-top:6px;font-size:9px;opacity:0.4;">Probed: ';
+      neutCol += eco.probes.slice(0, 5).map(function(p) { return p.path; }).join(', ');
       neutCol += '</div>';
-
-      ecoGrid.innerHTML = guidedCol + catCol + neutCol;
-      container.appendChild(ecoGrid);
     }
+    neutCol += '</div>';
 
-    // ── Generated timestamp ──
+    ecoGrid.innerHTML = guidedCol + catCol + neutCol;
+    container.appendChild(ecoGrid);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Section 7: Generated timestamp
+  // ═══════════════════════════════════════════════════════════
+  function buildTimestamp(container) {
+    var s = SE.summary;
     var ts = document.createElement('p');
     ts.style.cssText = 'font-size:9px;opacity:0.3;text-align:right;margin-top:12px;';
     ts.textContent = 'Receptor snapshot: ' + SE.generated + ' · ' +
@@ -572,6 +449,22 @@
       (s.totalRequests || 0) + ' total requests · ' +
       (s.days || 0) + ' days';
     container.appendChild(ts);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Dispatcher: renderExploration
+  // ═══════════════════════════════════════════════════════════
+  function renderExploration(container) {
+    var width = container.clientWidth || 800;
+    container.innerHTML = '';
+
+    buildStats(container);
+    buildPie(container, width);
+    buildHeatmap(container, width);
+    buildHopGraph(container, width);
+    buildPaths(container);
+    buildBotEcosystem(container);
+    buildTimestamp(container);
   }
 
   function init() {
