@@ -954,18 +954,34 @@
       {name:'celestial', color:'#d2a8ff', power: 2},
       {name:'geodesic',  color:'#f0e68c', power: 3}
     ];
-    // Forward twist links
+    // Forward twist links: dot-line-curve pattern
+    // Odd links = straight (hard body), even links = curve (soft body)
     for (var dli = 0; dli < 7; dli++) {
-      el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
-        stroke: depthLayers[dli].color, 'stroke-width': 0.5,
-        'stroke-opacity': 0.2, id: 'mg-depth-link-' + dli}, depthG);
+      var isLine = (dli % 2 === 0);
+      if (isLine) {
+        el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
+          stroke: depthLayers[dli].color, 'stroke-width': 0.5,
+          'stroke-opacity': 0.2, id: 'mg-depth-link-' + dli}, depthG);
+      } else {
+        el('path', {d:'M '+cx+' '+cy, fill:'none',
+          stroke: depthLayers[dli].color, 'stroke-width': 0.5,
+          'stroke-opacity': 0.2, id: 'mg-depth-link-' + dli}, depthG);
+      }
     }
     // Reverse twist links (geodesic→observer return path)
     for (var rli = 0; rli < 7; rli++) {
-      el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
-        stroke: depthLayers[6 - rli].color, 'stroke-width': 0.3,
-        'stroke-opacity': 0.08, 'stroke-dasharray':'3,4',
-        id: 'mg-depth-rev-' + rli}, depthG);
+      var isRevLine = (rli % 2 === 1);
+      if (isRevLine) {
+        el('line', {x1:cx, y1:cy, x2:cx, y2:cy,
+          stroke: depthLayers[6 - rli].color, 'stroke-width': 0.3,
+          'stroke-opacity': 0.08, 'stroke-dasharray':'3,4',
+          id: 'mg-depth-rev-' + rli}, depthG);
+      } else {
+        el('path', {d:'M '+cx+' '+cy, fill:'none',
+          stroke: depthLayers[6 - rli].color, 'stroke-width': 0.3,
+          'stroke-opacity': 0.08, 'stroke-dasharray':'3,4',
+          id: 'mg-depth-rev-' + rli}, depthG);
+      }
     }
     // Anti-twist path (cubic nesting, neither chirality)
     el('path', {d:'M '+cx+' '+cy, fill:'none',

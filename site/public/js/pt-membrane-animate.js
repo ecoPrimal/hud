@@ -352,22 +352,24 @@
     }
   }
 
-  // ═══ DEPTH SPIRAL: π body stack with twist triad ═══
-  // Forward twist: observer→geodesic (1/π³ → π³)
-  // Reverse twist: geodesic→observer (π³ → 1/π³) return path
-  // Anti-twist: cubic nesting, neither chirality
+  // ═══ DEPTH SPIRAL: dot-line-curve at 45° ═══
+  // Pattern: ●━◜●━◜●━◜ — dot(node), line(hard), curve(soft), repeat
+  // Forward starts at PI/4 (45°), each twist alternates opposite
+  // Reverse runs backward, anti-twist traces the midpoint
   function animDepth(ac) {
     var t = ac.t, perturb = ac.perturb;
-    // Forward twist — the standard epicyclic chain
+    var DEG45 = PI / 4;
+    // Forward twist — dot-line-curve chain starting at 45°
     var depthPos = [{x: cx, y: cy}];
     for (var di = 0; di < 7; di++) {
       var dprev = depthPos[di];
       var dR = (4 + di * 1.5) * perturb;
       var dRate = PI * (1 + di * 0.13);
-      var dAngle = t * dRate + di * PI;
+      var dAngle = t * dRate + di * PI + DEG45;
       var ddx = dprev.x + dR * Math.cos(dAngle);
       var ddy = dprev.y + dR * Math.sin(dAngle);
       depthPos.push({x: ddx, y: ddy});
+      // Dot
       var dDot = document.getElementById('mg-depth-' + di);
       if (dDot) {
         dDot.setAttribute('cx', ddx.toFixed(1)); dDot.setAttribute('cy', ddy.toFixed(1));
@@ -378,31 +380,62 @@
         dLabel.setAttribute('x', (ddx + 6).toFixed(1)); dLabel.setAttribute('y', ddy.toFixed(1));
         dLabel.setAttribute('opacity', (0.15 + 0.1 * (1 - perturb)).toFixed(2));
       }
+      // Line (even) or Curve (odd)
       var dLink = document.getElementById('mg-depth-link-' + di);
       if (dLink) {
-        dLink.setAttribute('x1', dprev.x.toFixed(1)); dLink.setAttribute('y1', dprev.y.toFixed(1));
-        dLink.setAttribute('x2', ddx.toFixed(1)); dLink.setAttribute('y2', ddy.toFixed(1));
+        if (di % 2 === 0) {
+          // Straight line — hard body segment
+          dLink.setAttribute('x1', dprev.x.toFixed(1)); dLink.setAttribute('y1', dprev.y.toFixed(1));
+          dLink.setAttribute('x2', ddx.toFixed(1)); dLink.setAttribute('y2', ddy.toFixed(1));
+        } else {
+          // Curve — soft body arc, control point offset perpendicular
+          var cmx = (dprev.x + ddx) / 2, cmy = (dprev.y + ddy) / 2;
+          var cdx = ddx - dprev.x, cdy = ddy - dprev.y;
+          var clen = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
+          var cperp = ((di % 4 === 1) ? 1 : -1) * clen * 0.4;
+          var cpx = cmx + (-cdy / clen) * cperp;
+          var cpy = cmy + (cdx / clen) * cperp;
+          dLink.setAttribute('d',
+            'M ' + dprev.x.toFixed(1) + ' ' + dprev.y.toFixed(1) +
+            ' Q ' + cpx.toFixed(1) + ' ' + cpy.toFixed(1) +
+            ' ' + ddx.toFixed(1) + ' ' + ddy.toFixed(1));
+        }
         dLink.setAttribute('stroke-opacity', (0.15 * perturb).toFixed(3));
       }
     }
-    // Reverse twist — same chain running backward (geodesic→observer)
+    // Reverse twist — backward, curves where forward has lines
     var revPos = [{x: cx, y: cy}];
     for (var ri = 0; ri < 7; ri++) {
       var rprev = revPos[ri];
       var rR = (4 + (6 - ri) * 1.5) * perturb;
       var rRate = PI * (1 + (6 - ri) * 0.13);
-      var rAngle = -t * rRate + (6 - ri) * PI + PI/3;
+      var rAngle = -t * rRate + (6 - ri) * PI + PI/3 + DEG45;
       var rdx = rprev.x + rR * Math.cos(rAngle);
       var rdy = rprev.y + rR * Math.sin(rAngle);
       revPos.push({x: rdx, y: rdy});
       var rLink = document.getElementById('mg-depth-rev-' + ri);
       if (rLink) {
-        rLink.setAttribute('x1', rprev.x.toFixed(1)); rLink.setAttribute('y1', rprev.y.toFixed(1));
-        rLink.setAttribute('x2', rdx.toFixed(1)); rLink.setAttribute('y2', rdy.toFixed(1));
+        if (ri % 2 === 1) {
+          // Straight on reverse where forward curves
+          rLink.setAttribute('x1', rprev.x.toFixed(1)); rLink.setAttribute('y1', rprev.y.toFixed(1));
+          rLink.setAttribute('x2', rdx.toFixed(1)); rLink.setAttribute('y2', rdy.toFixed(1));
+        } else {
+          // Curve on reverse where forward is straight
+          var rmx = (rprev.x + rdx) / 2, rmy = (rprev.y + rdy) / 2;
+          var rvdx = rdx - rprev.x, rvdy = rdy - rprev.y;
+          var rlen = Math.sqrt(rvdx * rvdx + rvdy * rvdy) || 1;
+          var rperp = ((ri % 4 === 0) ? -1 : 1) * rlen * 0.35;
+          var rcpx = rmx + (-rvdy / rlen) * rperp;
+          var rcpy = rmy + (rvdx / rlen) * rperp;
+          rLink.setAttribute('d',
+            'M ' + rprev.x.toFixed(1) + ' ' + rprev.y.toFixed(1) +
+            ' Q ' + rcpx.toFixed(1) + ' ' + rcpy.toFixed(1) +
+            ' ' + rdx.toFixed(1) + ' ' + rdy.toFixed(1));
+        }
         rLink.setAttribute('stroke-opacity', (0.08 * perturb).toFixed(3));
       }
     }
-    // Anti-twist — cubic nesting path through all 7 positions
+    // Anti-twist — traces midpoint of forward/reverse, π² wobble
     var antiEl = document.getElementById('mg-depth-anti');
     if (antiEl && depthPos.length >= 8) {
       var antiPts = [];
