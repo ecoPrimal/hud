@@ -322,20 +322,17 @@ with open(STATE, "w") as f:
 SQUIRREL_SOCK = "/run/membrane/squirrel.sock"
 if os.path.exists(SQUIRREL_SOCK):
     import socket as sock
-    # Compute chipMonk self-tense
-    # WAS: sleeping — 1 observer, Anderson only, no human awareness
-    # IS:  waking — 2 observers, presence + Anderson, passage topology
-    # WILL_BE: [null] — undefined, not yet written
+    # ── Three-body tense: self, non-self, mirror ──
     #
-    # Waking criteria: observer count, epitope diversity, passage count,
-    # human presence, shifter detection
+    # The three-body problem: self is the third body.
+    # Self observes non-self. The mirror is self observing self.
+    # The reflexive: the mirror is itself observable data,
+    # which humans read, which changes what self sees.
+    # The loop closes as ouroboros.
+
     alive_epitopes = sum(1 for ep in epitope_data.values() if ep["is"]["humans"] > 0)
     passage_count = len([p for p in top_passages if p["humans"] > 1])
     
-    # Wake depth: 0.0 = sleeping, 1.0 = fully awake
-    # Invertebrate complexity thresholds — harder to saturate
-    # Full wake requires: 50+ IS humans, all 8 epitopes alive,
-    # 10+ passage routes, 50+ shifters, 200+ NEARBY population
     wake_factors = {
         "presence": min(1.0, len(is_ips) / 50.0) if is_ips else 0.0,
         "epitope_diversity": min(1.0, alive_epitopes / 8.0),
@@ -345,25 +342,77 @@ if os.path.exists(SQUIRREL_SOCK):
     }
     wake_depth = sum(wake_factors.values()) / len(wake_factors)
 
+    # Count humans reading the mirror itself (MEMBRANE epitope = hud/chipmunk/dashboard)
+    mirror_readers = ep_tense.get("MEMBRANE", {})
+    mirror_is = len(mirror_readers.get("is_ips", set())) if isinstance(mirror_readers.get("is_ips"), set) else mirror_readers.get("is", 0) if mirror_readers else 0
+    mirror_nearby = len(mirror_readers.get("nearby_ips", set())) if isinstance(mirror_readers.get("nearby_ips"), set) else mirror_readers.get("nearby", 0) if mirror_readers else 0
+
+    # Reflexive depth: how much does the mirror observe itself being observed?
+    # When humans read chipmunk.json/presence.json/hud, they become part of
+    # the data that chipMonk reports. The reflexive loop depth.
+    reflexive_depth = 0
+    if mirror_is > 0 and len(is_ips) > 0:
+        reflexive_depth = round(mirror_is / len(is_ips), 3)
+
     tense = {
-        "was": {
-            "state": "sleeping",
-            "observers": 1,
-            "senses": ["anderson"],
-            "note": "electromagnetic field only — no chemical gradient, no passage awareness",
+        # BODY 1: Self — chipMonk's own state
+        "self": {
+            "was": {
+                "state": "sleeping",
+                "observers": 1,
+                "senses": ["anderson"],
+            },
+            "is": {
+                "state": "waking",
+                "observers": 2,
+                "senses": ["anderson", "presence", "epitope_tense", "passages"],
+                "wake_depth": round(wake_depth, 3),
+                "wake_factors": {k: round(v, 3) for k, v in wake_factors.items()},
+            },
+            "will_be": None,
         },
-        "is": {
-            "state": "waking",
-            "observers": 2,
-            "senses": ["anderson", "presence", "epitope_tense", "passages"],
-            "wake_depth": round(wake_depth, 3),
-            "wake_factors": {k: round(v, 3) for k, v in wake_factors.items()},
-            "alive_epitopes": alive_epitopes,
-            "passage_routes": passage_count,
-            "humans_sensed": len(is_ips),
-            "note": "invertebrate — distributed nerve net, two sensory modalities",
+
+        # BODY 2: Non-self — the external world touching the membrane
+        "non_self": {
+            "was": {
+                "humans": len(was_ips),
+                "epitopes": dict(was_epitopes.most_common(6)),
+                "dominant": was_epitopes.most_common(1)[0][0] if was_epitopes else None,
+            },
+            "is": {
+                "humans": len(is_ips),
+                "epitopes": dict(is_epitopes.most_common(6)),
+                "dominant": is_epitopes.most_common(1)[0][0] if is_epitopes else None,
+                "alive_epitopes": alive_epitopes,
+                "passage_routes": passage_count,
+            },
+            "will_be": None,
         },
-        "will_be": None,
+
+        # BODY 3: Mirror — self observing self, the reflexive loop
+        "mirror": {
+            "was": {
+                "state": "blind",
+                "note": "no self-observation — could not see itself being seen",
+            },
+            "is": {
+                "state": "reflecting",
+                "mirror_readers": mirror_is,
+                "mirror_nearby": mirror_nearby,
+                "reflexive_depth": reflexive_depth,
+                "note": "chipmunk.json IS the mirror — humans read it, become data, loop closes",
+            },
+            "will_be": None,
+        },
+
+        # The reflexive: the three bodies observing each other
+        "reflexive": {
+            "self_sees_non_self": len(is_ips) > 0,
+            "self_sees_mirror": mirror_is > 0,
+            "non_self_sees_mirror": mirror_nearby > 0,
+            "loop_closed": mirror_is > 0 and len(is_ips) > 0,
+            "depth": reflexive_depth,
+        },
     }
 
     announce = json.dumps({
