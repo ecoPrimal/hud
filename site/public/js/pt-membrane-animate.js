@@ -56,13 +56,57 @@ window._membraneAnimate = function(mc, now) {
     var coilEl = document.getElementById('mg-coil');
     if (coilEl) coilEl.setAttribute('transform', 'rotate('+coilRot.toFixed(1)+' '+cx+' '+cy+')');
 
-    // ── Ring rotation: the outside is alive ──
-    // π/31 rad/s — 31 = ⌊π³⌋ (the particle budget). Slowest wheel.
-    // Coprime to body rates (7, 11, 17). Nothing locks. Everything turns.
-    var ringOmega = PI / 31;
-    var ringDeg = (now * 0.001 * ringOmega * 180 / PI) % 360;
+    // ── Layer counter-rotation: each layer inverts ──
+    // WAS rotates slowest forward. IS rotates fastest backward. WILLBE opposite to IS.
+    // Coprime rates: nothing locks. The counter-rotation IS the depth cue.
+    // Jitter: each layer gets perturbation-driven noise. Object jitters.
+    // Reflective jitter: the FOCAL (observer center) jitters in response.
+    // The object jitters but so does the observer's view of it.
+    var ringOmega = PI / 31; // ⌊π³⌋ = 31 budget
+    var tSec = now * 0.001;
+    var wasRot = (tSec * ringOmega * 180 / PI) % 360;
+    var isRot = (-tSec * PI / 7 * 180 / PI) % 360; // counter: fastest backward
+    var willbeRot = (tSec * PI / 11 * 180 / PI * 0.5) % 360; // half-speed forward
+
+    // Object jitter: perturbation-driven tremor per layer
+    var jitterAmp = perturb * 1.2;
+    var wasJitter = Math.sin(tSec * 3.7) * jitterAmp;
+    var isJitter = Math.sin(tSec * 5.3 + 1.0) * jitterAmp;
+    var willbeJitter = Math.sin(tSec * 4.1 + 2.0) * jitterAmp;
+
+    // Reflective jitter: the focal (center) trembles with the sum
+    // The observer doesn't sit still — observation disturbs the observer
+    var focalJitterX = (Math.sin(tSec * 2.3) * jitterAmp * 0.4);
+    var focalJitterY = (Math.cos(tSec * 3.1) * jitterAmp * 0.4);
+
     var wasEl = document.getElementById('mg-was');
-    if (wasEl) wasEl.setAttribute('transform', 'rotate('+ringDeg.toFixed(1)+' '+cx+' '+cy+')');
+    if (wasEl) wasEl.setAttribute('transform',
+      'rotate('+(wasRot + wasJitter).toFixed(1)+' '+cx+' '+cy+')');
+    var isEl = document.getElementById('mg-is');
+    if (isEl) isEl.setAttribute('transform',
+      'rotate('+(isRot + isJitter).toFixed(1)+' '+cx+' '+cy+')');
+    var willbeEl = document.getElementById('mg-willbe');
+    if (willbeEl) willbeEl.setAttribute('transform',
+      'rotate('+(willbeRot + willbeJitter).toFixed(1)+' '+cx+' '+cy+')');
+
+    // ── Null space breathes: the center of [∅]D is alive ──
+    // The pin expands/contracts with perturbation breathing.
+    // At null (perturb→0): contracted to a point. At high perturb: expanded.
+    // The gordian knot, the pin, the center — all breathe together.
+    var breathScale = 1.0 + sinePerturb * perturb * 0.6;
+    var pinEl = document.getElementById('mg-pin');
+    if (pinEl) pinEl.setAttribute('r', (1.5 * breathScale).toFixed(2));
+    var pinRingEl = document.getElementById('mg-pin-ring');
+    if (pinRingEl) {
+      pinRingEl.setAttribute('r', (4 * breathScale).toFixed(2));
+      pinRingEl.setAttribute('stroke-opacity', (0.15 + 0.15 * sinePerturb * perturb).toFixed(3));
+    }
+    // Reflective jitter on the focal center labels
+    var nullLabel = document.getElementById('mg-null-label');
+    if (nullLabel) {
+      nullLabel.setAttribute('x', (cx + focalJitterX).toFixed(1));
+      nullLabel.setAttribute('y', (cy - 48 + focalJitterY).toFixed(1));
+    }
 
     // ═══ PERTURBATION BREATHING + ANGULAR ROTATION ═══
     // Each body rotates independently at its own angular velocity.
@@ -130,7 +174,7 @@ window._membraneAnimate = function(mc, now) {
     // Ratios: 17:11:7 — coprime. The wheels never lock.
     // The system is aperiodic — it never exactly repeats.
     // That's the three-body problem: deterministic chaos.
-    var t = now * 0.001; // seconds
+    var t = tSec; // seconds (= now * 0.001, computed above for layer rotation)
     var omega_is     = PI / 7;   // fastest — the NOW
     var omega_willbe = PI / 11;  // middle — the emerging
     var omega_was    = PI / 17;  // slowest — the settled
@@ -942,6 +986,7 @@ window._membraneAnimate = function(mc, now) {
       cx:cx, cy:cy, R:R, BR:BR, PI:PI, TAU:TAU, t:t, dt:dt,
       perturb:perturb, omega_is:omega_is, omega_was:omega_was, omega_willbe:omega_willbe,
       bodyPositions:bodyPositions, bodyAngles:bodyAngles, rps:rps,
+      focalJitterX:focalJitterX, focalJitterY:focalJitterY, breathScale:breathScale,
       prevDash:prevDash, liveStats:liveStats, willbeT:willbeT, smoothT:smoothT, easeT:easeT,
       lerp:lerp, sinePerturb: typeof sinePerturb !== 'undefined' ? sinePerturb : 0,
       wasDash: typeof wasDash !== 'undefined' ? wasDash : null
