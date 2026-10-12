@@ -269,7 +269,7 @@ window.PtMembrane = function(deps) {
     rps:function(){return rps;}, prevDash:function(){return prevDash;},
     PANELS:PANELS, CAT_COLORS:CAT_COLORS, aliveSet:aliveSet,
     DIM_SHAPES:DIM_SHAPES, dimCost:dimCost,
-    el:el, txt:txt, vdjShuffle:vdjShuffle, spawnParticle:spawnParticle,
+    el:el, txt:txt, vdjShuffle:vdjShuffle, spawnParticle:spawnParticle, pulse:pulse,
     coilPath:coilPath, greatCirclePath:greatCirclePath,
     chipmunkData:function(){return chipmunkData;},
     wasDash:function(){return wasDash;},
@@ -287,7 +287,7 @@ window.PtMembrane = function(deps) {
     if (!built || !pGroup) { requestAnimationFrame(animate); return; }
     _mc.rpsVal = rps; _mc.prevDashVal = prevDash;
     _mc.livePerturb = livePerturb;
-    window._membraneAnimate(_mc, now);
+    try { window._membraneAnimate(_mc, now); } catch(e) { if (!window._animErr) { window._animErr = e.message; console.warn('animate:', e.message); } }
     lastFrame = _mc.lastFrame;
     requestAnimationFrame(animate);
   }

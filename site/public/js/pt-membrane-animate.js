@@ -7,7 +7,7 @@ window._membraneAnimate = function(mc, now) {
   var aliveSet=mc.aliveSet, liveStats=mc.liveStats;
   var particles=mc.particles, pulses=mc.pulses, arcGlow=mc.arcGlow;
   var geo=mc.geo, CATS=mc.CATS, catAccum=mc.catAccum, rates=mc.rates;
-  var MAX_P=mc.MAX_P, dimCost=mc.dimCost, spawnParticle=mc.spawnParticle;
+  var MAX_P=mc.MAX_P, dimCost=mc.dimCost, spawnParticle=mc.spawnParticle, pulse=mc.pulse;
   var rps=mc.rpsVal, prevDash=mc.prevDashVal, livePerturb=mc.livePerturb;
   var TIERS=mc.TIERS;
     // Numeric lerp: a + (b-a)*t. Returns a if b is missing.
@@ -56,57 +56,12 @@ window._membraneAnimate = function(mc, now) {
     var coilEl = document.getElementById('mg-coil');
     if (coilEl) coilEl.setAttribute('transform', 'rotate('+coilRot.toFixed(1)+' '+cx+' '+cy+')');
 
-    // ── Layer counter-rotation: each layer inverts ──
-    // WAS rotates slowest forward. IS rotates fastest backward. WILLBE opposite to IS.
-    // Coprime rates: nothing locks. The counter-rotation IS the depth cue.
-    // Jitter: each layer gets perturbation-driven noise. Object jitters.
-    // Reflective jitter: the FOCAL (observer center) jitters in response.
-    // The object jitters but so does the observer's view of it.
+    // ── Layer counter-rotation: base angles (no jitter yet — perturb not computed) ──
     var ringOmega = PI / 31; // ⌊π³⌋ = 31 budget
     var tSec = now * 0.001;
     var wasRot = (tSec * ringOmega * 180 / PI) % 360;
     var isRot = (-tSec * PI / 7 * 180 / PI) % 360; // counter: fastest backward
     var willbeRot = (tSec * PI / 11 * 180 / PI * 0.5) % 360; // half-speed forward
-
-    // Object jitter: perturbation-driven tremor per layer
-    var jitterAmp = perturb * 1.2;
-    var wasJitter = Math.sin(tSec * 3.7) * jitterAmp;
-    var isJitter = Math.sin(tSec * 5.3 + 1.0) * jitterAmp;
-    var willbeJitter = Math.sin(tSec * 4.1 + 2.0) * jitterAmp;
-
-    // Reflective jitter: the focal (center) trembles with the sum
-    // The observer doesn't sit still — observation disturbs the observer
-    var focalJitterX = (Math.sin(tSec * 2.3) * jitterAmp * 0.4);
-    var focalJitterY = (Math.cos(tSec * 3.1) * jitterAmp * 0.4);
-
-    var wasEl = document.getElementById('mg-was');
-    if (wasEl) wasEl.setAttribute('transform',
-      'rotate('+(wasRot + wasJitter).toFixed(1)+' '+cx+' '+cy+')');
-    var isEl = document.getElementById('mg-is');
-    if (isEl) isEl.setAttribute('transform',
-      'rotate('+(isRot + isJitter).toFixed(1)+' '+cx+' '+cy+')');
-    var willbeEl = document.getElementById('mg-willbe');
-    if (willbeEl) willbeEl.setAttribute('transform',
-      'rotate('+(willbeRot + willbeJitter).toFixed(1)+' '+cx+' '+cy+')');
-
-    // ── Null space breathes: the center of [∅]D is alive ──
-    // The pin expands/contracts with perturbation breathing.
-    // At null (perturb→0): contracted to a point. At high perturb: expanded.
-    // The gordian knot, the pin, the center — all breathe together.
-    var breathScale = 1.0 + sinePerturb * perturb * 0.6;
-    var pinEl = document.getElementById('mg-pin');
-    if (pinEl) pinEl.setAttribute('r', (1.5 * breathScale).toFixed(2));
-    var pinRingEl = document.getElementById('mg-pin-ring');
-    if (pinRingEl) {
-      pinRingEl.setAttribute('r', (4 * breathScale).toFixed(2));
-      pinRingEl.setAttribute('stroke-opacity', (0.15 + 0.15 * sinePerturb * perturb).toFixed(3));
-    }
-    // Reflective jitter on the focal center labels
-    var nullLabel = document.getElementById('mg-null-label');
-    if (nullLabel) {
-      nullLabel.setAttribute('x', (cx + focalJitterX).toFixed(1));
-      nullLabel.setAttribute('y', (cy - 48 + focalJitterY).toFixed(1));
-    }
 
     // ═══ PERTURBATION BREATHING + ANGULAR ROTATION ═══
     // Each body rotates independently at its own angular velocity.
@@ -138,6 +93,7 @@ window._membraneAnimate = function(mc, now) {
     // Smooth perturbation: lerp from WAS→IS, with easing
     // Early in cycle: mostly IS (smooth). Late: prediction tension increases.
     var easeT = willbeT * willbeT; // quadratic ease-in: calm at start, tense at end
+    var smoothT = willbeT < 0.1 ? willbeT * 10 : 1; // snap in first 10%, then stable
     var wasPerturb = wasDash && wasDash.null_dimension ? wasDash.null_dimension.perturbation : -1;
     var isPerturb = livePerturb;
     var perturb;
@@ -154,6 +110,46 @@ window._membraneAnimate = function(mc, now) {
       perturb = sinePerturb;
     }
     var BR = R * (PI/8) * perturb;
+
+    // ── Layer jitter + reflective jitter (perturb is now computed) ──
+    // Object jitter: perturbation-driven tremor per layer, coprime frequencies
+    var jitterAmp = perturb * 1.2;
+    var wasJitter = Math.sin(tSec * 3.7) * jitterAmp;
+    var isJitter = Math.sin(tSec * 5.3 + 1.0) * jitterAmp;
+    var willbeJitter = Math.sin(tSec * 4.1 + 2.0) * jitterAmp;
+
+    // Reflective jitter: the focal (center) trembles with the sum
+    // The observer doesn't sit still — observation disturbs the observer
+    var focalJitterX = (Math.sin(tSec * 2.3) * jitterAmp * 0.4);
+    var focalJitterY = (Math.cos(tSec * 3.1) * jitterAmp * 0.4);
+
+    // Apply counter-rotation + jitter to each layer
+    // WAS rotates slowest forward. IS rotates fastest backward. WILLBE half-speed forward.
+    var wasEl = document.getElementById('mg-was');
+    if (wasEl) wasEl.setAttribute('transform',
+      'rotate('+(wasRot + wasJitter).toFixed(1)+' '+cx+' '+cy+')');
+    var isEl = document.getElementById('mg-is');
+    if (isEl) isEl.setAttribute('transform',
+      'rotate('+(isRot + isJitter).toFixed(1)+' '+cx+' '+cy+')');
+    var willbeEl = document.getElementById('mg-willbe');
+    if (willbeEl) willbeEl.setAttribute('transform',
+      'rotate('+(willbeRot + willbeJitter).toFixed(1)+' '+cx+' '+cy+')');
+
+    // ── Null space breathes: the center of [∅]D is alive ──
+    // The pin expands/contracts with perturbation breathing.
+    var breathScale = 1.0 + sinePerturb * perturb * 0.6;
+    var pinEl = document.getElementById('mg-pin');
+    if (pinEl) pinEl.setAttribute('r', (1.5 * breathScale).toFixed(2));
+    var pinRingEl = document.getElementById('mg-pin-ring');
+    if (pinRingEl) {
+      pinRingEl.setAttribute('r', (4 * breathScale).toFixed(2));
+      pinRingEl.setAttribute('stroke-opacity', (0.15 + 0.15 * sinePerturb * perturb).toFixed(3));
+    }
+    var nullLabel = document.getElementById('mg-null-label');
+    if (nullLabel) {
+      nullLabel.setAttribute('x', (cx + focalJitterX).toFixed(1));
+      nullLabel.setAttribute('y', (cy - 48 + focalJitterY).toFixed(1));
+    }
 
     // ── Evolve tier alive status from live data ──
     // When NullDimension data arrives, ∅ tier goes alive.
