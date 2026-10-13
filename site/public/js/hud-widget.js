@@ -52,11 +52,11 @@
     '<span class="hw-pulse"></span>'+
     '<span class="hw-label">biomeOS</span>'+
     '<span class="hw-sep">|</span>'+
-    '<span class="hw-stat" id="hw-rps" style="color:#58a6ff">—</span><span style="font-size:10px;color:#6e7681">/s</span>'+
+    '<span class="hw-stat" id="hw-humans" style="color:#3fb950">—</span><span style="font-size:10px;color:#6e7681">humans</span>'+
     '<span class="hw-sep">|</span>'+
     '<span class="hw-stat" id="hw-fleet" style="color:#e74c3c">—</span><span style="font-size:10px;color:#6e7681">fleet</span>'+
     '<span class="hw-sep">|</span>'+
-    '<span class="hw-stat" id="hw-pct">—</span><span style="font-size:10px;color:#6e7681">%</span>'+
+    '<span class="hw-stat" id="hw-rps" style="color:#58a6ff">—</span><span style="font-size:10px;color:#6e7681">/s</span>'+
     '<span class="hw-sep">|</span>'+
     '<span id="hw-machine" class="hw-stat">—</span>'+
     '<span class="hw-sep">|</span>'+
@@ -67,6 +67,8 @@
   expand.id='hud-widget-expand';
 
   expand.innerHTML=
+    '<div class="hw-section"><div class="hw-section-title">Humans</div><div id="hw-human-detail" style="font-size:11px;color:#c9d1d9"></div></div>'+
+    '<div class="hw-section"><div class="hw-section-title">Human Journeys</div><div id="hw-orbits" class="hw-org-grid"></div></div>'+
     '<div class="hw-section"><div class="hw-section-title">Epitope Organisms</div><div id="hw-organisms" class="hw-org-grid"></div></div>'+
     '<div class="hw-section"><div class="hw-section-title">Geography</div><div id="hw-geo"></div></div>'+
     '<div class="hw-section"><div class="hw-section-title">Ecosystem</div><div id="hw-eco">'+
@@ -117,13 +119,54 @@
     fetch(base+'/dashboard.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
       setText('hw-rps',d.rps);
       setText('hw-fleet',d.fleet_ips);
-      var pctEl=document.getElementById('hw-pct');
-      if(pctEl){pctEl.textContent=d.fleet_pct;pctEl.style.color=d.fleet_pct>50?'#e74c3c':d.fleet_pct>20?'#f1c40f':'#2ecc71';}
+      setText('hw-humans',d.human_ips||'—');
       var mcEl=document.getElementById('hw-machine');
       if(mcEl){
         var mc=(d.timing&&d.timing.machine_confidence)||'—';
         mcEl.textContent=mc;
         mcEl.style.color=mc==='HIGH'?'#e74c3c':mc==='MEDIUM'?'#f1c40f':'#2ecc71';
+      }
+
+      // Human detail panel
+      var hdEl=document.getElementById('hw-human-detail');
+      if(hdEl){
+        var cl=d.collision_level2||{};
+        var dw=d.membrane_delta&&d.membrane_delta.dwell||{};
+        var sel=d.anderson_selectivity||{};
+        var humanMode=null;
+        (sel.modes||[]).forEach(function(m){if(m.class==='human')humanMode=m;});
+        var selPct=humanMode?Math.round(humanMode.p_observed*100):0;
+        var genuine=cl.genuine||0;
+        var humans=d.human_ips||0;
+        var ratio=d.membrane_geometry&&d.membrane_geometry.is_was_ratio||0;
+        hdEl.innerHTML=
+          '<span style="color:#3fb950;font-weight:600">'+humans.toLocaleString()+'</span> unique visitors · '+
+          '<span style="color:#2ecc71">'+genuine.toLocaleString()+'</span> high-confidence genuine · '+
+          'selectivity <span style="color:#58a6ff">'+selPct+'%</span> · '+
+          'dwell <span style="color:#8b949e">'+Math.round(dw.median_min||0)+'m</span> median · '+
+          'multi/single <span style="color:#8b949e">'+(dw.multi_single_ratio||0).toFixed(1)+'</span>';
+      }
+
+      // Human journey orbits
+      var orbEl=document.getElementById('hw-orbits');
+      if(orbEl&&d.trajectory){
+        orbEl.innerHTML='';
+        var tr=d.trajectory;
+        (tr.top_orbits||[]).slice(0,6).forEach(function(o){
+          var pill=document.createElement('span');
+          pill.className='hw-org';
+          pill.style.borderLeft='3px solid #3fb950';
+          var hosts=(o.hosts||[]).map(function(h){return h.replace('.primals.eco','')}).join(' → ');
+          pill.innerHTML='<span style="color:#3fb950">'+hosts+'</span> · <span style="color:#c9d1d9">'+o.ips+'</span> visitors';
+          orbEl.appendChild(pill);
+        });
+        if(tr.multi_host_ips){
+          var sum=document.createElement('span');
+          sum.className='hw-org';
+          sum.style.borderLeft='3px solid #58a6ff';
+          sum.innerHTML='<span style="color:#58a6ff">total</span> · '+tr.multi_host_ips.toLocaleString()+' multi-surface · avg '+tr.avg_breadth.toFixed(1)+' sites';
+          orbEl.appendChild(sum);
+        }
       }
 
       // Organisms (compact)
@@ -165,6 +208,24 @@
 
   function setText(id,val){var e=document.getElementById(id);if(e)e.textContent=val!=null?val:'—';}
 
-  loadBillboard(); setInterval(loadBillboard,15000);
-  loadDash(); setInterval(loadDash,10000);
+  // pi-bus: shared channels when available (eliminates duplicate polls)
+  if (window._piBus) {
+    window._piBus.sub(base + '/billboard', function(t) {
+      if (typeof t === 'string') { t = t.trim(); }
+      var el = document.getElementById('hw-billboard');
+      if (el && t) el.textContent = t;
+    }, 'medium');
+    window._piBus.sub(base + '/dashboard.json', function(d) {
+      if (d) { loadDash(); }
+    }, 'fast');
+  } else {
+    loadBillboard(); setInterval(loadBillboard,15000);
+    loadDash(); setInterval(loadDash,10000);
+  }
+
+  // Auto-load human-epitope tracker (no extra script tag needed)
+  var hes=document.createElement('script');
+  hes.src=base+'/js/human-epitope.js';
+  hes.defer=true;
+  document.head.appendChild(hes);
 })();

@@ -1,10 +1,9 @@
-// pt-membrane-animate-ext.js — extracted animation sections.
-// Chemistry, Solar, Focal/Helix, Null Data, chipMonk, Spine, Evolution.
-// Sweep: 740→740 lines, 1 monolith → 8 named helpers + dispatcher.
+// pt-membrane-animate-ext.js — extended membrane animations
+// Chemistry, Solar, Focal/Helix, Null Data, ChipMonk, Orbit Twist, Spine, Evolution
+// Extracted from pt-membrane-animate.js at the natural seam.
+// Called via _membraneAnimateExt(mc, now) from the main animation loop.
+// ── EXT: merged from pt-membrane-animate-ext.js ──
 
-'use strict';
-
-// ── Chemistry: H + H → He, H + H + O → H₂O ──
 function _animChemistry(cx, cy, R, t, PI, TAU, perturb, bodyPositions) {
   var chemOrbits = [
     {id:'H1', orbR:R/3.2,  rate:PI/5,   phase:0},
@@ -538,7 +537,7 @@ function _animEvolution(cx, cy, R, t, PI, perturb, spine, TIERS) {
 }
 
 // ═══ DISPATCHER ═══
-window._membraneAnimateExt = function(mc, now) {
+function _membraneAnimateExt(mc, now) {
   var ac = mc._ac;
   var cx=ac.cx, cy=ac.cy, R=ac.R, t=ac.t;
   var PI=ac.PI, TAU=ac.TAU;
@@ -555,3 +554,5 @@ window._membraneAnimateExt = function(mc, now) {
   var spine = _animSpine(cx, cy, R, t, PI, TAU, perturb, mc.TIERS);
   _animEvolution(cx, cy, R, t, PI, perturb, spine, mc.TIERS);
 };
+
+

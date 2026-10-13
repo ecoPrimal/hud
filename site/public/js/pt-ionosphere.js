@@ -2,18 +2,14 @@
 // π-budget: ⌊π²⌋=9 max particles · π-spaced grid
 // Epitope layers: WAS (coasts/grid) → IS (arcs/dots/particles)
 window.PtIonosphere = function() {
-  var PI = Math.PI, NS = 'http://www.w3.org/2000/svg';
+  var _m = window._membrane || {};
+  var el = (_m || window._membrane || {}).el || function(tag,a,p){var e=document.createElementNS(NS||'http://www.w3.org/2000/svg',tag);if(a)for(var k in a)e.setAttribute(k,''+a[k]);if(p)p.appendChild(e);return e;};
+  var PI = _m.PI || Math.PI, NS = _m.NS || 'http://www.w3.org/2000/svg';
   var G = {W:700, H:400};
   var svgRoot, built = false, geoData = null;
   var MAX_P = Math.floor(PI*PI);
   var particles = [], lastFrame = 0;
 
-  function el(tag, a, par) {
-    var e = document.createElementNS(NS, tag);
-    if (a) for (var k in a) e.setAttribute(k, ''+a[k]);
-    if (par) par.appendChild(e);
-    return e;
-  }
   function txt(par, x, y, str, fill, size, ex) {
     var a = {x:x, y:y, fill:fill, 'font-size':size, 'text-anchor':'middle'};
     if (ex) for (var k in ex) a[k] = ex[k];
@@ -140,7 +136,14 @@ window.PtIonosphere = function() {
       }
     });
     var stat = svg.querySelector('#iono-stats');
-    if (stat) { var c=geo.filter(function(g){return g.country!=='??';}).length; stat.textContent=c+' countries \u00b7 '+tot.toLocaleString()+' signals'; }
+    if (stat) {
+      var c=geo.filter(function(g){return g.country!=='??';}).length;
+      var nullC=geo.filter(function(g){return g.country==='??';}).reduce(function(s,g){return s+g.requests;},0);
+      var cas = window._cascade;
+      var projStr = '';
+      if (cas && cas[0] && cas[0].proj_up > 0) projStr = ' \u00b7 \u2191' + (cas[0].proj_up*100).toFixed(0) + '% classified';
+      stat.textContent = c + ' countries \u00b7 ' + tot.toLocaleString() + ' signals' + (nullC > 0 ? ' \u00b7 \u2193' + nullC + ' null' : '') + projStr;
+    }
   }
 
   function spawnP() {
