@@ -255,7 +255,9 @@
     // The pager sits between them, inside the tuebor wall (R*0.65).
     var exp = window._chipmunkExplorer;
     if (exp) {
-      // Draw the trail — it renders at R*0.20 to R*0.42 (inside tuebor, below feet)
+      // Collective trails first (behind individual) — other humans' passages inside tuebor
+      if (presence) exp.renderCollective(layer.ownerSVGElement, cx, cy, R, presence);
+      // Individual trail — your pager, your branches, your growth
       exp.renderTrail(layer.ownerSVGElement, cx, cy, R);
     }
     // The "you are here" dot sits at the human epitope ring (R*0.48) — above the pager

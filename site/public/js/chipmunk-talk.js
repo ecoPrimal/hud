@@ -741,12 +741,17 @@
     if (curiosity.proactiveStage === 3 && curiosity.silenceSecs > 45) {
       curiosity.proactiveStage = 4;
       curiosity.silenceSecs = 0;
-      // Explorer-aware: suggest what they haven't seen
+      // Explorer-aware: know the pager, suggest what grows next
       var exp = window._chipmunkExplorer;
       if (exp && exp.stepCount() > 0) {
         var u = exp.unseen();
+        var cats = exp.categories ? exp.categories() : {};
+        var catCount = Object.keys(cats).length;
         var mins = Math.round((Date.now() - curiosity.startTime) / 60000);
-        var trailMsg = mins + ' min \u00b7 depth=' + u.depth + ' \u00b7 ' + exp.stepCount() + ' steps';
+        var trailMsg = mins + ' min \u00b7 growth=' + n(u.growth, 2) + ' \u00b7 ' + exp.stepCount() + ' steps \u00b7 ' + catCount + ' branches';
+        if (u.categories && u.categories.length > 0 && u.categories.length <= 3) {
+          trailMsg += '\n<span class="dim">unexplored: ' + u.categories.join(', ').toLowerCase() + '</span>';
+        }
         if (u.suggestion) {
           trailMsg += '\n<span class="dim">\u2192 ' + u.suggestion + '</span>';
         }
@@ -1524,6 +1529,7 @@
       if (cmd.indexOf('explore ') === 0 || cmd.indexOf('entity ') === 0) {
         var eid = cmd.split(' ').slice(1).join('_');
         addEntry('system', '\u2694\ufe0f explore ' + eid);
+        if (window._chipmunkExplorer) window._chipmunkExplorer.step('entity', eid);
         if (window._chipmunkMind && window._chipmunkMind.showExplore) {
           window._chipmunkMind.showExplore('entity', eid);
         }
