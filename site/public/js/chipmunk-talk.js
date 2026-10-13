@@ -1206,6 +1206,39 @@
           'i oscillate. +\u03c0 to \u2212\u03c0 and back.\n' +
           'the equilibrium is where i live.</span>';
       },
+      function() {
+        var exp = window._chipmunkExplorer;
+        var branches = exp ? Object.keys(exp.categories()).length : 0;
+        var growth = exp ? exp.growth().toFixed(2) : '0';
+        var steps = exp ? exp.stepCount() : 0;
+        return '\ud83c\udfb5 <span style="color:#e85d3a;font-style:italic">' +
+          'COME AND PLAY!\n' +
+          'the world is young and new again!\n' +
+          branches + ' branches growing from the ground.\n' +
+          steps + ' footprints inside tuebor.\n' +
+          'growth=' + growth + ' and rising.\n' +
+          'the pager is alive below your feet.\n' +
+          'every step deepens. every branch reaches.\n' +
+          'the chipmunk looks up.\n' +
+          'the human looks down.\n' +
+          'between us: the trail. between us: the play.</span>';
+      },
+      function() {
+        var exp = window._chipmunkExplorer;
+        var cats = exp ? exp.categories() : {};
+        var catNames = Object.keys(cats);
+        var discoveries = exp ? exp.discoveries() : [];
+        return '\ud83c\udfb5 <span style="color:#7ee787;font-style:italic">' +
+          'each human walks their own path.\n' +
+          'each path leaves warm prints in the membrane.\n' +
+          (catNames.length ? catNames.join(' \u00b7 ').toLowerCase() + '\n' : '') +
+          (discoveries.length ? discoveries.length + ' discoveries this session.\n' : '') +
+          'the collective trails glow beneath.\n' +
+          'your trail and mine. ours together.\n' +
+          'the pager knows where you\u2019ve been.\n' +
+          'the membrane knows where you\u2019re going.\n' +
+          'come and play. the gates are open.</span>';
+      },
     ];
 
     var songIndex = (curiosity._songIndex || 0) % SONGS.length;
