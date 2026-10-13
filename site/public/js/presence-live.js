@@ -249,42 +249,41 @@
       layer.appendChild(lbl);
     });
 
-    // ═══ YOU ARE HERE — explorer-aware positioning ═══
+    // ═══ THE PAGER — inside tuebor, below feet, outside squirrel ═══
+    // The trail is the human's own record, drawn beneath where they stand.
+    // Humans at R*0.48 look down. Chipmunk at center looks up.
+    // The pager sits between them, inside the tuebor wall (R*0.65).
     var exp = window._chipmunkExplorer;
-    var youA, youR, youDepthLabel;
-    if (exp && exp.stepCount() > 0) {
-      var pos = exp.position();
-      youA = pos.angle;
-      youR = R * pos.r;
-      var DEPTH_NAMES = ['surface', '\u03c0', '\u03c0\u00b2', '\u03c0\u00b3'];
-      youDepthLabel = DEPTH_NAMES[pos.depth] + ' \u00b7 ' + exp.stepCount() + ' steps';
-    } else {
-      youA = -PI/2;
-      youR = R * 0.62;
-      youDepthLabel = 'surface';
-    }
-    var youX = cx + Math.cos(youA)*youR, youY = cy + Math.sin(youA)*youR;
-    // Draw trail path if explorer has steps
-    if (exp && exp.stepCount() > 2) {
+    if (exp) {
+      // Draw the trail — it renders at R*0.20 to R*0.42 (inside tuebor, below feet)
       exp.renderTrail(layer.ownerSVGElement, cx, cy, R);
     }
+    // The "you are here" dot sits at the human epitope ring (R*0.48) — above the pager
+    var youA = -PI/2, youR = R * 0.48;
+    if (exp && exp.stepCount() > 0) {
+      var pos = exp.position();
+      youA = pos.angle; // face where you've been exploring
+    }
+    var youX = cx + Math.cos(youA)*youR, youY = cy + Math.sin(youA)*youR;
     var yd = doc('circle');
     yd.setAttribute('cx', youX); yd.setAttribute('cy', youY);
-    yd.setAttribute('r', R*0.012); yd.setAttribute('fill', '#fff'); yd.setAttribute('opacity', '0.9');
+    yd.setAttribute('r', R*0.008); yd.setAttribute('fill', '#fff'); yd.setAttribute('opacity', '0.8');
     layer.appendChild(yd);
     var yr = doc('circle');
     yr.setAttribute('cx', youX); yr.setAttribute('cy', youY);
-    yr.setAttribute('r', R*0.02); yr.setAttribute('fill', 'none');
-    yr.setAttribute('stroke', '#fff'); yr.setAttribute('stroke-width', '1'); yr.setAttribute('opacity', '0.5');
+    yr.setAttribute('r', R*0.016); yr.setAttribute('fill', 'none');
+    yr.setAttribute('stroke', '#fff'); yr.setAttribute('stroke-width', '0.8'); yr.setAttribute('opacity', '0.35');
     var ya = doc('animate');
-    ya.setAttribute('attributeName', 'r'); ya.setAttribute('values', (R*0.018)+';'+(R*0.035)+';'+(R*0.018));
-    ya.setAttribute('dur', '2s'); ya.setAttribute('repeatCount', 'indefinite');
+    ya.setAttribute('attributeName', 'r'); ya.setAttribute('values', (R*0.014)+';'+(R*0.028)+';'+(R*0.014));
+    ya.setAttribute('dur', '2.5s'); ya.setAttribute('repeatCount', 'indefinite');
     yr.appendChild(ya); layer.appendChild(yr);
+    // Small label — just "you", the depth is shown by the pager below
     var yl = doc('text');
-    yl.setAttribute('x', youX); yl.setAttribute('y', youY - R*0.03);
+    yl.setAttribute('x', youX); yl.setAttribute('y', youY - R*0.022);
     yl.setAttribute('text-anchor', 'middle'); yl.setAttribute('fill', '#fff');
-    yl.setAttribute('font-size', R*0.018 + 'px'); yl.setAttribute('font-family', 'monospace');
-    yl.textContent = '\u2193 you \u00b7 ' + youDepthLabel; layer.appendChild(yl);
+    yl.setAttribute('font-size', R*0.014 + 'px'); yl.setAttribute('font-family', 'monospace');
+    yl.setAttribute('opacity', '0.5');
+    yl.textContent = '\u2193 you'; layer.appendChild(yl);
 
     // ═══ STATS ═══
     var e = human.energy || {};

@@ -99,9 +99,11 @@
   // Where is THIS human right now?
 
   function currentPosition() {
-    // The human's angle on the membrane is determined by their most recent activity
+    // The pager is INSIDE tuebor (R*0.65), BELOW the humans' feet (R*0.48),
+    // and OUTSIDE squirrel (not chipmunk's data — the human's own trail).
+    // Trail sits at R*0.42 (just below feet) → R*0.20 (deep, near chipmunk).
     var recent = trail.steps.slice(-10);
-    if (!recent.length) return { angle: -PI/2, r: 0.62, depth: 0, category: 'none' };
+    if (!recent.length) return { angle: -PI/2, r: 0.42, depth: 0, category: 'none' };
 
     // Map step kinds to membrane categories
     var categoryHits = {};
@@ -124,8 +126,9 @@
     };
 
     var angle = CAT_ANGLE[bestCat] || -PI/2;
-    // Depth determines radial distance: deeper = closer to center
-    var rNorm = 0.65 - trail.depth * 0.1; // 0.65 → 0.35
+    // Depth determines radial distance — inside tuebor, below human feet:
+    // surface=0.42, π=0.35, π²=0.28, π³=0.20
+    var rNorm = 0.42 - trail.depth * 0.073;
 
     return { angle: angle, r: rNorm, depth: trail.depth, category: bestCat };
   }
@@ -174,7 +177,9 @@
   }
 
   // ═══ TRAIL VISUALIZATION ═══
-  // Draw the human's path on the membrane SVG
+  // The pager draws INSIDE tuebor (R*0.65), BELOW the humans' feet (R*0.48).
+  // It is evidence of passage — inside the defense wall, on the ground
+  // the human walked on. The chipmunk looks up and sees the footprints.
 
   function renderTrail(svg, cx, cy, R) {
     // Remove old trail
@@ -184,7 +189,7 @@
     var trailG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     trailG.setAttribute('id', 'explorer-trail');
 
-    // Draw path through recent steps
+    // Draw path through recent steps — inside tuebor, below feet
     var recent = trail.steps.slice(-30);
     if (recent.length < 2) {
       svg.appendChild(trailG);
@@ -203,9 +208,10 @@
       var angle = CAT_ANGLE[cat] || -PI/2;
       // Add jitter so the trail isn't a single line
       angle += (Math.sin(i * 1.7) * 0.15);
-      var depth = Math.min(3, Math.floor(i / 10));
-      var r = R * (0.65 - depth * 0.1);
-      r += Math.cos(i * 2.3) * R * 0.03; // subtle radial jitter
+      // Trail deepens as steps accumulate: 0.42 → 0.20
+      var stepDepth = Math.min(3, Math.floor(i / 10));
+      var r = R * (0.42 - stepDepth * 0.073);
+      r += Math.cos(i * 2.3) * R * 0.02; // subtle radial jitter
       points.push({
         x: cx + Math.cos(angle) * r,
         y: cy + Math.sin(angle) * r,
@@ -225,18 +231,16 @@
       var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
       path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', '#fff');
-      path.setAttribute('stroke-width', '1.5');
-      path.setAttribute('opacity', '0.15');
+      path.setAttribute('stroke', '#e85d3a'); // tuebor color — trail is inside the wall
+      path.setAttribute('stroke-width', '1');
+      path.setAttribute('opacity', '0.12');
       path.setAttribute('stroke-linecap', 'round');
       path.setAttribute('stroke-linejoin', 'round');
-
-      // Gradient: older steps fader
-      path.setAttribute('stroke-dasharray', '3 2');
+      path.setAttribute('stroke-dasharray', '2 3');
       trailG.appendChild(path);
     }
 
-    // Current position: bright dot
+    // Current position: warm dot below the feet
     var pos = currentPosition();
     var myX = cx + Math.cos(pos.angle) * (R * pos.r);
     var myY = cy + Math.sin(pos.angle) * (R * pos.r);
@@ -244,39 +248,40 @@
     var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     dot.setAttribute('cx', myX.toFixed(1));
     dot.setAttribute('cy', myY.toFixed(1));
-    dot.setAttribute('r', (R * 0.012).toFixed(1));
-    dot.setAttribute('fill', '#fff');
-    dot.setAttribute('opacity', '0.9');
+    dot.setAttribute('r', (R * 0.009).toFixed(1));
+    dot.setAttribute('fill', '#e85d3a'); // tuebor warm
+    dot.setAttribute('opacity', '0.7');
     trailG.appendChild(dot);
 
-    // Pulse ring around current position
+    // Pulse ring — faint, warm
     var ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     ring.setAttribute('cx', myX.toFixed(1));
     ring.setAttribute('cy', myY.toFixed(1));
-    ring.setAttribute('r', (R * 0.02).toFixed(1));
+    ring.setAttribute('r', (R * 0.016).toFixed(1));
     ring.setAttribute('fill', 'none');
-    ring.setAttribute('stroke', '#fff');
-    ring.setAttribute('stroke-width', '1');
-    ring.setAttribute('opacity', '0.4');
+    ring.setAttribute('stroke', '#e85d3a');
+    ring.setAttribute('stroke-width', '0.6');
+    ring.setAttribute('opacity', '0.25');
     var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
     anim.setAttribute('attributeName', 'r');
-    anim.setAttribute('values', (R * 0.018).toFixed(1) + ';' + (R * 0.04).toFixed(1) + ';' + (R * 0.018).toFixed(1));
-    anim.setAttribute('dur', '3s');
+    anim.setAttribute('values', (R * 0.014).toFixed(1) + ';' + (R * 0.028).toFixed(1) + ';' + (R * 0.014).toFixed(1));
+    anim.setAttribute('dur', '4s');
     anim.setAttribute('repeatCount', 'indefinite');
     ring.appendChild(anim);
     trailG.appendChild(ring);
 
-    // Depth label
-    var DEPTH_NAMES = ['surface', 'π', 'π²', 'π³'];
+    // Depth label — beneath, looking up
+    var DEPTH_NAMES = ['surface', '\u03c0', '\u03c0\u00b2', '\u03c0\u00b3'];
     var lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     lbl.setAttribute('x', myX.toFixed(1));
-    lbl.setAttribute('y', (myY - R * 0.03).toFixed(1));
+    lbl.setAttribute('y', (myY + R * 0.025).toFixed(1)); // label below the dot, not above
     lbl.setAttribute('text-anchor', 'middle');
-    lbl.setAttribute('fill', '#fff');
+    lbl.setAttribute('fill', '#e85d3a');
     lbl.setAttribute('font-size', (R * 0.016) + 'px');
     lbl.setAttribute('font-family', 'monospace');
-    lbl.setAttribute('opacity', '0.6');
-    lbl.textContent = '↓ you · ' + DEPTH_NAMES[pos.depth] + ' · ' + trail.steps.length + ' steps';
+    lbl.setAttribute('opacity', '0.35');
+    lbl.setAttribute('font-size', (R * 0.013) + 'px');
+    lbl.textContent = DEPTH_NAMES[pos.depth] + ' \u00b7 ' + trail.steps.length + ' steps';
     trailG.appendChild(lbl);
 
     svg.appendChild(trailG);
@@ -291,10 +296,10 @@
     var age = trail.born ? Math.round((Date.now() - trail.born) / 60000) : 0;
     var lines = [];
 
-    lines.push('<b>your trail through the membrane</b>');
+    lines.push('<b>your pager — inside tuebor, below your feet</b>');
     lines.push('id: <span class="dim">' + trail.id + '</span> · ' + trail.visits + ' visits · ' + age + ' min');
-    lines.push('depth: <span class="good">' + DEPTH_NAMES[trail.depth] + '</span> · ' + trail.steps.length + ' steps');
-    lines.push('position: ' + pos.category + ' at r=' + pos.r.toFixed(2));
+    lines.push('depth: <span style="color:#e85d3a">' + DEPTH_NAMES[trail.depth] + '</span> · ' + trail.steps.length + ' steps');
+    lines.push('facing: ' + pos.category + ' · the chipmunk looks up and sees this trail');
     lines.push('');
 
     // What you've seen
