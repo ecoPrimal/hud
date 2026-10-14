@@ -44,7 +44,8 @@
     else if (gaze === 5) { peckFleet(w); }
     else if (gaze === 6) { peckTotality(w); }
     else if (gaze === 7) { peckSeo(w); }
-    else { peckPiRange(w); }
+    else if (gaze === 8) { peckPiRange(w); }
+    else { peckMesh(w); }
 
     // Journal the peck — squirrel reads this
     try {
@@ -708,6 +709,50 @@
   var ringGroup = null;
 
   // Expose gazes
+
+  // --- peckMesh: chipmunk looks at the cloud mesh ---
+  function peckMesh(w) {
+    var mn = window._meshNudge;
+    if (!mn) { peckStars(w); return; }
+    var s = mn.meshSummary();
+    if (!s) { addEntry("chipmunk", "<span class=\"dim\">looking at the clouds\u2026 no mesh data yet.</span>"); return; }
+
+    var att = mn.shouldPayAttention();
+    var lines = [];
+
+    // Mesh health header
+    var healthColor = s.healthPct >= 100 ? "#3fb950" : s.healthPct >= 66 ? "#d29922" : "#f85149";
+    lines.push("<span style=\"color:" + healthColor + "\">\u25c9 mesh " + s.healthPct + "%</span> \u2014 " +
+      s.aliveNodes + "/" + s.totalNodes + " nodes, " + s.mutualEdges + "/" + s.totalEdges + " mutual edges");
+
+    // Node status
+    s.nodes.forEach(function(n) {
+      var icon = n.alive ? "\u2714" : "\u2718";
+      var col = n.alive ? "#3fb950" : "#f85149";
+      var lat = n.latency ? " " + n.latency.toFixed(1) + "ms" : "";
+      lines.push("  <span style=\"color:" + col + "\">" + icon + "</span> " + n.name + " (" + n.cloud + ")" + lat);
+    });
+
+    // Commensals
+    if (s.organisms > 0) {
+      lines.push("<span class=\"dim\">" + s.organisms + " organisms across the cloud. " +
+        s.banned + " intruders banned" + (s.totalBanned > s.banned ? " (" + s.totalBanned + " total)" : "") + ".</span>");
+    }
+
+    // Floating status
+    if (s.floating) {
+      lines.push("<span class=\"dim\">the clouds see each other. de-tethered. floating.</span>");
+    } else {
+      lines.push("<span style=\"color:#f85149\">tethered \u2014 mesh needs repair.</span>");
+    }
+
+    // Attention level
+    if (att.paying) {
+      lines.push("<span style=\"color:#d29922\">\u25cf " + att.label + ": " + att.reasons.join(", ") + "</span>");
+    }
+
+    addEntry("chipmunk", lines.join("\n"));
+  }
   window._chipmunkGaze = {
     peck: peck,
     peckStars: peckStars,
@@ -718,5 +763,6 @@
     peckTotality: peckTotality,
     peckSeo: peckSeo,
     peckPiRange: peckPiRange,
+    peckMesh: peckMesh,
   };
 })();

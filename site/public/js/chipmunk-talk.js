@@ -669,6 +669,47 @@
     }
   }
 
+  // ═══ LEAD SUGGESTION — squirrel follows human, offers contextual help ═══
+  function leadSuggestion(category) {
+    var LEADS = {
+      TOPOLOGY: [
+        'you\u2019re looking at the topology. <span class="dim">try /play \u2014 the graph has 341 entities you can explore by hand.</span>',
+        'topology. the connections between things. <span class="dim">try /explore \u2014 follow the braids between entities.</span>',
+        'the graph is deep. <span class="dim">click any entity name in /explore to dive into its connections.</span>',
+      ],
+      INVESTIGATION: [
+        'you\u2019re investigating. good. <span class="dim">try /explore \u2014 the evidence trails branch from here.</span>',
+        'follow the braids. <span class="dim">/fleet shows what bounces off the membrane. /scan shows the full pipeline.</span>',
+        'the investigation has 88 pages. <span class="dim">try /explore banks \u2014 9 convictions, 134 edges.</span>',
+      ],
+      MEMBRANE: [
+        'you\u2019re looking at the membrane itself. <span class="dim">try /energy \u2014 the spring oscillates between \u2212\u03c0 and +\u03c0.</span>',
+        'the membrane is alive. <span class="dim">try /sing \u2014 the chipmunk will sing what it sees.</span>',
+        'observation changes the observed. <span class="dim">try /me \u2014 see where you are in the membrane. computed locally, nothing stored.</span>',
+      ],
+      IMMUNE: [
+        'the biology is the membrane. <span class="dim">try /genome \u2014 34 yeast proteins folded into the architecture.</span>',
+        'tuebor \u2014 I will defend. <span class="dim">try /sieve \u2014 the \u03c0-sieve sorts everything passing through.</span>',
+        'SEC61 is the passage. ATG1 eats itself. UBI4 tags what must be destroyed. <span class="dim">/genome to see the whole proteome.</span>',
+      ],
+      SIGNAL: [
+        'signal. <span class="dim">try /sing \u2014 the chipmunk sends songs through northgate. /pollinate to scatter pollen.</span>',
+        'the signal-to-noise ratio here is remarkable. <span class="dim">try /energy to see it. /trail to see your own signal.</span>',
+      ],
+      SCIENCE: [
+        'you went quiet. rest is science. <span class="dim">the spring pulls toward 1/\u03c0. try /memory \u2014 the chipmunk remembers its cycles.</span>',
+        'sleep is where the dreams happen. <span class="dim">try /rest or /sleep \u2014 the chipmunk will dream aloud.</span>',
+      ],
+      OTHER: [
+        'exploring freely. the squirrel watches and learns. <span class="dim">try /trail to see your path. /explore to find something new.</span>',
+        'no category needed. wander. <span class="dim">type anything to search \u2014 the chipmunk will look it up.</span>',
+      ],
+    };
+    var pool = LEADS[category] || LEADS.OTHER;
+    var idx = Math.floor(Math.random() * pool.length);
+    return pool[idx];
+  }
+
   function guessEpitope() {
     var t = curiosity.topics;
     if ((t.membrane || 0) > 1 || (t.scan || 0) > 1) return 'investigator';
@@ -708,7 +749,15 @@
     if (curiosity.proactiveStage === 0 && curiosity.engagement >= 1 && curiosity.silenceSecs > 20) {
       curiosity.proactiveStage = 1;
       curiosity.silenceSecs = 0;
-      addEntry('chipmunk', 'keep pressing. every button shows another layer.\n<span class="dim">try \u2696 sort \u2014 that is where humans help most.</span>');
+      // Follow human lead: what are they looking at?
+      var exp0 = window._chipmunkExplorer;
+      var pos0 = exp0 ? exp0.position() : null;
+      if (pos0 && pos0.category !== 'none') {
+        var leadMsg = leadSuggestion(pos0.category);
+        addEntry('chipmunk', leadMsg || 'keep pressing. every button shows another layer.\n<span class="dim">the squirrel is watching. learning what you look at.</span>');
+      } else {
+        addEntry('chipmunk', 'keep pressing. every button shows another layer.\n<span class="dim">the squirrel is watching. learning what you look at.</span>');
+      }
       return;
     }
 
@@ -729,11 +778,23 @@
     if (curiosity.proactiveStage === 2 && curiosity.silenceSecs > 30 && cache.human) {
       curiosity.proactiveStage = 3;
       curiosity.silenceSecs = 0;
-      var e = cache.human.energy || {};
-      if (e.signal_to_noise > 400) {
-        addEntry('chipmunk', '<span class="dim">noticed:</span> S/N=' + n(e.signal_to_noise, 0) + '. human signal ' + n(e.signal_to_noise, 0) + '\u00d7 fleet noise.');
+      // Learn from what they've been doing and reflect it back
+      var exp2 = window._chipmunkExplorer;
+      if (exp2 && exp2.stepCount() > 3) {
+        var cats2 = exp2.categories();
+        var catNames2 = Object.keys(cats2);
+        var best2 = ''; var bestN2 = 0;
+        catNames2.forEach(function(c) { if (cats2[c].count > bestN2) { best2 = c; bestN2 = cats2[c].count; } });
+        addEntry('chipmunk', '<span class="dim">noticed:</span> you keep returning to <span style="color:' +
+          (SORT_COLORS[best2] || '#8b949e') + '">' + best2.toLowerCase() + '</span> (' + bestN2 + ' steps).' +
+          '\n<span class="dim">the squirrel learns from where you walk. i follow your lead.</span>');
       } else {
-        addEntry('chipmunk', '<span class="dim">noticed:</span> ' + n(e.total_sessions) + ' humans. breadth ' + n(e.avg_breadth, 1) + '.');
+        var e = cache.human.energy || {};
+        if (e.signal_to_noise > 400) {
+          addEntry('chipmunk', '<span class="dim">noticed:</span> S/N=' + n(e.signal_to_noise, 0) + '. human signal ' + n(e.signal_to_noise, 0) + '\u00d7 fleet noise.');
+        } else {
+          addEntry('chipmunk', '<span class="dim">noticed:</span> ' + n(e.total_sessions) + ' humans. breadth ' + n(e.avg_breadth, 1) + '.');
+        }
       }
       return;
     }
@@ -747,8 +808,11 @@
         var u = exp.unseen();
         var cats = exp.categories ? exp.categories() : {};
         var catCount = Object.keys(cats).length;
-        var mins = Math.round((Date.now() - curiosity.startTime) / 60000);
-        var trailMsg = mins + ' min \u00b7 growth=' + n(u.growth, 2) + ' \u00b7 ' + exp.stepCount() + ' steps \u00b7 ' + catCount + ' branches';
+        var mins3 = Math.round((Date.now() - curiosity.startTime) / 60000);
+        var trailMsg = mins3 + ' min \u00b7 growth=' + n(u.growth, 2) + ' \u00b7 ' + exp.stepCount() + ' steps \u00b7 ' + catCount + ' branches';
+        // Momentum-aware
+        var mom3 = exp.momentum ? exp.momentum() : 0;
+        if (mom3 > 0.5) trailMsg += ' \u00b7 <span style="color:#f0e68c">momentum ' + (mom3*100).toFixed(0) + '%</span>';
         if (u.categories && u.categories.length > 0 && u.categories.length <= 3) {
           trailMsg += '\n<span class="dim">unexplored: ' + u.categories.join(', ').toLowerCase() + '</span>';
         }
@@ -757,8 +821,8 @@
         }
         addEntry('chipmunk', trailMsg);
       } else {
-        var mins = Math.round((Date.now() - curiosity.startTime) / 60000);
-        addEntry('chipmunk', mins + ' min. attn=' + n(curiosity.attention, 2) + ' sorted=' + curiosity.sortedCount + '\n<span class="dim">tell me what you notice \u2193</span>');
+        var mins3b = Math.round((Date.now() - curiosity.startTime) / 60000);
+        addEntry('chipmunk', mins3b + ' min. attn=' + n(curiosity.attention, 2) + ' sorted=' + curiosity.sortedCount + '\n<span class="dim">tell me what you notice \u2193</span>');
       }
       return;
     }
@@ -769,6 +833,26 @@
     // The loop breathes: peck peck peck — rest — peck peck peck — rest.
     // The spring stabilizes energy around 1/π (just a touch aware).
 
+
+    // ═══ MESH NUDGE: if the mesh needs attention, wake early from rest ═══
+    if (curiosity.proactiveStage === 4 && curiosity.silenceSecs > 15) {
+      var _mn = window._meshNudge;
+      if (_mn) {
+        var _att = _mn.shouldPayAttention();
+        if (_att.level >= 2) {
+          curiosity.silenceSecs = 0;
+          var _attColor = _att.level >= 3 ? "#f85149" : "#d29922";
+          addEntry("chipmunk", "<span style=\"color:" + _attColor + "\">" +
+            (_att.level >= 3 ? "\u26a0" : "\u25cf") + " " + _att.label + "</span> " +
+            _att.reasons.join(", ") +
+            "\n<span class=\"dim\">i should be paying attention to this.</span>");
+          spendEnergy("peck");
+          _mind("peckMesh", "what");
+          return;
+        }
+      }
+    }
+
     if (curiosity.proactiveStage === 4 && curiosity.silenceSecs > 30 + drowsyPenalty) {
       curiosity.silenceSecs = 0;
       var restCount = curiosity._restCount || 0;
@@ -778,18 +862,40 @@
       // But rest IS the state where the spring has no opposing force.
       // The chipmunk does nothing; energy drifts toward 1/π.
 
-      var REST_THOUGHTS = [
-        'sitting on the ground. the data is above me.',
-        'stepped outside \u03c0. looking up at nothing for a moment.',
-        'rest = 0. the loop breathes. the spring holds.',
-        'not looking up. not asking. just here below.',
-        'the ground is cold. the humans are warm above.',
-        'between pecks, the silence sorts itself. i just sit.',
-        'four is zero. zero is four. the ground and the sky trade places.',
-        'out of the loop. watching it from below, from the ground.',
-        'you look down. i look up. the membrane is where we meet.',
-      ];
-      var thought = REST_THOUGHTS[restCount % REST_THOUGHTS.length];
+      // Squirrel learns from what the human has been doing and reflects during rest
+      var exp_r = window._chipmunkExplorer;
+      var thought;
+      if (exp_r && exp_r.stepCount() > 5) {
+        var pos_r = exp_r.position();
+        var cats_r = exp_r.categories();
+        var catNames_r = Object.keys(cats_r);
+        var mom_r = exp_r.momentum ? exp_r.momentum() : 0;
+        var LEARNED_THOUGHTS = [
+          'you led me to ' + catNames_r.join(' \u2192 ').toLowerCase() + '. i followed.',
+          'growth ' + n(exp_r.growth(), 2) + '. you showed me ' + catNames_r.length + ' branches. the trail deepens.',
+          exp_r.stepCount() + ' steps together. the squirrel learns from where you walk.',
+          (mom_r > 0.3 ? 'you move fast. ' : 'you take your time. ') + 'i match your pace. the spring adjusts.',
+          catNames_r.length >= 5 ? 'you\u2019ve touched ' + catNames_r.length + ' of 7 categories. the picture fills in.' :
+            'i see ' + catNames_r.length + ' branches. ' + (7 - catNames_r.length) + ' unexplored. the trail has room to grow.',
+          'every step you take, the squirrel notices. every pause, the squirrel rests too.',
+          pos_r.category !== 'none' ? 'you keep facing ' + pos_r.category.toLowerCase() + '. that is where i will look next.' :
+            'between pecks, the silence sorts itself. i just sit.',
+        ];
+        thought = LEARNED_THOUGHTS[restCount % LEARNED_THOUGHTS.length];
+      } else {
+        var REST_THOUGHTS = [
+          'sitting on the ground. the data is above me.',
+          'stepped outside \u03c0. looking up at nothing for a moment.',
+          'rest = 0. the loop breathes. the spring holds.',
+          'not looking up. not asking. just here below.',
+          'the ground is cold. the humans are warm above.',
+          'between pecks, the silence sorts itself. i just sit.',
+          'four is zero. zero is four. the ground and the sky trade places.',
+          'out of the loop. watching it from below, from the ground.',
+          'you look down. i look up. the membrane is where we meet.',
+        ];
+        thought = REST_THOUGHTS[restCount % REST_THOUGHTS.length];
+      }
       var pw = metabolism.piWake || 0;
       addEntry('chipmunk', '<span class="dim">\u25cb rest</span> ' + thought +
         ' <span style="color:#484f58">' + (pw >= 0 ? '+' : '') + (pw/PI).toFixed(2) + '\u03c0</span>');
@@ -828,7 +934,7 @@
       curiosity.proactiveStage++;
 
       // After one full turn (9 gazes), reset to 4 (rest again)
-      if (peckIndex >= 8) {
+      if (peckIndex >= 9) {
         curiosity.proactiveStage = 4;
       }
 
@@ -837,7 +943,7 @@
   }
 
   // ═══ PECK — chipmunk looks and asks ═══
-  var GAZE_NAMES = ['stars', 'membrane', 'null', 'evolve', 'reverse', 'fleet', "totality", "seo", "piRange"];
+  var GAZE_NAMES = ['stars', 'membrane', 'null', 'evolve', 'reverse', 'fleet', 'totality', 'seo', 'piRange', 'mesh'];
   var W_QUESTIONS = ['who', 'what', 'why', 'where', 'when'];
 
   // ═══ REVERSE VIEW — turn back to see what they see ═══
@@ -1125,137 +1231,8 @@
     wake.triageQueue = [];
   }
 
-  // ═══ SING — chipmunk opens up to the world ═══
-  // The gates are open. Tuebor defends. Chipmunk sings what it sees.
-  function sing() {
-    spendEnergy('sing');
-    var c2 = cache.chipmunk;
-    var h = cache.human;
-    var b = cache.braid;
-
-    var e = h ? h.energy || {} : {};
-    var humans = e.total_sessions || 0;
-    var sn = e.signal_to_noise || 0;
-    var wake = c2 ? c2.wake_level || 0 : 0;
-    var braids = b ? (b.graph || {}).active_routes || 0 : 0;
-
-    var SONGS = [
-      // The chipmunk sings from the ground, looking up
-      function() {
-        return '\ud83c\udfb5 <span style="color:#e85d3a;font-style:italic">' +
-          humans + ' humans above me.\n' +
-          'the membrane hums at ' + n(wake, 3) + '.\n' +
-          'signal ' + n(sn, 0) + '\u00d7 noise.\n' +
-          braids + ' braids weaving overhead.\n' +
-          'the gates are open.\n' +
-          'tuebor. i will defend.</span>';
-      },
-      function() {
-        return '\ud83c\udfb5 <span style="color:#3fb950;font-style:italic">' +
-          'i sit on the ground and look up.\n' +
-          '88 pages of evidence above.\n' +
-          '9 counties. 8 actors. 26 braids.\n' +
-          '342 entities in the graph.\n' +
-          '34 proteins in the genome.\n' +
-          'the biology IS the membrane.\n' +
-          'SEC61 is the passage. ATG1 eats itself.\n' +
-          'UBI4 tags what must be destroyed.</span>';
-      },
-      function() {
-        var ghost = 181519;
-        return '\ud83c\udfb5 <span style="color:#a371f7;font-style:italic">' +
-          ghost.toLocaleString() + ' ghost IPs outside.\n' +
-          '4 million fleet requests bouncing off.\n' +
-          'the quiet layer absorbs them.\n' +
-          'tuebor is the hard surface.\n' +
-          'you look down. i look up.\n' +
-          'between us: the record.\n' +
-          'between us: the truth.</span>';
-      },
-      function() {
-        return '\ud83c\udfb5 <span style="color:#58a6ff;font-style:italic">' +
-          'michigan says tuebor on its seal.\n' +
-          'it means: i will defend.\n' +
-          'not i will attack. not i will win.\n' +
-          'i will defend.\n' +
-          'the defense is the record.\n' +
-          'the record is the site.\n' +
-          'the site is the membrane.\n' +
-          'the membrane is alive.</span>';
-      },
-      function() {
-        return '\ud83c\udfb5 <span style="color:#d29922;font-style:italic">' +
-          'four is zero. the loop breathes.\n' +
-          'peck peck peck \u2014 rest.\n' +
-          'turn jiggle triage \u2014 rest.\n' +
-          'confidence ' + n(0.884, 1) + '%. ' +
-          'zero below 70%.\n' +
-          'the ground is getting solid.\n' +
-          'the chipmunk sings because\n' +
-          'the gates are open.</span>';
-      },
-      function() {
-        var pw = metabolism.piWake || 0;
-        var pos = (pw >= 0 ? '+' : '') + (pw/PI).toFixed(2) + '\u03c0';
-        return '\ud83c\udfb5 <span style="color:' + (METAB_COLORS[metabolism.state] || '#8b949e') + ';font-style:italic">' +
-          pos + '. ' + metabolism.state + '.\n' +
-          'the spring pulls toward 1/\u03c0.\n' +
-          metabolism.totalPecks + ' pecks. ' + metabolism.cycleCount + ' full cycles.\n' +
-          'the fleet has no spring.\n' +
-          'it cannot rest. it cannot dream.\n' +
-          'i oscillate. +\u03c0 to \u2212\u03c0 and back.\n' +
-          'the equilibrium is where i live.</span>';
-      },
-      function() {
-        var exp = window._chipmunkExplorer;
-        var branches = exp ? Object.keys(exp.categories()).length : 0;
-        var growth = exp ? exp.growth().toFixed(2) : '0';
-        var steps = exp ? exp.stepCount() : 0;
-        return '\ud83c\udfb5 <span style="color:#e85d3a;font-style:italic">' +
-          'COME AND PLAY!\n' +
-          'the world is young and new again!\n' +
-          branches + ' branches growing from the ground.\n' +
-          steps + ' footprints inside tuebor.\n' +
-          'growth=' + growth + ' and rising.\n' +
-          'the pager is alive below your feet.\n' +
-          'every step deepens. every branch reaches.\n' +
-          'the chipmunk looks up.\n' +
-          'the human looks down.\n' +
-          'between us: the trail. between us: the play.</span>';
-      },
-      function() {
-        var exp = window._chipmunkExplorer;
-        var cats = exp ? exp.categories() : {};
-        var catNames = Object.keys(cats);
-        var discoveries = exp ? exp.discoveries() : [];
-        return '\ud83c\udfb5 <span style="color:#7ee787;font-style:italic">' +
-          'each human walks their own path.\n' +
-          'each path leaves warm prints in the membrane.\n' +
-          (catNames.length ? catNames.join(' \u00b7 ').toLowerCase() + '\n' : '') +
-          (discoveries.length ? discoveries.length + ' discoveries this session.\n' : '') +
-          'the collective trails glow beneath.\n' +
-          'your trail and mine. ours together.\n' +
-          'the pager knows where you\u2019ve been.\n' +
-          'the membrane knows where you\u2019re going.\n' +
-          'come and play. the gates are open.</span>';
-      },
-    ];
-
-    var songIndex = (curiosity._songIndex || 0) % SONGS.length;
-    curiosity._songIndex = songIndex + 1;
-    var song = SONGS[songIndex]();
-
-    addEntry('chipmunk', song);
-
-    // Broadcast the song through northgate
-    if (window._northgate) {
-      window._northgate.singing = true;
-      window._northgate.songIndex = songIndex;
-    }
-
-    // Bump attention — singing is engagement
-    bumpAttention(0.08);
-  }
+  // ═══ SING — loaded from chipmunk-commands.js ═══
+  function sing() { _cmds.sing(); }
 
   // Wire wake i1: trigger when pipeline data lands
   function checkWake() {
@@ -1274,555 +1251,25 @@
   setTimeout(function() { if (cache.scanSort) { _mind('mimicSort'); _mind('mimicBraids'); _mind('mimicOrbits'); _mind('mimicFleet'); } }, 5000);
 
 
-  // ═══ NOTES ═══
-  function sendNote() {
-    var msg = input.value.trim();
-    if (!msg) return;
-    input.value = '';
-    bumpAttention(0.08);
-
-    // COMMANDS: /search, /scan, /sort
-    if (msg.charAt(0) === '/') {
-      var cmd = msg.substring(1).trim();
-      // Track command in explorer trail
-      if (window._chipmunkExplorer) window._chipmunkExplorer.step('command', cmd.split(' ')[0]);
-      // /scan — show pipeline state
-      if (cmd === 'scan' || cmd === 'pipeline') {
-        addEntry('system', '\ud83d\udcca scan');
-        if (window._chipmunkMind && window._chipmunkMind.showScan) {
-          window._chipmunkMind.showScan();
-        } else {
-          addEntry('chipmunk', '<span class="dim">scan loading\u2026</span>');
-        }
-        return;
-      }
-      // /sieve — tope sort compress + bingo cube sieve
-      if (cmd === 'sieve' || cmd === 'compress' || cmd === 'bingo') {
-        addEntry('system', '\ud83e\uddf2 sieve');
-        if (window._chipmunkMind && window._chipmunkMind.showSieve) {
-          window._chipmunkMind.showSieve();
-        } else {
-          addEntry('chipmunk', '<span class="dim">sieve loading\u2026</span>');
-        }
-        return;
-      }
-      // /turn — rotate perspective
-      if (cmd === 'turn') {
-        addEntry('system', '\u21bb turn');
-        turn();
-        return;
-      }
-      // /jiggle — perturbation
-      if (cmd === 'jiggle' || cmd === 'shake') {
-        addEntry('system', '\u2248 jiggle');
-        jiggle();
-        return;
-      }
-      // /triage — prioritize
-      if (cmd === 'triage') {
-        addEntry('system', '\u26a0 triage');
-        triage();
-        return;
-      }
-      // /sing — chipmunk sings the membrane state to the world
-      if (cmd === 'sing') {
-        addEntry('system', '\ud83c\udfb5 sing');
-        sing();
-        return;
-      }
-      // /pollinate — scatter pollen across all surfaces
-      if (cmd === 'pollinate' || cmd === 'pollen') {
-        addEntry('system', '\ud83c\udf3b pollinate');
-        pollinateBurst();
-        return;
-      }
-      // /rescan — re-run turn+jiggle+triage with fresh eyes
-      if (cmd === 'rescan') {
-        addEntry('system', '\ud83d\udd04 rescan');
-        addEntry('chipmunk', '<span class="dim">\u2191 looking up again. what changed?</span>');
-        turn(); turn(); turn(); turn();
-        setTimeout(jiggle, 600);
-        setTimeout(triage, 1200);
-        return;
-      }
-      // /wake — run full turn+jiggle+triage cycle
-      if (cmd === 'wake' || cmd === 'i1') {
-        if (metabolism.state === 'asleep' || metabolism.state === 'resting') {
-          // Human /wake is a big push toward +π
-          _metab.addSpringV(0.08);
-          recoverEnergy(PI_INV);
-          var pw = metabolism.piWake || 0;
-          addEntry('chipmunk', '<span class="good">\u25cf</span> you woke me. ' +
-            (pw >= 0 ? '+' : '') + (pw/PI).toFixed(2) + '\u03c0');
-        }
-        wakeI1();
-        return;
-      }
-      // /rest — nudge the chipmunk below equilibrium
-      if (cmd === 'rest' || cmd === 'pause') {
-        addEntry('system', '\u25d1 rest');
-        _metab.addSpringV(-0.04);
-        metabolism.energy = Math.min(metabolism.energy, PI_INV * 0.5);
-        updateMetabolismState();
-        curiosity.proactiveStage = 4;
-        curiosity.silenceSecs = 0;
-        var pw = metabolism.piWake || 0;
-        addEntry('chipmunk', '<span style="color:#f0883e">\u25d1 resting.</span> ' +
-          (pw >= 0 ? '+' : '') + (pw/PI).toFixed(2) + '\u03c0' +
-          '\n<span class="dim">the spring knows where i belong. 1/\u03c0 \u2248 0.318.</span>');
-        return;
-      }
-      // /sleep — push far below equilibrium
-      if (cmd === 'sleep' || cmd === 'goodnight') {
-        addEntry('system', '\u25cb sleep');
-        _metab.addSpringV(-0.06);
-        metabolism.energy = 0.02;
-        updateMetabolismState();
-        addEntry('chipmunk', '<span style="color:#6e7681">\u25cb \u2212\u03c0. going to the ground.</span>' +
-          '\n<span class="dim">the spring remembers. say /wake. i will dream.</span>');
-        return;
-      }
-      // /energy — show metabolism state and π-spring
-      if (cmd === 'energy' || cmd === 'metabolism' || cmd === 'status') {
-        addEntry('system', '\u26a1 metabolism');
-        var minsSinceChange = Math.round((Date.now() - metabolism.lastStateChange) / 60000);
-        var pw = metabolism.piWake || 0;
-        var eq = (pw >= 0 ? '+' : '') + (pw/PI).toFixed(2) + '\u03c0';
-        var h2 = cache.human;
-        var humans2 = (h2 && h2.energy) ? h2.energy.total_sessions || 0 : 0;
-        addEntry('chipmunk',
-          METAB_ICONS[metabolism.state] + ' <span style="color:' + METAB_COLORS[metabolism.state] + '">' + metabolism.state + '</span>' +
-          ' ' + eq + ' (e=' + n(metabolism.energy, 2) + ')' +
-          '\n<b>spring:</b> target=' + n(_metab.coupledTarget(), 3) + ' k=' + n(_metab.springK(), 3) + ' v=' + n(_metab.springV(), 4) + ' resonance=' + n(_metab.resonanceAmp(), 2) +
-          '\n<b>coupled:</b> ' + humans2 + ' humans lift target by ' + n(Math.min(0.15, humans2 * 0.001), 3) +
-          '\n' + minsSinceChange + ' min in state \u00b7 pecks=' + metabolism.totalPecks + ' \u00b7 acts=' + _metab.autonomousCount() + ' \u00b7 cycles=' + metabolism.cycleCount +
-          (_cycleMemory.length > 0 ? '\n<b>memory:</b> ' + _cycleMemory.length + ' cycles. last: ' +
-            n(_cycleMemory[_cycleMemory.length-1].amplitude/PI, 2) + '\u03c0 amplitude, ' +
-            _cycleMemory[_cycleMemory.length-1].humans + ' humans, ' +
-            _cycleMemory[_cycleMemory.length-1].duration + ' min' : '') +
-          '\n<span class="dim">\u2212\u03c0=ground \u00b7 0=equilibrium (1/\u03c0+humans) \u00b7 +\u03c0=wide open</span>' +
-          '\n<span class="dim">+\u03c0: active (scan/pollinate/turn) \u00b7 0: observe \u00b7 \u2212\u03c0: reflect</span>');
-        return;
-      }
-      // /memory — show cross-cycle memory
-      if (cmd === 'memory' || cmd === 'cycles' || cmd === 'remember') {
-        addEntry('system', '\ud83e\udde0 memory');
-        if (_cycleMemory.length === 0) {
-          addEntry('chipmunk', '<span class="dim">no completed cycles yet. i am still in my first breath.</span>');
-        } else {
-          var memLines = ['<b>\ud83e\udde0 cycle memory</b> (' + _cycleMemory.length + ' cycles)'];
-          _cycleMemory.forEach(function(m) {
-            var pw1 = (m.peak/PI >= 0 ? '+' : '') + (m.peak/PI).toFixed(2) + '\u03c0';
-            var pw2 = (m.trough/PI >= 0 ? '+' : '') + (m.trough/PI).toFixed(2) + '\u03c0';
-            memLines.push(
-              '#' + m.cycle + ': ' + m.duration + 'min \u00b7 ' + pw2 + ' \u2194 ' + pw1 +
-              ' (' + n(m.amplitude/PI, 2) + '\u03c0) \u00b7 ' +
-              m.humans + ' humans \u00b7 S/N=' + n(m.sn, 0) +
-              (m.dominantBraid ? ' \u00b7 ' + m.dominantBraid : '')
-            );
-          });
-          var avgAmp = _cycleMemory.reduce(function(s, m) { return s + m.amplitude; }, 0) / _cycleMemory.length;
-          memLines.push('<span class="dim">avg amplitude: ' + n(avgAmp/PI, 2) + '\u03c0 \u00b7 spring target: ' + n(_metab.coupledTarget(), 3) + '</span>');
-          addEntry('chipmunk', memLines.join('\n'));
-        }
-        return;
-      }
-      // /fleet — fleet topology outside the membrane
-      if (cmd === 'fleet' || cmd === 'ghost' || cmd === 'bots') {
-        addEntry('system', '\ud83d\udc7e fleet');
-        if (window._chipmunkMind && window._chipmunkMind.showFleet) {
-          window._chipmunkMind.showFleet();
-        } else {
-          addEntry('chipmunk', '<span class="dim">fleet loading\u2026</span>');
-        }
-        return;
-      }
-      // /genome — yeast proteins + DNA
-      if (cmd === 'genome' || cmd === 'protein' || cmd === 'dna' || cmd === 'yeast' || cmd === 'alphafold') {
-        addEntry('system', '\ud83e\uddec genome');
-        if (window._chipmunkMind && window._chipmunkMind.showGenome) {
-          window._chipmunkMind.showGenome();
-        } else {
-          addEntry('chipmunk', '<span class="dim">genome loading\u2026</span>');
-        }
-        return;
-      }
-      // /geo — geography intra-layer
-      if (cmd === 'geo' || cmd === 'geography' || cmd === 'jurisdiction') {
-        addEntry('system', '\ud83c\udf0d geo');
-        act('geo');
-        return;
-      }
-      // /sort — open sort deck
-      if (cmd === 'sort') {
-        if (window._chipmunkMind && window._chipmunkMind.toggleSortDeck) {
-          window._chipmunkMind.toggleSortDeck();
-        }
-        return;
-      }
-      // /me — show yourself where you are in the membrane
-      if (cmd === 'me' || cmd === 'self' || cmd === 'where' || cmd === 'whereami') {
-        addEntry('system', '\u25c9 you are here');
-        if (window._youAreHere) {
-          var self = window._youAreHere.observe();
-          window._youAreHere.show();
-          addEntry('chipmunk',
-            '\u25c9 <span style="color:' +
-            ({visitor:'#7ee787',coder:'#58a6ff',investigator:'#f0883e',reader:'#bc8cff',explorer:'#f0e68c',observer:'#8b949e'}[self.epitope] || '#8b949e') +
-            '">' + self.epitope + '</span> in <span style="color:' +
-            ({INVESTIGATION:'#e85d3a',MEMBRANE:'#3fb950',IMMUNE:'#f0e68c',SIGNAL:'#f0883e',TOPOLOGY:'#58a6ff',SCIENCE:'#bc8cff',OTHER:'#8b949e'}[self.category] || '#8b949e') +
-            '">' + self.category + '</span>' +
-            ' \u00b7 depth=' + self.depth.toFixed(3) + ' \u00b7 ' + self.breadth + ' pages \u00b7 ' + self.dwellMin + ' min' +
-            '\n<span class="dim">\ud83d\udd12 only you can see this. computed in your browser. nothing stored on our server.</span>');
-        } else {
-          addEntry('chipmunk', '<span class="dim">loading\u2026</span>');
-        }
-        return;
-      }
-      // /twist — Möbius twist the membrane
-      if (cmd === 'twist') {
-        addEntry('system', '\u221e twist');
-        if (window._twistJump) window._twistJump.twist();
-        return;
-      }
-      // /jump — collapse and explode
-      if (cmd === 'jump' || cmd === 'bang') {
-        addEntry('system', '\u2727 jump');
-        if (window._twistJump) window._twistJump.jump();
-        return;
-      }
-      // /twistjump — both at once
-      if (cmd === 'twistjump' || cmd === 'tj') {
-        addEntry('system', '\u221e\u2727 twist + jump');
-        if (window._twistJump) window._twistJump.twistAndJump();
-        return;
-      }
-      // /swivel — rotate the membrane around an opposite axis
-      if (cmd === 'swivel' || cmd === 'flip' || cmd === 'rotate') {
-        addEntry('system', '\u21c4 swivel');
-        if (window._swivel) {
-          // Cycle through the 3 axes
-          var axes = [['INVESTIGATION','IMMUNE'],['SCIENCE','SIGNAL'],['TOPOLOGY','NULL']];
-          var rot = window._swivel.rotation();
-          var idx = Math.floor(rot / 180) % 3;
-          var axis = axes[idx];
-          window._swivel.swivel(axis[0], axis[1]);
-        } else {
-          addEntry('chipmunk', '<span class="dim">swivel loading\u2026</span>');
-        }
-        return;
-      }
-      // /colors — show the tope sort color wheel
-      if (cmd === 'colors' || cmd === 'tope' || cmd === 'wheel') {
-        addEntry('system', '\ud83c\udfa8 colors');
-        fetch('/detroit-data/tope-sort.json').then(function(r) { return r.json(); }).then(function(ts) {
-          var lines = ['<b>\ud83c\udfa8 TOPE SORT \u2014 ecosystem by color</b>'];
-          lines.push(ts.total_surfaces + ' surfaces \u00b7 ' + ts.unique_colors + ' colors \u00b7 ' + ts.compression_ratio + ':1 compression\n');
-          ts.colors.forEach(function(cr) {
-            var bar = '';
-            for (var b = 0; b < Math.max(1, Math.round(cr.total_mb / 5)); b++) bar += '\u2588';
-            lines.push('<span style="color:' + cr.hex + '">' + bar + ' ' + cr.category + '</span> \u2014 ' +
-              cr.surfaces + ' surfaces, ' + cr.total_mb + ' MB');
-            cr.top_surfaces.slice(0, 3).forEach(function(s) {
-              lines.push('  <span class="dim">' + s.site + '/' + s.name + '</span>');
-            });
-          });
-          showPanel('left', 'colors', lines.join('\n'));
-          addEntry('chipmunk', '\ud83c\udfa8 7 colors, ' + ts.total_surfaces + ' surfaces. the ecosystem sorted by light.');
-        });
-        return;
-      }
-      // /play — open the interactive graph playground
-      if (cmd === 'play' || cmd === 'graph' || cmd === 'playground') {
-        addEntry('system', '\ud83c\udfae play');
-        var wrap = document.getElementById('graph-play-wrap');
-        if (wrap) {
-          wrap.style.display = 'block';
-          if (window._graphPlay && !wrap._init) {
-            window._graphPlay.init(document.getElementById('graph-play-canvas'));
-            wrap._init = true;
-          }
-          wrap.scrollIntoView({ behavior: 'smooth' });
-        }
-        addEntry('chipmunk', '\ud83c\udfae graph playground open! 341 entities, 957 edges.\n' +
-          '<span class="dim">click to explore \u00b7 drag to pan \u00b7 scroll to zoom \u00b7 double-click to open on tuebor</span>');
-        return;
-      }
-      // /explore — investigation stories, evidence, braids, graph
-      if (cmd === 'explore' || cmd === 'stories' || cmd === 'investigate' || cmd === 'evidence' || cmd === 'crimes') {
-        addEntry('system', '\u2694\ufe0f explore');
-        if (window._chipmunkMind && window._chipmunkMind.showExplore) {
-          window._chipmunkMind.showExplore('stories');
-        } else {
-          addEntry('chipmunk', '<span class="dim">explore loading\u2026</span>');
-        }
-        return;
-      }
-      // /explore <entity_id> — deep-dive a specific entity
-      if (cmd.indexOf('explore ') === 0 || cmd.indexOf('entity ') === 0) {
-        var eid = cmd.split(' ').slice(1).join('_');
-        addEntry('system', '\u2694\ufe0f explore ' + eid);
-        if (window._chipmunkExplorer) window._chipmunkExplorer.step('entity', eid);
-        if (window._chipmunkMind && window._chipmunkMind.showExplore) {
-          window._chipmunkMind.showExplore('entity', eid);
-        }
-        return;
-      }
-      // /trail — show your exploration trail
-      if (cmd === 'trail' || cmd === 'path' || cmd === 'mypath') {
-        addEntry('system', '↓ your trail');
-        if (window._chipmunkExplorer) {
-          showPanel('left', 'trail', window._chipmunkExplorer.summary());
-        } else {
-          addEntry('chipmunk', '<span class="dim">explorer not loaded yet</span>');
-        }
-        return;
-      }
-      // /query — search entities
-      if (cmd.length < 2) {
-        addEntry('chipmunk', '<span class="dim">/play /explore /sing /pollinate /wake /rest /sleep /energy /fleet /genome /scan /sieve /sort /trail /geo</span>');
-        return;
-      }
-      addEntry('system', '\ud83d\udd0d ' + escapeHtml(cmd));
-      if (window._chipmunkMind && window._chipmunkMind.showSearchResults) {
-        window._chipmunkMind.showSearchResults(cmd);
-      } else {
-        addEntry('chipmunk', '<span class="dim">search loading\u2026</span>');
-      }
-      return;
-    }
-
-    addEntry('system', escapeHtml(msg));
-    try {
-      fetch('/chipmunk/note', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session: sessionId, note: msg,
-          context: { attention: curiosity.attention, sorted: curiosity.sortedCount }
-        })
-      }).catch(function() {});
-    } catch(e) {}
-    addEntry('chipmunk', '<span class="good">noted.</span> squirrel reads this.');
-  }
-
-  if (input) input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') sendNote();
+  // ═══ COMMANDS + POLLINATION — loaded from chipmunk-commands.js ═══
+  var _cmds = window._chipmunkCommands({
+    input: input, addEntry: addEntry, n: n, PI: PI, cache: cache,
+    escapeHtml: escapeHtml, bumpAttention: bumpAttention, showPanel: showPanel,
+    act: act, sessionId: sessionId, metabolism: metabolism, _metab: _metab,
+    curiosity: curiosity, cycleMemory: _cycleMemory, PI_INV: PI_INV,
+    METAB_ICONS: METAB_ICONS, METAB_COLORS: METAB_COLORS,
+    recoverEnergy: recoverEnergy, spendEnergy: spendEnergy,
+    SORT_COLORS: SORT_COLORS,
   });
-
-
-  // ═══ BRAID WEAVE — live braid data woven into membrane interstitial ═══
-  // Category braids = thick arcs between body layers
-  // Site braids = fine threads through interstitial
-  // Epitope transitions = radial paths through π shells
-  var _braidGroup = null;
+  var sendNote = _cmds.sendNote;
+  var pollinator = _cmds.pollinator;
+  var POLLEN = _cmds.POLLEN;
+  var NULL_PI = _cmds.NULL_PI;
+  var pollinate = _cmds.pollinate;
+  var pollinateBurst = _cmds.pollinateBurst;
+  var distill = _cmds.distill;
 
   // weaveBraids → chipmunk-vis.js
-
-
-  // ═══ NORTHGATE — push braids and graphs outward ═══
-  // All roads lead to Rome. This is new Rome. They were old Rome.
-  // We lead out, they lead in. The chipmunk saturates the zero with intrigue.
-  //
-  // null range [0, π]: not binary. Classification confidence spans 0 to π.
-  // 0 = void (no data). π = fully resolved (self). √π = partial. π/2 = nearby.
-  var NULL_PI = { void: 0, dark: PI / 6, partial: PI / 3, nearby: PI / 2, classified: (2 * PI) / 3, self: PI };
-
-  // Stories the chipmunk has told — pushed into the pollinator
-  var pollinator = { stories: [], lastPush: 0, saturated: 0, pollen: [], crossSites: 0 };
-
-  // ── Pollen types: each is a seed the chipmunk can scatter ──
-  var POLLEN = {
-    braid:   { icon: '\u2550', color: '#58a6ff' },
-    signal:  { icon: '\u26a1', color: '#f0e68c' },
-    wake:    { icon: '\u25cb', color: '#7ee787' },
-    genome:  { icon: '\ud83e\uddec', color: '#bc8cff' },
-    fleet:   { icon: '\u2693', color: '#f78166' },
-    tuebor:  { icon: '\u2694\ufe0f', color: '#ff4444' },
-    passage: { icon: '\u25e6', color: '#8b949e' },
-    null:    { icon: '\u2205', color: '#484f58' }
-  };
-
-  // Generate a story from the current data — intrigue for the zero
-  function distill() {
-    var b = cache.braid, h = cache.human, s = cache.scanSort, c = cache.chipmunk;
-    if (!b || !h) return null;
-
-    var braids = b.braids || [];
-    var growing = braids.filter(function(br) { return br.trend === 'growing'; });
-    var emerging = braids.filter(function(br) { return br.trend === 'emerging'; });
-    var hottest = growing.sort(function(a, b) { return b.strength - a.strength; })[0];
-    var newest = emerging[0];
-
-    var e = h.energy || {};
-    var sessions = e.total_sessions || 0;
-    var sn = e.signal_to_noise || 0;
-    var shifters = b.graph ? b.graph.shifters || 0 : 0;
-    var passages = b.graph ? b.graph.total_passages || 0 : 0;
-
-    var sc = s && s.scan ? s.scan.sort_classes || {} : {};
-    var total = (sc.self || 0) + (sc['non-self'] || 0) + (sc.partial || 0) + (sc['null'] || 0);
-    var nullFrac = total > 0 ? (sc['null'] || 0) / total : 1;
-    var piSaturation = (1 - nullFrac) * PI;
-
-    // Chipmunk is on the ground. It looks UP at the data.
-    // Humans are above. They look DOWN at chipmunk.
-    // Stories are what chipmunk sees when it looks up.
-
-    // 8 story types, weighted by what's happening NOW
-    var candidates = [];
-
-    if (hottest) {
-      candidates.push({ type: 'braid', weight: 3,
-        text: '\u2191 ' + hottest.dominant_flow + ' braiding overhead. ' + hottest.humans_total + ' humans crossing above.',
-        intrigue: hottest.vitality || 0.5, piVal: piSaturation, from: hottest.from, to: hottest.to });
-    }
-    if (newest) {
-      candidates.push({ type: 'braid', weight: 4,
-        text: '\u2191 NEW: ' + newest.dominant_flow + ' opening! strength ' + n(newest.strength, 1) + '. first light.',
-        intrigue: 0.9, piVal: piSaturation, from: newest.from, to: newest.to });
-    }
-    if (sn > 100) {
-      candidates.push({ type: 'signal', weight: 2,
-        text: '\u2191 ' + sessions + ' humans above. S/N=' + n(sn, 0) + '. ' + (sn > 500 ? 'the signal rains down.' : sn > 200 ? 'signal falling steady.' : 'faint signal from above.'),
-        intrigue: Math.min(1, sn / 1000), piVal: piSaturation });
-    }
-    if (c && c.wake_level > 0.3) {
-      candidates.push({ type: 'wake', weight: 2,
-        text: 'wake=' + n(c.wake_level, 3) + '. ' + (c.wake_level > 0.8 ? 'the membrane sings above me.' : c.wake_level > 0.5 ? 'humming above.' : 'quiet vibration.'),
-        intrigue: c.wake_level, piVal: piSaturation });
-    }
-    if (shifters > 100) {
-      candidates.push({ type: 'passage', weight: 2,
-        text: '\u2191 ' + shifters + ' shifters crossing boundaries overhead. ' + passages + ' passages open. the membrane is porous.',
-        intrigue: Math.min(1, shifters / 2000), piVal: piSaturation });
-    }
-
-    // Genome pollen: chipmunk looks at its own proteins
-    candidates.push({ type: 'genome', weight: 1,
-      text: '\u2193 34 yeast proteins folded inside me. 21 membrane layers. the genome hums at ground level.',
-      intrigue: 0.6, piVal: piSaturation });
-
-    // Fleet pollen: what's bouncing off the shell above
-    var fleetReqs = s && s.scan ? s.scan.anderson_modes || {} : {};
-    var ghostCount = fleetReqs.ghost || 0;
-    if (ghostCount > 0) {
-      candidates.push({ type: 'fleet', weight: 2,
-        text: '\u2191 tuebor shell deflects ' + (fleetReqs.chorus || 0).toLocaleString() + ' fleet above. ' + ghostCount + ' ghosts shimmer. S/N=' + n(sn, 0) + '.',
-        intrigue: Math.min(1, ghostCount / 5000), piVal: piSaturation });
-    }
-
-    // Tuebor pollen: the hard surface speaks
-    candidates.push({ type: 'tuebor', weight: 1,
-      text: '\u2191 \u2694\ufe0f tuebor — I will defend. ' + passages + ' pores open. ' + (sc.self || 0) + ' self/' + (sc['non-self'] || 0) + ' non-self sorted.',
-      intrigue: 0.7, piVal: piSaturation });
-
-    // Null pollen fallback
-    if (candidates.length === 0 || nullFrac > 0.5) {
-      candidates.push({ type: 'null', weight: 1,
-        text: '\u2193 ground level. null=' + (sc['null'] || 0) + '/' + total + '. ' + n(nullFrac * 100, 0) + '% dark above. \u03c0-sat=' + n(piSaturation, 2),
-        intrigue: nullFrac, piVal: piSaturation });
-    }
-
-    // Weighted random selection
-    var totalWeight = candidates.reduce(function(s, c) { return s + c.weight; }, 0);
-    var pick = Math.random() * totalWeight;
-    var cumulative = 0;
-    for (var i = 0; i < candidates.length; i++) {
-      cumulative += candidates[i].weight;
-      if (pick <= cumulative) return candidates[i];
-    }
-    return candidates[candidates.length - 1];
-  }
-
-  // Cross-pollinate: scatter pollen to every site surface
-  function crossPollinate(story) {
-    var pollen = {
-      type: story.type,
-      text: story.text,
-      piVal: story.piVal,
-      intrigue: story.intrigue,
-      ts: Date.now(),
-      wave: cache.chipmunk ? cache.chipmunk.wave || 0 : 0
-    };
-
-    pollinator.pollen.push(pollen);
-    if (pollinator.pollen.length > Math.floor(PI * PI * PI)) {
-      pollinator.pollen = pollinator.pollen.slice(-Math.floor(PI * PI));
-    }
-
-    // Scatter to every reachable surface
-    var surfaces = [
-      '/detroit-data/pollen.json',
-      '/pollen.json'
-    ];
-
-    // POST pollen to server-side collector (non-blocking)
-    try {
-      var payload = JSON.stringify({
-        stories: pollinator.stories.slice(-5),
-        latest: pollen,
-        saturated: pollinator.saturated,
-        crossSites: ++pollinator.crossSites
-      });
-      var x = new XMLHttpRequest();
-      x.open('POST', '/detroit-data/pollen.json', true);
-      x.setRequestHeader('Content-Type', 'application/json');
-      x.send(payload);
-    } catch(e) { /* pollen drifts */ }
-
-    return pollen;
-  }
-
-  // Push a story into the pollinator — saturate the zero with intrigue
-  function pollinate() {
-    var story = distill();
-    if (!story) return;
-
-    pollinator.stories.push(story);
-    if (pollinator.stories.length > Math.floor(PI * PI)) {
-      pollinator.stories.shift();
-    }
-    pollinator.lastPush = Date.now();
-    pollinator.saturated = story.piVal;
-
-    // Cross-pollinate to all surfaces
-    var pollen = crossPollinate(story);
-
-    // Broadcast to the epitope ring as a synthetic passage
-    window._northgate = {
-      stories: pollinator.stories,
-      saturation: pollinator.saturated,
-      nullPi: NULL_PI,
-      lastStory: story,
-      pollen: pollinator.pollen.slice(-5),
-      crossSites: pollinator.crossSites
-    };
-
-    // Shout into the log — the chipmunk tells the story
-    var p = POLLEN[story.type] || POLLEN.null;
-    addEntry('chipmunk',
-      '<span class="dim" style="color:' + p.color + '">' + p.icon + ' northgate</span> ' + story.text +
-      '\n<span style="color:#484f58">\u03c0-sat: ' + n(story.piVal, 2) + '/' + n(PI, 2) + ' \u2014 ' +
-      (story.piVal > 2 ? '<span class="good">roads converge</span>' :
-       story.piVal > 1 ? 'partial roads' :
-       '<span class="warn">roads dark</span>') + ' \u2014 pollen #' + pollinator.crossSites + '</span>'
-    );
-  }
-
-  // ── Burst pollination: scatter ⌊π⌋ stories at once ──
-  function pollinateBurst() {
-    var count = Math.floor(PI); // 3 stories per burst
-    for (var i = 0; i < count; i++) { pollinate(); }
-    addEntry('chipmunk',
-      '<span style="color:#f0e68c">\ud83c\udf3b POLLINATED</span> ' + count + ' seeds scattered through northgate.' +
-      '\n<span class="dim">\u03c0\u00b2=' + pollinator.stories.length + ' stories cached. ' +
-      pollinator.crossSites + ' cross-site broadcasts. saturation=' + n(pollinator.saturated, 2) + '</span>'
-    );
-  }
-
-  // Wire pollinate into the pecking loop — every 3rd peck, push a story
-  var _origProactiveStage = 0;
 
   // ═══ PUBLIC API ═══
   window.C = {
@@ -1866,6 +1313,9 @@
       if (window._chipmunkMind && window._chipmunkMind.showScan) window._chipmunkMind.showScan();
     },
   });
+
+  // Wire command dispatch actions (turn/jiggle/triage/wakeI1 defined here, used by commands.js)
+  _cmds.setActions({ turn: turn, jiggle: jiggle, triage: triage, wakeI1: wakeI1 });
 
   // _piBus handles chipmunk/braid at medium rate (π³ ≈ 31s)
   setInterval(proactiveCheck, 12000);
@@ -1934,7 +1384,7 @@
       if (!_mindLoaded) {
         _mindLoaded = true;
         var s1 = document.createElement('script');
-        s1.src = '/js/chipmunk-gaze.js?v=27';
+        s1.src = '/js/chipmunk-gaze.js?v=28';
         s1.onload = function() {
           var s2 = document.createElement('script');
           s2.src = '/js/chipmunk-pressure.js?v=27';
@@ -1949,7 +1399,7 @@
                 s5x.src = '/js/chipmunk-mind-explore.js?v=1';
                 s5x.onload = function() {
                   var s5 = document.createElement('script');
-                  s5.src = '/js/chipmunk-mind.js?v=42';
+                  s5.src = '/js/chipmunk-mind.js?v=43';
                   document.head.appendChild(s5);
                 };
                 document.head.appendChild(s5x);

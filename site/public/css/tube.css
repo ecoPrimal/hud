@@ -1,0 +1,504 @@
+/* tube.css — pull everything off the walls and into the center
+ * The membrane is a ball. The UI wraps around it. The tube is the center.
+ * Overrides the wall-mounted position:fixed layout from index.html <style>.
+ */
+
+/* ═══ OVERLAY — centered column, not edge-mounted ═══ */
+.overlay {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.overlay > * { pointer-events: auto; }
+
+/* ═══ TOP BAR — narrower, floating, centered ═══ */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: 600px;
+  border-radius: 0 0 12px 12px;
+  padding: 6px 16px;
+  gap: 8px;
+  z-index: 4;
+}
+.top-bar h1 { font-size: 12px; }
+
+/* ═══ ATTENTION BAR — inline with top, compact ═══ */
+.attn-bar {
+  position: fixed;
+  top: 0;
+  right: 8px;
+  width: auto;
+  padding: 4px 12px;
+  border-radius: 0 0 8px 8px;
+  z-index: 4;
+  background: rgba(13,17,23,0.7);
+}
+
+/* ═══ BUTTON RINGS — orbit the membrane, not the walls ═══ */
+
+/* Left ring → left edge of the ball */
+.btn-ring.left {
+  position: fixed;
+  left: calc(50% - 310px) !important;
+  right: auto !important;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.btn-ring.left .ring-btn {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2px;
+}
+@media (max-width: 700px) {
+  .btn-ring.left { left: 4px !important; }
+}
+
+/* Right ring → right edge of the ball */
+.btn-ring.right {
+  position: fixed;
+  left: calc(50% + 260px) !important;
+  right: auto !important;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.btn-ring.right .ring-btn {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2px;
+}
+@media (max-width: 700px) {
+  .btn-ring.right { left: auto !important; right: 4px !important; }
+}
+
+/* Bottom ring → wraps under the ball */
+.btn-ring.bottom {
+  position: fixed;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Below the membrane center */
+  top: calc(50% + min(210px, 36vw));
+  gap: 4px;
+}
+.btn-ring.bottom .ring-btn {
+  width: auto;
+  border-radius: 20px;
+  padding: 6px 12px;
+  height: auto;
+}
+
+/* ═══ READOUT — center-right of the ball, not wall-mounted ═══ */
+.readout {
+  position: fixed;
+  /* Pull off the right wall, park near the membrane */
+  right: auto;
+  left: calc(50% + min(240px, 42vw));
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 220px;
+  max-height: 50vh;
+  border-radius: 10px;
+  background: rgba(13,17,23,0.88);
+  backdrop-filter: blur(6px);
+}
+
+/* ═══ NOTE INPUT — below the ball, centered ═══ */
+.note-float {
+  position: fixed;
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 12px;
+  gap: 4px;
+}
+.note-float input {
+  width: 260px;
+  text-align: center;
+  border-radius: 20px;
+}
+.note-float input:focus {
+  width: 360px;
+}
+
+/* ═══ PANELS — near the membrane, not wall-mounted ═══ */
+.panel.left-panel {
+  left: calc(50% - min(300px, 48vw));
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 280px;
+}
+.panel.right-panel {
+  right: auto;
+  left: calc(50% + min(250px, 43vw));
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 280px;
+}
+.panel.bottom-panel {
+  bottom: auto;
+  top: calc(50% + min(220px, 38vw));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ═══ SORT DECK — wraps under the ball ═══ */
+.sort-deck {
+  bottom: auto;
+  top: calc(50% + min(180px, 30vw));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 360px;
+}
+
+/* ═══ GUESS BUBBLE — stays center (already correct) ═══ */
+
+/* ═══ TRACE STRIP — left side near ball ═══ */
+.trace-strip {
+  left: calc(50% - min(280px, 46vw));
+  bottom: auto;
+  top: calc(50% + 60px);
+}
+
+/* ═══ EPITOPE PICKER — below the ball ═══ */
+.ep-strip {
+  bottom: auto;
+  top: calc(50% + min(240px, 40vw));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ═══ DASHBOARD TOGGLE — near center bottom ═══ */
+#chipmunk-toggle {
+  bottom: 12px !important;
+  right: auto !important;
+  left: 50% !important;
+  transform: translateX(140px) !important;
+}
+
+/* ═══ SURROUND STRIPS — off the walls, around the ball ═══ */
+/* Fleet strips: collapse from full-width walls to ball-width bands */
+.fleet-strip {
+  left: calc(50% - 280px) !important;
+  width: 560px !important;
+  border-radius: 8px;
+  opacity: 0.7;
+}
+.fleet-strip.above {
+  top: calc(50% - 250px) !important;
+  height: 40px !important;
+}
+.fleet-strip.below {
+  bottom: auto !important;
+  top: calc(50% + 210px) !important;
+  height: 50px !important;
+}
+
+/* Human strips: collapse from full-height walls to ball-height bands */
+.human-strip {
+  top: calc(50% - 200px) !important;
+  height: 400px !important;
+  width: 36px !important;
+  opacity: 0.7;
+  border-radius: 8px;
+}
+.human-strip.left-edge {
+  left: calc(50% - 320px) !important;
+}
+.human-strip.right-edge {
+  right: auto !important;
+  left: calc(50% + 284px) !important;
+}
+
+/* Braid arcs — bring above the overlay so they're visible */
+.braid-arc-h {
+  z-index: 3 !important;
+  opacity: 0.12 !important;
+}
+
+/* Epi transitions — visible on top */
+.epi-transition {
+  z-index: 4 !important;
+}
+
+/* Ghost fog — constrain to ball width */
+.ghost-fog {
+  left: calc(50% - 280px) !important;
+  width: 560px !important;
+}
+
+/* ═══ TRAIL DOTS — below the input ═══ */
+#trail-marks {
+  bottom: 2px !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%);
+  max-width: 400px;
+  justify-content: center;
+}
+
+/* ═══ HIDE DASHBOARD BLEED when membrane overlay is active ═══ */
+/* The hud-main contains both dashboard AND overlay — 
+   when overlay is showing, hide the scrollable content underneath */
+#chipmunk-overlay ~ .hud-card,
+#chipmunk-overlay ~ div:not(.overlay):not(.btn-ring):not(.panel):not(.sort-deck):not(.guess-bubble):not(.trace-strip):not(.ep-strip):not(.readout):not(.note-float) {
+  /* Don't hide siblings of the overlay */
+}
+
+/* When membrane overlay is visible, it should be full-screen
+   with the membrane SVG centered inside it. */
+#chipmunk-overlay {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #010409;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* The pt-panels (which contain membrane-focal-svg) need to be
+   pulled into the overlay's viewport. Since they're siblings in the DOM,
+   make them fixed and centered when overlay is active. */
+#pt-panels {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vmin;
+  max-width: 560px;
+  z-index: 3;
+  margin: 0 !important;
+  pointer-events: none;
+}
+#pt-panels > * { pointer-events: auto; }
+
+/* The membrane SVG itself — make it fill its container */
+#membrane-focal-svg {
+  width: 100%;
+}
+#membrane-focal-svg svg {
+  width: 100%;
+  max-height: 80vh;
+}
+
+/* Hide all other pt-panels cards — only show membrane SVG */
+#pt-panels > .hud-card:not(:has(#membrane-focal-svg)) {
+  display: none;
+}
+/* Strip all chrome from the SVG card — just the ball */
+#pt-panels .hud-card {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#pt-panels .hud-card .hud-card-title,
+#pt-panels .hud-card > div:not(#membrane-focal-svg),
+#pt-panels .hud-card > span {
+  display: none !important;
+}
+/* Hide the descriptive text above/below the SVG */
+#pt-panels .hud-card > div[style*="color:#6e7681"],
+#pt-panels .hud-card .hud-dim-cost {
+  display: none !important;
+}
+
+/* Nav header — compact */
+.hud-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  background: rgba(1,4,9,0.85);
+  backdrop-filter: blur(4px);
+}
+
+/* Billboard — floating, compact */
+.hud-billboard {
+  position: fixed;
+  top: 38px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  max-width: 500px;
+  width: auto;
+  background: rgba(13,17,23,0.8);
+  border-radius: 0 0 8px 8px;
+  padding: 4px 12px;
+  font-size: 10px;
+}
+
+/* Footer + ecosystem card — hide when membrane is up */
+.hud-footer {
+  display: none;
+}
+.hud-main > .hud-card {
+  display: none;
+}
+
+/* The hud-grid outside the overlay (Human Presence, Tower, Geo) — hide */
+.hud-main > .hud-card-full:not(#pt-panels) {
+  display: none;
+}
+
+/* ═══ MOBILE — everything wraps tight to the ball ═══ */
+@media (max-width: 800px) {
+  .btn-ring.left {
+    left: 4px !important;
+    top: auto !important;
+    bottom: 80px !important;
+    transform: none !important;
+    flex-direction: row !important;
+    gap: 2px;
+  }
+  .btn-ring.left .ring-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 7px;
+  }
+  .btn-ring.right {
+    left: auto !important;
+    right: 4px !important;
+    top: auto !important;
+    bottom: 80px !important;
+    transform: none !important;
+    flex-direction: row !important;
+    gap: 2px;
+  }
+  .btn-ring.right .ring-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 7px;
+  }
+  .btn-ring.bottom {
+    top: auto !important;
+    bottom: 44px !important;
+  }
+  .btn-ring.bottom .ring-btn {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  .readout {
+    left: 4px !important;
+    right: 4px !important;
+    top: auto !important;
+    bottom: 120px !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: calc(100vw - 8px);
+    max-height: 30vh;
+    font-size: 10px;
+  }
+  .top-bar {
+    max-width: 100vw;
+    border-radius: 0;
+    padding: 4px 8px;
+  }
+  .hud-billboard {
+    top: 30px;
+    max-width: 90vw;
+    font-size: 9px;
+  }
+  #pt-panels {
+    width: 95vmin !important;
+    max-width: 100vw !important;
+  }
+  .panel.left-panel,
+  .panel.right-panel {
+    left: 4px !important;
+    right: 4px !important;
+    max-width: calc(100vw - 8px);
+    top: auto !important;
+    bottom: 40px !important;
+    transform: none !important;
+  }
+  .note-float {
+    bottom: 4px !important;
+  }
+  .note-float input {
+    width: 200px;
+    font-size: 11px;
+  }
+  .note-float input:focus {
+    width: calc(100vw - 80px);
+  }
+  #chipmunk-toggle {
+    bottom: 4px !important;
+    transform: translateX(100px) !important;
+  }
+  .sort-deck {
+    top: auto !important;
+    bottom: 40px !important;
+  }
+  /* Hide the nav header links on small screens — keep just the logo */
+  .hud-nav a:not(:first-child) {
+    display: none;
+  }
+  /* Surround strips — full width on mobile, thinner */
+  .fleet-strip {
+    left: 0 !important;
+    width: 100vw !important;
+    opacity: 0.5 !important;
+  }
+  .fleet-strip.above {
+    top: 36px !important;
+    height: 28px !important;
+  }
+  .fleet-strip.below {
+    top: auto !important;
+    bottom: 40px !important;
+    height: 36px !important;
+  }
+  .human-strip {
+    top: 60px !important;
+    height: calc(100vh - 120px) !important;
+    width: 24px !important;
+    opacity: 0.5 !important;
+  }
+  .human-strip.left-edge {
+    left: 0 !important;
+  }
+  .human-strip.right-edge {
+    left: auto !important;
+    right: 0 !important;
+  }
+}
+
+/* ═══ VERY SMALL (iPhone SE etc) ═══ */
+@media (max-width: 400px) {
+  #pt-panels {
+    width: 98vw !important;
+  }
+  .btn-ring.left, .btn-ring.right {
+    bottom: 48px !important;
+  }
+  .btn-ring.left .ring-btn,
+  .btn-ring.right .ring-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 6px;
+  }
+  .readout {
+    bottom: 90px !important;
+    max-height: 25vh;
+  }
+  .fleet-strip {
+    opacity: 0.4 !important;
+  }
+  .human-strip {
+    width: 18px !important;
+    opacity: 0.4 !important;
+  }
+}

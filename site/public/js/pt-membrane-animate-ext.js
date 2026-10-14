@@ -401,6 +401,39 @@ function _animChipMonk(mc, cx, cy, t, PI, perturb) {
   }
 }
 
+// ── Human presence + footprints — breathing ──
+function _animHumanTrail(cx, cy, t, PI, R) {
+  var dot = document.getElementById('mg-human-dot');
+  var ring = document.getElementById('mg-human-ring');
+  if (dot) {
+    var pulse = 0.4 + Math.sin(t * PI * 0.3) * 0.15;
+    dot.setAttribute('opacity', pulse.toFixed(3));
+    // Slowly orbit the ring
+    var angle = PI * 1.15 + t * 0.02;
+    var hr = R * 0.95;
+    dot.setAttribute('cx', (cx + hr * Math.cos(angle)).toFixed(1));
+    dot.setAttribute('cy', (cy + hr * Math.sin(angle)).toFixed(1));
+    if (ring) {
+      ring.setAttribute('cx', dot.getAttribute('cx'));
+      ring.setAttribute('cy', dot.getAttribute('cy'));
+      ring.setAttribute('opacity', (pulse * 0.3).toFixed(3));
+      ring.setAttribute('r', (6 + Math.sin(t * PI * 0.5) * 2).toFixed(1));
+    }
+    var label = document.getElementById('mg-human-label');
+    if (label) {
+      label.setAttribute('x', (parseFloat(dot.getAttribute('cx')) + 8).toFixed(1));
+      label.setAttribute('y', dot.getAttribute('cy'));
+      label.setAttribute('opacity', (pulse * 0.4).toFixed(3));
+    }
+  }
+  // Footprints: gentle pulse
+  var trailG = document.getElementById('mg-trail-marks');
+  if (trailG) {
+    var tOp = 0.1 + Math.sin(t * PI * 0.2) * 0.04;
+    trailG.setAttribute('opacity', tOp.toFixed(3));
+  }
+}
+
 // ── Epitope orbit ring twist ──
 function _animOrbitTwist(cx, cy, t, PI, omega_is, omega_was, omega_willbe) {
   var twists = [
@@ -550,6 +583,7 @@ function _membraneAnimateExt(mc, now) {
   var focal = _animFocalHelix(cx, cy, R, t, PI, TAU, perturb, liveStats, solarPos);
   _animNullData(mc, cx, cy, t, PI, perturb, focal, prevDash, wasDash, liveStats, lerp, willbeT);
   _animChipMonk(mc, cx, cy, t, PI, perturb);
+  _animHumanTrail(cx, cy, t, PI, mc.MG.R);
   _animOrbitTwist(cx, cy, t, PI, ac.omega_is, ac.omega_was, ac.omega_willbe);
   var spine = _animSpine(cx, cy, R, t, PI, TAU, perturb, mc.TIERS);
   _animEvolution(cx, cy, R, t, PI, perturb, spine, mc.TIERS);

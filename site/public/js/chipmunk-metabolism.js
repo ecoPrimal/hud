@@ -354,5 +354,6 @@ window._chipmunkMetabolism = function(s) {
     springV: function() { return _springV; },
     springK: function() { return SPRING_K; },
     autonomousCount: function() { return _autonomousCount; },
+    updateMetabolismState: updateMetabolismState,
   };
 };

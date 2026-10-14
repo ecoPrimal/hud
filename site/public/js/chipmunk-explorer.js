@@ -115,9 +115,18 @@
     trail.branches[cat].push(s.i);
 
     // Growth — continuous, never caps. Diminishing returns per step.
-    // First steps grow fast, later steps grow slowly.
+    var prevGrowth = trail.growth;
     var stepGrowth = 1 / (1 + trail.growth * 0.5); // diminishing
-    trail.growth += stepGrowth * 0.1;
+    // Momentum bonus: faster exploration = slightly more growth
+    var momBonus = 1 + momentum() * 0.3;
+    trail.growth += stepGrowth * 0.1 * momBonus;
+    s._prevGrowth = prevGrowth; // for milestone threshold detection
+
+    // Double-back detection
+    var db = detectDoubleBack(cat);
+    if (db && db.gap > 10) {
+      trail.milestones.push({ t: Date.now(), kind: 'double-back', detail: cat + ' (gap ' + db.gap + ')' });
+    }
 
     // Discovery events
     if (isFirst) {
@@ -189,6 +198,56 @@
         trail.milestones.push({ t: Date.now(), kind: 'entities', detail: entCount });
       }
     }
+    // Growth depth milestones (π thresholds)
+    var piDepths = [1, PI, PI * 2, PI * PI, PI * PI * PI / 3];
+    var piLabels = ['1', 'π', '2π', 'π²', 'π³/3'];
+    for (var gi = 0; gi < piDepths.length; gi++) {
+      if (trail.growth >= piDepths[gi] && trail.growth - s._prevGrowth < piDepths[gi]) {
+        trail.milestones.push({ t: Date.now(), kind: 'depth', detail: piLabels[gi] });
+        notifyDepth(piLabels[gi]);
+        break;
+      }
+    }
+    // Branch diversity milestone
+    var catCount = Object.keys(trail.categories).length;
+    if (catCount === 7) {
+      var prev = trail.milestones.filter(function(m) { return m.kind === 'all-cats'; });
+      if (!prev.length) {
+        trail.milestones.push({ t: Date.now(), kind: 'all-cats', detail: 'all categories explored' });
+      }
+    }
+  }
+
+  function notifyDepth(label) {
+    setTimeout(function() {
+      var core = window._chipmunkCore;
+      if (!core || !core.addEntry) return;
+      core.addEntry('chipmunk', '<span style="color:#e85d3a">↓ depth ' + label + '</span> — ' +
+        'you are deep inside tuebor now. growth=' + trail.growth.toFixed(2));
+    }, 700);
+  }
+
+  // ═══ MOMENTUM — how fast you're exploring right now ═══
+  function momentum() {
+    var recent = trail.steps.slice(-10);
+    if (recent.length < 2) return 0;
+    var dt = (recent[recent.length - 1].t - recent[0].t) / 1000;
+    if (dt <= 0) return 1;
+    var stepsPerSec = recent.length / dt;
+    return Math.min(1, stepsPerSec * 5);
+  }
+
+  // ═══ DOUBLE-BACK — detect when you return to a previously explored category ═══
+  function detectDoubleBack(cat) {
+    if (!trail.categories[cat]) return null;
+    var catSteps = trail.branches[cat] || [];
+    if (catSteps.length < 3) return null;
+    var lastIdx = trail.steps.length - 1;
+    var prevVisit = catSteps[catSteps.length - 2];
+    if (lastIdx - prevVisit > 5) {
+      return { from: prevVisit, to: lastIdx, gap: lastIdx - prevVisit };
+    }
+    return null;
   }
 
   // ═══ POSITION ═══
@@ -416,6 +475,61 @@
       g.appendChild(mDot);
     });
 
+    // ── π-depth rings — visible thresholds inside tuebor ──
+    var piThresholds = [
+      { growth: 1,       label: '1',     r: 0.30 * Math.exp(-1 * 0.3) + 0.12 },
+      { growth: PI,      label: 'π',     r: 0.30 * Math.exp(-PI * 0.3) + 0.12 },
+      { growth: PI * 2,  label: '2π',    r: 0.30 * Math.exp(-PI * 2 * 0.3) + 0.12 },
+      { growth: PI * PI, label: 'π²',    r: 0.30 * Math.exp(-PI * PI * 0.3) + 0.12 },
+    ];
+    piThresholds.forEach(function(th) {
+      if (trail.growth < th.growth * 0.5) return; // only show if near or past
+      var thR = R * th.r;
+      var passed = trail.growth >= th.growth;
+      var ring = el('circle', {
+        cx: cx, cy: cy, r: thR.toFixed(1),
+        fill: 'none', stroke: passed ? '#e85d3a' : '#484f58',
+        'stroke-width': passed ? 0.4 : 0.2,
+        'stroke-dasharray': passed ? '1.5 3' : '0.5 5',
+        opacity: passed ? 0.12 : 0.06,
+      });
+      g.appendChild(ring);
+      // Label
+      var lAngle = -PI * 0.15; // fixed position: upper right
+      var lx = cx + Math.cos(lAngle) * (thR + R * 0.008);
+      var ly = cy + Math.sin(lAngle) * (thR + R * 0.008);
+      var depthLbl = el('text', {
+        x: lx.toFixed(1), y: ly.toFixed(1),
+        'text-anchor': 'start', fill: passed ? '#e85d3a' : '#484f58',
+        'font-size': (R * 0.008) + 'px', 'font-family': 'monospace',
+        opacity: passed ? 0.2 : 0.08,
+      });
+      depthLbl.textContent = th.label;
+      g.appendChild(depthLbl);
+    });
+
+    // ── Momentum indicator — halo around position when moving fast ──
+    var mom = momentum();
+    if (mom > 0.3) {
+      var momR = R * (0.02 + mom * 0.01);
+      var momHalo = el('circle', {
+        cx: (cx + Math.cos(pos.angle) * R * pos.r).toFixed(1),
+        cy: (cy + Math.sin(pos.angle) * R * pos.r).toFixed(1),
+        r: momR.toFixed(1),
+        fill: 'none', stroke: '#f0e68c',
+        'stroke-width': (0.3 + mom * 0.5).toFixed(1),
+        opacity: (0.05 + mom * 0.1).toFixed(2),
+      });
+      var momAnim = el('animate', {
+        attributeName: 'opacity',
+        values: (0.05 + mom * 0.1).toFixed(2) + ';' + (0.02).toFixed(2) + ';' + (0.05 + mom * 0.1).toFixed(2),
+        dur: (1 + (1 - mom) * 2) + 's',
+        repeatCount: 'indefinite',
+      });
+      momHalo.appendChild(momAnim);
+      g.appendChild(momHalo);
+    }
+
     // ── Current position dot ──
     var myX = cx + Math.cos(pos.angle) * (R * pos.r);
     var myY = cy + Math.sin(pos.angle) * (R * pos.r);
@@ -524,6 +638,31 @@
       }
     });
 
+    // ── Resonance sparks — where individual trail crosses collective passages ──
+    var pos = currentPosition();
+    var myCat = pos.category;
+    presenceData.passages.forEach(function(p) {
+      if (p.from !== myCat && p.to !== myCat) return;
+      if (p.humans < 2) return;
+      var sparkAngle = CAT_ANGLE[myCat];
+      if (sparkAngle === undefined) return;
+      var sparkR = R * 0.40; // between individual (0.42) and collective (0.38)
+      var sx = cx + Math.cos(sparkAngle) * sparkR;
+      var sy = cy + Math.sin(sparkAngle) * sparkR;
+      var spark = el('circle', {
+        cx: sx.toFixed(1), cy: sy.toFixed(1),
+        r: (R * 0.003).toFixed(1),
+        fill: '#f0e68c', opacity: '0',
+      });
+      var sparkAnim = el('animate', {
+        attributeName: 'opacity',
+        values: '0;0.5;0', dur: '2s', repeatCount: 'indefinite',
+        begin: (Math.random() * 3).toFixed(1) + 's',
+      });
+      spark.appendChild(sparkAnim);
+      g.appendChild(spark);
+    });
+
     // Insert BEFORE the individual trail so collective is behind
     var indiv = svg.querySelector('#explorer-trail');
     if (indiv) {
@@ -550,7 +689,8 @@
     lines.push('<b>your pager — inside tuebor, below your feet</b>');
     lines.push('id: <span class="dim">' + trail.id + '</span> · ' + trail.visits + ' visits · ' + age + ' min');
     lines.push('growth: <span style="color:#e85d3a">' + trail.growth.toFixed(2) + '</span> → ' + depthLabel + ' · ' + trail.steps.length + ' steps');
-    lines.push('facing: ' + pos.category + ' at r=' + pos.r.toFixed(3));
+    var mom = momentum();
+    lines.push('facing: ' + pos.category + ' at r=' + pos.r.toFixed(3) + (mom > 0.2 ? ' · momentum <span style="color:#f0e68c">' + (mom * 100).toFixed(0) + '%</span>' : ''));
     lines.push('');
 
     // Branches
@@ -654,6 +794,8 @@
     categories: function() { return trail.categories; },
     discoveries: function() { return _discoveries; },
     milestones: function() { return trail.milestones; },
+    momentum: momentum,
+    doubleBack: detectDoubleBack,
     onStep: function(fn) { _listeners.push(fn); },
   };
 })();

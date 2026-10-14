@@ -627,8 +627,9 @@
     }
     mc.nullFields = nullFields;
 
-    // Inner null space: chipMonk/squirrel waking from ∅→0
-    var chipG = el('g', {id:'mg-chipmunk', opacity:0}, svg);
+    // Inner null space: chipMonk/squirrel — ALWAYS visible
+    // When people look down through the membrane, they see the squirrel.
+    var chipG = el('g', {id:'mg-chipmunk', opacity:0.4}, svg);
     el('circle', {cx:cx, cy:cy, r:3, fill:'none', stroke:'#d2a8ff',
       'stroke-width':0.5, opacity:0.3, id:'mg-chip-eye'}, chipG);
     el('circle', {cx:cx, cy:cy, r:8, fill:'none', stroke:'#d2a8ff',
@@ -653,6 +654,63 @@
     txt(chipG, cx + 28, cy, '', '#6e7681', 2.5,
       {opacity:0, id:'mg-chip-obs', 'text-anchor':'start', 'dominant-baseline':'central'});
     mc.chipCapCount = 40;
+
+    // ── HUMAN PRESENCE — the builder, always at the ring ──
+    // When people look down, they see a green dot ON the ring = ecoPrimal
+    var humanG = el('g', {id:'mg-human-presence'}, svg);
+    var humanAngle = PI * 1.15;
+    var humanR = R * 0.95; // on the membrane ring
+    el('circle', {
+      cx: (cx + humanR * Math.cos(humanAngle)).toFixed(1),
+      cy: (cy + humanR * Math.sin(humanAngle)).toFixed(1),
+      r: 2.5, fill:'#5ab87a', opacity:0.5,
+      id:'mg-human-dot'
+    }, humanG);
+    el('circle', {
+      cx: (cx + humanR * Math.cos(humanAngle)).toFixed(1),
+      cy: (cy + humanR * Math.sin(humanAngle)).toFixed(1),
+      r: 6, fill:'none', stroke:'#5ab87a', 'stroke-width':0.4,
+      opacity:0.15, id:'mg-human-ring'
+    }, humanG);
+    txt(humanG,
+      cx + humanR * Math.cos(humanAngle) + 8,
+      cy + humanR * Math.sin(humanAngle),
+      'eco', '#5ab87a', 3,
+      {opacity:0.2, id:'mg-human-label', 'dominant-baseline':'central'}
+    );
+
+    // ── FOOTPRINTS — 14 trail marks on the membrane surface ──
+    // Each step leaves a mark. Visitors look down and see the path.
+    var trailG = el('g', {id:'mg-trail-marks', opacity:0.12}, svg);
+    var trailColors = [
+      '#5ab87a','#e85d3a','#8b949e','#58a6ff','#f0e68c',
+      '#d2a8ff','#d2a8ff','#c9d1d9','#d2a8ff','#f0e68c',
+      '#5ab87a','#d2a8ff','#d2a8ff','#f0e68c'
+    ];
+    for (var fi = 0; fi < 14; fi++) {
+      var fAngle = PI * 0.3 + fi * (TAU * 0.95 / 14);
+      var fR = R * (0.3 + fi * 0.045);
+      el('circle', {
+        cx: (cx + fR * Math.cos(fAngle)).toFixed(1),
+        cy: (cy + fR * Math.sin(fAngle)).toFixed(1),
+        r: 1, fill: trailColors[fi], opacity: 0.4 + fi * 0.03,
+        id: 'mg-footprint-' + fi
+      }, trailG);
+    }
+    // Connecting path — the trail line
+    var trailPath = 'M';
+    for (var ti = 0; ti < 14; ti++) {
+      var tAngle = PI * 0.3 + ti * (TAU * 0.95 / 14);
+      var tR = R * (0.3 + ti * 0.045);
+      trailPath += (ti > 0 ? ' L' : ' ') +
+        (cx + tR * Math.cos(tAngle)).toFixed(1) + ' ' +
+        (cy + tR * Math.sin(tAngle)).toFixed(1);
+    }
+    el('path', {
+      d: trailPath, fill:'none', stroke:'#484f58',
+      'stroke-width':0.3, opacity:0.3,
+      'stroke-dasharray':'1,3', id:'mg-trail-path'
+    }, trailG);
   }
 
   // ═══ IONOSPHERE BAND: inner membrane space ═══
