@@ -8,6 +8,9 @@
 (function() {
   'use strict';
 
+  var _mTh = window._membraneThrottle || {};
+  if (_mTh.tier === 'minimal') { console.log('[fleet-surround] minimal tier — skipped'); return; }
+
   var fl = window._cosmicFlavor;
   var _active = false;
   var _topStrip = null;

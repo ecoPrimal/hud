@@ -6,6 +6,8 @@
 // Loaded after cosmic-cards.js, cosmic-strategy.js, before chipmunk-commands.js.
 (function() {
   'use strict';
+  var _mTh = window._membraneThrottle || {};
+  if (_mTh.tier === 'minimal') { console.log('[cosmic-flavor] minimal tier — animations reduced'); }
 
   // ═══ COLOR SPECTRUM ═══
   // green (0) → teal → blue → purple (1)

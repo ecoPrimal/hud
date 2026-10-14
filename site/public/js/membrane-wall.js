@@ -65,7 +65,7 @@
       '#membrane-wall {',
       '  position: fixed; top: 0; left: 50%; width: 3px; height: 100vh; z-index: 0;',
       '  background: linear-gradient(to bottom,',
-      '    #3fb950 0%, #58a6ff 25%, #f0e68c 50%, #bc8cff 75%, #a371f7 100%);',
+      '    #3fb950 0%, #58a6ff 20%, #f0e68c 40%, #bc8cff 60%, #a371f7 80%, #e6edf3 100%);',
       '  opacity: 0; pointer-events: none;',
       '  transition: opacity 1s ease-in;',
       '  box-shadow: 0 0 20px rgba(163,113,247,0.15), 0 0 20px rgba(63,185,80,0.15);',
@@ -119,7 +119,7 @@
       '#wall-balance-bar {',
       '  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);',
       '  width: 200px; height: 4px; z-index: 1; pointer-events: none;',
-      '  background: linear-gradient(to right, #3fb950, #58a6ff, #bc8cff, #a371f7);',
+      '  background: linear-gradient(to right, #3fb950, #58a6ff, #bc8cff, #a371f7, #e6edf3);',
       '  border-radius: 2px; opacity: 0;',
       '  transition: opacity 0.8s;',
       '}',
@@ -136,7 +136,7 @@
       '  gap: 0 !important;',
       '}',
       '.wall-grid-split .wall-divider-line {',
-      '  background: linear-gradient(to bottom, #3fb950, #58a6ff, #bc8cff, #a371f7);',
+      '  background: linear-gradient(to bottom, #3fb950, #58a6ff, #bc8cff, #a371f7, #e6edf3);',
       '  width: 3px; min-height: 100%; border-radius: 2px; opacity: 0.25;',
       '}',
       '.wall-inside-col { padding-right: 10px; }',
@@ -188,6 +188,22 @@
     wl.textContent = '\u2551 wall \u2551';
     _labels.push(wl);
     document.body.appendChild(wl);
+
+    // π⁴ — reality/beacon at the outer edge
+    var rl = document.createElement('div');
+    rl.className = 'wall-axis-label';
+    rl.style.cssText = 'bottom:80px;right:calc(12% - 40px);color:#e6edf3;text-align:right;font-size:7px;letter-spacing:1px';
+    rl.innerHTML = '\u03c0\u2074 reality \u2194 beacon<br><span style="opacity:0.5;font-size:6px">exit = entrance</span>';
+    _labels.push(rl);
+    document.body.appendChild(rl);
+
+    // π⁻³ observer at the center
+    var ol = document.createElement('div');
+    ol.className = 'wall-axis-label';
+    ol.style.cssText = 'bottom:80px;left:calc(12% - 40px);color:#3fb950;font-size:7px;letter-spacing:1px';
+    ol.innerHTML = '\u03c0\u207b\u00b3 observer<br><span style="opacity:0.5;font-size:6px">null sync</span>';
+    _labels.push(ol);
+    document.body.appendChild(ol);
   }
 
   function teardownWallDOM() {
@@ -427,6 +443,31 @@
     lines.push('');
 
     // Anderson modes along the wall
+    // Sync modes along the wall
+    lines.push('<span style="color:#e6edf3">SYNC MODES \u2014 how each layer synchronizes</span>');
+    var syncModes = [
+      { name: '\u03c0\u207b\u00b3 observer',   sync: 'null sync', s: 0.02, color: '#3fb950' },
+      { name: '\u03c0\u207b\u00b2 state',       sync: 'desync',    s: 0.15, color: '#58a6ff' },
+      { name: '\u03c0\u207b\u00b9 country',     sync: 'async',     s: 0.28, color: '#79c0ff' },
+      { name: '\u03c0\u2070 planet',              sync: 'sync',      s: 0.40, color: '#f0e68c' },
+      { name: '\u03c0\u00b9 solar',               sync: 'sync',      s: 0.52, color: '#bc8cff' },
+      { name: '\u03c0\u00b2 galaxy',              sync: 'sync',      s: 0.65, color: '#a371f7' },
+      { name: '\u03c0\u00b3 totality',            sync: 'sync',      s: 0.78, color: '#a371f7' },
+      { name: '\u03c0\u2074 reality/beacon',      sync: 'null sync', s: 0.95, color: '#e6edf3' }
+    ];
+    syncModes.forEach(function(m) {
+      var pos = Math.round(m.s * (W - 1));
+      var bar = repeat('\u00a0', pos);
+      var arrow = m.sync === 'null sync' ? '\u25c9' : (m.sync === 'desync' ? '\u25cb' : (m.sync === 'async' ? '\u25d4' : '\u25cf'));
+      lines.push(bar + '<span style="color:' + m.color + '">' + arrow + ' ' + m.name + ' \u2014 ' + m.sync + '</span>');
+    });
+    lines.push('');
+    lines.push('<span style="color:#e6edf3;opacity:0.6">\u00a0\u00a0\u00a0\u00a0\u25c9 null sync: floats outside the chorus, forms with and views from without</span>');
+    lines.push('<span style="color:#e6edf3;opacity:0.6">\u00a0\u00a0\u00a0\u00a0\u25cf sync: real-time synchronization with environment</span>');
+    lines.push('<span style="color:#e6edf3;opacity:0.6">\u00a0\u00a0\u00a0\u00a0\u25d4 async: own clock, own pace</span>');
+    lines.push('<span style="color:#e6edf3;opacity:0.6">\u00a0\u00a0\u00a0\u00a0\u25cb desync: fell out of sync with stated purpose</span>');
+    lines.push('');
+
     lines.push('<span style="color:#bc8cff">ANDERSON MODES \u2014 perspective positions</span>');
     var andersonModes = [
       { name: 'sovereign', s: 0.05 },

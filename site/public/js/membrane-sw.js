@@ -4,7 +4,7 @@
 // Reports connectivity status back to the relay.
 // The membrane extends to every device that touches it.
 //
-var CACHE_NAME = 'membrane-v2';
+var CACHE_NAME = 'membrane-v10';
 
 // Live feeds — network-first, cache fallback
 var FEEDS = [
@@ -13,6 +13,7 @@ var FEEDS = [
   'scan_sweep_sort.json', 'negentropy.json', 'touches.json',
   'totality.json', 'subgraphs.json', 'seo.json', 'pi-ranges.json',
   'signal/pulse',
+  'dialogue.json',
 ];
 
 self.addEventListener('install', function(e) {
