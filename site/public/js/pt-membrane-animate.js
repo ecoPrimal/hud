@@ -757,8 +757,8 @@
       if (dLink) {
         if (di % 2 === 0) {
           // Straight line — hard body segment
-          dLink.setAttribute('x1', dprev.x.toFixed(1)); dLink.setAttribute('y1', dprev.y.toFixed(1));
-          dLink.setAttribute('x2', ddx.toFixed(1)); dLink.setAttribute('y2', ddy.toFixed(1));
+        dLink.setAttribute('x1', dprev.x.toFixed(1)); dLink.setAttribute('y1', dprev.y.toFixed(1));
+        dLink.setAttribute('x2', ddx.toFixed(1)); dLink.setAttribute('y2', ddy.toFixed(1));
         } else {
           // Curve — soft body arc, control point offset perpendicular
           var cmx = (dprev.x + ddx) / 2, cmy = (dprev.y + ddy) / 2;
@@ -791,7 +791,7 @@
           // Straight on reverse where forward curves
           rLink.setAttribute('x1', rprev.x.toFixed(1)); rLink.setAttribute('y1', rprev.y.toFixed(1));
           rLink.setAttribute('x2', rdx.toFixed(1)); rLink.setAttribute('y2', rdy.toFixed(1));
-        } else {
+          } else {
           // Curve on reverse where forward is straight
           var rmx = (rprev.x + rdx) / 2, rmy = (rprev.y + rdy) / 2;
           var rvdx = rdx - rprev.x, rvdy = rdy - rprev.y;
