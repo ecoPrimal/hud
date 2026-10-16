@@ -78,55 +78,99 @@
   .btn-ring.right { left: auto !important; right: 4px !important; }
 }
 
-/* Bottom ring → wraps under the ball */
+/* Bottom ring → crushed into tube footer, above the voice tube */
 .btn-ring.bottom {
   position: fixed;
   bottom: auto;
   left: 50%;
   transform: translateX(-50%);
-  /* Below the membrane center */
-  top: calc(50% + min(210px, 36vw));
-  gap: 4px;
+  /* Sit just above the readout tube */
+  bottom: calc(38vh + 56px);
+  top: auto;
+  gap: 3px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+.btn-ring.bottom:hover {
+  opacity: 1;
 }
 .btn-ring.bottom .ring-btn {
   width: auto;
-  border-radius: 20px;
-  padding: 6px 12px;
+  border-radius: 16px;
+  padding: 4px 10px;
   height: auto;
+  font-size: 7px;
+  background: rgba(13,17,23,0.7);
 }
 
-/* ═══ READOUT — center-right of the ball, not wall-mounted ═══ */
+/* ═══ VOICE TUBE — crushed: squirrel + chipmunk + input braided together ═══
+   The readout IS the tube. The squirrel speaks into it from above.
+   The chipmunk speaks into it from below. The human types into the gap.
+   One channel. Three voices. Twisted together.
+   ═══════════════════════════════════════════════════════════════════════ */
 .readout {
   position: fixed;
-  /* Pull off the right wall, park near the membrane */
   right: auto;
-  left: calc(50% + min(240px, 42vw));
-  bottom: auto;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 220px;
-  max-height: 50vh;
-  border-radius: 10px;
-  background: rgba(13,17,23,0.88);
-  backdrop-filter: blur(6px);
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 48px;
+  top: auto;
+  width: min(420px, 92vw);
+  max-height: min(320px, 42vh);
+  border-radius: 12px 12px 4px 4px;
+  background: rgba(13,17,23,0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(63,185,80,0.12);
+  border-bottom: 2px solid rgba(63,185,80,0.2);
+  font-size: 10px;
+  transition: max-height 0.4s ease, width 0.3s ease;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(63,185,80,0.15) transparent;
+}
+.readout:hover {
+  border-color: rgba(63,185,80,0.25);
 }
 
-/* ═══ NOTE INPUT — below the ball, centered ═══ */
+/* ═══ NOTE INPUT — welded to the bottom of the tube ═══ */
 .note-float {
   position: fixed;
   right: auto;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 12px;
-  gap: 4px;
+  bottom: 8px;
+  gap: 0;
+  background: rgba(13,17,23,0.95);
+  border: 1px solid rgba(63,185,80,0.12);
+  border-radius: 20px;
+  padding: 2px;
 }
 .note-float input {
-  width: 260px;
+  width: min(370px, 80vw);
   text-align: center;
-  border-radius: 20px;
+  border-radius: 18px;
+  border: none;
+  background: rgba(22,27,34,0.9);
+  padding: 8px 14px;
+  font-size: 11px;
 }
 .note-float input:focus {
-  width: 360px;
+  width: min(420px, 90vw);
+  background: rgba(22,27,34,1);
+  box-shadow: 0 0 0 1px rgba(63,185,80,0.2);
+}
+.note-float button {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 8px;
+  opacity: 0.5;
+}
+.note-float:focus-within button {
+  opacity: 1;
 }
 
 /* ═══ PANELS — near the membrane, not wall-mounted ═══ */
@@ -177,12 +221,38 @@
   transform: translateX(-50%);
 }
 
-/* ═══ DASHBOARD TOGGLE — near center bottom ═══ */
+/* ═══ DASHBOARD TOGGLE — tucked into the voice tube row ═══ */
 #chipmunk-toggle {
-  bottom: 12px !important;
+  bottom: 10px !important;
+  right: 8px !important;
+  left: auto !important;
+  transform: none !important;
+  font-size: 10px;
+  padding: 4px 12px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+#chipmunk-toggle:hover {
+  opacity: 1;
+}
+
+/* ═══ SQUIRREL FEED — crushed INTO the readout, not floating separately ═══ */
+#squirrel-feed-hint {
+  position: static !important;
+  top: auto !important;
   right: auto !important;
-  left: 50% !important;
-  transform: translateX(140px) !important;
+  max-width: none !important;
+  border-radius: 0 !important;
+  border-left: 2px solid rgba(63,185,80,0.3) !important;
+  border-right: none !important;
+  border-top: 1px solid rgba(63,185,80,0.08) !important;
+  border-bottom: none !important;
+  margin: 4px 0 !important;
+  padding: 6px 10px !important;
+  background: rgba(63,185,80,0.04) !important;
+  opacity: 1 !important;
+  transition: none !important;
+  z-index: auto !important;
 }
 
 /* ═══ SURROUND STRIPS — off the walls, around the ball ═══ */
@@ -353,12 +423,12 @@
   display: none;
 }
 
-/* ═══ MOBILE — everything wraps tight to the ball ═══ */
+/* ═══ MOBILE — voice tube goes full-width, buttons compress ═══ */
 @media (max-width: 800px) {
   .btn-ring.left {
     left: 4px !important;
     top: auto !important;
-    bottom: 80px !important;
+    bottom: calc(38vh + 54px) !important;
     transform: none !important;
     flex-direction: row !important;
     gap: 2px;
@@ -372,7 +442,7 @@
     left: auto !important;
     right: 4px !important;
     top: auto !important;
-    bottom: 80px !important;
+    bottom: calc(38vh + 54px) !important;
     transform: none !important;
     flex-direction: row !important;
     gap: 2px;
@@ -383,18 +453,17 @@
     font-size: 7px;
   }
   .btn-ring.bottom {
+    bottom: calc(30vh + 48px) !important;
     top: auto !important;
-    bottom: 44px !important;
   }
   .btn-ring.bottom .ring-btn {
-    font-size: 9px;
-    padding: 4px 8px;
+    font-size: 8px;
+    padding: 3px 6px;
   }
   .readout {
     left: 4px !important;
     right: 4px !important;
-    top: auto !important;
-    bottom: 120px !important;
+    bottom: 44px !important;
     transform: none !important;
     width: auto !important;
     max-width: calc(100vw - 8px);
@@ -421,28 +490,30 @@
     right: 4px !important;
     max-width: calc(100vw - 8px);
     top: auto !important;
-    bottom: 40px !important;
+    bottom: calc(30vh + 60px) !important;
     transform: none !important;
   }
   .note-float {
     bottom: 4px !important;
+    left: 4px !important;
+    right: 4px !important;
+    transform: none !important;
   }
   .note-float input {
-    width: 200px;
+    width: 100%;
     font-size: 11px;
   }
   .note-float input:focus {
-    width: calc(100vw - 80px);
+    width: 100%;
   }
   #chipmunk-toggle {
-    bottom: 4px !important;
-    transform: translateX(100px) !important;
+    bottom: 6px !important;
+    right: 6px !important;
   }
   .sort-deck {
     top: auto !important;
-    bottom: 40px !important;
+    bottom: calc(30vh + 50px) !important;
   }
-  /* Hide the nav header links on small screens — keep just the logo */
   .hud-nav a:not(:first-child) {
     display: none;
   }
@@ -458,7 +529,7 @@
   }
   .fleet-strip.below {
     top: auto !important;
-    bottom: 40px !important;
+    bottom: calc(30vh + 44px) !important;
     height: 36px !important;
   }
   .human-strip {
@@ -482,7 +553,7 @@
     width: 98vw !important;
   }
   .btn-ring.left, .btn-ring.right {
-    bottom: 48px !important;
+    bottom: calc(30vh + 48px) !important;
   }
   .btn-ring.left .ring-btn,
   .btn-ring.right .ring-btn {
@@ -491,7 +562,6 @@
     font-size: 6px;
   }
   .readout {
-    bottom: 90px !important;
     max-height: 25vh;
   }
   .fleet-strip {

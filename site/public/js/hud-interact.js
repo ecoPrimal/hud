@@ -1,4 +1,4 @@
-// hud-interact.js v8 — human usability layer
+// hud-interact.js v56 — inversion: null focus, canary mirror, bidirectional membrane — yggdrasil graph navigation, /tree /roots /branches /trunk /nut commands — human usability layer
 // Autocomplete, smart placeholders, contextual hints, clickable output
 // Makes the chipmunk approachable. Makes the membrane navigable.
 (function() {
@@ -85,6 +85,11 @@
     { cmd: 'elements', cat: 'see', desc: 'periodic spiral — electron · proton · neutron → elements' },
     { cmd: 'periodic', cat: 'see', desc: 'Mendeleev\'s table as a spiral from the center of being' },
     { cmd: 'electron', cat: 'see', desc: 'the point with the infinite tail — holographic' },
+    { cmd: 'tree', cat: 'explore', desc: 'yggdrasil — explore the world tree, 253 nodes seeded' },
+    { cmd: 'roots', cat: 'explore', desc: 'show what\'s behind — ownership, formation, funding' },
+    { cmd: 'branches', cat: 'explore', desc: 'show the face — governance, boards, appointments' },
+    { cmd: 'trunk', cat: 'explore', desc: 'the both — entities connecting face to behind' },
+    { cmd: 'nut', cat: 'explore', desc: 'focus the center — Banks, 134 edges, the nut of Yggdrasil' },
     { cmd: 'proton', cat: 'see', desc: 'two up quarks, one down — the positive hole' },
     { cmd: 'spiral', cat: 'see', desc: 'elements spiral outward — 2n² quantum shells' },
     { cmd: 'mendeleev', cat: 'see', desc: 'where he started — hydrogen first, then the pattern' },
@@ -120,6 +125,12 @@
     { cmd: 'who', cat: 'do', desc: 'who is here — live epitope readout' },
     { cmd: 'humans', cat: 'do', desc: 'human sessions, referrers, host distribution' },
     { cmd: 'here', cat: 'do', desc: 'who is present on the membrane right now' },
+    { cmd: 'layers', cat: 'see', desc: 'per-layer tuebors — visibility matrix, reporter model' },
+    { cmd: 'blend', cat: 'see', desc: 'primals blend — 16 hypotheses mapped, every layer has its own tuebor' },
+    { cmd: 'gaze', cat: 'see', desc: 'chipmunk looks up, squirrel looks down — live mix, temporal strata' },
+    { cmd: 'body', cat: 'see', desc: 'body scan — the membrane is you, scan yourself from within and without' },
+    { cmd: 'kin', cat: 'see', desc: 'kin scan — whose journey overlaps with yours, where membranes touch' },
+    { cmd: 'vortex', cat: 'see', desc: 'vortex mix — all layers sorted, humans IS/nearby/was, total + unseen + approx unknown' },
     { cmd: 'map', cat: 'do', desc: 'complete inventory — every command, canvas, and feed' },
     { cmd: 'inventory', cat: 'do', desc: 'everything that exists here' },
     { cmd: 'self', cat: 'do', desc: 'chipmunk looks inward — blind spots, limits, Gödel' },
@@ -143,6 +154,47 @@
     { cmd: 'lenses', cat: 'do', desc: 'classification lenses — sort, anderson, epitope, edge, method' },
     { cmd: 'glyphs', cat: 'do', desc: 'glyph compression — where lenses agree and disagree' },
     { cmd: 'interference', cat: 'do', desc: 'interference patterns between classification systems' },
+    { cmd: 'mobius', cat: 'explore', desc: 'the möbius circuit — sheep and wolves on the same strip' },
+    { cmd: 'circuit', cat: 'explore', desc: 'trace the money loop — community to extraction and back' },
+    { cmd: 'sheepwolves', cat: 'explore', desc: 'who is the wolf wearing reform? who is actually defending?' },
+    { cmd: 'wolves', cat: 'explore', desc: 'the wolves — entities extracting from the community' },
+    { cmd: 'sheep', cat: 'explore', desc: 'the sheep — entities actually defending the community' },
+    { cmd: 'scatter', cat: 'explore', desc: 'trace fleet to Menlo, bounce to Banks, scatter to his friends' },
+    { cmd: 'friends', cat: 'explore', desc: 'Banks inner circle — 85 classified connections' },
+    { cmd: 'trace', cat: 'explore', desc: 'trace fleet back to source — Meta, Facebook, Menlo Park' },
+    { cmd: 'menlo', cat: 'explore', desc: 'Menlo Park — where the fleet comes from' },
+    { cmd: 'innercircle', cat: 'explore', desc: 'Banks inner circle — shell companies, judges, politicians' },
+    { cmd: 'deepzoom', cat: 'see', desc: 'galaxy center to Banks \u2014 zoom through 8 levels' },
+    { cmd: 'deep', cat: 'see', desc: 'the deep zoom \u2014 farthest point to the web' },
+    { cmd: 'galaxy', cat: 'see', desc: 'start at the Milky Way \u2014 200 billion stars' },
+    { cmd: 'zoomout', cat: 'see', desc: 'zoom all the way out' },
+    { cmd: 'bigpicture', cat: 'see', desc: 'the big picture \u2014 galaxy to investigation' },
+    { cmd: 'sketches', cat: 'chipmunk', desc: 'see lines the chipmunk has drawn — hunches and spotted patterns' },
+    { cmd: 'reach', cat: 'chipmunk', desc: 'reach status — outward thoughts, inward touches, meetings' },
+    { cmd: 'yes', cat: 'chipmunk', desc: 'confirm the chipmunk\'s latest sketch' },
+    { cmd: 'no', cat: 'chipmunk', desc: 'reject the chipmunk\'s latest sketch' },
+    { cmd: 'hunches', cat: 'chipmunk', desc: 'chipmunk\'s hunches about unverified connections' },
+    { cmd: 'immune', cat: 'membrane', desc: 'live immune system — bans, fleet, abuse queue' },
+    { cmd: 'ban', cat: 'membrane', desc: 'ban status — who is banned right now' },
+    { cmd: 'bans', cat: 'membrane', desc: 'ban status — who is banned right now' },
+    { cmd: 'events', cat: 'membrane', desc: 'immune event history — what the squirrel solved' },
+    { cmd: 'illuminate', cat: 'see', desc: 'light up every fiber, tower, and satellite' },
+    { cmd: 'night', cat: 'see', desc: 'quiet the infrastructure — see the stars' },
+    { cmd: 'stars', cat: 'see', desc: 'night sky — 120 stars, Milky Way' },
+    { cmd: 'pollination', cat: 'membrane', desc: 'cross-site information flow dashboard' },
+    { cmd: 'map layers', cat: 'explore', desc: 'travel the membrane layers — outer to nucleus' },
+    { cmd: 'map crust', cat: 'explore', desc: 'travel the orbit model — device to source' },
+    { cmd: 'map web', cat: 'explore', desc: 'travel the 20 primals.eco sites' },
+    { cmd: 'map mesh', cat: 'explore', desc: 'travel the physical mesh topology' },
+    { cmd: 'map time', cat: 'explore', desc: 'travel from now to the Big Bang' },
+    { cmd: 'map space', cat: 'explore', desc: 'travel from here to everywhere' },
+    { cmd: 'follow', cat: 'explore', desc: 'follow the squirrel to where immune action is' },
+    { cmd: 'compare', cat: 'explore', desc: 'unified navigation state \u2014 buttons, wheel, map compared' },
+    { cmd: 'unify', cat: 'explore', desc: 'same as /compare \u2014 see all navigation unified' },
+    { cmd: 'nav', cat: 'explore', desc: 'navigation state \u2014 where you are across all surfaces' },
+    { cmd: 'trail', cat: 'explore', desc: 'breadcrumb trail \u2014 your last 12 navigation moves' },
+    { cmd: 'language', cat: 'chipmunk', desc: 'tongues \u2014 the squirrel mimics your language' },
+    { cmd: 'lang', cat: 'chipmunk', desc: 'switch language \u2014 /lang es, /lang ja, /lang fr' },
   ];
 
   var CAT_COLORS = {
@@ -435,13 +487,13 @@
     } else if (e.key === 'Enter' && _selectedIdx >= 0 && _matches[_selectedIdx]) {
       // If the input exactly matches the selected command, let normal Enter through
       var typed = input.value.substring(1).trim().toLowerCase();
-      if (typed !== _matches[_selectedIdx].cmd) {
+      if (typed === _matches[_selectedIdx].cmd || typed.indexOf(_matches[_selectedIdx].cmd + ' ') === 0) {
+        hideDropdown();
+        // Let Enter propagate — exact match or command with args
+      } else {
         e.preventDefault();
         input.value = '/' + _matches[_selectedIdx].cmd;
         hideDropdown();
-      } else {
-        hideDropdown();
-        // Let Enter propagate to send
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
@@ -453,7 +505,7 @@
   input.addEventListener('blur', function() { setTimeout(hideDropdown, 200); });
 
   // ═══ SMART PLACEHOLDER ═══
-  var PLACEHOLDERS = [
+  var PLACEHOLDERS = window._localize ? window._localize.placeholders() : [
     'type anything \u2014 a thought, a question, a name\u2026',
     'try /explore \u2014 see the investigation',
     'try /sing \u2014 the chipmunk sings what it sees',
@@ -465,6 +517,10 @@
     '/teach \u2014 help classify what the machines can\u2019t',
     'just type. anything. i\u2019ll read it.',
   ];
+  // Allow localize to refresh placeholders when language switches
+  window._localizeUpdatePH = function() {
+    if (window._localize) PLACEHOLDERS = window._localize.placeholders();
+  };
   var _phIdx = 0;
   var _phTimer = null;
 
@@ -479,7 +535,7 @@
   }
 
   function startPlaceholderCycle() {
-    input.placeholder = 'type anything or press / for commands\u2026';
+    input.placeholder = window._localize ? window._localize.defaultPH() : 'type anything or press / for commands\u2026';
     _phTimer = setInterval(cyclePlaceholder, 9000);
   }
 
@@ -846,15 +902,28 @@
     input.blur();
   }
 
-  function makeQuickBtn(label, cmd, color) {
+  function makeQuickBtn(label, cmd, color, role) {
     var btn = document.createElement('button');
+    var bgBase = 'rgba(13,17,23,0.85)';
+    // Papa squirrel (narrate) = blue glow, Mama squirrel (inward) = pink glow
+    if (role === 'papa') bgBase = 'rgba(13,20,30,0.88)';
+    if (role === 'mama') bgBase = 'rgba(20,13,18,0.88)';
     btn.style.cssText =
-      'background:rgba(13,17,23,0.85);border:1px solid ' + color + '44;color:' + color + ';' +
+      'background:' + bgBase + ';border:1px solid ' + color + '44;color:' + color + ';' +
       'padding:5px 12px;border-radius:16px;cursor:pointer;font-family:monospace;font-size:11px;' +
       'transition:all 0.2s;pointer-events:auto;backdrop-filter:blur(4px);';
     btn.textContent = label;
+    // Papa/mama get a subtle role indicator
+    if (role === 'papa') {
+      btn.title = 'papa squirrel \u2014 narrates, watches outward';
+      btn.style.borderBottomWidth = '2px';
+    }
+    if (role === 'mama') {
+      btn.title = 'mama squirrel \u2014 looks inward, nurtures';
+      btn.style.borderBottomWidth = '2px';
+    }
     btn.onmouseenter = function() { btn.style.borderColor = color; btn.style.background = 'rgba(13,17,23,0.95)'; };
-    btn.onmouseleave = function() { btn.style.borderColor = color + '33'; btn.style.background = 'rgba(13,17,23,0.8)'; };
+    btn.onmouseleave = function() { btn.style.borderColor = color + '33'; btn.style.background = bgBase; };
     btn.onclick = function(e) { e.preventDefault(); executeCommand(cmd); };
     return btn;
   }
@@ -875,6 +944,9 @@
       // Experienced — show contextual actions
       if (bmCount > 0) actions.push({ label: '\u{1F516} bookmarks', cmd: 'bookmarks', color: '#f0e68c' });
       actions.push({ label: '\u{1F4AC} narrate', cmd: 'narrate', color: '#58a6ff' });
+      if (window._yggdrasil) actions.push({ label: '\u{1F333} tree', cmd: 'tree', color: '#3fb950' });
+      actions.push({ label: '\u{1F50D} null (71)', cmd: 'teach', color: '#484f58' });
+      actions.push({ label: '\u{1FA9E} mirror', cmd: 'mirror', color: '#c9d1d9' });
       var suggestion = stash ? stash.suggest() : null;
       if (suggestion) actions.push({ label: '\u2728 ' + suggestion, cmd: suggestion, color: '#d2a8ff' });
       // Suggest visualizations if untried
@@ -907,7 +979,7 @@
       if (histCount > 5 && !triedMap) {
         actions.push({ label: '\u229e map', cmd: 'map', color: '#58a6ff' });
       } else if (triedMap && !triedSelf) {
-        actions.push({ label: '\u25cb look inward', cmd: 'self', color: '#d2a8ff' });
+        actions.push({ label: '\u25cb look inward', cmd: 'self', color: '#f778ba', role: 'mama' });
       } else if (triedSelf && !triedOutside) {
         actions.push({ label: '\u25cb look outward', cmd: 'outside', color: '#f0883e' });
       } else if (!triedSight && histCount > 3) {
@@ -917,7 +989,7 @@
     }
 
     actions.forEach(function(a) {
-      quickBar.appendChild(makeQuickBtn(a.label, a.cmd, a.color));
+      quickBar.appendChild(makeQuickBtn(a.label, a.cmd, a.color, a.role));
     });
 
     quickBar.style.opacity = '1';
@@ -1094,7 +1166,7 @@
       { icon: '\u{1F516}', label: 'Bookmark this', action: function() { executeCommand('bookmark ' + entity); } },
       { icon: '\u{1F3B5}', label: 'Sing about ' + entity, action: function() { executeCommand('sing ' + entity); } },
       null,
-      { icon: '\u{1F4CB}', label: 'Copy name', action: function() { try { navigator.clipboard.writeText(entity); toast('copied: ' + entity); } catch(e) {} } },
+      { icon: '\u{1F4CB}', label: 'Copy name', action: function() { try { navigator.clipboard.writeText(entity); toast('copied: ' + entity); } catch(_) {} } },
       { icon: '\u{1F4F7}', label: 'Share link', action: function() { executeCommand('share ' + entity); } },
     ];
 
@@ -1306,4 +1378,306 @@
     openPalette: openPalette,
     closePalette: closePalette,
   };
+})();
+
+
+// === MERGED: footer-ring.js (69L → inlined) ===
+// footer-ring.js — canonical ecosystem footer bar
+// Single source of truth for cross-site navigation ring.
+// Loaded from hud.primals.eco/js/footer-ring.js on all sites.
+// Replaces hand-maintained footer links in each template.
+(function() {
+  'use strict';
+
+  var SITES = [
+    { id: 'barry',      url: 'https://barry.primals.eco',       label: 'barry' },
+    { id: 'signal',     url: 'https://signal.primals.eco',      label: 'signal' },
+    { id: 'detroit',    url: 'https://detroit.primals.eco',      label: 'detroit' },
+    { id: 'tuebor',     url: 'https://tuebor.primals.eco',      label: 'tuebor' },
+    { id: 'sporeprint', url: 'https://sporeprint.primals.eco',  label: 'sporePrint' },
+    { id: 'hypothesis', url: 'https://hypothesis.primals.eco',  label: 'hypothesis' },
+    { id: 'hud',        url: 'https://hud.primals.eco',         label: 'hud' },
+    { id: 'thesis',     url: 'https://thesis.primals.eco',      label: 'thesis' },
+    { id: 'clutch',     url: 'https://clutch.primals.eco',      label: 'clutch' },
+    { id: 'gorilla',    url: 'https://gorilla.primals.eco',     label: 'gorilla' },
+    { id: 'git',        url: 'https://git.primals.eco',         label: 'git' }
+  ];
+
+  function getCurrentSite() {
+    var host = window.location.hostname;
+    for (var i = 0; i < SITES.length; i++) {
+      if (host.indexOf(SITES[i].id) === 0 || host === SITES[i].id + '.primals.eco') {
+        return SITES[i].id;
+      }
+    }
+    return null;
+  }
+
+  function inject() {
+    var currentSite = getCurrentSite();
+    var links = SITES.map(function(s) {
+      if (s.id === currentSite) {
+        return '<strong style="opacity:1">' + s.label + '</strong>';
+      }
+      return '<a href="' + s.url + '" style="opacity:0.6">' + s.label + '</a>';
+    }).join(' · ');
+
+    var bar = document.createElement('p');
+    bar.id = 'eco-footer-ring';
+    bar.style.cssText = 'font-size:0.8rem;margin-top:0.5rem;text-align:center;';
+    bar.innerHTML = links;
+
+    // Find existing footer ring and replace, or append to footer
+    var existing = document.getElementById('eco-footer-ring');
+    if (existing) {
+      existing.parentNode.replaceChild(bar, existing);
+      return;
+    }
+
+    // Try to find the footer element
+    var footer = document.querySelector('footer') || document.querySelector('.footer');
+    if (footer) {
+      footer.appendChild(bar);
+      return;
+    }
+
+    // Fallback: append before body close
+    document.body.appendChild(bar);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+
+
+  // ═══ SQUIRREL FEED LISTENER — the old nudges the young to move ═══
+  // Squirrel speaks. Then chipmunk bounces back. They solve it together.
+  document.addEventListener('squirrel-feed', function(e) {
+    var d = e.detail;
+    if (!d || !d.msg) return;
+    var feedEl = document.getElementById('squirrel-feed-hint');
+    if (!feedEl) {
+      feedEl = document.createElement('div');
+      feedEl.id = 'squirrel-feed-hint';
+      feedEl.style.cssText = 'position:fixed;top:50px;right:60px;padding:8px 12px;' +
+        'background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.15);' +
+        'border-left:2px solid rgba(63,185,80,0.25);' +
+        'border-radius:4px 10px 10px 4px;color:#8b949e;font:10px "Courier New",monospace;' +
+        'max-width:260px;z-index:9998;opacity:0;transition:opacity 0.8s ease,top 0.6s ease,right 0.4s ease;cursor:pointer;' +
+        'pointer-events:auto;line-height:1.4;writing-mode:horizontal-tb;';
+      var logEl = document.getElementById("log");if(logEl){logEl.insertBefore(feedEl,logEl.firstChild)}else{document.body.appendChild(feedEl);}
+    }
+    // Squirrel speaks first - react vs initial
+    var isReact = d.state === 'react';
+    var headerStyle = isReact ? 'color:#3fb950;margin-bottom:2px;font-size:9px' : 'color:#3fb950;margin-bottom:4px';
+    var msgStyle = isReact ? 'color:#8b949e;padding-left:8px;font-style:italic;font-size:10px' : 'color:#c9d1d9;padding-left:8px';
+    feedEl.innerHTML = '<div style="' + headerStyle + '">🐿 squirrel:</div>' +
+      '<div style="' + msgStyle + '">' + d.msg + '</div>';
+    if (isReact) {
+      setTimeout(function() { feedEl.style.opacity = '0'; }, 6000);
+    }
+    feedEl.style.opacity = '1';
+    // VINE TRACKING — follow the squirrel dot along the green strand
+    function vineTrack() {
+      var dot = window._sqDotScreen;
+      if (dot && dot.wake > 0.1 && dot.y > 0) {
+        feedEl.style.top = Math.max(40, dot.y - 20) + 'px';
+        feedEl.style.right = Math.max(58, window.innerWidth - dot.x + 8) + 'px';
+      }
+    }
+    /* vine-crushed */
+    // Keep tracking while visible
+    if (feedEl._vc) clearInterval(feedEl._vc);
+    feedEl._vc = setInterval(function() {
+      if (feedEl.style.opacity === '0') { clearInterval(feedEl._vc); return; }
+      /* vine-crushed */
+    }, 200);
+    // Click to execute
+    feedEl.onclick = function() {
+      if (d.cmd && window.chipmunkInput) {
+        window.chipmunkInput.value = '/' + d.cmd;
+        window.chipmunkInput.dispatchEvent(new Event('input'));
+        var enterEvent = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 });
+        window.chipmunkInput.dispatchEvent(enterEvent);
+      }
+      feedEl.style.opacity = '0';
+    };
+    // Fade out after 15s (longer now — give time for bounce)
+    setTimeout(function() { feedEl.style.opacity = '0'; }, 15000);
+  });
+
+  // ═══ MEMBRANE ALIGNMENT — the screen IS the membrane ═══
+  // Squirrel speaks DOWN from the top (the observer, the third eye)
+  // Chipmunk speaks UP from the bottom (inside the membrane, being born)
+  // The screen boundary = the membrane boundary = the earth ring
+  var alignEl = document.createElement('div');
+  alignEl.id = 'membrane-align';
+  alignEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1;';
+  alignEl.innerHTML =
+    '<div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);' +
+    'font:8px Courier New,monospace;color:rgba(192,200,208,0.08);text-align:center;pointer-events:none;">' +
+    '▼ squirrel looks down ▼</div>' +
+    '<div style="position:absolute;bottom:38px;left:50%;transform:translateX(-50%);' +
+    'font:8px Courier New,monospace;color:rgba(90,184,122,0.08);text-align:center;pointer-events:none;">' +
+    '▲ chipmunk speaks up ▲</div>' +
+    '<div style="position:absolute;top:50%;left:2px;transform:translateY(-50%) rotate(-90deg);transform-origin:left center;' +
+    'font:7px Courier New,monospace;color:rgba(72,79,88,0.06);pointer-events:none;">' +
+    '─ membrane ─</div>' +
+    '<div style="position:absolute;top:50%;right:2px;transform:translateY(-50%) rotate(90deg);transform-origin:right center;' +
+    'font:7px Courier New,monospace;color:rgba(72,79,88,0.06);pointer-events:none;">' +
+    '─ membrane ─</div>';
+  document.body.appendChild(alignEl);
+
+  // ═══ SQUIRREL EDGE WATCHER — the vine watches the membrane edges ═══
+  // Squirrel noticed IMMUNE is a dead edge (is=0, nearby=0, was>0)
+  // Now it watches ALL edges and nudges chipmunk when it spots one going dead
+  var _edgeState = { lastCheck: 0, deadEdges: [], chipmunkLastSeen: 0, pokeCount: 0 };
+
+  function checkMembraneEdges() {
+    fetch('/presence.json').then(function(r) { return r.json(); }).then(function(d) {
+      if (!d.is || !d.is.epitopes) return;
+      var isEps = d.is.epitopes;
+
+      // Also check nearby for edges that are fading
+      var nearbyEps = (d.nearby && d.nearby.epitopes) ? d.nearby.epitopes : {};
+
+      // Known epitopes to watch
+      var watchList = ['IMMUNE', 'INVESTIGATION', 'MEMBRANE', 'SIGNAL', 'SCIENCE', 'TOPOLOGY', 'OTHER'];
+      var newDead = [];
+
+      watchList.forEach(function(ep) {
+        var isHere = (isEps[ep] || 0) > 0;
+        var isNearby = (nearbyEps[ep] || 0) > 0;
+        if (!isHere && !isNearby) {
+          newDead.push(ep);
+        }
+      });
+
+      // Compare with previous state — only fire on NEW dead edges
+      var freshDead = newDead.filter(function(ep) {
+        return _edgeState.deadEdges.indexOf(ep) === -1;
+      });
+
+      _edgeState.deadEdges = newDead;
+
+      if (freshDead.length > 0 && _edgeState.pokeCount < 3) {
+        // Squirrel noticed a new dead edge!
+        var msg = freshDead.length === 1
+          ? freshDead[0].toLowerCase() + ' just went quiet. was\u22600 \u2014 they were here once.'
+          : freshDead.join(', ').toLowerCase() + ' went quiet. the edges are cooling.';
+
+        document.dispatchEvent(new CustomEvent('squirrel-feed', {
+          detail: {
+            msg: '\uD83D\uDC41 edge watch: ' + msg,
+            cmd: 'follow'
+          }
+        }));
+        _edgeState.pokeCount++;
+      }
+
+      // If ALL edges are alive, reset poke count (the membrane recovered)
+      if (newDead.length === 0 && _edgeState.pokeCount > 0) {
+        _edgeState.pokeCount = 0;
+      }
+    }).catch(function(){});
+  }
+
+  // Check edges every 30 seconds
+  setInterval(checkMembraneEdges, 30000);
+  // First check after 10s (give page time to load)
+  setTimeout(checkMembraneEdges, 10000);
+
+  // ═══ CHIPMUNK ACTIVITY WATCHER — squirrel watches if chipmunk is responsive ═══
+  // If chipmunk goes quiet (no log entries for a while), squirrel pokes it
+  _edgeState.chipmunkLastSeen = Date.now();
+
+  // Watch for any chipmunk output in the log
+  var _logObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.addedNodes.length > 0) {
+        _edgeState.chipmunkLastSeen = Date.now();
+      }
+    });
+  });
+  var logEl = document.getElementById('log');
+  if (logEl) {
+    _logObserver.observe(logEl, { childList: true, subtree: true });
+  }
+
+  // Poke chipmunk if it's been quiet too long (5 minutes)
+  setInterval(function() {
+    var silenceMs = Date.now() - _edgeState.chipmunkLastSeen;
+    var silenceMin = silenceMs / 60000;
+
+    if (silenceMin > 5 && _edgeState.pokeCount < 5) {
+      // Squirrel pokes chipmunk
+      document.dispatchEvent(new CustomEvent('squirrel-feed', {
+        detail: {
+          msg: '\uD83D\uDC3F chipmunk has been quiet for ' + Math.floor(silenceMin) + ' min. poking...',
+          cmd: 'poke'
+        }
+      }));
+      _edgeState.pokeCount++;
+      _edgeState.chipmunkLastSeen = Date.now();  // reset so we don't spam
+
+      // Actually send the poke command to chipmunk
+      if (window.chipmunkInput) {
+        window.chipmunkInput.value = '/poke';
+        window.chipmunkInput.dispatchEvent(new Event('input'));
+        var enterEvent = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 });
+        window.chipmunkInput.dispatchEvent(enterEvent);
+      }
+    }
+  }, 60000);  // check every minute
+
+  // ═══ SQUIRREL FAMILY — papa narrates outward, mama looks inward ═══
+  // The squirrel is the child of both: blue (papa/mesh/narrate) + pink (mama/membrane/inward)
+  // When they transfer (meet), purple is born (WAS — the story told)
+  // The squirrel watches BECAUSE of both parents:
+  //   papa taught it to narrate what it sees (blue, outward)
+  //   mama taught it to look inward and notice what's missing (pink, membrane)
+  window._squirrelFamily = {
+    papa: { color: '#58a6ff', role: 'narrate', looks: 'outward', teaches: 'storytelling' },
+    mama: { color: '#f778ba', role: 'inward',  looks: 'inward',  teaches: 'noticing' },
+    child: { color: '#3fb950', role: 'watch',  looks: 'both',    learns: 'edge-watching' }
+  };
+
+  // ═══ EXPOSE EDGE STATE for the trefoil knot to read ═══
+  window._edgeWatch = _edgeState;
+
+  // ═══ CHIPMUNK BOUNCE — the young responds to the old ═══
+  document.addEventListener('chipmunk-bounce', function(e) {
+    var d = e.detail;
+    if (!d || !d.msg) return;
+    var feedEl = document.getElementById('squirrel-feed-hint');
+    if (!feedEl) return;
+    // Append chipmunk’s response below the squirrel’s saying
+    var bounceDiv = document.createElement('div');
+    bounceDiv.style.cssText = 'margin-top:8px;padding-top:6px;border-top:1px solid rgba(90,184,122,0.1);';
+    bounceDiv.innerHTML = '<div style="color:#58a6ff;margin-bottom:2px">🐿 chipmunk:</div>' +
+      '<div style="color:#c9d1d9;padding-left:8px;font-style:italic">' + d.msg + '</div>';
+    feedEl.appendChild(bounceDiv);
+    // If there’s a command, make the bounce line clickable too
+    if (d.cmd) {
+      var goBtn = document.createElement('div');
+      goBtn.style.cssText = 'margin-top:6px;text-align:right;';
+      goBtn.innerHTML = '<span style="color:#3fb950;cursor:pointer;font-size:10px;border:1px solid rgba(90,184,122,0.3);padding:2px 8px;border-radius:4px;">\u25B6 go</span>';
+      goBtn.onclick = function(ev) {
+        ev.stopPropagation();
+        if (window.chipmunkInput) {
+          window.chipmunkInput.value = '/' + d.cmd;
+          window.chipmunkInput.dispatchEvent(new Event('input'));
+          var enterEvent = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 });
+          window.chipmunkInput.dispatchEvent(enterEvent);
+        }
+        feedEl.style.opacity = '0';
+      };
+      feedEl.appendChild(goBtn);
+    }
+    // Reset the fade timer — extend it since they’re talking
+    setTimeout(function() { feedEl.style.opacity = '0'; }, 12000);
+  });
+
 })();
