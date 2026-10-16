@@ -340,7 +340,8 @@
 /* Inner = where the observer IS. Outer = where the observer SEES TO. */
 /* The membrane rotates around this oblique line. */
 
-/* Inner eye (r=3) — top-left corner. The near point. Where you ARE. */
+/* ═══ OBLIQUE 1: NEUTRINO (purple #d2a8ff) ═══ */
+/* Inner eye (r=3) — top-left. Where the observer IS. */
 #chipmunk-overlay::before {
   content: '';
   position: fixed;
@@ -349,15 +350,14 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3fb950;
-  opacity: 0.7;
+  background: #d2a8ff;
+  opacity: 0.6;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 4px rgba(63,185,80,0.4);
-  transition: opacity 0.5s;
+  box-shadow: 0 0 4px rgba(210,168,255,0.4);
 }
 
-/* Outer wake ring (r=8) — bottom-right corner. The far point. Where you SEE. */
+/* Outer wake ring (r=8) — bottom-right. Where the observer SEES. */
 #chipmunk-overlay::after {
   content: '';
   position: fixed;
@@ -366,25 +366,83 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 1.5px solid rgba(63,185,80,0.35);
+  border: 1.5px solid rgba(210,168,255,0.3);
   background: transparent;
+  opacity: 0.45;
+  z-index: 6;
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(210,168,255,0.12);
+}
+
+/* ═══ OBLIQUE 2: PROTON (gold #f0e68c) ═══ */
+/* Inner (r=1.2) — top-right. The identity core. */
+#pt-panels::before {
+  content: '';
+  position: fixed;
+  top: 38px;
+  right: 48px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f0e68c;
   opacity: 0.5;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(63,185,80,0.15);
-  transition: opacity 0.5s;
+  box-shadow: 0 0 3px rgba(240,230,140,0.3);
 }
 
-/* The oblique axis — a faint diagonal connecting the two eyes */
-/* Rendered as a gradient on the overlay itself */
+/* Outer (r=5) — bottom-left. The identity reaches. */
+#pt-panels::after {
+  content: '';
+  position: fixed;
+  bottom: 28px;
+  left: 48px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(240,230,140,0.25);
+  background: transparent;
+  opacity: 0.4;
+  z-index: 6;
+  pointer-events: none;
+  box-shadow: 0 0 5px rgba(240,230,140,0.1);
+}
+
+/* ═══ CROSS-REFRACTION POINT — the focus ═══ */
+/* Where the two obliques meet: the center of the screen. */
+/* The chiasm. The crossing. All four dots converge here. */
+/* This is the point everything rotates AROUND. */
+.readout::before {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(255,255,255,0.05);
+}
+
+/* The two obliques as faint diagonals */
 #chipmunk-overlay {
   background-image:
     linear-gradient(
       to bottom right,
-      rgba(63,185,80,0.03) 0%,
-      transparent 15%,
-      transparent 85%,
-      rgba(63,185,80,0.03) 100%
+      rgba(210,168,255,0.025) 0%,
+      transparent 12%,
+      transparent 88%,
+      rgba(210,168,255,0.025) 100%
+    ),
+    linear-gradient(
+      to bottom left,
+      rgba(240,230,140,0.02) 0%,
+      transparent 12%,
+      transparent 88%,
+      rgba(240,230,140,0.02) 100%
     ) !important;
   background-color: #010409 !important;
 }
