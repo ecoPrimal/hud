@@ -4,7 +4,7 @@
 // Reports connectivity status back to the relay.
 // The membrane extends to every device that touches it.
 //
-var CACHE_NAME = 'membrane-v10';
+var CACHE_NAME = 'membrane-v10-4';
 
 // Live feeds — network-first, cache fallback
 var FEEDS = [
