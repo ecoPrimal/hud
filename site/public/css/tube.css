@@ -42,40 +42,45 @@
   background: rgba(13,17,23,0.7);
 }
 
-/* ═══ BUTTON RINGS — orbit the membrane, not the walls ═══ */
+/* ═══ BUTTON RINGS — stuck to browser frame edge, not orbiting the ball ═══ */
+/* Tools grip the viewport. The membrane floats between them. */
 
-/* Left ring → left edge of the ball */
+/* Left ring → browser left edge */
 .btn-ring.left {
   position: fixed;
-  left: calc(50% - 310px) !important;
+  left: 4px !important;
   right: auto !important;
   top: 50%;
   transform: translateY(-50%);
 }
 .btn-ring.left .ring-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   margin-bottom: 2px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
 }
-@media (max-width: 700px) {
-  .btn-ring.left { left: 4px !important; }
+.btn-ring.left:hover .ring-btn {
+  opacity: 1;
 }
 
-/* Right ring → right edge of the ball */
+/* Right ring → browser right edge */
 .btn-ring.right {
   position: fixed;
-  left: calc(50% + 260px) !important;
-  right: auto !important;
+  left: auto !important;
+  right: 4px !important;
   top: 50%;
   transform: translateY(-50%);
 }
 .btn-ring.right .ring-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   margin-bottom: 2px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
 }
-@media (max-width: 700px) {
-  .btn-ring.right { left: auto !important; right: 4px !important; }
+.btn-ring.right:hover .ring-btn {
+  opacity: 1;
 }
 
 /* Bottom ring → crushed into tube footer, above the voice tube */
@@ -255,44 +260,53 @@
   z-index: auto !important;
 }
 
-/* ═══ SURROUND STRIPS — off the walls, around the ball ═══ */
-/* Fleet strips: collapse from full-width walls to ball-width bands */
+/* ═══ SURROUND STRIPS — frame-edge anchored, the eyes of the membrane ═══ */
+/* Fleet strips: top and bottom edges of the viewport frame */
 .fleet-strip {
-  left: calc(50% - 280px) !important;
-  width: 560px !important;
-  border-radius: 8px;
-  opacity: 0.7;
+  left: 0 !important;
+  width: 100vw !important;
+  border-radius: 0;
+  opacity: 0.5;
+  transition: opacity 0.3s;
 }
+.fleet-strip:hover { opacity: 0.85; }
 .fleet-strip.above {
-  top: calc(50% - 250px) !important;
-  height: 40px !important;
+  top: 34px !important;
+  height: 32px !important;
 }
 .fleet-strip.below {
-  bottom: auto !important;
-  top: calc(50% + 210px) !important;
-  height: 50px !important;
+  bottom: 0 !important;
+  top: auto !important;
+  height: 36px !important;
 }
 
-/* Human strips: collapse from full-height walls to ball-height bands */
+/* Human strips: left and right edges of the viewport frame */
+/* These are the eyes — they see from the frame edge inward */
 .human-strip {
-  top: calc(50% - 200px) !important;
-  height: 400px !important;
-  width: 36px !important;
-  opacity: 0.7;
-  border-radius: 8px;
+  top: 34px !important;
+  height: calc(100vh - 34px) !important;
+  width: 44px !important;
+  opacity: 0.45;
+  border-radius: 0;
+  transition: opacity 0.3s;
 }
+.human-strip:hover { opacity: 0.85; }
 .human-strip.left-edge {
-  left: calc(50% - 320px) !important;
+  left: 0 !important;
 }
 .human-strip.right-edge {
-  right: auto !important;
-  left: calc(50% + 284px) !important;
+  right: 0 !important;
+  left: auto !important;
 }
 
-/* Braid arcs — bring above the overlay so they're visible */
+/* Braid arcs — connective tissue between frame edges and membrane */
 .braid-arc-h {
   z-index: 3 !important;
-  opacity: 0.12 !important;
+  opacity: 0.08 !important;
+  transition: opacity 0.3s;
+}
+.braid-arc-h:hover {
+  opacity: 0.25 !important;
 }
 
 /* Epi transitions — visible on top */
@@ -300,10 +314,23 @@
   z-index: 4 !important;
 }
 
-/* Ghost fog — constrain to ball width */
+/* Ghost fog — full frame width, the fog is OUTSIDE the membrane */
 .ghost-fog {
-  left: calc(50% - 280px) !important;
-  width: 560px !important;
+  left: 0 !important;
+  width: 100vw !important;
+}
+
+/* ═══ MEMBRANE ALIGN — axis points for rotation ═══ */
+/* The 4 edge divs are the cardinal anchors: N/S/E/W */
+/* They mark where the membrane meets the frame — rotation axes */
+#membrane-align {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* ═══ TRAIL DOTS — below the input ═══ */
@@ -517,33 +544,16 @@
   .hud-nav a:not(:first-child) {
     display: none;
   }
-  /* Surround strips — full width on mobile, thinner */
-  .fleet-strip {
-    left: 0 !important;
-    width: 100vw !important;
-    opacity: 0.5 !important;
-  }
+  /* Surround strips — already frame-edge, just thinner on mobile */
   .fleet-strip.above {
-    top: 36px !important;
-    height: 28px !important;
+    height: 24px !important;
   }
   .fleet-strip.below {
-    top: auto !important;
-    bottom: calc(30vh + 44px) !important;
-    height: 36px !important;
+    height: 28px !important;
   }
   .human-strip {
-    top: 60px !important;
-    height: calc(100vh - 120px) !important;
-    width: 24px !important;
-    opacity: 0.5 !important;
-  }
-  .human-strip.left-edge {
-    left: 0 !important;
-  }
-  .human-strip.right-edge {
-    left: auto !important;
-    right: 0 !important;
+    width: 28px !important;
+    opacity: 0.4 !important;
   }
 }
 
