@@ -333,204 +333,259 @@
   z-index: 1;
 }
 
-/* ═══ OBLIQUE EYES — inner and outer reference points ═══ */
-/* The two concentric dots from the SVG (r=3 inner, r=8 outer) */
-/* placed at opposite oblique corners of the browser frame. */
-/* The diagonal between them IS the rotation axis. */
-/* Inner = where the observer IS. Outer = where the observer SEES TO. */
-/* The membrane rotates around this oblique line. */
+/* ═══ FOLD LINES — color axes visible ACROSS the screen ═══ */
+/* Each axis is a thin line spanning the full viewport.         */
+/* They cross at center. The fold is where all 4 meet.         */
+/* 8 dots anchor to the frame. 4 lines cross the viewport.    */
+/* The membrane ball sits at the intersection.                  */
 
-/* ═══ OBLIQUE 1: NEUTRINO (purple #d2a8ff) ═══ */
-/* Inner eye (r=3) — top-left. Where the observer IS. */
+#membrane-align {
+  background:
+    /* ── TUEBOR RED: E↔W horizontal fold line ── */
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 0.5px),
+      rgba(232,93,58,0.08) calc(50% - 0.5px),
+      rgba(232,93,58,0.12) 50%,
+      rgba(232,93,58,0.08) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    /* ── NEUTRON BLUE: N↔S vertical fold line ── */
+    linear-gradient(
+      to right,
+      transparent calc(50% - 0.5px),
+      rgba(88,166,255,0.07) calc(50% - 0.5px),
+      rgba(88,166,255,0.10) 50%,
+      rgba(88,166,255,0.07) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ) !important;
+}
+
+/* ═══ OBLIQUE EYES — dots + connection across the screen ═══ */
+
+/* ═══ OBLIQUE 1: NEUTRINO (purple #d2a8ff) — TL↔BR ═══ */
+/* Inner eye — top-left. Where the observer IS. */
 #chipmunk-overlay::before {
   content: '';
   position: fixed;
   top: 38px;
   left: 48px;
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #d2a8ff;
-  opacity: 0.6;
+  opacity: 0.7;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 4px rgba(210,168,255,0.4);
+  box-shadow:
+    0 0 6px rgba(210,168,255,0.5),
+    0 0 20px rgba(210,168,255,0.15);
 }
 
-/* Outer wake ring (r=8) — bottom-right. Where the observer SEES. */
+/* Outer wake ring — bottom-right. Where the observer SEES. */
 #chipmunk-overlay::after {
   content: '';
   position: fixed;
   bottom: 28px;
   right: 8px;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 1.5px solid rgba(210,168,255,0.3);
-  background: transparent;
-  opacity: 0.45;
+  border: 2px solid rgba(210,168,255,0.4);
+  background: rgba(210,168,255,0.05);
+  opacity: 0.6;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(210,168,255,0.12);
+  box-shadow:
+    0 0 8px rgba(210,168,255,0.2),
+    0 0 24px rgba(210,168,255,0.08);
 }
 
-/* ═══ OBLIQUE 2: PROTON (gold #f0e68c) ═══ */
-/* Inner (r=1.2) — top-right. The identity core. */
+/* ═══ OBLIQUE 2: PROTON (gold #f0e68c) — TR↔BL ═══ */
+/* Inner — top-right. The identity core. The sun dot. */
 #pt-panels::before {
   content: '';
   position: fixed;
   top: 38px;
   right: 48px;
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #f0e68c;
-  opacity: 0.5;
+  opacity: 0.7;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 3px rgba(240,230,140,0.3);
+  box-shadow:
+    0 0 6px rgba(240,230,140,0.5),
+    0 0 18px rgba(240,230,140,0.15);
 }
 
-/* Outer (r=5) — bottom-left. The identity reaches. */
+/* Outer — bottom-left. The identity reaches. */
 #pt-panels::after {
   content: '';
   position: fixed;
   bottom: 28px;
   left: 48px;
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1px solid rgba(240,230,140,0.25);
-  background: transparent;
-  opacity: 0.4;
+  border: 1.5px solid rgba(240,230,140,0.35);
+  background: rgba(240,230,140,0.04);
+  opacity: 0.55;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 5px rgba(240,230,140,0.1);
+  box-shadow:
+    0 0 6px rgba(240,230,140,0.15),
+    0 0 20px rgba(240,230,140,0.06);
 }
 
-/* ═══ CARDINAL 1: NEUTRON (blue #58a6ff) ═══ */
-/* Inner (r=1) — top-center. The field carrier. */
+/* ═══ CARDINAL 1: NEUTRON (blue #58a6ff) — N↔S ═══ */
+/* Inner — top-center. The field carrier. */
 #membrane-align::before {
   content: '';
   position: fixed;
-  top: 6px;
+  top: 4px;
   left: 50%;
-  width: 2px;
-  height: 2px;
-  margin-left: -1px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
   border-radius: 50%;
   background: #58a6ff;
-  opacity: 0.5;
+  opacity: 0.65;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 3px rgba(88,166,255,0.3);
+  box-shadow:
+    0 0 5px rgba(88,166,255,0.4),
+    0 0 16px rgba(88,166,255,0.12);
 }
 
-/* Outer (r=4) — bottom-center. The field reaches. */
+/* Outer — bottom-center. The field reaches down. */
 #membrane-align::after {
   content: '';
   position: fixed;
-  bottom: 6px;
+  bottom: 4px;
   left: 50%;
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
   border-radius: 50%;
-  border: 1px solid rgba(88,166,255,0.25);
-  background: transparent;
-  opacity: 0.35;
+  border: 1.5px solid rgba(88,166,255,0.35);
+  background: rgba(88,166,255,0.04);
+  opacity: 0.5;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 5px rgba(88,166,255,0.1);
+  box-shadow:
+    0 0 6px rgba(88,166,255,0.15),
+    0 0 18px rgba(88,166,255,0.06);
 }
 
-/* ═══ CARDINAL 2: TUEBOR (red #e85d3a) ═══ */
-/* Inner (r=1) — left-center. The watchkeeper. */
+/* ═══ CARDINAL 2: TUEBOR (red #e85d3a) — W↔E ═══ */
+/* Inner — left-center. The watchkeeper. */
 .readout::after {
   content: '';
   position: fixed;
   top: 50%;
-  left: 6px;
-  width: 2px;
-  height: 2px;
-  margin-top: -1px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
   border-radius: 50%;
   background: #e85d3a;
-  opacity: 0.5;
+  opacity: 0.65;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 3px rgba(232,93,58,0.3);
+  box-shadow:
+    0 0 5px rgba(232,93,58,0.4),
+    0 0 16px rgba(232,93,58,0.12);
 }
 
-/* Outer (r=8) — right-center. The watch reaches across. */
+/* Outer — right-center. The watch reaches ACROSS. */
 .sort-deck::before {
   content: '';
   position: fixed;
   top: 50%;
-  right: 6px;
-  width: 16px;
-  height: 16px;
-  margin-top: -8px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
   border-radius: 50%;
-  border: 1.5px solid rgba(232,93,58,0.2);
-  background: transparent;
-  opacity: 0.35;
+  border: 2px solid rgba(232,93,58,0.3);
+  background: rgba(232,93,58,0.04);
+  opacity: 0.5;
   z-index: 6;
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(232,93,58,0.08);
+  box-shadow:
+    0 0 8px rgba(232,93,58,0.12),
+    0 0 24px rgba(232,93,58,0.05);
 }
 
-/* ═══ CROSS-REFRACTION POINT — the focus ═══ */
-/* Where ALL FOUR axes meet: the center of the screen. */
-/* Two obliques (neutrino TL↔BR, proton TR↔BL) */
-/* Two cardinals (neutron N↔S, tuebor E↔W) */
-/* 8 dots. 4 axes. 1 focus. The chiasm. */
-/* This is the point everything rotates AROUND. */
+/* ═══ CROSS-REFRACTION POINT — the fold ═══ */
+/* Where ALL FOUR axes cross: center of the screen.        */
+/* Two obliques (neutrino TL↔BR, proton TR↔BL)             */
+/* Two cardinals (neutron N↔S, tuebor E↔W)                  */
+/* 8 dots. 4 lines. 1 fold. The chiasm.                     */
 .readout::before {
   content: '';
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 3px;
-  height: 3px;
-  margin: -1.5px 0 0 -1.5px;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  z-index: 1;
+  background: rgba(255,255,255,0.3);
+  z-index: 7;
   pointer-events: none;
-  box-shadow: 0 0 8px rgba(255,255,255,0.05);
+  box-shadow:
+    0 0 4px rgba(255,255,255,0.2),
+    0 0 12px rgba(255,255,255,0.08),
+    0 0 30px rgba(255,255,255,0.03);
 }
 
-/* The four axes as faint gradients — 2 oblique + 2 cardinal */
+/* ═══ COLOR FIELD — oblique axes as visible gradients ACROSS ═══ */
+/* The diagonals can't be thin lines in CSS without SVG,         */
+/* so they bloom as color fields from each corner toward center. */
 #chipmunk-overlay {
   background-image:
+    /* ── NEUTRINO PURPLE: TL↔BR diagonal field ── */
     linear-gradient(
       to bottom right,
-      rgba(210,168,255,0.025) 0%,
-      transparent 12%,
-      transparent 88%,
-      rgba(210,168,255,0.025) 100%
+      rgba(210,168,255,0.06) 0%,
+      rgba(210,168,255,0.03) 8%,
+      transparent 20%,
+      transparent 80%,
+      rgba(210,168,255,0.03) 92%,
+      rgba(210,168,255,0.06) 100%
     ),
+    /* ── PROTON GOLD: TR↔BL diagonal field ── */
     linear-gradient(
       to bottom left,
-      rgba(240,230,140,0.02) 0%,
-      transparent 12%,
-      transparent 88%,
-      rgba(240,230,140,0.02) 100%
+      rgba(240,230,140,0.05) 0%,
+      rgba(240,230,140,0.025) 8%,
+      transparent 20%,
+      transparent 80%,
+      rgba(240,230,140,0.025) 92%,
+      rgba(240,230,140,0.05) 100%
     ),
+    /* ── NEUTRON BLUE: N↔S vertical field ── */
     linear-gradient(
       to bottom,
-      rgba(88,166,255,0.015) 0%,
-      transparent 8%,
-      transparent 92%,
-      rgba(88,166,255,0.015) 100%
+      rgba(88,166,255,0.04) 0%,
+      rgba(88,166,255,0.02) 6%,
+      transparent 15%,
+      transparent 85%,
+      rgba(88,166,255,0.02) 94%,
+      rgba(88,166,255,0.04) 100%
     ),
+    /* ── TUEBOR RED: E↔W horizontal field — the fold ACROSS ── */
     linear-gradient(
       to right,
-      rgba(232,93,58,0.012) 0%,
-      transparent 8%,
-      transparent 92%,
-      rgba(232,93,58,0.012) 100%
+      rgba(232,93,58,0.04) 0%,
+      rgba(232,93,58,0.02) 6%,
+      transparent 15%,
+      transparent 85%,
+      rgba(232,93,58,0.02) 94%,
+      rgba(232,93,58,0.04) 100%
     ) !important;
   background-color: #010409 !important;
 }
