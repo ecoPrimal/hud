@@ -339,27 +339,7 @@
 /* 8 dots anchor to the frame. 4 lines cross the viewport.    */
 /* The membrane ball sits at the intersection.                  */
 
-#membrane-align {
-  background:
-    /* ── TUEBOR RED: E↔W horizontal fold line ── */
-    linear-gradient(
-      to bottom,
-      transparent calc(50% - 0.5px),
-      rgba(232,93,58,0.08) calc(50% - 0.5px),
-      rgba(232,93,58,0.12) 50%,
-      rgba(232,93,58,0.08) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    ),
-    /* ── NEUTRON BLUE: N↔S vertical fold line ── */
-    linear-gradient(
-      to right,
-      transparent calc(50% - 0.5px),
-      rgba(88,166,255,0.07) calc(50% - 0.5px),
-      rgba(88,166,255,0.10) 50%,
-      rgba(88,166,255,0.07) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    ) !important;
-}
+/* fold lines moved into #chipmunk-overlay background (see below) */
 
 /* ═══ OBLIQUE EYES — dots + connection across the screen ═══ */
 
@@ -542,53 +522,7 @@
     0 0 30px rgba(255,255,255,0.03);
 }
 
-/* ═══ COLOR FIELD — oblique axes as visible gradients ACROSS ═══ */
-/* The diagonals can't be thin lines in CSS without SVG,         */
-/* so they bloom as color fields from each corner toward center. */
-#chipmunk-overlay {
-  background-image:
-    /* ── NEUTRINO PURPLE: TL↔BR diagonal field ── */
-    linear-gradient(
-      to bottom right,
-      rgba(210,168,255,0.06) 0%,
-      rgba(210,168,255,0.03) 8%,
-      transparent 20%,
-      transparent 80%,
-      rgba(210,168,255,0.03) 92%,
-      rgba(210,168,255,0.06) 100%
-    ),
-    /* ── PROTON GOLD: TR↔BL diagonal field ── */
-    linear-gradient(
-      to bottom left,
-      rgba(240,230,140,0.05) 0%,
-      rgba(240,230,140,0.025) 8%,
-      transparent 20%,
-      transparent 80%,
-      rgba(240,230,140,0.025) 92%,
-      rgba(240,230,140,0.05) 100%
-    ),
-    /* ── NEUTRON BLUE: N↔S vertical field ── */
-    linear-gradient(
-      to bottom,
-      rgba(88,166,255,0.04) 0%,
-      rgba(88,166,255,0.02) 6%,
-      transparent 15%,
-      transparent 85%,
-      rgba(88,166,255,0.02) 94%,
-      rgba(88,166,255,0.04) 100%
-    ),
-    /* ── TUEBOR RED: E↔W horizontal field — the fold ACROSS ── */
-    linear-gradient(
-      to right,
-      rgba(232,93,58,0.04) 0%,
-      rgba(232,93,58,0.02) 6%,
-      transparent 15%,
-      transparent 85%,
-      rgba(232,93,58,0.02) 94%,
-      rgba(232,93,58,0.04) 100%
-    ) !important;
-  background-color: #010409 !important;
-}
+/* gradients moved below into consolidated #chipmunk-overlay rule */
 
 /* ═══ TRAIL DOTS — below the input ═══ */
 #trail-marks {
@@ -608,17 +542,73 @@
   /* Don't hide siblings of the overlay */
 }
 
-/* When membrane overlay is visible, it should be full-screen
-   with the membrane SVG centered inside it. */
+/* ═══ #chipmunk-overlay — SINGLE CONSOLIDATED RULE ═══ */
+/* Position + size + color fold. One rule. No cascade conflict.     */
+/* The fold lines + corner field gradients + background all here.   */
 #chipmunk-overlay {
   position: fixed !important;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #010409;
   z-index: 2;
   overflow: hidden;
+  background-color: #010409 !important;
+  background-image:
+    /* ── TUEBOR RED: E↔W horizontal FOLD across center ── */
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 1px),
+      rgba(232,93,58,0.25) 50%,
+      transparent calc(50% + 1px)
+    ),
+    /* ── NEUTRON BLUE: N↔S vertical FOLD through center ── */
+    linear-gradient(
+      to right,
+      transparent calc(50% - 1px),
+      rgba(88,166,255,0.20) 50%,
+      transparent calc(50% + 1px)
+    ),
+    /* ── NEUTRINO PURPLE: TL↔BR diagonal color field ── */
+    linear-gradient(
+      to bottom right,
+      rgba(210,168,255,0.07) 0%,
+      rgba(210,168,255,0.035) 8%,
+      transparent 22%,
+      transparent 78%,
+      rgba(210,168,255,0.035) 92%,
+      rgba(210,168,255,0.07) 100%
+    ),
+    /* ── PROTON GOLD: TR↔BL diagonal color field ── */
+    linear-gradient(
+      to bottom left,
+      rgba(240,230,140,0.06) 0%,
+      rgba(240,230,140,0.03) 8%,
+      transparent 22%,
+      transparent 78%,
+      rgba(240,230,140,0.03) 92%,
+      rgba(240,230,140,0.06) 100%
+    ),
+    /* ── NEUTRON BLUE: N↔S vertical color field ── */
+    linear-gradient(
+      to bottom,
+      rgba(88,166,255,0.05) 0%,
+      rgba(88,166,255,0.025) 6%,
+      transparent 18%,
+      transparent 82%,
+      rgba(88,166,255,0.025) 94%,
+      rgba(88,166,255,0.05) 100%
+    ),
+    /* ── TUEBOR RED: E↔W horizontal color field ── */
+    linear-gradient(
+      to right,
+      rgba(232,93,58,0.05) 0%,
+      rgba(232,93,58,0.025) 6%,
+      transparent 18%,
+      transparent 82%,
+      rgba(232,93,58,0.025) 94%,
+      rgba(232,93,58,0.05) 100%
+    ) !important;
 }
 
 /* The pt-panels (which contain membrane-focal-svg) need to be
