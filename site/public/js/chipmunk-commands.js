@@ -2961,6 +2961,13 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ GLOBE — 3D geographic footprint ═══
+      if (cmd === "globe" || cmd === "earth" || cmd === "world" || cmd === "3d") {
+        addEntry("system", "\ud83c\udf10 globe");
+        addEntry("chipmunk", "<a href=\"/neutron/globe.html\" target=\"_blank\" style=\"color:#f1c40f\">\ud83c\udf10 3D globe \u2014 where the membrane touches the world</a>\n<span class=\"dim\">drag to rotate. coastlines + grid + membrane locations pulsing.\nMichigan (home), San Francisco (Anthropic+OpenAI), Spring TX, Ashburn VA (AWS), Dublin.\nInvestigation locations: Detroit, Lansing, Saginaw.</span>");
+        return;
+      }
+
             // ═══ PETALTONGUE — interactive exploration ═══
       if (cmd === "petaltongue" || cmd === "tongue" || cmd === "explore" || cmd === "interact" || cmd === "play" || cmd === "doom") {
         addEntry("system", "\ud83c\udf3a petalTongue");
