@@ -44,9 +44,10 @@ D.renderConvergence = function(container) {
     fetch('/mesh-ring.json'+t).then(function(r){return r.json()}).catch(function(){return {}}),
     fetch('/human-expects.json'+t).then(function(r){return r.json()}).catch(function(){return {}}),
     fetch('/chipmunk.json'+t).then(function(r){return r.json()}).catch(function(){return {}}),
-    fetch('/braid.json'+t).then(function(r){return r.json()}).catch(function(){return {}})
+    fetch('/braid.json'+t).then(function(r){return r.json()}).catch(function(){return {}}),
+    fetch('/temperature.json'+t).then(function(r){return r.json()}).catch(function(){return {}})
   ]).then(function(feeds) {
-    var dash=feeds[0], proton=feeds[1], mesh=feeds[2], expects=feeds[3], chip=feeds[4], braid=feeds[5];
+    var dash=feeds[0], proton=feeds[1], mesh=feeds[2], expects=feeds[3], chip=feeds[4], braid=feeds[5], temp=feeds[6]||{};
 
     // Anderson data
     var as = dash.anderson_selectivity || {};
@@ -141,6 +142,9 @@ D.renderConvergence = function(container) {
         R('sockets', 'e:' + (rhythm.sockets?rhythm.sockets.eastgate:'?') + ' g:' + (rhythm.sockets?rhythm.sockets.golgi:'?') + ' s:' + (rhythm.sockets?rhythm.sockets.sporeGate:'?')) +
         R('beat', rhythm.beat_pattern || '—') +
         R('compression', rhythm.compression_overall || '—') +
+        R('🌡 K (neutron)', temp.kelvin ? temp.kelvin.label + ' [' + temp.kelvin.diagnosis + ']' : '—', temp.kelvin&&temp.kelvin.diagnosis==='hot'?'cw':'ca') +
+        R('🌡 °C (proton)', temp.celsius ? temp.celsius.label + ' [' + temp.celsius.diagnosis + ']' : '—', temp.celsius&&temp.celsius.diagnosis==='optimal'?'ca':'ch') +
+        R('🌡 °F (electron)', temp.fahrenheit ? temp.fahrenheit.label + ' [' + temp.fahrenheit.diagnosis + ']' : '—', temp.fahrenheit&&temp.fahrenheit.diagnosis==='healthy'?'ca':'ch') +
         '<div style="margin-top:6px;cursor:pointer" onclick="if(window._membraneSound){window._membraneSound.activate();window._membraneSound.speak(\'membrane\')}">' +
         '<span class="cl">♪ activate sound</span></div>';
     }

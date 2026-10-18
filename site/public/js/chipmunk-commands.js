@@ -3354,6 +3354,55 @@ window._chipmunkCommands = function(ctx) {
 
 
 
+
+      // ═══ TEMPERATURE ═══
+      if (cmd === 'temp' || cmd === 'temperature' || cmd === 'kelvin' || cmd === 'fahrenheit' || cmd === 'celsius' || cmd === 'thermometer' || cmd === 'hot' || cmd === 'cold') {
+        addEntry('system', '🌡 temperature');
+        fetch('/temperature.json?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(t) {
+            var k = t.kelvin || {};
+            var c = t.celsius || {};
+            var f = t.fahrenheit || {};
+            var eq = t.equilibrium || {};
+
+            var kColor = k.diagnosis === 'hot' ? '#f85149' : k.diagnosis === 'warm' ? '#d29922' : '#3fb950';
+            var cColor = c.diagnosis === 'optimal' ? '#3fb950' : c.diagnosis === 'warm' ? '#d29922' : '#58a6ff';
+            var fColor = f.diagnosis === 'healthy' ? '#3fb950' : f.diagnosis === 'fever' ? '#f85149' : '#58a6ff';
+
+            var out = '<span style="color:#a371f7;font-weight:bold">🌡 MEMBRANE TEMPERATURE</span>\n\n';
+
+            out += '<span style="color:' + kColor + ';font-weight:bold">' + (k.label||'?') + '</span> kelvin (neutron) — <span style="color:' + kColor + '">' + (k.diagnosis||'?') + '</span>\n';
+            out += '  <span class="dim">' + (k.scale||'') + '</span>\n';
+            var kc = k.components || {};
+            out += '  <span class="dim">rps:' + (kc.rps_heat||0) + 'K + rate-limit:' + (kc.rate_limit_heat||0) + 'K + perturbation:' + (kc.perturbation_heat||0) + 'K</span>\n\n';
+
+            out += '<span style="color:' + cColor + ';font-weight:bold">' + (c.label||'?') + '</span> celsius (proton) — <span style="color:' + cColor + '">' + (c.diagnosis||'?') + '</span>\n';
+            out += '  <span class="dim">' + (c.scale||'') + '</span>\n';
+            var cc = c.components || {};
+            out += '  <span class="dim">selectivity:' + (cc.selectivity_base||0) + '°C + fleet:' + (cc.fleet_pressure||0) + '°C + confidence:' + (cc.confidence_cooling||0) + '°C</span>\n\n';
+
+            out += '<span style="color:' + fColor + ';font-weight:bold">' + (f.label||'?') + '</span> fahrenheit (electron) — <span style="color:' + fColor + '">' + (f.diagnosis||'?') + '</span>\n';
+            out += '  <span class="dim">' + (f.scale||'') + '</span>\n';
+            var fc = f.components || {};
+            out += '  <span class="dim">base:98.6°F + activity:' + (fc.activity_delta||0) + '°F + epitopes:' + (fc.epitope_diversity||0) + '°F</span>\n\n';
+
+            out += '<span style="color:#8b949e">equilibrium:</span> ' + (eq.mean_celsius||0) + '°C mean, ' + (eq.spread||0) + '°C spread\n';
+            out += '<span class="dim">' + (eq.note||'') + '</span>';
+
+            addEntry('chipmunk', out);
+
+            if (window._membraneSound && window._membraneSound.isActive()) {
+              var ms = window._membraneSound;
+              // Play temperature as frequency: 37°C → 440Hz (A4), higher = hotter
+              var meanC = eq.mean_celsius || 37;
+              var hz = 440 * Math.pow(2, (meanC - 37) / 12);
+              ms.playNote(hz, 0.3, 0, 'sine', 0.06, {});
+            }
+          });
+        return;
+      }
+
       // ═══ SYSTEM LAYERS ═══
       if (cmd === 'layers' || cmd === 'system' || cmd === 'composition' || cmd === 'stack') {
         addEntry('system', '⊞ system layers');
