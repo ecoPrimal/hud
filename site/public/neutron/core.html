@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -2135,6 +2135,7 @@ function loadData() {
   fetch('/chipmunk.json').then(function(r){return r.json()}).then(function(d){chipmunkData=d}).catch(function(){});
   fetch('/membrane-pulse.json').then(function(r){return r.json()}).then(function(d){memPulseData=d}).catch(function(){});
   fetch('/mesh-speed.json').then(function(r){return r.json()}).then(function(d){meshSpeedData=d}).catch(function(){});
+  fetch('/reflection.json').then(function(r){return r.json()}).then(function(d){reflectionData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2558,6 +2559,35 @@ draw();
       } else chipSay('speed data not loaded...', 'chip');
       return;
     }
+    if (m === 'reflect' || m === 'mirror' || m === 'visitor' || m === 'visitors' || m === 'language' || m === 'translate') {
+      if (reflectionData && reflectionData.archetypes) {
+        var lines = [reflectionData.total_human_visits + ' human visits. they ask by visiting:'];
+        var needs = reflectionData.needs_distribution || {};
+        var needList = [];
+        for (var nk in needs) { needList.push(nk + ':' + needs[nk]); }
+        lines.push('  needs: ' + needList.join(' · '));
+        for (var ai = 0; ai < Math.min(reflectionData.archetypes.length, 3); ai++) {
+          var arch = reflectionData.archetypes[ai];
+          lines.push('  [' + arch.language + '] ' + arch.visitors + ' visitors → need:' + arch.primary_need +
+                     ' → reflect:' + arch.reflection.surface + ' (' + arch.translation.status + ')');
+        }
+        lines.push('the membrane does not push. it mirrors. their behavior IS their question.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('reflection data loading...', 'chip');
+      return;
+    }
+    if (m === 'friction' || m === '404' || m === 'missing') {
+      if (reflectionData && reflectionData.friction) {
+        var lines = ['friction points — what visitors expected but we dont have:'];
+        for (var fi = 0; fi < Math.min(reflectionData.friction.length, 5); fi++) {
+          var fp = reflectionData.friction[fi];
+          lines.push('  ' + fp.count + '× ' + fp.path);
+        }
+        lines.push('each 404 is an unmet expectation. reduce friction = serve what they need.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('friction data loading...', 'chip');
+      return;
+    }
     if (m === 'plex' || m === 'steam' || m === 'library' || m === 'share' || m === 'family') {
       if (meshSpeedData && meshSpeedData.routing_order) {
         var nearest = meshSpeedData.routing_order[0];
@@ -2584,7 +2614,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · route · plex · msg [gate] [text] · inbox', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · msg [gate] [text] · inbox', 'chip');
       return;
     }
 
