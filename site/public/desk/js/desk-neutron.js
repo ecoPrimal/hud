@@ -96,4 +96,48 @@ D.renderNeutron = function() {
   return '<div id="' + id + '">loading…</div>';
 };
 
+
+// ── Symbiosis section (Wave 180) ──
+// Fetched alongside neutron data, appended to the neutron tab
+var _origRender = D.renderNeutron;
+D.renderNeutron = function() {
+  var base = _origRender();
+  var symId = 'desk-sym-async';
+  setTimeout(function(){
+    var el = document.getElementById(symId);
+    if (!el) return;
+    fetch('/symbiosis.json')
+      .then(function(r) { return r.json(); })
+      .then(function(s) {
+        var el2 = document.getElementById(symId);
+        if (!el2) return;
+        var h = '<h4 style="color:#3fb950;font-size:12px;margin:16px 0 6px">symbiosis \u2014 tit-for-tat-forgive-one</h4>';
+        var sm = s.summary || {};
+        h += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:11px">';
+        h += '<span style="color:#3fb950">' + (sm.mutualists||0) + ' mutualist</span>';
+        h += '<span style="color:#58a6ff">' + (sm.commensal_active||0) + ' commensal</span>';
+        h += '<span style="color:#8b949e">' + (sm.commensal_suspect||0) + ' suspect</span>';
+        h += '<span style="color:#d29922">' + (sm.parasites||0) + ' parasite</span>';
+        h += '<span style="color:#f85149">' + (sm.pathogens||0) + ' pathogen</span>';
+        h += '</div>';
+        h += '<table style="width:100%;font-size:10px;border-collapse:collapse">';
+        h += '<tr style="color:#8b949e"><th style="text-align:left;padding:2px">entity</th><th>class</th><th>coop</th><th>defect</th><th>waste</th></tr>';
+        (s.entities || []).forEach(function(e) {
+          var clr = {"mutualist":"#3fb950","commensal_active":"#58a6ff","commensal_suspect":"#8b949e","parasite":"#d29922","pathogen":"#f85149"}[e.relationship] || "#8b949e";
+          var w = (e.ledger.waste_offered || []).slice(0,2).join(", ") || "-";
+          h += '<tr style="border-top:1px solid rgba(88,166,255,0.04)">';
+          h += '<td style="padding:2px">' + e.label + '</td>';
+          h += '<td style="padding:2px;color:' + clr + '">' + e.relationship + (e.ledger.golden ? ' *' : '') + '</td>';
+          h += '<td style="padding:2px;text-align:center;color:#3fb950">' + e.ledger.cooperations + '</td>';
+          h += '<td style="padding:2px;text-align:center;color:#f85149">' + e.ledger.defections + '</td>';
+          h += '<td style="padding:2px;color:#8b949e;font-size:9px">' + w + '</td></tr>';
+        });
+        h += '</table>';
+        h += '<div style="font-size:9px;color:#8b949e;margin-top:8px">' + (s.principle || '') + '</div>';
+        el2.innerHTML = h;
+      }).catch(function() {});
+  }, 200);
+  return base + '<div id="' + symId + '" style="padding:0 12px">loading symbiosis...</div>';
+};
+
 })();
