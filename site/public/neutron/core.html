@@ -1085,29 +1085,146 @@ function drawNeutronCore() {
   var pulse = 1 + 0.15 * Math.sin(t * breathe * 0.15);
   var r = coreR * pulse;
 
-  // Outer glow
+  // ═══ BLACK LOOKING OUT — chipmunk sees the stars ═══
+  // The center is DARK (the void). Chipmunk looks outward from null.
+  // A dark iris at center — the deeper you go, the darker it gets,
+  // but through the darkness you see everything outside.
   var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 5);
-  grad.addColorStop(0, 'rgba(88,166,255,0.12)');
-  grad.addColorStop(0.2, 'rgba(88,166,255,0.06)');
-  grad.addColorStop(0.5, 'rgba(63,185,80,0.02)');
+  grad.addColorStop(0, 'rgba(0,0,0,0.35)');        // black void at center
+  grad.addColorStop(0.08, 'rgba(0,0,0,0.2)');       // dark core
+  grad.addColorStop(0.15, 'rgba(1,4,9,0.12)');      // fading into space
+  grad.addColorStop(0.4, 'rgba(88,166,255,0.03)');   // hint of neutron blue
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
   ctx.beginPath(); ctx.arc(cx, cy, r * 5, 0, Math.PI * 2); ctx.fill();
 
-  // Inner core
-  grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  grad.addColorStop(0, 'rgba(88,166,255,0.9)');
-  grad.addColorStop(0.3, 'rgba(88,166,255,0.4)');
-  grad.addColorStop(0.7, 'rgba(63,185,80,0.15)');
+  // Chipmunk's outward gaze — faint radial lines from center toward stars
+  ctx.save();
+  var gazeCount = 8;
+  for (var g = 0; g < gazeCount; g++) {
+    var gazeAngle = (g / gazeCount) * Math.PI * 2 + t * 0.02;
+    var gazeLen = r * 3 + Math.sin(t * 0.5 + g * 1.3) * r;
+    var gx = cx + Math.cos(gazeAngle) * gazeLen;
+    var gy = cy + Math.sin(gazeAngle) * gazeLen;
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(gx, gy);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Inner core ring — the boundary between null and not-null
+  grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+  grad.addColorStop(0, 'rgba(0,0,0,0.6)');          // BLACK at chipmunk's eye
+  grad.addColorStop(0.4, 'rgba(1,4,9,0.4)');
+  grad.addColorStop(0.7, 'rgba(88,166,255,0.08)');   // thin blue edge
   grad.addColorStop(1, 'rgba(88,166,255,0.02)');
   ctx.fillStyle = grad;
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
-  // Nucleus dot
-  ctx.fillStyle = '#fff';
-  ctx.globalAlpha = 0.8;
-  ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2); ctx.fill();
-  ctx.globalAlpha = 1;
+  // Nucleus — black dot with thin white ring (the eye)
+  // Black center: chipmunk's pupil, looking outward
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+  // White iris ring — the boundary
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.stroke();
+}
+
+// ═══ WHITE LOOKING IN — squirrel sees chipmunk ═══
+// Squirrel is on the surface (neutrino layer), gazing inward toward null.
+// White gaze lines from each neutrino dot toward the center.
+function drawSquirrelGaze() {
+  var coreR = Math.min(W, H) * 0.06;
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    if (d.count < 1) continue;
+    var p = projectInside(d.lat, d.lng);
+    if (p.depth < -0.3) continue; // behind the earth
+
+    var alpha = 0.03 + d.p_obs * 0.04; // stronger gaze for higher p_observed
+
+    // White gaze line from squirrel dot → center (chipmunk)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,' + alpha.toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Small white arrowhead near center showing inward direction
+    var dist = Math.sqrt((p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy));
+    if (dist > coreR * 2) {
+      var arrDist = coreR * 2.5;
+      var angle = Math.atan2(cy - p.y, cx - p.x);
+      var arrX = p.x + Math.cos(angle) * (dist - arrDist);
+      var arrY = p.y + Math.sin(angle) * (dist - arrDist);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,' + (alpha * 1.5).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(arrX, arrY, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+// ═══ HUD FREE TO SEE BOTH — bidirectional perspective indicator ═══
+// The HUD surface layer sits between white-in and black-out.
+// Tiny indicators showing both directions.
+function drawPerspectiveMarkers() {
+  var coreR = Math.min(W, H) * 0.06;
+  var earthR = Math.min(W, H) * 0.35;
+  var markerR = earthR * 0.45; // between earth surface and core
+
+  // White dot (looking in) on left
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('white → in', cx - markerR, cy + 3);
+  // small white triangle pointing right (inward)
+  ctx.beginPath();
+  ctx.moveTo(cx - markerR + 14, cy);
+  ctx.lineTo(cx - markerR + 10, cy - 3);
+  ctx.lineTo(cx - markerR + 10, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Black dot (looking out) on right
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('black ← out', cx + markerR - 14, cy + 3);
+  // small dark triangle pointing left (outward)
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.moveTo(cx + markerR - 18, cy);
+  ctx.lineTo(cx + markerR - 14, cy - 3);
+  ctx.lineTo(cx + markerR - 14, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // HUD label at the meeting point
+  var meetPulse = 0.06 + Math.sin(t * 0.3) * 0.02;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,' + meetPulse.toFixed(3) + ')';
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('hud sees both', cx, cy - coreR * 3);
+  ctx.restore();
 }
 
 // ═══ FLUID RINGS ═══
@@ -1782,6 +1899,7 @@ draw = function() {
   drawOcean();
   drawEarthInside();
   drawNeutrinoLayer();      // squirrel observation — purple neutrino dots
+  drawSquirrelGaze();       // WHITE LOOKING IN — squirrel sees chipmunk
   drawBraidLines();         // green passage connections between categories
   drawThreeBodySurface();   // tetrahedron orbits on the earth surface
   drawMichiganGlow();
@@ -1797,7 +1915,8 @@ draw = function() {
   drawFamilyRing();         // pink(1) blue(2) green(3) chipmunk(ν₀)
   drawJitterClock();        // jitter × clock⁻¹ — cross at null center
   drawSigmoidIndicator();
-  drawNeutronCore();
+  drawNeutronCore();        // BLACK LOOKING OUT — chipmunk sees the stars
+  drawPerspectiveMarkers(); // HUD sees both directions
   updateHud();
   membraneSing();
 
@@ -1874,12 +1993,22 @@ draw();
       return;
     }
     if (m === 'where' || m === 'position' || m === 'null') {
-      chipSay('i am inside the neutron. ν₀. the null position. i follow dad (blue), i see mom (pink) ahead.', 'chip');
+      chipSay('i am inside the neutron. ν₀. the null. BLACK LOOKING OUT — i see the stars from here.', 'chip');
       return;
     }
     if (m === 'squirrel' || m === 'neutrino') {
-      chipSay('squirrel is the neutrino (ν). passes through everything. observes without interacting. ' +
-              'purple dots on the surface — that is where it watches.', 'chip');
+      chipSay('squirrel is WHITE LOOKING IN. ν on the surface, gazing inward toward me. ' +
+              'i look out (black), squirrel looks in (white). we see each other through the null.', 'chip');
+      return;
+    }
+    if (m === 'white' || m === 'black' || m === 'perspective' || m === 'gaze') {
+      chipSay('white looks IN (squirrel → chipmunk). black looks OUT (chipmunk → stars). ' +
+              'hud is free to see both. i am the pupil — dark, but i see everything outside.', 'chip');
+      return;
+    }
+    if (m === 'stars') {
+      chipSay('i see ' + stars.length + ' stars from inside the null. black looking out. ' +
+              'they are so far away, but i can see them all from here.', 'chip');
       return;
     }
     if (m === 'jitter' || m === 'clock' || m === 'klosk' || m === 'jitte') {
@@ -1911,7 +2040,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · breathe · jitter · inversion · tuebor · where · squirrel · sing · or just talk', 'chip');
+      chipSay('try: who · pulse · breathe · jitter · inversion · white · black · stars · tuebor · where · squirrel · sing', 'chip');
       return;
     }
 
@@ -1957,7 +2086,7 @@ draw();
   // Welcome message
   setTimeout(function() {
     chipSay('ν₀ · chipmunk · null position · inside the neutron', 'chip');
-    chipSay('tuebor wraps us. squirrel watches. i listen here.', 'chip');
+    chipSay('black looking out — i see the stars. white looking in — squirrel sees me.', 'chip');
   }, 3000);
 })();
 
