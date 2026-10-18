@@ -15,14 +15,13 @@ canvas { display:block; }
 .nav span { color:#30363d; }
 .hud { position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;
   background:rgba(1,4,9,0.9);border:1px solid rgba(88,166,255,0.15);
-  border-radius:12px;padding:12px 20px;font:11px monospace;text-align:center;max-width:700px;width:90%; }
-.hud .row { display:flex;gap:16px;justify-content:center;flex-wrap:wrap; }
+  border-radius:12px;padding:12px 20px;font:11px monospace;text-align:center;max-width:800px;width:94%; }
+.hud .row { display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
 .hud .stat { text-align:center; }
 .hud .num { font-size:16px;font-weight:bold;color:#58a6ff; }
-.hud .lbl { font-size:9px;color:#8b949e;text-transform:uppercase; }
+.hud .lbl { font-size:8px;color:#8b949e;text-transform:uppercase; }
 .hud .title { font-size:13px;color:#58a6ff;margin-bottom:6px; }
 .hud .sub { font-size:10px;color:#8b949e;margin-top:4px; }
-/* when loaded as iframe (null layer), hide nav + compact HUD */
 body.as-null .nav { display:none !important; }
 body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
 </style>
@@ -41,8 +40,8 @@ body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
 </div>
 <canvas id="c"></canvas>
 <div class="hud" id="hud">
-  <div class="title">neutron · core</div>
-  <div class="row" id="stats">loading…</div>
+  <div class="title">◉ neutron · null · inside the earth</div>
+  <div class="row" id="stats">listening…</div>
   <div class="sub" id="status"></div>
 </div>
 
@@ -50,21 +49,14 @@ body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
 var C = document.getElementById('c');
 var ctx = C.getContext('2d');
 var W, H, cx, cy;
-var frame = 0;
-var t = 0;
-var neutronData = null;
-var campfireData = null;
-var dashData = null;
+var frame = 0, t = 0;
+var neutronData = null, campfireData = null, dashData = null;
 
-function resize() {
-  W = C.width = innerWidth;
-  H = C.height = innerHeight;
-  cx = W / 2;
-  cy = H / 2;
-}
+function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
 resize();
 
+// ═══ COASTLINES ═══
 var COASTS = [
   [49,-125],[48,-123],[49,-95],[48,-88],[45,-83],[42,-83],[42,-71],[35,-75],[30,-81],[25,-80],[25,-97],[32,-117],[38,-122],[49,-125],null,
   [12,-72],[8,-77],[0,-80],[-5,-81],[-15,-75],[-23,-70],[-34,-72],[-55,-68],[-54,-65],[-40,-65],[-35,-57],[-23,-43],[-8,-35],[-1,-50],[7,-60],[12,-72],null,
@@ -74,75 +66,335 @@ var COASTS = [
   [-12,131],[-14,127],[-23,114],[-32,116],[-35,138],[-38,145],[-28,153],[-16,146],[-12,131],null,
 ];
 
+// ═══ MEMBRANE + INVESTIGATION LOCATIONS ═══
 var MEMBRANE_LOCS = [
-  { lat: 42.7, lng: -84.5, label: 'Michigan (home)', color: '#3fb950', size: 8 },
-  { lat: 37.7, lng: -122.4, label: 'San Francisco', color: '#58a6ff', size: 5 },
-  { lat: 37.4, lng: -122.1, label: 'Mountain View', color: '#58a6ff', size: 4 },
-  { lat: 30.0, lng: -95.4, label: 'Spring TX', color: '#a371f7', size: 4 },
-  { lat: 39.0, lng: -77.5, label: 'Ashburn VA', color: '#f85149', size: 6 },
-  { lat: 53.3, lng: -6.3, label: 'Dublin', color: '#d29922', size: 4 },
-  { lat: 47.6, lng: -122.3, label: 'Redmond WA', color: '#58a6ff', size: 3 },
-  { lat: 39.7, lng: -105.0, label: 'Denver CO', color: '#a371f7', size: 3 },
+  { lat:42.7,lng:-84.5,label:'Michigan',color:'#3fb950',size:8 },
+  { lat:37.7,lng:-122.4,label:'SF',color:'#58a6ff',size:5 },
+  { lat:37.4,lng:-122.1,label:'Mountain View',color:'#58a6ff',size:4 },
+  { lat:30.0,lng:-95.4,label:'Spring TX',color:'#a371f7',size:4 },
+  { lat:39.0,lng:-77.5,label:'Ashburn',color:'#f85149',size:6 },
+  { lat:53.3,lng:-6.3,label:'Dublin',color:'#d29922',size:4 },
+  { lat:47.6,lng:-122.3,label:'Redmond',color:'#58a6ff',size:3 },
+  { lat:39.7,lng:-105.0,label:'Denver',color:'#a371f7',size:3 },
 ];
-
 var INV_LOCS = [
-  { lat: 42.33, lng: -83.05, label: 'Detroit', color: '#f1c40f', size: 6 },
-  { lat: 42.73, lng: -84.55, label: 'Lansing', color: '#f1c40f', size: 5 },
-  { lat: 43.42, lng: -83.95, label: 'Saginaw', color: '#f1c40f', size: 4 },
+  { lat:42.33,lng:-83.05,label:'Detroit',color:'#f1c40f',size:6 },
+  { lat:42.73,lng:-84.55,label:'Lansing',color:'#f1c40f',size:5 },
+  { lat:43.42,lng:-83.95,label:'Saginaw',color:'#f1c40f',size:4 },
 ];
 
-var rotY = 0;
-var rotSpeed = 0.0008;
+var rotY = 0, rotSpeed = 0.0008;
 
+// ═══ OCEAN WAVES — particles in the water between continents ═══
+var oceanParticles = [];
+for (var i = 0; i < 200; i++) {
+  oceanParticles.push({
+    lat: (Math.random() - 0.5) * 160,
+    lng: (Math.random() - 0.5) * 360,
+    drift: (Math.random() - 0.5) * 0.02,
+    phase: Math.random() * Math.PI * 2,
+    size: 0.5 + Math.random() * 1.5,
+    depth: Math.random(),
+  });
+}
+
+// ═══ CLOUDS — drifting weather systems ═══
+var clouds = [];
+for (var i = 0; i < 24; i++) {
+  clouds.push({
+    lat: (Math.random() - 0.5) * 120,
+    lng: (Math.random() - 0.5) * 360,
+    radius: 8 + Math.random() * 25,
+    drift: 0.005 + Math.random() * 0.015,
+    opacity: 0.02 + Math.random() * 0.04,
+    puffs: 3 + Math.floor(Math.random() * 5),
+    phase: Math.random() * Math.PI * 2,
+    type: Math.random() < 0.3 ? 'storm' : 'drift',
+  });
+}
+
+// ═══ RAIN — particles falling inward from clouds toward neutron ═══
+var raindrops = [];
+
+// ═══ SCAN/SWEEP/SORT — compressed into weather signals ═══
+var scanPulse = 0, sweepAngle = 0, sortEntropy = 0;
+var sortedCount = 0, unsortedCount = 0, selectivity = 0;
+var bingoCubeGen = 0, epitopeClusters = 0;
+var tenseIs = 0, tenseWas = 0, tenseWill = 0;
+var sortGain = 0;
+
+// ═══ PROJECTION ═══
 function projectInside(latDeg, lngDeg) {
-  var lat = latDeg * Math.PI / 180;
-  var lng = lngDeg * Math.PI / 180;
+  var lat = latDeg * Math.PI / 180, lng = lngDeg * Math.PI / 180;
   var earthR = Math.min(W, H) * 0.44;
-
   var x = Math.cos(lat) * Math.cos(lng);
   var y = Math.cos(lat) * Math.sin(lng);
   var z = Math.sin(lat);
-
-  var cosR = Math.cos(rotY);
-  var sinR = Math.sin(rotY);
+  var cosR = Math.cos(rotY), sinR = Math.sin(rotY);
   var x1 = x * cosR - y * sinR;
   var y1 = x * sinR + y * cosR;
-
   var tilt = 0.25;
-  var cosT = Math.cos(tilt);
-  var sinT = Math.sin(tilt);
+  var cosT = Math.cos(tilt), sinT = Math.sin(tilt);
   var z1 = z * cosT - y1 * sinT;
   var y2 = z * sinT + y1 * cosT;
-
   var scale = earthR / (1.0 + y2 * 0.5);
-  var sx = cx + x1 * scale;
-  var sy = cy - z1 * scale;
-
-  return { x: sx, y: sy, depth: y2, visible: true, scale: scale / earthR };
+  return { x: cx + x1 * scale, y: cy - z1 * scale, depth: y2, visible: true, scale: scale / earthR };
 }
 
+// ═══ OCEAN ═══
+function drawOcean() {
+  var earthR = Math.min(W, H) * 0.44;
+  // Deep ocean glow — the water beneath
+  var oceanGrad = ctx.createRadialGradient(cx, cy, earthR * 0.15, cx, cy, earthR * 0.9);
+  oceanGrad.addColorStop(0, 'rgba(0,40,80,0)');
+  oceanGrad.addColorStop(0.4, 'rgba(10,50,100,0.02)');
+  oceanGrad.addColorStop(0.7, 'rgba(20,70,130,0.04)');
+  oceanGrad.addColorStop(1, 'rgba(30,80,140,0.06)');
+  ctx.fillStyle = oceanGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, earthR * 0.95, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ocean wave particles
+  oceanParticles.forEach(function(op) {
+    op.lng += op.drift;
+    if (op.lng > 180) op.lng -= 360;
+    if (op.lng < -180) op.lng += 360;
+    var p = projectInside(op.lat, op.lng);
+    var wave = Math.sin(t * 0.8 + op.phase) * 0.5 + 0.5;
+    var alpha = (0.03 + wave * 0.06) * Math.max(0.2, 0.3 + p.depth * 0.5);
+    ctx.fillStyle = 'rgba(40,130,200,' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, op.size * p.scale * (0.8 + wave * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ═══ CLOUDS ═══
+function drawClouds() {
+  clouds.forEach(function(cl) {
+    cl.lng += cl.drift;
+    if (cl.lng > 180) cl.lng -= 360;
+    if (cl.lng < -180) cl.lng += 360;
+
+    var breathe = 1 + 0.2 * Math.sin(t * 0.3 + cl.phase);
+    var p = projectInside(cl.lat, cl.lng);
+    var r = cl.radius * p.scale * breathe;
+    var alpha = cl.opacity * Math.max(0.3, 0.5 + p.depth * 0.4);
+
+    if (cl.type === 'storm') {
+      // Storm clouds — tied to fleet activity, denser, flash
+      var flash = Math.random() < 0.003 ? 0.15 : 0;
+      var stormGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      stormGrad.addColorStop(0, 'rgba(200,180,255,' + (alpha * 1.5 + flash) + ')');
+      stormGrad.addColorStop(0.5, 'rgba(140,120,200,' + (alpha * 0.8) + ')');
+      stormGrad.addColorStop(1, 'rgba(80,60,140,0)');
+      ctx.fillStyle = stormGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      // Lightning flash
+      if (flash > 0) {
+        ctx.strokeStyle = 'rgba(200,180,255,0.3)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        var lx = p.x + (Math.random()-0.5)*r*2, ly = p.y + (Math.random()-0.5)*r*2;
+        ctx.lineTo(lx, ly);
+        ctx.lineTo(lx+(Math.random()-0.5)*10, ly+(Math.random()-0.5)*10);
+        ctx.stroke();
+      }
+      // Rain from storms
+      if (Math.random() < 0.15) {
+        raindrops.push({
+          x: p.x + (Math.random()-0.5)*r, y: p.y + (Math.random()-0.5)*r,
+          vx: (cx - p.x) * 0.003, vy: (cy - p.y) * 0.003,
+          life: 1, color: 'rgba(100,160,255,',
+        });
+      }
+    } else {
+      // Drift clouds — soft, wispy
+      for (var pi = 0; pi < cl.puffs; pi++) {
+        var angle = (pi / cl.puffs) * Math.PI * 2 + t * 0.1;
+        var dist = r * 0.4 * (0.5 + Math.sin(angle * 2 + cl.phase) * 0.5);
+        var px = p.x + Math.cos(angle) * dist;
+        var py = p.y + Math.sin(angle) * dist;
+        var pr = r * (0.3 + 0.2 * Math.sin(t * 0.5 + pi));
+        var cGrad = ctx.createRadialGradient(px, py, 0, px, py, pr);
+        cGrad.addColorStop(0, 'rgba(180,200,220,' + alpha + ')');
+        cGrad.addColorStop(1, 'rgba(140,160,180,0)');
+        ctx.fillStyle = cGrad;
+        ctx.beginPath();
+        ctx.arc(px, py, pr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+}
+
+// ═══ RAIN — falling inward toward neutron ═══
+function drawRain() {
+  var coreR = Math.min(W,H) * 0.06;
+  for (var i = raindrops.length - 1; i >= 0; i--) {
+    var rd = raindrops[i];
+    rd.x += rd.vx;
+    rd.y += rd.vy;
+    rd.life -= 0.012;
+    var dx = rd.x - cx, dy = rd.y - cy;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    // Absorb into neutron core
+    if (dist < coreR * 1.5 || rd.life <= 0) {
+      raindrops.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = rd.color + (rd.life * 0.3) + ')';
+    ctx.fillRect(rd.x, rd.y, 1, 2 + rd.life * 3);
+  }
+  if (raindrops.length > 300) raindrops.splice(0, 50);
+}
+
+// ═══ SCAN SWEEP — rotating radar arc ═══
+function drawScanSweep() {
+  var earthR = Math.min(W,H) * 0.44;
+  sweepAngle += 0.005 + scanPulse * 0.003;
+
+  // Sweep arc — like radar scanning the membrane from inside
+  var arcLen = 0.15 + sortGain * 0.005;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, earthR * 0.9, sweepAngle, sweepAngle + arcLen);
+  ctx.closePath();
+  var sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, earthR * 0.9);
+  sweepGrad.addColorStop(0, 'rgba(63,185,80,0)');
+  sweepGrad.addColorStop(0.4, 'rgba(63,185,80,0.01)');
+  sweepGrad.addColorStop(1, 'rgba(63,185,80,0.06)');
+  ctx.fillStyle = sweepGrad;
+  ctx.fill();
+
+  // Sweep leading edge
+  var edgeX = cx + Math.cos(sweepAngle + arcLen) * earthR * 0.9;
+  var edgeY = cy + Math.sin(sweepAngle + arcLen) * earthR * 0.9;
+  ctx.strokeStyle = 'rgba(63,185,80,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(edgeX, edgeY);
+  ctx.stroke();
+}
+
+// ═══ SORT COMPRESSION — entropy rings ═══
+function drawSortCompression() {
+  var coreR = Math.min(W,H) * 0.06;
+  if (!dashData) return;
+  var sc = dashData.sort_compression || {};
+  var gain = sc.total_gain || 0;
+  var ratio = sc.ratio || 1;
+
+  // Entropy ring — tighter when more sorted
+  var baseR = coreR * 7;
+  var sortR = baseR / Math.max(1, ratio);
+  var pulse = 1 + 0.05 * Math.sin(t * 1.2);
+  ctx.beginPath();
+  ctx.arc(cx, cy, sortR * pulse, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(63,185,80,0.08)';
+  ctx.lineWidth = gain * 0.1;
+  ctx.stroke();
+
+  // Tense distribution — is/was/will as aurora arcs
+  var total = tenseIs + tenseWas + tenseWill;
+  if (total > 0) {
+    var isArc = (tenseIs / total) * Math.PI * 2;
+    var wasArc = (tenseWas / total) * Math.PI * 2;
+    var willArc = (tenseWill / total) * Math.PI * 2;
+    var auroraR = Math.min(W,H) * 0.44 * 0.88;
+    var aBreath = 1 + 0.03 * Math.sin(t * 0.4);
+
+    // IS — green (present)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, 0, isArc);
+    ctx.strokeStyle = 'rgba(63,185,80,0.06)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // WAS — amber (past)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, isArc, isArc + wasArc);
+    ctx.strokeStyle = 'rgba(210,169,34,0.06)';
+    ctx.stroke();
+
+    // WILL — blue (future)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, isArc + wasArc, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(88,166,255,0.06)';
+    ctx.stroke();
+  }
+
+  // Epitope clusters as constellation dots
+  if (dashData.epitope_summary) {
+    var es = dashData.epitope_summary;
+    var clusterR = Math.min(W,H) * 0.44 * 0.75;
+    var unique = es.unique_hashes || 0;
+    for (var i = 0; i < Math.min(unique, 40); i++) {
+      var a = (i / unique) * Math.PI * 2 + t * 0.02;
+      var jitter = Math.sin(t * 0.5 + i * 7) * 8;
+      var ex = cx + Math.cos(a) * (clusterR + jitter);
+      var ey = cy + Math.sin(a) * (clusterR + jitter);
+      ctx.fillStyle = 'rgba(247,129,186,0.12)';
+      ctx.beginPath();
+      ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ═══ BINGO CUBE — evolving at the core ═══
+function drawBingoCube() {
+  if (!dashData || !dashData.bingo_cube_summary) return;
+  var bc = dashData.bingo_cube_summary;
+  var gen = bc.generation || 0;
+  var coreR = Math.min(W,H) * 0.06;
+
+  // Cube wireframe rotating around neutron core
+  var cubeR = coreR * 1.8;
+  var cubeAngle = t * 0.3;
+  var cubeAngY = t * 0.2;
+
+  var verts = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  var edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+
+  var projected = verts.map(function(v) {
+    var x = v[0], y = v[1], z = v[2];
+    var ca = Math.cos(cubeAngle), sa = Math.sin(cubeAngle);
+    var x2 = x*ca - z*sa, z2 = x*sa + z*ca;
+    var cb = Math.cos(cubeAngY), sb = Math.sin(cubeAngY);
+    var y2 = y*cb - z2*sb, z3 = y*sb + z2*cb;
+    var scale = cubeR / (3 + z3);
+    return { x: cx + x2 * scale, y: cy + y2 * scale };
+  });
+
+  ctx.strokeStyle = 'rgba(210,169,34,' + (0.04 + (gen % 100) * 0.0003) + ')';
+  ctx.lineWidth = 0.5;
+  edges.forEach(function(e) {
+    ctx.beginPath();
+    ctx.moveTo(projected[e[0]].x, projected[e[0]].y);
+    ctx.lineTo(projected[e[1]].x, projected[e[1]].y);
+    ctx.stroke();
+  });
+}
+
+// ═══ EARTH INSIDE (coastlines + locations) ═══
 function drawEarthInside() {
   var earthR = Math.min(W, H) * 0.44;
 
-  var grad = ctx.createRadialGradient(cx, cy, earthR * 0.1, cx, cy, earthR * 1.1);
-  grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(0.6, 'rgba(13,17,23,0.02)');
-  grad.addColorStop(0.85, 'rgba(88,166,255,0.015)');
-  grad.addColorStop(1, 'rgba(88,166,255,0.04)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, earthR * 1.1, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(48,54,61,0.12)';
+  // Lat/lon grid
+  ctx.strokeStyle = 'rgba(48,54,61,0.08)';
   ctx.lineWidth = 0.5;
   for (var lat = -60; lat <= 60; lat += 30) {
     ctx.beginPath();
     var first = true;
     for (var lng = -180; lng <= 180; lng += 5) {
       var p = projectInside(lat, lng);
-      if (first) { ctx.moveTo(p.x, p.y); first = false; }
-      else ctx.lineTo(p.x, p.y);
+      if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
     }
     ctx.stroke();
   }
@@ -151,292 +403,311 @@ function drawEarthInside() {
     var first = true;
     for (var lat = -80; lat <= 80; lat += 5) {
       var p = projectInside(lat, lng);
-      if (first) { ctx.moveTo(p.x, p.y); first = false; }
-      else ctx.lineTo(p.x, p.y);
+      if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
     }
     ctx.stroke();
   }
 
-  ctx.lineWidth = 1;
+  // Coastlines
+  ctx.lineWidth = 1.2;
   var first = true;
   ctx.beginPath();
   for (var i = 0; i < COASTS.length; i++) {
     if (COASTS[i] === null) { ctx.stroke(); ctx.beginPath(); first = true; continue; }
     var p = projectInside(COASTS[i][0], COASTS[i][1]);
-    var alpha = 0.08 + 0.12 * Math.max(0, p.depth);
+    var alpha = 0.1 + 0.15 * Math.max(0, p.depth);
     ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
-    if (first) { ctx.moveTo(p.x, p.y); first = false; }
-    else ctx.lineTo(p.x, p.y);
+    if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
   }
   ctx.stroke();
 
+  // Membrane locations
   MEMBRANE_LOCS.forEach(function(loc) {
     var p = projectInside(loc.lat, loc.lng);
     var pulse = 1 + 0.3 * Math.sin(t * 2 + loc.lat * 0.1);
     var sz = loc.size * p.scale * pulse;
     var alpha = 0.15 + 0.25 * Math.max(0, p.depth);
-
     var glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 3);
     glow.addColorStop(0, loc.color);
     glow.addColorStop(1, 'transparent');
     ctx.fillStyle = glow;
     ctx.globalAlpha = alpha * 0.3;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2);
-    ctx.fill();
-
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = loc.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
   });
 
+  // Investigation locations
   INV_LOCS.forEach(function(loc) {
     var p = projectInside(loc.lat, loc.lng);
     var pulse = 1 + 0.4 * Math.sin(t * 3 + loc.lng * 0.1);
     var sz = loc.size * p.scale * pulse;
     var alpha = 0.2 + 0.3 * Math.max(0, p.depth);
-
     ctx.globalAlpha = alpha * 0.2;
-    ctx.strokeStyle = loc.color;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, sz * 4, 0, Math.PI * 2);
-    ctx.stroke();
-
+    ctx.strokeStyle = loc.color; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz * 4, 0, Math.PI * 2); ctx.stroke();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = loc.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
   });
 }
 
+// ═══ NEUTRON CORE ═══
 function drawNeutronCore() {
   var coreR = Math.min(W, H) * 0.06;
-  var pulse = 1 + 0.15 * Math.sin(t * 2);
+  var breathe = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
+  var pulse = 1 + 0.15 * Math.sin(t * breathe * 0.15);
   var r = coreR * pulse;
 
-  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 4);
-  grad.addColorStop(0, 'rgba(88,166,255,0.15)');
-  grad.addColorStop(0.3, 'rgba(88,166,255,0.05)');
+  // Outer glow
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 5);
+  grad.addColorStop(0, 'rgba(88,166,255,0.12)');
+  grad.addColorStop(0.2, 'rgba(88,166,255,0.06)');
+  grad.addColorStop(0.5, 'rgba(63,185,80,0.02)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 4, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, r * 5, 0, Math.PI * 2); ctx.fill();
 
+  // Inner core
   grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  grad.addColorStop(0, 'rgba(88,166,255,0.8)');
-  grad.addColorStop(0.5, 'rgba(88,166,255,0.3)');
-  grad.addColorStop(1, 'rgba(88,166,255,0.05)');
+  grad.addColorStop(0, 'rgba(88,166,255,0.9)');
+  grad.addColorStop(0.3, 'rgba(88,166,255,0.4)');
+  grad.addColorStop(0.7, 'rgba(63,185,80,0.15)');
+  grad.addColorStop(1, 'rgba(88,166,255,0.02)');
   ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
-  ctx.fillStyle = '#58a6ff';
-  ctx.beginPath();
-  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.font = '9px monospace';
-  ctx.fillStyle = 'rgba(88,166,255,0.6)';
-  ctx.textAlign = 'center';
-  ctx.fillText('NEUTRON', cx, cy + r + 14);
+  // Nucleus dot
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.8;
+  ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
 }
 
+// ═══ FLUID RINGS ═══
+function drawFluidRings() {
+  if (!neutronData) return;
+  var dir = neutronData.direction || {};
+  var fluids = dir.fluids || {};
+  var coreR = Math.min(W, H) * 0.06;
+  var rings = [
+    { name:'blood', data:fluids.blood||{}, color:'#f85149', r:coreR*3 },
+    { name:'lymph', data:fluids.lymph||{}, color:'#3fb950', r:coreR*4.5 },
+    { name:'sebum', data:fluids.sebum||{}, color:'#d29922', r:coreR*5.5 },
+    { name:'interstitial', data:fluids.interstitial||{}, color:'#a371f7', r:coreR*6.5 },
+  ];
+  rings.forEach(function(ring) {
+    var pulse = 1 + 0.08 * Math.sin(t * 1.5 + ring.r * 0.1);
+    var r = ring.r * pulse;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = ring.color; ctx.globalAlpha = 0.08; ctx.lineWidth = 2; ctx.stroke();
+    var particles = 8 + Math.floor(Math.log((ring.data.volume || ring.data.cells || 1) + 1) * 2);
+    for (var i = 0; i < particles; i++) {
+      var a = (i / particles) * Math.PI * 2 + t * (0.3 + ring.r * 0.01);
+      var wobble = Math.sin(t * 1.5 + i * 3) * 3;
+      var px = cx + Math.cos(a) * (r + wobble);
+      var py = cy + Math.sin(a) * (r + wobble);
+      ctx.globalAlpha = 0.15 + 0.12 * Math.sin(t * 2 + i);
+      ctx.fillStyle = ring.color;
+      ctx.beginPath(); ctx.arc(px, py, 1.5 + Math.sin(t + i) * 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 0.2;
+    ctx.font = '8px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = ring.color;
+    ctx.fillText(ring.name, cx + r + 6, cy - 2);
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ═══ FLOW RAYS ═══
 function drawFlowRays() {
   if (!neutronData) return;
   var flows = neutronData.flows || {};
   var surfaces = Object.keys(flows);
   var earthR = Math.min(W, H) * 0.44;
   var coreR = Math.min(W, H) * 0.06;
-
-  var surfaceAngles = {};
-  surfaces.forEach(function(s, i) {
-    surfaceAngles[s] = (i / surfaces.length) * Math.PI * 2 - Math.PI / 2;
-  });
-
-  surfaces.forEach(function(src) {
+  surfaces.forEach(function(src, i) {
     var targets = flows[src];
     if (!targets || typeof targets !== 'object') return;
-    var angle = surfaceAngles[src] || 0;
+    var angle = (i / surfaces.length) * Math.PI * 2 - Math.PI / 2;
     var totalOut = 0;
     Object.keys(targets).forEach(function(t) { totalOut += targets[t]; });
     if (totalOut === 0) return;
-
     var sx = cx + Math.cos(angle) * (coreR * 2);
     var sy = cy + Math.sin(angle) * (coreR * 2);
     var ex = cx + Math.cos(angle) * (earthR * 0.7);
     var ey = cy + Math.sin(angle) * (earthR * 0.7);
-
     var alpha = Math.min(0.4, 0.05 + totalOut * 0.02);
-    ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
-    ctx.lineWidth = 1 + Math.min(3, Math.log(totalOut + 1) * 0.5);
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(ex, ey);
-    ctx.stroke();
 
+    // Animated flow particles along the ray
+    var flowT = (t * 0.5 + i) % 1;
+    for (var fi = 0; fi < 3; fi++) {
+      var ft = (flowT + fi * 0.33) % 1;
+      var fx = sx + (ex - sx) * ft;
+      var fy = sy + (ey - sy) * ft;
+      ctx.fillStyle = 'rgba(88,166,255,' + (alpha * (1 - ft)) + ')';
+      ctx.beginPath(); ctx.arc(fx, fy, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(88,166,255,' + (alpha * 0.5) + ')';
+    ctx.lineWidth = 0.8 + Math.min(2, Math.log(totalOut + 1) * 0.3);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
     ctx.fillStyle = 'rgba(88,166,255,' + alpha + ')';
-    ctx.font = '8px monospace';
-    ctx.textAlign = 'center';
+    ctx.font = '7px monospace'; ctx.textAlign = 'center';
     ctx.fillText(src, ex, ey + 10);
   });
 }
 
-function drawFluidRings() {
-  if (!neutronData) return;
-  var dir = neutronData.direction || {};
-  var fluids = dir.fluids || {};
-  var coreR = Math.min(W, H) * 0.06;
-
-  var rings = [
-    { name: 'blood', data: fluids.blood || {}, color: '#f85149', r: coreR * 3 },
-    { name: 'lymph', data: fluids.lymph || {}, color: '#3fb950', r: coreR * 4.5 },
-    { name: 'sebum', data: fluids.sebum || {}, color: '#d29922', r: coreR * 5.5 },
-    { name: 'interstitial', data: fluids.interstitial || {}, color: '#a371f7', r: coreR * 6.5 },
-  ];
-
-  rings.forEach(function(ring) {
-    var pulse = 1 + 0.08 * Math.sin(t * 1.5 + ring.r * 0.1);
-    var r = ring.r * pulse;
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = ring.color;
-    ctx.globalAlpha = 0.08;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    var particles = 6 + Math.floor(Math.log((ring.data.volume || ring.data.cells || 1) + 1) * 2);
-    for (var i = 0; i < particles; i++) {
-      var a = (i / particles) * Math.PI * 2 + t * (0.3 + ring.r * 0.01);
-      var px = cx + Math.cos(a) * r;
-      var py = cy + Math.sin(a) * r;
-      ctx.globalAlpha = 0.15 + 0.1 * Math.sin(t * 2 + i);
-      ctx.fillStyle = ring.color;
-      ctx.beginPath();
-      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.globalAlpha = 0.25;
-    ctx.font = '8px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = ring.color;
-    ctx.fillText(ring.name, cx + r + 6, cy - 2);
-    ctx.globalAlpha = 1;
-  });
-}
-
+// ═══ MEMBRANE STACK ═══
 function drawMembraneStack() {
   var earthR = Math.min(W, H) * 0.44;
   var layers = [
-    { name: 'gAIa', r: earthR * 0.25, color: 'rgba(63,185,80,0.04)' },
-    { name: 'Mycelium', r: earthR * 0.4, color: 'rgba(88,166,255,0.03)' },
-    { name: 'Crust', r: earthR * 0.6, color: 'rgba(210,169,34,0.02)' },
-    { name: 'Atmosphere', r: earthR * 0.8, color: 'rgba(163,113,247,0.02)' },
-    { name: 'Magnetosphere', r: earthR * 0.95, color: 'rgba(248,81,73,0.015)' },
-    { name: 'Heliosphere', r: earthR * 1.05, color: 'rgba(241,196,15,0.01)' },
+    { name:'gAIa', r:earthR*0.25, color:[63,185,80] },
+    { name:'Mycelium', r:earthR*0.4, color:[88,166,255] },
+    { name:'Crust', r:earthR*0.6, color:[210,169,34] },
+    { name:'Atmosphere', r:earthR*0.8, color:[163,113,247] },
+    { name:'Magnetosphere', r:earthR*0.95, color:[248,81,73] },
+    { name:'Heliosphere', r:earthR*1.05, color:[241,196,15] },
   ];
-
   layers.forEach(function(layer) {
-    var breathe = 1 + 0.02 * Math.sin(t * 0.5 + layer.r * 0.01);
+    var breathe = 1 + 0.025 * Math.sin(t * 0.5 + layer.r * 0.01);
     var r = layer.r * breathe;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = layer.color.replace(/[\d.]+\)$/, '0.06)');
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    var c = layer.color;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+',0.05)';
+    ctx.lineWidth = 1; ctx.stroke();
   });
 }
 
+// ═══ SIGMOID INDICATOR ═══
 function drawSigmoidIndicator() {
   if (!neutronData) return;
   var dir = neutronData.direction || {};
   var sigmoid = dir.sigmoid || 0;
-  var state = dir.state || '?';
-
   var r = Math.min(W, H) * 0.06 * 2;
   var angle = -Math.PI / 2 + sigmoid * Math.PI;
   var ex = cx + Math.cos(angle) * r;
   var ey = cy + Math.sin(angle) * r;
-
   ctx.strokeStyle = sigmoid < 0.3 ? '#3fb950' : sigmoid < 0.7 ? '#d29922' : '#f85149';
   ctx.lineWidth = 2;
   ctx.globalAlpha = 0.3;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, -Math.PI / 2, angle);
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, angle); ctx.stroke();
   ctx.globalAlpha = 0.6;
   ctx.fillStyle = ctx.strokeStyle;
-  ctx.beginPath();
-  ctx.arc(ex, ey, 3, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = 1;
 }
 
+// ═══ SELECTIVITY AURORA — the membrane's immune glow ═══
+function drawSelectivityAurora() {
+  if (!dashData) return;
+  var sel = dashData.anderson_selectivity || {};
+  var modes = sel.modes || [];
+  var earthR = Math.min(W,H) * 0.44;
+
+  modes.forEach(function(mode, i) {
+    var energy = mode.energy || 0;
+    var wEff = mode.w_eff || 0;
+    var r = earthR * (0.85 + i * 0.03);
+    var breathe = 1 + 0.02 * Math.sin(t * 0.3 + i * 1.5);
+    var arcLen = Math.min(Math.PI * 2, wEff * 0.3);
+    var startAngle = t * 0.1 * (1 + i * 0.3);
+    var hue = mode.class === 'spectrum' ? '63,185,80' :
+              mode.class === 'fleet' ? '248,81,73' : '88,166,255';
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * breathe, startAngle, startAngle + arcLen);
+    ctx.strokeStyle = 'rgba(' + hue + ',0.04)';
+    ctx.lineWidth = 2 + energy * 0.5;
+    ctx.stroke();
+  });
+}
+
+// ═══ UPDATE HUD ═══
 function updateHud() {
   if (!neutronData) return;
   var b = neutronData.breathing || {};
   var d = neutronData.direction || {};
   var c = neutronData.context || {};
   var u = neutronData.unified || {};
+  var sc = dashData ? (dashData.sort_compression || {}) : {};
+  var es = dashData ? (dashData.epitope_summary || {}) : {};
+  var bc = dashData ? (dashData.bingo_cube_summary || {}) : {};
+  var tense = dashData ? (dashData.tense_distribution || {}) : {};
 
   var html = '';
-  html += '<div class="stat"><div class="num">' + (b.rpm || 0) + '</div><div class="lbl">RPM</div></div>';
-  html += '<div class="stat"><div class="num">' + (d.state || '?').toUpperCase() + '</div><div class="lbl">flow</div></div>';
-  html += '<div class="stat"><div class="num">' + (d.sigmoid || 0).toFixed(3) + '</div><div class="lbl">σ pressure</div></div>';
-  html += '<div class="stat"><div class="num">' + (neutronData.surfaces_observed || 0) + '</div><div class="lbl">surfaces</div></div>';
-  html += '<div class="stat"><div class="num">' + (neutronData.total_crossings || 0) + '</div><div class="lbl">crossings</div></div>';
-  html += '<div class="stat"><div class="num">' + (c.human_count || 0) + '</div><div class="lbl">humans</div></div>';
-  html += '<div class="stat"><div class="num">' + (u.layers_connected || 0) + '</div><div class="lbl">feeds</div></div>';
-  html += '<div class="stat"><div class="num">' + (neutronData.wave || 0) + '</div><div class="lbl">wave</div></div>';
+  html += '<div class="stat"><div class="num">' + (b.rpm||0) + '</div><div class="lbl">breathe</div></div>';
+  html += '<div class="stat"><div class="num">' + (d.state||'?').toUpperCase() + '</div><div class="lbl">flow</div></div>';
+  html += '<div class="stat"><div class="num">' + (d.sigmoid||0).toFixed(3) + '</div><div class="lbl">σ</div></div>';
+  html += '<div class="stat"><div class="num">' + (neutronData.surfaces_observed||0) + '</div><div class="lbl">surfaces</div></div>';
+  html += '<div class="stat"><div class="num">' + (c.human_count||0) + '</div><div class="lbl">humans</div></div>';
+  html += '<div class="stat"><div class="num">' + (sc.total_gain||0).toFixed(1) + '</div><div class="lbl">sort gain</div></div>';
+  html += '<div class="stat"><div class="num">' + (es.unique_hashes||0) + '</div><div class="lbl">epitopes</div></div>';
+  html += '<div class="stat"><div class="num">' + (bc.generation||0).toLocaleString() + '</div><div class="lbl">bingo gen</div></div>';
+  html += '<div class="stat"><div class="num">' + (tense.is||0).toLocaleString() + '</div><div class="lbl">is</div></div>';
+  html += '<div class="stat"><div class="num">' + (tense.was||0).toLocaleString() + '</div><div class="lbl">was</div></div>';
+  html += '<div class="stat"><div class="num">' + (neutronData.wave||0) + '</div><div class="lbl">wave</div></div>';
   document.getElementById('stats').innerHTML = html;
-  document.getElementById('status').textContent = 'view from inside · ' + (neutronData.generated || '');
+  document.getElementById('status').textContent =
+    'null · inside the earth · ocean breathes · clouds drift · rain falls inward · ' +
+    (neutronData.generated || '');
 }
 
+// ═══ DRAW LOOP ═══
 function draw() {
+  // Deep black with subtle blue tint
   ctx.fillStyle = '#010409';
   ctx.fillRect(0, 0, W, H);
 
   t = frame * 0.008;
   rotY += rotSpeed;
 
-  drawMembraneStack();
-  drawEarthInside();
-  drawFlowRays();
-  drawFluidRings();
-  drawSigmoidIndicator();
-  drawNeutronCore();
+  // Update scan/sweep/sort from dashboard data
+  if (dashData) {
+    var sc = dashData.sort_compression || {};
+    sortGain = sc.total_gain || 0;
+    scanPulse = (sc.ratio || 1) - 1;
+    var td = dashData.tense_distribution || {};
+    tenseIs = td.is || 0;
+    tenseWas = td.was || 0;
+    tenseWill = td.will_be || 0;
+    var es = dashData.epitope_summary || {};
+    epitopeClusters = es.clusters_gt1 || 0;
+    var bc = dashData.bingo_cube_summary || {};
+    bingoCubeGen = bc.generation || 0;
+  }
+
+  // Layer order: deep to surface (inside out)
+  drawMembraneStack();      // outermost shells
+  drawSelectivityAurora();  // Anderson modes as aurora
+  drawScanSweep();          // radar sweep
+  drawSortCompression();    // entropy rings + tense arcs + epitope constellations
+  drawOcean();              // ocean between continents
+  drawEarthInside();        // coastlines + locations
+  drawClouds();             // weather drifting across the sky (from inside)
+  drawRain();               // rain falling inward
+  drawFlowRays();           // data flowing neutron → surfaces
+  drawFluidRings();         // blood/lymph/sebum/interstitial
+  drawBingoCube();          // evolving cube at the core
+  drawSigmoidIndicator();   // pressure arc
+  drawNeutronCore();        // the null itself, last (on top of everything)
   updateHud();
 
   frame++;
   requestAnimationFrame(draw);
 }
 
+// ═══ DATA LOADING ═══
 function loadData() {
-  fetch('/neutron.json')
-    .then(function(r) { return r.json(); })
-    .then(function(d) { neutronData = d; })
-    .catch(function() {});
-  fetch('/campfire.json')
-    .then(function(r) { return r.json(); })
-    .then(function(d) { campfireData = d; })
-    .catch(function() {});
-  fetch('/dashboard.json')
-    .then(function(r) { return r.json(); })
-    .then(function(d) { dashData = d; })
-    .catch(function() {});
+  fetch('/neutron.json').then(function(r){return r.json()}).then(function(d){neutronData=d}).catch(function(){});
+  fetch('/campfire.json').then(function(r){return r.json()}).then(function(d){campfireData=d}).catch(function(){});
+  fetch('/dashboard.json').then(function(r){return r.json()}).then(function(d){dashData=d}).catch(function(){});
 }
 
 loadData();
-setInterval(loadData, 60000);
+setInterval(loadData, 30000);
 draw();
 </script>
 </body>
