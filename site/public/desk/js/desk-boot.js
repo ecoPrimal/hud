@@ -12,6 +12,10 @@ var panels = {
   create:document.getElementById('panel-create'),
   gaia:  document.getElementById('panel-gaia'),
   weave: document.getElementById('panel-weave'),
+  campfire: document.getElementById('panel-campfire'),
+  globe: document.getElementById('panel-globe'),
+  map: document.getElementById('panel-map'),
+  atlas: document.getElementById('panel-atlas')
 };
 var renderers = {
   study: D.renderStudy,
@@ -21,13 +25,24 @@ var renderers = {
   create:D.renderCreate,
   gaia:  D.renderGaia,
   weave: D.renderWeave,
+  campfire: D.renderCampfire,
+  globe: D.renderGlobe,
+  map: D.renderMap,
+  atlas: D.renderAtlas
 };
 
 D.switchTab = function(name) {
   tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
-  for (var p in panels) {
-    panels[p].style.display = p === name ? '' : 'none';
-    if (p === name) panels[p].innerHTML = renderers[p]();
+  var keys = Object.keys(panels);
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    if (!panels[k]) continue;
+    if (k === name) {
+      panels[k].style.display = '';
+      panels[k].innerHTML = renderers[k]();
+    } else {
+      panels[k].style.display = 'none';
+    }
   }
   setTimeout(function() {
     var expMd = document.getElementById('export-md');
