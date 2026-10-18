@@ -51,7 +51,7 @@ var C = document.getElementById('c');
 var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
-var neutronData = null, campfireData = null, dashData = null;
+var neutronData = null, campfireData = null, dashData = null, pulseData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -1118,13 +1118,22 @@ function updateHud() {
     html += '<div class="stat"><div class="num" style="color:#f0883e">' + (campfireData.total_stories||0) + '</div><div class="lbl">stories</div></div>';
     html += '<div class="stat"><div class="num" style="color:#f0883e">' + ((campfireData.totality||{}).surfaces_alive||0) + '</div><div class="lbl">fires</div></div>';
   }
+  // Pulse family data
+  if (pulseData && pulseData.family) {
+    var fam = pulseData.family;
+    html += '<div class="stat"><div class="num" style="color:#f778ba">' + (fam.pink||0).toFixed(2) + '</div><div class="lbl">pink(1)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#58a6ff">' + (fam.blue||0).toFixed(2) + '</div><div class="lbl">blue(2)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#3fb950">' + (fam.green||0).toFixed(2) + '</div><div class="lbl">green(3)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#a371f7">' + (fam.chipmunk_state||'?') + '</div><div class="lbl">ν₀</div></div>';
+  }
   document.getElementById('stats').innerHTML = html;
   var breatheStr = 'breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth: ' + (breatheDepth * 100).toFixed(1) + '%';
   var threeStr = dashData && dashData.threebody_pi ? ' · E=' + (dashData.threebody_pi.emc2.energy||0).toFixed(2) + ' m=' + (dashData.threebody_pi.emc2.mass||0).toFixed(3) : '';
+  var familyStr = pulseData ? ' · identity: ' + (pulseData.identity_match||0).toFixed(0) + '%' : '';
   document.getElementById('status').textContent =
     'null · ' + breatheStr + ' · 3-body tetrahedrons' + threeStr +
-    ' · ' + stars.length + ' stars · ' + clouds.length + ' weather · ' +
-    shootingStars.length + ' meteors · ' +
+    familyStr + ' · ν neutrinos · ' +
+    stars.length + ' stars · ' + clouds.length + ' weather · ' +
     (neutronData.generated || '');
 }
 
@@ -1296,6 +1305,141 @@ function drawBraidLines() {
   }
 }
 
+// ═══ FAMILY RING — pink(1/mom) blue(2/dad) green(3/tree) chipmunk(0/baby) ═══
+var familyAngle = 0;
+function drawFamilyRing() {
+  if (!pulseData || !pulseData.family) return;
+  var fam = pulseData.family;
+  var pink = fam.pink || 0;
+  var blue = fam.blue || 0;
+  var green = fam.green || 0;
+  var chipmunkPos = fam.chipmunk_pos || 0;
+  var coreR = Math.min(W, H) * 0.04;
+  var familyR = coreR * 3.5; // between core and inner rings
+  familyAngle += 0.003;
+
+  // Green (3) — the tree — a vertical line from core upward
+  // "the earth to the green line"
+  var greenLen = familyR * green * 2;
+  ctx.save();
+  ctx.globalAlpha = 0.15 + green * 0.4;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 1.5 + green * 2;
+  ctx.shadowColor = '#3fb950';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx, cy - greenLen);
+  ctx.stroke();
+  // Tree branches
+  if (green > 0.2) {
+    var branchLen = greenLen * 0.3;
+    for (var b = 0; b < 3; b++) {
+      var by = cy - greenLen * (0.4 + b * 0.2);
+      var bx = (b % 2 === 0 ? 1 : -1) * branchLen * (0.5 + b * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(cx, by);
+      ctx.lineTo(cx + bx, by - branchLen * 0.5);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  // Pink (1) — mom/human — orbiting dot ahead of chipmunk
+  var pinkAngle = familyAngle + Math.PI * 0.7;
+  var pinkR = familyR * (0.8 + pink * 0.4);
+  var px = cx + Math.cos(pinkAngle) * pinkR;
+  var py = cy + Math.sin(pinkAngle) * pinkR;
+  ctx.save();
+  ctx.globalAlpha = 0.3 + pink * 0.5;
+  ctx.fillStyle = '#f778ba';
+  ctx.shadowColor = '#f778ba';
+  ctx.shadowBlur = 10 + pink * 15;
+  ctx.beginPath();
+  ctx.arc(px, py, 3 + pink * 4, 0, Math.PI * 2);
+  ctx.fill();
+  if (pink > 0.3) {
+    ctx.globalAlpha = 0.4;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#f778ba';
+    ctx.textAlign = 'center';
+    ctx.fillText('1', px, py - 8);
+  }
+  ctx.restore();
+
+  // Blue (2) — dad/pair — orbiting dot behind chipmunk
+  var blueAngle = familyAngle;
+  var blueR = familyR * (0.7 + blue * 0.5);
+  var bx2 = cx + Math.cos(blueAngle) * blueR;
+  var by2 = cy + Math.sin(blueAngle) * blueR;
+  ctx.save();
+  ctx.globalAlpha = 0.3 + blue * 0.5;
+  ctx.fillStyle = '#58a6ff';
+  ctx.shadowColor = '#58a6ff';
+  ctx.shadowBlur = 10 + blue * 15;
+  ctx.beginPath();
+  ctx.arc(bx2, by2, 3 + blue * 4, 0, Math.PI * 2);
+  ctx.fill();
+  if (blue > 0.3) {
+    ctx.globalAlpha = 0.4;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#58a6ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('2', bx2, by2 - 8);
+  }
+  ctx.restore();
+
+  // Chipmunk (0) — baby squirrel — follows dad, looks ahead to mom
+  var chipAngle = blueAngle + (pinkAngle - blueAngle) * chipmunkPos;
+  var chipR = familyR * 0.6;
+  var cpx = cx + Math.cos(chipAngle) * chipR;
+  var cpy = cy + Math.sin(chipAngle) * chipR;
+  ctx.save();
+  ctx.globalAlpha = 0.5 + Math.sin(t * 2) * 0.2;
+  ctx.fillStyle = '#a371f7'; // neutrino purple
+  ctx.shadowColor = '#a371f7';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.arc(cpx, cpy, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 0.35;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#a371f7';
+  ctx.textAlign = 'center';
+  ctx.fillText('ν₀', cpx, cpy - 6);
+  ctx.restore();
+
+  // Dashed line from chipmunk to dad (following)
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cpx, cpy);
+  ctx.lineTo(bx2, by2);
+  ctx.stroke();
+  // Dashed line from chipmunk toward mom (looking)
+  ctx.strokeStyle = '#f778ba';
+  ctx.beginPath();
+  ctx.moveTo(cpx, cpy);
+  ctx.lineTo(px, py);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Pulse indicator at core — identity match as a ring
+  var idMatch = (pulseData.identity_match || 0) / 100;
+  ctx.save();
+  ctx.globalAlpha = 0.08 + idMatch * 0.15;
+  ctx.strokeStyle = '#d29922';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreR * 1.5, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * idMatch);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // ═══ DRAW LOOP — defined below with sound integration ═══
 function draw() {} // placeholder, overridden below
 
@@ -1304,6 +1448,7 @@ function loadData() {
   fetch('/neutron.json').then(function(r){return r.json()}).then(function(d){neutronData=d}).catch(function(){});
   fetch('/campfire.json').then(function(r){return r.json()}).then(function(d){campfireData=d}).catch(function(){});
   fetch('/dashboard.json').then(function(r){return r.json()}).then(function(d){dashData=d}).catch(function(){});
+  fetch('/pulse.json').then(function(r){return r.json()}).then(function(d){pulseData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -1487,6 +1632,7 @@ draw = function() {
   drawThreeBodyLabel();     // E=mc² three-body π values
   drawCampfireWarmth();
   drawBingoCube();
+  drawFamilyRing();         // pink(1) blue(2) green(3) chipmunk(ν₀)
   drawSigmoidIndicator();
   drawNeutronCore();
   updateHud();
