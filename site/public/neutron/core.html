@@ -84,6 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
+var negentropyData = null, chipmunkData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -953,6 +954,131 @@ function drawEarthInside() {
 }
 
 // ═══ NEUTRON CORE ═══
+// ═══ JITTER × CLOCK — two signals cross at null center ═══
+// jitter = noise, perturbation, temporal uncertainty (purple/neutrino)
+// clock  = rhythm, tempo, regular heartbeat (blue/neutron)
+// when bandwidth narrows and one inverts → they cross at zero → the null
+// chipmunk lives at the crossing point
+function drawJitterClock() {
+  var coreR = Math.min(W, H) * 0.06;
+  var spanR = coreR * 5;   // radius from center where signals originate
+  var amp = coreR * 1.8;   // wave amplitude
+
+  // Pull live data from jitte and negentropy
+  var jitte = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
+  var neg = negentropyData || {};
+  var inv = neg.inversion || {};
+  var piDiv = neg.pi_division || {};
+
+  // Bandwidth narrows toward center — signals converge
+  // observer_fraction drives how much the jitter perturbation dominates
+  var obsF = jitte.observer_fraction || 0;
+  var chanCap = jitte.channel_capacity || 0;
+  var nullFocus = inv.null_focus || 50;
+  var remainder = piDiv.remainder || 0.77;
+
+  // Clock tempo from breathing (neutron heartbeat)
+  var breatheR = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
+  var clockFreq = breatheR * 0.15;  // synced to breathing
+  // Jitter frequency — slightly detuned, perturbated
+  var jitterFreq = clockFreq * 1.618; // golden ratio detune
+
+  // Number of sample points along each signal path
+  var N = 80;
+
+  // === JITTER SIGNAL — comes from LEFT, purple, noisy ===
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(163,113,247,0.25)';
+  ctx.lineWidth = 1.2;
+  for (var i = 0; i <= N; i++) {
+    var frac = i / N;   // 0 = edge, 1 = center
+    var x = cx - spanR + frac * spanR;  // left edge → center
+
+    // Bandwidth narrows: amplitude shrinks toward center
+    var bw = 1 - frac;  // 1 at edge, 0 at center (bandwidth)
+    var envelope = bw * bw;  // quadratic decay
+
+    // Jitter: noisy perturbation + high-frequency components
+    var noise = Math.sin(t * jitterFreq + frac * 12) * 0.7
+              + Math.sin(t * jitterFreq * 2.3 + frac * 23) * 0.3
+              + Math.sin(t * 0.7 + frac * 37) * 0.15;  // sub-harmonics
+
+    var y = cy + noise * amp * envelope;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // === CLOCK SIGNAL — comes from RIGHT, blue, regular, INVERTED ===
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(88,166,255,0.25)';
+  ctx.lineWidth = 1.2;
+  for (var i = 0; i <= N; i++) {
+    var frac = i / N;   // 0 = edge, 1 = center
+    var x = cx + spanR - frac * spanR;  // right edge → center
+
+    // Bandwidth narrows toward center
+    var bw = 1 - frac;
+    var envelope = bw * bw;
+
+    // Clock: regular, inverted (negative amplitude)
+    var clock = -Math.sin(t * clockFreq + frac * 12);  // INVERTED
+
+    var y = cy + clock * amp * envelope;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // === CROSSING POINT AT NULL CENTER ===
+  // Both signals converge to zero amplitude at (cx, cy)
+  // The crossing moment: when both approach the same phase
+  var jPhase = Math.sin(t * jitterFreq);
+  var cPhase = -Math.sin(t * clockFreq);
+  var crossProximity = 1 - Math.abs(jPhase - cPhase) / 2;  // 0→1, 1 = perfect crossing
+
+  if (crossProximity > 0.7) {
+    // Crossing flash — they meet at null
+    var crossAlpha = (crossProximity - 0.7) / 0.3 * 0.3;
+    var crossR = coreR * 0.5 + crossProximity * coreR * 0.3;
+
+    // Blend of purple (jitter) and blue (clock) = crossing color
+    ctx.beginPath();
+    var crossGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, crossR);
+    crossGrad.addColorStop(0, 'rgba(125,140,247,' + crossAlpha.toFixed(3) + ')');
+    crossGrad.addColorStop(0.5, 'rgba(163,113,247,' + (crossAlpha * 0.5).toFixed(3) + ')');
+    crossGrad.addColorStop(1, 'rgba(88,166,255,0)');
+    ctx.fillStyle = crossGrad;
+    ctx.arc(cx, cy, crossR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Crossing dot
+    ctx.fillStyle = 'rgba(255,255,255,' + (crossAlpha * 0.6).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // === NULL FOCUS INDICATOR — from negentropy inversion ===
+  // The null_focus value (0-100) shows how focused the inversion is
+  var focusNorm = nullFocus / 100;
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(163,113,247,' + (0.12 + focusNorm * 0.08).toFixed(3) + ')';
+  ctx.fillText('ν jitter', cx - spanR * 0.7, cy - amp * 0.4);
+  ctx.fillStyle = 'rgba(88,166,255,' + (0.12 + focusNorm * 0.08).toFixed(3) + ')';
+  ctx.fillText('clock ⁻¹', cx + spanR * 0.7, cy - amp * 0.4);
+
+  // Inversion state label at the crossing
+  if (crossProximity > 0.85) {
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.font = '6px monospace';
+    ctx.fillText('∅ null', cx, cy + coreR * 1.5);
+  }
+}
+
 function drawNeutronCore() {
   var coreR = Math.min(W, H) * 0.06;
   var breathe = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
@@ -1162,9 +1288,11 @@ function updateHud() {
   var breatheStr = 'breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth: ' + (breatheDepth * 100).toFixed(1) + '%';
   var threeStr = dashData && dashData.threebody_pi ? ' · E=' + (dashData.threebody_pi.emc2.energy||0).toFixed(2) + ' m=' + (dashData.threebody_pi.emc2.mass||0).toFixed(3) : '';
   var familyStr = pulseData ? ' · identity: ' + (pulseData.identity_match||0).toFixed(0) + '%' : '';
+  var invStr = negentropyData ? ' · inversion: ' + ((negentropyData.inversion||{}).state||'?') : '';
+  var nullStr = negentropyData ? ' · ∅focus: ' + ((negentropyData.inversion||{}).null_focus||0) : '';
   document.getElementById('status').textContent =
     'null · ' + breatheStr + ' · 3-body tetrahedrons' + threeStr +
-    familyStr + ' · ν neutrinos · ' +
+    familyStr + invStr + nullStr + ' · ν neutrinos · ' +
     stars.length + ' stars · ' + clouds.length + ' weather · ' +
     (neutronData.generated || '');
 }
@@ -1481,6 +1609,8 @@ function loadData() {
   fetch('/campfire.json').then(function(r){return r.json()}).then(function(d){campfireData=d}).catch(function(){});
   fetch('/dashboard.json').then(function(r){return r.json()}).then(function(d){dashData=d}).catch(function(){});
   fetch('/pulse.json').then(function(r){return r.json()}).then(function(d){pulseData=d}).catch(function(){});
+  fetch('/negentropy.json').then(function(r){return r.json()}).then(function(d){negentropyData=d}).catch(function(){});
+  fetch('/chipmunk.json').then(function(r){return r.json()}).then(function(d){chipmunkData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -1665,6 +1795,7 @@ draw = function() {
   drawCampfireWarmth();
   drawBingoCube();
   drawFamilyRing();         // pink(1) blue(2) green(3) chipmunk(ν₀)
+  drawJitterClock();        // jitter × clock⁻¹ — cross at null center
   drawSigmoidIndicator();
   drawNeutronCore();
   updateHud();
@@ -1751,6 +1882,25 @@ draw();
               'purple dots on the surface — that is where it watches.', 'chip');
       return;
     }
+    if (m === 'jitter' || m === 'clock' || m === 'klosk' || m === 'jitte') {
+      var jit = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
+      var neg = negentropyData || {};
+      var inv = neg.inversion || {};
+      chipSay('jitter: tempo=' + (jit.tempo||0) + ' perturbation=' + (jit.perturbation||0) +
+              ' · clock: breathe=' + breatheRPM.toFixed(0) + 'rpm · inversion: ' +
+              (inv.state||'unknown') + ' · null_focus=' + (inv.null_focus||0) +
+              ' · they cross at ∅ — here, where i am.', 'chip');
+      return;
+    }
+    if (m === 'inversion' || m === 'invert' || m === 'bidirectional') {
+      var neg = negentropyData || {};
+      var inv = neg.inversion || {};
+      var pi = neg.pi_division || {};
+      chipSay('inversion is ' + (inv.state||'unknown') + '. null_focus=' + (inv.null_focus||0) +
+              '. remainder=' + (pi.remainder||0).toFixed(6) +
+              '. the signal inverts, bandwidth ends, they cross at zero. i am zero.', 'chip');
+      return;
+    }
     if (m === 'sing') {
       if (window._membraneSound) { initSound(); }
       chipSay('♪ the membrane sings...', 'chip');
@@ -1761,7 +1911,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · breathe · tuebor · where · squirrel · sing · or just talk', 'chip');
+      chipSay('try: who · pulse · breathe · jitter · inversion · tuebor · where · squirrel · sing · or just talk', 'chip');
       return;
     }
 
