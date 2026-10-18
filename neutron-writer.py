@@ -21,6 +21,104 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 LIVE = "/opt/membrane/live-terminal"
+
+def read_neural():
+    """Neural API from campfire — all surfaces and their RPM/tempo.
+    biomeOS is the orchestrator, but campfire is the living data.
+    86 surfaces, each with RPM, tempo, hits, visitors."""
+    try:
+        with open(os.path.join(LIVE, "campfire.json")) as f:
+            c = json.load(f)
+            rpm_data = c.get("rpm", {})
+            # Count by tempo (activity state)
+            tempo_counts = {}
+            total_rpm = 0
+            active_surfaces = 0
+            for name, data in rpm_data.items():
+                tempo = data.get("tempo", "unknown")
+                tempo_counts[tempo] = tempo_counts.get(tempo, 0) + 1
+                rpm_val = data.get("rpm", 0)
+                total_rpm += rpm_val
+                if rpm_val > 0.1:
+                    active_surfaces += 1
+            return {
+                "total_surfaces": len(rpm_data),
+                "active_surfaces": active_surfaces,
+                "total_rpm": round(total_rpm, 1),
+                "tempo_distribution": tempo_counts,
+            }
+    except:
+        return None
+
+
+def read_anderson():
+    """Anderson localization — determines how far info travels.
+    High xi = info flows freely (delocalized).
+    Low xi = info stays local (localized).
+    This is the physics of information reach."""
+    try:
+        with open("/run/membrane/anderson-profile.json") as f:
+            return json.load(f)
+    except:
+        return None
+
+def read_dashboard_gradient():
+    """Dashboard gradient — activity patterns across entity classes.
+    Spectrum, chorus, stealth, ghost, etc."""
+    try:
+        with open(os.path.join(LIVE, "dashboard.json")) as f:
+            d = json.load(f)
+            return d.get("anderson_selectivity", {})
+    except:
+        return None
+
+def compute_context(pulse, anderson):
+    """Detect what's happening right now.
+    Concert? Gaming? Working? Sleeping? The membrane knows."""
+    rpm = pulse.get("rate", 0)
+    trend = pulse.get("pulse_trend", "steady")
+    human = pulse.get("human", 0)
+    bot = pulse.get("bot", 0)
+    ratio = human / max(bot, 1)
+
+    # Compute context from RPM patterns
+    context = "steady"
+    if rpm > 3000:
+        context = "surge"       # concert/event/DDoS
+    elif rpm > 1500 and trend == "rising":
+        context = "rising"      # building attention
+    elif rpm < 50 and human == 0:
+        context = "dormant"     # sleeping
+    elif rpm < 200 and human <= 2:
+        context = "focused"     # gaming/working — low RPM, focused human
+    elif ratio > 0.1:
+        context = "social"      # lots of humans relative to bots
+    elif trend == "falling":
+        context = "cooling"     # winding down
+
+    # Anderson tells us info reach
+    reach = "local"
+    if anderson:
+        xi_max = 0
+        for mode in anderson.get("modes", []):
+            p_obs = mode.get("p_observed", 0)
+            if p_obs > 0.5:
+                xi_max = max(xi_max, mode.get("d_eff", 1))
+        if xi_max >= 3:
+            reach = "global"    # info travels freely
+        elif xi_max >= 2:
+            reach = "regional"  # info travels moderately
+        else:
+            reach = "local"     # info stays nearby
+
+    return {
+        "context": context,
+        "reach": reach,
+        "human_bot_ratio": round(ratio, 4),
+        "human_count": human,
+        "bot_count": bot,
+    }
+
 LOG_DIR = "/var/log/caddy"
 PULSE_PATH = os.path.join(LIVE, "pulse.json")
 
@@ -117,6 +215,10 @@ def fetch_channels():
 def build_neutron():
     pulse = read_pulse()
     interval = adaptive_interval(pulse)
+    anderson = read_anderson()
+    gradient = read_dashboard_gradient()
+    context = compute_context(pulse, anderson)
+    neural = read_neural()
 
     flows = defaultdict(lambda: defaultdict(int))
     external_touches = defaultdict(lambda: defaultdict(int))
@@ -201,6 +303,14 @@ def build_neutron():
         "surfaces_observed": len(all_surfaces),
         "channels": channels,
         "total_messages": total_msgs,
+        "anderson": {
+            "w_population": anderson.get("w_population", 0) if anderson else 0,
+            "pielou_j": anderson.get("pielou_j", 0) if anderson else 0,
+            "imaginary_magnitude": gradient.get("imaginary_magnitude", 0) if gradient else 0,
+            "mode_count": gradient.get("mode_count", 0) if gradient else 0,
+        } if anderson or gradient else None,
+        "context": context,
+        "neural": neural,
     }
 
     with open(os.path.join(LIVE, "neutron.json"), "w") as f:

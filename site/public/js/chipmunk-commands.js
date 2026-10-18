@@ -2861,8 +2861,32 @@ window._chipmunkCommands = function(ctx) {
         fetch("/neutron.json")
           .then(function(r) { return r.json(); })
           .then(function(n) {
+            var b = n.breathing || {};
+            var ctx = n.context || {};
+            var and = n.anderson || {};
+            var neural = n.neural || {};
             var out = "<span style=\"color:#58a6ff\">\u25c8 neutron \u2014 the messaging axis</span>\n";
-            out += "<span class=\"dim\">how information travels between surfaces</span>\n\n";
+            out += "<span class=\"dim\">not cron. not clock. PULSE. tied to RPM, Anderson, gradient.</span>\n\n";
+
+            // Breathing
+            var rpmColor = b.rpm > 2000 ? "#f85149" : b.rpm > 500 ? "#3fb950" : "#58a6ff";
+            out += "<span style=\"color:" + rpmColor + "\">\u25c8 BREATHING</span> RPM: <span style=\"color:" + rpmColor + "\">" + (b.rpm||0).toFixed(0) + "</span>  interval: " + (b.interval_seconds||"?") + "s  trend: " + (b.trend||"?") + "\n";
+
+            // Context
+            var ctxColors = {surge:"#f85149",rising:"#ffaa44",steady:"#3fb950",focused:"#58a6ff",social:"#ff88ff",dormant:"#666",cooling:"#4466aa"};
+            out += "<span style=\"color:" + (ctxColors[ctx.context]||"#aaa") + "\">\u25c8 CONTEXT: " + (ctx.context||"?").toUpperCase() + "</span> reach=" + (ctx.reach||"?") + " human=" + (ctx.human_count||0) + " bot=" + (ctx.bot_count||0) + "\n";
+
+            // Anderson
+            if (and.w_population) {
+              out += "<span style=\"color:#d2a8ff\">\u25c8 ANDERSON</span> W=" + and.w_population + " J=" + and.pielou_j + " imaginary=" + and.imaginary_magnitude + " modes=" + and.mode_count + "\n";
+            }
+
+            // Neural
+            if (neural.total_surfaces) {
+              out += "<span style=\"color:#ffaa44\">\u25c8 NEURAL</span> " + neural.total_surfaces + " surfaces, " + neural.active_surfaces + " active, " + neural.total_rpm + " total RPM\n";
+            }
+
+            out += "\n";
             out += "surfaces: <span style=\"color:#58a6ff\">" + n.surfaces_observed + "</span>  ";
             out += "crossings: <span style=\"color:#58a6ff\">" + n.total_crossings + "</span>  ";
             out += "stuck: <span style=\"color:" + (n.stuck.length > 0 ? "#f85149" : "#3fb950") + "\">" + n.stuck.length + "</span>  ";

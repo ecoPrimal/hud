@@ -84,7 +84,8 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
     <textarea id="compose-body" rows="2" placeholder="type a message… (Ctrl+Enter to send)"></textarea>
     <button id="compose-send" onclick="sendMessage()">send</button>
   </div>
-  <div class="status" id="status">connecting…</div>
+  <div class="status" id="breathing-bar" style="color:#44ff88;font-family:monospace"></div>
+  <div class="status" id="status">breathing…</div>
 </div>
 
 <script src="https://hud.primals.eco/js/footer-ring.js" async></script>
@@ -93,6 +94,22 @@ var API = '/api/discuss';
 var CHANNELS = { chat:'neutron-chat', inbox:'neutron-inbox', notes:'neutron-notes', reminders:'neutron-reminders', voice:'neutron-voice', signal:'neutron-signal', eradication:'neutron-eradication' };
 var currentChannel = 'chat';
 var POLL_MS = 60000; // adaptive — tied to RPM, not clock
+
+// Breathing: adaptive rate from neutron pulse
+function updateBreathing() {
+  fetch('/neutron.json').then(function(r){return r.json()}).then(function(n){
+    var b = n.breathing || {};
+    var ctx = n.context || {};
+    var bar = document.getElementById('breathing-bar');
+    if (bar) {
+      bar.textContent = 'RPM: ' + (b.rpm||0).toFixed(0) + ' | ' + (ctx.context||'?') + ' | reach: ' + (ctx.reach||'?') + ' | interval: ' + (b.interval_seconds||'?') + 's';
+      bar.style.color = b.rpm > 2000 ? '#ff4444' : b.rpm > 500 ? '#44ff88' : '#4488ff';
+    }
+    if (b.interval_seconds) POLL_MS = b.interval_seconds * 1000;
+  }).catch(function(){});
+}
+updateBreathing();
+setInterval(updateBreathing, 60000);
 
 function esc(s) { var d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 function timeAgo(ts) {

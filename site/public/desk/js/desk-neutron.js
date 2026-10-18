@@ -1,143 +1,94 @@
-// desk-neutron.js — neutron flow desk tab
-// Wave 179: how information travels. The messaging axis.
+// desk-neutron.js — Neutron desk tab (adaptive, event-driven)
+// Wave 180: tied to RPM, Anderson, gradient, rootpulse, neural API
 (function(){
-'use strict';
-var D = window.Desk;
+  var D = window.D || (window.D = {});
+  D.renderNeutron = function(container){
+    container.innerHTML = '<p style="color:#999">Loading neutron flow...</p>';
+    fetch('/neutron.json').then(function(r){return r.json()}).then(function(n){
+      var b = n.breathing || {};
+      var ctx = n.context || {};
+      var and = n.anderson || {};
+      var neural = n.neural || {};
+      var tempos = neural.tempo_distribution || {};
 
-function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      var html = '<div style="font-family:monospace;font-size:13px;color:#e0e0e0;padding:10px">';
 
-function stat(val, label) {
-  return '<div style="text-align:center"><span style="font-size:24px;font-weight:600;color:#58a6ff;display:block">' + val + '</span><span style="font-size:10px;color:#8b949e;text-transform:uppercase">' + label + '</span></div>';
-}
+      // Breathing header
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px;border-left:3px solid '
+        + (b.rpm > 2000 ? '#ff4444' : b.rpm > 500 ? '#44ff88' : b.rpm > 100 ? '#4488ff' : '#666') + '">';
+      html += '<div style="font-size:16px;font-weight:bold;margin-bottom:4px">';
+      html += 'BREATHING: ' + (b.rpm||0).toFixed(0) + ' RPM';
+      html += ' <span style="color:#888;font-size:12px">interval=' + (b.interval_seconds||'?') + 's trend=' + (b.trend||'?') + '</span></div>';
+      html += '<div style="color:#aaa;font-size:11px">Not clock. Not cron. Pulse.</div>';
+      html += '</div>';
 
-function buildView(n) {
-  var html = '<div style="padding:12px">';
+      // Context
+      var ctxColor = {surge:'#ff4444',rising:'#ffaa44',steady:'#44ff88',focused:'#4488ff',social:'#ff88ff',dormant:'#666',cooling:'#4466aa'};
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:14px;font-weight:bold;color:' + (ctxColor[ctx.context]||'#aaa') + '">CONTEXT: ' + (ctx.context||'?').toUpperCase() + '</div>';
+      html += '<div style="color:#aaa;font-size:11px">reach=' + (ctx.reach||'?') + ' human=' + (ctx.human_count||0) + ' bot=' + (ctx.bot_count||0) + ' ratio=' + (ctx.human_bot_ratio||0) + '</div>';
+      html += '</div>';
 
-  // Stats bar
-  html += '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(88,166,255,0.12)">';
-  html += stat(n.surfaces_observed, 'surfaces');
-  html += stat(n.total_crossings, 'crossings');
-  html += stat((n.mirrors || []).length, 'mirrors');
-  html += stat((n.stuck || []).length, 'stuck');
-  html += stat((n.radiating || []).length, 'radiating');
-  html += '</div>';
+      // Anderson
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#ff88ff">ANDERSON LOCALIZATION</div>';
+      html += '<div style="font-size:11px;color:#aaa">W=' + (and.w_population||0) + ' pielou_j=' + (and.pielou_j||0) + ' imaginary=' + (and.imaginary_magnitude||0) + ' modes=' + (and.mode_count||0) + '</div>';
+      html += '<div style="font-size:11px;color:#888;margin-top:2px">reach=' + (ctx.reach||'?') + ' (determines how far info travels)</div>';
+      html += '</div>';
 
-  // Mirrors
-  html += '<h4 style="color:#58a6ff;font-size:12px;margin:12px 0 6px">◈ mirrors — surface → surface</h4>';
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px">';
-  (n.mirrors || []).forEach(function(m) {
-    html += '<div style="padding:6px 8px;background:rgba(88,166,255,0.05);border-left:2px solid rgba(88,166,255,0.15);font-size:11px">';
-    html += '<span style="color:#8b949e">' + esc(m.from_surface) + '</span>';
-    html += ' <span style="color:#58a6ff">→</span> ';
-    html += '<b>' + esc(m.to_surface) + '</b>';
-    html += '<span style="float:right;color:#58a6ff;font-weight:600">' + m.crossings + '</span></div>';
-  });
-  if (!(n.mirrors || []).length) html += '<div style="color:#8b949e;font-size:11px;padding:6px">no flows yet</div>';
-  html += '</div>';
+      // Neural API (tempo distribution)
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#ffaa44">NEURAL MESH</div>';
+      html += '<div style="font-size:11px;color:#aaa">' + (neural.total_surfaces||0) + ' surfaces, ' + (neural.active_surfaces||0) + ' active, ' + (neural.total_rpm||0) + ' total RPM</div>';
 
-  // Stuck
-  if ((n.stuck || []).length > 0) {
-    html += '<h4 style="color:#f85149;font-size:12px;margin:12px 0 6px">◈ stuck — no outgoing flow</h4>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:3px">';
-    (n.stuck || []).forEach(function(s) {
-      html += '<span style="padding:2px 7px;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.15);border-radius:8px;font-size:10px;color:#f85149">' + esc(s) + '</span>';
-    });
-    html += '</div>';
-  }
-
-  // Top touches
-  html += '<h4 style="color:#58a6ff;font-size:12px;margin:12px 0 6px">◈ top touches</h4>';
-  html += '<table style="width:100%;font-size:11px;border-collapse:collapse">';
-  html += '<tr style="color:#8b949e"><th style="text-align:left;padding:3px">surface</th><th style="text-align:left;padding:3px">from</th><th style="text-align:right;padding:3px">count</th></tr>';
-  (n.touches || []).slice(0, 12).forEach(function(t) {
-    html += '<tr style="border-top:1px solid rgba(88,166,255,0.04)">';
-    html += '<td style="padding:3px;font-weight:500">' + esc(t.surface) + '</td>';
-    html += '<td style="padding:3px;color:#8b949e">' + esc(t.referrer) + '</td>';
-    html += '<td style="padding:3px;text-align:right;color:#58a6ff;font-weight:600">' + t.touches + '</td></tr>';
-  });
-  html += '</table>';
-
-  // Flow matrix
-  if (n.flows && Object.keys(n.flows).length > 0) {
-    html += '<h4 style="color:#58a6ff;font-size:12px;margin:12px 0 6px">◈ flow matrix</h4>';
-    html += '<div style="font-size:10px;font-family:monospace">';
-    for (var from in n.flows) {
-      for (var to in n.flows[from]) {
-        var count = n.flows[from][to];
-        var bar = Array(Math.min(Math.ceil(count), 15) + 1).join('█');
-        html += '<div style="padding:1px 0">' + esc(from) + ' <span style="color:#58a6ff">→</span> ' + esc(to) + ' <span style="color:rgba(88,166,255,0.3)">' + bar + '</span> <span style="color:#58a6ff">' + count + '</span></div>';
+      // Tempo bars
+      var tempoColors = {rushing:'#ff4444',walking:'#44ff88',resting:'#4488ff',still:'#333'};
+      var maxTempo = Math.max.apply(null, Object.values(tempos).concat([1]));
+      for (var t in tempos) {
+        var pct = Math.round(tempos[t]/maxTempo*100);
+        html += '<div style="margin-top:4px;display:flex;align-items:center;gap:8px">';
+        html += '<span style="width:60px;font-size:11px;color:#888">' + t + '</span>';
+        html += '<div style="flex:1;height:14px;background:#111;border-radius:3px;overflow:hidden">';
+        html += '<div style="width:'+pct+'%;height:100%;background:'+(tempoColors[t]||'#555')+'"></div></div>';
+        html += '<span style="font-size:11px;color:#aaa;width:30px;text-align:right">' + tempos[t] + '</span>';
+        html += '</div>';
       }
-    }
-    html += '</div>';
-  }
+      html += '</div>';
 
-  html += '<div style="font-size:10px;color:#8b949e;margin-top:12px;text-align:center">wave ' + (n.wave || '?') + ' · ' + (n.generated || '') + '</div>';
-  html += '</div>';
-  return html;
-}
+      // Flow stats
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#44ff88">FLOW</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#aaa">';
+      html += '<div>mirrors: ' + (n.mirrors||[]).length + '</div>';
+      html += '<div>crossings: ' + (n.total_crossings||0) + '</div>';
+      html += '<div>stuck: ' + (n.stuck||[]).length + '</div>';
+      html += '<div>radiating: ' + (n.radiating||[]).length + '</div>';
+      html += '<div>surfaces: ' + (n.surfaces_observed||0) + '</div>';
+      html += '<div>channels: ' + Object.keys(n.channels||{}).length + '</div>';
+      html += '</div></div>';
 
-D.renderNeutron = function() {
-  var id = 'desk-neutron-async';
-  setTimeout(function(){
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = '<div style="text-align:center;color:#58a6ff;padding:24px">loading neutron…</div>';
-    fetch('/neutron.json')
-      .then(function(r) { return r.json(); })
-      .then(function(n) {
-        var el2 = document.getElementById(id);
-        if (el2) el2.innerHTML = buildView(n);
-      })
-      .catch(function(e) {
-        var el2 = document.getElementById(id);
-        if (el2) el2.innerHTML = '<div style="color:#f85149;padding:16px">neutron offline: ' + e.message + '</div>';
-      });
-  }, 50);
-  return '<div id="' + id + '">loading…</div>';
-};
+      // Channels
+      html += '<div style="margin-bottom:12px;padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#4488ff">CHANNELS (' + (n.total_messages||0) + ' messages)</div>';
+      var chs = n.channels || {};
+      for (var ch in chs) {
+        var c = chs[ch];
+        html += '<div style="font-size:11px;color:#aaa;margin-top:2px">#' + ch + ': ' + (c.total||0) + ' msgs';
+        if (c.latest_body) html += ' &mdash; <span style="color:#666">' + c.latest_body.substring(0,60) + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
 
+      // Symbiosis summary
+      html += '<div style="padding:10px;background:#1a1a2e;border-radius:6px">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#88aaff">SYMBIOSIS</div>';
+      html += '<div style="font-size:11px;color:#888">tit-for-tat-forgive-one | golden rule in code</div>';
+      html += '</div>';
 
-// ── Symbiosis section (Wave 180) ──
-// Fetched alongside neutron data, appended to the neutron tab
-var _origRender = D.renderNeutron;
-D.renderNeutron = function() {
-  var base = _origRender();
-  var symId = 'desk-sym-async';
-  setTimeout(function(){
-    var el = document.getElementById(symId);
-    if (!el) return;
-    fetch('/symbiosis.json')
-      .then(function(r) { return r.json(); })
-      .then(function(s) {
-        var el2 = document.getElementById(symId);
-        if (!el2) return;
-        var h = '<h4 style="color:#3fb950;font-size:12px;margin:16px 0 6px">symbiosis \u2014 tit-for-tat-forgive-one</h4>';
-        var sm = s.summary || {};
-        h += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:11px">';
-        h += '<span style="color:#3fb950">' + (sm.mutualists||0) + ' mutualist</span>';
-        h += '<span style="color:#58a6ff">' + (sm.commensal_active||0) + ' commensal</span>';
-        h += '<span style="color:#8b949e">' + (sm.commensal_suspect||0) + ' suspect</span>';
-        h += '<span style="color:#d29922">' + (sm.parasites||0) + ' parasite</span>';
-        h += '<span style="color:#f85149">' + (sm.pathogens||0) + ' pathogen</span>';
-        h += '</div>';
-        h += '<table style="width:100%;font-size:10px;border-collapse:collapse">';
-        h += '<tr style="color:#8b949e"><th style="text-align:left;padding:2px">entity</th><th>class</th><th>coop</th><th>defect</th><th>waste</th></tr>';
-        (s.entities || []).forEach(function(e) {
-          var clr = {"mutualist":"#3fb950","commensal_active":"#58a6ff","commensal_suspect":"#8b949e","parasite":"#d29922","pathogen":"#f85149"}[e.relationship] || "#8b949e";
-          var w = (e.ledger.waste_offered || []).slice(0,2).join(", ") || "-";
-          h += '<tr style="border-top:1px solid rgba(88,166,255,0.04)">';
-          h += '<td style="padding:2px">' + e.label + '</td>';
-          h += '<td style="padding:2px;color:' + clr + '">' + e.relationship + (e.ledger.golden ? ' *' : '') + '</td>';
-          h += '<td style="padding:2px;text-align:center;color:#3fb950">' + e.ledger.cooperations + '</td>';
-          h += '<td style="padding:2px;text-align:center;color:#f85149">' + e.ledger.defections + '</td>';
-          h += '<td style="padding:2px;color:#8b949e;font-size:9px">' + w + '</td></tr>';
-        });
-        h += '</table>';
-        h += '<div style="font-size:9px;color:#8b949e;margin-top:8px">' + (s.principle || '') + '</div>';
-        el2.innerHTML = h;
-      }).catch(function() {});
-  }, 200);
-  return base + '<div id="' + symId + '" style="padding:0 12px">loading symbiosis...</div>';
-};
-
+      html += '</div>';
+      container.innerHTML = html;
+    }).catch(function(e){
+      container.innerHTML = '<p style="color:#f44">Neutron offline: ' + e.message + '</p>';
+    });
+  };
 })();

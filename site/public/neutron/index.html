@@ -148,6 +148,10 @@ async function load() {
 function render() {
   // Stats
   document.getElementById('stats').innerHTML =
+    '<div class="stat"><span class="val" style="color:' + ((state.breathing||{}).rpm > 2000 ? '#f85149' : (state.breathing||{}).rpm > 500 ? '#3fb950' : '#58a6ff') + '">' + ((state.breathing||{}).rpm||0).toFixed(0) + '</span><span class="lbl">RPM</span></div>' +
+    '<div class="stat"><span class="val">' + ((state.context||{}).context||'?') + '</span><span class="lbl">context</span></div>' +
+    '<div class="stat"><span class="val">' + ((state.context||{}).reach||'?') + '</span><span class="lbl">reach</span></div>' +
+    '<div class="stat"><span class="val">' + ((state.breathing||{}).interval_seconds||'?') + 's</span><span class="lbl">interval</span></div>' +
     '<div class="stat"><span class="val">' + state.surfaces_observed + '</span><span class="lbl">surfaces</span></div>' +
     '<div class="stat"><span class="val">' + state.total_crossings + '</span><span class="lbl">crossings</span></div>' +
     '<div class="stat"><span class="val">' + (state.mirrors || []).length + '</span><span class="lbl">mirrors</span></div>' +
