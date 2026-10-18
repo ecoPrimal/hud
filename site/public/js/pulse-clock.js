@@ -17,7 +17,13 @@
     reach: 'unknown',
     interval: 60,
     human: 0,
-    bot: 0
+    bot: 0,
+    // Pulse direction: null → out, out → in
+    direction: 'unknown',
+    in_pulse: 0,
+    out_pulse: 0,
+    in_ratio: 0,
+    out_ratio: 0
   };
 
   var beatListeners = [];
@@ -42,6 +48,13 @@
         state.interval = b.interval_seconds || 60;
         state.human = ctx.human_count || 0;
         state.bot = ctx.bot_count || 0;
+        // Pulse direction
+        var dir = n.direction || {};
+        state.direction = dir.state || 'unknown';
+        state.in_pulse = dir.in_pulse || 0;
+        state.out_pulse = dir.out_pulse || 0;
+        state.in_ratio = dir.in_ratio || 0;
+        state.out_ratio = dir.out_ratio || 0;
 
         // Notify beat listeners
         beatListeners.forEach(function(fn) {

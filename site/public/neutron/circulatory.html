@@ -317,6 +317,7 @@ function updateStats() {
 
   var b = (state && state.breathing) || {};
   var ctx2 = (state && state.context) || {};
+  var dir = (state && state.direction) || {};
   var neural = (state && state.neural) || {};
 
   document.getElementById('stats-bar').innerHTML =
@@ -330,7 +331,10 @@ function updateStats() {
     '<div class="stat"><span class="val">' + particles.length + '</span><span class="lbl">particles</span></div>' +
     '<div class="stat"><span class="val">' + (neural.total_surfaces || '?') + '</span><span class="lbl">surfaces</span></div>' +
     '<div class="stat"><span class="val">' + (ctx2.context || '?') + '</span><span class="lbl">context</span></div>' +
-    '<div class="stat"><span class="val">' + (ctx2.reach || '?') + '</span><span class="lbl">reach</span></div>';
+    '<div class="stat"><span class="val">' + (ctx2.reach || '?') + '</span><span class="lbl">reach</span></div>' +
+    '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">direction</span></div>' +
+    '<div class="stat"><span class="val" style="color:#58a6ff">' + (dir.in_pulse || 0) + '</span><span class="lbl">in-pulse</span></div>' +
+    '<div class="stat"><span class="val" style="color:#3fb950">' + (dir.out_pulse || 0) + '</span><span class="lbl">out-pulse</span></div>';
 
   document.getElementById('pulse-info').textContent =
     'RPM: ' + (b.rpm || 0).toFixed(0) + ' | ' +

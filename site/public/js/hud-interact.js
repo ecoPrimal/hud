@@ -726,7 +726,10 @@
     if (window.PulseClock && PulseClock.state.rpm > 0) {
       var ps = PulseClock.state;
       var rpmColor = ps.rpm > 2000 ? '#f85149' : ps.rpm > 500 ? '#3fb950' : '#58a6ff';
-      parts.push('<span style="color:' + rpmColor + '" title="RPM: ' + ps.rpm.toFixed(0) + ' trend: ' + ps.trend + ' context: ' + ps.context + ' reach: ' + ps.reach + '">\u2764 ' + ps.rpm.toFixed(0) + '</span>');
+      var dirArrow = ps.direction === 'balanced' ? '\u21c4' : ps.direction === 'absorbing' ? '\u2b05' : ps.direction === 'radiating' ? '\u27a1' : ps.direction === 'stagnant' ? '\u23f8' : '\u2764';
+      var dirColor = ps.direction === 'balanced' ? '#3fb950' : ps.direction === 'absorbing' ? '#58a6ff' : ps.direction === 'radiating' ? '#d29922' : '#f85149';
+      parts.push('<span style="color:' + rpmColor + '" title="RPM: ' + ps.rpm.toFixed(0) + ' trend: ' + ps.trend + ' context: ' + ps.context + ' reach: ' + ps.reach + ' direction: ' + ps.direction + ' in=' + ps.in_pulse + ' out=' + ps.out_pulse + '">\u2764 ' + ps.rpm.toFixed(0) + '</span>');
+      parts.push('<span style="color:' + dirColor + '" title="' + ps.direction + ': in=' + ps.in_pulse + ' out=' + ps.out_pulse + '">' + dirArrow + '</span>');
     }
 
     // Time

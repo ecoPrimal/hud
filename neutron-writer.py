@@ -22,6 +22,64 @@ from datetime import datetime, timezone
 
 LIVE = "/opt/membrane/live-terminal"
 
+def compute_pulse_direction(pulse, flows, external_touches, total_crossings):
+    """Compute the bidirectional pulse.
+    
+    OUT-PULSE: membrane → world (radiating information outward)
+      - Internal crossings between surfaces
+      - Content served to humans
+      - Mirrors reflecting between surfaces
+    
+    IN-PULSE: world → membrane (receiving information inward)
+      - External touches arriving from search/social/AI
+      - Bot requests (consuming)
+      - Human visits (engaging)
+    
+    The circulation is healthy when both flow.
+    Stuck = no outflow. Flooded = only inflow.
+    """
+    rpm = pulse.get("rate", 0)
+    human = pulse.get("human", 0)
+    bot = pulse.get("bot", 0)
+    
+    # IN = external touches + bot consumption
+    in_total = sum(sum(refs.values()) for refs in external_touches.values())
+    
+    # OUT = internal crossings (surface → surface)
+    out_total = total_crossings
+    
+    # OUT also includes human engagement (they take content OUT to the world)
+    # Every human who reads and leaves carries information outward
+    out_total += human  # humans are the outward pulse
+    
+    # Balance: healthy circulation has both in and out
+    total = max(in_total + out_total, 1)
+    in_ratio = round(in_total / total, 4)
+    out_ratio = round(out_total / total, 4)
+    
+    # Circulation state
+    if out_ratio < 0.05:
+        state = "stagnant"      # all inflow, nothing radiates
+    elif in_ratio < 0.05:
+        state = "broadcasting"  # all outflow, nothing received
+    elif abs(in_ratio - out_ratio) < 0.2:
+        state = "balanced"      # healthy circulation
+    elif in_ratio > out_ratio:
+        state = "absorbing"     # more intake than output
+    else:
+        state = "radiating"     # more output than intake
+    
+    return {
+        "in_pulse": in_total,
+        "out_pulse": out_total,
+        "in_ratio": in_ratio,
+        "out_ratio": out_ratio,
+        "state": state,
+        "human_carry": human,
+        "bot_consume": bot,
+    }
+
+
 def read_neural():
     """Neural API from campfire — all surfaces and their RPM/tempo.
     biomeOS is the orchestrator, but campfire is the living data.
@@ -309,6 +367,7 @@ def build_neutron():
             "imaginary_magnitude": gradient.get("imaginary_magnitude", 0) if gradient else 0,
             "mode_count": gradient.get("mode_count", 0) if gradient else 0,
         } if anderson or gradient else None,
+        "direction": compute_pulse_direction(pulse, external_touches, external_touches, total_crossings),
         "context": context,
         "neural": neural,
     }

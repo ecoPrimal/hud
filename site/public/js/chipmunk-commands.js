@@ -2882,6 +2882,11 @@ window._chipmunkCommands = function(ctx) {
             var ctxColors = {surge:"#f85149",rising:"#ffaa44",steady:"#3fb950",focused:"#58a6ff",social:"#ff88ff",dormant:"#666",cooling:"#4466aa"};
             out += "<span style=\"color:" + (ctxColors[ctx.context]||"#aaa") + "\">\u25c8 CONTEXT: " + (ctx.context||"?").toUpperCase() + "</span> reach=" + (ctx.reach||"?") + " human=" + (ctx.human_count||0) + " bot=" + (ctx.bot_count||0) + "\n";
 
+            // Direction
+            var dir = n.direction || {};
+            var dirColor = {balanced:"#3fb950",absorbing:"#58a6ff",radiating:"#d29922",stagnant:"#f85149",broadcasting:"#ff88ff"};
+            out += "<span style=\"color:" + (dirColor[dir.state]||"#aaa") + "\">\u25c8 DIRECTION: " + (dir.state||"?").toUpperCase() + "</span> in=" + (dir.in_pulse||0) + " out=" + (dir.out_pulse||0) + " ratio=" + ((dir.in_ratio||0)*100).toFixed(0) + "% in / " + ((dir.out_ratio||0)*100).toFixed(0) + "% out\n";
+
             // Anderson
             if (and.w_population) {
               out += "<span style=\"color:#d2a8ff\">\u25c8 ANDERSON</span> W=" + and.w_population + " J=" + and.pielou_j + " imaginary=" + and.imaginary_magnitude + " modes=" + and.mode_count + "\n";
