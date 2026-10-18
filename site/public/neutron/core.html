@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null, fleetSortData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -2260,6 +2260,7 @@ function loadData() {
   fetch('/mesh-speed.json').then(function(r){return r.json()}).then(function(d){meshSpeedData=d}).catch(function(){});
   fetch('/reflection.json').then(function(r){return r.json()}).then(function(d){reflectionData=d}).catch(function(){});
   fetch('/genome.json').then(function(r){return r.json()}).then(function(d){genomeData=d}).catch(function(){});
+  fetch('/fleet-sort.json').then(function(r){return r.json()}).then(function(d){fleetSortData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2701,6 +2702,26 @@ draw();
       } else chipSay('reflection data loading...', 'chip');
       return;
     }
+    if (m === 'fleet' || m === 'sort' || m === 'unsorted' || m === 'refine' || m === 'classify') {
+      if (fleetSortData) {
+        var sc = fleetSortData.sort_classes || {};
+        var pr = fleetSortData.profiles || {};
+        var total = fleetSortData.total_entities || 0;
+        var lines = [];
+        lines.push('FLEET SORT: ' + total + ' entities refined');
+        var skeys = Object.keys(sc);
+        for (var si = 0; si < skeys.length; si++) {
+          lines.push('  ' + skeys[si] + ': ' + sc[skeys[si]] + ' (' + (sc[skeys[si]]/total*100).toFixed(1) + '%)');
+        }
+        lines.push('profiles: ' + Object.keys(pr).length + ' behavioral fingerprints');
+        var pkeys = Object.keys(pr);
+        for (si = 0; si < Math.min(pkeys.length, 5); si++) {
+          lines.push('  ' + pkeys[si] + ': ' + pr[pkeys[si]]);
+        }
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('fleet sort data loading...', 'chip');
+      return;
+    }
     if (m === 'genome' || m === 'totality' || m === 'size' || m === 'binary' || m === 'energy' || m === 'cost') {
       if (genomeData) {
         var g = genomeData.genome_summary;
@@ -2754,7 +2775,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · genome · msg [gate] [text] · inbox', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · genome · fleet · msg [gate] [text] · inbox', 'chip');
       return;
     }
 
