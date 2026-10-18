@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>neutron · channels · primals.eco</title>
+<style>
+:root { --bg:#010409; --fg:#c9d1d9; --dim:#8b949e; --blue:#58a6ff; --border:rgba(88,166,255,0.12); --glow:rgba(88,166,255,0.08); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; font-size:14px; min-height:100vh; display:flex; }
+
+.sidebar { width:200px; border-right:1px solid var(--border); padding:16px 12px; flex-shrink:0; }
+.sidebar h2 { font-size:13px; color:var(--blue); margin-bottom:12px; font-weight:500; }
+.channel { display:block; padding:6px 10px; margin-bottom:2px; border-radius:4px; color:var(--dim); text-decoration:none; font-size:13px; cursor:pointer; transition:all 0.2s; }
+.channel:hover { background:var(--glow); color:var(--fg); }
+.channel.active { background:rgba(88,166,255,0.15); color:var(--blue); }
+.channel .count { float:right; font-size:11px; opacity:0.6; }
+
+.main { flex:1; display:flex; flex-direction:column; }
+.header { padding:12px 16px; border-bottom:1px solid var(--border); font-size:14px; color:var(--blue); font-weight:500; }
+.messages { flex:1; overflow-y:auto; padding:16px; }
+.msg { padding:8px 12px; border-left:2px solid var(--border); margin-bottom:4px; transition:border-color 0.2s; }
+.msg:hover { border-left-color:var(--blue); }
+.msg-meta { font-size:11px; color:var(--dim); margin-bottom:3px; }
+.msg-meta .author { color:var(--fg); }
+.msg-body { font-size:13px; white-space:pre-wrap; word-break:break-word; }
+.msg-badge { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; margin-left:4px; }
+
+.compose { padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; }
+.compose textarea { flex:1; padding:8px 12px; background:var(--bg); color:var(--fg); border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:inherit; resize:none; }
+.compose textarea:focus { outline:none; border-color:var(--blue); }
+.compose button { padding:8px 16px; background:rgba(88,166,255,0.15); color:var(--blue); border:1px solid rgba(88,166,255,0.3); border-radius:6px; cursor:pointer; font-size:13px; }
+.compose button:hover { background:rgba(88,166,255,0.25); }
+
+.status { font-size:10px; color:var(--dim); padding:4px 16px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h2>neutron channels</h2>
+  <a class="channel active" data-ch="chat" onclick="switchChannel('chat')">
+    <span class="count" id="count-chat">0</span>
+    # chat
+  </a>
+  <a class="channel" data-ch="inbox" onclick="switchChannel('inbox')">
+    <span class="count" id="count-inbox">0</span>
+    # inbox
+  </a>
+  <a class="channel" data-ch="notes" onclick="switchChannel('notes')">
+    <span class="count" id="count-notes">0</span>
+    # notes
+  </a>
+  <a class="channel" data-ch="reminders" onclick="switchChannel('reminders')">
+    <span class="count" id="count-reminders">0</span>
+    # reminders
+  </a>
+  <div style="margin-top:24px;padding-top:12px;border-top:1px solid var(--border)">
+    <a class="channel" href="/" style="color:var(--dim)">← flow view</a>
+    <a class="channel" href="https://hud.primals.eco" style="color:var(--dim)">← hud</a>
+  </div>
+  <div style="margin-top:auto;padding-top:24px;font-size:10px;color:var(--dim)">
+    sovereign · no account<br>
+    no cookies · no tracking<br>
+    built on reliable tools
+  </div>
+</div>
+
+<div class="main">
+  <div class="header" id="header"># chat</div>
+  <div class="messages" id="messages">loading…</div>
+  <div class="compose">
+    <textarea id="compose-body" rows="2" placeholder="type a message… (Ctrl+Enter to send)"></textarea>
+    <button id="compose-send" onclick="sendMessage()">send</button>
+  </div>
+  <div class="status" id="status">connecting…</div>
+</div>
+
+<script src="https://hud.primals.eco/js/footer-ring.js" async></script>
+<script>
+var API = '/api/discuss';
+var CHANNELS = { chat:'neutron-chat', inbox:'neutron-inbox', notes:'neutron-notes', reminders:'neutron-reminders' };
+var currentChannel = 'chat';
+var POLL_MS = 15000;
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+function timeAgo(ts) {
+  if (!ts) return '';
+  var diff = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h';
+  return Math.floor(diff/86400) + 'd';
+}
+
+function switchChannel(ch) {
+  currentChannel = ch;
+  document.querySelectorAll('.channel').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-ch') === ch);
+  });
+  document.getElementById('header').textContent = '# ' + ch;
+  loadChannel();
+}
+
+function loadChannel() {
+  var page = CHANNELS[currentChannel];
+  fetch(API + '?page=' + encodeURIComponent(page))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var comments = (data.comments || []).sort(function(a,b) { return (a.epoch||0) - (b.epoch||0); });
+      var container = document.getElementById('messages');
+      if (comments.length === 0) {
+        container.innerHTML = '<div style="color:var(--dim);text-align:center;padding:32px">empty channel. say something.</div>';
+      } else {
+        container.innerHTML = comments.map(function(c) {
+          var badge = c.badge ? '<span class="msg-badge" style="background:rgba(88,166,255,0.15);color:var(--blue)">' + esc(c.badge) + '</span>' : '';
+          return '<div class="msg">' +
+            '<div class="msg-meta"><span class="author">' + esc(c.author||'anon') + '</span>' + badge + ' · ' + timeAgo(c.ts) + '</div>' +
+            '<div class="msg-body">' + esc(c.body) + '</div></div>';
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+      }
+      document.getElementById('status').textContent = 'last update: ' + new Date().toLocaleTimeString() + ' · ' + comments.length + ' messages';
+    })
+    .catch(function(e) {
+      document.getElementById('status').textContent = 'offline: ' + e.message;
+    });
+}
+
+function loadCounts() {
+  for (var ch in CHANNELS) {
+    (function(c) {
+      fetch(API + '?page=' + CHANNELS[c])
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var el = document.getElementById('count-' + c);
+          if (el) el.textContent = d.total || 0;
+        }).catch(function() {});
+    })(ch);
+  }
+}
+
+function sendMessage() {
+  var body = document.getElementById('compose-body');
+  var btn = document.getElementById('compose-send');
+  if (!body.value.trim()) return;
+  btn.disabled = true; btn.textContent = 'sending…';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page: CHANNELS[currentChannel], author: 'human', body: body.value.trim() })
+  })
+  .then(function(r) {
+    if (r.ok) { body.value = ''; setTimeout(loadChannel, 500); }
+    else { return r.json().then(function(d) { btn.textContent = d.detail || 'error'; }); }
+    btn.disabled = false; btn.textContent = 'send';
+  })
+  .catch(function() { btn.textContent = 'offline'; btn.disabled = false; });
+}
+
+document.getElementById('compose-body').addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendMessage();
+});
+
+loadChannel();
+loadCounts();
+setInterval(loadChannel, POLL_MS);
+setInterval(loadCounts, 60000);
+</script>
+</body>
+</html>
