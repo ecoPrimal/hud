@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural API — Live Composition Graph</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --fg: #e6edf3; --dim: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --yellow: #d29922; --red: #f85149;
+  --purple: #bc8cff; --cyan: #39d2c0; --orange: #f0883e;
+  --pink: #f778ba;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--fg); overflow: hidden; }
+#canvas { width: 100vw; height: 100vh; display: block; }
+#info {
+  position: fixed; top: 12px; left: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
+  font-size: 13px; z-index: 10; max-width: 320px;
+}
+#info h1 { font-size: 16px; margin-bottom: 6px; color: var(--accent); }
+#info .stat { color: var(--dim); margin: 2px 0; }
+#info .stat b { color: var(--fg); }
+#legend {
+  position: fixed; bottom: 12px; left: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; z-index: 10;
+}
+#legend .item { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+#legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+#tooltip {
+  position: fixed; display: none; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px;
+  font-size: 12px; z-index: 20; pointer-events: none; max-width: 400px;
+}
+#tooltip .name { font-size: 14px; font-weight: 600; color: var(--accent); }
+#tooltip .caps { color: var(--dim); margin-top: 4px; max-height: 120px; overflow-y: auto; }
+#source {
+  position: fixed; bottom: 12px; right: 12px; font-size: 11px;
+  color: var(--dim); z-index: 10;
+}
+#source a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div id="info">
+  <h1>🧠 Neural API Graph</h1>
+  <div class="stat">Primals: <b id="primalCount">—</b></div>
+  <div class="stat">Capabilities: <b id="capCount">—</b></div>
+  <div class="stat">Edges: <b id="edgeCount">—</b></div>
+  <div class="stat">Source: <b id="sourceLabel">—</b></div>
+  <div class="stat" style="margin-top:6px;color:var(--green)">⬤ Live — polling every 10s</div>
+</div>
+
+<div id="legend">
+  <div class="item"><div class="dot" style="background:#58a6ff"></div> Neural API</div>
+  <div class="item"><div class="dot" style="background:#3fb950"></div> Tower (crypto/network/security)</div>
+  <div class="item"><div class="dot" style="background:#bc8cff"></div> Nest (storage/dag/permanence)</div>
+  <div class="item"><div class="dot" style="background:#f0883e"></div> Node (compute/math)</div>
+  <div class="item"><div class="dot" style="background:#39d2c0"></div> Meta (visualization/gossip)</div>
+  <div class="item"><div class="dot" style="background:#d29922"></div> Composition (rootpulse/etc)</div>
+</div>
+
+<div id="tooltip">
+  <div class="name" id="ttName"></div>
+  <div id="ttEndpoint" style="color:var(--dim);font-size:11px;margin-top:2px"></div>
+  <div class="caps" id="ttCaps"></div>
+</div>
+
+<div id="source">
+  biomeOS Neural API → petalTongue v1.7.0 | <a href="https://sporeprint.primals.eco">sporePrint</a>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+let nodes = [], edges = [], W, H, mouse = {x:-1,y:-1}, hovered = null;
+
+const DOMAIN_COLORS = {
+  neural: '#58a6ff', biomeos: '#58a6ff',
+  crypto: '#3fb950', beardog: '#3fb950', network: '#3fb950', songbird: '#3fb950',
+  security: '#f85149', skunkbat: '#f85149',
+  dag: '#bc8cff', rhizocrypt: '#bc8cff', permanence: '#bc8cff', loamspine: '#bc8cff',
+  ledger: '#bc8cff', provenance: '#bc8cff', sweetgrass: '#bc8cff',
+  storage: '#bc8cff', nestgate: '#bc8cff',
+  compute: '#f0883e', toadstool: '#f0883e', math: '#f0883e', barracuda: '#f0883e',
+  visualization: '#39d2c0', petaltongue: '#39d2c0', gossip: '#39d2c0', swarmvine: '#39d2c0',
+};
+
+const DOMAIN_RING = {
+  neural: 0, biomeos: 0,
+  crypto: 1, beardog: 1, network: 1, songbird: 1, security: 1, skunkbat: 1,
+  dag: 2, rhizocrypt: 2, permanence: 2, loamspine: 2, ledger: 2,
+  provenance: 2, sweetgrass: 2, storage: 2, nestgate: 2,
+  compute: 3, toadstool: 3, math: 3, barracuda: 3,
+  visualization: 4, petaltongue: 4, gossip: 4, swarmvine: 4,
+};
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function layout(primals) {
+  const cx = W / 2, cy = H / 2;
+  const rings = {};
+  primals.forEach(p => {
+    const ring = DOMAIN_RING[p.primal_type] ?? DOMAIN_RING[p.name] ?? 5;
+    if (!rings[ring]) rings[ring] = [];
+    rings[ring].push(p);
+  });
+
+  nodes = [];
+  const radii = [0, 120, 210, 290, 360, 420];
+
+  Object.entries(rings).forEach(([ring, members]) => {
+    const r = radii[ring] || 420;
+    const n = members.length;
+    members.forEach((p, i) => {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      const jitter = (ring == 0) ? 0 : (Math.sin(i * 7.3) * 15);
+      const x = cx + (r + jitter) * Math.cos(angle);
+      const y = cy + (r + jitter) * Math.sin(angle);
+      const color = DOMAIN_COLORS[p.primal_type] || DOMAIN_COLORS[p.name] || '#8b949e';
+      const capCount = (p.capabilities || []).length;
+      const size = Math.max(4, Math.min(18, 4 + Math.sqrt(capCount) * 1.5));
+      nodes.push({ ...p, x, y, color, size, ring: +ring, capCount });
+    });
+  });
+}
+
+function draw() {
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  [120, 210, 290, 360].forEach(r => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(48,54,61,0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  edges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (from && to) {
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.strokeStyle = 'rgba(88,166,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  });
+
+  nodes.forEach(n => {
+    if (n.ring > 0) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(n.x, n.y);
+      ctx.strokeStyle = `${n.color}18`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  });
+
+  nodes.forEach(n => {
+    const isHovered = hovered && hovered.id === n.id;
+    const s = isHovered ? n.size * 1.5 : n.size;
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, s + 2, 0, Math.PI * 2);
+    ctx.fillStyle = `${n.color}30`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, s, 0, Math.PI * 2);
+    ctx.fillStyle = n.color;
+    ctx.fill();
+
+    if (isHovered) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, s + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = n.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    const label = n.name || n.id;
+    if (s > 6 || isHovered) {
+      ctx.font = `${isHovered ? 12 : 10}px system-ui`;
+      ctx.fillStyle = isHovered ? '#e6edf3' : '#8b949e';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, n.x, n.y + s + 14);
+    }
+  });
+
+  requestAnimationFrame(draw);
+}
+
+canvas.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  hovered = null;
+  for (const n of nodes) {
+    const dx = n.x - mouse.x, dy = n.y - mouse.y;
+    if (dx*dx + dy*dy < (n.size + 8) * (n.size + 8)) {
+      hovered = n;
+      break;
+    }
+  }
+  if (hovered) {
+    tooltip.style.display = 'block';
+    tooltip.style.left = (mouse.x + 16) + 'px';
+    tooltip.style.top = (mouse.y - 10) + 'px';
+    document.getElementById('ttName').textContent = `${hovered.name} (${hovered.primal_type})`;
+    document.getElementById('ttEndpoint').textContent = hovered.endpoint || '';
+    const caps = hovered.capabilities || [];
+    document.getElementById('ttCaps').textContent = caps.length > 0
+      ? `${caps.length} capabilities: ${caps.slice(0, 8).join(', ')}${caps.length > 8 ? '...' : ''}`
+      : 'no capabilities listed';
+    canvas.style.cursor = 'pointer';
+  } else {
+    tooltip.style.display = 'none';
+    canvas.style.cursor = 'default';
+  }
+});
+
+async function fetchData() {
+  try {
+    const [snapRes, healthRes] = await Promise.all([
+      fetch('/api/snapshot'),
+      fetch('/api/primal-health')
+    ]);
+    const snap = await snapRes.json();
+    const health = await healthRes.json();
+
+    const primals = snap.primals || [];
+    edges = (snap.edges || []);
+
+    const seen = new Set();
+    const deduped = [];
+    for (const p of primals) {
+      const key = p.primal_type + '-' + p.name;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(p);
+      }
+    }
+
+    layout(deduped);
+
+    let totalCaps = 0;
+    deduped.forEach(p => totalCaps += (p.capabilities || []).length);
+
+    document.getElementById('primalCount').textContent = deduped.length;
+    document.getElementById('capCount').textContent = totalCaps.toLocaleString();
+    document.getElementById('edgeCount').textContent = edges.length;
+    document.getElementById('sourceLabel').textContent = snap.source || 'neural_api';
+  } catch (e) {
+    console.error('fetch error:', e);
+  }
+}
+
+window.addEventListener('resize', () => { resize(); fetchData(); });
+resize();
+fetchData();
+setInterval(fetchData, 10000);
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
