@@ -1128,6 +1128,174 @@ function updateHud() {
     (neutronData.generated || '');
 }
 
+// ═══ NEUTRINO LAYER — squirrel observation mapped to earth surface ═══
+// neutrino (ν) = squirrel + chipmunk = null, passes through, observes
+// flavors oscillate: electron_neutrino(humans), muon_neutrino(fleet), tau_neutrino(presence)
+var NEUTRINO_PURPLE = '#a371f7';
+var NEUTRINO_FLAVORS = ['#a371f7','#f778ba','#79c0ff']; // purple, pink, ice-blue
+// Anderson modes mapped to geographic positions — where squirrel observes each class
+var SQUIRREL_POSITIONS = [
+  { mode:'human',    lat:42.7, lng:-84.5,  label:'human' },      // Michigan — home
+  { mode:'sovereign',lat:42.3, lng:-83.0,  label:'sovereign' },  // Detroit — the investigation
+  { mode:'spectrum', lat:39.0, lng:-77.5,  label:'spectrum' },    // Ashburn — variety
+  { mode:'chorus',   lat:50.1, lng:8.7,    label:'chorus' },      // Frankfurt — the fleet masses
+  { mode:'ghost',    lat:37.4, lng:-122.1, label:'ghost' },       // Mountain View — almost human
+  { mode:'stealth',  lat:47.6, lng:-122.3, label:'stealth' },    // Redmond — hiding
+];
+var squirrelDots = [];
+for (var sq = 0; sq < SQUIRREL_POSITIONS.length; sq++) {
+  var sp = SQUIRREL_POSITIONS[sq];
+  squirrelDots.push({
+    lat: sp.lat, lng: sp.lng, mode: sp.mode, label: sp.label,
+    twistPhase: sq * Math.PI * 2 / 6,
+    twistSpeed: 0.008 + Math.random() * 0.005,
+    flavor: 0,
+    size: 3,
+    count: 0,    // anderson mode count
+    w_eff: 0,    // localization width
+    p_obs: 0,    // observed probability
+  });
+}
+
+function drawNeutrinoLayer() {
+  if (!dashData) return;
+  var sel = dashData.anderson_selectivity || {};
+  var modes = sel.modes || [];
+  // Update dot sizes from Anderson mode data
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    d.count = 0; d.w_eff = 0; d.p_obs = 0;
+    for (var m = 0; m < modes.length; m++) {
+      if (modes[m]['class'] === d.mode) {
+        d.count = modes[m].count || 0;
+        d.w_eff = modes[m].w_eff || 0;
+        d.p_obs = modes[m].p_observed || 0;
+        break;
+      }
+    }
+    d.size = 2 + Math.min(Math.log(d.count + 1) * 1.2, 14);
+  }
+
+  // Draw neutrino observation dots — purple, oscillating flavor
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    if (d.count < 1) continue;
+    d.twistPhase += d.twistSpeed;
+    // Neutrino flavor oscillation — color shifts between purple/pink/ice-blue
+    var flavorT = (Math.sin(d.twistPhase) + 1) * 0.5; // 0-1
+    var flavorIdx = Math.floor(flavorT * 3) % 3;
+    var fColor = NEUTRINO_FLAVORS[flavorIdx];
+
+    var p = projectInside(d.lat, d.lng);
+    if (p.depth < -0.2) continue;
+    var alpha = 0.3 + Math.abs(Math.sin(d.twistPhase * 0.7)) * 0.5;
+    var sz = d.size * p.scale;
+
+    // The twist — spiraling outward ring
+    var twistR = sz * 2 + Math.sin(d.twistPhase * 2) * sz;
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.3;
+    ctx.strokeStyle = fColor;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, twistR, d.twistPhase, d.twistPhase + Math.PI * 1.2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Core neutrino dot
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fColor;
+    ctx.shadowColor = NEUTRINO_PURPLE;
+    ctx.shadowBlur = sz * 3;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Label
+    if (sz > 3) {
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.fillStyle = '#c9d1d9';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ν ' + d.label, p.x, p.y + sz + 10);
+      ctx.restore();
+    }
+  }
+}
+
+// ═══ BRAID LINES — green passage connections between Anderson modes ═══
+function drawBraidLines() {
+  if (!dashData) return;
+  // Connect modes that form the selectivity gradient:
+  // human ↔ sovereign (green — the self), spectrum ↔ ghost (amber — the boundary),
+  // chorus ↔ stealth (red — the threat)
+  var passages = [
+    {from:'human',   to:'sovereign',color:'#3fb950',strength:0}, // green — self recognizes self
+    {from:'spectrum',to:'ghost',    color:'#d29922',strength:0}, // amber — boundary between seen/unseen
+    {from:'chorus',  to:'stealth',  color:'#f85149',strength:0}, // red — fleet mass ↔ hidden
+    {from:'human',   to:'ghost',    color:'#a371f7',strength:0}, // purple — human ↔ almost-human
+  ];
+  // Calculate strength from mode counts
+  for (var i = 0; i < passages.length; i++) {
+    var p = passages[i];
+    for (var j = 0; j < squirrelDots.length; j++) {
+      if (squirrelDots[j].mode === p.from) p.strength += Math.log(squirrelDots[j].count + 1);
+      if (squirrelDots[j].mode === p.to) p.strength += Math.log(squirrelDots[j].count + 1);
+    }
+  }
+
+  for (var i = 0; i < passages.length; i++) {
+    var p = passages[i];
+    if (p.strength < 1) continue;
+    var dotA = null, dotB = null;
+    for (var j = 0; j < squirrelDots.length; j++) {
+      if (squirrelDots[j].mode === p.from) dotA = squirrelDots[j];
+      if (squirrelDots[j].mode === p.to) dotB = squirrelDots[j];
+    }
+    if (!dotA || !dotB) continue;
+
+    var pA = projectInside(dotA.lat, dotA.lng);
+    var pB = projectInside(dotB.lat, dotB.lng);
+    if (pA.depth < -0.4 && pB.depth < -0.4) continue;
+
+    var alpha = Math.min(p.strength * 0.1, 0.5);
+
+    // Bezier arc between the two points
+    var midX = (pA.x + pB.x) / 2;
+    var midY = (pA.y + pB.y) / 2;
+    var dist = Math.sqrt((pB.x-pA.x)*(pB.x-pA.x) + (pB.y-pA.y)*(pB.y-pA.y));
+    var cpX = midX + Math.sin(t * 0.3 + i) * dist * 0.15;
+    var cpY = midY - dist * 0.3 + Math.cos(t * 0.2 + i) * dist * 0.1;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 1 + p.strength * 0.15;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(pA.x, pA.y);
+    ctx.quadraticCurveTo(cpX, cpY, pB.x, pB.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Traveling pulse along the braid
+    var pulseT = (t * 0.5 + i * 1.5) % (Math.PI * 2);
+    var pulsePos = (Math.sin(pulseT) + 1) * 0.5;
+    // Quadratic bezier position at pulsePos
+    var px = (1-pulsePos)*(1-pulsePos)*pA.x + 2*(1-pulsePos)*pulsePos*cpX + pulsePos*pulsePos*pB.x;
+    var py = (1-pulsePos)*(1-pulsePos)*pA.y + 2*(1-pulsePos)*pulsePos*cpY + pulsePos*pulsePos*pB.y;
+    ctx.globalAlpha = alpha * 1.5;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 // ═══ DRAW LOOP — defined below with sound integration ═══
 function draw() {} // placeholder, overridden below
 
@@ -1306,6 +1474,8 @@ draw = function() {
   drawTidalWaves();
   drawOcean();
   drawEarthInside();
+  drawNeutrinoLayer();      // squirrel observation — purple neutrino dots
+  drawBraidLines();         // green passage connections between categories
   drawThreeBodySurface();   // tetrahedron orbits on the earth surface
   drawMichiganGlow();
   drawArcConnections();
