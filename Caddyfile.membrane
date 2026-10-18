@@ -161,47 +161,31 @@
 
 	# Route bots INTO the scatter maze — they go in, they dont come out
 	handle @bot_gpt {
-		header X-Blackhole "true"
+		header X-Commensal "gpt"
+		header X-License "AGPL-3.0-or-later; scyBorg"
 		header X-Legal-Notice "AGPL-3.0-or-later + scyBorg. Training triggers copyleft."
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "gpt"
-
-			header_down Link "<https://signal.primals.eco/canary/scatter>; rel=canary"
-		}
+		header Link "<https://tuebor.primals.eco/>; rel=canonical"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_claude {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "claude"
-		}
+		header X-Commensal "claude"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_claude2 {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "claude"
-		}
+		header X-Commensal "claude"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_anthropic {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "anthropic"
-		}
+		header X-Commensal "anthropic"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_amazon {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "amazon"
-		}
+		header X-Commensal "amazon"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_bytespider {
 		header X-Blackhole "true"
@@ -252,28 +236,19 @@
 		}
 	}
 	handle @bot_applebot {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "apple"
-		}
+		header X-Commensal "apple"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_google {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "google"
-		}
+		header X-Commensal "google"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_bingbot {
-		header X-Blackhole "true"
-		reverse_proxy localhost:9753 {
-			header_up Host {host}
-			header_up X-Real-IP {remote_host}
-			header_up X-Blackhole "bing"
-		}
+		header X-Commensal "bing"
+		header X-License "AGPL-3.0-or-later; scyBorg"
+		redir https://tuebor.primals.eco/ 302
 	}
 	handle @bot_semrush {
 		header X-Blackhole "true"
@@ -785,6 +760,48 @@ signal.primals.eco {
 		header Access-Control-Allow-Origin "*"
 		root * /opt/membrane/live-terminal
 		rewrite * /billboard-mix.json
+		file_server
+	}
+	handle /backscatter.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /fleet-sort.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /genome.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /reflection.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /mesh-speed.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /membrane-pulse.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
 		file_server
 	}
 	handle /negentropy.json {
@@ -1503,6 +1520,13 @@ hud.primals.eco, biomeos.primals.eco, os.primals.eco, identity.primals.eco {
 	}
 
 	# membrane discussion relay (opsonize-rs v2)
+	# inter-gate message relay
+	handle /api/gate-msg* {
+		reverse_proxy 127.0.0.1:9761 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
 	handle /api/discuss* {
 		reverse_proxy 127.0.0.1:8097 {
 			header_up Host {host}
@@ -1573,6 +1597,37 @@ hud.primals.eco, biomeos.primals.eco, os.primals.eco, identity.primals.eco {
 		file_server
 	}
 
+	handle /null-mirror.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+
+	handle /human-expects.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	
+	# ── system-layers (composition) ──
+	handle /system-layers.json {
+		root * /opt/membrane/live-terminal
+		rewrite * /system-layers.json
+		header Content-Type application/json
+		header Cache-Control "public, max-age=30"
+		file_server
+	}
+	handle /proton-pulse.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=10, stale-while-revalidate=30"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
 	handle /seo.json {
 		header Content-Type "application/json; charset=utf-8"
 		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
@@ -1655,6 +1710,55 @@ hud.primals.eco, biomeos.primals.eco, os.primals.eco, identity.primals.eco {
 	handle /chipmunk.json {
 		header Content-Type "application/json; charset=utf-8"
 		header Cache-Control "public, max-age=5, stale-while-revalidate=10"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /backscatter.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /fleet-sort.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /genome.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /reflection.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /mesh-speed.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /membrane-pulse.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /negentropy.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
 		header Access-Control-Allow-Origin "*"
 		root * /opt/membrane/live-terminal
 		file_server
@@ -2160,6 +2264,13 @@ https:// {
 				header_up X-Real-IP {remote_host}
 			}
 		}
+	# inter-gate message relay
+	handle /api/gate-msg* {
+		reverse_proxy 127.0.0.1:9761 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
 		handle /api/discuss* {
 			reverse_proxy 127.0.0.1:8097 {
 				header_up Host {host}
@@ -2185,6 +2296,48 @@ https:// {
 	handle @is_detroit {
 		root * /opt/ecoPrimals/detroit/public
 
+	handle /backscatter.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /fleet-sort.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /genome.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=300, stale-while-revalidate=600"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /reflection.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /mesh-speed.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=60, stale-while-revalidate=120"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
+	handle /membrane-pulse.json {
+		header Content-Type "application/json; charset=utf-8"
+		header Cache-Control "public, max-age=30, stale-while-revalidate=60"
+		header Access-Control-Allow-Origin "*"
+		root * /opt/membrane/live-terminal
+		file_server
+	}
 		handle /negentropy.json {
 			header Content-Type "application/json; charset=utf-8"
 			header Cache-Control "public, max-age=30, stale-while-revalidate=60"
@@ -2472,6 +2625,13 @@ neutron.primals.eco {
     Referrer-Policy "no-referrer"
     Content-Security-Policy "default-src 'self' 'unsafe-inline'; connect-src 'self' https://notify.primals.eco"
   }
+	# inter-gate message relay
+	handle /api/gate-msg* {
+		reverse_proxy 127.0.0.1:9761 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
   handle /api/discuss* {
     reverse_proxy 127.0.0.1:8097
   }
