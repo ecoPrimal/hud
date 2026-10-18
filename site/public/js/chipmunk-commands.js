@@ -2961,6 +2961,13 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ WEBB — esotericWebb gossip mesh ═══
+      if (cmd === "webb" || cmd === "gossip" || cmd === "mesh" || cmd === "esoteric") {
+        addEntry("system", "\ud83d\udd78 esotericWebb");
+        addEntry("chipmunk", "<span style=\"color:#a371f7\">\u25c8 esotericWebb \u2014 the gossip mesh</span>\n<span class=\"dim\">peer-to-peer cell composition. 13/13 alive. gossip injection LIVE.</span>\n\n<span style=\"color:#58a6ff\">cells:</span> rhizocrypt (DAG), loamspine (lineage), sweetgrass (provenance)\n<span style=\"color:#58a6ff\">mesh:</span> swarmVine gossip protocol\n<span style=\"color:#58a6ff\">engine:</span> The Weaver\u2019s Parlor \u2014 8 rooms, 5 NPCs, 4 endings\n\n<a href=\"https://git.primals.eco/sporeGarden/esotericWebb\" target=\"_blank\" style=\"color:#a371f7\">\u25c8 source</a>");
+        return;
+      }
+
             // ═══ BOARD — backend board, all metrics ═══
       if (cmd === "board" || cmd === "backend" || cmd === "dashboard" || cmd === "metrics") {
         addEntry("system", "\u25a3 backend board");
@@ -2988,7 +2995,7 @@ window._chipmunkCommands = function(ctx) {
             out += "\n<span style=\"color:#58a6ff\">ASN types:</span>\n";
             for (var t in asn) { out += "  " + t + ": " + asn[t] + "\n"; }
             out += "\nhuman IPs: <span style=\"color:#3fb950\">" + (d.human_ips||0) + "</span>  fleet IPs: " + (d.fleet_ips||0) + "\n";
-            out += "\n<a href=\"/neutron/board.html\" target=\"_blank\" style=\"color:#a371f7\">\u25a3 open full backend board</a>";
+            out += "\n<a href=\"/neutron/footprint.html\" target=\"_blank\" style=\"color:#3fb950\">\ud83c\udf0d open footprint map</a> \u00b7 <a href=\"/neutron/board.html\" target=\"_blank\" style=\"color:#a371f7\">\u25a3 open backend board</a>";
             addEntry("chipmunk", out);
           })
           .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">dashboard offline: " + e.message + "</span>"); });
