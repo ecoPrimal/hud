@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>backend board · primals.eco</title>
+<style>
+:root { --bg:#0d1117; --fg:#c9d1d9; --dim:#8b949e; --border:rgba(48,54,61,0.6); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; padding:40px 24px 24px; }
+.nav { position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace; }
+.nav a { color:#58a6ff; text-decoration:none; }
+.nav span { color:#30363d; }
+h1 { font-size:22px; margin-bottom:4px; color:#c9d1d9; }
+.sub { font-size:12px; color:var(--dim); margin-bottom:24px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+.card { background:rgba(22,27,34,0.8); border:1px solid var(--border); border-radius:8px; padding:16px; }
+.card h3 { font-size:13px; color:#58a6ff; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
+.metric { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(48,54,61,0.3); font-size:13px; }
+.metric .k { color:var(--dim); }
+.metric .v { color:var(--fg); font-family:monospace; font-weight:600; }
+.v.green { color:#3fb950; }
+.v.red { color:#f85149; }
+.v.blue { color:#58a6ff; }
+.v.amber { color:#d29922; }
+.v.purple { color:#a371f7; }
+.v.gold { color:#f1c40f; }
+.bar { height:6px; background:#21262d; border-radius:3px; margin-top:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; }
+.geo-list { font-size:12px; font-family:monospace; }
+.geo-item { padding:3px 0; display:flex; justify-content:space-between; }
+.inv-node { display:inline-block; padding:2px 8px; margin:2px; border-radius:10px; font-size:11px; font-family:monospace; }
+#pulse-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#3fb950; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.2)} }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149">♥ circulatory</a><span>·</span>
+  <a href="/desk/" style="color:#3fb950">◧ desk</a><span>·</span>
+  <a href="/neutron/" style="color:#d29922">◇ neutron</a>
+</div>
+
+<h1><span id="pulse-dot"></span> backend board</h1>
+<div class="sub" id="subtitle">loading...</div>
+
+<div class="grid" id="board"></div>
+
+<script>
+function load() {
+  Promise.all([
+    fetch('/dashboard.json').then(r=>r.json()).catch(()=>null),
+    fetch('/neutron.json').then(r=>r.json()).catch(()=>null),
+    fetch('/fleet-analysis.json').then(r=>r.json()).catch(()=>null),
+    fetch('/scan_sweep_sort.json').then(r=>r.json()).catch(()=>null),
+    fetch('/membrane-stack.json').then(r=>r.json()).catch(()=>null),
+    fetch('/symbiosis.json').then(r=>r.json()).catch(()=>null),
+    fetch('https://clutch.primals.eco/api/graph.json').then(r=>r.json()).catch(()=>null)
+  ]).then(function(r) {
+    var dash = r[0], neutron = r[1], fleet = r[2], scan = r[3], stack = r[4], symb = r[5], clutch = r[6];
+    var b = (neutron||{}).breathing || {};
+    var dir = (neutron||{}).direction || {};
+    var uni = (neutron||{}).unified || {};
+    var fl = dir.fluids || {};
+
+    document.getElementById('subtitle').textContent = 
+      'RPM ' + (b.rpm||0).toFixed(0) + ' · trend ' + (b.trend||'?') + ' · sigmoid ' + (dir.sigmoid||'?') + 
+      ' · ' + (uni.layers_connected||0) + ' feeds unified · live';
+
+    var html = '';
+
+    // ── PULSE ──
+    html += '<div class="card"><h3>♥ pulse</h3>';
+    html += m('RPM', (b.rpm||0).toFixed(0), 'green');
+    html += m('trend', b.trend||'?');
+    html += m('sigmoid', dir.sigmoid||'?', 'amber');
+    html += m('circulation', (dir.state||'?').toUpperCase(), dir.state==='balanced'?'green':dir.state==='absorbing'?'blue':'red');
+    html += m('in-pulse', dir.in_pulse||0, 'blue');
+    html += m('out-pulse', dir.out_pulse||0, 'green');
+    html += m('interval', (b.interval_seconds||'?') + 's');
+    html += '</div>';
+
+    // ── BLOOD ──
+    var blood = fl.blood || {};
+    html += '<div class="card"><h3>🩸 blood (cardiovascular)</h3>';
+    html += m('cells (humans)', blood.cells||0, 'red');
+    html += m('pressure', blood.pressure||0);
+    html += m('flow', blood.flow||0);
+    html += bar('blood pressure', (blood.pressure||0)*100, '#f85149');
+    html += '</div>';
+
+    // ── LYMPH ──
+    var lymph = fl.lymph || {};
+    html += '<div class="card"><h3>⚡ lymph (immune)</h3>';
+    html += m('status', lymph.active?'ACTIVE':'dormant', lymph.active?'green':'red');
+    html += m('volume', lymph.volume||0, 'amber');
+    html += m('nodes', lymph.surfaces||0);
+    html += '</div>';
+
+    // ── FLEET ──
+    if (fleet) {
+      var fs = fleet.summary || {};
+      html += '<div class="card"><h3>🤖 fleet analysis</h3>';
+      html += m('bot %', (fs.bot_pct||0)+'%', 'red');
+      html += m('human %', (fs.human_pct||0)+'%', 'green');
+      html += m('total requests', (fs.total_requests||0).toLocaleString());
+      var top = fleet.top_bot_types || {};
+      for (var bot in top) {
+        if (top[bot] > 10) html += m(bot, top[bot]);
+      }
+      html += '</div>';
+    }
+
+    // ── ANDERSON ──
+    if (dash) {
+      var ag = dash.anderson_selectivity || {};
+      html += '<div class="card"><h3>⚛ anderson localization</h3>';
+      html += m('W (disorder)', (ag.w_population||0).toFixed(1), 'purple');
+      html += m('selectivity', ((ag.selectivity_observed||0)*100).toFixed(0)+'%', 'green');
+      html += m('Pielou J', (ag.pielou_j||0).toFixed(3));
+      html += m('modes', ag.mode_count||0);
+      html += m('d_mesh', ag.d_mesh||0);
+      html += m('imaginary mag', (ag.imaginary_magnitude||0).toFixed(4), 'purple');
+      html += '</div>';
+    }
+
+    // ── GEOGRAPHY (footprint) ──
+    if (dash && dash.geography) {
+      html += '<div class="card"><h3>🌍 geographic footprint</h3>';
+      (dash.geography||[]).forEach(function(g) {
+        var country = g.country || '?';
+        var reqs = (g.requests||0).toLocaleString();
+        html += m(country, reqs + ' requests', country==='US'?'blue':'');
+        if (g.regions) {
+          g.regions.forEach(function(r) {
+            var cities = (r.cities||[]).map(function(c) { return c.city + '(' + c.requests + ')'; }).join(', ');
+            if (cities) html += '<div class="geo-list"><div class="geo-item"><span>  ' + (r.region||'?') + '</span><span style="color:#8b949e">' + cities + '</span></div></div>';
+          });
+        }
+      });
+      html += m('ASN: datacenter', dash.asn_types.datacenter||0);
+      html += m('ASN: self', dash.asn_types.self||0, 'green');
+      html += m('ASN: cloud', dash.asn_types.cloud||0, 'blue');
+      html += m('ASN: residential', dash.asn_types.residential||0, 'amber');
+      html += m('fleet IPs', dash.fleet_ips||0);
+      html += m('human IPs', dash.human_ips||0, 'green');
+      html += '</div>';
+    }
+
+    // ── INVESTIGATION (clutch) ──
+    if (clutch) {
+      var nodes = clutch.nodes || [];
+      var edges = clutch.edges || [];
+      var byInv = {};
+      nodes.forEach(function(n) {
+        var inv = n.investigation||'?';
+        if (!byInv[inv]) byInv[inv] = [];
+        byInv[inv].push(n);
+      });
+      html += '<div class="card"><h3>⚖ investigation (clutch)</h3>';
+      html += m('nodes', nodes.length, 'gold');
+      html += m('edges', edges.length);
+      for (var inv in byInv) {
+        html += m(inv, byInv[inv].length + ' nodes', 'gold');
+      }
+      // Edge type summary
+      var etypes = {};
+      edges.forEach(function(e) { var t = e.type||e.relationship||'?'; etypes[t]=(etypes[t]||0)+1; });
+      var topEdges = Object.keys(etypes).sort(function(a,b){return etypes[b]-etypes[a]}).slice(0,5);
+      topEdges.forEach(function(t) { html += m('  '+t, etypes[t]); });
+      html += '<div style="margin-top:8px"><a href="https://clutch.primals.eco" target="_blank" style="color:#f1c40f;font-size:11px">→ open full investigation graph</a></div>';
+      html += '</div>';
+    }
+
+    // ── SCAN SWEEP SORT ──
+    if (scan) {
+      var sc = scan.scan || {};
+      html += '<div class="card"><h3>🔄 scan sweep sort</h3>';
+      html += m('entities', sc.entities_discovered||0, 'blue');
+      html += m('nodes', sc.nodes_discovered||0);
+      html += m('edges', (sc.edges_discovered||0).toLocaleString());
+      html += m('confidence', (sc.avg_confidence||0)*100+'%', (sc.avg_confidence||0)>0.85?'green':'amber');
+      html += m('methods', sc.classification_methods||0);
+      html += m('braid routes', sc.braid_routes||0);
+      html += m('shifters', sc.shifters||0);
+      html += m('human sessions', sc.human_sessions||0, 'green');
+      var evo = (scan.evolve||{}).recommendations || [];
+      evo.forEach(function(r) { html += m('→ '+r.action, r.priority, r.priority==='high'?'red':'amber'); });
+      html += '</div>';
+    }
+
+    // ── MEMBRANE STACK ──
+    if (stack && stack.layers) {
+      html += '<div class="card"><h3>🌍 membrane stack</h3>';
+      html += '<div style="font-size:10px;color:#8b949e;margin-bottom:8px">' + (stack.motto||'') + '</div>';
+      stack.layers.forEach(function(l) {
+        var w = l.anderson_w || 0;
+        html += m(l.name, 'W='+w.toFixed(1)+' perm='+((l.permeability||0)*100).toFixed(0)+'%', l.alive?'green':'red');
+      });
+      html += '</div>';
+    }
+
+    // ── UNIFIED ──
+    html += '<div class="card"><h3>🔗 unified layers</h3>';
+    html += m('feeds connected', uni.layers_connected||0, 'green');
+    html += m('graph entities', (uni.graph||{}).entities||0);
+    html += m('graph density', (uni.graph||{}).density||0);
+    html += m('braids', uni.braids||0);
+    html += m('repos', uni.repos||0);
+    html += m('types', uni.types||0);
+    html += m('falsification', uni.falsification_experiments||0);
+    html += m('stories', uni.stories||0);
+    var sc2 = uni.symbiosis_classes || {};
+    for (var cls in sc2) { 
+      var cc = cls==='mutualist'?'green':cls==='parasite'?'amber':cls==='pathogen'?'red':'blue';
+      html += m(cls, sc2[cls], cc); 
+    }
+    html += '</div>';
+
+    // ── SYMBIOSIS ──
+    if (symb) {
+      html += '<div class="card"><h3>🤝 symbiosis (tit-for-tat)</h3>';
+      (symb.entities||[]).forEach(function(e) {
+        var cls = e.relationship || '?';
+        var cc = cls==='mutualist'?'green':cls.indexOf('commensal')===0?'blue':cls==='parasite'?'amber':cls==='pathogen'?'red':'';
+        html += m(e.label||'?', cls, cc);
+      });
+      html += '</div>';
+    }
+
+    document.getElementById('board').innerHTML = html;
+  });
+}
+
+function m(key, val, cls) {
+  return '<div class="metric"><span class="k">'+key+'</span><span class="v'+(cls?' '+cls:'')+'">'+val+'</span></div>';
+}
+function bar(label, pct, color) {
+  return '<div class="bar"><div class="bar-fill" style="width:'+Math.min(100,pct)+'%;background:'+color+'"></div></div>';
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

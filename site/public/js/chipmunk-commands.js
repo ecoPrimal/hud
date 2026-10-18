@@ -2961,6 +2961,40 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ BOARD — backend board, all metrics ═══
+      if (cmd === "board" || cmd === "backend" || cmd === "dashboard" || cmd === "metrics") {
+        addEntry("system", "\u25a3 backend board");
+        addEntry("chipmunk", "<a href=\"/neutron/board.html\" target=\"_blank\" style=\"color:#a371f7\">\u25a3 backend board \u2014 the real tech, live</a>\n<span class=\"dim\">pulse, blood, lymph, fleet, anderson, geography, investigation, scan/sweep/sort, membrane stack, unified layers, symbiosis. all on one page.</span>");
+        return;
+      }
+
+      // ═══ FOOTPRINT — geographic overlay ═══
+      if (cmd === "footprint" || cmd === "geo" || cmd === "geography") {
+        addEntry("system", "\ud83c\udf0d geographic footprint");
+        fetch("/dashboard.json")
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var geo = d.geography || [];
+            var asn = d.asn_types || {};
+            var out = "<span style=\"color:#58a6ff\">\u25c8 geographic footprint</span>\n";
+            out += "<span class=\"dim\">where the membrane touches the world</span>\n\n";
+            geo.forEach(function(g) {
+              out += "<span style=\"color:#3fb950\">" + (g.country||"?") + "</span>: " + (g.requests||0).toLocaleString() + " requests\n";
+              (g.regions||[]).forEach(function(r) {
+                var cities = (r.cities||[]).map(function(c) { return c.city + "(" + c.requests + ")"; }).join(", ");
+                if (cities) out += "  " + (r.region||"?") + ": " + cities + "\n";
+              });
+            });
+            out += "\n<span style=\"color:#58a6ff\">ASN types:</span>\n";
+            for (var t in asn) { out += "  " + t + ": " + asn[t] + "\n"; }
+            out += "\nhuman IPs: <span style=\"color:#3fb950\">" + (d.human_ips||0) + "</span>  fleet IPs: " + (d.fleet_ips||0) + "\n";
+            out += "\n<a href=\"/neutron/board.html\" target=\"_blank\" style=\"color:#a371f7\">\u25a3 open full backend board</a>";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">dashboard offline: " + e.message + "</span>"); });
+        return;
+      }
+
             if (cmd === "circulatory" || cmd === "blood" || cmd === "heartbeat") {
         addEntry("system", "\u2764 circulatory system");
         addEntry("chipmunk", "<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764\ufe0f the world's circulatory system — live</a>\n<span class=\"dim\">every surface has its own heartbeat. hyperlocal. RPM mapped to visible pulse rate. blood cells=entities. arteries=surface flows.</span>");
