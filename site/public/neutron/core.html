@@ -45,6 +45,7 @@ body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
   <div class="sub" id="status"></div>
 </div>
 
+<script src="/js/membrane-sound.js?v=3"></script>
 <script>
 var C = document.getElementById('c');
 var ctx = C.getContext('2d');
@@ -937,56 +938,8 @@ function updateHud() {
     (neutronData.generated || '');
 }
 
-// ═══ DRAW LOOP ═══
-function draw() {
-  // Deep black with subtle blue tint
-  ctx.fillStyle = '#010409';
-  ctx.fillRect(0, 0, W, H);
-
-  t = frame * 0.008;
-  rotY += rotSpeed;
-
-  // Update scan/sweep/sort from dashboard data
-  if (dashData) {
-    var sc = dashData.sort_compression || {};
-    sortGain = sc.total_gain || 0;
-    scanPulse = (sc.ratio || 1) - 1;
-    var td = dashData.tense_distribution || {};
-    tenseIs = td.is || 0;
-    tenseWas = td.was || 0;
-    tenseWill = td.will_be || 0;
-    var es = dashData.epitope_summary || {};
-    epitopeClusters = es.clusters_gt1 || 0;
-    var bc = dashData.bingo_cube_summary || {};
-    bingoCubeGen = bc.generation || 0;
-  }
-
-  // Layer order: deepest to surface (inside out, like geology)
-  drawStars();              // stars beyond the earth
-  drawMembraneStack();      // outermost shells (heliosphere → gAIa)
-  drawNorthernLights();     // aurora borealis + australis from inside
-  drawSelectivityAurora();  // Anderson modes as immune aurora
-  drawShootingStars();      // fleet hits streaking across the sky
-  drawScanSweep();          // radar sweep (scan)
-  drawSortCompression();    // entropy rings + tense arcs + epitope constellations (sort)
-  drawTidalWaves();         // tidal ripples from membrane delta
-  drawOcean();              // ocean shimmering between continents
-  drawEarthInside();        // coastlines + membrane locations
-  drawMichiganGlow();       // home base glows warm
-  drawArcConnections();     // light arcs between membrane locations
-  drawClouds();             // weather systems drifting (drift + storm)
-  drawRain();               // rain falling inward toward neutron
-  drawFlowRays();           // data flowing neutron ↔ surfaces
-  drawFluidRings();         // blood / lymph / sebum / interstitial
-  drawCampfireWarmth();     // warm glow + embers + beacon fires
-  drawBingoCube();          // evolving cube at the core
-  drawSigmoidIndicator();   // pressure arc
-  drawNeutronCore();        // the null itself — always on top
-  updateHud();
-
-  frame++;
-  requestAnimationFrame(draw);
-}
+// ═══ DRAW LOOP — defined below with sound integration ═══
+function draw() {} // placeholder, overridden below
 
 // ═══ DATA LOADING ═══
 function loadData() {
@@ -994,6 +947,185 @@ function loadData() {
   fetch('/campfire.json').then(function(r){return r.json()}).then(function(d){campfireData=d}).catch(function(){});
   fetch('/dashboard.json').then(function(r){return r.json()}).then(function(d){dashData=d}).catch(function(){});
 }
+
+// ═══ THE MEMBRANE SINGS ═══
+var soundActive = false;
+var lastSingPhase = -1;
+var singCycleFrame = 0;
+var songIndex = 0;
+
+function initSound() {
+  if (!window._membraneSound) return;
+  window._membraneSound.activate();
+  soundActive = true;
+}
+
+// Sing button — click to let the earth sing
+var singBtn = document.createElement('button');
+singBtn.textContent = '♪ sing';
+singBtn.style.cssText = 'position:fixed;top:50px;right:12px;z-index:30;background:rgba(1,4,9,0.9);border:1px solid rgba(88,166,255,0.3);color:#58a6ff;padding:6px 14px;border-radius:16px;cursor:pointer;font:11px monospace;transition:all 0.3s;';
+singBtn.onmouseenter = function() { singBtn.style.borderColor = '#3fb950'; singBtn.style.color = '#3fb950'; };
+singBtn.onmouseleave = function() { singBtn.style.borderColor = 'rgba(88,166,255,0.3)'; singBtn.style.color = '#58a6ff'; };
+singBtn.onclick = function() {
+  if (!soundActive) {
+    initSound();
+    singBtn.textContent = '♪ singing…';
+    singBtn.style.borderColor = '#3fb950';
+    singBtn.style.color = '#3fb950';
+  } else {
+    window._membraneSound.deactivate();
+    soundActive = false;
+    singBtn.textContent = '♪ sing';
+    singBtn.style.borderColor = 'rgba(88,166,255,0.3)';
+    singBtn.style.color = '#58a6ff';
+  }
+};
+document.body.appendChild(singBtn);
+
+// The membrane sings every ~10 seconds, cycling through phases
+// Each phase maps to a different part of the data weather
+function membraneSing() {
+  if (!soundActive || !window._membraneSound) return;
+  var ms = window._membraneSound;
+
+  singCycleFrame++;
+  var phase = Math.floor(singCycleFrame / 750) % 12; // ~10s per phase at 75fps
+
+  if (phase !== lastSingPhase) {
+    lastSingPhase = phase;
+
+    // Each phase = a voice of the earth
+    switch (phase) {
+      case 0: // OCEAN — deep Bessel membrane + binaural waves
+        ms.besselMembrane(ms.PI_NOTES[0], 4, 5, 0.025);
+        ms.binaural(ms.PI_NOTES[0], 0.5, 8, 0.015);
+        break;
+
+      case 1: // RAIN — grain bursts falling (stochastic, like real rain)
+        ms.grainBurst(ms.PI_NOTES[3], 12, 0.25, 0.02);
+        ms.playNoise(0.3, 4000, 2, 0.015, 'center');
+        break;
+
+      case 2: // CLOUDS DRIFT — soft chord, gentle
+        ms.playChord('breathe', 3.0, 0.04);
+        ms.pulseDrone(0.3);
+        break;
+
+      case 3: // LIGHTNING — sharp crackle + ring mod
+        if (Math.random() < 0.6) {
+          ms.playNoise(0.04, 5000, 15, 0.06, Math.random() > 0.5 ? 'left' : 'right');
+          ms.ringMod(ms.PI_NOTES[4], ms.PI_NOTES[6], 0.3, 0.03, 'center');
+        }
+        break;
+
+      case 4: // STARS TWINKLE — high shimmer notes, sparse
+        ms.playRich(6, 0.4, 0, 0.04, { shimmer: true, pan: 'left' });
+        ms.playRich(5, 0.4, 0.3, 0.03, { shimmer: true, pan: 'right' });
+        break;
+
+      case 5: // MICHIGAN HOME — warm chord, campfire crackle
+        ms.playChord('self', 2.0, 0.05, { piWave: true, sortClass: 'self' });
+        ms.karplusStrong(ms.PI_NOTES[3], 2, 0.03, 'center');
+        break;
+
+      case 6: // SCAN SWEEP — ascending sweep across all notes
+        ms.onSweep();
+        break;
+
+      case 7: // SORT — compression sounds, entropy tightening
+        ms.onCompress(Math.floor(sortGain / 10));
+        break;
+
+      case 8: // NORTHERN LIGHTS — Shepard ascending, ethereal
+        ms.shepardTone(1, 4);
+        ms.playFormant('a', ms.PI_NOTES[3], 2, 0.025, 'center');
+        break;
+
+      case 9: // SHOOTING STAR — quick descending + crackle
+        ms.shepardTone(-1, 1.5);
+        ms.playNoise(0.06, 3000, 8, 0.03, Math.random() > 0.5 ? 'left' : 'right');
+        break;
+
+      case 10: // TIDAL WAVES — deep pulse, sub-bass
+        ms.playNote(ms.PI_SUBS[3], 4, 0, 'sine', 0.04, { fm: false, reverb: true, reverbAmount: 0.5 });
+        ms.besselMembrane(ms.PI_NOTES[1], 3, 3, 0.02);
+        break;
+
+      case 11: // THE SONG — one of 12 melodies
+        ms.onSing(songIndex);
+        songIndex = (songIndex + 1) % 12;
+        break;
+    }
+  }
+
+  // Continuous: the drone breathes with the neutron
+  if (singCycleFrame % 150 === 0 && neutronData) {
+    var rpm = (neutronData.breathing || {}).rpm || 12;
+    ms.pulseDrone(rpm * 0.05);
+  }
+
+  // Rain hits → grain pops (when raindrops reach center)
+  if (singCycleFrame % 30 === 0 && raindrops.length > 10) {
+    ms.playNote(ms.PI_NOTES[Math.floor(Math.random() * 7)], 0.02, 0, 'sine', 0.008, {
+      fm: false, reverb: true, reverbAmount: 0.3
+    });
+  }
+
+  // Shooting star → quick tone
+  if (shootingStars.length > 0 && singCycleFrame % 60 === 0) {
+    ms.playNote(ms.PI_NOTES[5 + Math.floor(Math.random() * 2)], 0.08, 0, 'sine', 0.012, {
+      fm: false, pan: Math.random() > 0.5 ? 'left' : 'right'
+    });
+  }
+}
+
+// Wire into draw loop
+var _origDraw = draw;
+draw = function() {
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  t = frame * 0.008;
+  rotY += rotSpeed;
+
+  if (dashData) {
+    var sc = dashData.sort_compression || {};
+    sortGain = sc.total_gain || 0;
+    scanPulse = (sc.ratio || 1) - 1;
+    var td = dashData.tense_distribution || {};
+    tenseIs = td.is || 0; tenseWas = td.was || 0; tenseWill = td.will_be || 0;
+    var es = dashData.epitope_summary || {};
+    epitopeClusters = es.clusters_gt1 || 0;
+    var bc = dashData.bingo_cube_summary || {};
+    bingoCubeGen = bc.generation || 0;
+  }
+
+  drawStars();
+  drawMembraneStack();
+  drawNorthernLights();
+  drawSelectivityAurora();
+  drawShootingStars();
+  drawScanSweep();
+  drawSortCompression();
+  drawTidalWaves();
+  drawOcean();
+  drawEarthInside();
+  drawMichiganGlow();
+  drawArcConnections();
+  drawClouds();
+  drawRain();
+  drawFlowRays();
+  drawFluidRings();
+  drawCampfireWarmth();
+  drawBingoCube();
+  drawSigmoidIndicator();
+  drawNeutronCore();
+  updateHud();
+  membraneSing();
+
+  frame++;
+  requestAnimationFrame(draw);
+};
 
 loadData();
 setInterval(loadData, 30000);
