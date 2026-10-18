@@ -116,6 +116,48 @@ for (var i = 0; i < 24; i++) {
 // ═══ RAIN — particles falling inward from clouds toward neutron ═══
 var raindrops = [];
 
+// ═══ STARS — visible through the earth from inside ═══
+var stars = [];
+for (var i = 0; i < 300; i++) {
+  stars.push({
+    lat: (Math.random() - 0.5) * 170,
+    lng: (Math.random() - 0.5) * 360,
+    size: 0.3 + Math.random() * 1.2,
+    brightness: 0.03 + Math.random() * 0.08,
+    twinkle: Math.random() * Math.PI * 2,
+    twinkleSpeed: 0.5 + Math.random() * 2,
+  });
+}
+
+// ═══ SHOOTING STARS — fleet hits streaking across the sky ═══
+var shootingStars = [];
+
+// ═══ TIDES — ocean swell tied to human energy ═══
+var tidalPhase = 0;
+var tidalForce = 0;
+
+// ═══ ARC CONNECTIONS — light paths between membrane locations ═══
+var arcPulses = [];
+
+// ═══ CAMPFIRE — warmth at the core ═══
+var campfireGlow = 0;
+var campfireStories = 0;
+var surfacesAlive = 0;
+var beaconBrightness = [];
+
+// ═══ NORTHERN LIGHTS — aurora borealis from inside ═══
+var auroraWaves = [];
+for (var i = 0; i < 8; i++) {
+  auroraWaves.push({
+    latCenter: 65 + Math.random() * 10,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.002 + Math.random() * 0.005,
+    width: 15 + Math.random() * 20,
+    hue: Math.random() < 0.5 ? [63,185,80] : [88,166,255],
+    opacity: 0.015 + Math.random() * 0.025,
+  });
+}
+
 // ═══ SCAN/SWEEP/SORT — compressed into weather signals ═══
 var scanPulse = 0, sweepAngle = 0, sortEntropy = 0;
 var sortedCount = 0, unsortedCount = 0, selectivity = 0;
@@ -380,6 +422,240 @@ function drawBingoCube() {
     ctx.lineTo(projected[e[1]].x, projected[e[1]].y);
     ctx.stroke();
   });
+}
+
+// ═══ STARS — beyond the earth, visible from inside ═══
+function drawStars() {
+  var earthR = Math.min(W,H) * 0.44;
+  stars.forEach(function(s) {
+    var p = projectInside(s.lat, s.lng);
+    var twinkle = Math.sin(t * s.twinkleSpeed + s.twinkle) * 0.5 + 0.5;
+    var alpha = s.brightness * (0.5 + twinkle * 0.5);
+    // Stars are BEHIND the earth — render at outer edge with depth fade
+    var starR = earthR * 1.12;
+    var sx = cx + (p.x - cx) * 1.15;
+    var sy = cy + (p.y - cy) * 1.15;
+    ctx.fillStyle = 'rgba(220,230,255,' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.size * (0.5 + twinkle * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ═══ SHOOTING STARS — fleet impacts streaking ═══
+function drawShootingStars() {
+  // Spawn shooting stars occasionally (more when fleet is active)
+  var fleetRate = dashData ? (dashData.fleet_requests || 0) : 0;
+  var spawnRate = 0.003 + Math.min(0.02, fleetRate * 0.0000001);
+  if (Math.random() < spawnRate) {
+    var angle = Math.random() * Math.PI * 2;
+    var earthR = Math.min(W,H) * 0.44;
+    var startR = earthR * (0.9 + Math.random() * 0.3);
+    shootingStars.push({
+      x: cx + Math.cos(angle) * startR,
+      y: cy + Math.sin(angle) * startR,
+      vx: (Math.random()-0.5) * 6 - Math.cos(angle) * 2,
+      vy: (Math.random()-0.5) * 6 - Math.sin(angle) * 2,
+      life: 1,
+      len: 8 + Math.random() * 20,
+      color: Math.random() < 0.3 ? [248,81,73] : [220,230,255],
+    });
+  }
+  for (var i = shootingStars.length - 1; i >= 0; i--) {
+    var ss = shootingStars[i];
+    var prevX = ss.x, prevY = ss.y;
+    ss.x += ss.vx; ss.y += ss.vy;
+    ss.life -= 0.02;
+    if (ss.life <= 0) { shootingStars.splice(i,1); continue; }
+    var c = ss.color;
+    ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+(ss.life*0.4)+')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.lineTo(ss.x, ss.y);
+    ctx.stroke();
+    // Head glow
+    ctx.fillStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+(ss.life*0.6)+')';
+    ctx.beginPath(); ctx.arc(ss.x, ss.y, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+  if (shootingStars.length > 20) shootingStars.splice(0, 5);
+}
+
+// ═══ NORTHERN LIGHTS — aurora from inside the earth ═══
+function drawNorthernLights() {
+  var earthR = Math.min(W,H) * 0.44;
+  auroraWaves.forEach(function(aw) {
+    aw.phase += aw.speed;
+    var pts = [];
+    for (var lng = -180; lng <= 180; lng += 8) {
+      var latOff = Math.sin((lng * 0.02) + aw.phase * 10 + t * 0.5) * aw.width * 0.3;
+      var p = projectInside(aw.latCenter + latOff, lng);
+      pts.push(p);
+    }
+    // Also draw southern aurora (mirror)
+    var ptsS = [];
+    for (var lng = -180; lng <= 180; lng += 8) {
+      var latOff = Math.sin((lng * 0.02) + aw.phase * 10 + t * 0.5 + 1) * aw.width * 0.3;
+      var p = projectInside(-aw.latCenter - latOff, lng);
+      ptsS.push(p);
+    }
+
+    [pts, ptsS].forEach(function(ribbon) {
+      if (ribbon.length < 3) return;
+      ctx.beginPath();
+      ctx.moveTo(ribbon[0].x, ribbon[0].y);
+      for (var j = 1; j < ribbon.length; j++) {
+        ctx.lineTo(ribbon[j].x, ribbon[j].y);
+      }
+      var c = aw.hue;
+      ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+aw.opacity+')';
+      ctx.lineWidth = 2 + Math.sin(t * 0.3 + aw.phase) * 1;
+      ctx.stroke();
+
+      // Glow beneath the ribbon
+      for (var j = 0; j < ribbon.length; j += 3) {
+        var gx = ribbon[j].x, gy = ribbon[j].y;
+        var gr = ctx.createRadialGradient(gx, gy, 0, gx, gy, 12);
+        gr.addColorStop(0, 'rgba('+c[0]+','+c[1]+','+c[2]+','+(aw.opacity*0.5)+')');
+        gr.addColorStop(1, 'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+        ctx.fillStyle = gr;
+        ctx.beginPath(); ctx.arc(gx, gy, 12, 0, Math.PI*2); ctx.fill();
+      }
+    });
+  });
+}
+
+// ═══ ARC CONNECTIONS — light arcs between membrane locations ═══
+function drawArcConnections() {
+  var pairs = [];
+  for (var i = 0; i < MEMBRANE_LOCS.length; i++) {
+    for (var j = i+1; j < MEMBRANE_LOCS.length; j++) {
+      pairs.push([MEMBRANE_LOCS[i], MEMBRANE_LOCS[j]]);
+    }
+  }
+  // Only draw a few arcs at a time — rotating selection
+  var activeIdx = Math.floor(t * 0.3) % pairs.length;
+  for (var k = 0; k < 3; k++) {
+    var idx = (activeIdx + k) % pairs.length;
+    var a = pairs[idx][0], b = pairs[idx][1];
+    var pa = projectInside(a.lat, a.lng);
+    var pb = projectInside(b.lat, b.lng);
+
+    // Bezier arc through center-ish
+    var midX = (pa.x + pb.x) / 2 + (cy - (pa.y + pb.y) / 2) * 0.3;
+    var midY = (pa.y + pb.y) / 2 + ((pa.x + pb.x) / 2 - cx) * 0.3;
+
+    var alpha = 0.03 + 0.02 * Math.sin(t * 2 + idx);
+    ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.quadraticCurveTo(midX, midY, pb.x, pb.y);
+    ctx.stroke();
+
+    // Traveling pulse along the arc
+    var pulseT = (t * 0.5 + idx * 0.7) % 1;
+    var px = (1-pulseT)*(1-pulseT)*pa.x + 2*(1-pulseT)*pulseT*midX + pulseT*pulseT*pb.x;
+    var py = (1-pulseT)*(1-pulseT)*pa.y + 2*(1-pulseT)*pulseT*midY + pulseT*pulseT*pb.y;
+    ctx.fillStyle = 'rgba(88,166,255,' + (alpha * 3) + ')';
+    ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ═══ MICHIGAN HOME GLOW ═══
+function drawMichiganGlow() {
+  var p = projectInside(42.7, -84.5);
+  var pulse = 1 + 0.2 * Math.sin(t * 1.5);
+  var sz = 20 * p.scale * pulse;
+  var alpha = 0.08 + 0.04 * Math.sin(t * 0.8);
+
+  // Warm home glow — bigger, warmer than other locations
+  var homeGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz);
+  homeGrad.addColorStop(0, 'rgba(63,185,80,' + (alpha * 2) + ')');
+  homeGrad.addColorStop(0.3, 'rgba(63,185,80,' + alpha + ')');
+  homeGrad.addColorStop(0.6, 'rgba(210,169,34,' + (alpha * 0.5) + ')');
+  homeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = homeGrad;
+  ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI*2); ctx.fill();
+
+  // "home" label
+  ctx.font = '7px monospace';
+  ctx.fillStyle = 'rgba(63,185,80,' + (0.3 + 0.1 * Math.sin(t)) + ')';
+  ctx.textAlign = 'center';
+  ctx.fillText('⌂ home', p.x, p.y + sz + 8);
+}
+
+// ═══ CAMPFIRE WARMTH — warm glow at the core from stories ═══
+function drawCampfireWarmth() {
+  if (!campfireData) return;
+  var stories = campfireData.total_stories || 0;
+  var pulse = campfireData.pulse || {};
+  var rate = pulse.rate || 0;
+  var coreR = Math.min(W,H) * 0.06;
+
+  // Campfire flicker — warm orange/amber around the neutron
+  var flicker = 1 + 0.3 * Math.sin(t * 3) * Math.sin(t * 5.7) * Math.sin(t * 2.3);
+  var warmR = coreR * (2 + stories * 0.1) * flicker;
+  var warmGrad = ctx.createRadialGradient(cx, cy, coreR * 0.5, cx, cy, warmR);
+  warmGrad.addColorStop(0, 'rgba(255,140,50,0.04)');
+  warmGrad.addColorStop(0.4, 'rgba(255,100,30,0.02)');
+  warmGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = warmGrad;
+  ctx.beginPath(); ctx.arc(cx, cy, warmR, 0, Math.PI*2); ctx.fill();
+
+  // Ember particles floating up from core
+  if (Math.random() < 0.08) {
+    raindrops.push({
+      x: cx + (Math.random()-0.5) * coreR,
+      y: cy + (Math.random()-0.5) * coreR,
+      vx: (Math.random()-0.5) * 0.5,
+      vy: -0.5 - Math.random() * 1.5,
+      life: 0.8 + Math.random() * 0.2,
+      color: 'rgba(255,140,50,',
+    });
+  }
+
+  // Beacons — surfaces alive as distant fires
+  var beacons = campfireData.beacons || [];
+  var earthR = Math.min(W,H) * 0.44;
+  beacons.forEach(function(b, i) {
+    if (b.brightness < 0.3) return;
+    var angle = (i / Math.max(beacons.length,1)) * Math.PI * 2 + Math.PI * 0.3;
+    var bx = cx + Math.cos(angle) * earthR * 0.82;
+    var by = cy + Math.sin(angle) * earthR * 0.82;
+    var bFlicker = 0.5 + 0.5 * Math.sin(t * 2 + i * 3);
+    var bAlpha = b.brightness * 0.04 * bFlicker;
+    var bGlow = ctx.createRadialGradient(bx, by, 0, bx, by, 6);
+    bGlow.addColorStop(0, 'rgba(255,200,100,' + bAlpha + ')');
+    bGlow.addColorStop(1, 'rgba(255,150,50,0)');
+    ctx.fillStyle = bGlow;
+    ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+// ═══ TIDAL OCEAN — swell responds to human energy ═══
+function drawTidalWaves() {
+  if (!dashData) return;
+  var earthR = Math.min(W,H) * 0.44;
+  var humanEnergy = 0;
+  try {
+    var energy = JSON.parse('{}');
+    if (typeof window._humanEnergy !== 'undefined') humanEnergy = window._humanEnergy;
+  } catch(e){}
+  // Use membrane_delta as tidal force
+  var delta = dashData.membrane_delta || {};
+  tidalForce = Math.abs(delta.delta || 0) * 100;
+  tidalPhase += 0.003 + tidalForce * 0.001;
+
+  // Concentric tidal ripples
+  for (var ring = 0; ring < 3; ring++) {
+    var rippleR = earthR * (0.5 + ring * 0.15) + Math.sin(tidalPhase + ring * 0.8) * earthR * 0.02;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rippleR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(40,130,200,' + (0.02 + tidalForce * 0.01) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
 }
 
 // ═══ EARTH INSIDE (coastlines + locations) ═══
@@ -649,9 +925,15 @@ function updateHud() {
   html += '<div class="stat"><div class="num">' + (tense.is||0).toLocaleString() + '</div><div class="lbl">is</div></div>';
   html += '<div class="stat"><div class="num">' + (tense.was||0).toLocaleString() + '</div><div class="lbl">was</div></div>';
   html += '<div class="stat"><div class="num">' + (neutronData.wave||0) + '</div><div class="lbl">wave</div></div>';
+  if (campfireData) {
+    html += '<div class="stat"><div class="num" style="color:#f0883e">' + (campfireData.total_stories||0) + '</div><div class="lbl">stories</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#f0883e">' + ((campfireData.totality||{}).surfaces_alive||0) + '</div><div class="lbl">fires</div></div>';
+  }
   document.getElementById('stats').innerHTML = html;
   document.getElementById('status').textContent =
-    'null · inside the earth · ocean breathes · clouds drift · rain falls inward · ' +
+    'null · stars beyond · ocean breathes · clouds drift · rain falls inward · ' +
+    stars.length + ' stars · ' + clouds.length + ' weather systems · ' +
+    shootingStars.length + ' meteors · ' +
     (neutronData.generated || '');
 }
 
@@ -679,20 +961,27 @@ function draw() {
     bingoCubeGen = bc.generation || 0;
   }
 
-  // Layer order: deep to surface (inside out)
-  drawMembraneStack();      // outermost shells
-  drawSelectivityAurora();  // Anderson modes as aurora
-  drawScanSweep();          // radar sweep
-  drawSortCompression();    // entropy rings + tense arcs + epitope constellations
-  drawOcean();              // ocean between continents
-  drawEarthInside();        // coastlines + locations
-  drawClouds();             // weather drifting across the sky (from inside)
-  drawRain();               // rain falling inward
-  drawFlowRays();           // data flowing neutron → surfaces
-  drawFluidRings();         // blood/lymph/sebum/interstitial
+  // Layer order: deepest to surface (inside out, like geology)
+  drawStars();              // stars beyond the earth
+  drawMembraneStack();      // outermost shells (heliosphere → gAIa)
+  drawNorthernLights();     // aurora borealis + australis from inside
+  drawSelectivityAurora();  // Anderson modes as immune aurora
+  drawShootingStars();      // fleet hits streaking across the sky
+  drawScanSweep();          // radar sweep (scan)
+  drawSortCompression();    // entropy rings + tense arcs + epitope constellations (sort)
+  drawTidalWaves();         // tidal ripples from membrane delta
+  drawOcean();              // ocean shimmering between continents
+  drawEarthInside();        // coastlines + membrane locations
+  drawMichiganGlow();       // home base glows warm
+  drawArcConnections();     // light arcs between membrane locations
+  drawClouds();             // weather systems drifting (drift + storm)
+  drawRain();               // rain falling inward toward neutron
+  drawFlowRays();           // data flowing neutron ↔ surfaces
+  drawFluidRings();         // blood / lymph / sebum / interstitial
+  drawCampfireWarmth();     // warm glow + embers + beacon fires
   drawBingoCube();          // evolving cube at the core
   drawSigmoidIndicator();   // pressure arc
-  drawNeutronCore();        // the null itself, last (on top of everything)
+  drawNeutronCore();        // the null itself — always on top
   updateHud();
 
   frame++;
