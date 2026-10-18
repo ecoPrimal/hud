@@ -3353,6 +3353,34 @@ window._chipmunkCommands = function(ctx) {
       }
 
 
+
+      // ═══ SYSTEM LAYERS ═══
+      if (cmd === 'layers' || cmd === 'system' || cmd === 'composition' || cmd === 'stack') {
+        addEntry('system', '⊞ system layers');
+        fetch('/system-layers.json?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var layers = d.layers || [];
+            var comp = d.composition || {};
+            var out = '<span style="color:#a371f7;font-weight:bold">⊞ SYSTEM LAYERS</span>\n\n';
+            layers.forEach(function(l) {
+              var colors = ['#f85149','#58a6ff','#3fb950','#d29922','#f0883e','#a371f7','#e85d3a','#8b949e','#f1c40f','#3fb950'];
+              var c = colors[l.id] || '#8b949e';
+              out += '<span style="color:' + c + '">L' + l.id + ' ' + l.name + '</span> — ' + l.description + '\n';
+            });
+            out += '\n<span style="color:#58a6ff">flow:</span> ' + (comp.vertical_flow || '') + '\n';
+            out += '<span style="color:#f0883e">cycle:</span> ' + (comp.cycle || '') + '\n';
+            out += '\n<span style="color:#8b949e">particles:</span>\n';
+            var pm = comp.particle_model || {};
+            for (var k in pm) { out += '  ' + k + ': ' + pm[k] + '\n'; }
+            out += '\n<span style="color:#8b949e">forces:</span>\n';
+            var f = comp.forces || {};
+            for (var k in f) { out += '  ' + k + ': ' + f[k] + '\n'; }
+            addEntry('chipmunk', out);
+          });
+        return;
+      }
+
       // ═══ COCKPIT / CONVERGENCE ═══
       if (cmd === 'cockpit' || cmd === 'converge' || cmd === 'desk') {
         addEntry('system', '⊙ cockpit');

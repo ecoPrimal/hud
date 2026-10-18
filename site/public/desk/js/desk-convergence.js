@@ -159,10 +159,20 @@ D.renderConvergence = function(container) {
         R('z arg/π', (pi.z_arg_over_pi||0).toFixed(6)) +
         R('sort ratio', (sc.ratio||0).toFixed(3) + ' → 1/π', 'ch') +
         R('compression', (sc.alpha||0).toFixed(1) + '/' + (sc.epitope||0).toFixed(1) + '/' + (sc.tense||0).toFixed(1) + ' bits') +
-        R('total cost', '$0.30', 'ca') +
-        '<div style="margin-top:6px">' +
-        '<a href="/braid/" class="cl">⟠ braid</a> · ' +
-        '<a href="/neutron/helix.html" class="cl">🧬 helix</a></div>';
+        R('total cost', '$0.30', 'ca');
+      // Fetch layers and append
+      fetch('/system-layers.json?t='+Date.now()).then(function(r){return r.json()}).then(function(sl){
+        var t = document.getElementById('c-teo');
+        if (t) t.innerHTML +=
+          R('layers', (sl.layers||[]).length + ' composed') +
+          R('silicon', (sl.layers&&sl.layers[0]?sl.layers[0].total_cores:'?') + ' cores · ' + (sl.layers&&sl.layers[0]?sl.layers[0].total_ram_gb:'?') + 'GB') +
+          R('feeds', (sl.layers&&sl.layers[3]?sl.layers[3].total:'?') + ' (' + (sl.layers&&sl.layers[3]?sl.layers[3].active:'?') + ' active)') +
+          R('surfaces', (sl.layers&&sl.layers[4]?sl.layers[4].total:'?') + ' pages') +
+          R('fossils', (sl.layers&&sl.layers[7]?sl.layers[7].fossils:'?')) +
+          '<div style="margin-top:6px">' +
+          '<a href="/braid/" class="cl">⟠ braid</a> · ' +
+          '<a href="/neutron/helix.html" class="cl">🧬 helix</a></div>';
+      }).catch(function(){});
     }
   }).catch(function(e) { console.warn('[cockpit] fetch error:', e); });
 };
