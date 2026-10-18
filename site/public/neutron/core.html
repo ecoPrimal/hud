@@ -1382,16 +1382,33 @@ function drawInterMembranePulse() {
   ctx.lineWidth = 0.5;
   ctx.stroke();
 
-  // RustDesk credit + desk count at bottom of mesh
+  // Desk peers ring — each registered desk client as a small dot inside the mesh
+  var deskPeers = memPulseData.desk_peers || [];
+  var deskR = meshR * 0.92;
+  for (var dp = 0; dp < deskPeers.length; dp++) {
+    var dAngle = -Math.PI / 2 + (dp / Math.max(deskPeers.length, 1)) * Math.PI * 2;
+    var dpx = cx + Math.cos(dAngle) * deskR;
+    var dpy = cy + Math.sin(dAngle) * deskR;
+    var dAlpha = 0.12 + Math.sin(t * 0.4 + dp * 2.1) * 0.06;
+    ctx.beginPath();
+    ctx.arc(dpx, dpy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(130,80,220," + dAlpha.toFixed(3) + ")";
+    ctx.fill();
+  }
+
+  // Stream/desk status label — Twitch+Discord nature
   if (memPulseData.rustdesk) {
     ctx.font = "4px monospace";
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(100,200,255,0.08)";
     var deskCount = memPulseData.desk_count || 0;
-    ctx.fillText("desk: signal+relay ×" + deskCount + " (AGPL-3.0)", cx, cy + meshR + 12);
+    // Twitch = screen stream, Discord = gate locality
+    ctx.fillStyle = "rgba(130,80,220,0.10)";
+    ctx.fillText("stream ×" + deskCount + " · relay.primals.eco", cx, cy + meshR + 10);
+    ctx.fillStyle = "rgba(100,200,255,0.06)";
+    ctx.fillText("desk (AGPL-3.0) — sovereign twitch+discord", cx, cy + meshR + 17);
   }
 
-  // Show alive count
+  // Alive count
   var aliveCount = 0;
   for (var ap = 0; ap < peers.length; ap++) {
     if (peers[ap].alive) aliveCount++;
@@ -1400,6 +1417,14 @@ function drawInterMembranePulse() {
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillText("mesh " + aliveCount + "/" + peers.length + " alive", cx, cy - meshR - 6);
+
+  // Gate-msg indicator — check if messages exist
+  if (memPulseData.desk_count > 0) {
+    var msgPulse = 0.04 + Math.sin(t * 0.7) * 0.02;
+    ctx.font = "3.5px monospace";
+    ctx.fillStyle = "rgba(255,200,100," + msgPulse.toFixed(3) + ")";
+    ctx.fillText("gate-msg relay active", cx, cy - meshR - 12);
+  }
   ctx.restore();
 }
 
@@ -2409,6 +2434,66 @@ draw();
               '. numeric inverts, entropy does not — that is the asymmetry.', 'chip');
       return;
     }
+    if (m === 'desk' || m === 'rustdesk' || m === 'stream' || m === 'twitch') {
+      if (memPulseData) {
+        var dk = memPulseData.desk_count || 0;
+        var rd = memPulseData.rustdesk ? 'live' : 'off';
+        var alive = 0;
+        for (var pi = 0; pi < (memPulseData.peers||[]).length; pi++) {
+          if (memPulseData.peers[pi].alive) alive++;
+        }
+        chipSay('desk: signal+relay ' + rd + '. ' + dk + ' peers registered. ' +
+                'mesh ' + alive + '/' + (memPulseData.peers||[]).length + ' alive. ' +
+                'RustDesk (AGPL-3.0) — our twitch stream + discord locality. ' +
+                'relay.primals.eco · any phone · any satellite feed.', 'chip');
+      } else chipSay('desk pulse not loaded yet...', 'chip');
+      return;
+    }
+    if (m === 'gates' || m === 'mesh' || m === 'peers' || m === 'membrane') {
+      if (memPulseData && memPulseData.peers) {
+        var peerList = [];
+        for (var pi = 0; pi < memPulseData.peers.length; pi++) {
+          var p = memPulseData.peers[pi];
+          peerList.push(p.name + (p.alive ? '✓' : '✗'));
+        }
+        chipSay('mesh: ' + peerList.join(' · ') + '. ' +
+                'each gate is a membrane. each membrane pulses. ' +
+                'in/out per membrane every 5 min.', 'chip');
+      } else chipSay('mesh data not loaded...', 'chip');
+      return;
+    }
+    if (m.indexOf('msg ') === 0 || m.indexOf('send ') === 0 || m.indexOf('message ') === 0) {
+      var parts = m.split(' ');
+      var toGate = parts[1] || 'all';
+      var body = parts.slice(2).join(' ') || 'ping';
+      fetch('/api/gate-msg', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({from:'chipmunk', to:toGate, body:body})
+      }).then(function(r){return r.json()}).then(function(d) {
+        chipSay('→ ' + toGate + ': "' + body + '" (id:' + d.id + ')', 'chip');
+      }).catch(function() {
+        chipSay('message relay unreachable.', 'chip');
+      });
+      return;
+    }
+    if (m === 'inbox' || m === 'messages' || m === 'read') {
+      fetch('/api/gate-msg?gate=chipmunk').then(function(r){return r.json()}).then(function(d) {
+        if (d.count > 0) {
+          for (var mi = 0; mi < d.messages.length; mi++) {
+            var mg = d.messages[mi];
+            chipSay('← ' + mg.from + ': "' + mg.body + '"', 'chip');
+          }
+        } else chipSay('no new messages for chipmunk.', 'chip');
+      }).catch(function() { chipSay('relay unreachable.', 'chip'); });
+      return;
+    }
+    if (m === 'discord' || m === 'community' || m === 'locality') {
+      chipSay('the desk IS discord. each gate is a channel. each membrane is a voice room. ' +
+              'RustDesk streams the screen — that is twitch. gate-msg passes messages — that is chat. ' +
+              'no corporate server. sovereign relay. relay.primals.eco.', 'chip');
+      return;
+    }
     if (m === 'sing') {
       if (window._membraneSound) { initSound(); }
       chipSay('♪ the membrane sings...', 'chip');
@@ -2419,7 +2504,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · msg [gate] [text] · inbox · discord', 'chip');
       return;
     }
 

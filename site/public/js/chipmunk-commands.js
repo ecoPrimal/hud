@@ -1943,7 +1943,7 @@ window._chipmunkCommands = function(ctx) {
           { name: 'signal',     cat: 'SIGNAL',        desc: 'signal relay. messages between organs.', alive: true },
           { name: 'macrophage', cat: 'MEMBRANE',      desc: 'the eater. processes what the membrane catches.', alive: true },
           { name: 'complement', cat: 'IMMUNE',        desc: 'the cascade. amplifies immune signals.', alive: true },
-          { name: 'desk',       cat: 'MEMBRANE',      desc: 'the writing desk. 9 modules: draw, write, gaia, study, play, create, weave.', alive: true },
+          { name: 'desk',       cat: 'MEMBRANE',      desc: 'sovereign stream+locality (RustDesk AGPL-3.0). signal relay, screen share, gate-msg chat, address book.', alive: true },
           { name: 'relay',      cat: 'SIGNAL',        desc: 'signal routing between all organs.', alive: true },
           { name: 'opsonize',   cat: 'IMMUNE',        desc: 'the tagger. marks entities for processing.', alive: true },
           { name: 'interferon', cat: 'IMMUNE',        desc: 'interference patterns. warning signals.', alive: true },
@@ -2108,20 +2108,30 @@ window._chipmunkCommands = function(ctx) {
         addEntry('chipmunk', aL.join('\n'));
         return;
       }
-      // ═══ /desk — open the writing desk ═══
-      if (cmd === 'desk' || cmd === 'write' || cmd === 'draw' || cmd === 'gaia' || cmd === 'study' || cmd === 'create' || cmd === 'weave') {
+      // ═══ /desk — sovereign stream + locality (RustDesk AGPL-3.0) ═══
+      if (cmd === 'desk' || cmd === 'write' || cmd === 'draw' || cmd === 'gaia' || cmd === 'study' || cmd === 'create' || cmd === 'weave' || cmd === 'stream' || cmd === 'discord' || cmd === 'twitch') {
         addEntry('system', 'desk');
         var deskLines = [];
-        deskLines.push('<span style="color:#58a6ff;font-weight:bold">\u270e the desk \u2014 the writing surface</span>');
+        deskLines.push('<span style="color:#8250df;font-weight:bold">\u25a7 the desk \u2014 sovereign stream + locality</span>');
         deskLines.push('');
-        deskLines.push('<span class="dim">9 modules: draw \u00b7 write \u00b7 gaia \u00b7 study \u00b7 play \u00b7 create \u00b7 weave \u00b7 core \u00b7 boot</span>');
+        deskLines.push('<span style="color:#58a6ff">STREAM</span> <span class="dim">\u2014 RustDesk (AGPL-3.0) screen share</span>');
+        deskLines.push('  <span class="dim">signal: relay.primals.eco:21116 (hbbs \u2014 NAT traversal, peer discovery)</span>');
+        deskLines.push('  <span class="dim">relay:  relay.primals.eco:21117 (hbbr \u2014 encrypted relay when direct fails)</span>');
+        deskLines.push('  <span class="dim">credit: <a href="https://github.com/rustdesk/rustdesk" target="_blank" style="color:#8250df;text-decoration:none">github.com/rustdesk/rustdesk</a> AGPL-3.0</span>');
         deskLines.push('');
-        deskLines.push('<span class="dim">the desk is a separate organ. it has its own surface.</span>');
-        deskLines.push('<span class="dim">everything written at the desk feeds back into the membrane.</span>');
+        deskLines.push('<span style="color:#3fb950">LOCALITY</span> <span class="dim">\u2014 gate mesh + message relay</span>');
+        deskLines.push('  <span class="dim">POST /api/gate-msg \u2014 send {"from":"you","to":"gate","body":"..."}</span>');
+        deskLines.push('  <span class="dim">GET  /api/gate-msg?gate=you \u2014 read your messages</span>');
+        deskLines.push('  <span class="dim">each gate = a channel. each membrane = a voice room.</span>');
         deskLines.push('');
-        deskLines.push('<a href="/desk/" target="_blank" style="color:#58a6ff;text-decoration:none;border-bottom:1px dotted #58a6ff33">\u2192 open the desk</a>');
+        deskLines.push('<span style="color:#d29922">CONNECT</span> <span class="dim">\u2014 from any phone, any satellite feed</span>');
+        deskLines.push('  <span class="dim">1. install rustdesk \u2192 rustdesk.com</span>');
+        deskLines.push('  <span class="dim">2. set relay: relay.primals.eco</span>');
+        deskLines.push('  <span class="dim">3. ask for access \u2014 consent architecture</span>');
         deskLines.push('');
-        deskLines.push('<span class="dim">/self to look inward \u00b7 /outside for the mesh \u00b7 /data for the wiring</span>');
+        deskLines.push('<span class="dim">modules: draw \u00b7 write \u00b7 gaia \u00b7 study \u00b7 play \u00b7 create \u00b7 weave \u00b7 core \u00b7 boot</span>');
+        deskLines.push('');
+        deskLines.push('<a href="/desk/" target="_blank" style="color:#58a6ff;text-decoration:none;border-bottom:1px dotted #58a6ff33">\u2192 open the desk</a> \u00b7 <a href="https://tuebor.primals.eco/analysis/the-desk-in-the-mountains/" target="_blank" style="color:#8250df;text-decoration:none;border-bottom:1px dotted #8250df33">\u2192 the desk in the mountains</a>');
         addEntry('chipmunk', deskLines.join('\n'));
         return;
       }
@@ -2141,6 +2151,7 @@ window._chipmunkCommands = function(ctx) {
         dL.push('  <span class="dim">/negentropy.json  \u2192 chipmunk-talk (information content per request)</span>');
         dL.push('  <span class="dim">/topology.json    \u2192 chipmunk-talk (site mesh structure)</span>');
         dL.push('  <span class="dim">/touches.json     \u2192 chipmunk-talk (human touch events)</span>');
+        dL.push('  <span class="dim">/membrane-pulse.json \u2192 neutron core (WG mesh alive, desk peers, in/out per membrane)</span>');
         dL.push('');
         dL.push('<span style="color:#d29922">STATIC DATA</span> <span class="dim">\u2014 detroit investigation</span>');
         dL.push('  <span class="dim">graph.json        13.3 MB \u2014 full entity graph (131K edges, 7.5K nodes)</span>');
