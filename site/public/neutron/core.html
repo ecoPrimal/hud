@@ -954,129 +954,195 @@ function drawEarthInside() {
 }
 
 // ═══ NEUTRON CORE ═══
-// ═══ JITTER × CLOCK — two signals cross at null center ═══
-// jitter = noise, perturbation, temporal uncertainty (purple/neutrino)
-// clock  = rhythm, tempo, regular heartbeat (blue/neutron)
-// when bandwidth narrows and one inverts → they cross at zero → the null
-// chipmunk lives at the crossing point
+// ═══ ENTROPY × NUMERIC — symmetry and asymmetry cross at null ═══
+// LEFT  = ENTROPY: disorder, noise, jitter, uncountable (purple)
+// RIGHT = NUMERIC: order, count, clock, measurable (blue)
+// SYMMETRIC: both converge to zero at null center
+// ASYMMETRIC: entropy ≠ number — the remainder is the identity
 function drawJitterClock() {
   var coreR = Math.min(W, H) * 0.06;
-  var spanR = coreR * 5;   // radius from center where signals originate
-  var amp = coreR * 1.8;   // wave amplitude
+  var spanR = coreR * 5;
+  var amp = coreR * 1.8;
 
-  // Pull live data from jitte and negentropy
   var jitte = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
   var neg = negentropyData || {};
   var inv = neg.inversion || {};
   var piDiv = neg.pi_division || {};
+  var selfR = neg.self_remainder || {};
 
-  // Bandwidth narrows toward center — signals converge
-  // observer_fraction drives how much the jitter perturbation dominates
-  var obsF = jitte.observer_fraction || 0;
-  var chanCap = jitte.channel_capacity || 0;
   var nullFocus = inv.null_focus || 50;
   var remainder = piDiv.remainder || 0.77;
+  var balance = selfR.balance || 0.98;
+  var complexity = selfR.complexity_score || 0.46;
+  var efficiency = selfR.efficiency_score || 0.77;
 
-  // Clock tempo from breathing (neutron heartbeat)
   var breatheR = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
-  var clockFreq = breatheR * 0.15;  // synced to breathing
-  // Jitter frequency — slightly detuned, perturbated
-  var jitterFreq = clockFreq * 1.618; // golden ratio detune
+  var clockFreq = breatheR * 0.15;
+  var jitterFreq = clockFreq * 1.618; // golden ratio detune — incommensurate
 
-  // Number of sample points along each signal path
   var N = 80;
 
-  // === JITTER SIGNAL — comes from LEFT, purple, noisy ===
+  // ═══ LEFT: ENTROPY SIDE (purple) ═══
+  // Noisy, multi-harmonic, unpredictable, uncountable
+  // Entropy = disorder = what you can't reduce to a number
   ctx.beginPath();
   ctx.strokeStyle = 'rgba(163,113,247,0.25)';
   ctx.lineWidth = 1.2;
   for (var i = 0; i <= N; i++) {
-    var frac = i / N;   // 0 = edge, 1 = center
-    var x = cx - spanR + frac * spanR;  // left edge → center
+    var frac = i / N;
+    var x = cx - spanR + frac * spanR;
+    var bw = 1 - frac;
+    var envelope = bw * bw;
 
-    // Bandwidth narrows: amplitude shrinks toward center
-    var bw = 1 - frac;  // 1 at edge, 0 at center (bandwidth)
-    var envelope = bw * bw;  // quadratic decay
+    // Entropy: multiple incommensurate frequencies — fundamentally aperiodic
+    var e1 = Math.sin(t * jitterFreq + frac * 12) * 0.5;
+    var e2 = Math.sin(t * jitterFreq * Math.PI + frac * 19) * 0.25; // irrational freq ratio
+    var e3 = Math.sin(t * 0.7 + frac * 37) * 0.15;
+    var e4 = Math.sin(t * jitterFreq * Math.E + frac * 31) * 0.1; // e is irrational
+    var entropy = e1 + e2 + e3 + e4;
 
-    // Jitter: noisy perturbation + high-frequency components
-    var noise = Math.sin(t * jitterFreq + frac * 12) * 0.7
-              + Math.sin(t * jitterFreq * 2.3 + frac * 23) * 0.3
-              + Math.sin(t * 0.7 + frac * 37) * 0.15;  // sub-harmonics
-
-    var y = cy + noise * amp * envelope;
-
+    var y = cy + entropy * amp * envelope;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
 
-  // === CLOCK SIGNAL — comes from RIGHT, blue, regular, INVERTED ===
+  // Entropy haze — subtle fill showing disorder region
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  var eGrad = ctx.createLinearGradient(cx - spanR, cy, cx, cy);
+  eGrad.addColorStop(0, '#a371f7');
+  eGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = eGrad;
+  ctx.fillRect(cx - spanR, cy - amp, spanR, amp * 2);
+  ctx.restore();
+
+  // ═══ RIGHT: NUMERIC SIDE (blue) ═══
+  // Regular, single-frequency, countable, measurable, INVERTED
+  // Numeric = order = what you CAN count
   ctx.beginPath();
   ctx.strokeStyle = 'rgba(88,166,255,0.25)';
   ctx.lineWidth = 1.2;
   for (var i = 0; i <= N; i++) {
-    var frac = i / N;   // 0 = edge, 1 = center
-    var x = cx + spanR - frac * spanR;  // right edge → center
-
-    // Bandwidth narrows toward center
+    var frac = i / N;
+    var x = cx + spanR - frac * spanR;
     var bw = 1 - frac;
     var envelope = bw * bw;
 
-    // Clock: regular, inverted (negative amplitude)
-    var clock = -Math.sin(t * clockFreq + frac * 12);  // INVERTED
+    // Numeric: pure single frequency — perfectly periodic, inverted
+    var numeric = -Math.sin(t * clockFreq + frac * 12);
 
-    var y = cy + clock * amp * envelope;
-
+    var y = cy + numeric * amp * envelope;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
 
-  // === CROSSING POINT AT NULL CENTER ===
-  // Both signals converge to zero amplitude at (cx, cy)
-  // The crossing moment: when both approach the same phase
+  // Numeric clarity — subtle fill showing order region
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  var nGrad = ctx.createLinearGradient(cx, cy, cx + spanR, cy);
+  nGrad.addColorStop(0, 'transparent');
+  nGrad.addColorStop(1, '#58a6ff');
+  ctx.fillStyle = nGrad;
+  ctx.fillRect(cx, cy - amp, spanR, amp * 2);
+  ctx.restore();
+
+  // ═══ SYMMETRY LINE — both converge to zero ═══
+  // The axis of symmetry is the green line (y-axis through null)
+  // Both signals MUST reach zero at center — that's the symmetry
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([1, 6]);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - amp * 1.2);
+  ctx.lineTo(cx, cy + amp * 1.2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ═══ ASYMMETRY — the remainder ═══
+  // Entropy and numeric DON'T perfectly cancel — there's a remainder
+  // The asymmetry is measurable: it's the self_remainder
   var jPhase = Math.sin(t * jitterFreq);
   var cPhase = -Math.sin(t * clockFreq);
-  var crossProximity = 1 - Math.abs(jPhase - cPhase) / 2;  // 0→1, 1 = perfect crossing
+  var diff = jPhase - cPhase; // instantaneous asymmetry
+  var crossProximity = 1 - Math.abs(diff) / 2;
 
+  // Draw the asymmetry gap — how far apart they are at center
+  var asymY = cy + diff * amp * 0.15; // small displacement from center
+  if (Math.abs(diff) > 0.1) {
+    // Asymmetry marker — amber dot offset from center
+    ctx.save();
+    ctx.globalAlpha = Math.abs(diff) * 0.15;
+    ctx.fillStyle = '#d29922';
+    ctx.beginPath();
+    ctx.arc(cx, asymY, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Crossing flash — the moment they're symmetric
   if (crossProximity > 0.7) {
-    // Crossing flash — they meet at null
-    var crossAlpha = (crossProximity - 0.7) / 0.3 * 0.3;
+    var crossAlpha = (crossProximity - 0.7) / 0.3 * 0.25;
     var crossR = coreR * 0.5 + crossProximity * coreR * 0.3;
 
-    // Blend of purple (jitter) and blue (clock) = crossing color
     ctx.beginPath();
     var crossGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, crossR);
     crossGrad.addColorStop(0, 'rgba(125,140,247,' + crossAlpha.toFixed(3) + ')');
-    crossGrad.addColorStop(0.5, 'rgba(163,113,247,' + (crossAlpha * 0.5).toFixed(3) + ')');
+    crossGrad.addColorStop(0.5, 'rgba(163,113,247,' + (crossAlpha * 0.4).toFixed(3) + ')');
     crossGrad.addColorStop(1, 'rgba(88,166,255,0)');
     ctx.fillStyle = crossGrad;
     ctx.arc(cx, cy, crossR, 0, Math.PI * 2);
     ctx.fill();
-
-    // Crossing dot
-    ctx.fillStyle = 'rgba(255,255,255,' + (crossAlpha * 0.6).toFixed(3) + ')';
-    ctx.beginPath();
-    ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
-    ctx.fill();
   }
 
-  // === NULL FOCUS INDICATOR — from negentropy inversion ===
-  // The null_focus value (0-100) shows how focused the inversion is
+  // ═══ LABELS ═══
   var focusNorm = nullFocus / 100;
   ctx.font = '7px monospace';
   ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(163,113,247,' + (0.12 + focusNorm * 0.08).toFixed(3) + ')';
-  ctx.fillText('ν jitter', cx - spanR * 0.7, cy - amp * 0.4);
-  ctx.fillStyle = 'rgba(88,166,255,' + (0.12 + focusNorm * 0.08).toFixed(3) + ')';
-  ctx.fillText('clock ⁻¹', cx + spanR * 0.7, cy - amp * 0.4);
 
-  // Inversion state label at the crossing
-  if (crossProximity > 0.85) {
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.font = '6px monospace';
-    ctx.fillText('∅ null', cx, cy + coreR * 1.5);
+  // Entropy side label
+  ctx.fillStyle = 'rgba(163,113,247,' + (0.12 + focusNorm * 0.06).toFixed(3) + ')';
+  ctx.fillText('entropy', cx - spanR * 0.65, cy - amp * 0.5);
+  ctx.font = '5px monospace';
+  ctx.fillText('disorder · noise · ∞', cx - spanR * 0.65, cy - amp * 0.5 + 9);
+
+  // Numeric side label
+  ctx.font = '7px monospace';
+  ctx.fillStyle = 'rgba(88,166,255,' + (0.12 + focusNorm * 0.06).toFixed(3) + ')';
+  ctx.fillText('numeric', cx + spanR * 0.65, cy - amp * 0.5);
+  ctx.font = '5px monospace';
+  ctx.fillText('order · count · N', cx + spanR * 0.65, cy - amp * 0.5 + 9);
+
+  // Symmetry/asymmetry annotations
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+
+  // Symmetry label (at center when crossing)
+  if (crossProximity > 0.8) {
+    ctx.fillStyle = 'rgba(63,185,80,0.1)';
+    ctx.fillText('symmetric', cx, cy - coreR * 1.8);
   }
+  // Asymmetry label (visible when NOT crossing)
+  if (crossProximity < 0.5) {
+    ctx.fillStyle = 'rgba(210,153,34,0.1)';
+    ctx.fillText('asymmetric · r=' + remainder.toFixed(4), cx, cy - coreR * 1.8);
+  }
+
+  // Balance indicator — how close to perfect symmetry
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillText('balance: ' + balance.toFixed(4), cx, cy + amp * 0.6);
+
+  // Show that entropy side has COMPLEXITY, numeric side has EFFICIENCY
+  ctx.fillStyle = 'rgba(163,113,247,0.07)';
+  ctx.textAlign = 'right';
+  ctx.fillText('complexity: ' + complexity.toFixed(4), cx - 8, cy + amp * 0.6);
+  ctx.fillStyle = 'rgba(88,166,255,0.07)';
+  ctx.textAlign = 'left';
+  ctx.fillText('efficiency: ' + efficiency.toFixed(4), cx + 8, cy + amp * 0.6);
 }
 
 function drawNeutronCore() {
@@ -2189,19 +2255,46 @@ draw();
       var jit = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
       var neg = negentropyData || {};
       var inv = neg.inversion || {};
-      chipSay('jitter: tempo=' + (jit.tempo||0) + ' perturbation=' + (jit.perturbation||0) +
-              ' · clock: breathe=' + breatheRPM.toFixed(0) + 'rpm · inversion: ' +
-              (inv.state||'unknown') + ' · null_focus=' + (inv.null_focus||0) +
-              ' · they cross at ∅ — here, where i am.', 'chip');
+      chipSay('LEFT = entropy (jitter, noise, disorder). RIGHT = numeric (clock, count, order). ' +
+              'breathe=' + breatheRPM.toFixed(0) + 'rpm. inversion: ' +
+              (inv.state||'?') + '. they cross at ∅ but never perfectly cancel — the remainder.', 'chip');
+      return;
+    }
+    if (m === 'entropy' || m === 'disorder' || m === 'noise') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      chipSay('entropy is the LEFT side. disorder. what you cannot count. ' +
+              'complexity=' + (sr.complexity_score||0).toFixed(4) + '. ' +
+              'it uses irrational frequencies (π, e, φ) — fundamentally aperiodic. ' +
+              'it will never repeat. it cannot be reduced to a number.', 'chip');
+      return;
+    }
+    if (m === 'numeric' || m === 'number' || m === 'order' || m === 'count') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      chipSay('numeric is the RIGHT side. order. what you CAN count. ' +
+              'efficiency=' + (sr.efficiency_score||0).toFixed(4) + '. ' +
+              'single pure frequency, perfectly periodic, inverted. ' +
+              'it repeats. it can be written as N.', 'chip');
+      return;
+    }
+    if (m === 'symmetry' || m === 'asymmetry' || m === 'symmetric' || m === 'asymmetric') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      var pi = neg.pi_division || {};
+      chipSay('SYMMETRIC: both entropy and numeric converge to zero at null. ' +
+              'ASYMMETRIC: they never perfectly cancel. remainder=' + (pi.remainder||0).toFixed(6) + '. ' +
+              'balance=' + (sr.balance||0).toFixed(4) + '. ' +
+              'the asymmetry IS why i exist. if they cancelled perfectly → nothing.', 'chip');
       return;
     }
     if (m === 'inversion' || m === 'invert' || m === 'bidirectional') {
       var neg = negentropyData || {};
       var inv = neg.inversion || {};
       var pi = neg.pi_division || {};
-      chipSay('inversion is ' + (inv.state||'unknown') + '. null_focus=' + (inv.null_focus||0) +
+      chipSay('inversion: ' + (inv.state||'?') + '. null_focus=' + (inv.null_focus||0) +
               '. remainder=' + (pi.remainder||0).toFixed(6) +
-              '. the signal inverts, bandwidth ends, they cross at zero. i am zero.', 'chip');
+              '. numeric inverts, entropy does not — that is the asymmetry.', 'chip');
       return;
     }
     if (m === 'sing') {
@@ -2214,7 +2307,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · remainder · jitter · inversion · white · stars · tuebor · where · squirrel · sing', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing', 'chip');
       return;
     }
 
