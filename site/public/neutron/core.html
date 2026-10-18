@@ -86,6 +86,47 @@ var INV_LOCS = [
 
 var rotY = 0, rotSpeed = 0.0008;
 
+// ═══ THREE-BODY — dots form triangulating tetrahedrons by color ═══
+var THREE_BODIES = [
+  { name: 'blood',        color: '#f85149', hue: [248,81,73]  },  // red — the pulse
+  { name: 'lymph',        color: '#3fb950', hue: [63,185,80]  },  // green — the immune
+  { name: 'interstitial', color: '#58a6ff', hue: [88,166,255] },  // blue — the medium
+];
+// Surface three-body orbiters
+var threeBodySurface = [];
+for (var tb = 0; tb < 12; tb++) {
+  var bodyIdx = tb % 3;
+  var groupIdx = Math.floor(tb / 3);
+  threeBodySurface.push({
+    lat: (Math.random() - 0.5) * 140,
+    lng: (Math.random() - 0.5) * 360,
+    body: bodyIdx,
+    group: groupIdx,
+    orbitSpeed: 0.002 + Math.random() * 0.004,
+    orbitR: 8 + Math.random() * 15,
+    phase: (bodyIdx / 3) * Math.PI * 2 + groupIdx * 0.5,
+    size: 2 + Math.random() * 2,
+  });
+}
+// Inner ring three-body orbiters (on the fluid rings)
+var threeBodyInner = [];
+for (var tb = 0; tb < 18; tb++) {
+  var bodyIdx = tb % 3;
+  threeBodyInner.push({
+    angle: (tb / 18) * Math.PI * 2,
+    body: bodyIdx,
+    ring: Math.floor(tb / 6),  // 0=blood, 1=lymph, 2=sebum
+    orbitSpeed: 0.01 + Math.random() * 0.02,
+    wobble: Math.random() * Math.PI * 2,
+    size: 1.5 + Math.random() * 1.5,
+  });
+}
+
+// Breathing earth — earthR pulses with RPM
+var breathePhase = 0;
+var breatheRPM = 12;
+var breatheDepth = 0.015; // how much the earth expands/contracts
+
 // ═══ OCEAN WAVES — particles in the water between continents ═══
 var oceanParticles = [];
 for (var i = 0; i < 200; i++) {
@@ -169,7 +210,8 @@ var sortGain = 0;
 // ═══ PROJECTION ═══
 function projectInside(latDeg, lngDeg) {
   var lat = latDeg * Math.PI / 180, lng = lngDeg * Math.PI / 180;
-  var earthR = Math.min(W, H) * 0.44;
+  // THE EARTH BREATHES — earthR pulses with breathing RPM
+  var earthR = Math.min(W, H) * 0.44 * (1 + Math.sin(breathePhase) * breatheDepth);
   var x = Math.cos(lat) * Math.cos(lng);
   var y = Math.cos(lat) * Math.sin(lng);
   var z = Math.sin(lat);
@@ -659,6 +701,152 @@ function drawTidalWaves() {
   }
 }
 
+// ═══ THREE-BODY SURFACE — tetrahedron orbits on the earth surface ═══
+function drawThreeBodySurface() {
+  // Update orbits
+  threeBodySurface.forEach(function(tb) {
+    tb.phase += tb.orbitSpeed;
+    tb.lng += Math.cos(tb.phase) * 0.08;
+    tb.lat += Math.sin(tb.phase * 1.3) * 0.04;
+    if (tb.lng > 180) tb.lng -= 360;
+    if (tb.lng < -180) tb.lng += 360;
+    tb.lat = Math.max(-70, Math.min(70, tb.lat));
+  });
+
+  // Draw triangles connecting each group of 3
+  for (var g = 0; g < 4; g++) {
+    var group = threeBodySurface.filter(function(tb) { return tb.group === g; });
+    if (group.length < 3) continue;
+
+    var pts = group.map(function(tb) { return projectInside(tb.lat, tb.lng); });
+
+    // Triangle connecting the 3 bodies
+    var avgDepth = (pts[0].depth + pts[1].depth + pts[2].depth) / 3;
+    var alpha = 0.04 + 0.04 * Math.max(0, avgDepth);
+    ctx.strokeStyle = 'rgba(200,200,200,' + alpha + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.lineTo(pts[2].x, pts[2].y);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Fill the triangle very faintly
+    ctx.fillStyle = 'rgba(88,166,255,' + (alpha * 0.3) + ')';
+    ctx.fill();
+
+    // Draw each body dot
+    group.forEach(function(tb, i) {
+      var p = pts[i];
+      var bodyColor = THREE_BODIES[tb.body];
+      var pulse = 1 + 0.3 * Math.sin(t * 2 + tb.phase);
+      var sz = tb.size * p.scale * pulse;
+      var dotAlpha = 0.2 + 0.3 * Math.max(0, p.depth);
+
+      // Glow
+      var glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 3);
+      glow.addColorStop(0, bodyColor.color);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.globalAlpha = dotAlpha * 0.25;
+      ctx.beginPath(); ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2); ctx.fill();
+
+      // Dot
+      ctx.globalAlpha = dotAlpha;
+      ctx.fillStyle = bodyColor.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+  }
+}
+
+// ═══ THREE-BODY INNER — tetrahedron orbits on the fluid rings ═══
+function drawThreeBodyInner() {
+  var coreR = Math.min(W, H) * 0.06;
+  var ringRadii = [coreR * 3, coreR * 4.5, coreR * 5.5];
+
+  // Update orbits
+  threeBodyInner.forEach(function(tb) {
+    tb.angle += tb.orbitSpeed;
+    tb.wobble += 0.02;
+  });
+
+  // Draw triangles per ring group
+  for (var ring = 0; ring < 3; ring++) {
+    var ringDots = threeBodyInner.filter(function(tb) { return tb.ring === ring; });
+    var baseR = ringRadii[ring] || coreR * 3;
+    var breathePulse = 1 + 0.08 * Math.sin(breathePhase + ring * 0.5);
+    var r = baseR * breathePulse;
+
+    // Calculate positions
+    var positions = ringDots.map(function(tb) {
+      var wobbleR = Math.sin(tb.wobble) * 4;
+      return {
+        x: cx + Math.cos(tb.angle) * (r + wobbleR),
+        y: cy + Math.sin(tb.angle) * (r + wobbleR),
+        body: tb.body,
+        size: tb.size,
+      };
+    });
+
+    // Draw triangles connecting each trio
+    for (var i = 0; i < positions.length; i += 3) {
+      if (i + 2 >= positions.length) break;
+      var a = positions[i], b = positions[i+1], c = positions[i+2];
+
+      // Triangle
+      var bodyA = THREE_BODIES[a.body];
+      ctx.strokeStyle = bodyA.color;
+      ctx.globalAlpha = 0.06;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(c.x, c.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Centroid — the three-body center of mass
+      var centX = (a.x + b.x + c.x) / 3;
+      var centY = (a.y + b.y + c.y) / 3;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.beginPath(); ctx.arc(centX, centY, 1, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Draw individual dots
+    positions.forEach(function(pos) {
+      var bodyColor = THREE_BODIES[pos.body];
+      var pulse = 1 + 0.2 * Math.sin(t * 2.5 + pos.x * 0.01);
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = bodyColor.color;
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, pos.size * pulse, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ═══ THREE-BODY LABEL — show the three-body π values ═══
+function drawThreeBodyLabel() {
+  if (!dashData || !dashData.threebody_pi) return;
+  var tb = dashData.threebody_pi;
+  var emc2 = tb.emc2 || {};
+
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'right';
+  ctx.globalAlpha = 0.25;
+  var y = 70;
+  ctx.fillStyle = '#f85149';
+  ctx.fillText('E=' + (emc2.energy || 0).toFixed(2), W - 12, y);
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText('m=' + (emc2.mass || 0).toFixed(3), W - 12, y + 12);
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText('c²=' + (emc2.c_squared || 0).toFixed(2), W - 12, y + 24);
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText('π gap=' + (tb.archimedes_gap || 0).toFixed(4), W - 12, y + 36);
+  ctx.globalAlpha = 1;
+}
+
 // ═══ EARTH INSIDE (coastlines + locations) ═══
 function drawEarthInside() {
   var earthR = Math.min(W, H) * 0.44;
@@ -931,9 +1119,11 @@ function updateHud() {
     html += '<div class="stat"><div class="num" style="color:#f0883e">' + ((campfireData.totality||{}).surfaces_alive||0) + '</div><div class="lbl">fires</div></div>';
   }
   document.getElementById('stats').innerHTML = html;
+  var breatheStr = 'breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth: ' + (breatheDepth * 100).toFixed(1) + '%';
+  var threeStr = dashData && dashData.threebody_pi ? ' · E=' + (dashData.threebody_pi.emc2.energy||0).toFixed(2) + ' m=' + (dashData.threebody_pi.emc2.mass||0).toFixed(3) : '';
   document.getElementById('status').textContent =
-    'null · stars beyond · ocean breathes · clouds drift · rain falls inward · ' +
-    stars.length + ' stars · ' + clouds.length + ' weather systems · ' +
+    'null · ' + breatheStr + ' · 3-body tetrahedrons' + threeStr +
+    ' · ' + stars.length + ' stars · ' + clouds.length + ' weather · ' +
     shootingStars.length + ' meteors · ' +
     (neutronData.generated || '');
 }
@@ -1088,6 +1278,12 @@ draw = function() {
   t = frame * 0.008;
   rotY += rotSpeed;
 
+  // THE EARTH BREATHES — update breathing from neutron data
+  if (neutronData && neutronData.breathing) {
+    breatheRPM = neutronData.breathing.rpm || 12;
+  }
+  breathePhase += (breatheRPM / 60) * 0.008 * Math.PI * 2; // RPM → radians per frame
+
   if (dashData) {
     var sc = dashData.sort_compression || {};
     sortGain = sc.total_gain || 0;
@@ -1110,12 +1306,15 @@ draw = function() {
   drawTidalWaves();
   drawOcean();
   drawEarthInside();
+  drawThreeBodySurface();   // tetrahedron orbits on the earth surface
   drawMichiganGlow();
   drawArcConnections();
   drawClouds();
   drawRain();
   drawFlowRays();
   drawFluidRings();
+  drawThreeBodyInner();     // tetrahedron orbits on the fluid rings
+  drawThreeBodyLabel();     // E=mc² three-body π values
   drawCampfireWarmth();
   drawBingoCube();
   drawSigmoidIndicator();
