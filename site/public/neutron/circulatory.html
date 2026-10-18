@@ -562,6 +562,111 @@ function drawFleet() {
   });
 }
 
+
+// ── DRAW: Anderson gradient (localization modes as orbital rings) ──
+var andersonModes = null;
+var braidConnections = [];
+var scanDensity = 0;
+
+function drawGradient() {
+  if (!andersonModes) return;
+  var modes = andersonModes.modes || [];
+  
+  modes.forEach(function(mode, i) {
+    var d_eff = mode.d_eff || 1;
+    var w_eff = mode.w_eff || 5;
+    var energy = mode.energy || 1;
+    var count = mode.count || 0;
+    
+    // Each mode is an orbital ring at a radius determined by d_eff
+    var radius = Math.min(W, H) * (0.08 + d_eff * 0.08);
+    var alpha = Math.min(0.25, Math.log10(count + 1) * 0.05);
+    
+    // Color by mode class
+    var modeColors = {
+      spectrum: '#a371f7',
+      chorus: '#58a6ff',
+      stealth: '#484f58',
+      ghost: '#8b949e',
+      human: '#3fb950',
+      sovereign: '#f1c40f'
+    };
+    var color = modeColors[mode.class] || '#58a6ff';
+    
+    // Draw orbital ring
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = Math.max(0.5, Math.log10(count + 1) * 0.3);
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Mode label
+    if (count > 100) {
+      ctx.font = '8px monospace';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.fillText(mode.class + ' (' + count + ')', cx + radius + 5, cy - 3);
+    }
+    ctx.globalAlpha = 1;
+  });
+  
+  // Selectivity indicator at center
+  var sel = andersonModes.selectivity_observed || 0;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = DIM;
+  ctx.textAlign = 'center';
+  ctx.fillText('W=' + (andersonModes.w_population || 0).toFixed(1), cx, cy + 22);
+  ctx.fillText('sel=' + (sel * 100).toFixed(0) + '%', cx, cy + 30);
+}
+
+// ── DRAW: Braid connections (golden threads between surfaces) ──
+function drawBraids() {
+  if (!braidConnections || braidConnections.length === 0) return;
+  
+  braidConnections.forEach(function(b) {
+    var from = surfaceNodes[b.site_a];
+    var to = surfaceNodes[b.site_b];
+    if (!from || !to) return;
+    
+    var strength = b.co_strength || 0;
+    
+    // Golden thread
+    ctx.strokeStyle = '#f1c40f';
+    ctx.globalAlpha = Math.min(0.5, strength * 0.4);
+    ctx.lineWidth = Math.max(1, strength * 2);
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    // Gentle curve
+    var midX = (from.x + to.x) / 2 + (Math.random() - 0.5) * 20;
+    var midY = (from.y + to.y) / 2 + (Math.random() - 0.5) * 20;
+    ctx.quadraticCurveTo(midX, midY, to.x, to.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ── DRAW: Density field (background gradient showing graph density) ──
+function drawDensity() {
+  if (scanDensity <= 0) return;
+  
+  // Density as a subtle background radial from center
+  var densityR = Math.min(W, H) * 0.45;
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, densityR);
+  var alpha = Math.min(0.06, scanDensity * 10);
+  grad.addColorStop(0, 'rgba(88,166,255,' + alpha + ')');
+  grad.addColorStop(0.7, 'rgba(88,166,255,' + (alpha * 0.3) + ')');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, densityR, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 // ── MAIN RENDER LOOP ──
 function frame() {
   // Fade trail (not full clear — leaves motion traces)
@@ -571,6 +676,9 @@ function frame() {
   var totalRpm = (neutronData && neutronData.breathing && neutronData.breathing.rpm) || 100;
   var trend = (neutronData && neutronData.breathing && neutronData.breathing.trend) || 'steady';
 
+  drawDensity();       // ← graph density field (background)
+  drawGradient();      // ← Anderson localization modes (orbital rings)
+  drawBraids();        // ← braid connections (golden threads)
   drawArteries();
   drawSurfaces();      // ← hyperlocal heartbeats at each surface
   drawHeart(totalRpm, trend);  // ← small aggregate summary at center
@@ -587,7 +695,10 @@ function load() {
     fetch('/topology.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
     fetch('/pulse.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
     fetch('/campfire.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
-    fetch('/human.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null})
+    fetch('/human.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/dashboard.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/scan_sweep_sort.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/braid.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null})
   ]).then(function(results) {
     neutronData = results[0] || neutronData;
     topoData = results[1] || topoData;
@@ -597,8 +708,31 @@ function load() {
     // Build everything from campfire (hyperlocal source of truth)
     // Human distribution per surface
     var humanData = results[4];
+    var dashData = results[5];
+    var scanData = results[6];
+    var braidData = results[7];
     if (humanData && humanData.host_distribution) {
       humanMap = humanData.host_distribution;
+    }
+
+    // Anderson gradient (localization modes)
+    if (dashData && dashData.anderson_gradient) {
+      andersonModes = dashData.anderson_gradient;
+    } else if (dashData && dashData.anderson_selectivity) {
+      andersonModes = dashData.anderson_selectivity;
+    }
+
+    // Graph density from scan
+    if (scanData && scanData.scan) {
+      var sc = scanData.scan;
+      var nodes = sc.nodes_discovered || 0;
+      var edges = sc.edges_discovered || 0;
+      scanDensity = nodes > 1 ? edges / (nodes * (nodes - 1) / 2) : 0;
+    }
+
+    // Braid connections
+    if (braidData && braidData.site_braids) {
+      braidConnections = braidData.site_braids;
     }
 
     if (campfireData) {

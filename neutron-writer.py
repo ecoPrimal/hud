@@ -433,6 +433,59 @@ def build_neutron():
         "neural": neural,
     }
 
+    # ── UNIFY LAYERS ──
+    # Read other feeds to build a unified connection map
+    try:
+        with open(os.path.join(LIVE, "braid.json")) as bf:
+            braid = json.load(bf)
+        site_braids = braid.get("site_braids", [])
+        epitope_transitions = braid.get("epitope_transitions", [])
+    except:
+        site_braids = []
+        epitope_transitions = []
+
+    try:
+        with open(os.path.join(LIVE, "scan_sweep_sort.json")) as sf:
+            sss = json.load(sf)
+        scan = sss.get("scan", {})
+        scan_entities = scan.get("entities_discovered", 0)
+        scan_edges = scan.get("edges_discovered", 0)
+        scan_nodes = scan.get("nodes_discovered", 0)
+        graph_density = scan_edges / max(scan_nodes * (scan_nodes - 1) / 2, 1) if scan_nodes > 1 else 0
+        evolve_recs = sss.get("evolve", {}).get("recommendations", [])
+    except:
+        scan_entities = 0
+        scan_edges = 0
+        scan_nodes = 0
+        graph_density = 0
+        evolve_recs = []
+
+    try:
+        with open(os.path.join(LIVE, "symbiosis.json")) as sf:
+            symb = json.load(sf)
+        symb_entities = symb.get("entities", [])
+        symb_map = {e.get("label", ""): e.get("relationship", "?") for e in symb_entities}
+    except:
+        symb_map = {}
+
+    # Add unified graph to neutron
+    neutron["unified"] = {
+        "layers_connected": 7,
+        "feeds": ["neutron", "topology", "symbiosis", "campfire", "braid", "scan_sweep_sort", "dashboard"],
+        "graph": {
+            "entities": scan_entities,
+            "nodes": scan_nodes,
+            "edges": scan_edges,
+            "density": round(graph_density, 6),
+        },
+        "braids": len(site_braids),
+        "epitope_transitions": len(epitope_transitions),
+        "symbiosis_classes": dict(sorted(
+            {v: list(symb_map.values()).count(v) for v in set(symb_map.values())}.items()
+        )) if symb_map else {},
+        "evolution": [r.get("action", "?") for r in evolve_recs[:4]],
+    }
+
     with open(os.path.join(LIVE, "neutron.json"), "w") as f:
         json.dump(neutron, f, indent=2)
 

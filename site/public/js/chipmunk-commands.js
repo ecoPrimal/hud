@@ -3028,6 +3028,17 @@ window._chipmunkCommands = function(ctx) {
               }
             }
             out += "\n<span class=\"dim\">wave " + (n.wave || "?") + " \u00b7 " + (n.generated || "?") + "</span>";
+            // Unified layers
+            var u = n.unified || {};
+            var g = u.graph || {};
+            if (g.entities) {
+              out += "\n\n<span style=\"color:#a371f7\">\u25c8 unified layers</span> (" + u.layers_connected + " feeds connected)\n";
+              out += "  graph: <span style=\"color:#58a6ff\">" + g.entities + "</span> entities, " + g.nodes + " nodes, " + g.edges.toLocaleString() + " edges\n";
+              out += "  density: " + g.density + "  braids: " + u.braids + "  transitions: " + u.epitope_transitions + "\n";
+              if (u.evolution && u.evolution.length > 0) {
+                out += "  evolve: " + u.evolution.join(", ") + "\n";
+              }
+            }
             out += "\n\n<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764 open circulatory system</a> \u00b7 <a href=\"/neutron/channels.html\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 open channels</a>";
             addEntry("chipmunk", out);
           })
