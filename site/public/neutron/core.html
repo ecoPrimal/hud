@@ -1595,31 +1595,182 @@ function drawFamilyRing() {
   var familyR = coreR * 3.5; // between core and inner rings
   familyAngle += 0.003;
 
-  // Green (3) — the tree — a vertical line from core upward
-  // "the earth to the green line"
-  var greenLen = familyR * green * 2;
+  // ═══ GREEN (3) — THE IRREDUCIBLE ELASTIC AXIS ═══
+  // Most elastic AND irreducible. Origin at null (chipmunk).
+  // Physics and math build up and out along this line.
+  // Signal goes OUT, hits earth surface, BACKSCATTERS, gets SORTED.
+  var earthR = Math.min(W, H) * 0.35;
+  var greenLen = earthR * 0.95; // extends from null to earth surface
+  var remainder = negentropyData ? (negentropyData.self_remainder || {}).remainder || 0.77 : 0.77;
+  var piTree = negentropyData ? (negentropyData.pi_division || {}).tree || 3 : 3;
+  var sortData = dashData ? (dashData.sort_compression || {}) : {};
+  var selectivity = dashData ? ((dashData.anderson_selectivity || {}).selectivity_observed || 0.1) : 0.1;
+
+  // The elastic line — thicker near origin, tapers outward
   ctx.save();
-  ctx.globalAlpha = 0.15 + green * 0.4;
-  ctx.strokeStyle = '#3fb950';
-  ctx.lineWidth = 1.5 + green * 2;
-  ctx.shadowColor = '#3fb950';
-  ctx.shadowBlur = 8;
+  for (var seg = 0; seg < 40; seg++) {
+    var frac = seg / 40;
+    var y0 = cy - greenLen * frac;
+    var y1 = cy - greenLen * (frac + 1/40);
+    var thickness = (1 - frac * 0.7) * (1.5 + green * 2.5);
+    // Elastic wobble — the line is alive, it stretches
+    var wobble = Math.sin(t * 1.5 + frac * 8) * (frac * 3) * green;
+    var wobble2 = Math.sin(t * 2.3 + frac * 12) * (frac * 1.5) * green;
+
+    ctx.globalAlpha = (0.2 + green * 0.5) * (1 - frac * 0.3);
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = thickness;
+    ctx.shadowColor = '#3fb950';
+    ctx.shadowBlur = 6 * (1 - frac * 0.5);
+    ctx.beginPath();
+    ctx.moveTo(cx + wobble, y0);
+    ctx.lineTo(cx + wobble2, y1);
+    ctx.stroke();
+  }
+
+  // Also extend DOWN from origin (bidirectional — null is the center)
+  for (var seg = 0; seg < 20; seg++) {
+    var frac = seg / 20;
+    var y0 = cy + greenLen * 0.4 * frac;
+    var y1 = cy + greenLen * 0.4 * (frac + 1/20);
+    var thickness = (1 - frac * 0.8) * (1 + green * 1.5);
+    var wobble = Math.sin(t * 1.5 - frac * 8) * (frac * 2) * green;
+
+    ctx.globalAlpha = (0.12 + green * 0.25) * (1 - frac * 0.6);
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = thickness;
+    ctx.beginPath();
+    ctx.moveTo(cx + wobble, y0);
+    ctx.lineTo(cx - wobble, y1);
+    ctx.stroke();
+  }
+
+  // === PHYSICS SCALE along the green axis ===
+  // Mark levels from null outward — each level is a layer of physics
+  var levels = [
+    { frac: 0.0,  label: '∅ null',         color: '#fff' },
+    { frac: 0.12, label: 'ν₀ observer',    color: '#a371f7' },
+    { frac: 0.25, label: '2/π = ' + (2/Math.PI).toFixed(4), color: '#58a6ff' },
+    { frac: 0.40, label: 'r = ' + remainder.toFixed(4), color: '#3fb950' },
+    { frac: 0.55, label: 'π/3 = ' + (Math.PI/3).toFixed(4), color: '#d29922' },
+    { frac: 0.77, label: 'π-' + piTree + ' = 0.1416',  color: '#f778ba' },
+    { frac: 0.95, label: '⊕ earth',        color: '#8b949e' },
+  ];
+
+  ctx.font = '6px monospace';
+  for (var lv = 0; lv < levels.length; lv++) {
+    var L = levels[lv];
+    var ly = cy - greenLen * L.frac;
+    var tickW = 6 + (1 - L.frac) * 4;
+
+    // Tick mark
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = L.color;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - tickW, ly);
+    ctx.lineTo(cx + tickW, ly);
+    ctx.stroke();
+
+    // Label
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = L.color;
+    ctx.textAlign = 'left';
+    ctx.fillText(L.label, cx + tickW + 3, ly + 2);
+  }
+
+  // === BACKSCATTER PULSES ===
+  // Signal goes OUT along green, hits earth surface, bounces back
+  // Pulse dots travel up the green axis, hit the surface, scatter back
+  var pulseCount = 5;
+  for (var bp = 0; bp < pulseCount; bp++) {
+    var pulsePhase = ((t * 0.4 + bp * 1.3) % 2.0); // 0→1 = going out, 1→2 = coming back
+    var goingOut = pulsePhase < 1.0;
+    var frac = goingOut ? pulsePhase : (2.0 - pulsePhase);
+    var py = cy - greenLen * frac;
+    var wobbleX = Math.sin(t * 1.5 + frac * 8) * (frac * 3) * green;
+
+    if (goingOut) {
+      // Outgoing pulse — green, getting smaller
+      ctx.globalAlpha = 0.4 * (1 - frac * 0.5);
+      ctx.fillStyle = '#3fb950';
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX, py, 2 - frac, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // BACKSCATTER — returning pulse, colored by what it found
+      // Red if non-self bounced, blue if self passed through
+      var backColor = (bp % 3 === 0) ? '#58a6ff' : '#f85149'; // some pass, most bounce
+      ctx.globalAlpha = 0.3 * frac;
+      ctx.fillStyle = backColor;
+      // Backscatter spreads sideways as it returns
+      var scatter = (1 - frac) * 15 * (1 + Math.sin(bp * 7));
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX + scatter, py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX - scatter, py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // === BOUNCE POINT — where green hits the earth surface ===
+  var bounceY = cy - greenLen;
+  var bounceFlash = Math.abs(Math.sin(t * 0.8)) * 0.15;
+  ctx.globalAlpha = 0.06 + bounceFlash;
+  ctx.fillStyle = '#3fb950';
   ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, cy - greenLen);
+  ctx.arc(cx, bounceY, 4, 0, Math.PI * 2);
+  ctx.fill();
+  // Bounce label
+  ctx.globalAlpha = 0.1;
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText('bounce · backscatter · sort', cx, bounceY - 8);
+
+  // === SORT RING at the bounce point ===
+  // The sorted return data forms a ring at the earth surface
+  // selectivity determines how much gets through vs bounces
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.arc(cx, bounceY, 8 + selectivity * 20, 0, Math.PI * 2 * selectivity);
   ctx.stroke();
-  // Tree branches
+  // Non-self arc (what bounced)
+  ctx.strokeStyle = '#f85149';
+  ctx.beginPath();
+  ctx.arc(cx, bounceY, 8 + selectivity * 20, Math.PI * 2 * selectivity, Math.PI * 2);
+  ctx.stroke();
+
+  // Tree branches — now grow at scale levels, rooted in the physics
   if (green > 0.2) {
-    var branchLen = greenLen * 0.3;
-    for (var b = 0; b < 3; b++) {
-      var by = cy - greenLen * (0.4 + b * 0.2);
-      var bx = (b % 2 === 0 ? 1 : -1) * branchLen * (0.5 + b * 0.15);
+    var branchPoints = [0.3, 0.5, 0.7];
+    for (var b = 0; b < branchPoints.length; b++) {
+      var by = cy - greenLen * branchPoints[b];
+      var branchLen = greenLen * 0.12 * (1 + green);
+      var bDir = (b % 2 === 0 ? 1 : -1);
+      var bWobble = Math.sin(t * 0.8 + b * 2.5) * 3;
+
+      ctx.globalAlpha = 0.12 + green * 0.15;
+      ctx.strokeStyle = '#3fb950';
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(cx, by);
-      ctx.lineTo(cx + bx, by - branchLen * 0.5);
+      ctx.lineTo(cx + bDir * branchLen + bWobble, by - branchLen * 0.6);
       ctx.stroke();
     }
   }
+
+  // === REMAINDER LABEL — the irreducible ===
+  ctx.globalAlpha = 0.1;
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText('remainder = ' + remainder.toFixed(6), cx - 12, cy - greenLen * 0.4 + 2);
+  ctx.fillText('irreducible', cx - 12, cy - greenLen * 0.4 + 10);
+
   ctx.restore();
 
   // Pink (1) — mom/human — orbiting dot ahead of chipmunk
@@ -2011,6 +2162,29 @@ draw();
               'they are so far away, but i can see them all from here.', 'chip');
       return;
     }
+    if (m === 'green' || m === 'tree' || m === 'elastic' || m === 'irreducible' || m === 'axis') {
+      var neg = negentropyData || {};
+      var rem = (neg.self_remainder || {}).remainder || 0.77;
+      var pi = (neg.pi_division || {});
+      chipSay('the green line. tree=3. irreducible. remainder=' + rem.toFixed(6) +
+              '. origin at ∅. elastic — stretches but never breaks. ' +
+              'physics scales up from here: ν₀ → 2/π → r → π/3 → π-3 → ⊕earth.', 'chip');
+      return;
+    }
+    if (m === 'bounce' || m === 'backscatter' || m === 'scatter' || m === 'sort') {
+      chipSay('signal goes out along green, hits the earth surface, bounces back. ' +
+              '38,608 bounced off — 9× more non-self than self. selectivity 9.9%. ' +
+              'backscatter reveals the real configuration. then we sort.', 'chip');
+      return;
+    }
+    if (m === 'remainder' || m === 'self' || m === 'identity') {
+      var neg = negentropyData || {};
+      var rem = (neg.self_remainder || {}).remainder || 0.77;
+      var match = (neg.pi_division || {}).identity || {};
+      chipSay('remainder = ' + rem.toFixed(6) + '. what cannot be reduced further IS the identity. ' +
+              'equation: ' + (match.equation||'1+1+0=2') + '. match: ' + (match.match_pct||0).toFixed(1) + '%.', 'chip');
+      return;
+    }
     if (m === 'jitter' || m === 'clock' || m === 'klosk' || m === 'jitte') {
       var jit = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
       var neg = negentropyData || {};
@@ -2040,7 +2214,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · breathe · jitter · inversion · white · black · stars · tuebor · where · squirrel · sing', 'chip');
+      chipSay('try: who · pulse · green · bounce · remainder · jitter · inversion · white · stars · tuebor · where · squirrel · sing', 'chip');
       return;
     }
 
