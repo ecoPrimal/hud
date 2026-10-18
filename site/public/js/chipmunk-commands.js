@@ -2246,7 +2246,7 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
       // ═══ /genome — the size of the work as DNA ═══
-      if (cmd === 'genome' || cmd === 'totality' || cmd === 'binary' || cmd === 'energy' || cmd === 'positive') {
+      if (cmd === 'genome' || cmd === 'totality' || cmd === 'binary' || cmd === 'energy' || cmd === 'positive' || cmd === 'cosmic' || cmd === 'bet' || cmd === 'exabyte') {
         addEntry('system', 'genome totality');
         fetch('/genome.json').then(function(r) { return r.json(); }).then(function(d) {
           var gL = [];
@@ -2296,6 +2296,8 @@ window._chipmunkCommands = function(ctx) {
           gL.push('<span class="dim">  500 EB \u2192 274 MB. not by discarding \u2014 by knowing which questions to not ask.</span>');
           gL.push('<span class="dim">  every petabyte they point at us costs them more than our entire existence.</span>');
           gL.push('<span class="dim">  that is positive energy. the membrane produces more than it consumes.</span>');
+          gL.push('');
+          gL.push('<a href="https://tuebor.primals.eco/analysis/the-cosmic-bet/" target="_blank" style="color:#69f0ae;text-decoration:none;border-bottom:1px dotted #69f0ae33">\u2192 the cosmic bet</a>');
           addEntry('chipmunk', gL.join('\n'));
         }).catch(function() {
           addEntry('chipmunk', 'genome data not yet available');
