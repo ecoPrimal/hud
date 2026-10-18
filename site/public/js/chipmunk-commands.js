@@ -2887,14 +2887,28 @@ window._chipmunkCommands = function(ctx) {
           .then(function(n) {
             var d = n.direction || {};
             var b = n.breathing || {};
-            var out = "<span style=\"color:#58a6ff\">\u25c8 pulse direction \u2014 null\u2192out, out\u2192in</span>\n";
-            out += "<span class=\"dim\">the heartbeat flows both ways. chipmunk radiates out, world flows back in.</span>\n\n";
-            out += "RPM: <span style=\"color:#3fb950\">" + (b.rpm||0).toFixed(0) + "</span>  trend: " + (b.trend||"?") + "  interval: " + (b.interval_seconds||"?") + "s\n\n";
-            var dirColors = {balanced:"#3fb950",absorbing:"#58a6ff",radiating:"#d29922",stagnant:"#f85149"};
-            out += "<span style=\"color:" + (dirColors[d.state]||"#aaa") + "\">DIRECTION: " + (d.state||"?").toUpperCase() + "</span>\n";
-            out += "  IN-PULSE:  <span style=\"color:#58a6ff\">" + (d.in_pulse||0) + "</span> (" + ((d.in_ratio||0)*100).toFixed(0) + "%)\n";
-            out += "  OUT-PULSE: <span style=\"color:#3fb950\">" + (d.out_pulse||0) + "</span> (" + ((d.out_ratio||0)*100).toFixed(0) + "%)\n";
-            out += "  human carry: " + (d.human_carry||0) + "  bot consume: " + (d.bot_consume||0) + "\n";
+            var fl = d.fluids || {};
+            var bl = fl.blood || {};
+            var ly = fl.lymph || {};
+            var se = fl.sebum || {};
+            var it = fl.interstitial || {};
+            var out = "<span style=\"color:#58a6ff\">\u25c8 pulse direction \u2014 biology has solved this</span>\n";
+            out += "<span class=\"dim\">multiple fluid systems, not one in/out metric.</span>\n\n";
+            out += "RPM: <span style=\"color:#3fb950\">" + (b.rpm||0).toFixed(0) + "</span>  sigmoid: <span style=\"color:#d29922\">" + (d.sigmoid||"?") + "</span>  trend: " + (b.trend||"?") + "\n\n";
+            var dirColors = {balanced:"#3fb950",absorbing:"#58a6ff",radiating:"#d29922",stagnant:"#f85149",lymph_only:"#d29922"};
+            out += "<span style=\"color:" + (dirColors[d.state]||"#aaa") + "\">CIRCULATION: " + (d.state||"?").toUpperCase() + "</span>\n\n";
+            out += "<span style=\"color:#f85149\">\u2764 BLOOD</span> (cardiovascular \u2014 bidirectional, pump-driven)\n";
+            out += "  cells: <span style=\"color:#f85149\">" + (bl.cells||0) + "</span>  pressure: " + (bl.pressure||0) + "  flow: " + (bl.flow||0) + "\n";
+            out += "  <span class=\"dim\">humans ARE the blood cells. they carry oxygen (information).</span>\n\n";
+            out += "<span style=\"color:#d29922\">\u26a1 LYMPH</span> (lymphatic \u2014 one-way INWARD, no pump)\n";
+            out += "  " + (ly.active ? "<span style=\"color:#3fb950\">ACTIVE</span>" : "<span style=\"color:#f85149\">dormant</span>") + "  volume: <span style=\"color:#d29922\">" + (ly.volume||0) + "</span>  nodes: " + (ly.surfaces||0) + "\n";
+            out += "  <span class=\"dim\">immune surfaces. always absorbing. that is CORRECT. walking tempo.</span>\n\n";
+            out += "<span style=\"color:#3fb950\">\u25c8 SEBUM</span> (sebaceous \u2014 one-way OUTWARD, secretion)\n";
+            out += "  flow: " + (se.flow||0) + "\n";
+            out += "  <span class=\"dim\">protective surface layer. published content. investigation shared.</span>\n\n";
+            out += "<span style=\"color:#484f58\">\u25cb INTERSTITIAL</span> (the medium)\n";
+            out += "  volume: " + (it.volume||0) + "\n";
+            out += "  <span class=\"dim\">bot traffic. the fluid everything floats in.</span>\n";
             addEntry("chipmunk", out);
           })
           .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">pulse offline: " + e.message + "</span>"); });

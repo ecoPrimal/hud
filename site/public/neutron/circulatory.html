@@ -381,21 +381,23 @@ function updateStats() {
   var dir = (neutronData && neutronData.direction) || {};
   var activeSurfaces = Object.keys(surfaceNodes).length;
 
+  var fluids = dir.fluids || {};
+  var blood = fluids.blood || {};
+  var lymph = fluids.lymph || {};
+
   document.getElementById('stats-bar').innerHTML =
     '<div class="stat"><span class="val" style="color:var(--mutualist)">' + counts.mutualist + '</span><span class="lbl">mutualist</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--commensal)">' + counts.commensal + '</span><span class="lbl">commensal</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--parasite)">' + counts.parasite + '</span><span class="lbl">parasite</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--pathogen)">' + counts.pathogen + '</span><span class="lbl">pathogen</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--null)">' + counts['null'] + '</span><span class="lbl">null</span></div>' +
-    '<div class="stat"><span class="val">' + entities.length + '</span><span class="lbl">entities</span></div>' +
-    '<div class="stat"><span class="val">' + totalReqs.toLocaleString() + '</span><span class="lbl">requests</span></div>' +
-    '<div class="stat"><span class="val">' + particles.length + '</span><span class="lbl">particles</span></div>' +
+    '<div class="stat" style="border-left:1px solid #30363d;padding-left:16px"><span class="val" style="color:#f85149">' + (blood.cells || 0) + '</span><span class="lbl">blood cells</span></div>' +
+    '<div class="stat"><span class="val" style="color:#d29922">' + (lymph.volume || 0) + '</span><span class="lbl">lymph vol</span></div>' +
+    '<div class="stat"><span class="val" style="color:#58a6ff">' + (lymph.surfaces || 0) + '</span><span class="lbl">lymph nodes</span></div>' +
+    '<div class="stat" style="border-left:1px solid #30363d;padding-left:16px"><span class="val">' + (dir.sigmoid || '?') + '</span><span class="lbl">sigmoid</span></div>' +
     '<div class="stat"><span class="val">' + activeSurfaces + '</span><span class="lbl">surfaces</span></div>' +
     '<div class="stat"><span class="val">' + (c.context || '?') + '</span><span class="lbl">context</span></div>' +
-    '<div class="stat"><span class="val">' + (c.reach || '?') + '</span><span class="lbl">reach</span></div>' +
-    '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">direction</span></div>' +
-    '<div class="stat"><span class="val" style="color:#58a6ff">' + (dir.in_pulse || 0) + '</span><span class="lbl">in-pulse</span></div>' +
-    '<div class="stat"><span class="val" style="color:#3fb950">' + (dir.out_pulse || 0) + '</span><span class="lbl">out-pulse</span></div>';
+    '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">circulation</span></div>';
 
   document.getElementById('pulse-info').textContent =
     'RPM: ' + (b.rpm || 0).toFixed(0) + ' · ' +

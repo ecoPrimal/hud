@@ -23,51 +23,93 @@ from datetime import datetime, timezone
 LIVE = "/opt/membrane/live-terminal"
 
 def compute_pulse_direction(pulse, flows, external_touches, total_crossings):
-    """Compute the bidirectional pulse.
+    """Compute the membrane's fluid systems — biology has already solved this.
     
-    OUT-PULSE: membrane → world (radiating information outward)
-      - Internal crossings between surfaces
-      - Content served to humans
-      - Mirrors reflecting between surfaces
+    Real biology doesn't have one in/out metric. It has separate systems:
     
-    IN-PULSE: world → membrane (receiving information inward)
-      - External touches arriving from search/social/AI
-      - Bot requests (consuming)
-      - Human visits (engaging)
-    
-    The circulation is healthy when both flow.
-    Stuck = no outflow. Flooded = only inflow.
+    BLOOD (cardiovascular) — bidirectional, pump-driven
+      Arteries: content served outward (humans reading)
+      Veins: engagement returning (humans clicking deeper)
+      Heart: RPM — the pump
+      
+    LYMPH (lymphatic) — one-way INWARD, no pump
+      Always absorbing. Filters threats. Processes at lymph nodes.
+      The immune surfaces ARE the lymphatic system.
+      Driven by body movement (walking tempo), not a pump.
+      
+    SEBUM (sebaceous) — one-way OUTWARD, secretion
+      Protective surface layer. Published content.
+      The investigation being shared externally.
+      
+    INTERSTITIAL — the medium between surfaces
+      Cross-surface flows. The tissue everything floats in.
     """
     rpm = pulse.get("rate", 0)
     human = pulse.get("human", 0)
     bot = pulse.get("bot", 0)
     
-    # IN = external touches + bot consumption
+    # ── IMMUNE SURFACES (lymphatic system) ──
+    immune_names = {"antibody","antigen","bloom","complement","cytokine","epitope",
+                    "interferon","lysozyme","macrophage","opsonize","receptor","thymus"}
+    
+    # Count lymphatic flows (immune surface crossings)
+    lymph_flow = 0
+    blood_flow = 0
+    for src in flows:
+        for tgt in flows[src]:
+            count = flows[src][tgt]
+            if src in immune_names or tgt in immune_names:
+                lymph_flow += count
+            else:
+                blood_flow += count
+    
+    # ── IN-PULSE (world → membrane) ──
     in_total = sum(sum(refs.values()) for refs in external_touches.values())
     
-    # OUT = internal crossings (surface → surface)
-    out_total = total_crossings
+    # ── OUT-PULSE (membrane → world) ──
+    out_total = total_crossings + human
     
-    # OUT also includes human engagement (they take content OUT to the world)
-    # Every human who reads and leaves carries information outward
-    out_total += human  # humans are the outward pulse
-    
-    # Balance: healthy circulation has both in and out
+    # ── FLUID SYSTEMS ──
     total = max(in_total + out_total, 1)
     in_ratio = round(in_total / total, 4)
     out_ratio = round(out_total / total, 4)
     
-    # Circulation state
-    if out_ratio < 0.05:
-        state = "stagnant"      # all inflow, nothing radiates
-    elif in_ratio < 0.05:
-        state = "broadcasting"  # all outflow, nothing received
+    # Blood: human traffic (bidirectional — they bring attention IN, carry content OUT)
+    blood_cells = human
+    blood_pressure = round(human / max(human + bot, 1), 4)
+    
+    # Lymph: immune processing (one-way inward — ALWAYS absorbing, that's correct)
+    lymph_active = lymph_flow > 0
+    lymph_volume = lymph_flow
+    
+    # Sebum: outward secretion (content published, shared externally)
+    # Surfaces with resting/walking tempo that aren't immune = secreting content
+    sebum_flow = blood_flow  # non-immune cross-surface flows
+    
+    # Interstitial: the medium (bot traffic is the fluid everything floats in)
+    interstitial = bot
+    
+    # ── OVERALL CIRCULATION STATE ──
+    # Key insight: lymphatic ABSORBING is healthy, not stagnant
+    # Stagnant = no fluid moving AT ALL (no humans, no lymph, no crossings)
+    if blood_cells == 0 and lymph_volume == 0 and total_crossings == 0:
+        state = "stagnant"       # truly nothing moving
+    elif blood_pressure < 0.02 and lymph_volume == 0:
+        state = "lymph_only"     # immune system active but no blood flow
     elif abs(in_ratio - out_ratio) < 0.2:
-        state = "balanced"      # healthy circulation
+        state = "balanced"       # healthy circulation
     elif in_ratio > out_ratio:
-        state = "absorbing"     # more intake than output
+        state = "absorbing"      # more intake — lymphatic doing its job
     else:
-        state = "radiating"     # more output than intake
+        state = "radiating"      # more output — sebum secreting
+    
+    # ── SIGMOID PRESSURE ──
+    # The logistic curve of information transfer
+    # Capacity ~5000 RPM for a 2GB VPS
+    import math
+    capacity = 5000
+    x = (rpm / capacity - 0.5) * 10
+    sigmoid = round(1 / (1 + math.exp(-x)), 4)
     
     return {
         "in_pulse": in_total,
@@ -77,6 +119,25 @@ def compute_pulse_direction(pulse, flows, external_touches, total_crossings):
         "state": state,
         "human_carry": human,
         "bot_consume": bot,
+        "sigmoid": sigmoid,
+        "fluids": {
+            "blood": {
+                "cells": blood_cells,
+                "pressure": blood_pressure,
+                "flow": blood_flow,
+            },
+            "lymph": {
+                "active": lymph_active,
+                "volume": lymph_volume,
+                "surfaces": len(immune_names),
+            },
+            "sebum": {
+                "flow": sebum_flow,
+            },
+            "interstitial": {
+                "volume": interstitial,
+            }
+        }
     }
 
 
@@ -367,7 +428,7 @@ def build_neutron():
             "imaginary_magnitude": gradient.get("imaginary_magnitude", 0) if gradient else 0,
             "mode_count": gradient.get("mode_count", 0) if gradient else 0,
         } if anderson or gradient else None,
-        "direction": compute_pulse_direction(pulse, external_touches, external_touches, total_crossings),
+        "direction": compute_pulse_direction(pulse, flow_matrix, external_touches, total_crossings),
         "context": context,
         "neural": neural,
     }
