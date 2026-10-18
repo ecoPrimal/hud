@@ -20,7 +20,7 @@
     if (parent) parent.appendChild(s);
     return s;
   }
-  function poll(url, interval, render) {
+  function poll(url, interval, render, speed) {
     function go() {
       fetch(url, {cache:'no-store'})
         .then(function(r) { return r.ok ? (url.endsWith('.json') ? r.json() : r.text()) : null; })
@@ -28,7 +28,12 @@
         .catch(function(){});
     }
     go();
-    setInterval(go, interval);
+    // Use PulseClock adaptive timing if available, fall back to fixed
+    if (window.PulseClock && speed) {
+      window.PulseClock.adaptive(go, speed);
+    } else {
+      setInterval(go, interval);
+    }
   }
   function pct(n, total) { return total > 0 ? Math.round(n / total * 100) : 0; }
 
@@ -309,7 +314,7 @@
     var dash = document.getElementById('hud-dash');
     if (dash) dash.style.display = '';
     renderGeo(d);
-  });
-  poll('/presence.json', 10000, renderPresence);
-  poll('/tower.json', 15000, renderTower);
+  }, 'fast');
+  poll('/presence.json', 10000, renderPresence, 'fast');
+  poll('/tower.json', 15000, renderTower, 'normal');
 })();

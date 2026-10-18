@@ -722,6 +722,13 @@
       parts.push('<span style="color:#d2a8ff;pointer-events:auto;cursor:pointer" onclick="if(window._membraneSound&&window._membraneSound.stop)window._membraneSound.stop()">\u266b on</span>');
     }
 
+    // Heartbeat — the pulse IS the clock
+    if (window.PulseClock && PulseClock.state.rpm > 0) {
+      var ps = PulseClock.state;
+      var rpmColor = ps.rpm > 2000 ? '#f85149' : ps.rpm > 500 ? '#3fb950' : '#58a6ff';
+      parts.push('<span style="color:' + rpmColor + '" title="RPM: ' + ps.rpm.toFixed(0) + ' trend: ' + ps.trend + ' context: ' + ps.context + ' reach: ' + ps.reach + '">\u2764 ' + ps.rpm.toFixed(0) + '</span>');
+    }
+
     // Time
     var now = new Date();
     parts.push(now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
@@ -729,7 +736,7 @@
     statusEl.innerHTML = parts.join('<span style="color:#30363d"> \u00b7 </span>');
   }
 
-  setInterval(updateStatus, 4000);
+  if (window.PulseClock) { PulseClock.adaptive(updateStatus, 'fast'); } else { setInterval(updateStatus, 4000); }
   setTimeout(updateStatus, 2000);
 
   // ═══ KEYBOARD SHORTCUTS (global) ═══
@@ -998,7 +1005,7 @@
 
   // Show quick actions after a delay, update periodically
   setTimeout(updateQuickActions, 8000);
-  setInterval(updateQuickActions, 30000);
+  if (window.PulseClock) { PulseClock.adaptive(updateQuickActions, 'slow'); } else { setInterval(updateQuickActions, 30000); }
 
   // Hide quick actions while typing
   input.addEventListener('focus', function() { quickBar.style.opacity = '0.3'; });
@@ -1261,7 +1268,7 @@
       '</svg>';
   }
 
-  setInterval(updateProgressRing, 10000);
+  if (window.PulseClock) { PulseClock.adaptive(updateProgressRing, 'normal'); } else { setInterval(updateProgressRing, 10000); }
   setTimeout(updateProgressRing, 4000);
 
   // ═══ SCROLL-TO-BOTTOM BUTTON ═══
@@ -1586,7 +1593,7 @@
   }
 
   // Check edges every 30 seconds
-  setInterval(checkMembraneEdges, 30000);
+  if (window.PulseClock) { PulseClock.adaptive(checkMembraneEdges, 'slow'); } else { setInterval(checkMembraneEdges, 30000); }
   // First check after 10s (give page time to load)
   setTimeout(checkMembraneEdges, 10000);
 
