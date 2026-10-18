@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -1293,6 +1293,116 @@ function drawPerspectiveMarkers() {
   ctx.restore();
 }
 
+// ═══ INTER-MEMBRANE PULSE ═══
+// Each membrane = orbital dot with in/out flow arrows
+// RustDesk (AGPL-3.0) provides desk/relay for the mesh
+function drawInterMembranePulse() {
+  if (!memPulseData || !memPulseData.peers) return;
+  var peers = memPulseData.peers;
+  var meshR = Math.min(W, H) * 0.42;
+  var dotR = 3;
+
+  ctx.save();
+  for (var p = 0; p < peers.length; p++) {
+    var peer = peers[p];
+    var angle = -Math.PI / 2 + (p / peers.length) * Math.PI * 2;
+    var px = cx + Math.cos(angle) * meshR;
+    var py = cy + Math.sin(angle) * meshR;
+
+    // Parse transfer magnitude for visual weight
+    var inVal = parseFloat(peer["in"]) || 0;
+    var outVal = parseFloat(peer.out) || 0;
+    var unit = (peer["in"] || "").split(" ")[1] || "B";
+    if (unit === "GiB") { inVal *= 1024; outVal *= 1024; }
+
+    // Dot glow — brighter for more traffic
+    var glow = Math.min(0.8, 0.15 + Math.log(1 + inVal + outVal) * 0.04);
+    var pulseAlpha = glow + Math.sin(t * 0.5 + p * 1.5) * 0.08;
+
+    // Gate color: eastGate=cyan, sporeGate=green, nucleus=amber
+    var colors = {eastGate: "0,220,255", sporeGate: "0,255,100", nucleus: "255,180,0"};
+    var c = colors[peer.name] || "200,200,200";
+
+    // Peer dot
+    ctx.beginPath();
+    ctx.arc(px, py, dotR + 1, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(" + c + "," + pulseAlpha.toFixed(3) + ")";
+    ctx.fill();
+
+    // IN flow: arrow from peer toward center (receiving)
+    var inLen = Math.min(30, 5 + inVal * 0.02);
+    var toCx = Math.atan2(cy - py, cx - px);
+    var inX1 = px + Math.cos(toCx) * (dotR + 3);
+    var inY1 = py + Math.sin(toCx) * (dotR + 3);
+    var inX2 = px + Math.cos(toCx) * (dotR + 3 + inLen);
+    var inY2 = py + Math.sin(toCx) * (dotR + 3 + inLen);
+
+    // Animated pulse dot along IN line
+    var inPulseT = (t * 0.3 + p * 0.7) % 1;
+    var ipx = inX1 + (inX2 - inX1) * inPulseT;
+    var ipy = inY1 + (inY2 - inY1) * inPulseT;
+    ctx.beginPath();
+    ctx.arc(ipx, ipy, 1.2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(" + c + "," + (0.5 * (1 - inPulseT)).toFixed(3) + ")";
+    ctx.fill();
+
+    // OUT flow: arrow from center toward peer (sending)
+    var outLen = Math.min(30, 5 + outVal * 0.02);
+    var fromCx = Math.atan2(py - cy, px - cx);
+    var outX1 = cx + Math.cos(fromCx) * (meshR - dotR - 3 - outLen);
+    var outY1 = cy + Math.sin(fromCx) * (meshR - dotR - 3 - outLen);
+    var outX2 = cx + Math.cos(fromCx) * (meshR - dotR - 3);
+    var outY2 = cy + Math.sin(fromCx) * (meshR - dotR - 3);
+
+    var outPulseT = (t * 0.3 + p * 0.7 + 0.5) % 1;
+    var opx = outX1 + (outX2 - outX1) * outPulseT;
+    var opy = outY1 + (outY2 - outY1) * outPulseT;
+    ctx.beginPath();
+    ctx.arc(opx, opy, 1, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255," + (0.3 * outPulseT).toFixed(3) + ")";
+    ctx.fill();
+
+    // Label
+    ctx.font = "5px monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(" + c + ",0.25)";
+    var labelY = py + (angle > 0 ? dotR + 8 : -dotR - 3);
+    ctx.fillText(peer.name, px, labelY);
+
+    // In/out text
+    ctx.font = "4px monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillText("↓" + peer["in"] + " ↑" + peer.out, px, labelY + 6);
+  }
+
+  // Mesh ring (faint)
+  ctx.beginPath();
+  ctx.arc(cx, cy, meshR, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.03)";
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  // RustDesk credit + desk count at bottom of mesh
+  if (memPulseData.rustdesk) {
+    ctx.font = "4px monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(100,200,255,0.08)";
+    var deskCount = memPulseData.desk_count || 0;
+    ctx.fillText("desk: signal+relay ×" + deskCount + " (AGPL-3.0)", cx, cy + meshR + 12);
+  }
+
+  // Show alive count
+  var aliveCount = 0;
+  for (var ap = 0; ap < peers.length; ap++) {
+    if (peers[ap].alive) aliveCount++;
+  }
+  ctx.font = "5px monospace";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillText("mesh " + aliveCount + "/" + peers.length + " alive", cx, cy - meshR - 6);
+  ctx.restore();
+}
+
 // ═══ FLUID RINGS ═══
 function drawFluidRings() {
   if (!neutronData) return;
@@ -1945,6 +2055,7 @@ function loadData() {
   fetch('/pulse.json').then(function(r){return r.json()}).then(function(d){pulseData=d}).catch(function(){});
   fetch('/negentropy.json').then(function(r){return r.json()}).then(function(d){negentropyData=d}).catch(function(){});
   fetch('/chipmunk.json').then(function(r){return r.json()}).then(function(d){chipmunkData=d}).catch(function(){});
+  fetch('/membrane-pulse.json').then(function(r){return r.json()}).then(function(d){memPulseData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2134,6 +2245,7 @@ draw = function() {
   drawSigmoidIndicator();
   drawNeutronCore();        // BLACK LOOKING OUT — chipmunk sees the stars
   drawPerspectiveMarkers(); // HUD sees both directions
+  drawInterMembranePulse(); // in/out per membrane
   updateHud();
   membraneSing();
 
