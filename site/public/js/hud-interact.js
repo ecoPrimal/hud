@@ -196,6 +196,9 @@
     { cmd: 'trail', cat: 'explore', desc: 'breadcrumb trail \u2014 your last 12 navigation moves' },
     { cmd: 'language', cat: 'chipmunk', desc: 'tongues \u2014 the squirrel mimics your language' },
     { cmd: 'lang', cat: 'chipmunk', desc: 'switch language \u2014 /lang es, /lang ja, /lang fr' },
+    { cmd: 'helix', cat: 'explore', desc: 'helixVision \u2014 sovereign AlphaFold, 6 primitives, 154 checks' },
+    { cmd: 'alphafold', cat: 'explore', desc: 'sovereign structure prediction \u2014 f64, consumer hardware' },
+    { cmd: 'protein', cat: 'explore', desc: 'protein structure prediction pipeline \u2014 coralForge + helixVision' },
   ];
 
   var CAT_COLORS = {

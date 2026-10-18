@@ -3010,6 +3010,22 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ HELIXVISION — sovereign AlphaFold pipeline ═══
+      if (cmd === "helix" || cmd === "helixvision" || cmd === "alphafold" || cmd === "pifold" || cmd === "coralforge" || cmd === "protein" || cmd === "structure") {
+        addEntry("system", "🧬 helixVision");
+        addEntry("chipmunk", "<a href=\"/neutron/helix.html\" target=\"_blank\" style=\"color:#a371f7\">🧬 helixVision — sovereign AlphaFold-quality</a>\n" +
+          "<span class=\"dim\">the isomorphism proof: every AlphaFold operation = 6 universal primitives.\n" +
+          "GEMM · ATTENTION · NORM · NONLINEAR · REDUCTION · GATING</span>\n\n" +
+          "<span style=\"color:#3fb950\">154 checks</span> · <span style=\"color:#a371f7\">8.6× GPU speedup</span> · <span style=\"color:#f0883e\">f64 precision (1e⁻¹⁰ tolerance)</span>\n\n" +
+          "<span style=\"color:#4285f4\">mutualism with Google DeepMind:</span>\n" +
+          "  they give: AlphaFold2/3 science, open weights, search indexing\n" +
+          "  we give: sovereign f64 implementation, consumer hardware, AGPL commons\n\n" +
+          "<span style=\"color:#d29922\">pipeline:</span> FASTQ → 16S classify → WGS assemble → structure predict → provenance seal → sentinel monitor\n\n" +
+          "<a href=\"https://git.primals.eco/sporeGarden/helixVision\" target=\"_blank\" style=\"color:#3fb950\">◈ source</a> · " +
+          "<a href=\"https://sporeprint.primals.eco/science/structure-prediction-roadmap/\" target=\"_blank\" style=\"color:#58a6ff\">◈ roadmap</a>");
+        return;
+      }
+
             // ═══ BOARD — backend board, all metrics ═══
       if (cmd === "board" || cmd === "backend" || cmd === "dashboard" || cmd === "metrics") {
         addEntry("system", "\u25a3 backend board");

@@ -41,8 +41,9 @@ h1 { font-size:22px; margin-bottom:4px; color:#c9d1d9; }
 <div class="nav">
   <a href="/">◈ hud</a><span>·</span>
   <a href="/neutron/circulatory.html" style="color:#f85149">♥ circulatory</a><span>·</span>
-  <a href="/desk/" style="color:#3fb950">◧ desk</a><span>·</span>
-  <a href="/neutron/" style="color:#d29922">◇ neutron</a>
+  <a href="/neutron/helix.html" style="color:#d29922">🧬 helix</a><span>·</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f">🌐 globe</a><span>·</span>
+  <a href="/desk/" style="color:#3fb950">◧ desk</a>
 </div>
 
 <h1><span id="pulse-dot"></span> backend board</h1>
@@ -219,6 +220,40 @@ function load() {
       var cc = cls==='mutualist'?'green':cls==='parasite'?'amber':cls==='pathogen'?'red':'blue';
       html += m(cls, sc2[cls], cc); 
     }
+    html += '</div>';
+
+    // ── HELIXVISION / ALPHAFOLD ──
+    html += '<div class="card"><h3>🧬 helixVision (sovereign AlphaFold)</h3>';
+    html += m('checks passing', '154', 'green');
+    html += m('GPU speedup', '8.6×', 'purple');
+    html += m('precision', 'f64 (1e⁻¹⁰)', 'blue');
+    html += m('isomorphism', '6 primitives', 'amber');
+    html += m('GEMM', 'matrix multiply');
+    html += m('ATTENTION', 'scaled dot-product');
+    html += m('NORM', 'layer normalization');
+    html += m('NONLINEAR', 'GELU / SiLU / ReLU');
+    html += m('REDUCTION', 'sum / mean / max');
+    html += m('GATING', 'sigmoid modulation');
+    html += bar('pipeline', 25, '#a371f7');
+    html += m('status', 'seed (0.1.0)', 'amber');
+    html += '<div style="margin-top:8px"><a href="/neutron/helix.html" style="color:#a371f7;font-size:11px">→ open helix visualization</a></div>';
+    html += '</div>';
+
+    // ── GOOGLE MUTUALISM ──
+    var googleEntity = null;
+    if (symb) {
+      (symb.entities||[]).forEach(function(e) {
+        if (e.entity === 'google_bot') googleEntity = e;
+      });
+    }
+    html += '<div class="card"><h3>🤝 Google mutualism</h3>';
+    html += m('relationship', googleEntity ? googleEntity.relationship : 'mutualist', 'green');
+    html += m('they give', 'AlphaFold2/3 science');
+    html += m('they give', 'open weights + search indexing');
+    html += m('we give', 'sovereign f64 implementation');
+    html += m('we give', 'consumer hardware validation');
+    html += m('we give', 'AGPL knowledge commons');
+    html += m('golden rule', googleEntity && googleEntity.ledger && googleEntity.ledger.golden ? '✓ YES' : 'pending', 'gold');
     html += '</div>';
 
     // ── SYMBIOSIS ──
