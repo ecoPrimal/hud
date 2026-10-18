@@ -469,9 +469,65 @@ def build_neutron():
         symb_map = {}
 
     # Add unified graph to neutron
+    # ── Read additional feeds for convergence ──
+    try:
+        with open(os.path.join(LIVE, "stories.json")) as sf:
+            _stories = json.load(sf)
+        story_count = len(_stories) if isinstance(_stories, list) else len(_stories.get("billboard_mix", {}).get("mix", []))
+    except:
+        story_count = 0
+
+    try:
+        with open(os.path.join(LIVE, "signals.json")) as sf:
+            _signals = json.load(sf)
+        sig_campfire = _signals.get("campfire", {})
+        sig_surfaces = sig_campfire.get("surfaces", sig_campfire.get("total_surfaces", 0))
+    except:
+        sig_surfaces = 0
+
+    try:
+        with open(os.path.join(LIVE, "membrane-deep.json")) as sf:
+            _deep = json.load(sf)
+        membrane_stack = _deep.get("membrane_stack", {})
+        stack_layers = membrane_stack.get("layers", membrane_stack.get("total_layers", len(membrane_stack)))
+    except:
+        stack_layers = 0
+
+    try:
+        with open(os.path.join(LIVE, "falsification.json")) as sf:
+            _falsify = json.load(sf)
+        experiments = len(_falsify) if isinstance(_falsify, dict) else 0
+    except:
+        experiments = 0
+
+    try:
+        with open(os.path.join(LIVE, "type-manifest.json")) as sf:
+            _types = json.load(sf)
+        repo_count = _types.get("repo_count", 0)
+        type_count = len(_types.get("type_index", {}))
+    except:
+        repo_count = 0
+        type_count = 0
+
+    try:
+        with open(os.path.join(LIVE, "negentropy.json")) as sf:
+            _neg = json.load(sf)
+        negentropy_val = _neg.get("negentropy", _neg.get("value", 0))
+    except:
+        negentropy_val = 0
+
+    try:
+        with open(os.path.join(LIVE, "now.json")) as sf:
+            _now = json.load(sf)
+        now_state = _now.get("state", _now.get("status", "?"))
+    except:
+        now_state = "?"
+
     neutron["unified"] = {
-        "layers_connected": 7,
-        "feeds": ["neutron", "topology", "symbiosis", "campfire", "braid", "scan_sweep_sort", "dashboard"],
+        "layers_connected": 14,
+        "feeds": ["neutron", "topology", "symbiosis", "campfire", "braid", 
+                  "scan_sweep_sort", "dashboard", "stories", "signals", 
+                  "membrane-deep", "falsification", "type-manifest", "negentropy", "now"],
         "graph": {
             "entities": scan_entities,
             "nodes": scan_nodes,
@@ -484,6 +540,14 @@ def build_neutron():
             {v: list(symb_map.values()).count(v) for v in set(symb_map.values())}.items()
         )) if symb_map else {},
         "evolution": [r.get("action", "?") for r in evolve_recs[:4]],
+        "stories": story_count,
+        "signals_surfaces": sig_surfaces,
+        "membrane_stack_layers": stack_layers,
+        "falsification_experiments": experiments,
+        "repos": repo_count,
+        "types": type_count,
+        "negentropy": negentropy_val,
+        "now": now_state,
     }
 
     with open(os.path.join(LIVE, "neutron.json"), "w") as f:

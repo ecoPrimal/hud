@@ -511,7 +511,8 @@ function updateStats() {
     'trend: ' + (b.trend || '?') + ' · ' +
     'context: ' + (c.context || '?') + ' · ' +
     'reach: ' + (c.reach || '?') + ' · ' +
-    activeSurfaces + ' surfaces breathing';
+    activeSurfaces + ' surfaces breathing' +
+    (neutronData && neutronData.unified ? ' · ' + neutronData.unified.layers_connected + ' feeds unified' : '');
 }
 
 
@@ -650,6 +651,54 @@ function drawBraids() {
   });
 }
 
+
+// ── DRAW: Membrane stack (7 layers of reality as concentric shells) ──
+var membraneStack = null;
+
+function drawMembraneStack() {
+  if (!membraneStack || !membraneStack.length) return;
+  
+  var maxR = Math.min(W, H) * 0.48;
+  var layers = membraneStack.length;
+  var t = Date.now() / 1000;
+  
+  membraneStack.forEach(function(layer, i) {
+    var r = maxR * (0.3 + (i / layers) * 0.7);
+    var w = layer.anderson_w || 5;
+    var perm = layer.permeability || 0.5;
+    var alive = layer.alive;
+    
+    // Shell ring — permeability determines opacity
+    var alpha = alive ? Math.min(0.12, perm * 0.15) : 0.02;
+    
+    // Color by depth: inner=warm, outer=cool
+    var colors = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#f1c40f','#8b949e'];
+    var color = colors[i % colors.length];
+    var rgb = hexToRgba(color);
+    
+    // Breathing animation — each layer breathes at its own rate
+    var breathRate = w > 10 ? 0.3 : w > 5 ? 0.5 : 0.8;
+    var breath = Math.sin(t * breathRate + i * 0.7) * 0.03;
+    var shellR = r * (1 + breath);
+    
+    // Draw shell
+    ctx.strokeStyle = 'rgba(' + rgb + ',' + (alpha + breath * 0.5) + ')';
+    ctx.lineWidth = Math.max(0.5, (1 - perm) * 3);
+    ctx.beginPath();
+    ctx.arc(cx, cy, shellR, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Label on right side
+    ctx.font = '7px monospace';
+    ctx.fillStyle = 'rgba(' + rgb + ',' + Math.min(0.5, alpha * 4) + ')';
+    ctx.textAlign = 'left';
+    var labelY = cy - shellR + 3;
+    if (labelY > 20 && labelY < H - 20) {
+      ctx.fillText(layer.name + ' W=' + (w).toFixed(1), cx + shellR + 4, labelY);
+    }
+  });
+}
+
 // ── DRAW: Density field (background gradient showing graph density) ──
 function drawDensity() {
   if (scanDensity <= 0) return;
@@ -676,6 +725,7 @@ function frame() {
   var totalRpm = (neutronData && neutronData.breathing && neutronData.breathing.rpm) || 100;
   var trend = (neutronData && neutronData.breathing && neutronData.breathing.trend) || 'steady';
 
+  drawMembraneStack(); // ← 7 layers of reality as concentric shells
   drawDensity();       // ← graph density field (background)
   drawGradient();      // ← Anderson localization modes (orbital rings)
   drawBraids();        // ← braid connections (golden threads)
@@ -713,6 +763,14 @@ function load() {
     var braidData = results[7];
     if (humanData && humanData.host_distribution) {
       humanMap = humanData.host_distribution;
+    }
+
+    // Membrane stack layers (7 layers of reality)
+    if (neutronData && neutronData.unified && neutronData.unified.membrane_stack_layers) {
+      var stk = neutronData.unified.membrane_stack_layers;
+      if (Array.isArray(stk)) {
+        membraneStack = stk;
+      }
     }
 
     // Anderson gradient (localization modes)
