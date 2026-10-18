@@ -5,7 +5,9 @@
   'use strict';
 
   var NEUTRON_URL = 'https://hud.primals.eco/neutron.json';
-  var POLL_MS = 120000; // 2 min sync with cron writer
+  var POLL_MS = 120000; // default, overridden by breathing data
+  // Adaptive polling — tied to RPM, not clock.
+  // Concert/event: 30s. Active: 60s. Normal: 120s. Quiet: 300s.
   var _state = null;
   var _surface = detectSurface();
   var _listeners = [];
@@ -44,6 +46,10 @@
           _state = JSON.parse(x.responseText);
           _listeners.forEach(function(fn) { try { fn(_state); } catch(e) {} });
           if (cb) cb(null, _state);
+          // Adapt polling rate from breathing data
+          if (_state && _state.breathing && _state.breathing.interval_seconds) {
+            POLL_MS = _state.breathing.interval_seconds * 1000;
+          }
         } catch(e) { if (cb) cb(e); }
       }
     };

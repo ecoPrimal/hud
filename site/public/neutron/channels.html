@@ -54,6 +54,18 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
     <span class="count" id="count-reminders">0</span>
     # reminders
   </a>
+  <a class="channel" data-ch="voice" onclick="switchChannel('voice')">
+    <span class="count" id="count-voice">0</span>
+    # voice
+  </a>
+  <a class="channel" data-ch="signal" onclick="switchChannel('signal')">
+    <span class="count" id="count-signal">0</span>
+    # signal
+  </a>
+  <a class="channel" data-ch="eradication" onclick="switchChannel('eradication')">
+    <span class="count" id="count-eradication">0</span>
+    # eradication
+  </a>
   <div style="margin-top:24px;padding-top:12px;border-top:1px solid var(--border)">
     <a class="channel" href="/" style="color:var(--dim)">← flow view</a>
     <a class="channel" href="https://hud.primals.eco" style="color:var(--dim)">← hud</a>
@@ -78,9 +90,9 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
 <script src="https://hud.primals.eco/js/footer-ring.js" async></script>
 <script>
 var API = '/api/discuss';
-var CHANNELS = { chat:'neutron-chat', inbox:'neutron-inbox', notes:'neutron-notes', reminders:'neutron-reminders' };
+var CHANNELS = { chat:'neutron-chat', inbox:'neutron-inbox', notes:'neutron-notes', reminders:'neutron-reminders', voice:'neutron-voice', signal:'neutron-signal', eradication:'neutron-eradication' };
 var currentChannel = 'chat';
-var POLL_MS = 15000;
+var POLL_MS = 60000; // adaptive — tied to RPM, not clock
 
 function esc(s) { var d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 function timeAgo(ts) {

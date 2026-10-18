@@ -1,18 +1,62 @@
 #!/usr/bin/env python3
-"""Neutron writer — Wave 179: the messaging axis.
-How information travels between surfaces. Without this, info is stuck.
-Builds: mirror flows, external touches, channel summaries.
-Runs every 2min via cron. Output: /opt/membrane/live-terminal/neutron.json"""
+"""Neutron writer — adaptive, tied to RPM and pulse.
+NOT cron. NOT clock. PULSE.
 
-import json, os, glob, urllib.request
+Rate is determined by the membrane's actual activity:
+  RPM > 2000 → update every 30s (concert/event)
+  RPM > 500  → update every 60s (active)
+  RPM > 100  → update every 120s (normal)
+  RPM < 100  → update every 300s (quiet/gaming/sleeping)
+
+Anderson: the localization length determines how far info travels.
+Gradient: northgate's gradient determines the direction of flow.
+RootPulse: the heartbeat synchronizes everything.
+Neural API: the capability mesh connects all surfaces.
+
+The neutron IS the messaging axis. It breathes with the membrane.
+"""
+
+import json, os, glob, urllib.request, time
 from collections import defaultdict
 from datetime import datetime, timezone
 
 LIVE = "/opt/membrane/live-terminal"
 LOG_DIR = "/var/log/caddy"
+PULSE_PATH = os.path.join(LIVE, "pulse.json")
 
 def utc_now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def read_pulse():
+    """Read the membrane pulse — RPM, trend, rhythm."""
+    try:
+        with open(PULSE_PATH) as f:
+            return json.load(f)
+    except:
+        return {"rate": 100, "pulse_trend": "unknown", "pulse_rhythm": 0}
+
+def adaptive_interval(pulse):
+    """Compute update interval from pulse RPM.
+    Not clock. Pulse. The membrane breathes."""
+    rpm = pulse.get("rate", 100)
+    trend = pulse.get("pulse_trend", "steady")
+
+    if rpm > 2000:
+        base = 30   # concert/event — fast updates
+    elif rpm > 500:
+        base = 60   # active — normal updates
+    elif rpm > 100:
+        base = 120  # quiet — slow updates
+    else:
+        base = 300  # sleeping — rare updates
+
+    # Trend modifiers
+    if trend == "rising":
+        base = int(base * 0.7)  # speed up when activity rising
+    elif trend == "falling":
+        base = int(base * 1.3)  # slow down when falling
+
+    return max(15, min(600, base))
 
 def classify_surface(host):
     if not host: return None
@@ -57,7 +101,7 @@ def fetch_channels():
         try:
             req = urllib.request.Request(
                 "http://127.0.0.1:8097/api/discuss?page=" + page,
-                headers={"User-Agent":"neutron-writer/1.0"})
+                headers={"User-Agent":"neutron-writer/2.0"})
             with urllib.request.urlopen(req, timeout=3) as resp:
                 data = json.loads(resp.read().decode())
                 comments = data.get("comments", [])
@@ -71,6 +115,9 @@ def fetch_channels():
     return chs
 
 def build_neutron():
+    pulse = read_pulse()
+    interval = adaptive_interval(pulse)
+
     flows = defaultdict(lambda: defaultdict(int))
     external_touches = defaultdict(lambda: defaultdict(int))
     page_touches = defaultdict(lambda: defaultdict(int))
@@ -135,8 +182,16 @@ def build_neutron():
 
     neutron = {
         "generated": utc_now(),
-        "wave": 179,
-        "axis": "neutron — the messaging axis — how information travels",
+        "wave": 180,
+        "axis": "neutron — adaptive messaging axis — tied to RPM, not clock",
+        "breathing": {
+            "rpm": pulse.get("rate", 0),
+            "trend": pulse.get("pulse_trend", "unknown"),
+            "rhythm": pulse.get("pulse_rhythm", 0),
+            "interval_seconds": interval,
+            "pulse_raw": pulse.get("pulse_raw", 0),
+            "remainder": pulse.get("remainder", 0),
+        },
         "mirrors": mirrors[:50],
         "touches": touches[:100],
         "flows": flow_matrix,
@@ -151,7 +206,7 @@ def build_neutron():
     with open(os.path.join(LIVE, "neutron.json"), "w") as f:
         json.dump(neutron, f, indent=2)
 
-    print(f"neutron.json: {len(mirrors)} mirrors, {len(touches)} touches, {total_crossings} crossings, {len(stuck)} stuck, {total_msgs} messages")
+    print(f"neutron: {len(mirrors)} mirrors, {total_crossings} crossings, {len(stuck)} stuck, {total_msgs} msgs | RPM={pulse.get('rate',0):.0f} interval={interval}s trend={pulse.get('pulse_trend','?')}")
 
 if __name__ == "__main__":
     build_neutron()
