@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null, fleetSortData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null, fleetSortData = null, backscatterData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -2261,6 +2261,7 @@ function loadData() {
   fetch('/reflection.json').then(function(r){return r.json()}).then(function(d){reflectionData=d}).catch(function(){});
   fetch('/genome.json').then(function(r){return r.json()}).then(function(d){genomeData=d}).catch(function(){});
   fetch('/fleet-sort.json').then(function(r){return r.json()}).then(function(d){fleetSortData=d}).catch(function(){});
+  fetch('/backscatter.json').then(function(r){return r.json()}).then(function(d){backscatterData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2700,6 +2701,23 @@ draw();
         lines.push('the membrane does not push. it mirrors. their behavior IS their question.');
         chipSay(lines.join(' · '), 'chip');
       } else chipSay('reflection data loading...', 'chip');
+      return;
+    }
+    if (m === 'backscatter' || m === 'lick' || m === 'clean' || m === 'dust') {
+      if (backscatterData) {
+        var bs = backscatterData;
+        var lines = [];
+        lines.push('BACKSCATTER: ' + bs.total + ' entities');
+        lines.push('cleaned: ' + bs.cleaned + ' (' + bs.cleaning_pct + '%) — licked clean, dust reversed');
+        lines.push('licensed: ' + bs.licensed + ' (' + bs.hostile_pct + '%) — AGPL hard response');
+        var acts = bs.actions || {};
+        var akeys = Object.keys(acts);
+        for (var ai = 0; ai < akeys.length; ai++) {
+          lines.push('  ' + akeys[ai] + ': ' + acts[akeys[ai]]);
+        }
+        lines.push(bs.principle);
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('backscatter data loading...', 'chip');
       return;
     }
     if (m === 'fleet' || m === 'sort' || m === 'unsorted' || m === 'refine' || m === 'classify') {
