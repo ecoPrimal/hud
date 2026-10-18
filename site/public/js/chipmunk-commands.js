@@ -18,6 +18,44 @@ window._chipmunkCommands = function(ctx) {
   var metabolism = ctx.metabolism;
   var _metab = ctx._metab;
   var curiosity = ctx.curiosity;
+
+  // ═══ SING BEFORE SPEAK — chipmunk sings, then words come ═══
+  var _origAddEntry = addEntry;
+  var _singQueue = 0;
+  addEntry = function(role, html) {
+    if (role === "chipmunk" && window._membraneSound && window._membraneSound.isActive()) {
+      // Pick a short musical phrase based on content
+      var ms = window._membraneSound;
+      var words = (html || "").replace(/<[^>]*>/g, "").split(/\s+/).slice(0, 3);
+      // Percussion: kick + teeth/tongue
+      ms.playNote(55, 0.08, 0, "sine", 0.15, {}); // kick
+      ms.playNote(110, 0.04, 0.05, "triangle", 0.08, {}); // tick
+      if (ms.chatter && Math.random() > 0.5) {
+        ms.chatter(3, 0.04, 0.04); // teeth chatter
+      } else if (ms.undulate) {
+        ms.undulate(0.15, 0.03); // tongue undulate
+      }
+      // Consonant + vowel: pronounce first syllable
+      var speakWord = words.find(function(w) {
+        return w.length > 3 && !w.match(/^(span|the|and|you|are|was|has|for|with|this|that|from)$/i);
+      });
+      if (speakWord) {
+        var first = speakWord.charAt(0).toLowerCase();
+        var vowels = "aeiou";
+        var vIdx = speakWord.split("").findIndex(function(ch) { return vowels.indexOf(ch.toLowerCase()) >= 0; });
+        var v = vIdx >= 0 ? speakWord.charAt(vIdx).toLowerCase() : "a";
+        if (ms.pronounce && ms.CONSONANTS && ms.CONSONANTS[first]) {
+          setTimeout(function() { ms.pronounce(first, v); }, 80);
+        }
+        setTimeout(function() { ms.speak(speakWord.toLowerCase()); }, 140);
+      }
+      // Delay text slightly so sound arrives first
+      setTimeout(function() { _origAddEntry(role, html); }, 180);
+      return;
+    }
+    _origAddEntry(role, html);
+  };
+
   var _cycleMemory = ctx.cycleMemory;
   var PI_INV = ctx.PI_INV;
   var METAB_ICONS = ctx.METAB_ICONS;
@@ -1275,6 +1313,22 @@ window._chipmunkCommands = function(ctx) {
         if (window._chipmunkExplorer) window._chipmunkExplorer.step('entity', eid);
         if (window._chipmunkMind && window._chipmunkMind.showExplore) {
           window._chipmunkMind.showExplore('entity', eid);
+        }
+        // ═══ ENMESH: exploration feeds investigation ═══
+        fetch('/human-expects.json').then(function(r){return r.json()}).then(function(d) {
+          var partials = (d.investigation || {}).partials_needing_human || [];
+          var match = partials.find(function(p) { return p.name && p.name.toLowerCase().indexOf(eid.replace(/_/g,' ')) >= 0; });
+          if (match) {
+            addEntry('chipmunk',
+              '<span style="color:#d29922">\u25cb this entity needs your eyes</span>\n' +
+              '<span class="dim">confidence: ' + (match.confidence != null ? match.confidence.toFixed(2) : '?') + '\n' +
+              'methods: ' + (match.methods || []).join(', ') + '\n' +
+              '/playground to help classify</span>');
+          }
+        }).catch(function(){});
+        // enmesh: count as braid passage (exploration IS investigation)
+        if (window._signalRelay) {
+          window._signalRelay.send('explore_entity', { entity: eid, ts: Date.now() });
         }
         return;
       }
@@ -2924,6 +2978,10 @@ window._chipmunkCommands = function(ctx) {
           '  <span class="clickable-cmd" data-cmd="sing" style="color:#d2a8ff;cursor:pointer">/sing</span> \u2014 the chipmunk sings what it sees',
           '  <span class="clickable-cmd" data-cmd="who" style="color:#3fb950;cursor:pointer">/who</span> \u2014 who else is here right now?',
           '',
+          '<span style="color:#f85149;font-weight:bold">cockpit</span>',
+          '  <span class="clickable-cmd" data-cmd="cockpit" style="color:#f85149;cursor:pointer">/cockpit</span> \u2014 THE BUTTON + tolerance + investigation + mesh + rhythm + teorah',
+          '  <span class="clickable-cmd" data-cmd="issues" style="color:#f1c40f;cursor:pointer">/issues</span> \u2014 what needs human attention right now',
+          '',
           '<span style="color:#58a6ff;font-weight:bold">go deeper</span>',
           '  <span class="clickable-cmd" data-cmd="playground" style="color:#3fb950;cursor:pointer">/playground</span> \u2014 help classify entities the machines can\u2019t',
           '  <span class="clickable-cmd" data-cmd="sight" style="color:#58a6ff;cursor:pointer">/sight</span> \u2014 see the membrane live (who\u2019s here, where signals come from)',
@@ -3052,6 +3110,17 @@ window._chipmunkCommands = function(ctx) {
             for (var t in types) { out += "  " + t + ": " + types[t] + "\n"; }
             out += "\n<a href=\"https://clutch.primals.eco\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 open clutch</a>";
             addEntry("chipmunk", out);
+            // ═══ ENMESH: investigation shows exploration state ═══
+            fetch("/human-expects.json").then(function(r){return r.json()}).then(function(d) {
+              var partials = (d.investigation || {}).partials_needing_human || [];
+              if (partials.length > 0) {
+                addEntry("chipmunk",
+                  "<span style=\"color:#d29922\">\u25cb " + partials.length + " entities need human eyes</span>\n" +
+                  "<span class=\"dim\">the machines sorted 83.3%. the rest is yours.\n" +
+                  "/playground to classify \u00b7 /explore <entity> to dig deeper\n" +
+                  "/partials to see the queue</span>");
+              }
+            }).catch(function(){});
           })
           .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">clutch offline: " + e.message + "</span>"); });
         return;
@@ -3280,6 +3349,54 @@ window._chipmunkCommands = function(ctx) {
           .catch(function(e) {
             addEntry("chipmunk", "<span style=\"color:#f85149\">neutron offline: " + e.message + "</span>");
           });
+        return;
+      }
+
+
+      // ═══ COCKPIT / CONVERGENCE ═══
+      if (cmd === 'cockpit' || cmd === 'converge' || cmd === 'desk') {
+        addEntry('system', '⊙ cockpit');
+        fetch('/dashboard.json?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var as = d.anderson_selectivity || {};
+            var sel = as.selectivity_observed || 0.97;
+            var sc = d.sort_compression || {};
+            addEntry('chipmunk',
+              '<span style="color:#f85149;font-weight:bold">⊙ THE COCKPIT</span>\n\n' +
+              '<span style="color:#3fb950">THE BUTTON:</span> armed · ZK pair · selectivity ' + (sel*100).toFixed(0) + '%\n' +
+              '<span style="color:#3fb950">tolerance:</span> anderson ' + (sel*100).toFixed(0) + '% · pielou ' + (as.pielou_j||0).toFixed(3) + '\n' +
+              '<span style="color:#f1c40f">investigation:</span> ' + (d.entity_count||0) + ' entities · ' + (sc.total_gain||0).toFixed(1) + ' bits\n' +
+              '<span style="color:#58a6ff">mesh:</span> ' + (d.unique_ips||0).toLocaleString() + ' IPs · ' + (d.rps||0).toFixed(1) + ' rps\n' +
+              '<span style="color:#f0883e">rhythm:</span> ' + (d.total_requests||0).toLocaleString() + ' total requests\n' +
+              '<span style="color:#a371f7">teorah:</span> π = ' + (sc.ratio||0).toFixed(3) + ' → 1/π\n\n' +
+              '<a href="/desk/" target="_blank" style="color:#58a6ff">⊞ open desk</a> · the cockpit is the first tab.'
+            );
+          });
+        return;
+      }
+      if (cmd === 'issues' || cmd === 'alerts' || cmd === 'problems') {
+        addEntry('system', '⚠ issues');
+        Promise.all([
+          fetch('/dashboard.json?t=' + Date.now()).then(function(r){return r.json()}),
+          fetch('/human-expects.json?t=' + Date.now()).then(function(r){return r.json()})
+        ]).then(function(r) {
+          var d = r[0], ex = r[1];
+          var partials = (ex.investigation||{}).partials_needing_human||[];
+          var out = '<span style="color:#f1c40f;font-weight:bold">⚠ ISSUES</span>\n\n';
+          out += '<span style="color:#f1c40f">classification queue:</span> ' + partials.length + ' partials need human eyes\n';
+          if (partials.length > 0) {
+            for (var i = 0; i < Math.min(5, partials.length); i++) {
+              out += '  <span class="dim">' + (partials[i].name||'?') + ' (conf=' + (partials[i].confidence||'?') + ')</span>\n';
+            }
+            if (partials.length > 5) out += '  <span class="dim">...and ' + (partials.length-5) + ' more</span>\n';
+          }
+          out += '\n<span style="color:#58a6ff">sort confidence:</span> 83.3% → 85% target\n';
+          out += '<span style="color:#58a6ff">π ratio:</span> 1.000 → 0.318 target\n';
+          out += '<span style="color:#58a6ff">braid routes:</span> 4 → 7+ target\n\n';
+          out += '<a href="/playground" style="color:#f1c40f">△ help classify</a> · <a href="/desk/" style="color:#58a6ff">⊞ cockpit</a>';
+          addEntry('chipmunk', out);
+        });
         return;
       }
 
