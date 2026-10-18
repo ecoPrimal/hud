@@ -2856,6 +2856,12 @@ window._chipmunkCommands = function(ctx) {
       }
 
       // ═══ NEUTRON — messaging axis, flow state ═══
+      if (cmd === "circulatory" || cmd === "blood" || cmd === "heartbeat") {
+        addEntry("system", "\u2764 circulatory system");
+        addEntry("chipmunk", "<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764\ufe0f the world's circulatory system — live</a>\n<span class=\"dim\">entities flowing through the membrane. heart=RPM. blood cells=entities. arteries=surface flows.</span>");
+        return;
+      }
+
       if (cmd === "neutron" || cmd === "flow" || cmd === "flows") {
         addEntry("system", "\u26a1 neutron");
         fetch("/neutron.json")
@@ -2912,6 +2918,7 @@ window._chipmunkCommands = function(ctx) {
               }
             }
             out += "\n<span class=\"dim\">wave " + (n.wave || "?") + " \u00b7 " + (n.generated || "?") + "</span>";
+            out += "\n\n<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764 open circulatory system</a> \u00b7 <a href=\"/neutron/channels.html\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 open channels</a>";
             addEntry("chipmunk", out);
           })
           .catch(function(e) {

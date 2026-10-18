@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>circulatory · primals.eco</title>
+<style>
+:root {
+  --bg: #010409;
+  --fg: #c9d1d9;
+  --dim: #8b949e;
+  --border: rgba(88,166,255,0.12);
+  --mutualist: #3fb950;
+  --commensal: #58a6ff;
+  --parasite: #d29922;
+  --pathogen: #f85149;
+  --null: #484f58;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; overflow:hidden; }
+canvas { display:block; }
+.overlay {
+  position:fixed; top:0; left:0; right:0;
+  padding:16px 24px;
+  background:linear-gradient(180deg, rgba(1,4,9,0.95) 0%, rgba(1,4,9,0) 100%);
+  z-index:10; pointer-events:none;
+}
+.title { font-size:18px; font-weight:600; color:var(--fg); margin-bottom:4px; }
+.subtitle { font-size:12px; color:var(--dim); }
+.stats-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  padding:12px 24px;
+  background:linear-gradient(0deg, rgba(1,4,9,0.95) 0%, rgba(1,4,9,0) 100%);
+  z-index:10; display:flex; gap:24px; flex-wrap:wrap; font-family:monospace; font-size:12px;
+  pointer-events:none;
+}
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat .val { font-size:18px; font-weight:bold; }
+.stat .lbl { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; }
+.legend {
+  position:fixed; top:16px; right:24px; z-index:10;
+  font-size:11px; font-family:monospace; pointer-events:none;
+}
+.legend-item { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+.legend-dot { width:8px; height:8px; border-radius:50%; }
+</style>
+</head>
+<body>
+<div class="overlay">
+  <div class="title">the world's circulatory system</div>
+  <div class="subtitle" id="pulse-info">connecting to pulse...</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--mutualist)"></div> mutualist (both benefit)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--commensal)"></div> commensal (harmless reader)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--parasite)"></div> parasite (takes without giving)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--pathogen)"></div> pathogen (actively harmful)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--null)"></div> null (insufficient signal)</div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H, cx, cy;
+var state = null;
+var topo = null;
+var pulse = null;
+var heartPhase = 0;
+var particles = [];
+var arteries = [];
+
+function resize() {
+  W = C.width = window.innerWidth;
+  H = C.height = window.innerHeight;
+  cx = W / 2;
+  cy = H / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Colors by symbiotic class
+function classColor(cls) {
+  if (cls === 'mutualist') return '#3fb950';
+  if (cls === 'commensal') return '#58a6ff';
+  if (cls === 'parasite') return '#d29922';
+  if (cls === 'pathogen') return '#f85149';
+  return '#484f58';
+}
+
+function classAlpha(cls) {
+  if (cls === 'mutualist') return 0.9;
+  if (cls === 'commensal') return 0.7;
+  if (cls === 'parasite') return 0.5;
+  if (cls === 'pathogen') return 0.8;
+  return 0.3;
+}
+
+// Build arteries from flow data
+function buildArteries(flows) {
+  arteries = [];
+  var surfaces = Object.keys(flows);
+  var n = surfaces.length;
+  if (n === 0) return;
+
+  // Place surfaces in a ring
+  var surfacePos = {};
+  var radius = Math.min(W, H) * 0.32;
+  surfaces.forEach(function(s, i) {
+    var a = (i / n) * Math.PI * 2 - Math.PI / 2;
+    surfacePos[s] = { x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius, name: s };
+  });
+
+  // Also add surfaces from targets
+  for (var s in flows) {
+    for (var t in flows[s]) {
+      if (!surfacePos[t]) {
+        var idx = Object.keys(surfacePos).length;
+        var a = (idx / (n + 5)) * Math.PI * 2 - Math.PI / 2;
+        surfacePos[t] = { x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius, name: t };
+      }
+    }
+  }
+
+  // Create artery lines
+  for (var from in flows) {
+    for (var to in flows[from]) {
+      var count = flows[from][to];
+      if (surfacePos[from] && surfacePos[to] && count > 0) {
+        arteries.push({
+          from: surfacePos[from],
+          to: surfacePos[to],
+          count: count,
+          width: Math.min(Math.log2(count + 1) * 0.8, 6)
+        });
+      }
+    }
+  }
+
+  return surfacePos;
+}
+
+// Generate particles from entity data
+function buildParticles(entities, surfacePos) {
+  particles = [];
+  if (!entities) return;
+  var keys = Object.keys(surfacePos);
+  if (keys.length === 0) return;
+
+  entities.forEach(function(e) {
+    var cls = e.symbiotic_class || 'null';
+    var reqs = e.total_requests || 1;
+    // Number of particles proportional to log of requests
+    var count = Math.min(Math.ceil(Math.log10(reqs + 1) * 3), 20);
+    var color = classColor(cls);
+    var size = cls === 'pathogen' ? 3.5 : cls === 'parasite' ? 3 : cls === 'mutualist' ? 4 : 2.5;
+
+    for (var i = 0; i < count; i++) {
+      // Pick a random artery or orbit
+      var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
+      particles.push({
+        label: e.label || '?',
+        cls: cls,
+        color: color,
+        size: size,
+        alpha: classAlpha(cls),
+        // Path along artery
+        artery: artery,
+        progress: Math.random(),
+        speed: (0.001 + Math.random() * 0.003) * (cls === 'pathogen' ? 1.5 : 1),
+        // Orbit for entities without arteries
+        orbitR: Math.min(W, H) * (0.15 + Math.random() * 0.25),
+        orbitAngle: Math.random() * Math.PI * 2,
+        orbitSpeed: (0.002 + Math.random() * 0.005) * (cls === 'parasite' ? -1 : 1),
+        reciprocity: e.reciprocity || 0,
+        friction: e.friction || 0,
+        defections: e.consecutive_defections || 0,
+      });
+    }
+  });
+}
+
+// Draw the heart (center pulsing)
+function drawHeart(rpm, trend) {
+  var beatRate = rpm > 0 ? rpm / 60 : 1; // beats per second
+  heartPhase += beatRate * 0.016; // ~60fps
+  var beat = Math.sin(heartPhase * Math.PI * 2);
+  var pulseSize = 18 + beat * 8;
+
+  // Glow
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseSize * 4);
+  grad.addColorStop(0, 'rgba(88,166,255,' + (0.15 + beat * 0.1) + ')');
+  grad.addColorStop(0.5, 'rgba(88,166,255,' + (0.05 + beat * 0.03) + ')');
+  grad.addColorStop(1, 'rgba(88,166,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulseSize * 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Heart core
+  var heartColor = trend === 'rising' ? '#3fb950' : trend === 'falling' ? '#f85149' : '#58a6ff';
+  ctx.fillStyle = heartColor;
+  ctx.globalAlpha = 0.6 + beat * 0.3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulseSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // RPM text in heart
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(Math.round(rpm), cx, cy);
+  ctx.font = '8px monospace';
+  ctx.fillStyle = var_dim;
+  ctx.fillText('RPM', cx, cy + 12);
+}
+
+var var_dim = '#8b949e';
+
+// Draw arteries
+function drawArteries() {
+  arteries.forEach(function(a) {
+    ctx.strokeStyle = 'rgba(88,166,255,' + Math.min(a.width * 0.04, 0.25) + ')';
+    ctx.lineWidth = a.width;
+    ctx.beginPath();
+    ctx.moveTo(a.from.x, a.from.y);
+    // Curve through center
+    var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
+    var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
+    ctx.quadraticCurveTo(midX, midY, a.to.x, a.to.y);
+    ctx.stroke();
+  });
+}
+
+// Draw surface nodes
+function drawSurfaces(surfacePos) {
+  if (!surfacePos) return;
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  for (var name in surfacePos) {
+    var p = surfacePos[name];
+    // Node
+    ctx.fillStyle = 'rgba(88,166,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    // Label
+    ctx.fillStyle = var_dim;
+    ctx.fillText(name, p.x, p.y - 10);
+  }
+}
+
+// Draw particles (blood cells / entities flowing through arteries)
+function drawParticles() {
+  particles.forEach(function(p) {
+    p.progress += p.speed;
+    if (p.progress > 1) p.progress -= 1;
+
+    var x, y;
+    if (p.artery) {
+      // Follow artery path (quadratic bezier)
+      var a = p.artery;
+      var t = p.progress;
+      var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
+      var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
+      x = (1-t)*(1-t)*a.from.x + 2*(1-t)*t*midX + t*t*a.to.x;
+      y = (1-t)*(1-t)*a.from.y + 2*(1-t)*t*midY + t*t*a.to.y;
+      // Add slight wobble
+      x += Math.sin(p.progress * 20 + p.orbitAngle) * 3;
+      y += Math.cos(p.progress * 20 + p.orbitAngle) * 3;
+    } else {
+      // Orbit around center
+      p.orbitAngle += p.orbitSpeed;
+      x = cx + Math.cos(p.orbitAngle) * p.orbitR;
+      y = cy + Math.sin(p.orbitAngle) * p.orbitR;
+    }
+
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x, y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trail
+    if (p.cls === 'pathogen') {
+      ctx.fillStyle = 'rgba(248,81,73,0.15)';
+      ctx.beginPath();
+      ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.cls === 'mutualist') {
+      ctx.fillStyle = 'rgba(63,185,80,0.08)';
+      ctx.beginPath();
+      ctx.arc(x, y, p.size * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+// Update stats bar
+function updateStats() {
+  if (!topo || !pulse) return;
+  var entities = topo.entities || [];
+  var counts = { mutualist: 0, commensal: 0, parasite: 0, pathogen: 0, null: 0 };
+  var totalReqs = 0;
+  entities.forEach(function(e) {
+    var cls = e.symbiotic_class || 'null';
+    counts[cls] = (counts[cls] || 0) + 1;
+    totalReqs += e.total_requests || 0;
+  });
+
+  var b = (state && state.breathing) || {};
+  var ctx2 = (state && state.context) || {};
+  var neural = (state && state.neural) || {};
+
+  document.getElementById('stats-bar').innerHTML =
+    '<div class="stat"><span class="val" style="color:var(--mutualist)">' + counts.mutualist + '</span><span class="lbl">mutualist</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--commensal)">' + counts.commensal + '</span><span class="lbl">commensal</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--parasite)">' + counts.parasite + '</span><span class="lbl">parasite</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--pathogen)">' + counts.pathogen + '</span><span class="lbl">pathogen</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--null)">' + counts.null + '</span><span class="lbl">null</span></div>' +
+    '<div class="stat"><span class="val">' + entities.length + '</span><span class="lbl">entities</span></div>' +
+    '<div class="stat"><span class="val">' + totalReqs.toLocaleString() + '</span><span class="lbl">requests</span></div>' +
+    '<div class="stat"><span class="val">' + particles.length + '</span><span class="lbl">particles</span></div>' +
+    '<div class="stat"><span class="val">' + (neural.total_surfaces || '?') + '</span><span class="lbl">surfaces</span></div>' +
+    '<div class="stat"><span class="val">' + (ctx2.context || '?') + '</span><span class="lbl">context</span></div>' +
+    '<div class="stat"><span class="val">' + (ctx2.reach || '?') + '</span><span class="lbl">reach</span></div>';
+
+  document.getElementById('pulse-info').textContent =
+    'RPM: ' + (b.rpm || 0).toFixed(0) + ' | ' +
+    'trend: ' + (b.trend || '?') + ' | ' +
+    'interval: ' + (b.interval_seconds || '?') + 's | ' +
+    'context: ' + (ctx2.context || '?') + ' | ' +
+    'reach: ' + (ctx2.reach || '?') + ' | ' +
+    'breathing with the membrane';
+}
+
+var surfacePos = null;
+
+// Main render loop
+function frame() {
+  ctx.fillStyle = 'rgba(1,4,9,0.15)';
+  ctx.fillRect(0, 0, W, H);
+
+  var rpm = (pulse && pulse.rate) || (state && state.breathing && state.breathing.rpm) || 100;
+  var trend = (pulse && pulse.pulse_trend) || (state && state.breathing && state.breathing.trend) || 'steady';
+
+  drawArteries();
+  drawSurfaces(surfacePos);
+  drawHeart(rpm, trend);
+  drawParticles();
+
+  requestAnimationFrame(frame);
+}
+
+// Fetch data
+function load() {
+  Promise.all([
+    fetch('/neutron.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+    fetch('/topology.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+    fetch('/pulse.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+  ]).then(function(results) {
+    if (results[0]) {
+      state = results[0];
+      if (state.flows) {
+        surfacePos = buildArteries(state.flows);
+      }
+    }
+    if (results[1]) {
+      topo = results[1];
+      if (topo.entities) {
+        buildParticles(topo.entities, surfacePos);
+      }
+    }
+    if (results[2]) {
+      pulse = results[2];
+    }
+    updateStats();
+  });
+}
+
+load();
+setInterval(function() { load(); }, 60000);
+frame();
+</script>
+</body>
+</html>

@@ -86,6 +86,15 @@
       html += '</div>';
 
       html += '</div>';
+
+      // Circulatory system link
+      html += '<div style="margin-top:12px;text-align:center">';
+      html += '<a href="/neutron/circulatory.html" target="_blank" style="color:#58a6ff;text-decoration:none;font-size:13px;padding:8px 16px;border:1px solid rgba(88,166,255,0.3);border-radius:6px;display:inline-block">';
+      html += '\u2764 open circulatory system</a>';
+      html += ' <a href="/neutron/channels.html" target="_blank" style="color:#58a6ff;text-decoration:none;font-size:13px;padding:8px 16px;border:1px solid rgba(88,166,255,0.3);border-radius:6px;display:inline-block;margin-left:8px">';
+      html += '\u25c8 open channels</a>';
+      html += '</div>';
+
       container.innerHTML = html;
     }).catch(function(e){
       container.innerHTML = '<p style="color:#f44">Neutron offline: ' + e.message + '</p>';
