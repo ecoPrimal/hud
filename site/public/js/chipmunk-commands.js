@@ -2961,6 +2961,41 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ PETALTONGUE — interactive exploration ═══
+      if (cmd === "petaltongue" || cmd === "tongue" || cmd === "explore" || cmd === "interact" || cmd === "play" || cmd === "doom") {
+        addEntry("system", "\ud83c\udf3a petalTongue");
+        fetch("https://live.primals.eco/api/status")
+          .then(function(r) { return r.json(); })
+          .then(function(s) {
+            var out = "<span style=\"color:#a371f7\">\u25c8 petalTongue \u2014 interactive exploration</span>\n";
+            out += "<span class=\"dim\">the visualization primal. 19 crates. 6,644 tests. pure Rust.</span>\n\n";
+            out += "status: <span style=\"color:#3fb950\">" + (s.status||"?") + "</span>  v" + (s.version||"?") + "\n";
+            out += "mode: " + (s.mode||"?") + "  neural_api: " + (s.neural_api||false) + "\n\n";
+            out += "<span style=\"color:#58a6ff\">\u25c8 live surfaces</span>\n";
+            out += "  \u2022 gate mesh topology (WireGuard overlay, 13/13 enrolled)\n";
+            out += "  \u2022 NUCLEUS composition (25 primals)\n";
+            out += "  \u2022 physical topology + network paths\n";
+            out += "  \u2022 K-Derm defense layers\n";
+            out += "  \u2022 mesh peers (songBird)\n";
+            out += "  \u2022 live neural API topology\n";
+            out += "  \u2022 ecosystem coordination\n\n";
+            out += "<span style=\"color:#d29922\">\u25c8 capabilities</span>\n";
+            out += "  doom-core \u2014 Doom WAD parser + raycaster (yes, really)\n";
+            out += "  force graph + chord diagrams\n";
+            out += "  animation engine + SVG compiler\n";
+            out += "  Tufte pipeline + 3D projection\n";
+            out += "  SayWhere geocoding\n";
+            out += "  SSE live events stream\n\n";
+            out += "<a href=\"https://live.primals.eco\" target=\"_blank\" style=\"color:#a371f7\">\u25c8 open live dashboard</a> \u00b7 ";
+            out += "<a href=\"https://nestgate.io\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 nestgate.io</a>";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) {
+            addEntry("chipmunk", "<span style=\"color:#a371f7\">\u25c8 petalTongue</span>\n<span class=\"dim\">the visualization primal. 19 crates. 6,644 tests.</span>\n\n<a href=\"https://live.primals.eco\" target=\"_blank\" style=\"color:#a371f7\">\u25c8 open live dashboard</a> \u00b7 <a href=\"https://nestgate.io\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 nestgate.io</a>");
+          });
+        return;
+      }
+
             // ═══ WEBB — esotericWebb gossip mesh ═══
       if (cmd === "webb" || cmd === "gossip" || cmd === "mesh" || cmd === "esoteric") {
         addEntry("system", "\ud83d\udd78 esotericWebb");
