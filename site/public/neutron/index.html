@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>neutron · discuss · primals.eco</title>
+<title>neutron · flow · primals.eco</title>
 <style>
 :root {
   --neutron-blue: #58a6ff;
@@ -13,6 +13,8 @@
   --fg: #c9d1d9;
   --fg-dim: #8b949e;
   --border: rgba(88,166,255,0.12);
+  --stuck: #f85149;
+  --flow: #3fb950;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -23,203 +25,269 @@ body {
   line-height: 1.6;
   min-height: 100vh;
 }
-.container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 16px;
-  margin-bottom: 24px;
-}
+.container { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
 header h1 {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--neutron-blue);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 20px; font-weight: 500; color: var(--neutron-blue);
+  display: flex; align-items: center; gap: 8px;
 }
 header h1::before {
-  content: "";
-  display: inline-block;
-  width: 8px; height: 8px;
-  background: var(--neutron-blue);
-  border-radius: 50%;
-  box-shadow: 0 0 6px var(--neutron-blue), 0 0 12px rgba(88,166,255,0.3);
+  content: ""; display: inline-block; width: 10px; height: 10px;
+  background: var(--neutron-blue); border-radius: 50%;
+  box-shadow: 0 0 8px var(--neutron-blue), 0 0 16px rgba(88,166,255,0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--neutron-blue); }
+  50% { box-shadow: 0 0 16px var(--neutron-blue), 0 0 32px rgba(88,166,255,0.4); }
 }
 .meta { color: var(--fg-dim); font-size: 12px; margin-top: 4px; }
 .meta a { color: var(--neutron-blue); text-decoration: none; opacity: 0.7; }
 .meta a:hover { opacity: 1; }
 
-.thread { display: flex; flex-direction: column; gap: 2px; }
-.entry {
-  padding: 10px 14px;
-  background: var(--neutron-glow);
-  border-left: 2px solid var(--border);
-  transition: border-color 0.2s, background 0.2s;
+.stats { display: flex; gap: 24px; flex-wrap: wrap; padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.stat { text-align: center; }
+.stat .val { font-size: 28px; font-weight: 600; color: var(--neutron-blue); display: block; }
+.stat .lbl { font-size: 11px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+h2 { font-size: 14px; font-weight: 500; color: var(--neutron-blue); margin: 20px 0 10px; }
+h2::before { content: "◈ "; opacity: 0.5; }
+
+.flow-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 24px; }
+.flow-card {
+  padding: 10px 14px; background: var(--neutron-glow); border-left: 2px solid var(--border);
+  transition: border-color 0.2s, background 0.2s; font-size: 12px;
 }
-.entry:hover {
-  border-left-color: var(--neutron-blue);
-  background: var(--neutron-dim);
+.flow-card:hover { border-left-color: var(--neutron-blue); background: var(--neutron-dim); }
+.flow-from { color: var(--fg-dim); }
+.flow-arrow { color: var(--neutron-blue); margin: 0 4px; }
+.flow-to { color: var(--fg); font-weight: 500; }
+.flow-count { float: right; color: var(--neutron-blue); font-weight: 600; }
+
+.touch-list { margin-bottom: 24px; }
+.touch-entry {
+  display: flex; gap: 12px; align-items: center;
+  padding: 6px 14px; background: var(--neutron-glow);
+  border-left: 2px solid var(--border); margin-bottom: 2px;
+  font-size: 12px; transition: border-color 0.2s;
 }
-.entry-meta {
-  font-size: 11px;
-  color: var(--fg-dim);
-  margin-bottom: 4px;
-  display: flex;
-  gap: 12px;
+.touch-entry:hover { border-left-color: var(--neutron-blue); }
+.touch-surface { font-weight: 500; min-width: 100px; }
+.touch-ref { color: var(--fg-dim); min-width: 80px; }
+.touch-count { color: var(--neutron-blue); font-weight: 600; }
+.touch-page { color: var(--fg-dim); font-size: 11px; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.stuck-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; }
+.stuck-tag {
+  padding: 3px 10px; background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.2);
+  border-radius: 12px; font-size: 11px; color: var(--stuck);
 }
-.entry-body {
-  font-size: 13px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--fg);
+.radiating-tag {
+  padding: 3px 10px; background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2);
+  border-radius: 12px; font-size: 11px; color: var(--flow);
 }
 
-.pulse-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--neutron-blue), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 100;
-}
-.pulse-bar.active { opacity: 1; animation: pulse-sweep 1.5s ease-in-out; }
-@keyframes pulse-sweep {
-  0% { opacity: 0; transform: scaleX(0.3); }
-  50% { opacity: 1; transform: scaleX(1); }
-  100% { opacity: 0; transform: scaleX(0.3); }
-}
+canvas { width: 100%; height: 300px; margin: 16px 0; border-radius: 6px; }
 
-.stats {
-  display: flex; gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
-  font-size: 12px;
-  color: var(--fg-dim);
-}
-.stats .val { color: var(--neutron-blue); font-weight: 600; }
+#status { font-size: 11px; color: var(--fg-dim); padding: 8px 0; margin-top: 16px; }
 
-#status { font-size: 11px; color: var(--fg-dim); padding: 8px 0; }
-
-.nav {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  gap: 8px;
-}
+.nav { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 8px; }
 .nav a {
-  display: inline-block;
-  padding: 4px 10px;
-  background: var(--neutron-glow);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--fg-dim);
-  text-decoration: none;
-  font-size: 11px;
-  transition: all 0.2s;
+  display: inline-block; padding: 4px 10px;
+  background: var(--neutron-glow); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--fg-dim); text-decoration: none; font-size: 11px;
 }
-.nav a:hover {
-  border-color: var(--neutron-blue);
-  color: var(--neutron-blue);
-}
+.nav a:hover { color: var(--neutron-blue); border-color: var(--neutron-blue); }
 </style>
 </head>
 <body>
-<div class="pulse-bar" id="pulse"></div>
 <div class="container">
   <header>
-    <h1>neutron &middot; discuss</h1>
+    <h1>neutron · flow</h1>
     <div class="meta">
-      the messaging axis &middot; N&#8596;S &middot; blue &middot;
-      <a href="https://primals.eco">membrane</a> &middot;
+      the messaging axis · how information travels · without this, info is stuck ·
+      <a href="https://primals.eco">membrane</a> ·
       <a href="https://signal.primals.eco">signal</a>
     </div>
   </header>
-  <div class="stats" id="stats">loading&hellip;</div>
-  <div class="thread" id="thread">loading thread&hellip;</div>
+  <div class="stats" id="stats">loading…</div>
+  <h2>mirrors — surface to surface flows</h2>
+  <div class="flow-grid" id="mirrors">loading mirrors…</div>
+  <h2>touches — how visitors arrive</h2>
+  <div class="touch-list" id="touches">loading touches…</div>
+  <h2>stuck — surfaces with no outgoing flow</h2>
+  <div class="stuck-list" id="stuck">checking…</div>
+  <h2>flow map</h2>
+  <canvas id="flowCanvas"></canvas>
   <div id="status"></div>
 </div>
 <nav class="nav">
-  <a href="https://primals.eco">&#9673; hud</a>
-  <a href="https://tuebor.primals.eco">&#9876; tuebor</a>
-  <a href="https://signal.primals.eco">&#128225; signal</a>
+  <a href="https://primals.eco">◉ hud</a>
+  <a href="https://tuebor.primals.eco">⚖ tuebor</a>
+  <a href="https://signal.primals.eco">📡 signal</a>
 </nav>
+<script src="https://hud.primals.eco/js/footer-ring.js" async></script>
 <script>
-const API = "/api/discuss";
-const POLL_MS = 30000;
-let entries = [];
+var API = '/neutron.json';
+var POLL_MS = 120000;
+var state = null;
 
-function esc(s) {
-  var d = document.createElement("div");
-  d.textContent = s;
-  return d.innerHTML;
-}
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 async function load() {
-  var pulse = document.getElementById("pulse");
-  pulse.classList.add("active");
-  setTimeout(function() { pulse.classList.remove("active"); }, 1500);
-
   try {
-    var r = await fetch(API + "/comments?limit=200");
+    var r = await fetch(API);
     if (!r.ok) throw new Error(r.status);
-    var data = await r.json();
-    var items = Array.isArray(data) ? data : (data.comments || []);
-    if (items.length > 0) {
-      entries = items;
-      render();
-      return;
-    }
-  } catch(e) { /* fall through */ }
-
-  try {
-    var r2 = await fetch(API);
-    if (!r2.ok) throw new Error(r2.status);
-    var data2 = await r2.json();
-    if (data2.comments) { entries = data2.comments; render(); return; }
-    if (Array.isArray(data2)) { entries = data2; render(); return; }
-  } catch(e2) { /* fall through */ }
-
-  document.getElementById("thread").innerHTML =
-    "<div class='entry'><div class='entry-body'>neutron axis is waking. the discuss braid is being wired.</div></div>";
-  document.getElementById("stats").innerHTML =
-    "<span>entries: <span class='val'>0</span></span>";
-  document.getElementById("status").textContent =
-    "last poll: " + new Date().toISOString().slice(11,19) + " UTC";
+    state = await r.json();
+    render();
+  } catch(e) {
+    document.getElementById('status').textContent = 'neutron offline: ' + e.message;
+  }
 }
 
 function render() {
-  var sorted = entries.sort(function(a,b) {
-    var ta = a.ts || a.created_at || a.epoch || "";
-    var tb = b.ts || b.created_at || b.epoch || "";
-    return (tb > ta) ? 1 : (tb < ta) ? -1 : 0;
+  // Stats
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><span class="val">' + state.surfaces_observed + '</span><span class="lbl">surfaces</span></div>' +
+    '<div class="stat"><span class="val">' + state.total_crossings + '</span><span class="lbl">crossings</span></div>' +
+    '<div class="stat"><span class="val">' + (state.mirrors || []).length + '</span><span class="lbl">mirrors</span></div>' +
+    '<div class="stat"><span class="val">' + (state.stuck || []).length + '</span><span class="lbl">stuck</span></div>' +
+    '<div class="stat"><span class="val">' + (state.radiating || []).length + '</span><span class="lbl">radiating</span></div>';
+
+  // Mirrors
+  var mHtml = (state.mirrors || []).map(function(m) {
+    return '<div class="flow-card">' +
+      '<span class="flow-count">' + m.crossings + '</span>' +
+      '<span class="flow-from">' + esc(m.from_surface) + '</span>' +
+      '<span class="flow-arrow">→</span>' +
+      '<span class="flow-to">' + esc(m.to_surface) + '</span>' +
+      '</div>';
+  }).join('');
+  document.getElementById('mirrors').innerHTML = mHtml || '<div style="color:var(--fg-dim);font-size:12px">no cross-surface flows detected yet</div>';
+
+  // Touches
+  var tHtml = (state.touches || []).slice(0, 20).map(function(t) {
+    return '<div class="touch-entry">' +
+      '<span class="touch-surface">' + esc(t.surface) + '</span>' +
+      '<span class="touch-ref">' + esc(t.referrer) + '</span>' +
+      '<span class="touch-count">' + t.touches + '</span>' +
+      '<span class="touch-page">' + esc(t.page) + '</span>' +
+      '</div>';
+  }).join('');
+  document.getElementById('touches').innerHTML = tHtml || '<div style="color:var(--fg-dim);font-size:12px">no touches recorded</div>';
+
+  // Stuck
+  var sHtml = (state.stuck || []).map(function(s) {
+    return '<span class="stuck-tag">' + esc(s) + '</span>';
+  }).join('');
+  var rHtml = (state.radiating || []).map(function(s) {
+    return '<span class="radiating-tag">' + esc(s) + '</span>';
+  }).join('');
+  document.getElementById('stuck').innerHTML = (sHtml || '<span style="color:var(--flow);font-size:12px">all surfaces flowing</span>') +
+    (rHtml ? '<div style="margin-top:8px">' + rHtml + '</div>' : '');
+
+  // Flow canvas
+  drawFlowMap();
+
+  // Status
+  document.getElementById('status').textContent = 'last update: ' + (state.generated || '?') + ' · wave ' + (state.wave || '?');
+}
+
+function drawFlowMap() {
+  var canvas = document.getElementById('flowCanvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  ctx.scale(dpr, dpr);
+  var W = canvas.offsetWidth;
+  var H = canvas.offsetHeight;
+
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  // Collect all surfaces from flows
+  var surfaces = {};
+  var idx = 0;
+  (state.mirrors || []).forEach(function(m) {
+    if (!(m.from_surface in surfaces)) surfaces[m.from_surface] = idx++;
+    if (!(m.to_surface in surfaces)) surfaces[m.to_surface] = idx++;
+  });
+  (state.stuck || []).forEach(function(s) {
+    if (!(s in surfaces)) surfaces[s] = idx++;
   });
 
-  var pages = {};
-  sorted.forEach(function(e) { pages[e.page || "unknown"] = 1; });
+  var names = Object.keys(surfaces);
+  if (names.length === 0) return;
 
-  document.getElementById("stats").innerHTML =
-    "<span>entries: <span class='val'>" + sorted.length + "</span></span>" +
-    "<span>pages: <span class='val'>" + Object.keys(pages).length + "</span></span>" +
-    "<span>latest: <span class='val'>" + esc((sorted[0] && sorted[0].ts || "").slice(0,16)) + "</span></span>";
+  // Layout in a circle
+  var cx = W / 2;
+  var cy = H / 2;
+  var r = Math.min(W, H) * 0.38;
+  var positions = {};
+  names.forEach(function(name, i) {
+    var angle = (i / names.length) * Math.PI * 2 - Math.PI / 2;
+    positions[name] = { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+  });
 
-  document.getElementById("thread").innerHTML = sorted.slice(0, 100).map(function(e) {
-    var ts = esc((e.ts || e.created_at || "").slice(0,16));
-    var page = esc(e.page || "unknown");
-    var body = esc(e.body || "");
-    return "<div class='entry'>" +
-      "<div class='entry-meta'><span>" + ts + "</span><span>page: " + page + "</span></div>" +
-      "<div class='entry-body'>" + body + "</div></div>";
-  }).join("");
+  // Draw flow lines
+  var maxCross = Math.max.apply(null, (state.mirrors || [{ crossings: 1 }]).map(function(m) { return m.crossings; }));
+  (state.mirrors || []).forEach(function(m) {
+    var from = positions[m.from_surface];
+    var to = positions[m.to_surface];
+    if (!from || !to) return;
+    var alpha = 0.15 + 0.6 * (m.crossings / maxCross);
+    ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
+    ctx.lineWidth = 1 + 2 * (m.crossings / maxCross);
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
 
-  document.getElementById("status").textContent =
-    "last poll: " + new Date().toISOString().slice(11,19) + " UTC";
+    // Arrow
+    var dx = to.x - from.x;
+    var dy = to.y - from.y;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var nx = dx / len;
+    var ny = dy / len;
+    var ax = to.x - nx * 12;
+    var ay = to.y - ny * 12;
+    ctx.fillStyle = 'rgba(88,166,255,' + alpha + ')';
+    ctx.beginPath();
+    ctx.moveTo(to.x, to.y);
+    ctx.lineTo(ax - ny * 4, ay + nx * 4);
+    ctx.lineTo(ax + ny * 4, ay - nx * 4);
+    ctx.fill();
+  });
+
+  // Draw surface nodes
+  names.forEach(function(name) {
+    var pos = positions[name];
+    var isStuck = (state.stuck || []).indexOf(name) !== -1;
+    var isRadiating = (state.radiating || []).indexOf(name) !== -1;
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, isRadiating ? 6 : 4, 0, Math.PI * 2);
+    ctx.fillStyle = isStuck ? '#f85149' : isRadiating ? '#3fb950' : '#58a6ff';
+    ctx.fill();
+    if (!isStuck) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(88,166,255,0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = isStuck ? 'rgba(248,81,73,0.8)' : '#8b949e';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, pos.x, pos.y + 16);
+  });
 }
 
 load();
 setInterval(load, POLL_MS);
+window.addEventListener('resize', function() { if (state) drawFlowMap(); });
 </script>
 </body>
 </html>

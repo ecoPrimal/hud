@@ -86,3 +86,26 @@
     inject();
   }
 })();
+
+// ── Neutron touch point (Wave 179) ───────────────────────────────────
+// Loads neutron.js and renders a badge in the footer showing flow state.
+// This makes every surface aware of the neutron messaging axis.
+(function() {
+  "use strict";
+  if (typeof window.Neutron !== "undefined") return; // already loaded
+  var s = document.createElement("script");
+  s.src = "https://hud.primals.eco/js/neutron.js";
+  s.async = true;
+  s.onload = function() {
+    if (window.Neutron) {
+      var ring = document.getElementById("eco-footer-ring");
+      if (ring) {
+        var badge = document.createElement("div");
+        badge.style.cssText = "margin-top:4px;text-align:center;";
+        window.Neutron.renderBadge(badge);
+        ring.parentNode.insertBefore(badge, ring.nextSibling);
+      }
+    }
+  };
+  document.head.appendChild(s);
+})();

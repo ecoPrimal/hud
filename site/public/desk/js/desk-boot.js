@@ -15,7 +15,8 @@ var panels = {
   campfire: document.getElementById('panel-campfire'),
   globe: document.getElementById('panel-globe'),
   map: document.getElementById('panel-map'),
-  atlas: document.getElementById('panel-atlas')
+  atlas: document.getElementById("panel-atlas"),
+  neutron: document.getElementById("panel-neutron")
 };
 var renderers = {
   study: D.renderStudy,
@@ -28,7 +29,8 @@ var renderers = {
   campfire: D.renderCampfire,
   globe: D.renderGlobe,
   map: D.renderMap,
-  atlas: D.renderAtlas
+  atlas: D.renderAtlas,
+  neutron: D.renderNeutron
 };
 
 D.switchTab = function(name) {

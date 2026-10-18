@@ -136,6 +136,7 @@
     { cmd: 'self', cat: 'do', desc: 'chipmunk looks inward — blind spots, limits, Gödel' },
     { cmd: 'inward', cat: 'do', desc: 'the reflexive loop — what chipmunk can and cannot see' },
     { cmd: 'mirror', cat: 'do', desc: 'the mirror — reflexive depth 0.364' },
+    { cmd: 'neutron', cat: 'do', desc: 'neutron — the messaging axis, flow state' },
     { cmd: 'outside', cat: 'do', desc: 'the full mesh — all sites, fleet, categories, passages' },
     { cmd: 'mesh', cat: 'do', desc: 'the primals.eco topology — 16 sites, 6 categories' },
     { cmd: 'sites', cat: 'do', desc: 'all sites in the mesh and their traffic' },

@@ -376,8 +376,6 @@ window._chipmunkCommands = function(ctx) {
       if (window._chipmunkExplorer) window._chipmunkExplorer.step('command', cmdBase);
       if (window._hudStash) window._hudStash.addHistory(cmdBase);
 
-      
-      // ═══ SCANNING & PIPELINE ═══════════════════════════════════════
       if (cmd === 'scan' || cmd === 'pipeline') {
         addEntry('system', '\ud83d\udcca scan');
         if (window._chipmunkMind && window._chipmunkMind.showScan) {
@@ -465,8 +463,6 @@ window._chipmunkCommands = function(ctx) {
           '\n<span class="dim">the spring remembers. say /wake. i will dream.</span>');
         return;
       }
-      
-      // ═══ METABOLISM & STATE ══════════════════════════════════════════
       if (cmd === 'energy' || cmd === 'metabolism' || cmd === 'status') {
         addEntry('system', '\u26a1 metabolism');
         var minsSinceChange = Math.round((Date.now() - metabolism.lastStateChange) / 60000);
@@ -600,8 +596,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ FLEET & MEMBRANE ═════════════════════════════════════════
       if (cmd === 'fleet' || cmd === 'fleetmap') {
         addEntry('system', '\u2693 fleet map');
         if (window._fleetAtlas) {
@@ -653,8 +647,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ SOUND & AUDIO ════════════════════════════════════════════
       if (cmd === 'sound' || cmd === 'audio' || cmd === 'unmute') {
         addEntry('system', '\ud83d\udd0a sound');
         if (window._membraneSound) {
@@ -717,8 +709,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ TRAIL & EXPLORATION ═══════════════════════════════════════
       if (cmd === 'trail' || cmd === 'footprint' || cmd === 'footprints' || cmd === 'doubleback') {
         addEntry('system', '\ud83d\udc3e trail');
         if (window._trailMark) {
@@ -1255,8 +1245,6 @@ window._chipmunkCommands = function(ctx) {
         });
         return;
       }
-      
-      // ═══ PLAY & INTERACTION ══════════════════════════════════════
       if (cmd === 'play' || cmd === 'graph' || cmd === 'playground') {
         addEntry('system', '\ud83c\udfae play');
         var wrap = document.getElementById('graph-play-wrap');
@@ -1673,8 +1661,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ VISUALIZATION ═══════════════════════════════════════════
       if (cmd === 'cosmos' || cmd === 'earth' || cmd === 'oort' || cmd === 'zoom' || cmd === 'perspective') {
         addEntry('system', '\ud83c\udf0c cosmos');
         if (window._cosmicView) {
@@ -1806,8 +1792,6 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
       // ═══ /map — complete inventory of everything ═══
-      
-      // ═══ MAP & ATLAS ═══════════════════════════════════════════════
       if (cmd === 'map' || cmd === 'inventory' || cmd === 'everything' || cmd === 'all' || cmd === 'commands') {
         addEntry('system', 'map — inventory');
         var stash = window._hudStash;
@@ -2087,8 +2071,6 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
       // ═══ /about /whatisthis — plain language explanation ═══
-      
-      // ═══ INFORMATION ════════════════════════════════════════════
       if (cmd === 'about' || cmd === 'whatisthis' || cmd === 'whatsthis' || cmd === 'what' || cmd === 'why' || cmd === 'howdoesthiswork') {
         addEntry('system', 'about');
         var aL = [];
@@ -2127,8 +2109,6 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
       // ═══ /desk — open the writing desk ═══
-      
-      // ═══ DESK & WORKSPACE ═══════════════════════════════════════
       if (cmd === 'desk' || cmd === 'write' || cmd === 'draw' || cmd === 'gaia' || cmd === 'study' || cmd === 'create' || cmd === 'weave') {
         addEntry('system', 'desk');
         var deskLines = [];
@@ -2146,8 +2126,6 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
       // ═══ /data — the data architecture ═══
-      
-      // ═══ DATA & ANALYSIS ═════════════════════════════════════════
       if (cmd === 'data' || cmd === 'feeds' || cmd === 'wiring' || cmd === 'architecture') {
         addEntry('system', 'data architecture');
         var dL = [];
@@ -2317,8 +2295,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ SCANNING & PIPELINE ═══════════════════════════════════════
       if (cmd === 'scan' || cmd === 'sweep' || cmd === 'sort' || cmd === 'pipeline' || cmd === 'fossilize') {
         addEntry('system', 'scan \u2192 sweep \u2192 sort');
         // Live pipeline data — last snapshot from complexity scale
@@ -2587,8 +2563,6 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
-      
-      // ═══ TRAIL & EXPLORATION ═══════════════════════════════════════
       if (cmd === 'trail' || cmd === 'path' || cmd === 'mypath') {
         addEntry('system', '\u2193 your trail');
         if (window._chipmunkExplorer) {
@@ -2878,6 +2852,47 @@ window._chipmunkCommands = function(ctx) {
         addEntry('chipmunk',
           '<span style="color:#c9d1d9">type <span class="clickable-cmd" data-cmd="help" style="color:#58a6ff;cursor:pointer">/help</span> for a guide, or <span class="clickable-cmd" data-cmd="map" style="color:#58a6ff;cursor:pointer">/map</span> to see everything.</span>\n' +
           '<span class="dim">or just type what you\u2019re looking for \u2014 i\u2019ll try to find it.</span>');
+        return;
+      }
+
+      // ═══ NEUTRON — messaging axis, flow state ═══
+      if (cmd === "neutron" || cmd === "flow" || cmd === "flows") {
+        addEntry("system", "\u26a1 neutron");
+        fetch("/neutron.json")
+          .then(function(r) { return r.json(); })
+          .then(function(n) {
+            var out = "<span style=\"color:#58a6ff\">\u25c8 neutron \u2014 the messaging axis</span>\n";
+            out += "<span class=\"dim\">how information travels between surfaces</span>\n\n";
+            out += "surfaces: <span style=\"color:#58a6ff\">" + n.surfaces_observed + "</span>  ";
+            out += "crossings: <span style=\"color:#58a6ff\">" + n.total_crossings + "</span>  ";
+            out += "stuck: <span style=\"color:" + (n.stuck.length > 0 ? "#f85149" : "#3fb950") + "\">" + n.stuck.length + "</span>  ";
+            out += "messages: <span style=\"color:#58a6ff\">" + (n.total_messages || 0) + "</span>\n\n";
+            if (n.mirrors && n.mirrors.length > 0) {
+              out += "<span style=\"color:#58a6ff\">\u25c8 mirrors</span>\n";
+              n.mirrors.slice(0, 8).forEach(function(m) {
+                out += "  " + m.from_surface + " <span style=\"color:#58a6ff\">\u2192</span> " + m.to_surface + " <span style=\"color:#58a6ff\">" + m.crossings + "</span>\n";
+              });
+              out += "\n";
+            }
+            if (n.stuck && n.stuck.length > 0) {
+              out += "<span style=\"color:#f85149\">\u25c8 stuck (no outgoing flow)</span>\n  ";
+              out += n.stuck.join(" \u00b7 ") + "\n\n";
+            }
+            if (n.channels) {
+              out += "<span style=\"color:#58a6ff\">\u25c8 channels</span>\n";
+              for (var ch in n.channels) {
+                var c = n.channels[ch];
+                out += "  " + ch + ": " + (c.total || 0) + " messages";
+                if (c.latest_ts) out += " (latest: " + c.latest_ts + ")";
+                out += "\n";
+              }
+            }
+            out += "\n<span class=\"dim\">wave " + (n.wave || "?") + " \u00b7 " + (n.generated || "?") + "</span>";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) {
+            addEntry("chipmunk", "<span style=\"color:#f85149\">neutron offline: " + e.message + "</span>");
+          });
         return;
       }
 
