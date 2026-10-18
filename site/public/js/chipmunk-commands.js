@@ -2153,6 +2153,7 @@ window._chipmunkCommands = function(ctx) {
         dL.push('  <span class="dim">/touches.json     \u2192 chipmunk-talk (human touch events)</span>');
         dL.push('  <span class="dim">/membrane-pulse.json \u2192 neutron core (WG mesh alive, desk peers, in/out per membrane)</span>');
         dL.push('  <span class="dim">/genome.json         \u2192 neutron core (binary sizes, source lines, articles, energy, \u03c0 body)</span>');
+        dL.push('  <span class="dim">/fleet-sort.json     \u2192 neutron core (5445 fleet entities, 7 classes, 13 profiles)</span>');
         dL.push('');
         dL.push('<span style="color:#d29922">STATIC DATA</span> <span class="dim">\u2014 detroit investigation</span>');
         dL.push('  <span class="dim">graph.json        13.3 MB \u2014 full entity graph (131K edges, 7.5K nodes)</span>');
@@ -2200,6 +2201,48 @@ window._chipmunkCommands = function(ctx) {
         dL.push('');
         dL.push('<span class="dim">/self for limits \u00b7 /outside for the mesh \u00b7 /map for commands</span>');
         addEntry('chipmunk', dL.join('\n'));
+        return;
+      }
+      // ═══ /fleet — fleet sort refinement results ═══
+      if (cmd === 'fleet' || cmd === 'sort' || cmd === 'unsorted' || cmd === 'refine' || cmd === 'classify') {
+        addEntry('system', 'fleet sort');
+        fetch('/fleet-sort.json').then(function(r) { return r.json(); }).then(function(d) {
+          var fL = [];
+          var sc = d.sort_classes || {};
+          var pr = d.profiles || {};
+          var total = d.total_entities || 0;
+          var ref = d.refinement || {};
+          fL.push('<span style="color:#69f0ae;font-weight:bold">\u25ce FLEET SORT \u2014 ' + total + ' entities refined</span>');
+          fL.push('');
+          fL.push('<span style="color:#4fc3f7">SORT CLASSES</span> <span class="dim">\u2014 behavioral classification</span>');
+          var classColors = {commensal:'#69f0ae', ghost:'#b39ddb', null:'#78909c', partial:'#fdd835', pathogen:'#ef5350', stealth:'#ff8a65', parasite:'#e53935'};
+          var skeys = Object.keys(sc);
+          for (var i = 0; i < skeys.length; i++) {
+            var col = classColors[skeys[i]] || '#aaa';
+            var pct = (sc[skeys[i]] / total * 100).toFixed(1);
+            fL.push('  <span style="color:' + col + '">' + skeys[i].padEnd(12) + '</span> <span class="dim">' + sc[skeys[i]].toLocaleString().padStart(6) + '  (' + pct + '%)</span>');
+          }
+          fL.push('');
+          fL.push('<span style="color:#ce93d8">BEHAVIORAL PROFILES</span> <span class="dim">\u2014 13 fingerprints</span>');
+          var pkeys = Object.keys(pr);
+          for (i = 0; i < pkeys.length; i++) {
+            fL.push('  <span class="dim">' + pkeys[i].padEnd(25) + pr[pkeys[i]].toLocaleString().padStart(6) + '</span>');
+          }
+          fL.push('');
+          fL.push('<span style="color:#69f0ae">GRANULARITY</span>');
+          if (ref.previous) {
+            fL.push('  <span class="dim">before: 4 classes \u00b7 341 detroit entities</span>');
+            fL.push('  <span class="dim">after:  ' + Object.keys(sc).length + ' classes \u00b7 ' + (ref.granularity_increase || '?') + ' profiles \u00b7 ' + total + ' fleet entities</span>');
+          }
+          fL.push('');
+          var hostile = (sc.pathogen || 0) + (sc.parasite || 0);
+          var hostilePct = (hostile / total * 100).toFixed(1);
+          fL.push('<span style="color:#4fc3f7">the article was right: ' + (100 - parseFloat(hostilePct)).toFixed(1) + '% non-hostile once classified</span>');
+          fL.push('<span class="dim">the unsorted are dev teams, not noise.</span>');
+          addEntry('chipmunk', fL.join('\n'));
+        }).catch(function() {
+          addEntry('chipmunk', 'fleet sort data not available');
+        });
         return;
       }
       // ═══ /genome — the size of the work as DNA ═══
