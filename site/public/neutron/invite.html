@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>try the tech · primals.eco</title>
+<style>
+:root { --bg:#0d1117; --fg:#c9d1d9; --dim:#8b949e; --blue:#58a6ff; --green:#3fb950; --purple:#a371f7; --border:rgba(48,54,61,0.6); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; line-height:1.7; }
+.nav { position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace; }
+.nav a { color:#58a6ff; text-decoration:none; }
+.nav span { color:#30363d; }
+.container { max-width:720px; margin:0 auto; padding:48px 20px 40px; }
+h1 { font-size:24px; color:var(--blue); margin-bottom:4px; }
+h2 { font-size:16px; color:var(--green); margin:28px 0 12px; }
+h2::before { content:"◈ "; opacity:0.5; }
+.sub { font-size:13px; color:var(--dim); margin-bottom:24px; }
+p { margin-bottom:16px; font-size:14px; }
+.card { background:rgba(22,27,34,0.8); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; }
+.card h3 { font-size:13px; color:var(--blue); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.row { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(48,54,61,0.3); font-size:13px; }
+.row .k { color:var(--dim); }
+.row .v { font-family:monospace; font-weight:600; }
+code { background:rgba(88,166,255,0.1); padding:2px 6px; border-radius:3px; font-size:12px; color:var(--green); }
+pre { background:rgba(22,27,34,0.9); border:1px solid var(--border); border-radius:6px; padding:14px; margin:12px 0; font-size:12px; overflow-x:auto; color:var(--fg); }
+a { color:var(--blue); }
+.highlight { color:var(--green); font-weight:bold; }
+.mutualism { display:flex; gap:12px; margin:16px 0; }
+.mutualism .side { flex:1; padding:12px; border-radius:6px; font-size:12px; text-align:center; }
+.mutualism .you { background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.2); }
+.mutualism .us { background:rgba(88,166,255,0.08); border:1px solid rgba(88,166,255,0.2); }
+.mutualism .label { font-weight:bold; margin-bottom:6px; }
+.mutualism .you .label { color:var(--green); }
+.mutualism .us .label { color:var(--blue); }
+.contact { margin-top:24px; padding:16px; background:rgba(63,185,80,0.05); border:1px solid rgba(63,185,80,0.15); border-radius:8px; text-align:center; }
+.contact a { font-size:16px; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/neutron/core.html">◉ core</a><span>·</span>
+  <a href="/neutron/helix.html" style="color:#d29922">🧬 helix</a><span>·</span>
+  <a href="/neutron/board.html" style="color:#a371f7">▣ board</a><span>·</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f">🌐 globe</a><span>·</span>
+  <a href="/desk/" style="color:#3fb950">◧ desk</a>
+</div>
+<div class="container">
+  <h1>try the tech</h1>
+  <div class="sub">sovereign science on your own hardware — no CUDA, no cloud, no data leaves your lab</div>
+
+  <p>You are here because someone thought your work might benefit from running <strong>on your own machine</strong> instead of somebody else's. Everything below runs on consumer GPUs. No institutional access required. No vendor lock-in.</p>
+
+  <h2>what is live right now</h2>
+
+  <div class="card">
+    <h3>verify in 5 minutes</h3>
+<pre>
+# requires Rust (2 min install if you don't have it)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# groundSpring — measurement science, 535+ checks
+git clone https://github.com/syntheticChemistry/groundSpring
+cd groundSpring &amp;&amp; cargo test --workspace
+
+# all tests pass. zero C deps. zero unsafe. AGPL-3.0.
+</pre>
+  </div>
+
+  <div class="card">
+    <h3>🧬 for structural biologists — helixVision</h3>
+    <div class="row"><span class="k">what</span><span class="v">Sovereign AlphaFold-quality structure prediction</span></div>
+    <div class="row"><span class="k">how</span><span class="v">Pure Rust f64, WebGPU shaders on YOUR GPU</span></div>
+    <div class="row"><span class="k">checks</span><span class="v highlight">154 passing (1e-10 tolerance vs NumPy)</span></div>
+    <div class="row"><span class="k">GPU speedup</span><span class="v">8.6x on pairformer block (RTX 4070)</span></div>
+    <div class="row"><span class="k">isomorphism</span><span class="v">6 primitives: GEMM, attention, norm, nonlinear, reduction, gating</span></div>
+    <div class="row"><span class="k">no CUDA</span><span class="v highlight">WebGPU/WGSL — runs on NVIDIA, AMD, Intel</span></div>
+    <div class="row"><span class="k">data sovereignty</span><span class="v">nothing leaves your machine. ever.</span></div>
+    <p style="margin-top:12px;font-size:12px;color:var(--dim)">If you are doing MD simulations, protein structure prediction, or anything that currently requires AlphaFold + PyTorch + CUDA — this is the sovereign path. Same math, f64 precision, your hardware. The Anderson localization framework maps directly to drug resistance transport problems: disorder parameter W = mutation load, transport = drug flux, localization transition = resistance threshold.</p>
+    <p style="font-size:12px"><a href="/neutron/helix.html">→ see the isomorphism proof visualization</a></p>
+  </div>
+
+  <div class="card">
+    <h3>🧪 for genomics — sovereign 16S/WGS pipeline</h3>
+    <div class="row"><span class="k">what</span><span class="v">MinION to taxonomy to community profile</span></div>
+    <div class="row"><span class="k">replaces</span><span class="v">QIIME2, EPI2ME, Python runtime</span></div>
+    <div class="row"><span class="k">checks</span><span class="v highlight">6,656+ (wetSpring)</span></div>
+    <div class="row"><span class="k">PTP screening</span><span class="v">RNA-seq DE analysis, pathway enrichment — sovereign</span></div>
+    <p style="margin-top:12px;font-size:12px;color:var(--dim)">Population genomics, allele frequency trajectories, hapFLK selection scans, IBD analysis — all validated. From sequencer to publication on a $500 used GPU. 100+ PTP expression screening across cancer types runs entirely on your own hardware.</p>
+  </div>
+
+  <div class="card">
+    <h3>⚛ for physicists — lattice QCD on consumer GPUs</h3>
+    <div class="row"><span class="k">what</span><span class="v">SU(N) gauge theory, Wilson loops, Creutz ratios</span></div>
+    <div class="row"><span class="k">replaces</span><span class="v">MILC, Grid, QUDA (all CUDA-locked)</span></div>
+    <div class="row"><span class="k">achievement</span><span class="v">45 years of lattice results on commodity hardware</span></div>
+    <div class="row"><span class="k">precision</span><span class="v">f64 throughout, validated against published benchmarks</span></div>
+  </div>
+
+  <h2>the deal</h2>
+
+  <div class="mutualism">
+    <div class="side you">
+      <div class="label">you bring</div>
+      your science<br>your hardware<br>your questions
+    </div>
+    <div class="side us">
+      <div class="label">we provide</div>
+      validated compute<br>sovereign pipelines<br>AGPL source code
+    </div>
+  </div>
+
+  <p>Everything is <strong>AGPL-3.0</strong> — triple-copyleft (code + game + docs). You can run it, modify it, study it. Modifications stay open. No one — including us — can close it.</p>
+
+  <p>We are not a vendor. We are not a startup. We are a research project that runs its own compute. If your work benefits, use it. If you want to contribute back, the commons grows.</p>
+
+  <h2>what we are building together</h2>
+
+  <div class="card">
+    <h3>the knowledge commons</h3>
+    <div class="row"><span class="k">validated science</span><span class="v">16,695+ checks across 7 domains</span></div>
+    <div class="row"><span class="k">infrastructure</span><span class="v">107K+ tests, 3.2M lines of Rust</span></div>
+    <div class="row"><span class="k">public data only</span><span class="v">NCBI, PhysioNet, NOAA, PDB, arXiv</span></div>
+    <div class="row"><span class="k">hardware floor</span><span class="v">$500 used RTX 3090</span></div>
+    <div class="row"><span class="k">license</span><span class="v">AGPL + ORC + CC-BY-SA (triple copyleft)</span></div>
+  </div>
+
+  <h2>see it running</h2>
+
+  <p>
+    <a href="/neutron/core.html">◉ neutron core</a> — the live nervous system, view from inside the earth<br>
+    <a href="/neutron/circulatory.html">♥ circulatory</a> — all 43 surfaces pulsing at their own heartbeat<br>
+    <a href="/neutron/helix.html">🧬 helix</a> — the AlphaFold isomorphism proof, rotating<br>
+    <a href="/neutron/globe.html">🌐 globe</a> — where the membrane touches the world<br>
+    <a href="/neutron/board.html">▣ board</a> — every metric, live<br>
+    <a href="https://sporeprint.primals.eco">📚 sporePrint</a> — the science, the papers, the evidence
+  </p>
+
+  <div class="contact">
+    <p style="margin-bottom:8px">A human reads and responds to every message.</p>
+    <a href="mailto:eco.primal@pm.me">eco.primal@pm.me</a>
+    <p style="font-size:11px;color:var(--dim);margin-top:8px">ORCID: 0009-0004-2141-0321 · GitHub: ecoPrimals · License: AGPL-3.0</p>
+  </div>
+</div>
+</body>
+</html>

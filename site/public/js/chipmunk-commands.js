@@ -3026,6 +3026,28 @@ window._chipmunkCommands = function(ctx) {
         return;
       }
 
+            // ═══ INVITE — try the tech landing page ═══
+      if (cmd === "invite" || cmd === "try" || cmd === "outreach" || cmd === "engineers" || cmd === "mark" || cmd === "abg") {
+        addEntry("system", "🤝 invite engineers");
+        addEntry("chipmunk", "<a href=\"/neutron/invite.html\" target=\"_blank\" style=\"color:#3fb950\">🤝 try the tech — invitation for engineers</a>\n\n" +
+          "<span class=\"dim\">sovereign science on your own hardware.</span>\n" +
+          "no CUDA · no cloud · no data leaves your lab\n\n" +
+          "<span style=\"color:#3fb950\">active outreach:</span>\n" +
+          "  Mark (ABG) — PTP metastasis + PfAAT1 MD sim → helixVision\n" +
+          "  Valve/Inkfish — email sent Jul 29, Gabe Newell\n" +
+          "  Andrea Gonzales — NF drug discovery, engaged\n\n" +
+          "<span style=\"color:#d29922\">infectious science thesis:</span>\n" +
+          "  if a physicist in Bogota can download a binary, point it at a\n" +
+          "  $650 GPU, and reproduce 45 years of lattice gauge theory in an\n" +
+          "  afternoon — the adoption takes care of itself.\n\n" +
+          "<span style=\"color:#58a6ff\">the proof is running:</span>\n" +
+          "  <a href=\"https://tuebor.primals.eco\" target=\"_blank\" style=\"color:#e85d3a\">tuebor</a> · " +
+          "<a href=\"https://barry.primals.eco\" target=\"_blank\" style=\"color:#58a6ff\">barry</a> · " +
+          "<a href=\"/neutron/helix.html\" target=\"_blank\" style=\"color:#a371f7\">helix</a> · " +
+          "<a href=\"/neutron/core.html\" target=\"_blank\" style=\"color:#58a6ff\">core</a>");
+        return;
+      }
+
             // ═══ BOARD — backend board, all metrics ═══
       if (cmd === "board" || cmd === "backend" || cmd === "dashboard" || cmd === "metrics") {
         addEntry("system", "\u25a3 backend board");

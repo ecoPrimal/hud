@@ -199,6 +199,9 @@
     { cmd: 'helix', cat: 'explore', desc: 'helixVision \u2014 sovereign AlphaFold, 6 primitives, 154 checks' },
     { cmd: 'alphafold', cat: 'explore', desc: 'sovereign structure prediction \u2014 f64, consumer hardware' },
     { cmd: 'protein', cat: 'explore', desc: 'protein structure prediction pipeline \u2014 coralForge + helixVision' },
+    { cmd: 'invite', cat: 'explore', desc: 'try the tech \u2014 invitation for engineers, Mark, ABG outreach' },
+    { cmd: 'try', cat: 'explore', desc: 'try the tech \u2014 sovereign science on your own hardware' },
+    { cmd: 'outreach', cat: 'explore', desc: 'outreach status \u2014 Mark (ABG), Valve, Andrea, Infectious Science' },
   ];
 
   var CAT_COLORS = {
