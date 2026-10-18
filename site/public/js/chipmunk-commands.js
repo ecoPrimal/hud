@@ -2856,7 +2856,98 @@ window._chipmunkCommands = function(ctx) {
       }
 
       // ═══ NEUTRON — messaging axis, flow state ═══
-      if (cmd === "circulatory" || cmd === "blood" || cmd === "heartbeat") {
+      // ═══ SYMBIOSIS — tit-for-tat-forgive-one ═══
+      if (cmd === "symbiosis" || cmd === "tit" || cmd === "golden" || cmd === "goldenrule") {
+        addEntry("system", "\ud83e\udd1d symbiosis");
+        fetch("/symbiosis.json")
+          .then(function(r) { return r.json(); })
+          .then(function(s) {
+            var entities = s.entities || [];
+            var counts = {mutualist:0, commensal_active:0, commensal_suspect:0, parasite:0, pathogen:0};
+            entities.forEach(function(e) { var r = e.relationship || "?"; counts[r] = (counts[r]||0) + 1; });
+            var out = "<span style=\"color:#3fb950\">\u25c8 symbiosis \u2014 tit-for-tat-forgive-one</span>\n";
+            out += "<span class=\"dim\">the golden rule in code. treat others how we want to be treated. forgive one.</span>\n\n";
+            out += "<span style=\"color:#3fb950\">mutualist: " + (counts.mutualist||0) + "</span>  ";
+            out += "<span style=\"color:#58a6ff\">commensal: " + ((counts.commensal_active||0)+(counts.commensal_suspect||0)) + "</span>  ";
+            out += "<span style=\"color:#d29922\">parasite: " + (counts.parasite||0) + "</span>  ";
+            out += "<span style=\"color:#f85149\">pathogen: " + (counts.pathogen||0) + "</span>\n\n";
+            out += entities.length + " entities classified\n";
+            out += "<span class=\"dim\">wave 180 \u00b7 " + (s.generated || "?") + "</span>";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">symbiosis offline: " + e.message + "</span>"); });
+        return;
+      }
+
+      // ═══ PULSE DIRECTION — null→out, out→in ═══
+      if (cmd === "direction" || cmd === "pulse" || cmd === "inout") {
+        addEntry("system", "\u2764 pulse direction");
+        fetch("/neutron.json")
+          .then(function(r) { return r.json(); })
+          .then(function(n) {
+            var d = n.direction || {};
+            var b = n.breathing || {};
+            var out = "<span style=\"color:#58a6ff\">\u25c8 pulse direction \u2014 null\u2192out, out\u2192in</span>\n";
+            out += "<span class=\"dim\">the heartbeat flows both ways. chipmunk radiates out, world flows back in.</span>\n\n";
+            out += "RPM: <span style=\"color:#3fb950\">" + (b.rpm||0).toFixed(0) + "</span>  trend: " + (b.trend||"?") + "  interval: " + (b.interval_seconds||"?") + "s\n\n";
+            var dirColors = {balanced:"#3fb950",absorbing:"#58a6ff",radiating:"#d29922",stagnant:"#f85149"};
+            out += "<span style=\"color:" + (dirColors[d.state]||"#aaa") + "\">DIRECTION: " + (d.state||"?").toUpperCase() + "</span>\n";
+            out += "  IN-PULSE:  <span style=\"color:#58a6ff\">" + (d.in_pulse||0) + "</span> (" + ((d.in_ratio||0)*100).toFixed(0) + "%)\n";
+            out += "  OUT-PULSE: <span style=\"color:#3fb950\">" + (d.out_pulse||0) + "</span> (" + ((d.out_ratio||0)*100).toFixed(0) + "%)\n";
+            out += "  human carry: " + (d.human_carry||0) + "  bot consume: " + (d.bot_consume||0) + "\n";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">pulse offline: " + e.message + "</span>"); });
+        return;
+      }
+
+      // ═══ CLUTCH — investigation graph ═══
+      if (cmd === "clutch" || cmd === "investigation" || cmd === "investigate" || cmd === "graph") {
+        addEntry("system", "\ud83d\udd0d investigation");
+        fetch("https://clutch.primals.eco/api/graph.json")
+          .then(function(r) { return r.json(); })
+          .then(function(g) {
+            var nodes = g.nodes || [];
+            var edges = g.edges || [];
+            var types = {};
+            var investigations = {};
+            nodes.forEach(function(n) {
+              types[n.type] = (types[n.type]||0) + 1;
+              investigations[n.investigation] = (investigations[n.investigation]||0) + 1;
+            });
+            var out = "<span style=\"color:#f1c40f\">\u25c8 clutch justice \u2014 investigation graph</span>\n";
+            out += "<span class=\"dim\">walk the corruption network. find the paths.</span>\n\n";
+            out += "nodes: <span style=\"color:#58a6ff\">" + nodes.length + "</span>  edges: <span style=\"color:#58a6ff\">" + edges.length + "</span>\n\n";
+            out += "<span style=\"color:#f1c40f\">\u25c8 investigations</span>\n";
+            for (var inv in investigations) { out += "  " + inv + ": " + investigations[inv] + " nodes\n"; }
+            out += "\n<span style=\"color:#f1c40f\">\u25c8 node types</span>\n";
+            for (var t in types) { out += "  " + t + ": " + types[t] + "\n"; }
+            out += "\n<a href=\"https://clutch.primals.eco\" target=\"_blank\" style=\"color:#58a6ff\">\u25c8 open clutch</a>";
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">clutch offline: " + e.message + "</span>"); });
+        return;
+      }
+
+      // ═══ TYPE — type manifest (what lives where) ═══
+      if (cmd === "type" || cmd === "types" || cmd === "manifest" || cmd === "repos") {
+        addEntry("system", "\ud83d\udcca type manifest");
+        fetch("/type-manifest.json")
+          .then(function(r) { return r.json(); })
+          .then(function(m) {
+            var out = "<span style=\"color:#58a6ff\">\u25c8 type manifest \u2014 what lives where</span>\n";
+            out += "<span class=\"dim\">" + m.repo_count + " repos, " + m.total_files + " files</span>\n\n";
+            var idx = m.type_index || {};
+            for (var t in idx) {
+              out += "<span style=\"color:#58a6ff\">" + t + "</span>: " + idx[t].length + " repos\n";
+            }
+            addEntry("chipmunk", out);
+          })
+          .catch(function(e) { addEntry("chipmunk", "<span style=\"color:#f85149\">manifest offline: " + e.message + "</span>"); });
+        return;
+      }
+
+            if (cmd === "circulatory" || cmd === "blood" || cmd === "heartbeat") {
         addEntry("system", "\u2764 circulatory system");
         addEntry("chipmunk", "<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764\ufe0f the world's circulatory system — live</a>\n<span class=\"dim\">entities flowing through the membrane. heart=RPM. blood cells=entities. arteries=surface flows.</span>");
         return;
