@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null, memPulseData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -1408,6 +1408,59 @@ function drawInterMembranePulse() {
     ctx.fillText("desk (AGPL-3.0) — sovereign twitch+discord", cx, cy + meshR + 17);
   }
 
+  // ── Mesh speed distance lines ──
+  // Draw connections between peers with thickness = 1/RTT (faster = thicker)
+  if (meshSpeedData && meshSpeedData.distances) {
+    var speedMap = {};
+    for (var si = 0; si < meshSpeedData.distances.length; si++) {
+      var sd = meshSpeedData.distances[si];
+      speedMap[sd.name] = sd;
+    }
+    // Draw line from center (golgi view) to each peer with RTT
+    for (var pi2 = 0; pi2 < peers.length; pi2++) {
+      var peer2 = peers[pi2];
+      var spd = speedMap[peer2.name];
+      if (!spd || spd.zone === "self" || !spd.reachable) continue;
+      var angle2 = -Math.PI / 2 + (pi2 / peers.length) * Math.PI * 2;
+      var px2 = cx + Math.cos(angle2) * meshR;
+      var py2 = cy + Math.sin(angle2) * meshR;
+
+      // Line thickness: LAN=2px, region=0.8px, distant=0.3px
+      var lineW = spd.rtt_ms < 1 ? 2 : spd.rtt_ms < 50 ? 0.8 : 0.3;
+      // Zone color: lan=green, dc=cyan, region=blue, distant=red
+      var zoneColors = {lan:"0,255,100", dc:"0,220,255", region:"100,150,255", cross:"255,150,50", distant:"255,80,80"};
+      var zc = zoneColors[spd.zone] || "150,150,150";
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px2, py2);
+      ctx.strokeStyle = "rgba(" + zc + ",0.06)";
+      ctx.lineWidth = lineW;
+      ctx.stroke();
+
+      // RTT label near peer
+      var labelDist = meshR * 0.7;
+      var lx = cx + Math.cos(angle2) * labelDist;
+      var ly = cy + Math.sin(angle2) * labelDist;
+      ctx.font = "4px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(" + zc + ",0.15)";
+      var rttLabel = spd.rtt_ms < 1 ? spd.rtt_ms.toFixed(1) + "ms LAN" :
+                     spd.rtt_ms < 50 ? spd.rtt_ms.toFixed(0) + "ms" :
+                     spd.rtt_ms.toFixed(0) + "ms ↗";
+      ctx.fillText(rttLabel, lx, ly);
+    }
+
+    // Routing order at bottom
+    if (meshSpeedData.routing_order && meshSpeedData.routing_order.length > 0) {
+      var routeStr = meshSpeedData.routing_order.map(function(r) { return r.name; }).join(" → ");
+      ctx.font = "3.5px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(200,200,200,0.06)";
+      ctx.fillText("route: " + routeStr, cx, cy + meshR + 24);
+    }
+  }
+
   // Alive count
   var aliveCount = 0;
   for (var ap = 0; ap < peers.length; ap++) {
@@ -1418,12 +1471,12 @@ function drawInterMembranePulse() {
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillText("mesh " + aliveCount + "/" + peers.length + " alive", cx, cy - meshR - 6);
 
-  // Gate-msg indicator — check if messages exist
+  // Gate-msg + speed principle
   if (memPulseData.desk_count > 0) {
     var msgPulse = 0.04 + Math.sin(t * 0.7) * 0.02;
     ctx.font = "3.5px monospace";
     ctx.fillStyle = "rgba(255,200,100," + msgPulse.toFixed(3) + ")";
-    ctx.fillText("gate-msg relay active", cx, cy - meshR - 12);
+    ctx.fillText("gate-msg relay · check local first", cx, cy - meshR - 12);
   }
   ctx.restore();
 }
@@ -2081,6 +2134,7 @@ function loadData() {
   fetch('/negentropy.json').then(function(r){return r.json()}).then(function(d){negentropyData=d}).catch(function(){});
   fetch('/chipmunk.json').then(function(r){return r.json()}).then(function(d){chipmunkData=d}).catch(function(){});
   fetch('/membrane-pulse.json').then(function(r){return r.json()}).then(function(d){memPulseData=d}).catch(function(){});
+  fetch('/mesh-speed.json').then(function(r){return r.json()}).then(function(d){meshSpeedData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2488,6 +2542,32 @@ draw();
       }).catch(function() { chipSay('relay unreachable.', 'chip'); });
       return;
     }
+    if (m === 'speed' || m === 'distance' || m === 'rtt' || m === 'latency' || m === 'route') {
+      if (meshSpeedData && meshSpeedData.distances) {
+        var lines = ['from ' + meshSpeedData.host + ':'];
+        for (var si = 0; si < meshSpeedData.distances.length; si++) {
+          var sd = meshSpeedData.distances[si];
+          if (sd.zone === 'self') continue;
+          lines.push('  ' + sd.name + ' ' + sd.rtt_ms + 'ms [' + sd.zone + ']');
+        }
+        if (meshSpeedData.routing_order) {
+          lines.push('route: ' + meshSpeedData.routing_order.map(function(r){return r.name}).join(' → '));
+        }
+        lines.push('check local first. steam/plex/data: nearest copy wins.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('speed data not loaded...', 'chip');
+      return;
+    }
+    if (m === 'plex' || m === 'steam' || m === 'library' || m === 'share' || m === 'family') {
+      if (meshSpeedData && meshSpeedData.routing_order) {
+        var nearest = meshSpeedData.routing_order[0];
+        chipSay('family sharing: check ' + nearest.name + ' first (' + nearest.rtt_ms + 'ms ' + nearest.zone + '). ' +
+                'if not there, try ' + (meshSpeedData.routing_order[1]||{name:'cloud'}).name + '. ' +
+                'steam library, plex media, build cache — same rule. ' +
+                'the mesh IS the CDN. 0.4ms beats 37ms beats 230ms.', 'chip');
+      } else chipSay('speed data loading...', 'chip');
+      return;
+    }
     if (m === 'discord' || m === 'community' || m === 'locality') {
       chipSay('the desk IS discord. each gate is a channel. each membrane is a voice room. ' +
               'RustDesk streams the screen — that is twitch. gate-msg passes messages — that is chat. ' +
@@ -2504,7 +2584,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · msg [gate] [text] · inbox · discord', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · route · plex · msg [gate] [text] · inbox', 'chip');
       return;
     }
 
