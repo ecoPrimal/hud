@@ -84,7 +84,7 @@ var ctx = C.getContext('2d');
 var W, H, cx, cy;
 var frame = 0, t = 0;
 var neutronData = null, campfireData = null, dashData = null, pulseData = null;
-var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null;
 
 function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
 addEventListener('resize', resize);
@@ -2136,6 +2136,7 @@ function loadData() {
   fetch('/membrane-pulse.json').then(function(r){return r.json()}).then(function(d){memPulseData=d}).catch(function(){});
   fetch('/mesh-speed.json').then(function(r){return r.json()}).then(function(d){meshSpeedData=d}).catch(function(){});
   fetch('/reflection.json').then(function(r){return r.json()}).then(function(d){reflectionData=d}).catch(function(){});
+  fetch('/genome.json').then(function(r){return r.json()}).then(function(d){genomeData=d}).catch(function(){});
 }
 
 // ═══ THE MEMBRANE SINGS ═══
@@ -2576,6 +2577,21 @@ draw();
       } else chipSay('reflection data loading...', 'chip');
       return;
     }
+    if (m === 'genome' || m === 'totality' || m === 'size' || m === 'binary' || m === 'energy' || m === 'cost') {
+      if (genomeData) {
+        var g = genomeData.genome_summary;
+        var r = genomeData.reduction;
+        var lines = [];
+        lines.push('GENOME: ' + g.total_lines + ' lines · ' + g.total_articles + ' articles · ' + g.total_binaries_mb + 'MB binaries');
+        lines.push('published: ' + g.total_published_mb + 'MB · feeds: ' + g.total_feeds_mb + 'MB · ' + g.fossils + ' fossils · ' + g.git_repos + ' repos');
+        lines.push('cost: ' + g.cost + ' · RAM: ' + g.ram);
+        lines.push('REDUCTION: 500 EB world → ' + r.our_total_mb + 'MB us = ' + r.compression_to_world + ' compression');
+        lines.push('energy: ' + r.energy.our_vps_kwh_year + ' kWh/year us vs ' + r.energy.world_datacenter_twh_year + ' TWh/year world = ' + r.energy.ratio);
+        lines.push(r.pi_body_math);
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('genome data loading...', 'chip');
+      return;
+    }
     if (m === 'friction' || m === '404' || m === 'missing') {
       if (reflectionData && reflectionData.friction) {
         var lines = ['friction points — what visitors expected but we dont have:'];
@@ -2614,7 +2630,7 @@ draw();
       return;
     }
     if (m === 'help' || m === '?') {
-      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · msg [gate] [text] · inbox', 'chip');
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · genome · msg [gate] [text] · inbox', 'chip');
       return;
     }
 
