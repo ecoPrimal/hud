@@ -67,12 +67,14 @@ canvas { display:block; }
 var C = document.getElementById('c');
 var ctx = C.getContext('2d');
 var W, H, cx, cy;
-var state = null;
-var topo = null;
-var pulse = null;
-var heartPhase = 0;
+var neutronData = null;
+var topoData = null;
+var pulseData = null;
+var campfireData = null;
 var particles = [];
 var arteries = [];
+var surfaceNodes = {};  // name → {x, y, rpm, tempo, phase, beatHz}
+var DIM = '#8b949e';
 
 function resize() {
   W = C.width = window.innerWidth;
@@ -83,10 +85,32 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// ── MAP RPM to visual beat rate ──
+// RPM is requests-per-minute. We map to a visible Hz (0.2 – 3.0)
+// so humans can SEE the pulse, not a flicker.
+function rpmToHz(rpm) {
+  if (rpm <= 0) return 0.15;       // nearly still → very slow breathe
+  if (rpm < 1)  return 0.2;        // still → slow breathe  
+  if (rpm < 5)  return 0.4;        // walking → calm
+  if (rpm < 20) return 0.7;        // brisk → steady
+  if (rpm < 50) return 1.2;        // rushing → strong beat
+  if (rpm < 200) return 1.8;       // active → fast
+  if (rpm < 1000) return 2.3;      // heavy → rapid
+  return 3.0;                      // surge → max visible rate
+}
+
+// ── TEMPO COLOR ──
+function tempoColor(tempo) {
+  if (tempo === 'rushing') return '#f85149';
+  if (tempo === 'walking') return '#d29922';
+  if (tempo === 'resting') return '#58a6ff';
+  return '#484f58'; // still
+}
+
 // Colors by symbiotic class
 function classColor(cls) {
   if (cls === 'mutualist') return '#3fb950';
-  if (cls === 'commensal') return '#58a6ff';
+  if (cls === 'commensal_active' || cls === 'commensal') return '#58a6ff';
   if (cls === 'parasite') return '#d29922';
   if (cls === 'pathogen') return '#f85149';
   return '#484f58';
@@ -94,73 +118,96 @@ function classColor(cls) {
 
 function classAlpha(cls) {
   if (cls === 'mutualist') return 0.9;
-  if (cls === 'commensal') return 0.7;
+  if (cls === 'commensal_active' || cls === 'commensal') return 0.7;
   if (cls === 'parasite') return 0.5;
   if (cls === 'pathogen') return 0.8;
   return 0.3;
 }
 
-// Build arteries from flow data
-function buildArteries(flows) {
-  arteries = [];
-  var surfaces = Object.keys(flows);
-  var n = surfaces.length;
-  if (n === 0) return;
-
-  // Place surfaces in a ring
-  var surfacePos = {};
-  var radius = Math.min(W, H) * 0.32;
-  surfaces.forEach(function(s, i) {
-    var a = (i / n) * Math.PI * 2 - Math.PI / 2;
-    surfacePos[s] = { x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius, name: s };
-  });
-
-  // Also add surfaces from targets
-  for (var s in flows) {
-    for (var t in flows[s]) {
-      if (!surfacePos[t]) {
-        var idx = Object.keys(surfacePos).length;
-        var a = (idx / (n + 5)) * Math.PI * 2 - Math.PI / 2;
-        surfacePos[t] = { x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius, name: t };
+// ── BUILD SURFACE NODES from campfire (hyperlocal heartbeats) ──
+function buildSurfaces(campfire, flows) {
+  var rpm = campfire.rpm || {};
+  // Filter to surfaces with actual traffic (rpm > 0.01)
+  var active = [];
+  for (var name in rpm) {
+    if (rpm[name].rpm > 0.01) active.push(name);
+  }
+  // Also include flow targets
+  if (flows) {
+    for (var src in flows) {
+      if (active.indexOf(src) === -1 && rpm[src]) active.push(src);
+      for (var tgt in flows[src]) {
+        if (active.indexOf(tgt) === -1 && rpm[tgt]) active.push(tgt);
       }
     }
   }
+  // Sort by RPM descending so highest-traffic surfaces get prominent positions
+  active.sort(function(a, b) { return (rpm[b] || {}).rpm - (rpm[a] || {}).rpm; });
 
-  // Create artery lines
+  var n = active.length;
+  if (n === 0) return;
+
+  var radius = Math.min(W, H) * 0.33;
+  surfaceNodes = {};
+
+  active.forEach(function(name, i) {
+    var d = rpm[name] || {};
+    var surfRpm = d.rpm || 0;
+    var tempo = d.tempo || 'still';
+    var a = (i / n) * Math.PI * 2 - Math.PI / 2;
+
+    // Inner ring for high-traffic, outer for low
+    var rFactor = surfRpm > 10 ? 0.7 : surfRpm > 1 ? 0.85 : 1.0;
+
+    surfaceNodes[name] = {
+      x: cx + Math.cos(a) * radius * rFactor,
+      y: cy + Math.sin(a) * radius * rFactor,
+      rpm: surfRpm,
+      tempo: tempo,
+      beatHz: rpmToHz(surfRpm),
+      phase: Math.random() * Math.PI * 2, // start at random phase
+      baseSize: Math.max(4, Math.min(18, Math.log2(surfRpm + 1) * 4)),
+      color: tempoColor(tempo),
+      name: name
+    };
+  });
+}
+
+// ── BUILD ARTERIES from flow data ──
+function buildArteries(flows) {
+  arteries = [];
+  if (!flows) return;
+
   for (var from in flows) {
     for (var to in flows[from]) {
       var count = flows[from][to];
-      if (surfacePos[from] && surfacePos[to] && count > 0) {
+      if (surfaceNodes[from] && surfaceNodes[to] && count > 0) {
         arteries.push({
-          from: surfacePos[from],
-          to: surfacePos[to],
+          from: surfaceNodes[from],
+          to: surfaceNodes[to],
           count: count,
           width: Math.min(Math.log2(count + 1) * 0.8, 6)
         });
       }
     }
   }
-
-  return surfacePos;
 }
 
-// Generate particles from entity data
-function buildParticles(entities, surfacePos) {
+// ── BUILD PARTICLES from entity data ──
+function buildParticles(entities) {
   particles = [];
   if (!entities) return;
-  var keys = Object.keys(surfacePos);
-  if (keys.length === 0) return;
+  var nodeKeys = Object.keys(surfaceNodes);
+  if (nodeKeys.length === 0) return;
 
   entities.forEach(function(e) {
-    var cls = e.symbiotic_class || 'null';
+    var cls = e.symbiotic_class || e.relationship || 'null';
     var reqs = e.total_requests || 1;
-    // Number of particles proportional to log of requests
     var count = Math.min(Math.ceil(Math.log10(reqs + 1) * 3), 20);
     var color = classColor(cls);
     var size = cls === 'pathogen' ? 3.5 : cls === 'parasite' ? 3 : cls === 'mutualist' ? 4 : 2.5;
 
     for (var i = 0; i < count; i++) {
-      // Pick a random artery or orbit
       var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
       particles.push({
         label: e.label || '?',
@@ -168,69 +215,104 @@ function buildParticles(entities, surfacePos) {
         color: color,
         size: size,
         alpha: classAlpha(cls),
-        // Path along artery
         artery: artery,
         progress: Math.random(),
         speed: (0.001 + Math.random() * 0.003) * (cls === 'pathogen' ? 1.5 : 1),
-        // Orbit for entities without arteries
         orbitR: Math.min(W, H) * (0.15 + Math.random() * 0.25),
         orbitAngle: Math.random() * Math.PI * 2,
-        orbitSpeed: (0.002 + Math.random() * 0.005) * (cls === 'parasite' ? -1 : 1),
-        reciprocity: e.reciprocity || 0,
-        friction: e.friction || 0,
-        defections: e.consecutive_defections || 0,
+        orbitSpeed: (0.002 + Math.random() * 0.005) * (cls === 'parasite' ? -1 : 1)
       });
     }
   });
 }
 
-// Draw the heart (center pulsing)
-function drawHeart(rpm, trend) {
-  var beatRate = rpm > 0 ? rpm / 60 : 1; // beats per second
-  heartPhase += beatRate * 0.016; // ~60fps
-  var beat = Math.sin(heartPhase * Math.PI * 2);
-  var pulseSize = 18 + beat * 8;
+// ── DRAW: hyperlocal heartbeats at each surface ──
+function drawSurfaces(t) {
+  for (var name in surfaceNodes) {
+    var s = surfaceNodes[name];
 
-  // Glow
-  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseSize * 4);
-  grad.addColorStop(0, 'rgba(88,166,255,' + (0.15 + beat * 0.1) + ')');
-  grad.addColorStop(0.5, 'rgba(88,166,255,' + (0.05 + beat * 0.03) + ')');
+    // Each surface beats at its own Hz, mapped from its own RPM
+    s.phase += s.beatHz * 0.016;  // ~60fps increment
+    var beat = Math.sin(s.phase * Math.PI * 2);
+    var pulse = s.baseSize + beat * s.baseSize * 0.4;
+
+    // Glow ring — bigger for faster surfaces
+    var glowR = pulse * 2.5;
+    var grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+    grad.addColorStop(0, s.color.replace(')', ',0.25)').replace('rgb', 'rgba'));
+    grad.addColorStop(0.6, s.color.replace(')', ',0.06)').replace('rgb', 'rgba'));
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core node — pulses with its heartbeat
+    ctx.globalAlpha = 0.5 + beat * 0.4;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Label + RPM
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = DIM;
+    ctx.fillText(name, s.x, s.y - pulse - 6);
+    ctx.font = '8px monospace';
+    ctx.fillStyle = s.color;
+    ctx.fillText(s.rpm.toFixed(1), s.x, s.y - pulse + 2);
+  }
+}
+
+// ── DRAW: aggregate heart (summary, not the source) ──
+function drawHeart(totalRpm, trend) {
+  var hz = rpmToHz(totalRpm);
+  // Use a separate phase for the center
+  if (!drawHeart._phase) drawHeart._phase = 0;
+  drawHeart._phase += hz * 0.016;
+  var beat = Math.sin(drawHeart._phase * Math.PI * 2);
+
+  // Small summary heart — NOT the main event
+  var pulseSize = 12 + beat * 5;
+
+  // Subtle glow
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseSize * 3);
+  grad.addColorStop(0, 'rgba(88,166,255,' + (0.08 + beat * 0.05) + ')');
   grad.addColorStop(1, 'rgba(88,166,255,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, pulseSize * 4, 0, Math.PI * 2);
+  ctx.arc(cx, cy, pulseSize * 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Heart core
+  // Core
   var heartColor = trend === 'rising' ? '#3fb950' : trend === 'falling' ? '#f85149' : '#58a6ff';
   ctx.fillStyle = heartColor;
-  ctx.globalAlpha = 0.6 + beat * 0.3;
+  ctx.globalAlpha = 0.4 + beat * 0.2;
   ctx.beginPath();
   ctx.arc(cx, cy, pulseSize, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
 
-  // RPM text in heart
+  // RPM text
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 11px monospace';
+  ctx.font = 'bold 10px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(Math.round(rpm), cx, cy);
-  ctx.font = '8px monospace';
-  ctx.fillStyle = var_dim;
-  ctx.fillText('RPM', cx, cy + 12);
+  ctx.fillText(Math.round(totalRpm), cx, cy);
+  ctx.font = '7px monospace';
+  ctx.fillStyle = DIM;
+  ctx.fillText('RPM', cx, cy + 10);
 }
 
-var var_dim = '#8b949e';
-
-// Draw arteries
+// ── DRAW: arteries ──
 function drawArteries() {
   arteries.forEach(function(a) {
     ctx.strokeStyle = 'rgba(88,166,255,' + Math.min(a.width * 0.04, 0.25) + ')';
     ctx.lineWidth = a.width;
     ctx.beginPath();
     ctx.moveTo(a.from.x, a.from.y);
-    // Curve through center
     var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
     var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
     ctx.quadraticCurveTo(midX, midY, a.to.x, a.to.y);
@@ -238,25 +320,7 @@ function drawArteries() {
   });
 }
 
-// Draw surface nodes
-function drawSurfaces(surfacePos) {
-  if (!surfacePos) return;
-  ctx.font = '10px -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  for (var name in surfacePos) {
-    var p = surfacePos[name];
-    // Node
-    ctx.fillStyle = 'rgba(88,166,255,0.3)';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    ctx.fill();
-    // Label
-    ctx.fillStyle = var_dim;
-    ctx.fillText(name, p.x, p.y - 10);
-  }
-}
-
-// Draw particles (blood cells / entities flowing through arteries)
+// ── DRAW: particles (blood cells) ──
 function drawParticles() {
   particles.forEach(function(p) {
     p.progress += p.speed;
@@ -264,18 +328,15 @@ function drawParticles() {
 
     var x, y;
     if (p.artery) {
-      // Follow artery path (quadratic bezier)
       var a = p.artery;
       var t = p.progress;
       var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
       var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
       x = (1-t)*(1-t)*a.from.x + 2*(1-t)*t*midX + t*t*a.to.x;
       y = (1-t)*(1-t)*a.from.y + 2*(1-t)*t*midY + t*t*a.to.y;
-      // Add slight wobble
       x += Math.sin(p.progress * 20 + p.orbitAngle) * 3;
       y += Math.cos(p.progress * 20 + p.orbitAngle) * 3;
     } else {
-      // Orbit around center
       p.orbitAngle += p.orbitSpeed;
       x = cx + Math.cos(p.orbitAngle) * p.orbitR;
       y = cy + Math.sin(p.orbitAngle) * p.orbitR;
@@ -287,7 +348,6 @@ function drawParticles() {
     ctx.arc(x, y, p.size, 0, Math.PI * 2);
     ctx.fill();
 
-    // Trail
     if (p.cls === 'pathogen') {
       ctx.fillStyle = 'rgba(248,81,73,0.15)';
       ctx.beginPath();
@@ -303,94 +363,95 @@ function drawParticles() {
   });
 }
 
-// Update stats bar
+// ── STATS BAR ──
 function updateStats() {
-  if (!topo || !pulse) return;
-  var entities = topo.entities || [];
+  var entities = (topoData && topoData.entities) || [];
   var counts = { mutualist: 0, commensal: 0, parasite: 0, pathogen: 0, null: 0 };
   var totalReqs = 0;
   entities.forEach(function(e) {
-    var cls = e.symbiotic_class || 'null';
+    var cls = e.symbiotic_class || e.relationship || 'null';
+    // Normalize commensal variants
+    if (cls.indexOf('commensal') === 0) cls = 'commensal';
     counts[cls] = (counts[cls] || 0) + 1;
     totalReqs += e.total_requests || 0;
   });
 
-  var b = (state && state.breathing) || {};
-  var ctx2 = (state && state.context) || {};
-  var dir = (state && state.direction) || {};
-  var neural = (state && state.neural) || {};
+  var b = (neutronData && neutronData.breathing) || {};
+  var c = (neutronData && neutronData.context) || {};
+  var dir = (neutronData && neutronData.direction) || {};
+  var activeSurfaces = Object.keys(surfaceNodes).length;
 
   document.getElementById('stats-bar').innerHTML =
     '<div class="stat"><span class="val" style="color:var(--mutualist)">' + counts.mutualist + '</span><span class="lbl">mutualist</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--commensal)">' + counts.commensal + '</span><span class="lbl">commensal</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--parasite)">' + counts.parasite + '</span><span class="lbl">parasite</span></div>' +
     '<div class="stat"><span class="val" style="color:var(--pathogen)">' + counts.pathogen + '</span><span class="lbl">pathogen</span></div>' +
-    '<div class="stat"><span class="val" style="color:var(--null)">' + counts.null + '</span><span class="lbl">null</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--null)">' + counts['null'] + '</span><span class="lbl">null</span></div>' +
     '<div class="stat"><span class="val">' + entities.length + '</span><span class="lbl">entities</span></div>' +
     '<div class="stat"><span class="val">' + totalReqs.toLocaleString() + '</span><span class="lbl">requests</span></div>' +
     '<div class="stat"><span class="val">' + particles.length + '</span><span class="lbl">particles</span></div>' +
-    '<div class="stat"><span class="val">' + (neural.total_surfaces || '?') + '</span><span class="lbl">surfaces</span></div>' +
-    '<div class="stat"><span class="val">' + (ctx2.context || '?') + '</span><span class="lbl">context</span></div>' +
-    '<div class="stat"><span class="val">' + (ctx2.reach || '?') + '</span><span class="lbl">reach</span></div>' +
+    '<div class="stat"><span class="val">' + activeSurfaces + '</span><span class="lbl">surfaces</span></div>' +
+    '<div class="stat"><span class="val">' + (c.context || '?') + '</span><span class="lbl">context</span></div>' +
+    '<div class="stat"><span class="val">' + (c.reach || '?') + '</span><span class="lbl">reach</span></div>' +
     '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">direction</span></div>' +
     '<div class="stat"><span class="val" style="color:#58a6ff">' + (dir.in_pulse || 0) + '</span><span class="lbl">in-pulse</span></div>' +
     '<div class="stat"><span class="val" style="color:#3fb950">' + (dir.out_pulse || 0) + '</span><span class="lbl">out-pulse</span></div>';
 
   document.getElementById('pulse-info').textContent =
-    'RPM: ' + (b.rpm || 0).toFixed(0) + ' | ' +
-    'trend: ' + (b.trend || '?') + ' | ' +
-    'interval: ' + (b.interval_seconds || '?') + 's | ' +
-    'context: ' + (ctx2.context || '?') + ' | ' +
-    'reach: ' + (ctx2.reach || '?') + ' | ' +
-    'breathing with the membrane';
+    'RPM: ' + (b.rpm || 0).toFixed(0) + ' · ' +
+    'trend: ' + (b.trend || '?') + ' · ' +
+    'context: ' + (c.context || '?') + ' · ' +
+    'reach: ' + (c.reach || '?') + ' · ' +
+    activeSurfaces + ' surfaces breathing';
 }
 
-var surfacePos = null;
-
-// Main render loop
+// ── MAIN RENDER LOOP ──
 function frame() {
+  // Fade trail (not full clear — leaves motion traces)
   ctx.fillStyle = 'rgba(1,4,9,0.15)';
   ctx.fillRect(0, 0, W, H);
 
-  var rpm = (pulse && pulse.rate) || (state && state.breathing && state.breathing.rpm) || 100;
-  var trend = (pulse && pulse.pulse_trend) || (state && state.breathing && state.breathing.trend) || 'steady';
+  var totalRpm = (neutronData && neutronData.breathing && neutronData.breathing.rpm) || 100;
+  var trend = (neutronData && neutronData.breathing && neutronData.breathing.trend) || 'steady';
 
   drawArteries();
-  drawSurfaces(surfacePos);
-  drawHeart(rpm, trend);
+  drawSurfaces();      // ← hyperlocal heartbeats at each surface
+  drawHeart(totalRpm, trend);  // ← small aggregate summary at center
   drawParticles();
 
   requestAnimationFrame(frame);
 }
 
-// Fetch data
+// ── LOAD DATA ──
 function load() {
   Promise.all([
-    fetch('/neutron.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
-    fetch('/topology.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
-    fetch('/pulse.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+    fetch('/neutron.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/topology.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/pulse.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/campfire.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null})
   ]).then(function(results) {
-    if (results[0]) {
-      state = results[0];
-      if (state.flows) {
-        surfacePos = buildArteries(state.flows);
-      }
+    neutronData = results[0] || neutronData;
+    topoData = results[1] || topoData;
+    pulseData = results[2] || pulseData;
+    campfireData = results[3] || campfireData;
+
+    // Build everything from campfire (hyperlocal source of truth)
+    if (campfireData) {
+      var flows = neutronData ? neutronData.flows : null;
+      buildSurfaces(campfireData, flows);
+      buildArteries(flows);
     }
-    if (results[1]) {
-      topo = results[1];
-      if (topo.entities) {
-        buildParticles(topo.entities, surfacePos);
-      }
+
+    if (topoData && topoData.entities) {
+      buildParticles(topoData.entities);
     }
-    if (results[2]) {
-      pulse = results[2];
-    }
+
     updateStats();
   });
 }
 
 load();
-setInterval(function() { load(); }, 60000);
+setInterval(load, 60000);
 frame();
 </script>
 </body>

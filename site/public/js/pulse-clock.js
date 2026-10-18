@@ -1,12 +1,7 @@
 // pulse-clock.js — the membrane's heartbeat clock
 // Everything syncs to this. Not fixed timers. PULSE.
-//
-// Usage: 
-//   PulseClock.interval('fast')   → 8s when active, 30s when dormant
-//   PulseClock.interval('normal') → 15s when active, 60s when dormant
-//   PulseClock.interval('slow')   → 30s when active, 300s when dormant
-//   PulseClock.onBeat(fn)         → called every heartbeat
-//   PulseClock.state              → { rpm, trend, context, reach, interval }
+// RPM is requests-per-minute — mapped to visible beat rate (Hz).
+// Each surface has its own heartbeat. This is the aggregate.
 (function() {
   'use strict';
 
@@ -18,7 +13,7 @@
     interval: 60,
     human: 0,
     bot: 0,
-    // Pulse direction: null → out, out → in
+    beatHz: 1.0,
     direction: 'unknown',
     in_pulse: 0,
     out_pulse: 0,
@@ -29,10 +24,22 @@
   var beatListeners = [];
   var lastFetch = 0;
 
-  // Fetch pulse data from neutron
+  // Map RPM (requests-per-minute) to visible beat rate (Hz)
+  // Humans see ~0.2–3 Hz as pulsing. Faster = flickering.
+  function rpmToHz(rpm) {
+    if (rpm <= 0) return 0.15;
+    if (rpm < 1)  return 0.2;
+    if (rpm < 5)  return 0.4;
+    if (rpm < 20) return 0.7;
+    if (rpm < 50) return 1.2;
+    if (rpm < 200) return 1.8;
+    if (rpm < 1000) return 2.3;
+    return 3.0;
+  }
+
   function fetchPulse() {
     var now = Date.now();
-    if (now - lastFetch < 10000) return; // don't fetch more than every 10s
+    if (now - lastFetch < 10000) return;
     lastFetch = now;
 
     fetch('/neutron.json', {cache: 'no-store'})
@@ -40,15 +47,15 @@
       .then(function(n) {
         if (!n) return;
         var b = n.breathing || {};
-        var ctx = n.context || {};
+        var c = n.context || {};
         state.rpm = b.rpm || 100;
         state.trend = b.trend || 'steady';
-        state.context = ctx.context || 'unknown';
-        state.reach = ctx.reach || 'unknown';
+        state.context = c.context || 'unknown';
+        state.reach = c.reach || 'unknown';
         state.interval = b.interval_seconds || 60;
-        state.human = ctx.human_count || 0;
-        state.bot = ctx.bot_count || 0;
-        // Pulse direction
+        state.human = c.human_count || 0;
+        state.bot = c.bot_count || 0;
+        state.beatHz = rpmToHz(state.rpm);
         var dir = n.direction || {};
         state.direction = dir.state || 'unknown';
         state.in_pulse = dir.in_pulse || 0;
@@ -56,7 +63,6 @@
         state.in_ratio = dir.in_ratio || 0;
         state.out_ratio = dir.out_ratio || 0;
 
-        // Notify beat listeners
         beatListeners.forEach(function(fn) {
           try { fn(state); } catch(e) {}
         });
@@ -64,32 +70,29 @@
       .catch(function() {});
   }
 
-  // Compute adaptive interval based on pulse
+  // Adaptive interval — scales with actual RPM
   function computeInterval(speed) {
     var base;
     switch(speed) {
-      case 'fast':    base = 8000; break;   // live data (presence, dashboard)
-      case 'normal':  base = 15000; break;  // standard refresh
-      case 'slow':    base = 30000; break;  // heavy/infrequent
-      case 'glacial': base = 120000; break; // background
+      case 'fast':    base = 8000; break;
+      case 'normal':  base = 15000; break;
+      case 'slow':    base = 30000; break;
+      case 'glacial': base = 120000; break;
       default:        base = 15000;
     }
 
-    // Scale by RPM
     var scale;
-    if (state.rpm > 2000)      scale = 0.5;  // concert/event — fast
-    else if (state.rpm > 500)  scale = 0.8;  // active
-    else if (state.rpm > 100)  scale = 1.0;  // normal
-    else                       scale = 2.0;  // dormant — slow down
+    if (state.rpm > 2000)      scale = 0.5;
+    else if (state.rpm > 500)  scale = 0.8;
+    else if (state.rpm > 100)  scale = 1.0;
+    else                       scale = 2.0;
 
-    // Trend modifier
     if (state.trend === 'rising')  scale *= 0.8;
     if (state.trend === 'falling') scale *= 1.3;
 
     return Math.max(3000, Math.min(300000, Math.round(base * scale)));
   }
 
-  // Adaptive setInterval — adjusts its rate with the pulse
   function adaptiveInterval(fn, speed) {
     var timerId;
     function tick() {
@@ -97,21 +100,19 @@
       clearTimeout(timerId);
       timerId = setTimeout(tick, computeInterval(speed));
     }
-    // First tick after a short delay
     timerId = setTimeout(tick, computeInterval(speed));
     return { clear: function() { clearTimeout(timerId); } };
   }
 
-  // Start the pulse clock
   fetchPulse();
-  setInterval(fetchPulse, 30000); // update pulse every 30s
+  setInterval(fetchPulse, 30000);
 
-  // Export
   window.PulseClock = {
     get state() { return state; },
     interval: computeInterval,
     adaptive: adaptiveInterval,
     onBeat: function(fn) { beatListeners.push(fn); },
-    fetch: fetchPulse
+    fetch: fetchPulse,
+    rpmToHz: rpmToHz
   };
 })();

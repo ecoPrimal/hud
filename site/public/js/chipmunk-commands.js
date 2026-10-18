@@ -2949,7 +2949,7 @@ window._chipmunkCommands = function(ctx) {
 
             if (cmd === "circulatory" || cmd === "blood" || cmd === "heartbeat") {
         addEntry("system", "\u2764 circulatory system");
-        addEntry("chipmunk", "<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764\ufe0f the world's circulatory system — live</a>\n<span class=\"dim\">entities flowing through the membrane. heart=RPM. blood cells=entities. arteries=surface flows.</span>");
+        addEntry("chipmunk", "<a href=\"/neutron/circulatory.html\" target=\"_blank\" style=\"color:#58a6ff\">\u2764\ufe0f the world's circulatory system — live</a>\n<span class=\"dim\">every surface has its own heartbeat. hyperlocal. RPM mapped to visible pulse rate. blood cells=entities. arteries=surface flows.</span>");
         return;
       }
 
