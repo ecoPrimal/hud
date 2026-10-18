@@ -1293,6 +1293,129 @@ function drawPerspectiveMarkers() {
   ctx.restore();
 }
 
+// ═══ GENOME TOTALITY — the size of the work as DNA ═══
+// Binary sizes as genome wedges, positive energy system
+function drawGenomeTotality() {
+  if (!genomeData || !genomeData.inside) return;
+  var g = genomeData.inside;
+  var bins = g.binaries;
+  var totalB = g.total_binary_bytes || 1;
+  var red = genomeData.reduction || {};
+
+  // Genome ring: inner ring showing binary sizes as colored wedges
+  var gR = Math.min(W, H) * 0.31;
+  var gW = Math.min(W, H) * 0.015;
+  var cx = W / 2, cy = H / 2;
+  var t = performance.now() / 1000;
+
+  // Colors per binary (genome nucleotides)
+  var binColors = {
+    "skunky-ingest": "#00e5ff",
+    "caddy": "#4fc3f7",
+    "biomeos": "#69f0ae",
+    "toadstool": "#ffd54f",
+    "tower": "#ff8a65",
+    "barracuda": "#ef5350",
+    "opsonize": "#ce93d8",
+    "hbbs": "#b39ddb",
+    "hbbr": "#9fa8da"
+  };
+
+  // Draw genome ring as wedges
+  var angle = -Math.PI / 2;
+  var keys = Object.keys(bins);
+  for (var i = 0; i < keys.length; i++) {
+    var name = keys[i];
+    var bytes = bins[name];
+    var sweep = (bytes / totalB) * Math.PI * 2;
+    var col = binColors[name] || '#888';
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, gR, angle, angle + sweep, false);
+    ctx.strokeStyle = col;
+    ctx.globalAlpha = 0.5 + 0.15 * Math.sin(t * 0.8 + i);
+    ctx.lineWidth = gW;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Label at midpoint of wedge
+    var mid = angle + sweep / 2;
+    var lx = cx + Math.cos(mid) * (gR + gW + 8);
+    var ly = cy + Math.sin(mid) * (gR + gW + 8);
+    ctx.fillStyle = col;
+    ctx.font = '7px monospace';
+    ctx.textAlign = (mid > -Math.PI/2 && mid < Math.PI/2) ? 'left' : 'right';
+    ctx.textBaseline = 'middle';
+    var mb = (bytes / 1048576).toFixed(1);
+    ctx.fillText(name + ' ' + mb + 'MB', lx, ly);
+
+    angle += sweep;
+  }
+
+  // Inner label: total binary
+  ctx.fillStyle = '#aaa';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  var tMB = (totalB / 1048576).toFixed(1);
+  ctx.fillText('genome: ' + tMB + 'MB compiled', cx, cy + gR - gW - 14);
+
+  // Source lines summary arc (thin inner ring)
+  var sR = gR - gW - 4;
+  var srcLines = g.source_lines || {};
+  var totalLines = srcLines.total || 1;
+  var langColors = {rust: '#ff6e40', javascript: '#fdd835', html: '#4db6ac', python: '#42a5f5', shell: '#78909c', toml: '#a1887f'};
+  var langs = ['rust', 'javascript', 'html', 'python', 'shell', 'toml'];
+  angle = -Math.PI / 2;
+  for (i = 0; i < langs.length; i++) {
+    var lang = langs[i];
+    var lines = srcLines[lang] || 0;
+    sweep = (lines / totalLines) * Math.PI * 2;
+    if (sweep < 0.01) continue;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sR, angle, angle + sweep, false);
+    ctx.strokeStyle = langColors[lang] || '#666';
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    angle += sweep;
+  }
+  ctx.fillStyle = '#777';
+  ctx.font = '7px monospace';
+  ctx.fillText(totalLines.toLocaleString() + ' lines · ' + (g.articles ? g.articles.total : 0) + ' articles', cx, cy + gR - gW - 4);
+
+  // Positive energy ring — outer glow pulse
+  var eR = gR + gW + 22;
+  var ePulse = 0.3 + 0.2 * Math.sin(t * 0.5);
+  ctx.beginPath();
+  ctx.arc(cx, cy, eR, 0, Math.PI * 2);
+  ctx.strokeStyle = '#69f0ae';
+  ctx.globalAlpha = ePulse * 0.3;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Energy label
+  if (red.energy) {
+    ctx.fillStyle = '#69f0ae';
+    ctx.globalAlpha = 0.6;
+    ctx.font = '7px monospace';
+    ctx.fillText('positive energy: ' + (red.energy.our_vps_kwh_year || '?') + ' kWh/yr vs ' + (red.energy.world_datacenter_twh_year || '?') + ' TWh/yr world', cx, cy - gR + gW + 6);
+    ctx.fillText(red.compression_to_world + ' compression · $12/month', cx, cy - gR + gW + 16);
+    ctx.globalAlpha = 1;
+  }
+
+  // Pi body label at bottom of genome ring
+  if (red.pi_body_math) {
+    ctx.fillStyle = '#b39ddb';
+    ctx.globalAlpha = 0.5;
+    ctx.font = '7px monospace';
+    ctx.fillText('π body: the graph compresses · null space calculates · remainder = identity', cx, cy + gR + gW + 30);
+    ctx.globalAlpha = 1;
+  }
+}
+
 // ═══ INTER-MEMBRANE PULSE ═══
 // Each membrane = orbital dot with in/out flow arrows
 // RustDesk (AGPL-3.0) provides desk/relay for the mesh
@@ -2326,6 +2449,7 @@ draw = function() {
   drawSigmoidIndicator();
   drawNeutronCore();        // BLACK LOOKING OUT — chipmunk sees the stars
   drawPerspectiveMarkers(); // HUD sees both directions
+  drawGenomeTotality();     // genome ring — binary sizes as DNA
   drawInterMembranePulse(); // in/out per membrane
   updateHud();
   membraneSing();

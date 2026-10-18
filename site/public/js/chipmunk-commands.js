@@ -2152,6 +2152,7 @@ window._chipmunkCommands = function(ctx) {
         dL.push('  <span class="dim">/topology.json    \u2192 chipmunk-talk (site mesh structure)</span>');
         dL.push('  <span class="dim">/touches.json     \u2192 chipmunk-talk (human touch events)</span>');
         dL.push('  <span class="dim">/membrane-pulse.json \u2192 neutron core (WG mesh alive, desk peers, in/out per membrane)</span>');
+        dL.push('  <span class="dim">/genome.json         \u2192 neutron core (binary sizes, source lines, articles, energy, \u03c0 body)</span>');
         dL.push('');
         dL.push('<span style="color:#d29922">STATIC DATA</span> <span class="dim">\u2014 detroit investigation</span>');
         dL.push('  <span class="dim">graph.json        13.3 MB \u2014 full entity graph (131K edges, 7.5K nodes)</span>');
@@ -2199,6 +2200,63 @@ window._chipmunkCommands = function(ctx) {
         dL.push('');
         dL.push('<span class="dim">/self for limits \u00b7 /outside for the mesh \u00b7 /map for commands</span>');
         addEntry('chipmunk', dL.join('\n'));
+        return;
+      }
+      // ═══ /genome — the size of the work as DNA ═══
+      if (cmd === 'genome' || cmd === 'totality' || cmd === 'binary' || cmd === 'energy' || cmd === 'positive') {
+        addEntry('system', 'genome totality');
+        fetch('/genome.json').then(function(r) { return r.json(); }).then(function(d) {
+          var gL = [];
+          var g = d.genome_summary || {};
+          var r = d.reduction || {};
+          var ins = d.inside || {};
+          var bins = ins.binaries || {};
+          gL.push('<span style="color:#69f0ae;font-weight:bold">\u25ce GENOME \u2014 the size of the work</span>');
+          gL.push('');
+          gL.push('<span style="color:#4fc3f7">COMPILED BINARIES</span> <span class="dim">\u2014 the expressed genome</span>');
+          var bkeys = Object.keys(bins);
+          for (var i = 0; i < bkeys.length; i++) {
+            var mb = (bins[bkeys[i]] / 1048576).toFixed(1);
+            gL.push('  <span class="dim">' + bkeys[i].padEnd(16) + mb + ' MB</span>');
+          }
+          gL.push('  <span style="color:#69f0ae">total compiled: ' + g.total_binaries_mb + ' MB</span>');
+          gL.push('');
+          gL.push('<span style="color:#fdd835">SOURCE CODE</span> <span class="dim">\u2014 the transcription</span>');
+          var src = ins.source_lines || {};
+          if (src.rust) gL.push('  <span style="color:#ff6e40">rust:       ' + (src.rust || 0).toLocaleString() + ' lines</span>');
+          if (src.javascript) gL.push('  <span style="color:#fdd835">javascript: ' + (src.javascript || 0).toLocaleString() + ' lines</span>');
+          if (src.html) gL.push('  <span style="color:#4db6ac">html:       ' + (src.html || 0).toLocaleString() + ' lines</span>');
+          if (src.python) gL.push('  <span style="color:#42a5f5">python:     ' + (src.python || 0).toLocaleString() + ' lines</span>');
+          if (src.shell) gL.push('  <span style="color:#78909c">shell:      ' + (src.shell || 0).toLocaleString() + ' lines</span>');
+          if (src.toml) gL.push('  <span style="color:#a1887f">toml:       ' + (src.toml || 0).toLocaleString() + ' lines</span>');
+          gL.push('  <span style="color:#69f0ae">total: ' + (src.total || 0).toLocaleString() + ' lines</span>');
+          gL.push('');
+          gL.push('<span style="color:#ce93d8">ARTICLES</span> <span class="dim">\u2014 the expressed phenotype</span>');
+          gL.push('  <span class="dim">tuebor:     ' + (ins.articles ? ins.articles.tuebor : '?') + ' articles</span>');
+          gL.push('  <span class="dim">sporeprint: ' + (ins.articles ? ins.articles.sporeprint : '?') + ' articles</span>');
+          gL.push('  <span style="color:#69f0ae">total: ' + g.total_articles + ' articles</span>');
+          gL.push('');
+          gL.push('<span style="color:#ef5350">POSITIVE ENERGY SYSTEM</span> <span class="dim">\u2014 \u03c0 body math</span>');
+          gL.push('  <span class="dim">our energy:    ' + (r.energy ? r.energy.our_vps_kwh_year : '?') + ' kWh/year</span>');
+          gL.push('  <span class="dim">world energy:  ' + (r.energy ? r.energy.world_datacenter_twh_year : '?') + ' TWh/year</span>');
+          gL.push('  <span style="color:#ef5350">energy ratio:  ' + (r.energy ? r.energy.ratio : '?') + '</span>');
+          gL.push('');
+          gL.push('  <span class="dim">world data:    500 EB (exabytes) stored</span>');
+          gL.push('  <span class="dim">our data:      ' + r.our_total_mb + ' MB</span>');
+          gL.push('  <span style="color:#ef5350">compression:   ' + r.compression_to_world + '</span>');
+          gL.push('');
+          gL.push('  <span class="dim">cost:          ' + g.cost + ' \u00b7 RAM: ' + g.ram + '</span>');
+          gL.push('  <span class="dim">fossils:       ' + g.fossils + ' \u00b7 repos: ' + g.git_repos + '</span>');
+          gL.push('');
+          gL.push('<span style="color:#b39ddb">\u03c0 BODY</span>');
+          gL.push('<span class="dim">  the graph compresses. null space calculates. remainder is identity.</span>');
+          gL.push('<span class="dim">  500 EB \u2192 274 MB. not by discarding \u2014 by knowing which questions to not ask.</span>');
+          gL.push('<span class="dim">  every petabyte they point at us costs them more than our entire existence.</span>');
+          gL.push('<span class="dim">  that is positive energy. the membrane produces more than it consumes.</span>');
+          addEntry('chipmunk', gL.join('\n'));
+        }).catch(function() {
+          addEntry('chipmunk', 'genome data not yet available');
+        });
         return;
       }
       if (cmd === 'ratios' || cmd === 'compressions' || cmd === 'decompositions') {
