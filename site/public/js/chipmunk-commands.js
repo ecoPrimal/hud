@@ -3355,6 +3355,57 @@ window._chipmunkCommands = function(ctx) {
 
 
 
+
+      // ═══ ENERGY ═══
+      if (cmd === 'energy' || cmd === 'spend' || cmd === 'store' || cmd === 'campfire' || cmd === 'beacon' || cmd === 'beacons' || cmd === 'thermodynamics') {
+        addEntry('system', '🔥 energy');
+        fetch('/energy.json?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(e) {
+            var thermo = e.thermodynamics || {};
+            var orgs = e.organisms || {};
+            var camp = e.campfire || {};
+            var top = thermo.top_emitters || [];
+            var tempo = thermo.tempo_distribution || {};
+
+            var out = '<span style="color:#ff6b35;font-weight:bold">🔥 ORGANISM ENERGY</span>\n\n';
+
+            // Organisms
+            for (var name in orgs) {
+              var o = orgs[name];
+              var stateColor = o.state === 'optimal' || o.state === 'healthy' || o.state === 'observing' || o.state === 'building' ? '#3fb950' : '#d29922';
+              out += '<span style="color:' + stateColor + '">' + name + '</span> — ' + o.role + ' [' + o.temperature + ' ' + o.state + ']\n';
+              out += '  <span class="dim">stored: ' + o.stored + '</span>\n';
+              out += '  <span class="dim">spent: ' + o.spent + '</span>\n';
+            }
+
+            out += '\n<span style="color:#f1c40f;font-weight:bold">🔥 CAMPFIRE</span>\n';
+            out += 'total RPM: <span style="color:#ff6b35">' + (thermo.total_energy_rpm||0).toFixed(1) + '</span> (energy flux)\n';
+            out += 'total hits: <span style="color:#3fb950">' + (thermo.total_energy_hits||0).toLocaleString() + '</span> (stored)\n';
+            out += 'beacons: ' + (thermo.beacons_lit||0) + '/' + (thermo.beacons_total||0) + ' lit\n\n';
+
+            out += '<span style="color:#8b949e">tempo (energy states):</span>\n';
+            var tempoColors = {rushing:'#ff6b35',walking:'#3fb950',resting:'#58a6ff',still:'#484f58'};
+            for (var t in tempo) {
+              out += '  <span style="color:' + (tempoColors[t]||'#8b949e') + '">' + t + '</span>: ' + tempo[t].toLocaleString() + ' hits\n';
+            }
+
+            out += '\n<span style="color:#8b949e">top emitters:</span>\n';
+            for (var i = 0; i < Math.min(5, top.length); i++) {
+              var em = top[i];
+              out += '  ' + em.name + ': ' + em.rpm.toFixed(1) + ' rpm [' + em.tempo + ']\n';
+            }
+
+            out += '\n<span style="color:#a371f7">LAWS:</span>\n';
+            out += '<span class="dim">1st: ' + (e.first_law||'') + '</span>\n';
+            out += '<span class="dim">2nd: ' + (e.second_law||'') + '</span>\n';
+            out += '<span class="dim">3rd: ' + (e.third_law||'') + '</span>';
+
+            addEntry('chipmunk', out);
+          });
+        return;
+      }
+
       // ═══ TEMPERATURE ═══
       if (cmd === 'temp' || cmd === 'temperature' || cmd === 'kelvin' || cmd === 'fahrenheit' || cmd === 'celsius' || cmd === 'thermometer' || cmd === 'hot' || cmd === 'cold') {
         addEntry('system', '🌡 temperature');
