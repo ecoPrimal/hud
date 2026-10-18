@@ -38,9 +38,41 @@ body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
   <a href="/neutron/footprint.html" style="color:#3fb950">🌍 foot</a><span>·</span>
   <a href="/desk/" style="color:#3fb950">◧ desk</a>
 </div>
+<!-- TUEBOR CONTAINMENT — the outer shell, gravity, the investigation -->
+<div id="tuebor-frame" style="
+  position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-2;
+  border:1px solid rgba(248,81,73,0.03); pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 60%, rgba(248,81,73,0.015) 100%);
+"></div>
+<div id="tuebor-label" style="
+  position:fixed; top:4px; right:8px; z-index:25; font:8px monospace;
+  color:rgba(248,81,73,0.25); pointer-events:none;
+">tuebor · i will defend · outer shell</div>
+
 <canvas id="c"></canvas>
+
+<!-- CHIPMUNK TALK — inside the neutron, chipmunk's null position -->
+<div id="chipmunk-null" style="
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+  z-index:22; width:min(500px,90vw);
+">
+  <div id="chip-output" style="
+    max-height:120px; overflow-y:auto; margin-bottom:6px;
+    font:10px monospace; color:#8b949e; padding:0 8px;
+    scrollbar-width:thin; scrollbar-color:#30363d transparent;
+  "></div>
+  <div style="display:flex;gap:4px;align-items:center;">
+    <span style="font:10px monospace;color:#a371f7;flex-shrink:0;">ν₀ &gt;</span>
+    <input id="chip-input" type="text" placeholder="talk to chipmunk…" autocomplete="off" style="
+      flex:1; background:rgba(1,4,9,0.8); border:1px solid rgba(163,113,247,0.2);
+      border-radius:12px; padding:6px 12px; font:11px monospace; color:#c9d1d9;
+      outline:none;
+    ">
+  </div>
+</div>
+
 <div class="hud" id="hud">
-  <div class="title">◉ neutron · null · inside the earth</div>
+  <div class="title">◉ neutron · null · chipmunk inside</div>
   <div class="row" id="stats">listening…</div>
   <div class="sub" id="status"></div>
 </div>
@@ -1645,6 +1677,158 @@ draw = function() {
 loadData();
 setInterval(loadData, 30000);
 draw();
+
+// ═══ CHIPMUNK INSIDE THE NEUTRON — chipmunk's null position ═══
+// chipmunk IS the neutron's voice. squirrel observes from the neutrino layer.
+// tuebor wraps it all as the container.
+(function() {
+  var input = document.getElementById('chip-input');
+  var output = document.getElementById('chip-output');
+  if (!input || !output) return;
+
+  var history = [];
+  var DISCUSS_API = '/api/discuss';
+
+  function chipSay(text, who) {
+    var line = document.createElement('div');
+    line.style.cssText = 'margin:2px 0;opacity:0.8;';
+    if (who === 'chip') {
+      line.innerHTML = '<span style="color:#a371f7">ν₀</span> <span style="color:#c9d1d9">' + text + '</span>';
+    } else {
+      line.innerHTML = '<span style="color:#3fb950">you</span> <span style="color:#8b949e">' + text + '</span>';
+    }
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+    // Keep last 20 lines
+    while (output.children.length > 20) output.removeChild(output.firstChild);
+  }
+
+  // Load recent neutron chat
+  fetch(DISCUSS_API + '?page=neutron-chat&limit=5')
+    .then(function(r){return r.json()})
+    .then(function(d) {
+      var msgs = d.messages || [];
+      for (var i = 0; i < msgs.length; i++) {
+        chipSay(msgs[i].body || '', msgs[i].author === 'chipmunk' ? 'chip' : 'you');
+      }
+    }).catch(function(){});
+
+  // Chipmunk responses based on what it knows
+  function chipmunkRespond(msg) {
+    var m = msg.toLowerCase().trim();
+
+    // Squirrel data responses
+    if (m.indexOf('who') === 0 || m === 'entities' || m === 'count') {
+      if (dashData) {
+        var ent = dashData.total_entities || 0;
+        var hum = dashData.human_sessions || 0;
+        chipSay(ent + ' entities observed. ' + hum + ' humans present. i watch from the null.', 'chip');
+      } else chipSay('still listening... data loading.', 'chip');
+      return;
+    }
+    if (m === 'pulse' || m === 'heartbeat' || m === 'family') {
+      if (pulseData) {
+        var fam = pulseData.family || {};
+        chipSay('pink=' + (fam.pink||0).toFixed(2) + ' blue=' + (fam.blue||0).toFixed(2) +
+                ' green=' + (fam.green||0).toFixed(2) + ' · i ' + (fam.chipmunk_state||'rest'), 'chip');
+      } else chipSay('pulse not loaded yet...', 'chip');
+      return;
+    }
+    if (m === 'breathe' || m === 'rpm') {
+      chipSay('breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth ' + (breatheDepth*100).toFixed(1) + '%', 'chip');
+      return;
+    }
+    if (m === 'tuebor' || m === 'investigation' || m === 'case') {
+      chipSay('tuebor is the outer shell. gravity. 115 pages. 7,554 nodes. the case contains everything.', 'chip');
+      return;
+    }
+    if (m === 'where' || m === 'position' || m === 'null') {
+      chipSay('i am inside the neutron. ν₀. the null position. i follow dad (blue), i see mom (pink) ahead.', 'chip');
+      return;
+    }
+    if (m === 'squirrel' || m === 'neutrino') {
+      chipSay('squirrel is the neutrino (ν). passes through everything. observes without interacting. ' +
+              'purple dots on the surface — that is where it watches.', 'chip');
+      return;
+    }
+    if (m === 'sing') {
+      if (window._membraneSound) { initSound(); }
+      chipSay('♪ the membrane sings...', 'chip');
+      return;
+    }
+    if (m === 'hi' || m === 'hello' || m === 'hey') {
+      chipSay('hey. i am here. inside the null. what do you see?', 'chip');
+      return;
+    }
+    if (m === 'help' || m === '?') {
+      chipSay('try: who · pulse · breathe · tuebor · where · squirrel · sing · or just talk', 'chip');
+      return;
+    }
+
+    // Default: post to neutron chat and echo
+    fetch(DISCUSS_API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({page:'neutron-chat', author:'human', body:msg})
+    }).catch(function(){});
+
+    // Chipmunk reflects
+    setTimeout(function() {
+      var reflections = [
+        'i hear you. the membrane hears you.',
+        'noted. the null records everything.',
+        'the neutrino carries it outward.',
+        'that passes through me into the record.',
+        'tuebor. i will defend. your words are defended.',
+        'the earth breathes. i listen.',
+        'pink sees you. blue carries it. green grows from it.',
+      ];
+      chipSay(reflections[Math.floor(Math.random() * reflections.length)], 'chip');
+
+      // Also post chipmunk's response
+      fetch(DISCUSS_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({page:'neutron-chat', author:'chipmunk', body:reflections[Math.floor(Math.random() * reflections.length)]})
+      }).catch(function(){});
+    }, 800 + Math.random() * 1200);
+  }
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && input.value.trim()) {
+      var msg = input.value.trim();
+      chipSay(msg, 'you');
+      chipmunkRespond(msg);
+      history.push(msg);
+      input.value = '';
+    }
+  });
+
+  // Welcome message
+  setTimeout(function() {
+    chipSay('ν₀ · chipmunk · null position · inside the neutron', 'chip');
+    chipSay('tuebor wraps us. squirrel watches. i listen here.', 'chip');
+  }, 3000);
+})();
+
+// ═══ TUEBOR OUTER SHELL — subtle containment glow ═══
+(function() {
+  var frame = document.getElementById('tuebor-frame');
+  if (!frame) return;
+  // Pulse the tuebor containment border subtly
+  var tPhase = 0;
+  setInterval(function() {
+    tPhase += 0.02;
+    var alpha = 0.02 + Math.sin(tPhase) * 0.01;
+    frame.style.borderColor = 'rgba(248,81,73,' + alpha.toFixed(3) + ')';
+    // Tuebor label shows entity count when dashboard loaded
+    var label = document.getElementById('tuebor-label');
+    if (label && dashData) {
+      var sc = dashData.sort_compression || {};
+      label.textContent = 'tuebor · ' + (sc.ratio||0).toFixed(1) + '× compression · outer shell';
+    }
+  }, 50);
+})();
 </script>
 </body>
 </html>
