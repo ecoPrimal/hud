@@ -329,3 +329,15 @@ document.getElementById('spinBanana').addEventListener('click', function() {
 </script>
 </body>
 </html>
+<script>
+// If they came from the bump, acknowledge it
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get("from") === "bump") {
+    var q = document.querySelector(".question");
+    if (q) q.textContent = "you came back. good.";
+    var sub = document.querySelector(".subtitle");
+    if (sub) sub.textContent = "let\u0027s do this properly.";
+  }
+})();
+</script>
