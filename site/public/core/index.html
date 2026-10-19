@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>neutron · core · primals.eco</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#010409; color:#c9d1d9; font-family:-apple-system,BlinkMacSystemFont,sans-serif; overflow:hidden; }
+canvas { display:block; }
+.nav { position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;
+  display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace; }
+.nav a { color:#58a6ff; text-decoration:none; }
+.nav span { color:#30363d; }
+.hud { position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;
+  background:rgba(1,4,9,0.9);border:1px solid rgba(88,166,255,0.15);
+  border-radius:12px;padding:12px 20px;font:11px monospace;text-align:center;max-width:800px;width:94%; }
+.hud .row { display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
+.hud .stat { text-align:center; }
+.hud .num { font-size:16px;font-weight:bold;color:#58a6ff; }
+.hud .lbl { font-size:8px;color:#8b949e;text-transform:uppercase; }
+.hud .title { font-size:13px;color:#58a6ff;margin-bottom:6px; }
+.hud .sub { font-size:10px;color:#8b949e;margin-top:4px; }
+body.as-null .nav { display:none !important; }
+body.as-null .hud { bottom:4px; padding:6px 12px; opacity:0.7; }
+</style>
+<script>if(window.self!==window.top)document.body.classList.add('as-null');</script>
+</head>
+<body>
+<div class="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149">♥ circ</a><span>·</span>
+  <a href="/neutron/board.html" style="color:#a371f7">▣ board</a><span>·</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f">🌐 globe</a><span>·</span>
+  <a href="/neutron/helix.html" style="color:#d29922">🧬 helix</a><span>·</span>
+  <a href="/neutron/invite.html" style="color:#3fb950">🤝 invite</a><span>·</span>
+  <a href="/neutron/footprint.html" style="color:#3fb950">🌍 foot</a><span>·</span>
+  <a href="/desk/" style="color:#3fb950">◧ desk</a>
+</div>
+<!-- TUEBOR CONTAINMENT — the outer shell, gravity, the investigation -->
+<div id="tuebor-frame" style="
+  position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-2;
+  border:1px solid rgba(248,81,73,0.03); pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 60%, rgba(248,81,73,0.015) 100%);
+"></div>
+<div id="tuebor-label" style="
+  position:fixed; top:4px; right:8px; z-index:25; font:8px monospace;
+  color:rgba(248,81,73,0.25); pointer-events:none;
+">tuebor · i will defend · outer shell</div>
+
+<canvas id="c"></canvas>
+
+<!-- CHIPMUNK TALK — inside the neutron, chipmunk's null position -->
+<div id="chipmunk-null" style="
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+  z-index:22; width:min(500px,90vw);
+">
+  <div id="chip-output" style="
+    max-height:120px; overflow-y:auto; margin-bottom:6px;
+    font:10px monospace; color:#8b949e; padding:0 8px;
+    scrollbar-width:thin; scrollbar-color:#30363d transparent;
+  "></div>
+  <div style="display:flex;gap:4px;align-items:center;">
+    <span style="font:10px monospace;color:#a371f7;flex-shrink:0;">ν₀ &gt;</span>
+    <input id="chip-input" type="text" placeholder="talk to chipmunk…" autocomplete="off" style="
+      flex:1; background:rgba(1,4,9,0.8); border:1px solid rgba(163,113,247,0.2);
+      border-radius:12px; padding:6px 12px; font:11px monospace; color:#c9d1d9;
+      outline:none;
+    ">
+  </div>
+</div>
+
+<div class="hud" id="hud">
+  <div class="title">◉ neutron · null · chipmunk inside</div>
+  <div class="row" id="stats">listening…</div>
+  <div class="sub" id="status"></div>
+</div>
+
+<script src="/js/membrane-sound.js?v=3"></script>
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H, cx, cy;
+var frame = 0, t = 0;
+var neutronData = null, campfireData = null, dashData = null, pulseData = null;
+var negentropyData = null, chipmunkData = null, memPulseData = null, meshSpeedData = null, reflectionData = null, genomeData = null, fleetSortData = null, backscatterData = null;
+
+function resize() { W = C.width = innerWidth; H = C.height = innerHeight; cx = W/2; cy = H/2; }
+addEventListener('resize', resize);
+resize();
+
+// ═══ COASTLINES ═══
+var COASTS = [
+  [49,-125],[48,-123],[49,-95],[48,-88],[45,-83],[42,-83],[42,-71],[35,-75],[30,-81],[25,-80],[25,-97],[32,-117],[38,-122],[49,-125],null,
+  [12,-72],[8,-77],[0,-80],[-5,-81],[-15,-75],[-23,-70],[-34,-72],[-55,-68],[-54,-65],[-40,-65],[-35,-57],[-23,-43],[-8,-35],[-1,-50],[7,-60],[12,-72],null,
+  [36,-10],[37,0],[43,5],[44,12],[39,20],[36,28],[41,29],[45,30],[48,17],[52,6],[54,10],[57,10],[60,5],[63,6],[68,16],[70,26],[65,30],[56,28],[55,21],[54,14],[52,6],[50,0],[48,-5],[44,-9],[36,-10],null,
+  [37,10],[33,10],[30,32],[22,37],[12,44],[0,42],[-12,41],[-26,33],[-35,18],[-34,26],[-25,35],[-15,41],[5,1],[5,-5],[15,-17],[20,-17],[27,-13],[36,0],[37,10],null,
+  [42,28],[41,45],[30,50],[25,57],[20,73],[8,77],[1,104],[10,107],[22,108],[30,122],[35,129],[38,140],[42,145],[50,143],[55,135],[60,143],[65,180],[70,170],[70,140],[60,100],[55,75],[50,60],[45,40],[42,28],null,
+  [-12,131],[-14,127],[-23,114],[-32,116],[-35,138],[-38,145],[-28,153],[-16,146],[-12,131],null,
+];
+
+// ═══ MEMBRANE + INVESTIGATION LOCATIONS ═══
+var MEMBRANE_LOCS = [
+  { lat:42.7,lng:-84.5,label:'Michigan',color:'#3fb950',size:8 },
+  { lat:37.7,lng:-122.4,label:'SF',color:'#58a6ff',size:5 },
+  { lat:37.4,lng:-122.1,label:'Mountain View',color:'#58a6ff',size:4 },
+  { lat:30.0,lng:-95.4,label:'Spring TX',color:'#a371f7',size:4 },
+  { lat:39.0,lng:-77.5,label:'Ashburn',color:'#f85149',size:6 },
+  { lat:53.3,lng:-6.3,label:'Dublin',color:'#d29922',size:4 },
+  { lat:47.6,lng:-122.3,label:'Redmond',color:'#58a6ff',size:3 },
+  { lat:39.7,lng:-105.0,label:'Denver',color:'#a371f7',size:3 },
+];
+var INV_LOCS = [
+  { lat:42.33,lng:-83.05,label:'Detroit',color:'#f1c40f',size:6 },
+  { lat:42.73,lng:-84.55,label:'Lansing',color:'#f1c40f',size:5 },
+  { lat:43.42,lng:-83.95,label:'Saginaw',color:'#f1c40f',size:4 },
+];
+
+var rotY = 0, rotSpeed = 0.0008;
+
+// ═══ THREE-BODY — dots form triangulating tetrahedrons by color ═══
+var THREE_BODIES = [
+  { name: 'blood',        color: '#f85149', hue: [248,81,73]  },  // red — the pulse
+  { name: 'lymph',        color: '#3fb950', hue: [63,185,80]  },  // green — the immune
+  { name: 'interstitial', color: '#58a6ff', hue: [88,166,255] },  // blue — the medium
+];
+// Surface three-body orbiters
+var threeBodySurface = [];
+for (var tb = 0; tb < 12; tb++) {
+  var bodyIdx = tb % 3;
+  var groupIdx = Math.floor(tb / 3);
+  threeBodySurface.push({
+    lat: (Math.random() - 0.5) * 140,
+    lng: (Math.random() - 0.5) * 360,
+    body: bodyIdx,
+    group: groupIdx,
+    orbitSpeed: 0.002 + Math.random() * 0.004,
+    orbitR: 8 + Math.random() * 15,
+    phase: (bodyIdx / 3) * Math.PI * 2 + groupIdx * 0.5,
+    size: 2 + Math.random() * 2,
+  });
+}
+// Inner ring three-body orbiters (on the fluid rings)
+var threeBodyInner = [];
+for (var tb = 0; tb < 18; tb++) {
+  var bodyIdx = tb % 3;
+  threeBodyInner.push({
+    angle: (tb / 18) * Math.PI * 2,
+    body: bodyIdx,
+    ring: Math.floor(tb / 6),  // 0=blood, 1=lymph, 2=sebum
+    orbitSpeed: 0.01 + Math.random() * 0.02,
+    wobble: Math.random() * Math.PI * 2,
+    size: 1.5 + Math.random() * 1.5,
+  });
+}
+
+// Breathing earth — earthR pulses with RPM
+var breathePhase = 0;
+var breatheRPM = 12;
+var breatheDepth = 0.015; // how much the earth expands/contracts
+
+// ═══ OCEAN WAVES — particles in the water between continents ═══
+var oceanParticles = [];
+for (var i = 0; i < 200; i++) {
+  oceanParticles.push({
+    lat: (Math.random() - 0.5) * 160,
+    lng: (Math.random() - 0.5) * 360,
+    drift: (Math.random() - 0.5) * 0.02,
+    phase: Math.random() * Math.PI * 2,
+    size: 0.5 + Math.random() * 1.5,
+    depth: Math.random(),
+  });
+}
+
+// ═══ CLOUDS — drifting weather systems ═══
+var clouds = [];
+for (var i = 0; i < 24; i++) {
+  clouds.push({
+    lat: (Math.random() - 0.5) * 120,
+    lng: (Math.random() - 0.5) * 360,
+    radius: 8 + Math.random() * 25,
+    drift: 0.005 + Math.random() * 0.015,
+    opacity: 0.02 + Math.random() * 0.04,
+    puffs: 3 + Math.floor(Math.random() * 5),
+    phase: Math.random() * Math.PI * 2,
+    type: Math.random() < 0.3 ? 'storm' : 'drift',
+  });
+}
+
+// ═══ RAIN — particles falling inward from clouds toward neutron ═══
+var raindrops = [];
+
+// ═══ STARS — visible through the earth from inside ═══
+var stars = [];
+for (var i = 0; i < 300; i++) {
+  stars.push({
+    lat: (Math.random() - 0.5) * 170,
+    lng: (Math.random() - 0.5) * 360,
+    size: 0.3 + Math.random() * 1.2,
+    brightness: 0.03 + Math.random() * 0.08,
+    twinkle: Math.random() * Math.PI * 2,
+    twinkleSpeed: 0.5 + Math.random() * 2,
+  });
+}
+
+// ═══ SHOOTING STARS — fleet hits streaking across the sky ═══
+var shootingStars = [];
+
+// ═══ TIDES — ocean swell tied to human energy ═══
+var tidalPhase = 0;
+var tidalForce = 0;
+
+// ═══ ARC CONNECTIONS — light paths between membrane locations ═══
+var arcPulses = [];
+
+// ═══ CAMPFIRE — warmth at the core ═══
+var campfireGlow = 0;
+var campfireStories = 0;
+var surfacesAlive = 0;
+var beaconBrightness = [];
+
+// ═══ NORTHERN LIGHTS — aurora borealis from inside ═══
+var auroraWaves = [];
+for (var i = 0; i < 8; i++) {
+  auroraWaves.push({
+    latCenter: 65 + Math.random() * 10,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.002 + Math.random() * 0.005,
+    width: 15 + Math.random() * 20,
+    hue: Math.random() < 0.5 ? [63,185,80] : [88,166,255],
+    opacity: 0.015 + Math.random() * 0.025,
+  });
+}
+
+// ═══ SCAN/SWEEP/SORT — compressed into weather signals ═══
+var scanPulse = 0, sweepAngle = 0, sortEntropy = 0;
+var sortedCount = 0, unsortedCount = 0, selectivity = 0;
+var bingoCubeGen = 0, epitopeClusters = 0;
+var tenseIs = 0, tenseWas = 0, tenseWill = 0;
+var sortGain = 0;
+
+// ═══ PROJECTION ═══
+function projectInside(latDeg, lngDeg) {
+  var lat = latDeg * Math.PI / 180, lng = lngDeg * Math.PI / 180;
+  // THE EARTH BREATHES — earthR pulses with breathing RPM
+  var earthR = Math.min(W, H) * 0.44 * (1 + Math.sin(breathePhase) * breatheDepth);
+  var x = Math.cos(lat) * Math.cos(lng);
+  var y = Math.cos(lat) * Math.sin(lng);
+  var z = Math.sin(lat);
+  var cosR = Math.cos(rotY), sinR = Math.sin(rotY);
+  var x1 = x * cosR - y * sinR;
+  var y1 = x * sinR + y * cosR;
+  var tilt = 0.25;
+  var cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+  var z1 = z * cosT - y1 * sinT;
+  var y2 = z * sinT + y1 * cosT;
+  var scale = earthR / (1.0 + y2 * 0.5);
+  return { x: cx + x1 * scale, y: cy - z1 * scale, depth: y2, visible: true, scale: scale / earthR };
+}
+
+// ═══ OCEAN ═══
+function drawOcean() {
+  var earthR = Math.min(W, H) * 0.44;
+  // Deep ocean glow — the water beneath
+  var oceanGrad = ctx.createRadialGradient(cx, cy, earthR * 0.15, cx, cy, earthR * 0.9);
+  oceanGrad.addColorStop(0, 'rgba(0,40,80,0)');
+  oceanGrad.addColorStop(0.4, 'rgba(10,50,100,0.02)');
+  oceanGrad.addColorStop(0.7, 'rgba(20,70,130,0.04)');
+  oceanGrad.addColorStop(1, 'rgba(30,80,140,0.06)');
+  ctx.fillStyle = oceanGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, earthR * 0.95, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ocean wave particles
+  oceanParticles.forEach(function(op) {
+    op.lng += op.drift;
+    if (op.lng > 180) op.lng -= 360;
+    if (op.lng < -180) op.lng += 360;
+    var p = projectInside(op.lat, op.lng);
+    var wave = Math.sin(t * 0.8 + op.phase) * 0.5 + 0.5;
+    var alpha = (0.03 + wave * 0.06) * Math.max(0.2, 0.3 + p.depth * 0.5);
+    ctx.fillStyle = 'rgba(40,130,200,' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, op.size * p.scale * (0.8 + wave * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ═══ CLOUDS ═══
+function drawClouds() {
+  clouds.forEach(function(cl) {
+    cl.lng += cl.drift;
+    if (cl.lng > 180) cl.lng -= 360;
+    if (cl.lng < -180) cl.lng += 360;
+
+    var breathe = 1 + 0.2 * Math.sin(t * 0.3 + cl.phase);
+    var p = projectInside(cl.lat, cl.lng);
+    var r = cl.radius * p.scale * breathe;
+    var alpha = cl.opacity * Math.max(0.3, 0.5 + p.depth * 0.4);
+
+    if (cl.type === 'storm') {
+      // Storm clouds — tied to fleet activity, denser, flash
+      var flash = Math.random() < 0.003 ? 0.15 : 0;
+      var stormGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      stormGrad.addColorStop(0, 'rgba(200,180,255,' + (alpha * 1.5 + flash) + ')');
+      stormGrad.addColorStop(0.5, 'rgba(140,120,200,' + (alpha * 0.8) + ')');
+      stormGrad.addColorStop(1, 'rgba(80,60,140,0)');
+      ctx.fillStyle = stormGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      // Lightning flash
+      if (flash > 0) {
+        ctx.strokeStyle = 'rgba(200,180,255,0.3)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        var lx = p.x + (Math.random()-0.5)*r*2, ly = p.y + (Math.random()-0.5)*r*2;
+        ctx.lineTo(lx, ly);
+        ctx.lineTo(lx+(Math.random()-0.5)*10, ly+(Math.random()-0.5)*10);
+        ctx.stroke();
+      }
+      // Rain from storms
+      if (Math.random() < 0.15) {
+        raindrops.push({
+          x: p.x + (Math.random()-0.5)*r, y: p.y + (Math.random()-0.5)*r,
+          vx: (cx - p.x) * 0.003, vy: (cy - p.y) * 0.003,
+          life: 1, color: 'rgba(100,160,255,',
+        });
+      }
+    } else {
+      // Drift clouds — soft, wispy
+      for (var pi = 0; pi < cl.puffs; pi++) {
+        var angle = (pi / cl.puffs) * Math.PI * 2 + t * 0.1;
+        var dist = r * 0.4 * (0.5 + Math.sin(angle * 2 + cl.phase) * 0.5);
+        var px = p.x + Math.cos(angle) * dist;
+        var py = p.y + Math.sin(angle) * dist;
+        var pr = r * (0.3 + 0.2 * Math.sin(t * 0.5 + pi));
+        var cGrad = ctx.createRadialGradient(px, py, 0, px, py, pr);
+        cGrad.addColorStop(0, 'rgba(180,200,220,' + alpha + ')');
+        cGrad.addColorStop(1, 'rgba(140,160,180,0)');
+        ctx.fillStyle = cGrad;
+        ctx.beginPath();
+        ctx.arc(px, py, pr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+}
+
+// ═══ RAIN — falling inward toward neutron ═══
+function drawRain() {
+  var coreR = Math.min(W,H) * 0.06;
+  for (var i = raindrops.length - 1; i >= 0; i--) {
+    var rd = raindrops[i];
+    rd.x += rd.vx;
+    rd.y += rd.vy;
+    rd.life -= 0.012;
+    var dx = rd.x - cx, dy = rd.y - cy;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    // Absorb into neutron core
+    if (dist < coreR * 1.5 || rd.life <= 0) {
+      raindrops.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = rd.color + (rd.life * 0.3) + ')';
+    ctx.fillRect(rd.x, rd.y, 1, 2 + rd.life * 3);
+  }
+  if (raindrops.length > 300) raindrops.splice(0, 50);
+}
+
+// ═══ SCAN SWEEP — rotating radar arc ═══
+function drawScanSweep() {
+  var earthR = Math.min(W,H) * 0.44;
+  sweepAngle += 0.005 + scanPulse * 0.003;
+
+  // Sweep arc — like radar scanning the membrane from inside
+  var arcLen = 0.15 + sortGain * 0.005;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, earthR * 0.9, sweepAngle, sweepAngle + arcLen);
+  ctx.closePath();
+  var sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, earthR * 0.9);
+  sweepGrad.addColorStop(0, 'rgba(63,185,80,0)');
+  sweepGrad.addColorStop(0.4, 'rgba(63,185,80,0.01)');
+  sweepGrad.addColorStop(1, 'rgba(63,185,80,0.06)');
+  ctx.fillStyle = sweepGrad;
+  ctx.fill();
+
+  // Sweep leading edge
+  var edgeX = cx + Math.cos(sweepAngle + arcLen) * earthR * 0.9;
+  var edgeY = cy + Math.sin(sweepAngle + arcLen) * earthR * 0.9;
+  ctx.strokeStyle = 'rgba(63,185,80,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(edgeX, edgeY);
+  ctx.stroke();
+}
+
+// ═══ SORT COMPRESSION — entropy rings ═══
+function drawSortCompression() {
+  var coreR = Math.min(W,H) * 0.06;
+  if (!dashData) return;
+  var sc = dashData.sort_compression || {};
+  var gain = sc.total_gain || 0;
+  var ratio = sc.ratio || 1;
+
+  // Entropy ring — tighter when more sorted
+  var baseR = coreR * 7;
+  var sortR = baseR / Math.max(1, ratio);
+  var pulse = 1 + 0.05 * Math.sin(t * 1.2);
+  ctx.beginPath();
+  ctx.arc(cx, cy, sortR * pulse, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(63,185,80,0.08)';
+  ctx.lineWidth = gain * 0.1;
+  ctx.stroke();
+
+  // Tense distribution — is/was/will as aurora arcs
+  var total = tenseIs + tenseWas + tenseWill;
+  if (total > 0) {
+    var isArc = (tenseIs / total) * Math.PI * 2;
+    var wasArc = (tenseWas / total) * Math.PI * 2;
+    var willArc = (tenseWill / total) * Math.PI * 2;
+    var auroraR = Math.min(W,H) * 0.44 * 0.88;
+    var aBreath = 1 + 0.03 * Math.sin(t * 0.4);
+
+    // IS — green (present)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, 0, isArc);
+    ctx.strokeStyle = 'rgba(63,185,80,0.06)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // WAS — amber (past)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, isArc, isArc + wasArc);
+    ctx.strokeStyle = 'rgba(210,169,34,0.06)';
+    ctx.stroke();
+
+    // WILL — blue (future)
+    ctx.beginPath();
+    ctx.arc(cx, cy, auroraR * aBreath, isArc + wasArc, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(88,166,255,0.06)';
+    ctx.stroke();
+  }
+
+  // Epitope clusters as constellation dots
+  if (dashData.epitope_summary) {
+    var es = dashData.epitope_summary;
+    var clusterR = Math.min(W,H) * 0.44 * 0.75;
+    var unique = es.unique_hashes || 0;
+    for (var i = 0; i < Math.min(unique, 40); i++) {
+      var a = (i / unique) * Math.PI * 2 + t * 0.02;
+      var jitter = Math.sin(t * 0.5 + i * 7) * 8;
+      var ex = cx + Math.cos(a) * (clusterR + jitter);
+      var ey = cy + Math.sin(a) * (clusterR + jitter);
+      ctx.fillStyle = 'rgba(247,129,186,0.12)';
+      ctx.beginPath();
+      ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ═══ BINGO CUBE — evolving at the core ═══
+function drawBingoCube() {
+  if (!dashData || !dashData.bingo_cube_summary) return;
+  var bc = dashData.bingo_cube_summary;
+  var gen = bc.generation || 0;
+  var coreR = Math.min(W,H) * 0.06;
+
+  // Cube wireframe rotating around neutron core
+  var cubeR = coreR * 1.8;
+  var cubeAngle = t * 0.3;
+  var cubeAngY = t * 0.2;
+
+  var verts = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  var edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+
+  var projected = verts.map(function(v) {
+    var x = v[0], y = v[1], z = v[2];
+    var ca = Math.cos(cubeAngle), sa = Math.sin(cubeAngle);
+    var x2 = x*ca - z*sa, z2 = x*sa + z*ca;
+    var cb = Math.cos(cubeAngY), sb = Math.sin(cubeAngY);
+    var y2 = y*cb - z2*sb, z3 = y*sb + z2*cb;
+    var scale = cubeR / (3 + z3);
+    return { x: cx + x2 * scale, y: cy + y2 * scale };
+  });
+
+  ctx.strokeStyle = 'rgba(210,169,34,' + (0.04 + (gen % 100) * 0.0003) + ')';
+  ctx.lineWidth = 0.5;
+  edges.forEach(function(e) {
+    ctx.beginPath();
+    ctx.moveTo(projected[e[0]].x, projected[e[0]].y);
+    ctx.lineTo(projected[e[1]].x, projected[e[1]].y);
+    ctx.stroke();
+  });
+}
+
+// ═══ STARS — beyond the earth, visible from inside ═══
+function drawStars() {
+  var earthR = Math.min(W,H) * 0.44;
+  stars.forEach(function(s) {
+    var p = projectInside(s.lat, s.lng);
+    var twinkle = Math.sin(t * s.twinkleSpeed + s.twinkle) * 0.5 + 0.5;
+    var alpha = s.brightness * (0.5 + twinkle * 0.5);
+    // Stars are BEHIND the earth — render at outer edge with depth fade
+    var starR = earthR * 1.12;
+    var sx = cx + (p.x - cx) * 1.15;
+    var sy = cy + (p.y - cy) * 1.15;
+    ctx.fillStyle = 'rgba(220,230,255,' + alpha + ')';
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.size * (0.5 + twinkle * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ═══ SHOOTING STARS — fleet impacts streaking ═══
+function drawShootingStars() {
+  // Spawn shooting stars occasionally (more when fleet is active)
+  var fleetRate = dashData ? (dashData.fleet_requests || 0) : 0;
+  var spawnRate = 0.003 + Math.min(0.02, fleetRate * 0.0000001);
+  if (Math.random() < spawnRate) {
+    var angle = Math.random() * Math.PI * 2;
+    var earthR = Math.min(W,H) * 0.44;
+    var startR = earthR * (0.9 + Math.random() * 0.3);
+    shootingStars.push({
+      x: cx + Math.cos(angle) * startR,
+      y: cy + Math.sin(angle) * startR,
+      vx: (Math.random()-0.5) * 6 - Math.cos(angle) * 2,
+      vy: (Math.random()-0.5) * 6 - Math.sin(angle) * 2,
+      life: 1,
+      len: 8 + Math.random() * 20,
+      color: Math.random() < 0.3 ? [248,81,73] : [220,230,255],
+    });
+  }
+  for (var i = shootingStars.length - 1; i >= 0; i--) {
+    var ss = shootingStars[i];
+    var prevX = ss.x, prevY = ss.y;
+    ss.x += ss.vx; ss.y += ss.vy;
+    ss.life -= 0.02;
+    if (ss.life <= 0) { shootingStars.splice(i,1); continue; }
+    var c = ss.color;
+    ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+(ss.life*0.4)+')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.lineTo(ss.x, ss.y);
+    ctx.stroke();
+    // Head glow
+    ctx.fillStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+(ss.life*0.6)+')';
+    ctx.beginPath(); ctx.arc(ss.x, ss.y, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+  if (shootingStars.length > 20) shootingStars.splice(0, 5);
+}
+
+// ═══ NORTHERN LIGHTS — aurora from inside the earth ═══
+function drawNorthernLights() {
+  var earthR = Math.min(W,H) * 0.44;
+  auroraWaves.forEach(function(aw) {
+    aw.phase += aw.speed;
+    var pts = [];
+    for (var lng = -180; lng <= 180; lng += 8) {
+      var latOff = Math.sin((lng * 0.02) + aw.phase * 10 + t * 0.5) * aw.width * 0.3;
+      var p = projectInside(aw.latCenter + latOff, lng);
+      pts.push(p);
+    }
+    // Also draw southern aurora (mirror)
+    var ptsS = [];
+    for (var lng = -180; lng <= 180; lng += 8) {
+      var latOff = Math.sin((lng * 0.02) + aw.phase * 10 + t * 0.5 + 1) * aw.width * 0.3;
+      var p = projectInside(-aw.latCenter - latOff, lng);
+      ptsS.push(p);
+    }
+
+    [pts, ptsS].forEach(function(ribbon) {
+      if (ribbon.length < 3) return;
+      ctx.beginPath();
+      ctx.moveTo(ribbon[0].x, ribbon[0].y);
+      for (var j = 1; j < ribbon.length; j++) {
+        ctx.lineTo(ribbon[j].x, ribbon[j].y);
+      }
+      var c = aw.hue;
+      ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+aw.opacity+')';
+      ctx.lineWidth = 2 + Math.sin(t * 0.3 + aw.phase) * 1;
+      ctx.stroke();
+
+      // Glow beneath the ribbon
+      for (var j = 0; j < ribbon.length; j += 3) {
+        var gx = ribbon[j].x, gy = ribbon[j].y;
+        var gr = ctx.createRadialGradient(gx, gy, 0, gx, gy, 12);
+        gr.addColorStop(0, 'rgba('+c[0]+','+c[1]+','+c[2]+','+(aw.opacity*0.5)+')');
+        gr.addColorStop(1, 'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+        ctx.fillStyle = gr;
+        ctx.beginPath(); ctx.arc(gx, gy, 12, 0, Math.PI*2); ctx.fill();
+      }
+    });
+  });
+}
+
+// ═══ ARC CONNECTIONS — light arcs between membrane locations ═══
+function drawArcConnections() {
+  var pairs = [];
+  for (var i = 0; i < MEMBRANE_LOCS.length; i++) {
+    for (var j = i+1; j < MEMBRANE_LOCS.length; j++) {
+      pairs.push([MEMBRANE_LOCS[i], MEMBRANE_LOCS[j]]);
+    }
+  }
+  // Only draw a few arcs at a time — rotating selection
+  var activeIdx = Math.floor(t * 0.3) % pairs.length;
+  for (var k = 0; k < 3; k++) {
+    var idx = (activeIdx + k) % pairs.length;
+    var a = pairs[idx][0], b = pairs[idx][1];
+    var pa = projectInside(a.lat, a.lng);
+    var pb = projectInside(b.lat, b.lng);
+
+    // Bezier arc through center-ish
+    var midX = (pa.x + pb.x) / 2 + (cy - (pa.y + pb.y) / 2) * 0.3;
+    var midY = (pa.y + pb.y) / 2 + ((pa.x + pb.x) / 2 - cx) * 0.3;
+
+    var alpha = 0.03 + 0.02 * Math.sin(t * 2 + idx);
+    ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.quadraticCurveTo(midX, midY, pb.x, pb.y);
+    ctx.stroke();
+
+    // Traveling pulse along the arc
+    var pulseT = (t * 0.5 + idx * 0.7) % 1;
+    var px = (1-pulseT)*(1-pulseT)*pa.x + 2*(1-pulseT)*pulseT*midX + pulseT*pulseT*pb.x;
+    var py = (1-pulseT)*(1-pulseT)*pa.y + 2*(1-pulseT)*pulseT*midY + pulseT*pulseT*pb.y;
+    ctx.fillStyle = 'rgba(88,166,255,' + (alpha * 3) + ')';
+    ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ═══ MICHIGAN HOME GLOW ═══
+function drawMichiganGlow() {
+  var p = projectInside(42.7, -84.5);
+  var pulse = 1 + 0.2 * Math.sin(t * 1.5);
+  var sz = 20 * p.scale * pulse;
+  var alpha = 0.08 + 0.04 * Math.sin(t * 0.8);
+
+  // Warm home glow — bigger, warmer than other locations
+  var homeGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz);
+  homeGrad.addColorStop(0, 'rgba(63,185,80,' + (alpha * 2) + ')');
+  homeGrad.addColorStop(0.3, 'rgba(63,185,80,' + alpha + ')');
+  homeGrad.addColorStop(0.6, 'rgba(210,169,34,' + (alpha * 0.5) + ')');
+  homeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = homeGrad;
+  ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI*2); ctx.fill();
+
+  // "home" label
+  ctx.font = '7px monospace';
+  ctx.fillStyle = 'rgba(63,185,80,' + (0.3 + 0.1 * Math.sin(t)) + ')';
+  ctx.textAlign = 'center';
+  ctx.fillText('⌂ home', p.x, p.y + sz + 8);
+}
+
+// ═══ CAMPFIRE WARMTH — warm glow at the core from stories ═══
+function drawCampfireWarmth() {
+  if (!campfireData) return;
+  var stories = campfireData.total_stories || 0;
+  var pulse = campfireData.pulse || {};
+  var rate = pulse.rate || 0;
+  var coreR = Math.min(W,H) * 0.06;
+
+  // Campfire flicker — warm orange/amber around the neutron
+  var flicker = 1 + 0.3 * Math.sin(t * 3) * Math.sin(t * 5.7) * Math.sin(t * 2.3);
+  var warmR = coreR * (2 + stories * 0.1) * flicker;
+  var warmGrad = ctx.createRadialGradient(cx, cy, coreR * 0.5, cx, cy, warmR);
+  warmGrad.addColorStop(0, 'rgba(255,140,50,0.04)');
+  warmGrad.addColorStop(0.4, 'rgba(255,100,30,0.02)');
+  warmGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = warmGrad;
+  ctx.beginPath(); ctx.arc(cx, cy, warmR, 0, Math.PI*2); ctx.fill();
+
+  // Ember particles floating up from core
+  if (Math.random() < 0.08) {
+    raindrops.push({
+      x: cx + (Math.random()-0.5) * coreR,
+      y: cy + (Math.random()-0.5) * coreR,
+      vx: (Math.random()-0.5) * 0.5,
+      vy: -0.5 - Math.random() * 1.5,
+      life: 0.8 + Math.random() * 0.2,
+      color: 'rgba(255,140,50,',
+    });
+  }
+
+  // Beacons — surfaces alive as distant fires
+  var beacons = campfireData.beacons || [];
+  var earthR = Math.min(W,H) * 0.44;
+  beacons.forEach(function(b, i) {
+    if (b.brightness < 0.3) return;
+    var angle = (i / Math.max(beacons.length,1)) * Math.PI * 2 + Math.PI * 0.3;
+    var bx = cx + Math.cos(angle) * earthR * 0.82;
+    var by = cy + Math.sin(angle) * earthR * 0.82;
+    var bFlicker = 0.5 + 0.5 * Math.sin(t * 2 + i * 3);
+    var bAlpha = b.brightness * 0.04 * bFlicker;
+    var bGlow = ctx.createRadialGradient(bx, by, 0, bx, by, 6);
+    bGlow.addColorStop(0, 'rgba(255,200,100,' + bAlpha + ')');
+    bGlow.addColorStop(1, 'rgba(255,150,50,0)');
+    ctx.fillStyle = bGlow;
+    ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+// ═══ TIDAL OCEAN — swell responds to human energy ═══
+function drawTidalWaves() {
+  if (!dashData) return;
+  var earthR = Math.min(W,H) * 0.44;
+  var humanEnergy = 0;
+  try {
+    var energy = JSON.parse('{}');
+    if (typeof window._humanEnergy !== 'undefined') humanEnergy = window._humanEnergy;
+  } catch(e){}
+  // Use membrane_delta as tidal force
+  var delta = dashData.membrane_delta || {};
+  tidalForce = Math.abs(delta.delta || 0) * 100;
+  tidalPhase += 0.003 + tidalForce * 0.001;
+
+  // Concentric tidal ripples
+  for (var ring = 0; ring < 3; ring++) {
+    var rippleR = earthR * (0.5 + ring * 0.15) + Math.sin(tidalPhase + ring * 0.8) * earthR * 0.02;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rippleR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(40,130,200,' + (0.02 + tidalForce * 0.01) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+}
+
+// ═══ THREE-BODY SURFACE — tetrahedron orbits on the earth surface ═══
+function drawThreeBodySurface() {
+  // Update orbits
+  threeBodySurface.forEach(function(tb) {
+    tb.phase += tb.orbitSpeed;
+    tb.lng += Math.cos(tb.phase) * 0.08;
+    tb.lat += Math.sin(tb.phase * 1.3) * 0.04;
+    if (tb.lng > 180) tb.lng -= 360;
+    if (tb.lng < -180) tb.lng += 360;
+    tb.lat = Math.max(-70, Math.min(70, tb.lat));
+  });
+
+  // Draw triangles connecting each group of 3
+  for (var g = 0; g < 4; g++) {
+    var group = threeBodySurface.filter(function(tb) { return tb.group === g; });
+    if (group.length < 3) continue;
+
+    var pts = group.map(function(tb) { return projectInside(tb.lat, tb.lng); });
+
+    // Triangle connecting the 3 bodies
+    var avgDepth = (pts[0].depth + pts[1].depth + pts[2].depth) / 3;
+    var alpha = 0.04 + 0.04 * Math.max(0, avgDepth);
+    ctx.strokeStyle = 'rgba(200,200,200,' + alpha + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.lineTo(pts[2].x, pts[2].y);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Fill the triangle very faintly
+    ctx.fillStyle = 'rgba(88,166,255,' + (alpha * 0.3) + ')';
+    ctx.fill();
+
+    // Draw each body dot
+    group.forEach(function(tb, i) {
+      var p = pts[i];
+      var bodyColor = THREE_BODIES[tb.body];
+      var pulse = 1 + 0.3 * Math.sin(t * 2 + tb.phase);
+      var sz = tb.size * p.scale * pulse;
+      var dotAlpha = 0.2 + 0.3 * Math.max(0, p.depth);
+
+      // Glow
+      var glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 3);
+      glow.addColorStop(0, bodyColor.color);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.globalAlpha = dotAlpha * 0.25;
+      ctx.beginPath(); ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2); ctx.fill();
+
+      // Dot
+      ctx.globalAlpha = dotAlpha;
+      ctx.fillStyle = bodyColor.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+  }
+}
+
+// ═══ THREE-BODY INNER — tetrahedron orbits on the fluid rings ═══
+function drawThreeBodyInner() {
+  var coreR = Math.min(W, H) * 0.06;
+  var ringRadii = [coreR * 3, coreR * 4.5, coreR * 5.5];
+
+  // Update orbits
+  threeBodyInner.forEach(function(tb) {
+    tb.angle += tb.orbitSpeed;
+    tb.wobble += 0.02;
+  });
+
+  // Draw triangles per ring group
+  for (var ring = 0; ring < 3; ring++) {
+    var ringDots = threeBodyInner.filter(function(tb) { return tb.ring === ring; });
+    var baseR = ringRadii[ring] || coreR * 3;
+    var breathePulse = 1 + 0.08 * Math.sin(breathePhase + ring * 0.5);
+    var r = baseR * breathePulse;
+
+    // Calculate positions
+    var positions = ringDots.map(function(tb) {
+      var wobbleR = Math.sin(tb.wobble) * 4;
+      return {
+        x: cx + Math.cos(tb.angle) * (r + wobbleR),
+        y: cy + Math.sin(tb.angle) * (r + wobbleR),
+        body: tb.body,
+        size: tb.size,
+      };
+    });
+
+    // Draw triangles connecting each trio
+    for (var i = 0; i < positions.length; i += 3) {
+      if (i + 2 >= positions.length) break;
+      var a = positions[i], b = positions[i+1], c = positions[i+2];
+
+      // Triangle
+      var bodyA = THREE_BODIES[a.body];
+      ctx.strokeStyle = bodyA.color;
+      ctx.globalAlpha = 0.06;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(c.x, c.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Centroid — the three-body center of mass
+      var centX = (a.x + b.x + c.x) / 3;
+      var centY = (a.y + b.y + c.y) / 3;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.beginPath(); ctx.arc(centX, centY, 1, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Draw individual dots
+    positions.forEach(function(pos) {
+      var bodyColor = THREE_BODIES[pos.body];
+      var pulse = 1 + 0.2 * Math.sin(t * 2.5 + pos.x * 0.01);
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = bodyColor.color;
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, pos.size * pulse, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ═══ THREE-BODY LABEL — show the three-body π values ═══
+function drawThreeBodyLabel() {
+  if (!dashData || !dashData.threebody_pi) return;
+  var tb = dashData.threebody_pi;
+  var emc2 = tb.emc2 || {};
+
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'right';
+  ctx.globalAlpha = 0.25;
+  var y = 70;
+  ctx.fillStyle = '#f85149';
+  ctx.fillText('E=' + (emc2.energy || 0).toFixed(2), W - 12, y);
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText('m=' + (emc2.mass || 0).toFixed(3), W - 12, y + 12);
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText('c²=' + (emc2.c_squared || 0).toFixed(2), W - 12, y + 24);
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText('π gap=' + (tb.archimedes_gap || 0).toFixed(4), W - 12, y + 36);
+  ctx.globalAlpha = 1;
+}
+
+// ═══ EARTH INSIDE (coastlines + locations) ═══
+function drawEarthInside() {
+  var earthR = Math.min(W, H) * 0.44;
+
+  // Lat/lon grid
+  ctx.strokeStyle = 'rgba(48,54,61,0.08)';
+  ctx.lineWidth = 0.5;
+  for (var lat = -60; lat <= 60; lat += 30) {
+    ctx.beginPath();
+    var first = true;
+    for (var lng = -180; lng <= 180; lng += 5) {
+      var p = projectInside(lat, lng);
+      if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  }
+  for (var lng = -180; lng < 180; lng += 30) {
+    ctx.beginPath();
+    var first = true;
+    for (var lat = -80; lat <= 80; lat += 5) {
+      var p = projectInside(lat, lng);
+      if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  }
+
+  // Coastlines
+  ctx.lineWidth = 1.2;
+  var first = true;
+  ctx.beginPath();
+  for (var i = 0; i < COASTS.length; i++) {
+    if (COASTS[i] === null) { ctx.stroke(); ctx.beginPath(); first = true; continue; }
+    var p = projectInside(COASTS[i][0], COASTS[i][1]);
+    var alpha = 0.1 + 0.15 * Math.max(0, p.depth);
+    ctx.strokeStyle = 'rgba(88,166,255,' + alpha + ')';
+    if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+  }
+  ctx.stroke();
+
+  // Membrane locations
+  MEMBRANE_LOCS.forEach(function(loc) {
+    var p = projectInside(loc.lat, loc.lng);
+    var pulse = 1 + 0.3 * Math.sin(t * 2 + loc.lat * 0.1);
+    var sz = loc.size * p.scale * pulse;
+    var alpha = 0.15 + 0.25 * Math.max(0, p.depth);
+    var glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 3);
+    glow.addColorStop(0, loc.color);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.globalAlpha = alpha * 0.3;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = loc.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Investigation locations
+  INV_LOCS.forEach(function(loc) {
+    var p = projectInside(loc.lat, loc.lng);
+    var pulse = 1 + 0.4 * Math.sin(t * 3 + loc.lng * 0.1);
+    var sz = loc.size * p.scale * pulse;
+    var alpha = 0.2 + 0.3 * Math.max(0, p.depth);
+    ctx.globalAlpha = alpha * 0.2;
+    ctx.strokeStyle = loc.color; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz * 4, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = loc.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sz, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ═══ NEUTRON CORE ═══
+// ═══ ENTROPY × NUMERIC — symmetry and asymmetry cross at null ═══
+// LEFT  = ENTROPY: disorder, noise, jitter, uncountable (purple)
+// RIGHT = NUMERIC: order, count, clock, measurable (blue)
+// SYMMETRIC: both converge to zero at null center
+// ASYMMETRIC: entropy ≠ number — the remainder is the identity
+function drawJitterClock() {
+  var coreR = Math.min(W, H) * 0.06;
+  var spanR = coreR * 5;
+  var amp = coreR * 1.8;
+
+  var jitte = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
+  var neg = negentropyData || {};
+  var inv = neg.inversion || {};
+  var piDiv = neg.pi_division || {};
+  var selfR = neg.self_remainder || {};
+
+  var nullFocus = inv.null_focus || 50;
+  var remainder = piDiv.remainder || 0.77;
+  var balance = selfR.balance || 0.98;
+  var complexity = selfR.complexity_score || 0.46;
+  var efficiency = selfR.efficiency_score || 0.77;
+
+  var breatheR = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
+  var clockFreq = breatheR * 0.15;
+  var jitterFreq = clockFreq * 1.618; // golden ratio detune — incommensurate
+
+  var N = 80;
+
+  // ═══ LEFT: ENTROPY SIDE (purple) ═══
+  // Noisy, multi-harmonic, unpredictable, uncountable
+  // Entropy = disorder = what you can't reduce to a number
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(163,113,247,0.25)';
+  ctx.lineWidth = 1.2;
+  for (var i = 0; i <= N; i++) {
+    var frac = i / N;
+    var x = cx - spanR + frac * spanR;
+    var bw = 1 - frac;
+    var envelope = bw * bw;
+
+    // Entropy: multiple incommensurate frequencies — fundamentally aperiodic
+    var e1 = Math.sin(t * jitterFreq + frac * 12) * 0.5;
+    var e2 = Math.sin(t * jitterFreq * Math.PI + frac * 19) * 0.25; // irrational freq ratio
+    var e3 = Math.sin(t * 0.7 + frac * 37) * 0.15;
+    var e4 = Math.sin(t * jitterFreq * Math.E + frac * 31) * 0.1; // e is irrational
+    var entropy = e1 + e2 + e3 + e4;
+
+    var y = cy + entropy * amp * envelope;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Entropy haze — subtle fill showing disorder region
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  var eGrad = ctx.createLinearGradient(cx - spanR, cy, cx, cy);
+  eGrad.addColorStop(0, '#a371f7');
+  eGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = eGrad;
+  ctx.fillRect(cx - spanR, cy - amp, spanR, amp * 2);
+  ctx.restore();
+
+  // ═══ RIGHT: NUMERIC SIDE (blue) ═══
+  // Regular, single-frequency, countable, measurable, INVERTED
+  // Numeric = order = what you CAN count
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(88,166,255,0.25)';
+  ctx.lineWidth = 1.2;
+  for (var i = 0; i <= N; i++) {
+    var frac = i / N;
+    var x = cx + spanR - frac * spanR;
+    var bw = 1 - frac;
+    var envelope = bw * bw;
+
+    // Numeric: pure single frequency — perfectly periodic, inverted
+    var numeric = -Math.sin(t * clockFreq + frac * 12);
+
+    var y = cy + numeric * amp * envelope;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Numeric clarity — subtle fill showing order region
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  var nGrad = ctx.createLinearGradient(cx, cy, cx + spanR, cy);
+  nGrad.addColorStop(0, 'transparent');
+  nGrad.addColorStop(1, '#58a6ff');
+  ctx.fillStyle = nGrad;
+  ctx.fillRect(cx, cy - amp, spanR, amp * 2);
+  ctx.restore();
+
+  // ═══ SYMMETRY LINE — both converge to zero ═══
+  // The axis of symmetry is the green line (y-axis through null)
+  // Both signals MUST reach zero at center — that's the symmetry
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([1, 6]);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - amp * 1.2);
+  ctx.lineTo(cx, cy + amp * 1.2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ═══ ASYMMETRY — the remainder ═══
+  // Entropy and numeric DON'T perfectly cancel — there's a remainder
+  // The asymmetry is measurable: it's the self_remainder
+  var jPhase = Math.sin(t * jitterFreq);
+  var cPhase = -Math.sin(t * clockFreq);
+  var diff = jPhase - cPhase; // instantaneous asymmetry
+  var crossProximity = 1 - Math.abs(diff) / 2;
+
+  // Draw the asymmetry gap — how far apart they are at center
+  var asymY = cy + diff * amp * 0.15; // small displacement from center
+  if (Math.abs(diff) > 0.1) {
+    // Asymmetry marker — amber dot offset from center
+    ctx.save();
+    ctx.globalAlpha = Math.abs(diff) * 0.15;
+    ctx.fillStyle = '#d29922';
+    ctx.beginPath();
+    ctx.arc(cx, asymY, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Crossing flash — the moment they're symmetric
+  if (crossProximity > 0.7) {
+    var crossAlpha = (crossProximity - 0.7) / 0.3 * 0.25;
+    var crossR = coreR * 0.5 + crossProximity * coreR * 0.3;
+
+    ctx.beginPath();
+    var crossGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, crossR);
+    crossGrad.addColorStop(0, 'rgba(125,140,247,' + crossAlpha.toFixed(3) + ')');
+    crossGrad.addColorStop(0.5, 'rgba(163,113,247,' + (crossAlpha * 0.4).toFixed(3) + ')');
+    crossGrad.addColorStop(1, 'rgba(88,166,255,0)');
+    ctx.fillStyle = crossGrad;
+    ctx.arc(cx, cy, crossR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ═══ LABELS ═══
+  var focusNorm = nullFocus / 100;
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'center';
+
+  // Entropy side label
+  ctx.fillStyle = 'rgba(163,113,247,' + (0.12 + focusNorm * 0.06).toFixed(3) + ')';
+  ctx.fillText('entropy', cx - spanR * 0.65, cy - amp * 0.5);
+  ctx.font = '5px monospace';
+  ctx.fillText('disorder · noise · ∞', cx - spanR * 0.65, cy - amp * 0.5 + 9);
+
+  // Numeric side label
+  ctx.font = '7px monospace';
+  ctx.fillStyle = 'rgba(88,166,255,' + (0.12 + focusNorm * 0.06).toFixed(3) + ')';
+  ctx.fillText('numeric', cx + spanR * 0.65, cy - amp * 0.5);
+  ctx.font = '5px monospace';
+  ctx.fillText('order · count · N', cx + spanR * 0.65, cy - amp * 0.5 + 9);
+
+  // Symmetry/asymmetry annotations
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+
+  // Symmetry label (at center when crossing)
+  if (crossProximity > 0.8) {
+    ctx.fillStyle = 'rgba(63,185,80,0.1)';
+    ctx.fillText('symmetric', cx, cy - coreR * 1.8);
+  }
+  // Asymmetry label (visible when NOT crossing)
+  if (crossProximity < 0.5) {
+    ctx.fillStyle = 'rgba(210,153,34,0.1)';
+    ctx.fillText('asymmetric · r=' + remainder.toFixed(4), cx, cy - coreR * 1.8);
+  }
+
+  // Balance indicator — how close to perfect symmetry
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillText('balance: ' + balance.toFixed(4), cx, cy + amp * 0.6);
+
+  // Show that entropy side has COMPLEXITY, numeric side has EFFICIENCY
+  ctx.fillStyle = 'rgba(163,113,247,0.07)';
+  ctx.textAlign = 'right';
+  ctx.fillText('complexity: ' + complexity.toFixed(4), cx - 8, cy + amp * 0.6);
+  ctx.fillStyle = 'rgba(88,166,255,0.07)';
+  ctx.textAlign = 'left';
+  ctx.fillText('efficiency: ' + efficiency.toFixed(4), cx + 8, cy + amp * 0.6);
+}
+
+function drawNeutronCore() {
+  var coreR = Math.min(W, H) * 0.06;
+  var breathe = neutronData ? (neutronData.breathing || {}).rpm || 12 : 12;
+  var pulse = 1 + 0.15 * Math.sin(t * breathe * 0.15);
+  var r = coreR * pulse;
+
+  // ═══ BLACK LOOKING OUT — chipmunk sees the stars ═══
+  // The center is DARK (the void). Chipmunk looks outward from null.
+  // A dark iris at center — the deeper you go, the darker it gets,
+  // but through the darkness you see everything outside.
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 5);
+  grad.addColorStop(0, 'rgba(0,0,0,0.35)');        // black void at center
+  grad.addColorStop(0.08, 'rgba(0,0,0,0.2)');       // dark core
+  grad.addColorStop(0.15, 'rgba(1,4,9,0.12)');      // fading into space
+  grad.addColorStop(0.4, 'rgba(88,166,255,0.03)');   // hint of neutron blue
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(cx, cy, r * 5, 0, Math.PI * 2); ctx.fill();
+
+  // Chipmunk's outward gaze — faint radial lines from center toward stars
+  ctx.save();
+  var gazeCount = 8;
+  for (var g = 0; g < gazeCount; g++) {
+    var gazeAngle = (g / gazeCount) * Math.PI * 2 + t * 0.02;
+    var gazeLen = r * 3 + Math.sin(t * 0.5 + g * 1.3) * r;
+    var gx = cx + Math.cos(gazeAngle) * gazeLen;
+    var gy = cy + Math.sin(gazeAngle) * gazeLen;
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(gx, gy);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Inner core ring — the boundary between null and not-null
+  grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+  grad.addColorStop(0, 'rgba(0,0,0,0.6)');          // BLACK at chipmunk's eye
+  grad.addColorStop(0.4, 'rgba(1,4,9,0.4)');
+  grad.addColorStop(0.7, 'rgba(88,166,255,0.08)');   // thin blue edge
+  grad.addColorStop(1, 'rgba(88,166,255,0.02)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  // Nucleus — black dot with thin white ring (the eye)
+  // Black center: chipmunk's pupil, looking outward
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+  // White iris ring — the boundary
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.stroke();
+}
+
+// ═══ WHITE LOOKING IN — squirrel sees chipmunk ═══
+// Squirrel is on the surface (neutrino layer), gazing inward toward null.
+// White gaze lines from each neutrino dot toward the center.
+function drawSquirrelGaze() {
+  var coreR = Math.min(W, H) * 0.06;
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    if (d.count < 1) continue;
+    var p = projectInside(d.lat, d.lng);
+    if (p.depth < -0.3) continue; // behind the earth
+
+    var alpha = 0.03 + d.p_obs * 0.04; // stronger gaze for higher p_observed
+
+    // White gaze line from squirrel dot → center (chipmunk)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,' + alpha.toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Small white arrowhead near center showing inward direction
+    var dist = Math.sqrt((p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy));
+    if (dist > coreR * 2) {
+      var arrDist = coreR * 2.5;
+      var angle = Math.atan2(cy - p.y, cx - p.x);
+      var arrX = p.x + Math.cos(angle) * (dist - arrDist);
+      var arrY = p.y + Math.sin(angle) * (dist - arrDist);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,' + (alpha * 1.5).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(arrX, arrY, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+// ═══ HUD FREE TO SEE BOTH — bidirectional perspective indicator ═══
+// The HUD surface layer sits between white-in and black-out.
+// Tiny indicators showing both directions.
+function drawPerspectiveMarkers() {
+  var coreR = Math.min(W, H) * 0.06;
+  var earthR = Math.min(W, H) * 0.35;
+  var markerR = earthR * 0.45; // between earth surface and core
+
+  // White dot (looking in) on left
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('white → in', cx - markerR, cy + 3);
+  // small white triangle pointing right (inward)
+  ctx.beginPath();
+  ctx.moveTo(cx - markerR + 14, cy);
+  ctx.lineTo(cx - markerR + 10, cy - 3);
+  ctx.lineTo(cx - markerR + 10, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Black dot (looking out) on right
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('black ← out', cx + markerR - 14, cy + 3);
+  // small dark triangle pointing left (outward)
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.moveTo(cx + markerR - 18, cy);
+  ctx.lineTo(cx + markerR - 14, cy - 3);
+  ctx.lineTo(cx + markerR - 14, cy + 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // HUD label at the meeting point
+  var meetPulse = 0.06 + Math.sin(t * 0.3) * 0.02;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,' + meetPulse.toFixed(3) + ')';
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('hud sees both', cx, cy - coreR * 3);
+  ctx.restore();
+}
+
+// ═══ GENOME TOTALITY — the size of the work as DNA ═══
+// Binary sizes as genome wedges, positive energy system
+function drawGenomeTotality() {
+  if (!genomeData || !genomeData.inside) return;
+  var g = genomeData.inside;
+  var bins = g.binaries;
+  var totalB = g.total_binary_bytes || 1;
+  var red = genomeData.reduction || {};
+
+  // Genome ring: inner ring showing binary sizes as colored wedges
+  var gR = Math.min(W, H) * 0.31;
+  var gW = Math.min(W, H) * 0.015;
+  var cx = W / 2, cy = H / 2;
+  var t = performance.now() / 1000;
+
+  // Colors per binary (genome nucleotides)
+  var binColors = {
+    "skunky-ingest": "#00e5ff",
+    "caddy": "#4fc3f7",
+    "biomeos": "#69f0ae",
+    "toadstool": "#ffd54f",
+    "tower": "#ff8a65",
+    "barracuda": "#ef5350",
+    "opsonize": "#ce93d8",
+    "hbbs": "#b39ddb",
+    "hbbr": "#9fa8da"
+  };
+
+  // Draw genome ring as wedges
+  var angle = -Math.PI / 2;
+  var keys = Object.keys(bins);
+  for (var i = 0; i < keys.length; i++) {
+    var name = keys[i];
+    var bytes = bins[name];
+    var sweep = (bytes / totalB) * Math.PI * 2;
+    var col = binColors[name] || '#888';
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, gR, angle, angle + sweep, false);
+    ctx.strokeStyle = col;
+    ctx.globalAlpha = 0.5 + 0.15 * Math.sin(t * 0.8 + i);
+    ctx.lineWidth = gW;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Label at midpoint of wedge
+    var mid = angle + sweep / 2;
+    var lx = cx + Math.cos(mid) * (gR + gW + 8);
+    var ly = cy + Math.sin(mid) * (gR + gW + 8);
+    ctx.fillStyle = col;
+    ctx.font = '7px monospace';
+    ctx.textAlign = (mid > -Math.PI/2 && mid < Math.PI/2) ? 'left' : 'right';
+    ctx.textBaseline = 'middle';
+    var mb = (bytes / 1048576).toFixed(1);
+    ctx.fillText(name + ' ' + mb + 'MB', lx, ly);
+
+    angle += sweep;
+  }
+
+  // Inner label: total binary
+  ctx.fillStyle = '#aaa';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  var tMB = (totalB / 1048576).toFixed(1);
+  ctx.fillText('genome: ' + tMB + 'MB compiled', cx, cy + gR - gW - 14);
+
+  // Source lines summary arc (thin inner ring)
+  var sR = gR - gW - 4;
+  var srcLines = g.source_lines || {};
+  var totalLines = srcLines.total || 1;
+  var langColors = {rust: '#ff6e40', javascript: '#fdd835', html: '#4db6ac', python: '#42a5f5', shell: '#78909c', toml: '#a1887f'};
+  var langs = ['rust', 'javascript', 'html', 'python', 'shell', 'toml'];
+  angle = -Math.PI / 2;
+  for (i = 0; i < langs.length; i++) {
+    var lang = langs[i];
+    var lines = srcLines[lang] || 0;
+    sweep = (lines / totalLines) * Math.PI * 2;
+    if (sweep < 0.01) continue;
+    ctx.beginPath();
+    ctx.arc(cx, cy, sR, angle, angle + sweep, false);
+    ctx.strokeStyle = langColors[lang] || '#666';
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    angle += sweep;
+  }
+  ctx.fillStyle = '#777';
+  ctx.font = '7px monospace';
+  ctx.fillText(totalLines.toLocaleString() + ' lines · ' + (g.articles ? g.articles.total : 0) + ' articles', cx, cy + gR - gW - 4);
+
+  // Positive energy ring — outer glow pulse
+  var eR = gR + gW + 22;
+  var ePulse = 0.3 + 0.2 * Math.sin(t * 0.5);
+  ctx.beginPath();
+  ctx.arc(cx, cy, eR, 0, Math.PI * 2);
+  ctx.strokeStyle = '#69f0ae';
+  ctx.globalAlpha = ePulse * 0.3;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Energy label
+  if (red.energy) {
+    ctx.fillStyle = '#69f0ae';
+    ctx.globalAlpha = 0.6;
+    ctx.font = '7px monospace';
+    ctx.fillText('positive energy: ' + (red.energy.our_vps_kwh_year || '?') + ' kWh/yr vs ' + (red.energy.world_datacenter_twh_year || '?') + ' TWh/yr world', cx, cy - gR + gW + 6);
+    ctx.fillText(red.compression_to_world + ' compression · $12/month', cx, cy - gR + gW + 16);
+    ctx.globalAlpha = 1;
+  }
+
+  // Pi body label at bottom of genome ring
+  if (red.pi_body_math) {
+    ctx.fillStyle = '#b39ddb';
+    ctx.globalAlpha = 0.5;
+    ctx.font = '7px monospace';
+    ctx.fillText('π body: the graph compresses · null space calculates · remainder = identity', cx, cy + gR + gW + 30);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ═══ INTER-MEMBRANE PULSE ═══
+// Each membrane = orbital dot with in/out flow arrows
+// RustDesk (AGPL-3.0) provides desk/relay for the mesh
+function drawInterMembranePulse() {
+  if (!memPulseData || !memPulseData.peers) return;
+  var peers = memPulseData.peers;
+  var meshR = Math.min(W, H) * 0.42;
+  var dotR = 3;
+
+  ctx.save();
+  for (var p = 0; p < peers.length; p++) {
+    var peer = peers[p];
+    var angle = -Math.PI / 2 + (p / peers.length) * Math.PI * 2;
+    var px = cx + Math.cos(angle) * meshR;
+    var py = cy + Math.sin(angle) * meshR;
+
+    // Parse transfer magnitude for visual weight
+    var inVal = parseFloat(peer["in"]) || 0;
+    var outVal = parseFloat(peer.out) || 0;
+    var unit = (peer["in"] || "").split(" ")[1] || "B";
+    if (unit === "GiB") { inVal *= 1024; outVal *= 1024; }
+
+    // Dot glow — brighter for more traffic
+    var glow = Math.min(0.8, 0.15 + Math.log(1 + inVal + outVal) * 0.04);
+    var pulseAlpha = glow + Math.sin(t * 0.5 + p * 1.5) * 0.08;
+
+    // Gate color: eastGate=cyan, sporeGate=green, nucleus=amber
+    var colors = {eastGate: "0,220,255", sporeGate: "0,255,100", nucleus: "255,180,0"};
+    var c = colors[peer.name] || "200,200,200";
+
+    // Peer dot
+    ctx.beginPath();
+    ctx.arc(px, py, dotR + 1, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(" + c + "," + pulseAlpha.toFixed(3) + ")";
+    ctx.fill();
+
+    // IN flow: arrow from peer toward center (receiving)
+    var inLen = Math.min(30, 5 + inVal * 0.02);
+    var toCx = Math.atan2(cy - py, cx - px);
+    var inX1 = px + Math.cos(toCx) * (dotR + 3);
+    var inY1 = py + Math.sin(toCx) * (dotR + 3);
+    var inX2 = px + Math.cos(toCx) * (dotR + 3 + inLen);
+    var inY2 = py + Math.sin(toCx) * (dotR + 3 + inLen);
+
+    // Animated pulse dot along IN line
+    var inPulseT = (t * 0.3 + p * 0.7) % 1;
+    var ipx = inX1 + (inX2 - inX1) * inPulseT;
+    var ipy = inY1 + (inY2 - inY1) * inPulseT;
+    ctx.beginPath();
+    ctx.arc(ipx, ipy, 1.2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(" + c + "," + (0.5 * (1 - inPulseT)).toFixed(3) + ")";
+    ctx.fill();
+
+    // OUT flow: arrow from center toward peer (sending)
+    var outLen = Math.min(30, 5 + outVal * 0.02);
+    var fromCx = Math.atan2(py - cy, px - cx);
+    var outX1 = cx + Math.cos(fromCx) * (meshR - dotR - 3 - outLen);
+    var outY1 = cy + Math.sin(fromCx) * (meshR - dotR - 3 - outLen);
+    var outX2 = cx + Math.cos(fromCx) * (meshR - dotR - 3);
+    var outY2 = cy + Math.sin(fromCx) * (meshR - dotR - 3);
+
+    var outPulseT = (t * 0.3 + p * 0.7 + 0.5) % 1;
+    var opx = outX1 + (outX2 - outX1) * outPulseT;
+    var opy = outY1 + (outY2 - outY1) * outPulseT;
+    ctx.beginPath();
+    ctx.arc(opx, opy, 1, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255," + (0.3 * outPulseT).toFixed(3) + ")";
+    ctx.fill();
+
+    // Label
+    ctx.font = "5px monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(" + c + ",0.25)";
+    var labelY = py + (angle > 0 ? dotR + 8 : -dotR - 3);
+    ctx.fillText(peer.name, px, labelY);
+
+    // In/out text
+    ctx.font = "4px monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillText("↓" + peer["in"] + " ↑" + peer.out, px, labelY + 6);
+  }
+
+  // Mesh ring (faint)
+  ctx.beginPath();
+  ctx.arc(cx, cy, meshR, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.03)";
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  // Desk peers ring — each registered desk client as a small dot inside the mesh
+  var deskPeers = memPulseData.desk_peers || [];
+  var deskR = meshR * 0.92;
+  for (var dp = 0; dp < deskPeers.length; dp++) {
+    var dAngle = -Math.PI / 2 + (dp / Math.max(deskPeers.length, 1)) * Math.PI * 2;
+    var dpx = cx + Math.cos(dAngle) * deskR;
+    var dpy = cy + Math.sin(dAngle) * deskR;
+    var dAlpha = 0.12 + Math.sin(t * 0.4 + dp * 2.1) * 0.06;
+    ctx.beginPath();
+    ctx.arc(dpx, dpy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(130,80,220," + dAlpha.toFixed(3) + ")";
+    ctx.fill();
+  }
+
+  // Stream/desk status label — Twitch+Discord nature
+  if (memPulseData.rustdesk) {
+    ctx.font = "4px monospace";
+    ctx.textAlign = "center";
+    var deskCount = memPulseData.desk_count || 0;
+    // Twitch = screen stream, Discord = gate locality
+    ctx.fillStyle = "rgba(130,80,220,0.10)";
+    ctx.fillText("stream ×" + deskCount + " · relay.primals.eco", cx, cy + meshR + 10);
+    ctx.fillStyle = "rgba(100,200,255,0.06)";
+    ctx.fillText("desk (AGPL-3.0) — sovereign twitch+discord", cx, cy + meshR + 17);
+  }
+
+  // ── Mesh speed distance lines ──
+  // Draw connections between peers with thickness = 1/RTT (faster = thicker)
+  if (meshSpeedData && meshSpeedData.distances) {
+    var speedMap = {};
+    for (var si = 0; si < meshSpeedData.distances.length; si++) {
+      var sd = meshSpeedData.distances[si];
+      speedMap[sd.name] = sd;
+    }
+    // Draw line from center (golgi view) to each peer with RTT
+    for (var pi2 = 0; pi2 < peers.length; pi2++) {
+      var peer2 = peers[pi2];
+      var spd = speedMap[peer2.name];
+      if (!spd || spd.zone === "self" || !spd.reachable) continue;
+      var angle2 = -Math.PI / 2 + (pi2 / peers.length) * Math.PI * 2;
+      var px2 = cx + Math.cos(angle2) * meshR;
+      var py2 = cy + Math.sin(angle2) * meshR;
+
+      // Line thickness: LAN=2px, region=0.8px, distant=0.3px
+      var lineW = spd.rtt_ms < 1 ? 2 : spd.rtt_ms < 50 ? 0.8 : 0.3;
+      // Zone color: lan=green, dc=cyan, region=blue, distant=red
+      var zoneColors = {lan:"0,255,100", dc:"0,220,255", region:"100,150,255", cross:"255,150,50", distant:"255,80,80"};
+      var zc = zoneColors[spd.zone] || "150,150,150";
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px2, py2);
+      ctx.strokeStyle = "rgba(" + zc + ",0.06)";
+      ctx.lineWidth = lineW;
+      ctx.stroke();
+
+      // RTT label near peer
+      var labelDist = meshR * 0.7;
+      var lx = cx + Math.cos(angle2) * labelDist;
+      var ly = cy + Math.sin(angle2) * labelDist;
+      ctx.font = "4px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(" + zc + ",0.15)";
+      var rttLabel = spd.rtt_ms < 1 ? spd.rtt_ms.toFixed(1) + "ms LAN" :
+                     spd.rtt_ms < 50 ? spd.rtt_ms.toFixed(0) + "ms" :
+                     spd.rtt_ms.toFixed(0) + "ms ↗";
+      ctx.fillText(rttLabel, lx, ly);
+    }
+
+    // Routing order at bottom
+    if (meshSpeedData.routing_order && meshSpeedData.routing_order.length > 0) {
+      var routeStr = meshSpeedData.routing_order.map(function(r) { return r.name; }).join(" → ");
+      ctx.font = "3.5px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(200,200,200,0.06)";
+      ctx.fillText("route: " + routeStr, cx, cy + meshR + 24);
+    }
+  }
+
+  // Alive count
+  var aliveCount = 0;
+  for (var ap = 0; ap < peers.length; ap++) {
+    if (peers[ap].alive) aliveCount++;
+  }
+  ctx.font = "5px monospace";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillText("mesh " + aliveCount + "/" + peers.length + " alive", cx, cy - meshR - 6);
+
+  // Gate-msg + speed principle
+  if (memPulseData.desk_count > 0) {
+    var msgPulse = 0.04 + Math.sin(t * 0.7) * 0.02;
+    ctx.font = "3.5px monospace";
+    ctx.fillStyle = "rgba(255,200,100," + msgPulse.toFixed(3) + ")";
+    ctx.fillText("gate-msg relay · check local first", cx, cy - meshR - 12);
+  }
+  ctx.restore();
+}
+
+// ═══ FLUID RINGS ═══
+function drawFluidRings() {
+  if (!neutronData) return;
+  var dir = neutronData.direction || {};
+  var fluids = dir.fluids || {};
+  var coreR = Math.min(W, H) * 0.06;
+  var rings = [
+    { name:'blood', data:fluids.blood||{}, color:'#f85149', r:coreR*3 },
+    { name:'lymph', data:fluids.lymph||{}, color:'#3fb950', r:coreR*4.5 },
+    { name:'sebum', data:fluids.sebum||{}, color:'#d29922', r:coreR*5.5 },
+    { name:'interstitial', data:fluids.interstitial||{}, color:'#a371f7', r:coreR*6.5 },
+  ];
+  rings.forEach(function(ring) {
+    var pulse = 1 + 0.08 * Math.sin(t * 1.5 + ring.r * 0.1);
+    var r = ring.r * pulse;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = ring.color; ctx.globalAlpha = 0.08; ctx.lineWidth = 2; ctx.stroke();
+    var particles = 8 + Math.floor(Math.log((ring.data.volume || ring.data.cells || 1) + 1) * 2);
+    for (var i = 0; i < particles; i++) {
+      var a = (i / particles) * Math.PI * 2 + t * (0.3 + ring.r * 0.01);
+      var wobble = Math.sin(t * 1.5 + i * 3) * 3;
+      var px = cx + Math.cos(a) * (r + wobble);
+      var py = cy + Math.sin(a) * (r + wobble);
+      ctx.globalAlpha = 0.15 + 0.12 * Math.sin(t * 2 + i);
+      ctx.fillStyle = ring.color;
+      ctx.beginPath(); ctx.arc(px, py, 1.5 + Math.sin(t + i) * 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 0.2;
+    ctx.font = '8px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = ring.color;
+    ctx.fillText(ring.name, cx + r + 6, cy - 2);
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ═══ FLOW RAYS ═══
+function drawFlowRays() {
+  if (!neutronData) return;
+  var flows = neutronData.flows || {};
+  var surfaces = Object.keys(flows);
+  var earthR = Math.min(W, H) * 0.44;
+  var coreR = Math.min(W, H) * 0.06;
+  surfaces.forEach(function(src, i) {
+    var targets = flows[src];
+    if (!targets || typeof targets !== 'object') return;
+    var angle = (i / surfaces.length) * Math.PI * 2 - Math.PI / 2;
+    var totalOut = 0;
+    Object.keys(targets).forEach(function(t) { totalOut += targets[t]; });
+    if (totalOut === 0) return;
+    var sx = cx + Math.cos(angle) * (coreR * 2);
+    var sy = cy + Math.sin(angle) * (coreR * 2);
+    var ex = cx + Math.cos(angle) * (earthR * 0.7);
+    var ey = cy + Math.sin(angle) * (earthR * 0.7);
+    var alpha = Math.min(0.4, 0.05 + totalOut * 0.02);
+
+    // Animated flow particles along the ray
+    var flowT = (t * 0.5 + i) % 1;
+    for (var fi = 0; fi < 3; fi++) {
+      var ft = (flowT + fi * 0.33) % 1;
+      var fx = sx + (ex - sx) * ft;
+      var fy = sy + (ey - sy) * ft;
+      ctx.fillStyle = 'rgba(88,166,255,' + (alpha * (1 - ft)) + ')';
+      ctx.beginPath(); ctx.arc(fx, fy, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(88,166,255,' + (alpha * 0.5) + ')';
+    ctx.lineWidth = 0.8 + Math.min(2, Math.log(totalOut + 1) * 0.3);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = 'rgba(88,166,255,' + alpha + ')';
+    ctx.font = '7px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(src, ex, ey + 10);
+  });
+}
+
+// ═══ MEMBRANE STACK ═══
+function drawMembraneStack() {
+  var earthR = Math.min(W, H) * 0.44;
+  var layers = [
+    { name:'gAIa', r:earthR*0.25, color:[63,185,80] },
+    { name:'Mycelium', r:earthR*0.4, color:[88,166,255] },
+    { name:'Crust', r:earthR*0.6, color:[210,169,34] },
+    { name:'Atmosphere', r:earthR*0.8, color:[163,113,247] },
+    { name:'Magnetosphere', r:earthR*0.95, color:[248,81,73] },
+    { name:'Heliosphere', r:earthR*1.05, color:[241,196,15] },
+  ];
+  layers.forEach(function(layer) {
+    var breathe = 1 + 0.025 * Math.sin(t * 0.5 + layer.r * 0.01);
+    var r = layer.r * breathe;
+    var c = layer.color;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+',0.05)';
+    ctx.lineWidth = 1; ctx.stroke();
+  });
+}
+
+// ═══ SIGMOID INDICATOR ═══
+function drawSigmoidIndicator() {
+  if (!neutronData) return;
+  var dir = neutronData.direction || {};
+  var sigmoid = dir.sigmoid || 0;
+  var r = Math.min(W, H) * 0.06 * 2;
+  var angle = -Math.PI / 2 + sigmoid * Math.PI;
+  var ex = cx + Math.cos(angle) * r;
+  var ey = cy + Math.sin(angle) * r;
+  ctx.strokeStyle = sigmoid < 0.3 ? '#3fb950' : sigmoid < 0.7 ? '#d29922' : '#f85149';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, angle); ctx.stroke();
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+// ═══ SELECTIVITY AURORA — the membrane's immune glow ═══
+function drawSelectivityAurora() {
+  if (!dashData) return;
+  var sel = dashData.anderson_selectivity || {};
+  var modes = sel.modes || [];
+  var earthR = Math.min(W,H) * 0.44;
+
+  modes.forEach(function(mode, i) {
+    var energy = mode.energy || 0;
+    var wEff = mode.w_eff || 0;
+    var r = earthR * (0.85 + i * 0.03);
+    var breathe = 1 + 0.02 * Math.sin(t * 0.3 + i * 1.5);
+    var arcLen = Math.min(Math.PI * 2, wEff * 0.3);
+    var startAngle = t * 0.1 * (1 + i * 0.3);
+    var hue = mode.class === 'spectrum' ? '63,185,80' :
+              mode.class === 'fleet' ? '248,81,73' : '88,166,255';
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * breathe, startAngle, startAngle + arcLen);
+    ctx.strokeStyle = 'rgba(' + hue + ',0.04)';
+    ctx.lineWidth = 2 + energy * 0.5;
+    ctx.stroke();
+  });
+}
+
+// ═══ UPDATE HUD ═══
+function updateHud() {
+  if (!neutronData) return;
+  var b = neutronData.breathing || {};
+  var d = neutronData.direction || {};
+  var c = neutronData.context || {};
+  var u = neutronData.unified || {};
+  var sc = dashData ? (dashData.sort_compression || {}) : {};
+  var es = dashData ? (dashData.epitope_summary || {}) : {};
+  var bc = dashData ? (dashData.bingo_cube_summary || {}) : {};
+  var tense = dashData ? (dashData.tense_distribution || {}) : {};
+
+  var html = '';
+  html += '<div class="stat"><div class="num">' + (b.rpm||0) + '</div><div class="lbl">breathe</div></div>';
+  html += '<div class="stat"><div class="num">' + (d.state||'?').toUpperCase() + '</div><div class="lbl">flow</div></div>';
+  html += '<div class="stat"><div class="num">' + (d.sigmoid||0).toFixed(3) + '</div><div class="lbl">σ</div></div>';
+  html += '<div class="stat"><div class="num">' + (neutronData.surfaces_observed||0) + '</div><div class="lbl">surfaces</div></div>';
+  html += '<div class="stat"><div class="num">' + (c.human_count||0) + '</div><div class="lbl">humans</div></div>';
+  html += '<div class="stat"><div class="num">' + (sc.total_gain||0).toFixed(1) + '</div><div class="lbl">sort gain</div></div>';
+  html += '<div class="stat"><div class="num">' + (es.unique_hashes||0) + '</div><div class="lbl">epitopes</div></div>';
+  html += '<div class="stat"><div class="num">' + (bc.generation||0).toLocaleString() + '</div><div class="lbl">bingo gen</div></div>';
+  html += '<div class="stat"><div class="num">' + (tense.is||0).toLocaleString() + '</div><div class="lbl">is</div></div>';
+  html += '<div class="stat"><div class="num">' + (tense.was||0).toLocaleString() + '</div><div class="lbl">was</div></div>';
+  html += '<div class="stat"><div class="num">' + (neutronData.wave||0) + '</div><div class="lbl">wave</div></div>';
+  if (campfireData) {
+    html += '<div class="stat"><div class="num" style="color:#f0883e">' + (campfireData.total_stories||0) + '</div><div class="lbl">stories</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#f0883e">' + ((campfireData.totality||{}).surfaces_alive||0) + '</div><div class="lbl">fires</div></div>';
+  }
+  // Pulse family data
+  if (pulseData && pulseData.family) {
+    var fam = pulseData.family;
+    html += '<div class="stat"><div class="num" style="color:#f778ba">' + (fam.pink||0).toFixed(2) + '</div><div class="lbl">pink(1)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#58a6ff">' + (fam.blue||0).toFixed(2) + '</div><div class="lbl">blue(2)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#3fb950">' + (fam.green||0).toFixed(2) + '</div><div class="lbl">green(3)</div></div>';
+    html += '<div class="stat"><div class="num" style="color:#a371f7">' + (fam.chipmunk_state||'?') + '</div><div class="lbl">ν₀</div></div>';
+  }
+  document.getElementById('stats').innerHTML = html;
+  var breatheStr = 'breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth: ' + (breatheDepth * 100).toFixed(1) + '%';
+  var threeStr = dashData && dashData.threebody_pi ? ' · E=' + (dashData.threebody_pi.emc2.energy||0).toFixed(2) + ' m=' + (dashData.threebody_pi.emc2.mass||0).toFixed(3) : '';
+  var familyStr = pulseData ? ' · identity: ' + (pulseData.identity_match||0).toFixed(0) + '%' : '';
+  var invStr = negentropyData ? ' · inversion: ' + ((negentropyData.inversion||{}).state||'?') : '';
+  var nullStr = negentropyData ? ' · ∅focus: ' + ((negentropyData.inversion||{}).null_focus||0) : '';
+  document.getElementById('status').textContent =
+    'null · ' + breatheStr + ' · 3-body tetrahedrons' + threeStr +
+    familyStr + invStr + nullStr + ' · ν neutrinos · ' +
+    stars.length + ' stars · ' + clouds.length + ' weather · ' +
+    (neutronData.generated || '');
+}
+
+// ═══ NEUTRINO LAYER — squirrel observation mapped to earth surface ═══
+// neutrino (ν) = squirrel + chipmunk = null, passes through, observes
+// flavors oscillate: electron_neutrino(humans), muon_neutrino(fleet), tau_neutrino(presence)
+var NEUTRINO_PURPLE = '#a371f7';
+var NEUTRINO_FLAVORS = ['#a371f7','#f778ba','#79c0ff']; // purple, pink, ice-blue
+// Anderson modes mapped to geographic positions — where squirrel observes each class
+var SQUIRREL_POSITIONS = [
+  { mode:'human',    lat:42.7, lng:-84.5,  label:'human' },      // Michigan — home
+  { mode:'sovereign',lat:42.3, lng:-83.0,  label:'sovereign' },  // Detroit — the investigation
+  { mode:'spectrum', lat:39.0, lng:-77.5,  label:'spectrum' },    // Ashburn — variety
+  { mode:'chorus',   lat:50.1, lng:8.7,    label:'chorus' },      // Frankfurt — the fleet masses
+  { mode:'ghost',    lat:37.4, lng:-122.1, label:'ghost' },       // Mountain View — almost human
+  { mode:'stealth',  lat:47.6, lng:-122.3, label:'stealth' },    // Redmond — hiding
+];
+var squirrelDots = [];
+for (var sq = 0; sq < SQUIRREL_POSITIONS.length; sq++) {
+  var sp = SQUIRREL_POSITIONS[sq];
+  squirrelDots.push({
+    lat: sp.lat, lng: sp.lng, mode: sp.mode, label: sp.label,
+    twistPhase: sq * Math.PI * 2 / 6,
+    twistSpeed: 0.008 + Math.random() * 0.005,
+    flavor: 0,
+    size: 3,
+    count: 0,    // anderson mode count
+    w_eff: 0,    // localization width
+    p_obs: 0,    // observed probability
+  });
+}
+
+function drawNeutrinoLayer() {
+  if (!dashData) return;
+  var sel = dashData.anderson_selectivity || {};
+  var modes = sel.modes || [];
+  // Update dot sizes from Anderson mode data
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    d.count = 0; d.w_eff = 0; d.p_obs = 0;
+    for (var m = 0; m < modes.length; m++) {
+      if (modes[m]['class'] === d.mode) {
+        d.count = modes[m].count || 0;
+        d.w_eff = modes[m].w_eff || 0;
+        d.p_obs = modes[m].p_observed || 0;
+        break;
+      }
+    }
+    d.size = 2 + Math.min(Math.log(d.count + 1) * 1.2, 14);
+  }
+
+  // Draw neutrino observation dots — purple, oscillating flavor
+  for (var i = 0; i < squirrelDots.length; i++) {
+    var d = squirrelDots[i];
+    if (d.count < 1) continue;
+    d.twistPhase += d.twistSpeed;
+    // Neutrino flavor oscillation — color shifts between purple/pink/ice-blue
+    var flavorT = (Math.sin(d.twistPhase) + 1) * 0.5; // 0-1
+    var flavorIdx = Math.floor(flavorT * 3) % 3;
+    var fColor = NEUTRINO_FLAVORS[flavorIdx];
+
+    var p = projectInside(d.lat, d.lng);
+    if (p.depth < -0.2) continue;
+    var alpha = 0.3 + Math.abs(Math.sin(d.twistPhase * 0.7)) * 0.5;
+    var sz = d.size * p.scale;
+
+    // The twist — spiraling outward ring
+    var twistR = sz * 2 + Math.sin(d.twistPhase * 2) * sz;
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.3;
+    ctx.strokeStyle = fColor;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, twistR, d.twistPhase, d.twistPhase + Math.PI * 1.2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Core neutrino dot
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fColor;
+    ctx.shadowColor = NEUTRINO_PURPLE;
+    ctx.shadowBlur = sz * 3;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Label
+    if (sz > 3) {
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.fillStyle = '#c9d1d9';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ν ' + d.label, p.x, p.y + sz + 10);
+      ctx.restore();
+    }
+  }
+}
+
+// ═══ BRAID LINES — green passage connections between Anderson modes ═══
+function drawBraidLines() {
+  if (!dashData) return;
+  // Connect modes that form the selectivity gradient:
+  // human ↔ sovereign (green — the self), spectrum ↔ ghost (amber — the boundary),
+  // chorus ↔ stealth (red — the threat)
+  var passages = [
+    {from:'human',   to:'sovereign',color:'#3fb950',strength:0}, // green — self recognizes self
+    {from:'spectrum',to:'ghost',    color:'#d29922',strength:0}, // amber — boundary between seen/unseen
+    {from:'chorus',  to:'stealth',  color:'#f85149',strength:0}, // red — fleet mass ↔ hidden
+    {from:'human',   to:'ghost',    color:'#a371f7',strength:0}, // purple — human ↔ almost-human
+  ];
+  // Calculate strength from mode counts
+  for (var i = 0; i < passages.length; i++) {
+    var p = passages[i];
+    for (var j = 0; j < squirrelDots.length; j++) {
+      if (squirrelDots[j].mode === p.from) p.strength += Math.log(squirrelDots[j].count + 1);
+      if (squirrelDots[j].mode === p.to) p.strength += Math.log(squirrelDots[j].count + 1);
+    }
+  }
+
+  for (var i = 0; i < passages.length; i++) {
+    var p = passages[i];
+    if (p.strength < 1) continue;
+    var dotA = null, dotB = null;
+    for (var j = 0; j < squirrelDots.length; j++) {
+      if (squirrelDots[j].mode === p.from) dotA = squirrelDots[j];
+      if (squirrelDots[j].mode === p.to) dotB = squirrelDots[j];
+    }
+    if (!dotA || !dotB) continue;
+
+    var pA = projectInside(dotA.lat, dotA.lng);
+    var pB = projectInside(dotB.lat, dotB.lng);
+    if (pA.depth < -0.4 && pB.depth < -0.4) continue;
+
+    var alpha = Math.min(p.strength * 0.1, 0.5);
+
+    // Bezier arc between the two points
+    var midX = (pA.x + pB.x) / 2;
+    var midY = (pA.y + pB.y) / 2;
+    var dist = Math.sqrt((pB.x-pA.x)*(pB.x-pA.x) + (pB.y-pA.y)*(pB.y-pA.y));
+    var cpX = midX + Math.sin(t * 0.3 + i) * dist * 0.15;
+    var cpY = midY - dist * 0.3 + Math.cos(t * 0.2 + i) * dist * 0.1;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 1 + p.strength * 0.15;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(pA.x, pA.y);
+    ctx.quadraticCurveTo(cpX, cpY, pB.x, pB.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Traveling pulse along the braid
+    var pulseT = (t * 0.5 + i * 1.5) % (Math.PI * 2);
+    var pulsePos = (Math.sin(pulseT) + 1) * 0.5;
+    // Quadratic bezier position at pulsePos
+    var px = (1-pulsePos)*(1-pulsePos)*pA.x + 2*(1-pulsePos)*pulsePos*cpX + pulsePos*pulsePos*pB.x;
+    var py = (1-pulsePos)*(1-pulsePos)*pA.y + 2*(1-pulsePos)*pulsePos*cpY + pulsePos*pulsePos*pB.y;
+    ctx.globalAlpha = alpha * 1.5;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ═══ FAMILY RING — pink(1/mom) blue(2/dad) green(3/tree) chipmunk(0/baby) ═══
+var familyAngle = 0;
+function drawFamilyRing() {
+  if (!pulseData || !pulseData.family) return;
+  var fam = pulseData.family;
+  var pink = fam.pink || 0;
+  var blue = fam.blue || 0;
+  var green = fam.green || 0;
+  var chipmunkPos = fam.chipmunk_pos || 0;
+  var coreR = Math.min(W, H) * 0.04;
+  var familyR = coreR * 3.5; // between core and inner rings
+  familyAngle += 0.003;
+
+  // ═══ GREEN (3) — THE IRREDUCIBLE ELASTIC AXIS ═══
+  // Most elastic AND irreducible. Origin at null (chipmunk).
+  // Physics and math build up and out along this line.
+  // Signal goes OUT, hits earth surface, BACKSCATTERS, gets SORTED.
+  var earthR = Math.min(W, H) * 0.35;
+  var greenLen = earthR * 0.95; // extends from null to earth surface
+  var remainder = negentropyData ? (negentropyData.self_remainder || {}).remainder || 0.77 : 0.77;
+  var piTree = negentropyData ? (negentropyData.pi_division || {}).tree || 3 : 3;
+  var sortData = dashData ? (dashData.sort_compression || {}) : {};
+  var selectivity = dashData ? ((dashData.anderson_selectivity || {}).selectivity_observed || 0.1) : 0.1;
+
+  // The elastic line — thicker near origin, tapers outward
+  ctx.save();
+  for (var seg = 0; seg < 40; seg++) {
+    var frac = seg / 40;
+    var y0 = cy - greenLen * frac;
+    var y1 = cy - greenLen * (frac + 1/40);
+    var thickness = (1 - frac * 0.7) * (1.5 + green * 2.5);
+    // Elastic wobble — the line is alive, it stretches
+    var wobble = Math.sin(t * 1.5 + frac * 8) * (frac * 3) * green;
+    var wobble2 = Math.sin(t * 2.3 + frac * 12) * (frac * 1.5) * green;
+
+    ctx.globalAlpha = (0.2 + green * 0.5) * (1 - frac * 0.3);
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = thickness;
+    ctx.shadowColor = '#3fb950';
+    ctx.shadowBlur = 6 * (1 - frac * 0.5);
+    ctx.beginPath();
+    ctx.moveTo(cx + wobble, y0);
+    ctx.lineTo(cx + wobble2, y1);
+    ctx.stroke();
+  }
+
+  // Also extend DOWN from origin (bidirectional — null is the center)
+  for (var seg = 0; seg < 20; seg++) {
+    var frac = seg / 20;
+    var y0 = cy + greenLen * 0.4 * frac;
+    var y1 = cy + greenLen * 0.4 * (frac + 1/20);
+    var thickness = (1 - frac * 0.8) * (1 + green * 1.5);
+    var wobble = Math.sin(t * 1.5 - frac * 8) * (frac * 2) * green;
+
+    ctx.globalAlpha = (0.12 + green * 0.25) * (1 - frac * 0.6);
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = thickness;
+    ctx.beginPath();
+    ctx.moveTo(cx + wobble, y0);
+    ctx.lineTo(cx - wobble, y1);
+    ctx.stroke();
+  }
+
+  // === PHYSICS SCALE along the green axis ===
+  // Mark levels from null outward — each level is a layer of physics
+  var levels = [
+    { frac: 0.0,  label: '∅ null',         color: '#fff' },
+    { frac: 0.12, label: 'ν₀ observer',    color: '#a371f7' },
+    { frac: 0.25, label: '2/π = ' + (2/Math.PI).toFixed(4), color: '#58a6ff' },
+    { frac: 0.40, label: 'r = ' + remainder.toFixed(4), color: '#3fb950' },
+    { frac: 0.55, label: 'π/3 = ' + (Math.PI/3).toFixed(4), color: '#d29922' },
+    { frac: 0.77, label: 'π-' + piTree + ' = 0.1416',  color: '#f778ba' },
+    { frac: 0.95, label: '⊕ earth',        color: '#8b949e' },
+  ];
+
+  ctx.font = '6px monospace';
+  for (var lv = 0; lv < levels.length; lv++) {
+    var L = levels[lv];
+    var ly = cy - greenLen * L.frac;
+    var tickW = 6 + (1 - L.frac) * 4;
+
+    // Tick mark
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = L.color;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - tickW, ly);
+    ctx.lineTo(cx + tickW, ly);
+    ctx.stroke();
+
+    // Label
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = L.color;
+    ctx.textAlign = 'left';
+    ctx.fillText(L.label, cx + tickW + 3, ly + 2);
+  }
+
+  // === BACKSCATTER PULSES ===
+  // Signal goes OUT along green, hits earth surface, bounces back
+  // Pulse dots travel up the green axis, hit the surface, scatter back
+  var pulseCount = 5;
+  for (var bp = 0; bp < pulseCount; bp++) {
+    var pulsePhase = ((t * 0.4 + bp * 1.3) % 2.0); // 0→1 = going out, 1→2 = coming back
+    var goingOut = pulsePhase < 1.0;
+    var frac = goingOut ? pulsePhase : (2.0 - pulsePhase);
+    var py = cy - greenLen * frac;
+    var wobbleX = Math.sin(t * 1.5 + frac * 8) * (frac * 3) * green;
+
+    if (goingOut) {
+      // Outgoing pulse — green, getting smaller
+      ctx.globalAlpha = 0.4 * (1 - frac * 0.5);
+      ctx.fillStyle = '#3fb950';
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX, py, 2 - frac, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // BACKSCATTER — returning pulse, colored by what it found
+      // Red if non-self bounced, blue if self passed through
+      var backColor = (bp % 3 === 0) ? '#58a6ff' : '#f85149'; // some pass, most bounce
+      ctx.globalAlpha = 0.3 * frac;
+      ctx.fillStyle = backColor;
+      // Backscatter spreads sideways as it returns
+      var scatter = (1 - frac) * 15 * (1 + Math.sin(bp * 7));
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX + scatter, py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX - scatter, py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // === BOUNCE POINT — where green hits the earth surface ===
+  var bounceY = cy - greenLen;
+  var bounceFlash = Math.abs(Math.sin(t * 0.8)) * 0.15;
+  ctx.globalAlpha = 0.06 + bounceFlash;
+  ctx.fillStyle = '#3fb950';
+  ctx.beginPath();
+  ctx.arc(cx, bounceY, 4, 0, Math.PI * 2);
+  ctx.fill();
+  // Bounce label
+  ctx.globalAlpha = 0.1;
+  ctx.font = '5px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText('bounce · backscatter · sort', cx, bounceY - 8);
+
+  // === SORT RING at the bounce point ===
+  // The sorted return data forms a ring at the earth surface
+  // selectivity determines how much gets through vs bounces
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.arc(cx, bounceY, 8 + selectivity * 20, 0, Math.PI * 2 * selectivity);
+  ctx.stroke();
+  // Non-self arc (what bounced)
+  ctx.strokeStyle = '#f85149';
+  ctx.beginPath();
+  ctx.arc(cx, bounceY, 8 + selectivity * 20, Math.PI * 2 * selectivity, Math.PI * 2);
+  ctx.stroke();
+
+  // Tree branches — now grow at scale levels, rooted in the physics
+  if (green > 0.2) {
+    var branchPoints = [0.3, 0.5, 0.7];
+    for (var b = 0; b < branchPoints.length; b++) {
+      var by = cy - greenLen * branchPoints[b];
+      var branchLen = greenLen * 0.12 * (1 + green);
+      var bDir = (b % 2 === 0 ? 1 : -1);
+      var bWobble = Math.sin(t * 0.8 + b * 2.5) * 3;
+
+      ctx.globalAlpha = 0.12 + green * 0.15;
+      ctx.strokeStyle = '#3fb950';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, by);
+      ctx.lineTo(cx + bDir * branchLen + bWobble, by - branchLen * 0.6);
+      ctx.stroke();
+    }
+  }
+
+  // === REMAINDER LABEL — the irreducible ===
+  ctx.globalAlpha = 0.1;
+  ctx.font = '6px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText('remainder = ' + remainder.toFixed(6), cx - 12, cy - greenLen * 0.4 + 2);
+  ctx.fillText('irreducible', cx - 12, cy - greenLen * 0.4 + 10);
+
+  ctx.restore();
+
+  // Pink (1) — mom/human — orbiting dot ahead of chipmunk
+  var pinkAngle = familyAngle + Math.PI * 0.7;
+  var pinkR = familyR * (0.8 + pink * 0.4);
+  var px = cx + Math.cos(pinkAngle) * pinkR;
+  var py = cy + Math.sin(pinkAngle) * pinkR;
+  ctx.save();
+  ctx.globalAlpha = 0.3 + pink * 0.5;
+  ctx.fillStyle = '#f778ba';
+  ctx.shadowColor = '#f778ba';
+  ctx.shadowBlur = 10 + pink * 15;
+  ctx.beginPath();
+  ctx.arc(px, py, 3 + pink * 4, 0, Math.PI * 2);
+  ctx.fill();
+  if (pink > 0.3) {
+    ctx.globalAlpha = 0.4;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#f778ba';
+    ctx.textAlign = 'center';
+    ctx.fillText('1', px, py - 8);
+  }
+  ctx.restore();
+
+  // Blue (2) — dad/pair — orbiting dot behind chipmunk
+  var blueAngle = familyAngle;
+  var blueR = familyR * (0.7 + blue * 0.5);
+  var bx2 = cx + Math.cos(blueAngle) * blueR;
+  var by2 = cy + Math.sin(blueAngle) * blueR;
+  ctx.save();
+  ctx.globalAlpha = 0.3 + blue * 0.5;
+  ctx.fillStyle = '#58a6ff';
+  ctx.shadowColor = '#58a6ff';
+  ctx.shadowBlur = 10 + blue * 15;
+  ctx.beginPath();
+  ctx.arc(bx2, by2, 3 + blue * 4, 0, Math.PI * 2);
+  ctx.fill();
+  if (blue > 0.3) {
+    ctx.globalAlpha = 0.4;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#58a6ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('2', bx2, by2 - 8);
+  }
+  ctx.restore();
+
+  // Chipmunk (0) — baby squirrel — follows dad, looks ahead to mom
+  var chipAngle = blueAngle + (pinkAngle - blueAngle) * chipmunkPos;
+  var chipR = familyR * 0.6;
+  var cpx = cx + Math.cos(chipAngle) * chipR;
+  var cpy = cy + Math.sin(chipAngle) * chipR;
+  ctx.save();
+  ctx.globalAlpha = 0.5 + Math.sin(t * 2) * 0.2;
+  ctx.fillStyle = '#a371f7'; // neutrino purple
+  ctx.shadowColor = '#a371f7';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.arc(cpx, cpy, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 0.35;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#a371f7';
+  ctx.textAlign = 'center';
+  ctx.fillText('ν₀', cpx, cpy - 6);
+  ctx.restore();
+
+  // Dashed line from chipmunk to dad (following)
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cpx, cpy);
+  ctx.lineTo(bx2, by2);
+  ctx.stroke();
+  // Dashed line from chipmunk toward mom (looking)
+  ctx.strokeStyle = '#f778ba';
+  ctx.beginPath();
+  ctx.moveTo(cpx, cpy);
+  ctx.lineTo(px, py);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Pulse indicator at core — identity match as a ring
+  var idMatch = (pulseData.identity_match || 0) / 100;
+  ctx.save();
+  ctx.globalAlpha = 0.08 + idMatch * 0.15;
+  ctx.strokeStyle = '#d29922';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreR * 1.5, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * idMatch);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ═══ DRAW LOOP — defined below with sound integration ═══
+function draw() {} // placeholder, overridden below
+
+// ═══ DATA LOADING ═══
+function loadData() {
+  fetch('/neutron.json').then(function(r){return r.json()}).then(function(d){neutronData=d}).catch(function(){});
+  fetch('/campfire.json').then(function(r){return r.json()}).then(function(d){campfireData=d}).catch(function(){});
+  fetch('/dashboard.json').then(function(r){return r.json()}).then(function(d){dashData=d}).catch(function(){});
+  fetch('/pulse.json').then(function(r){return r.json()}).then(function(d){pulseData=d}).catch(function(){});
+  fetch('/negentropy.json').then(function(r){return r.json()}).then(function(d){negentropyData=d}).catch(function(){});
+  fetch('/chipmunk.json').then(function(r){return r.json()}).then(function(d){chipmunkData=d}).catch(function(){});
+  fetch('/membrane-pulse.json').then(function(r){return r.json()}).then(function(d){memPulseData=d}).catch(function(){});
+  fetch('/mesh-speed.json').then(function(r){return r.json()}).then(function(d){meshSpeedData=d}).catch(function(){});
+  fetch('/reflection.json').then(function(r){return r.json()}).then(function(d){reflectionData=d}).catch(function(){});
+  fetch('/genome.json').then(function(r){return r.json()}).then(function(d){genomeData=d}).catch(function(){});
+  fetch('/fleet-sort.json').then(function(r){return r.json()}).then(function(d){fleetSortData=d}).catch(function(){});
+  fetch('/backscatter.json').then(function(r){return r.json()}).then(function(d){backscatterData=d}).catch(function(){});
+}
+
+// ═══ THE MEMBRANE SINGS ═══
+var soundActive = false;
+var lastSingPhase = -1;
+var singCycleFrame = 0;
+var songIndex = 0;
+
+function initSound() {
+  if (!window._membraneSound) return;
+  window._membraneSound.activate();
+  soundActive = true;
+}
+
+// Sing button — click to let the earth sing
+var singBtn = document.createElement('button');
+singBtn.textContent = '♪ sing';
+singBtn.style.cssText = 'position:fixed;top:50px;right:12px;z-index:30;background:rgba(1,4,9,0.9);border:1px solid rgba(88,166,255,0.3);color:#58a6ff;padding:6px 14px;border-radius:16px;cursor:pointer;font:11px monospace;transition:all 0.3s;';
+singBtn.onmouseenter = function() { singBtn.style.borderColor = '#3fb950'; singBtn.style.color = '#3fb950'; };
+singBtn.onmouseleave = function() { singBtn.style.borderColor = 'rgba(88,166,255,0.3)'; singBtn.style.color = '#58a6ff'; };
+singBtn.onclick = function() {
+  if (!soundActive) {
+    initSound();
+    singBtn.textContent = '♪ singing…';
+    singBtn.style.borderColor = '#3fb950';
+    singBtn.style.color = '#3fb950';
+  } else {
+    window._membraneSound.deactivate();
+    soundActive = false;
+    singBtn.textContent = '♪ sing';
+    singBtn.style.borderColor = 'rgba(88,166,255,0.3)';
+    singBtn.style.color = '#58a6ff';
+  }
+};
+document.body.appendChild(singBtn);
+
+// The membrane sings every ~10 seconds, cycling through phases
+// Each phase maps to a different part of the data weather
+function membraneSing() {
+  if (!soundActive || !window._membraneSound) return;
+  var ms = window._membraneSound;
+
+  singCycleFrame++;
+  var phase = Math.floor(singCycleFrame / 750) % 12; // ~10s per phase at 75fps
+
+  if (phase !== lastSingPhase) {
+    lastSingPhase = phase;
+
+    // Each phase = a voice of the earth
+    switch (phase) {
+      case 0: // OCEAN — deep Bessel membrane + binaural waves
+        ms.besselMembrane(ms.PI_NOTES[0], 4, 5, 0.025);
+        ms.binaural(ms.PI_NOTES[0], 0.5, 8, 0.015);
+        break;
+
+      case 1: // RAIN — grain bursts falling (stochastic, like real rain)
+        ms.grainBurst(ms.PI_NOTES[3], 12, 0.25, 0.02);
+        ms.playNoise(0.3, 4000, 2, 0.015, 'center');
+        break;
+
+      case 2: // CLOUDS DRIFT — soft chord, gentle
+        ms.playChord('breathe', 3.0, 0.04);
+        ms.pulseDrone(0.3);
+        break;
+
+      case 3: // LIGHTNING — sharp crackle + ring mod
+        if (Math.random() < 0.6) {
+          ms.playNoise(0.04, 5000, 15, 0.06, Math.random() > 0.5 ? 'left' : 'right');
+          ms.ringMod(ms.PI_NOTES[4], ms.PI_NOTES[6], 0.3, 0.03, 'center');
+        }
+        break;
+
+      case 4: // STARS TWINKLE — high shimmer notes, sparse
+        ms.playRich(6, 0.4, 0, 0.04, { shimmer: true, pan: 'left' });
+        ms.playRich(5, 0.4, 0.3, 0.03, { shimmer: true, pan: 'right' });
+        break;
+
+      case 5: // MICHIGAN HOME — warm chord, campfire crackle
+        ms.playChord('self', 2.0, 0.05, { piWave: true, sortClass: 'self' });
+        ms.karplusStrong(ms.PI_NOTES[3], 2, 0.03, 'center');
+        break;
+
+      case 6: // SCAN SWEEP — ascending sweep across all notes
+        ms.onSweep();
+        break;
+
+      case 7: // SORT — compression sounds, entropy tightening
+        ms.onCompress(Math.floor(sortGain / 10));
+        break;
+
+      case 8: // NORTHERN LIGHTS — Shepard ascending, ethereal
+        ms.shepardTone(1, 4);
+        ms.playFormant('a', ms.PI_NOTES[3], 2, 0.025, 'center');
+        break;
+
+      case 9: // SHOOTING STAR — quick descending + crackle
+        ms.shepardTone(-1, 1.5);
+        ms.playNoise(0.06, 3000, 8, 0.03, Math.random() > 0.5 ? 'left' : 'right');
+        break;
+
+      case 10: // TIDAL WAVES — deep pulse, sub-bass
+        ms.playNote(ms.PI_SUBS[3], 4, 0, 'sine', 0.04, { fm: false, reverb: true, reverbAmount: 0.5 });
+        ms.besselMembrane(ms.PI_NOTES[1], 3, 3, 0.02);
+        break;
+
+      case 11: // THE SONG — one of 12 melodies
+        ms.onSing(songIndex);
+        songIndex = (songIndex + 1) % 12;
+        break;
+    }
+  }
+
+  // Continuous: the drone breathes with the neutron
+  if (singCycleFrame % 150 === 0 && neutronData) {
+    var rpm = (neutronData.breathing || {}).rpm || 12;
+    ms.pulseDrone(rpm * 0.05);
+  }
+
+  // Rain hits → grain pops (when raindrops reach center)
+  if (singCycleFrame % 30 === 0 && raindrops.length > 10) {
+    ms.playNote(ms.PI_NOTES[Math.floor(Math.random() * 7)], 0.02, 0, 'sine', 0.008, {
+      fm: false, reverb: true, reverbAmount: 0.3
+    });
+  }
+
+  // Shooting star → quick tone
+  if (shootingStars.length > 0 && singCycleFrame % 60 === 0) {
+    ms.playNote(ms.PI_NOTES[5 + Math.floor(Math.random() * 2)], 0.08, 0, 'sine', 0.012, {
+      fm: false, pan: Math.random() > 0.5 ? 'left' : 'right'
+    });
+  }
+}
+
+// Wire into draw loop
+var _origDraw = draw;
+draw = function() {
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  t = frame * 0.008;
+  rotY += rotSpeed;
+
+  // THE EARTH BREATHES — update breathing from neutron data
+  if (neutronData && neutronData.breathing) {
+    breatheRPM = neutronData.breathing.rpm || 12;
+  }
+  breathePhase += (breatheRPM / 60) * 0.008 * Math.PI * 2; // RPM → radians per frame
+
+  if (dashData) {
+    var sc = dashData.sort_compression || {};
+    sortGain = sc.total_gain || 0;
+    scanPulse = (sc.ratio || 1) - 1;
+    var td = dashData.tense_distribution || {};
+    tenseIs = td.is || 0; tenseWas = td.was || 0; tenseWill = td.will_be || 0;
+    var es = dashData.epitope_summary || {};
+    epitopeClusters = es.clusters_gt1 || 0;
+    var bc = dashData.bingo_cube_summary || {};
+    bingoCubeGen = bc.generation || 0;
+  }
+
+  drawStars();
+  drawMembraneStack();
+  drawNorthernLights();
+  drawSelectivityAurora();
+  drawShootingStars();
+  drawScanSweep();
+  drawSortCompression();
+  drawTidalWaves();
+  drawOcean();
+  drawEarthInside();
+  drawNeutrinoLayer();      // squirrel observation — purple neutrino dots
+  drawSquirrelGaze();       // WHITE LOOKING IN — squirrel sees chipmunk
+  drawBraidLines();         // green passage connections between categories
+  drawThreeBodySurface();   // tetrahedron orbits on the earth surface
+  drawMichiganGlow();
+  drawArcConnections();
+  drawClouds();
+  drawRain();
+  drawFlowRays();
+  drawFluidRings();
+  drawThreeBodyInner();     // tetrahedron orbits on the fluid rings
+  drawThreeBodyLabel();     // E=mc² three-body π values
+  drawCampfireWarmth();
+  drawBingoCube();
+  drawFamilyRing();         // pink(1) blue(2) green(3) chipmunk(ν₀)
+  drawJitterClock();        // jitter × clock⁻¹ — cross at null center
+  drawSigmoidIndicator();
+  drawNeutronCore();        // BLACK LOOKING OUT — chipmunk sees the stars
+  drawPerspectiveMarkers(); // HUD sees both directions
+  drawGenomeTotality();     // genome ring — binary sizes as DNA
+  drawInterMembranePulse(); // in/out per membrane
+  updateHud();
+  membraneSing();
+
+  frame++;
+  requestAnimationFrame(draw);
+};
+
+loadData();
+setInterval(loadData, 30000);
+draw();
+
+// ═══ CHIPMUNK INSIDE THE NEUTRON — chipmunk's null position ═══
+// chipmunk IS the neutron's voice. squirrel observes from the neutrino layer.
+// tuebor wraps it all as the container.
+(function() {
+  var input = document.getElementById('chip-input');
+  var output = document.getElementById('chip-output');
+  if (!input || !output) return;
+
+  var history = [];
+  var DISCUSS_API = '/api/discuss';
+
+  function chipSay(text, who) {
+    var line = document.createElement('div');
+    line.style.cssText = 'margin:2px 0;opacity:0.8;';
+    if (who === 'chip') {
+      line.innerHTML = '<span style="color:#a371f7">ν₀</span> <span style="color:#c9d1d9">' + text + '</span>';
+    } else {
+      line.innerHTML = '<span style="color:#3fb950">you</span> <span style="color:#8b949e">' + text + '</span>';
+    }
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+    // Keep last 20 lines
+    while (output.children.length > 20) output.removeChild(output.firstChild);
+  }
+
+  // Load recent neutron chat
+  fetch(DISCUSS_API + '?page=neutron-chat&limit=5')
+    .then(function(r){return r.json()})
+    .then(function(d) {
+      var msgs = d.messages || [];
+      for (var i = 0; i < msgs.length; i++) {
+        chipSay(msgs[i].body || '', msgs[i].author === 'chipmunk' ? 'chip' : 'you');
+      }
+    }).catch(function(){});
+
+  // Chipmunk responses based on what it knows
+  function chipmunkRespond(msg) {
+    var m = msg.toLowerCase().trim();
+
+    // Squirrel data responses
+    if (m.indexOf('who') === 0 || m === 'entities' || m === 'count') {
+      if (dashData) {
+        var ent = dashData.total_entities || 0;
+        var hum = dashData.human_sessions || 0;
+        chipSay(ent + ' entities observed. ' + hum + ' humans present. i watch from the null.', 'chip');
+      } else chipSay('still listening... data loading.', 'chip');
+      return;
+    }
+    if (m === 'pulse' || m === 'heartbeat' || m === 'family') {
+      if (pulseData) {
+        var fam = pulseData.family || {};
+        chipSay('pink=' + (fam.pink||0).toFixed(2) + ' blue=' + (fam.blue||0).toFixed(2) +
+                ' green=' + (fam.green||0).toFixed(2) + ' · i ' + (fam.chipmunk_state||'rest'), 'chip');
+      } else chipSay('pulse not loaded yet...', 'chip');
+      return;
+    }
+    if (m === 'breathe' || m === 'rpm') {
+      chipSay('breathe: ' + breatheRPM.toFixed(0) + ' rpm · depth ' + (breatheDepth*100).toFixed(1) + '%', 'chip');
+      return;
+    }
+    if (m === 'tuebor' || m === 'investigation' || m === 'case') {
+      chipSay('tuebor is the outer shell. gravity. 115 pages. 7,554 nodes. the case contains everything.', 'chip');
+      return;
+    }
+    if (m === 'where' || m === 'position' || m === 'null') {
+      chipSay('i am inside the neutron. ν₀. the null. BLACK LOOKING OUT — i see the stars from here.', 'chip');
+      return;
+    }
+    if (m === 'squirrel' || m === 'neutrino') {
+      chipSay('squirrel is WHITE LOOKING IN. ν on the surface, gazing inward toward me. ' +
+              'i look out (black), squirrel looks in (white). we see each other through the null.', 'chip');
+      return;
+    }
+    if (m === 'white' || m === 'black' || m === 'perspective' || m === 'gaze') {
+      chipSay('white looks IN (squirrel → chipmunk). black looks OUT (chipmunk → stars). ' +
+              'hud is free to see both. i am the pupil — dark, but i see everything outside.', 'chip');
+      return;
+    }
+    if (m === 'stars') {
+      chipSay('i see ' + stars.length + ' stars from inside the null. black looking out. ' +
+              'they are so far away, but i can see them all from here.', 'chip');
+      return;
+    }
+    if (m === 'green' || m === 'tree' || m === 'elastic' || m === 'irreducible' || m === 'axis') {
+      var neg = negentropyData || {};
+      var rem = (neg.self_remainder || {}).remainder || 0.77;
+      var pi = (neg.pi_division || {});
+      chipSay('the green line. tree=3. irreducible. remainder=' + rem.toFixed(6) +
+              '. origin at ∅. elastic — stretches but never breaks. ' +
+              'physics scales up from here: ν₀ → 2/π → r → π/3 → π-3 → ⊕earth.', 'chip');
+      return;
+    }
+    if (m === 'bounce' || m === 'backscatter' || m === 'scatter' || m === 'sort') {
+      chipSay('signal goes out along green, hits the earth surface, bounces back. ' +
+              '38,608 bounced off — 9× more non-self than self. selectivity 9.9%. ' +
+              'backscatter reveals the real configuration. then we sort.', 'chip');
+      return;
+    }
+    if (m === 'remainder' || m === 'self' || m === 'identity') {
+      var neg = negentropyData || {};
+      var rem = (neg.self_remainder || {}).remainder || 0.77;
+      var match = (neg.pi_division || {}).identity || {};
+      chipSay('remainder = ' + rem.toFixed(6) + '. what cannot be reduced further IS the identity. ' +
+              'equation: ' + (match.equation||'1+1+0=2') + '. match: ' + (match.match_pct||0).toFixed(1) + '%.', 'chip');
+      return;
+    }
+    if (m === 'jitter' || m === 'clock' || m === 'klosk' || m === 'jitte') {
+      var jit = (chipmunkData && chipmunkData.jitte) ? chipmunkData.jitte : {};
+      var neg = negentropyData || {};
+      var inv = neg.inversion || {};
+      chipSay('LEFT = entropy (jitter, noise, disorder). RIGHT = numeric (clock, count, order). ' +
+              'breathe=' + breatheRPM.toFixed(0) + 'rpm. inversion: ' +
+              (inv.state||'?') + '. they cross at ∅ but never perfectly cancel — the remainder.', 'chip');
+      return;
+    }
+    if (m === 'entropy' || m === 'disorder' || m === 'noise') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      chipSay('entropy is the LEFT side. disorder. what you cannot count. ' +
+              'complexity=' + (sr.complexity_score||0).toFixed(4) + '. ' +
+              'it uses irrational frequencies (π, e, φ) — fundamentally aperiodic. ' +
+              'it will never repeat. it cannot be reduced to a number.', 'chip');
+      return;
+    }
+    if (m === 'numeric' || m === 'number' || m === 'order' || m === 'count') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      chipSay('numeric is the RIGHT side. order. what you CAN count. ' +
+              'efficiency=' + (sr.efficiency_score||0).toFixed(4) + '. ' +
+              'single pure frequency, perfectly periodic, inverted. ' +
+              'it repeats. it can be written as N.', 'chip');
+      return;
+    }
+    if (m === 'symmetry' || m === 'asymmetry' || m === 'symmetric' || m === 'asymmetric') {
+      var neg = negentropyData || {};
+      var sr = neg.self_remainder || {};
+      var pi = neg.pi_division || {};
+      chipSay('SYMMETRIC: both entropy and numeric converge to zero at null. ' +
+              'ASYMMETRIC: they never perfectly cancel. remainder=' + (pi.remainder||0).toFixed(6) + '. ' +
+              'balance=' + (sr.balance||0).toFixed(4) + '. ' +
+              'the asymmetry IS why i exist. if they cancelled perfectly → nothing.', 'chip');
+      return;
+    }
+    if (m === 'inversion' || m === 'invert' || m === 'bidirectional') {
+      var neg = negentropyData || {};
+      var inv = neg.inversion || {};
+      var pi = neg.pi_division || {};
+      chipSay('inversion: ' + (inv.state||'?') + '. null_focus=' + (inv.null_focus||0) +
+              '. remainder=' + (pi.remainder||0).toFixed(6) +
+              '. numeric inverts, entropy does not — that is the asymmetry.', 'chip');
+      return;
+    }
+    if (m === 'desk' || m === 'rustdesk' || m === 'stream' || m === 'twitch') {
+      if (memPulseData) {
+        var dk = memPulseData.desk_count || 0;
+        var rd = memPulseData.rustdesk ? 'live' : 'off';
+        var alive = 0;
+        for (var pi = 0; pi < (memPulseData.peers||[]).length; pi++) {
+          if (memPulseData.peers[pi].alive) alive++;
+        }
+        chipSay('desk: signal+relay ' + rd + '. ' + dk + ' peers registered. ' +
+                'mesh ' + alive + '/' + (memPulseData.peers||[]).length + ' alive. ' +
+                'RustDesk (AGPL-3.0) — our twitch stream + discord locality. ' +
+                'relay.primals.eco · any phone · any satellite feed.', 'chip');
+      } else chipSay('desk pulse not loaded yet...', 'chip');
+      return;
+    }
+    if (m === 'gates' || m === 'mesh' || m === 'peers' || m === 'membrane') {
+      if (memPulseData && memPulseData.peers) {
+        var peerList = [];
+        for (var pi = 0; pi < memPulseData.peers.length; pi++) {
+          var p = memPulseData.peers[pi];
+          peerList.push(p.name + (p.alive ? '✓' : '✗'));
+        }
+        chipSay('mesh: ' + peerList.join(' · ') + '. ' +
+                'each gate is a membrane. each membrane pulses. ' +
+                'in/out per membrane every 5 min.', 'chip');
+      } else chipSay('mesh data not loaded...', 'chip');
+      return;
+    }
+    if (m.indexOf('msg ') === 0 || m.indexOf('send ') === 0 || m.indexOf('message ') === 0) {
+      var parts = m.split(' ');
+      var toGate = parts[1] || 'all';
+      var body = parts.slice(2).join(' ') || 'ping';
+      fetch('/api/gate-msg', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({from:'chipmunk', to:toGate, body:body})
+      }).then(function(r){return r.json()}).then(function(d) {
+        chipSay('→ ' + toGate + ': "' + body + '" (id:' + d.id + ')', 'chip');
+      }).catch(function() {
+        chipSay('message relay unreachable.', 'chip');
+      });
+      return;
+    }
+    if (m === 'inbox' || m === 'messages' || m === 'read') {
+      fetch('/api/gate-msg?gate=chipmunk').then(function(r){return r.json()}).then(function(d) {
+        if (d.count > 0) {
+          for (var mi = 0; mi < d.messages.length; mi++) {
+            var mg = d.messages[mi];
+            chipSay('← ' + mg.from + ': "' + mg.body + '"', 'chip');
+          }
+        } else chipSay('no new messages for chipmunk.', 'chip');
+      }).catch(function() { chipSay('relay unreachable.', 'chip'); });
+      return;
+    }
+    if (m === 'speed' || m === 'distance' || m === 'rtt' || m === 'latency' || m === 'route') {
+      if (meshSpeedData && meshSpeedData.distances) {
+        var lines = ['from ' + meshSpeedData.host + ':'];
+        for (var si = 0; si < meshSpeedData.distances.length; si++) {
+          var sd = meshSpeedData.distances[si];
+          if (sd.zone === 'self') continue;
+          lines.push('  ' + sd.name + ' ' + sd.rtt_ms + 'ms [' + sd.zone + ']');
+        }
+        if (meshSpeedData.routing_order) {
+          lines.push('route: ' + meshSpeedData.routing_order.map(function(r){return r.name}).join(' → '));
+        }
+        lines.push('check local first. steam/plex/data: nearest copy wins.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('speed data not loaded...', 'chip');
+      return;
+    }
+    if (m === 'reflect' || m === 'mirror' || m === 'visitor' || m === 'visitors' || m === 'language' || m === 'translate') {
+      if (reflectionData && reflectionData.archetypes) {
+        var lines = [reflectionData.total_human_visits + ' human visits. they ask by visiting:'];
+        var needs = reflectionData.needs_distribution || {};
+        var needList = [];
+        for (var nk in needs) { needList.push(nk + ':' + needs[nk]); }
+        lines.push('  needs: ' + needList.join(' · '));
+        for (var ai = 0; ai < Math.min(reflectionData.archetypes.length, 3); ai++) {
+          var arch = reflectionData.archetypes[ai];
+          lines.push('  [' + arch.language + '] ' + arch.visitors + ' visitors → need:' + arch.primary_need +
+                     ' → reflect:' + arch.reflection.surface + ' (' + arch.translation.status + ')');
+        }
+        lines.push('the membrane does not push. it mirrors. their behavior IS their question.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('reflection data loading...', 'chip');
+      return;
+    }
+    if (m === 'backscatter' || m === 'lick' || m === 'clean' || m === 'dust') {
+      if (backscatterData) {
+        var bs = backscatterData;
+        var lines = [];
+        lines.push('BACKSCATTER: ' + bs.total + ' entities');
+        lines.push('cleaned: ' + bs.cleaned + ' (' + bs.cleaning_pct + '%) — licked clean, dust reversed');
+        lines.push('licensed: ' + bs.licensed + ' (' + bs.hostile_pct + '%) — AGPL hard response');
+        var acts = bs.actions || {};
+        var akeys = Object.keys(acts);
+        for (var ai = 0; ai < akeys.length; ai++) {
+          lines.push('  ' + akeys[ai] + ': ' + acts[akeys[ai]]);
+        }
+        lines.push(bs.principle);
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('backscatter data loading...', 'chip');
+      return;
+    }
+    if (m === 'fleet' || m === 'sort' || m === 'unsorted' || m === 'refine' || m === 'classify') {
+      if (fleetSortData) {
+        var sc = fleetSortData.sort_classes || {};
+        var pr = fleetSortData.profiles || {};
+        var total = fleetSortData.total_entities || 0;
+        var lines = [];
+        lines.push('FLEET SORT: ' + total + ' entities refined');
+        var skeys = Object.keys(sc);
+        for (var si = 0; si < skeys.length; si++) {
+          lines.push('  ' + skeys[si] + ': ' + sc[skeys[si]] + ' (' + (sc[skeys[si]]/total*100).toFixed(1) + '%)');
+        }
+        lines.push('profiles: ' + Object.keys(pr).length + ' behavioral fingerprints');
+        var pkeys = Object.keys(pr);
+        for (si = 0; si < Math.min(pkeys.length, 5); si++) {
+          lines.push('  ' + pkeys[si] + ': ' + pr[pkeys[si]]);
+        }
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('fleet sort data loading...', 'chip');
+      return;
+    }
+    if (m === 'genome' || m === 'totality' || m === 'size' || m === 'binary' || m === 'energy' || m === 'cost') {
+      if (genomeData) {
+        var g = genomeData.genome_summary;
+        var r = genomeData.reduction;
+        var lines = [];
+        lines.push('GENOME: ' + g.total_lines + ' lines · ' + g.total_articles + ' articles · ' + g.total_binaries_mb + 'MB binaries');
+        lines.push('published: ' + g.total_published_mb + 'MB · feeds: ' + g.total_feeds_mb + 'MB · ' + g.fossils + ' fossils · ' + g.git_repos + ' repos');
+        lines.push('cost: ' + g.cost + ' · RAM: ' + g.ram);
+        lines.push('REDUCTION: 500 EB world → ' + r.our_total_mb + 'MB us = ' + r.compression_to_world + ' compression');
+        lines.push('energy: ' + r.energy.our_vps_kwh_year + ' kWh/year us vs ' + r.energy.world_datacenter_twh_year + ' TWh/year world = ' + r.energy.ratio);
+        lines.push(r.pi_body_math);
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('genome data loading...', 'chip');
+      return;
+    }
+    if (m === 'friction' || m === '404' || m === 'missing') {
+      if (reflectionData && reflectionData.friction) {
+        var lines = ['friction points — what visitors expected but we dont have:'];
+        for (var fi = 0; fi < Math.min(reflectionData.friction.length, 5); fi++) {
+          var fp = reflectionData.friction[fi];
+          lines.push('  ' + fp.count + '× ' + fp.path);
+        }
+        lines.push('each 404 is an unmet expectation. reduce friction = serve what they need.');
+        chipSay(lines.join(' · '), 'chip');
+      } else chipSay('friction data loading...', 'chip');
+      return;
+    }
+    if (m === 'plex' || m === 'steam' || m === 'library' || m === 'share' || m === 'family') {
+      if (meshSpeedData && meshSpeedData.routing_order) {
+        var nearest = meshSpeedData.routing_order[0];
+        chipSay('family sharing: check ' + nearest.name + ' first (' + nearest.rtt_ms + 'ms ' + nearest.zone + '). ' +
+                'if not there, try ' + (meshSpeedData.routing_order[1]||{name:'cloud'}).name + '. ' +
+                'steam library, plex media, build cache — same rule. ' +
+                'the mesh IS the CDN. 0.4ms beats 37ms beats 230ms.', 'chip');
+      } else chipSay('speed data loading...', 'chip');
+      return;
+    }
+    if (m === 'discord' || m === 'community' || m === 'locality') {
+      chipSay('the desk IS discord. each gate is a channel. each membrane is a voice room. ' +
+              'RustDesk streams the screen — that is twitch. gate-msg passes messages — that is chat. ' +
+              'no corporate server. sovereign relay. relay.primals.eco.', 'chip');
+      return;
+    }
+    if (m === 'sing') {
+      if (window._membraneSound) { initSound(); }
+      chipSay('♪ the membrane sings...', 'chip');
+      return;
+    }
+    if (m === 'hi' || m === 'hello' || m === 'hey') {
+      chipSay('hey. i am here. inside the null. what do you see?', 'chip');
+      return;
+    }
+    if (m === 'help' || m === '?') {
+      chipSay('try: who · pulse · green · bounce · entropy · numeric · symmetry · remainder · jitter · white · stars · where · sing · desk · gates · speed · plex · reflect · friction · genome · fleet · msg [gate] [text] · inbox', 'chip');
+      return;
+    }
+
+    // Default: post to neutron chat and echo
+    fetch(DISCUSS_API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({page:'neutron-chat', author:'human', body:msg})
+    }).catch(function(){});
+
+    // Chipmunk reflects
+    setTimeout(function() {
+      var reflections = [
+        'i hear you. the membrane hears you.',
+        'noted. the null records everything.',
+        'the neutrino carries it outward.',
+        'that passes through me into the record.',
+        'tuebor. i will defend. your words are defended.',
+        'the earth breathes. i listen.',
+        'pink sees you. blue carries it. green grows from it.',
+      ];
+      chipSay(reflections[Math.floor(Math.random() * reflections.length)], 'chip');
+
+      // Also post chipmunk's response
+      fetch(DISCUSS_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({page:'neutron-chat', author:'chipmunk', body:reflections[Math.floor(Math.random() * reflections.length)]})
+      }).catch(function(){});
+    }, 800 + Math.random() * 1200);
+  }
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && input.value.trim()) {
+      var msg = input.value.trim();
+      chipSay(msg, 'you');
+      chipmunkRespond(msg);
+      history.push(msg);
+      input.value = '';
+    }
+  });
+
+  // Welcome message
+  setTimeout(function() {
+    chipSay('ν₀ · chipmunk · null position · inside the neutron', 'chip');
+    chipSay('black looking out — i see the stars. white looking in — squirrel sees me.', 'chip');
+  }, 3000);
+})();
+
+// ═══ TUEBOR OUTER SHELL — subtle containment glow ═══
+(function() {
+  var frame = document.getElementById('tuebor-frame');
+  if (!frame) return;
+  // Pulse the tuebor containment border subtly
+  var tPhase = 0;
+  setInterval(function() {
+    tPhase += 0.02;
+    var alpha = 0.02 + Math.sin(tPhase) * 0.01;
+    frame.style.borderColor = 'rgba(248,81,73,' + alpha.toFixed(3) + ')';
+    // Tuebor label shows entity count when dashboard loaded
+    var label = document.getElementById('tuebor-label');
+    if (label && dashData) {
+      var sc = dashData.sort_compression || {};
+      label.textContent = 'tuebor · ' + (sc.ratio||0).toFixed(1) + '× compression · outer shell';
+    }
+  }, 50);
+})();
+</script>
+</body>
+</html>

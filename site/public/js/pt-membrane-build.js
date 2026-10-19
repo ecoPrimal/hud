@@ -38,7 +38,7 @@
     el('feMergeNode', {'in':'b'}, fpm);
     el('feMergeNode', {'in':'SourceGraphic'}, fpm);
 
-    el('rect', {width:W, height:H, fill:'url(#mg-bg)', rx:8}, svg);
+    el('rect', {width:W, height:H, fill:'none', rx:0}, svg);
     txt(svg, W/2, 22, '[\u2205]D \u2014 IS\u00d7WAS\u00d7WILLBE = \u03c0', '#c9d1d9', 11);
 
     // Sphere: 3 great circles at 120° — their intersection IS the membrane
@@ -797,7 +797,7 @@
     if (!host) return;
 
     var svg = el('svg', {viewBox:'0 0 '+W+' '+H});
-    svg.style.cssText = 'width:100%;max-height:460px;font-family:"Courier New",monospace';
+    svg.style.cssText = 'width:92vmin;height:92vmin;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:"Courier New",monospace';
 
     foundation(svg);
     spine(svg);

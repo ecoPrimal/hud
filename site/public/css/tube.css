@@ -626,11 +626,10 @@
    make them fixed and centered when overlay is active. */
 #pt-panels {
   position: fixed !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90vmin;
-  max-width: 560px;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 3;
   margin: 0 !important;
   pointer-events: none;
@@ -639,11 +638,20 @@
 
 /* The membrane SVG itself — make it fill its container */
 #membrane-focal-svg {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #membrane-focal-svg svg {
-  width: 100%;
-  max-height: 80vh;
+  width: 92vmin;
+  height: 92vmin;
+  max-width: none;
+  max-height: none;
 }
 
 /* Hide all other pt-panels cards — only show membrane SVG */
@@ -656,6 +664,11 @@
   border: none !important;
   padding: 0 !important;
   margin: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 #pt-panels .hud-card .hud-card-title,
 #pt-panels .hud-card > div:not(#membrane-focal-svg),
