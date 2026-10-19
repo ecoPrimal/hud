@@ -507,6 +507,44 @@
       }, chordGroup);
     }
 
+    // ── SORT RING SPIN — topology sorting in motion ──
+    var sortG = svg.querySelector('#ring-sort-state');
+    if (sortG) {
+      el('animateTransform', {
+        attributeName: 'transform', type: 'rotate',
+        from: '0 ' + cx + ' ' + cy, to: '-360 ' + cx + ' ' + cy,
+        dur: Math.max(45, durWas * 1.5).toFixed(1) + 's', repeatCount: 'indefinite'
+      }, sortG);
+      sortG.setAttribute('opacity', '0.55');
+
+      // Cross-spinning dots — 4 classification markers orbiting the sort ring
+      var crossG = el('g', {}, svg);
+      var crossR = rOuter + 12;
+      var crossColors = ['#3fb950', '#e85d3a', '#58a6ff', '#f0e68c'];
+      for (var ci = 0; ci < 4; ci++) {
+        var ca = -PI/2 + (ci / 4) * TAU;
+        var cpx = cx + crossR * Math.cos(ca);
+        var cpy = cy + crossR * Math.sin(ca);
+        var cdot = el('circle', {
+          cx: cpx.toFixed(1), cy: cpy.toFixed(1), r: '4',
+          fill: crossColors[ci], opacity: '0.9'
+        }, crossG);
+        el('animate', {
+          attributeName: 'r', values: '3;6;3',
+          dur: (2 + ci * 0.4).toFixed(1) + 's', repeatCount: 'indefinite'
+        }, cdot);
+        el('animate', {
+          attributeName: 'opacity', values: '0.6;1;0.6',
+          dur: (2 + ci * 0.4).toFixed(1) + 's', repeatCount: 'indefinite'
+        }, cdot);
+      }
+      el('animateTransform', {
+        attributeName: 'transform', type: 'rotate',
+        from: '0 ' + cx + ' ' + cy, to: '360 ' + cx + ' ' + cy,
+        dur: '12s', repeatCount: 'indefinite'
+      }, crossG);
+    }
+
     return svg;
   }
 
