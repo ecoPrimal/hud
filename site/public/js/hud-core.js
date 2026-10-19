@@ -317,4 +317,32 @@
   }, 'fast');
   poll('/presence.json', 10000, renderPresence, 'fast');
   poll('/tower.json', 15000, renderTower, 'normal');
+
+  // ═══ CAMPFIRE BEACONS — flash/bump/poke from the membrane ═══
+  poll('/campfire-flash.json', 30000, function(c) {
+    if (!c || !c.beacons) return;
+    var el = document.getElementById('hud-beacon');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'hud-beacon';
+      el.style.cssText = 'position:fixed;bottom:12px;right:12px;max-width:320px;z-index:9999;font:12px/1.4 monospace;pointer-events:none;';
+      document.body.appendChild(el);
+    }
+    var beacons = c.beacons.filter(function(b) {
+      if (!b || !b.message) return false;
+      if (b.ttl_minutes) {
+        var age = (Date.now() - new Date(b.timestamp).getTime()) / 60000;
+        if (age > b.ttl_minutes) return false;
+      }
+      return true;
+    }).slice(0, 3);
+    if (beacons.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = beacons.map(function(b) {
+      return '<div style="background:rgba(88,166,255,0.12);border:1px solid rgba(88,166,255,0.3);border-radius:6px;padding:8px 12px;margin-bottom:6px;color:#c9d1d9;backdrop-filter:blur(8px);">' +
+        '<div style="color:#58a6ff;font-size:10px;margin-bottom:2px;">⚡ beacon · wave ' + (b.wave||'?') + '</div>' +
+        '<div>' + b.message + '</div>' +
+        (b.detail ? '<div style="color:#8b949e;font-size:11px;margin-top:4px;">' + b.detail + '</div>' : '') +
+        '</div>';
+    }).join('');
+  }, 'normal');
 })();
