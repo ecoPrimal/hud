@@ -1,4 +1,4 @@
-// mobius-circuit.js v2 — the loop traced from 131,329 edges
+// mobius-circuit.js v2 — the loop traced from 131,322 edges
 // sheep and wolves on the same strip. inside becomes outside.
 // every flow traced from graph.json. this is the actual money.
 (function() {
@@ -331,7 +331,7 @@
 
     _ctx.globalAlpha = 0.2;
     _ctx.font = '9px monospace';
-    _ctx.fillText('traced from 131,329 edges \u00b7 60 money flows \u00b7 341 entities \u00b7 graph.json', cx, 38);
+    _ctx.fillText('traced from 131,322 edges \u00b7 60 money flows \u00b7 341 entities \u00b7 graph.json', cx, 38);
 
     // ═══ LEGEND — left side ═══
     var legX = 16, legY = H - 120;

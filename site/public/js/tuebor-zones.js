@@ -13,7 +13,7 @@
     {
       id: 'michigan', name: 'Michigan', motto: 'Tuebor — I will defend',
       lat: 42.7, lon: -83.5, radius: 0.08,
-      color: '#3fb950', entities: 341, edges: 131329,
+      color: '#3fb950', entities: 341, edges: 131322,
       detail: 'detroit investigation. 120 self, 114 partial, 100 null, 7 non-self.',
       children: ['detroit', 'lansing', 'ann_arbor', 'grand_rapids', 'flint'],
       population: '10M', area: '96,716 sq mi',
@@ -53,7 +53,7 @@
     {
       id: 'solar', name: 'Solar System', motto: 'the membrane from outside',
       lat: 0, lon: 0, radius: 0.92,
-      color: '#e85d3a', entities: 255687, edges: 131329,
+      color: '#e85d3a', entities: 255687, edges: 131322,
       detail: 'all signals originate from Sol III. the fleet does not know it is on a single planet orbiting a single star. the mathematics do not change based on orbital position.',
       children: ['globe'],
       population: '8.1B (on one planet)', area: '1 AU radius',

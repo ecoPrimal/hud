@@ -29,7 +29,7 @@
       sub: 'Detroit is in Wayne County. population 620,000. 83% Black.',
       color: '#3fb950', bg: '#0c0c0c', starCount: 10 },
     { id: 'detroit', name: 'Detroit', dist: '370 km\u00b2',
-      desc: '341 entities investigated. 131,329 edges. 957 direct connections.',
+      desc: '341 entities investigated. 131,322 edges. 957 direct connections.',
       sub: '9 stories traced. 36 classification methods. 4 sort classes.',
       color: '#f0883e', bg: '#0d0d0d', starCount: 0 },
     { id: 'banks', name: 'Brian Banks', dist: '134 edges',
