@@ -797,7 +797,8 @@
     if (!host) return;
 
     var svg = el('svg', {viewBox:'0 0 '+W+' '+H});
-    svg.style.cssText = 'width:92vmin;height:92vmin;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:"Courier New",monospace';
+    svg.style.cssText = 'width:100vw;height:100vh;position:fixed;top:0;left:0;font-family:"Courier New",monospace';
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
     foundation(svg);
     spine(svg);
