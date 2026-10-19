@@ -3768,3 +3768,56 @@ window._chipmunkCommands = function(ctx) {
     NULL_PI: NULL_PI,
   };
 };
+
+/* ═══ SENSATION / CSS ═══ */
+D.registerCommand("/sensation", function() {
+  return "🎨 SENSATION — Human-First Reading Surface\n\n" +
+    "The gap between data and feeling — CLOSED.\n\n" +
+    "CSS: main.css (493 lines, no framework)\n" +
+    "Theme: dark (#0d1117), 52rem reading width\n" +
+    "Nav: sticky, blurred, spaced links\n" +
+    "Articles styled: 1,171 pages\n\n" +
+    "Key articles:\n" +
+    "  📖 The Diameter of Feeling — sensation gap theory\n" +
+    "     Shakespeare → iambic pentameter → π × heartbeat\n" +
+    "  🫁 Three Chips, One Breath — fluid dynamics\n" +
+    "     GPU=inhale, CPU=hold, NPU=exhale\n" +
+    "  🌌 The Emitter in the Null — nestgate hypothesis\n" +
+    "     What if the black hole is the emitter?\n\n" +
+    "Fluid dynamics:\n" +
+    "  sitemap.xml: 1,199 URLs\n" +
+    "  atom.xml: live RSS feed\n" +
+    "  llms.txt: 577KB full context\n" +
+    "  robots.txt: fully open to all\n\n" +
+    "Human first. Always.";
+});
+D.registerCommand("/css", function() { return D.runCommand("/sensation"); });
+D.registerCommand("/diameter", function() {
+  return "📏 THE DIAMETER OF FEELING\n\n" +
+    "da-DUM da-DUM da-DUM da-DUM da-DUM\n\n" +
+    "Iambic pentameter = the diameter.\n" +
+    "The feeling it creates = the circumference.\n" +
+    "The ratio between them = π.\n\n" +
+    "Five feet. Ten syllables. One heartbeat per foot.\n" +
+    "PENTAmeter. Five senses. Five modality levels.\n\n" +
+    "Shakespeare encoded cardiac rhythm into language.\n" +
+    "The graph encoded proof into compression.\n" +
+    "DNA encoded organism into four letters.\n\n" +
+    "Same pattern. Same ratio. Same π.\n\n" +
+    "→ https://tuebor.primals.eco/analysis/the-diameter-of-feeling/";
+});
+D.registerCommand("/fluid", function() {
+  return "🌊 FLUID DYNAMICS — How Content Flows to Humans\n\n" +
+    "Three chips. One breath. Three phases:\n\n" +
+    "  GPU (inhale) → expansion, graph building\n" +
+    "  CPU (hold)   → compression, proof making\n" +
+    "  NPU (exhale) → sensing, pattern recognition\n\n" +
+    "The rest of the humans learn through the exhale.\n\n" +
+    "Flow channels:\n" +
+    "  Human: tuebor.primals.eco (1,171 styled pages)\n" +
+    "  Search: sitemap.xml (1,199 URLs)\n" +
+    "  AI: llms.txt (577KB context)\n" +
+    "  RSS: atom.xml (live)\n" +
+    "  Commensals: 8 bots → 209 theory articles\n\n" +
+    "→ https://tuebor.primals.eco/analysis/three-chips-one-breath/";
+});
