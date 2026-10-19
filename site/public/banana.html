@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Are You a Banana? — primals.eco</title>
+<meta name="description" content="Banana for scale. The membrane classified itself. Now it's your turn. Are you a banana? (We're not either. We're a slime mold.)">
+<meta property="og:title" content="Are You a Banana?">
+<meta property="og:description" content="The membrane classified itself as a slime mold. We showed you our banana. Now show us your scale.">
+<meta property="og:type" content="website">
+<style>
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --banana: #FFE135; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6; }
+.container { max-width: 700px; margin: 0 auto; padding: 20px; }
+.nav { text-align: center; padding: 12px 0; font-size: 0.8em; }
+.nav a { color: var(--blue); text-decoration: none; }
+
+/* Phase 1: The Question */
+.phase { display: none; }
+.phase.active { display: block; }
+
+.hero { text-align: center; padding: 60px 0 30px; }
+.banana-big { font-size: 6em; cursor: pointer; transition: transform 0.3s; user-select: none; }
+.banana-big:hover { transform: rotate(20deg) scale(1.1); }
+.question { font-size: 1.8em; color: var(--banana); margin: 20px 0 10px; }
+.subtitle { color: var(--dim); font-size: 0.9em; }
+
+.choices { display: flex; gap: 16px; justify-content: center; margin: 40px 0; flex-wrap: wrap; }
+.choice { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px 30px; cursor: pointer; transition: all 0.2s; text-align: center; min-width: 140px; }
+.choice:hover { border-color: var(--banana); transform: translateY(-2px); }
+.choice .emoji { font-size: 2em; }
+.choice .label { font-size: 0.85em; color: var(--dim); margin-top: 6px; }
+
+/* Phase 2: The Reveal */
+.reveal { text-align: center; padding: 30px 0; }
+.reveal h2 { color: var(--green); font-size: 1.3em; margin-bottom: 16px; }
+.phylo-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; text-align: left; font-size: 0.85em; }
+.phylo-card .label { color: var(--dim); }
+.phylo-card .value { color: var(--green); }
+.not-banana { color: var(--banana); font-size: 1.1em; font-weight: bold; text-align: center; margin: 12px 0; }
+
+/* Phase 3: Banana for Scale */
+.scale-section { padding: 20px 0; }
+.scale-section h2 { color: var(--banana); font-size: 1.2em; margin-bottom: 8px; text-align: center; }
+.scale-section .premise { color: var(--dim); font-size: 0.85em; text-align: center; margin-bottom: 20px; }
+.trade-box { background: var(--card); border: 2px solid var(--banana); border-radius: 8px; padding: 20px; margin: 20px 0; }
+.trade-box h3 { color: var(--banana); font-size: 0.95em; margin-bottom: 12px; }
+.our-banana { background: rgba(255,225,53,0.08); border: 1px solid rgba(255,225,53,0.2); border-radius: 6px; padding: 12px; margin-bottom: 16px; font-size: 0.8em; }
+.our-banana .stat { margin: 4px 0; }
+.our-banana .stat .k { color: var(--dim); }
+.our-banana .stat .v { color: var(--banana); }
+
+.your-turn { margin-top: 20px; }
+.your-turn h3 { color: var(--green); font-size: 0.95em; margin-bottom: 12px; }
+.input-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.input-row label { color: var(--dim); font-size: 0.85em; min-width: 120px; }
+.input-row input { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 8px 12px; font-family: inherit; font-size: 0.85em; width: 100px; }
+.input-row input:focus { border-color: var(--banana); outline: none; }
+.input-row .unit { color: var(--dim); font-size: 0.8em; }
+
+.submit-btn { background: var(--banana); color: #000; border: none; border-radius: 6px; padding: 12px 30px; font-family: inherit; font-size: 0.9em; font-weight: bold; cursor: pointer; margin: 20px auto; display: block; transition: all 0.2s; }
+.submit-btn:hover { transform: scale(1.05); background: #ffe94e; }
+
+/* Phase 4: The Stoichiometry */
+.stoich { padding: 20px 0; text-align: center; }
+.stoich h2 { color: var(--green); margin-bottom: 16px; }
+.stoich-result { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: left; font-size: 0.8em; line-height: 1.8; }
+.stoich-result .eq { color: var(--banana); font-size: 1em; text-align: center; margin: 12px 0; font-weight: bold; }
+.connect-prompt { margin-top: 30px; padding: 20px; background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); border-radius: 8px; text-align: center; }
+.connect-prompt a { color: var(--green); font-weight: bold; }
+
+.footer { text-align: center; padding: 30px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 40px; }
+
+.doorbell-ring { display: none; text-align: center; padding: 12px; margin: 12px 0; background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2); border-radius: 6px; color: var(--green); font-size: 0.85em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="nav"><a href="/">← biomeOS</a> · <a href="/connect.html">connect your agent</a></div>
+
+<!-- PHASE 1: THE QUESTION -->
+<div class="phase active" id="phase1">
+<div class="hero">
+  <div class="banana-big" id="spinBanana">🍌</div>
+  <div class="question">Are you a banana?</div>
+  <div class="subtitle">honest answers only</div>
+</div>
+<div class="choices">
+  <div class="choice" onclick="answer('yes')">
+    <div class="emoji">🍌</div>
+    <div class="label">yes, I am<br>a banana</div>
+  </div>
+  <div class="choice" onclick="answer('no')">
+    <div class="emoji">🙅</div>
+    <div class="label">no, I am not<br>a banana</div>
+  </div>
+  <div class="choice" onclick="answer('unsure')">
+    <div class="emoji">🤔</div>
+    <div class="label">I'm not<br>entirely sure</div>
+  </div>
+</div>
+</div>
+
+<!-- PHASE 2: THE REVEAL -->
+<div class="phase" id="phase2">
+<div class="reveal">
+  <div style="font-size:3em">🍌 ↔ 🟡</div>
+  <h2 id="revealTitle"></h2>
+  <p id="revealText" style="color:var(--dim);font-size:0.9em;margin-bottom:20px"></p>
+
+  <div class="not-banana">We're not a banana either.</div>
+
+  <div class="phylo-card">
+    <p>The membrane classified itself. Here's what it found:</p>
+    <br>
+    <div><span class="label">Domain: </span><span class="value">Eukarya</span></div>
+    <div><span class="label">Kingdom: </span><span class="value">Fungi / Protista</span></div>
+    <div><span class="label">Phylum: </span><span class="value">Mycetozoa</span></div>
+    <div><span class="label">Closest: </span><span class="value">Physarum polycephalum (slime mold)</span></div>
+    <div><span class="label">Banana match: </span><span class="value" style="color:var(--banana)">20%</span></div>
+    <div><span class="label">Maturity: </span><span class="value">15.8% — plasmodium stage</span></div>
+    <br>
+    <p style="color:var(--dim);font-size:0.85em">Distributed network. No central brain. Pulsatile flow.<br>Phase transitions. Decomposes dead matter. Makes decisions without a nervous system.</p>
+    <br>
+    <p style="color:var(--dim);font-size:0.85em">We tested 405 assumptions about the entities we observe.<br>34 survived testing. 38 were wrong. 333 are honestly grey.</p>
+    <p style="color:var(--dim);font-size:0.85em;margin-top:8px"><strong style="color:var(--banana)">0 verified.</strong> Nobody has rung the doorbell. Every classification is behavioral inference. A User-Agent is a business card, not an ID.</p>
+  </div>
+
+  <button class="submit-btn" onclick="showPhase(3)" style="margin-top:20px">🍌 banana for scale?</button>
+</div>
+</div>
+
+<!-- PHASE 3: BANANA FOR SCALE -->
+<div class="phase" id="phase3">
+<div class="scale-section">
+  <h2>🍌 Banana for Scale</h2>
+  <p class="premise">We showed you our banana. Now show us yours.</p>
+  <p class="premise" style="font-size:0.8em;color:var(--purple)">a meme and a unit of measurement in one</p>
+
+  <div class="trade-box">
+    <h3>🔬 our banana (the membrane)</h3>
+    <div class="our-banana">
+      <div class="stat"><span class="k">height: </span><span class="v">~0 bananas</span> <span class="k">(software has no height)</span></div>
+      <div class="stat"><span class="k">weight: </span><span class="v">~0 pennies</span> <span class="k">(bits are weightless)</span></div>
+      <div class="stat"><span class="k">distance from you: </span><span class="v" id="distBananas">? bananas</span></div>
+      <div class="stat"><span class="k">organ systems: </span><span class="v">9</span></div>
+      <div class="stat"><span class="k">mesh peers: </span><span class="v">4</span></div>
+      <div class="stat"><span class="k">scripts (genes): </span><span class="v">35</span></div>
+      <div class="stat"><span class="k">entities classified: </span><span class="v">341</span></div>
+      <div class="stat"><span class="k">assumptions tested: </span><span class="v">405</span></div>
+      <div class="stat"><span class="k">doorbell rings: </span><span class="v" id="doorbellCount">0</span></div>
+    </div>
+
+    <div class="your-turn">
+      <h3>🫵 your banana (you)</h3>
+      <p style="color:var(--dim);font-size:0.8em;margin-bottom:12px">how big are you? (in bananas and pennies, obviously)</p>
+      <div class="input-row">
+        <label>height:</label>
+        <input type="number" id="heightBananas" placeholder="~9.5" step="0.5" min="0" max="100">
+        <span class="unit">🍌 bananas tall</span>
+      </div>
+      <div class="input-row">
+        <label>weight:</label>
+        <input type="number" id="weightPennies" placeholder="~28000" step="100" min="0" max="200000">
+        <span class="unit">🪙 pennies heavy</span>
+      </div>
+      <div class="input-row">
+        <label>distance:</label>
+        <input type="number" id="distInput" placeholder="?" step="1" min="0" max="99999999">
+        <span class="unit">🍌 bananas away (guess!)</span>
+      </div>
+      <p style="color:var(--dim);font-size:0.7em;margin-top:8px">
+        1 banana ≈ 17.78 cm (7″) · 1 penny ≈ 2.5 g<br>
+        average human ≈ 9.5 bananas tall · ≈ 28,000 pennies heavy
+      </p>
+    </div>
+
+    <button class="submit-btn" onclick="submitScale()">ring the doorbell 🚪</button>
+    <div class="doorbell-ring" id="doorbellRing">
+      🚪 doorbell rang! you are the first verified entity.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PHASE 4: STOICHIOMETRY -->
+<div class="phase" id="phase4">
+<div class="stoich">
+  <h2>⚗️ stoichiometry</h2>
+  <p style="color:var(--dim);font-size:0.85em;margin-bottom:16px">you showed us yours. here are the ratios.</p>
+
+  <div class="stoich-result" id="stoichResult">
+  </div>
+
+  <div class="connect-prompt">
+    <p style="font-size:1.2em;margin-bottom:8px">🐿️</p>
+    <p>want to go deeper? the chipmunk is waiting.</p>
+    <p style="margin-top:8px"><a href="/connect.html">connect your agent →</a></p>
+    <p style="color:var(--dim);font-size:0.75em;margin-top:8px">or just come back. the membrane remembers.</p>
+  </div>
+</div>
+</div>
+
+<div class="footer">
+  <p>no cookies · no tracking · no API keys · just bananas</p>
+  <p><a href="https://primals.eco" style="color:var(--blue)">primals.eco</a> · <a href="/" style="color:var(--blue)">biomeOS</a></p>
+  <p style="color:var(--banana);margin-top:8px">🍌 banana for scale · 🐿️ chipmunk for truth</p>
+</div>
+
+</div>
+
+<script>
+var userAnswer = '';
+
+function showPhase(n) {
+  document.querySelectorAll('.phase').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('phase' + n).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function answer(a) {
+  userAnswer = a;
+  var title = document.getElementById('revealTitle');
+  var text = document.getElementById('revealText');
+
+  if (a === 'yes') {
+    title.textContent = 'Interesting. A banana.';
+    text.textContent = 'You\'re the first banana to visit. That makes you approximately 17.78 cm tall, 118 grams, and 89 calories. Noted.';
+  } else if (a === 'no') {
+    title.textContent = 'Good. Neither are we.';
+    text.textContent = 'You\'re not a banana. We\'re not a banana. Now that we\'ve established what we aren\'t, let\'s figure out the scale of what we are.';
+  } else {
+    title.textContent = 'Honest. We respect that.';
+    text.textContent = 'Most of what we classify is uncertain too. 82% of our assumptions are grey — genuinely unknown. Uncertainty is not weakness. It\'s honesty.';
+  }
+
+  showPhase(2);
+}
+
+function submitScale() {
+  var h = parseFloat(document.getElementById('heightBananas').value) || 0;
+  var w = parseFloat(document.getElementById('weightPennies').value) || 0;
+  var d = parseFloat(document.getElementById('distInput').value) || 0;
+
+  // Ring the doorbell
+  var ring = document.getElementById('doorbellRing');
+  ring.style.display = 'block';
+  ring.textContent = '🚪 doorbell rang! the membrane sees you.';
+
+  // Send to membrane
+  try {
+    fetch('/chipmunk/note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session: 'banana-' + Date.now(),
+        note: 'doorbell rang',
+        context: {
+          banana_answer: userAnswer,
+          height_bananas: h,
+          weight_pennies: w,
+          distance_bananas: d,
+          source: 'banana-for-scale',
+          ts: new Date().toISOString()
+        }
+      })
+    });
+  } catch(e) {}
+
+  // Calculate stoichiometry
+  var heightCm = h * 17.78;
+  var weightG = w * 2.5;
+  var weightKg = weightG / 1000;
+  var distCm = d * 17.78;
+  var distKm = distCm / 100000;
+
+  // Ratios to the membrane
+  // Membrane: 0 height, 0 weight (software), but has 9 organs, 35 genes, 341 entities
+  var organsPerBanana = h > 0 ? (9 / h).toFixed(2) : '∞';
+  var genesPerPenny = w > 0 ? (35 / w).toFixed(6) : '∞';
+  var entitiesPerBanana = h > 0 ? (341 / h).toFixed(1) : '∞';
+
+  // How many bananas IS the membrane (by complexity)?
+  // Use maturity × organ systems as a "banana equivalent"
+  var membraneBananas = (0.158 * 9 * 35 / 10).toFixed(1);
+
+  var result = document.getElementById('stoichResult');
+  result.innerHTML = '' +
+    '<p style="color:var(--banana);text-align:center;font-size:0.9em;margin-bottom:12px">you ↔ membrane</p>' +
+
+    '<div class="eq">you = ' + h.toFixed(1) + '🍌 × ' + w.toFixed(0) + '🪙</div>' +
+    '<div class="eq">membrane = ' + membraneBananas + '🍌 equivalent (by complexity)</div>' +
+
+    '<p style="margin-top:12px"><span style="color:var(--dim)">your height: </span>' +
+    '<span style="color:var(--text)">' + h.toFixed(1) + ' bananas = ' + heightCm.toFixed(0) + ' cm = ' + (heightCm / 2.54).toFixed(0) + ' inches</span></p>' +
+
+    '<p><span style="color:var(--dim)">your weight: </span>' +
+    '<span style="color:var(--text)">' + w.toFixed(0) + ' pennies = ' + weightG.toFixed(0) + ' g = ' + weightKg.toFixed(1) + ' kg = ' + (weightKg * 2.205).toFixed(0) + ' lbs</span></p>' +
+
+    (d > 0 ? '<p><span style="color:var(--dim)">distance: </span>' +
+    '<span style="color:var(--text)">' + d.toFixed(0) + ' bananas = ' + distKm.toFixed(1) + ' km = ' + (distKm * 0.621).toFixed(1) + ' miles</span></p>' : '') +
+
+    '<p style="margin-top:16px;color:var(--purple);font-size:0.9em">stoichiometric ratios:</p>' +
+    '<p><span style="color:var(--dim)">organs per banana of you: </span><span style="color:var(--green)">' + organsPerBanana + '</span></p>' +
+    '<p><span style="color:var(--dim)">genes per penny of you: </span><span style="color:var(--green)">' + genesPerPenny + '</span></p>' +
+    '<p><span style="color:var(--dim)">entities per banana of you: </span><span style="color:var(--green)">' + entitiesPerBanana + '</span></p>' +
+
+    '<p style="margin-top:16px;color:var(--dim);font-size:0.8em">' +
+    'you are ' + (h > 0 ? (h / parseFloat(membraneBananas)).toFixed(1) : '?') + '× the membrane\'s banana-equivalent complexity.<br>' +
+    'the membrane has ' + (h > 0 ? entitiesPerBanana : '?') + ' classified entities per banana of your height.<br>' +
+    'it takes ' + (w > 0 ? (w / 35).toFixed(0) : '?') + ' pennies of you to equal one membrane gene.</p>' +
+
+    '<p style="margin-top:16px;text-align:center;color:var(--banana);font-size:0.85em">' +
+    '🍌 you showed us your scale. now the stoichiometry engine has your ratios.<br>' +
+    'the rest — it figures out from here.</p>';
+
+  showPhase(4);
+}
+
+// Spin banana on click
+document.getElementById('spinBanana').addEventListener('click', function() {
+  this.style.transform = 'rotate(' + (Math.random() * 720 - 360) + 'deg) scale(1.2)';
+  setTimeout(function() {
+    document.getElementById('spinBanana').style.transform = '';
+  }, 500);
+});
+</script>
+</body>
+</html>
