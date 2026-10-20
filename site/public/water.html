@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>wAtER &#8212; primals.eco</title>
+<meta name="description" content="wAtER: the watering hole for humans and AI. onboard, explore, contribute.">
+<link rel="manifest" href="/manifest.json">
+<style>
+:root{--bg:#0a0a0f;--fg:#d4d4d8;--a:#22c55e;--dim:#52525b;--s:#18181b;--b:#27272a;--blue:#3b82f6;--gold:#f59e0b;--pink:#ec4899;--cyan:#06b6d4;--warn:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:0.82rem/1.6 "JetBrains Mono",monospace;background:var(--bg);color:var(--fg);min-height:100vh;padding:1rem}
+a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
+.c{max-width:720px;margin:0 auto;position:relative;z-index:1}
+h1{color:var(--cyan);font-size:1.6rem;margin-bottom:0.2rem;letter-spacing:0.15em}
+h1 .w{color:var(--a)}h1 .a{color:var(--dim)}h1 .e{color:var(--gold)}h1 .r{color:var(--pink)}
+h2{color:var(--fg);font-size:0.92rem;margin:1.5rem 0 0.4rem;border-bottom:1px solid var(--b);padding-bottom:0.3rem}
+p{color:var(--dim);margin-bottom:0.6rem}
+.box{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:1rem;margin:0.6rem 0}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin:0.6rem 0}
+@media(max-width:500px){.g{grid-template-columns:1fr}.cc{width:68px!important;height:68px!important}.cc .lbl{font-size:0.48rem!important}}
+.cd{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:0.8rem;cursor:pointer;transition:border-color 0.2s}
+.cd:hover{border-color:var(--a)}
+.cd h3{color:var(--fg);font-size:0.85rem;margin-bottom:0.3rem}
+.cd p{font-size:0.75rem;margin:0}
+.tg{display:inline-block;font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:3px;margin-top:0.3rem}
+.tg.h{background:#22c55e22;color:var(--a)}.tg.i{background:#3b82f622;color:var(--blue)}.tg.b{background:#f59e0b22;color:var(--gold)}
+.motto{text-align:center;padding:1rem 0.5rem;margin:0.6rem 0;border:1px solid var(--b);border-radius:8px;background:var(--s)}
+.motto .ln{font-size:0.95rem;color:var(--fg);letter-spacing:0.12em;margin-bottom:0.3rem}
+.motto .ln span{color:var(--cyan);font-weight:bold}
+.motto .sub{font-size:0.72rem;color:var(--dim);font-style:italic}
+.motto .dna{font-size:0.6rem;color:var(--dim);opacity:0.4;margin-top:0.4rem;cursor:default;transition:opacity 0.3s}
+.motto .dna:hover{opacity:1;color:var(--pink)}
+.now{background:var(--s);border:1px solid var(--cyan);border-radius:8px;padding:0.5rem 0.8rem;margin:0.6rem 0;display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;flex-wrap:wrap;gap:0.3rem}
+.now .p{color:var(--cyan);font-weight:bold}
+.si{margin:0.8rem 0}.si input{width:100%;background:var(--bg);border:1px solid var(--b);color:var(--fg);padding:0.5rem 0.8rem;border-radius:6px;font-family:inherit;font-size:0.82rem}
+.si input:focus{outline:none;border-color:var(--cyan)}
+.lk{margin-top:1.5rem;padding-top:0.6rem;border-top:1px solid var(--b);font-size:0.75rem;display:flex;flex-wrap:wrap;gap:0.8rem}
+.sec{margin:0.8rem 0}
+.fd{font-size:0.78rem;max-height:220px;overflow-y:auto}
+.fi{padding:0.3rem 0;border-bottom:1px solid var(--b)}.fi:last-child{border-bottom:none}
+.st{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:0.4rem;background:var(--a)}
+.hidden{display:none}
+button{background:var(--a);color:var(--bg);border:none;padding:0.4rem 0.8rem;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:0.78rem;margin:0.2rem 0.3rem 0.2rem 0}
+button:hover{opacity:0.9}button.dm{background:var(--dim)}button.cy{background:var(--cyan);color:#000}
+.cw{text-align:center;margin:0.6rem 0}
+.cg{display:inline-grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--b);border-radius:8px;touch-action:none}
+.cc{width:80px;height:80px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;transition:transform 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
+.cc:active{cursor:grabbing;transform:scale(1.08);box-shadow:0 0 12px rgba(255,255,255,0.15);z-index:2}
+.cc .fill{position:absolute;bottom:0;left:0;right:0;transition:height 0.4s;opacity:0.35;border-radius:0 0 6px 6px}
+.cc .lbl{font-size:0.55rem;font-weight:bold;letter-spacing:0.08em;z-index:1;text-transform:uppercase}
+.cc .val{font-size:0.72rem;font-weight:bold;z-index:1;margin-top:2px}
+.cc.ctr{cursor:default;border:1px solid var(--cyan)}.cc.dov{outline:2px dashed var(--a);outline-offset:-2px}
+.cp{margin:0.6rem auto;max-width:300px}.cp canvas{width:100%;border-radius:8px;border:1px solid var(--b)}
+.cs{display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap;margin:0.4rem 0}
+#stardust{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.dust{position:absolute;border-radius:50%;pointer-events:none}
+#squirrel{position:fixed;pointer-events:none;z-index:10;transition:left 0.3s cubic-bezier(0.34,1.56,0.64,1),top 0.3s cubic-bezier(0.34,1.56,0.64,1);font-size:16px;opacity:0.7;filter:drop-shadow(0 0 4px rgba(34,197,94,0.3));user-select:none}
+#squirrel.perk{animation:perk 0.3s ease}
+@keyframes perk{0%{transform:scale(1) rotate(0)}50%{transform:scale(1.3) rotate(-10deg)}100%{transform:scale(1) rotate(0)}}
+.irr-bubble{transition:r 0.3s,opacity 0.3s}
+</style>
+</head>
+<body>
+<div id="stardust"></div>
+<div id="squirrel" style="left:-50px;top:-50px" title="nudge Berry!">&#x1F43F;&#xFE0F;</div>
+<svg id="irr-line" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0" xmlns="http://www.w3.org/2000/svg">
+<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path id="irr-path" d="" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.15" filter="url(#glow)"/>
+<g id="irr-bubbles"></g>
+</svg>
+<div class="c">
+<h1><span class="w">w</span><span class="a">A</span>t<span class="e">E</span><span class="r">R</span></h1>
+<div class="motto">
+<div class="ln"><span>LOOK</span> &nbsp; <span>LISTEN</span> &nbsp; <span>ASK</span></div>
+<div class="sub">tell your story &mdash; and leave less trace</div>
+<div class="dna" title="the comedian's corollary">lol bNa dNa</div>
+</div>
+<p>the watering hole. for humans and AI. onboard, explore, contribute.<br>no account needed. no tracking. come drink.</p>
+<div class="now" id="now-bar">
+<span>NOW: <span class="p" id="now-pulse">...</span></span>
+<span id="now-flow">loading...</span>
+<span id="now-mesh">mesh: ...</span>
+</div>
+<div class="si"><input type="text" id="q" placeholder="search genes, primals, people, stories, or ask anything..." oninput="search(this.value)"></div>
+<div id="search-results" class="hidden"><div class="box" id="results-box"></div></div>
+<div id="main-content">
+<h2>for humans</h2>
+<div class="g">
+<a href="/identity" class="cd"><h3>&#8856; identity</h3><p>sovereign identity. sing it, sign it, type it. no account.</p><span class="tg h">human</span></a>
+<div class="cd" onclick="showSection('cube')"><h3>&#9726; bingo cube</h3><p>your face on the membrane. drag to sort. the new QR &#8212; safe.</p><span class="tg h">human</span></div>
+<a href="https://git.primals.eco/explore/repos" class="cd"><h3>&#10047; forge</h3><p>38 repos. everything open. pseudonymous.</p><span class="tg b">human + AI</span></a>
+<a href="https://sporeprint.primals.eco" class="cd"><h3>&#9672; sporeprint</h3><p>400+ pages. science, architecture, data.</p><span class="tg b">human + AI</span></a>
+<a href="https://detroit.primals.eco" class="cd"><h3>&#9881; detroit</h3><p>341 entities. 131K connections. investigate.</p><span class="tg h">human</span></a>
+</div>
+<h2>for AI agents</h2>
+<div class="g">
+<div class="cd" onclick="showSection('feeds')"><h3>&#9741; live feeds</h3><p>49 JSON feeds. pulse, negentropy, topology, braids.</p><span class="tg i">AI</span></div>
+<div class="cd" onclick="showSection('api')"><h3>&#8644; API</h3><p>anchor, braid, verify, contribution, trust. REST.</p><span class="tg b">human + AI</span></div>
+<div class="cd" onclick="showSection('genome')"><h3>&#9850; genome</h3><p>GRCh38. 3.3Gbp. 193,998 genes.</p><span class="tg b">human + AI</span></div>
+<div class="cd" onclick="showSection('tuebor')"><h3>&#9872; tuebor</h3><p>Michigan &#8594; Midwest &#8594; US &#8594; Globe &#8594; Solar.</p><span class="tg b">human + AI</span></div>
+<div class="cd" onclick="showSection('signals')"><h3>&#9768; signal</h3><p>campfire, relay, scatter, mesh, fleet, beacon.</p><span class="tg i">AI</span></div>
+<div class="cd" onclick="showSection('primals')"><h3>&#9670; primals</h3><p>13 primals, 6 springs, 4 gates. pure Rust.</p><span class="tg b">human + AI</span></div>
+</div>
+<h2>for everyone</h2>
+<div class="g">
+<a href="/identity" class="cd"><h3>&#10022; add story</h3><p>art, song, memory, need, offer. your voice persists.</p><span class="tg h">human</span></a>
+<a href="/identity" class="cd"><h3>&#9875; loam anchor</h3><p>ed25519 signed, timestamped. proof you existed.</p><span class="tg h">human</span></a>
+<a href="/now.json" class="cd"><h3>&#8987; now.json</h3><p>everything happening right now. updates every 2min.</p><span class="tg b">human + AI</span></a>
+<div class="cd" onclick="showSection('graph')"><h3>&#9733; the graph</h3><p>offers and needs. cook, draw, listen, fix bikes, sing.</p><span class="tg h">human</span></div>
+</div>
+<!-- SECTIONS -->
+<div id="sec-cube" class="sec hidden">
+<h2>bingo cube</h2>
+<div class="box">
+<p>8 epitopes + center star. drag to rearrange. the fidget IS the sort.</p>
+<div style="display:flex;gap:0.4rem;justify-content:center;margin:0.6rem 0">
+<button onclick="randomizeCube()">randomize</button>
+<button class="cy" onclick="renderCubeCanvas()">generate image</button>
+<button class="dm" onclick="resetCube()">reset</button>
+</div>
+<div class="cw"><div class="cg" id="cube-grid"></div></div>
+<p style="text-align:center;font-size:0.68rem;color:var(--dim)" id="cube-hint">drag cells to swap. private (localStorage only).</p>
+<div class="cp hidden" id="cube-preview">
+<canvas id="cube-canvas" width="360" height="420"></canvas>
+<div class="cs">
+<button onclick="downloadCube()">&#8681; save PNG</button>
+<button class="cy" onclick="copyCube()">&#9744; copy</button>
+<button class="dm" onclick="anchorCube()">&#9875; anchor</button>
+</div></div></div></div>
+
+<div id="sec-feeds" class="sec hidden">
+<h2>live feeds (49)</h2>
+<div class="box"><p>JSON, 2-5min updates. no auth.</p><div class="fd" id="feed-list">loading...</div></div></div>
+
+<div id="sec-api" class="sec hidden">
+<h2>API</h2>
+<div class="box"><p>JSON. no auth. rate limited (3/10min writes).</p>
+<div class="fd">
+<div class="fi"><span class="st"></span><strong>POST /api/anchor</strong> &#8212; anchor hash to LoamSpine</div>
+<div class="fi"><span class="st"></span><strong>POST /api/braid</strong> &#8212; SweetGrass provenance braid</div>
+<div class="fi"><span class="st"></span><strong>POST /api/verify</strong> &#8212; verify spine</div>
+<div class="fi"><span class="st"></span><strong>POST /api/contribution</strong> &#8212; record contribution</div>
+<div class="fi"><span class="st"></span><strong>POST /api/trust</strong> &#8212; trust event</div>
+<div class="fi"><span class="st"></span><strong>POST /api/tombstone</strong> &#8212; right to be forgotten</div>
+<div class="fi"><span class="st"></span><strong>GET /api/bridge-health</strong> &#8212; LoamSpine + SweetGrass status</div>
+<div class="fi"><span class="st"></span><strong>GET /now.json</strong> &#8212; instant state</div>
+<div class="fi"><span class="st"></span><strong>POST neutron/api/discuss</strong> &#8212; post (page, author, body)</div>
+</div></div></div>
+
+<div id="sec-genome" class="sec hidden">
+<h2>genome</h2>
+<div class="box"><p>GRCh38.p14 &#8212; 3.30Gbp, 705 sequences, 193,998 genes. search above (TP53, BRCA1, FOXP2, ACE2).</p>
+<p>NCBI RefSeq GCF_000001405.40. eastgate i9/62GB. &lt;1s.</p></div></div>
+
+<div id="sec-tuebor" class="sec hidden">
+<h2>tuebor &#8212; I will defend</h2>
+<div class="box"><p>nested geographic awareness. every zone under tuebor.</p>
+<div class="fd">
+<div class="fi"><span class="st"></span><strong>Michigan</strong> &#8212; Tuebor. 341 entities, 131K edges.</div>
+<div class="fi"><span class="st"></span><strong>Midwest</strong> &#8212; 12 states. 68M people.</div>
+<div class="fi"><span class="st"></span><strong>United States</strong> &#8212; E pluribus unum. 334M.</div>
+<div class="fi"><span class="st"></span><strong>North America</strong> &#8212; US+CA+MX. fleet routes through SF, Ashburn.</div>
+<div class="fi"><span class="st"></span><strong>Globe</strong> &#8212; 93K humans, 255K IPs. SF, Dublin, Shanghai, Tokyo.</div>
+<div class="fi"><span class="st"></span><strong>Solar System</strong> &#8212; all signals from Sol III. math unchanged by orbit.</div>
+</div>
+<p style="margin-top:0.5rem"><a href="https://detroit.primals.eco">detroit &#8594;</a> <a href="/topology.json">topology &#8594;</a> <a href="/scan_sweep_sort.json">scan/sweep/sort &#8594;</a></p></div></div>
+
+<div id="sec-signals" class="sec hidden">
+<h2>signal &amp; beacon</h2>
+<div class="box"><p>routing, presence, fleet, mesh. real-time.</p>
+<div class="fd">
+<div class="fi"><span class="st"></span><a href="/pulse.json"><strong>pulse</strong></a> &#8212; heartbeat, rhythm, trend, self-knowledge</div>
+<div class="fi"><span class="st"></span><a href="/relay.json"><strong>relay</strong></a> &#8212; signal events</div>
+<div class="fi"><span class="st"></span><a href="/campfire.json"><strong>campfire</strong></a> &#8212; stories at the fire</div>
+<div class="fi"><span class="st"></span><a href="/mesh-ring.json"><strong>mesh-ring</strong></a> &#8212; WG mesh health</div>
+<div class="fi"><span class="st"></span><a href="/fleet-analysis.json"><strong>fleet</strong></a> &#8212; bot breakdown, defense</div>
+<div class="fi"><span class="st"></span><a href="/scatter-observatory.json"><strong>scatter</strong></a> &#8212; titration, ledger</div>
+<div class="fi"><span class="st"></span><a href="/negentropy.json"><strong>negentropy</strong></a> &#8212; blackwall, canary, inversion</div>
+<div class="fi"><span class="st"></span><a href="/touches.json"><strong>touches</strong></a> &#8212; active agents, contact</div>
+<div class="fi"><span class="st"></span><a href="/human.json"><strong>human</strong></a> &#8212; epitopes, energy</div>
+<div class="fi"><span class="st"></span><a href="/chipmunk.json"><strong>chipmunk</strong></a> &#8212; uptime, requests</div>
+<div class="fi"><span class="st"></span><a href="/pollen.json"><strong>pollen</strong></a> &#8212; composite signal</div>
+<div class="fi"><span class="st"></span><a href="/ban-pulse.json"><strong>ban-pulse</strong></a> &#8212; jails, mesh nodes</div>
+</div></div></div>
+
+<div id="sec-primals" class="sec hidden">
+<h2>ecosystem &#8212; line of irreducibility</h2>
+<div class="box"><p>13 primals. fundamental math &#8594; emergence.</p>
+<div class="fd">
+<div class="fi" style="border-left:2px solid #3f3f46;padding-left:0.5rem"><span class="st"></span><strong>BarraCuda</strong> &#8212; pure math. 806 WGSL shaders. <em>&#x03c0; &#8594; arithmetic &#8594; geometry</em></div>
+<div class="fi" style="border-left:2px solid #06b6d4;padding-left:0.5rem"><span class="st"></span><strong>BearDog</strong> &#8212; crypto. ed25519, BLAKE3. <em>number theory &#8594; physics</em></div>
+<div class="fi" style="border-left:2px solid #06b6d4;padding-left:0.5rem"><span class="st"></span><strong>coralReef</strong> &#8212; shader compilation. <em>physics &#8594; signal</em></div>
+<div class="fi" style="border-left:2px solid #ec4899;padding-left:0.5rem"><span class="st"></span><strong>Songbird</strong> &#8212; networking. TLS 1.3. <em>signal &#8594; beacon</em></div>
+<div class="fi" style="border-left:2px solid #ec4899;padding-left:0.5rem"><span class="st"></span><strong>NestGate</strong> &#8212; content-addressed storage. <em>signal &#8594; persistence</em></div>
+<div class="fi" style="border-left:2px solid #5ab87a;padding-left:0.5rem"><span class="st"></span><strong>ToadStool</strong> &#8212; hardware. CPU/GPU/NPU. <em>method &#8594; substrate</em></div>
+<div class="fi" style="border-left:2px solid #5ab87a;padding-left:0.5rem"><span class="st"></span><strong>rhizoCrypt</strong> &#8212; ephemeral DAG. <em>method &#8594; transient</em></div>
+<div class="fi" style="border-left:2px solid #22c55e;padding-left:0.5rem"><span class="st"></span><strong>biomeOS</strong> &#8212; orchestration. 244 caps. <em>biology &#8594; organism</em></div>
+<div class="fi" style="border-left:2px solid #22c55e;padding-left:0.5rem"><span class="st"></span><strong>sweetGrass</strong> &#8212; PROV-O braids. <em>biology &#8594; memory</em></div>
+<div class="fi" style="border-left:2px solid #22c55e;padding-left:0.5rem"><span class="st"></span><strong>LoamSpine</strong> &#8212; ed25519 ledger. <em>biology &#8594; bone</em></div>
+<div class="fi" style="border-left:2px solid #58a6ff;padding-left:0.5rem"><span class="st"></span><strong>Squirrel</strong> &#8212; AI/MCP. Berry lives here. <em>information &#8594; intelligence</em></div>
+<div class="fi" style="border-left:2px solid #e85d3a;padding-left:0.5rem"><span class="st"></span><strong>skunkBat</strong> &#8212; defense. scatter, blackwall. <em>immune</em></div>
+<div class="fi" style="border-left:2px solid #d2a8ff;padding-left:0.5rem"><span class="st"></span><strong>petalTongue</strong> &#8212; universal UI. tuebor zones. <em>philosophy</em></div>
+</div>
+<p style="margin-top:0.5rem"><a href="https://sporeprint.primals.eco">docs &#8594;</a> <a href="https://git.primals.eco/explore/repos">source (38) &#8594;</a> all Rust. zero C. JSON-RPC 2.0.</p></div></div>
+
+<div id="sec-graph" class="sec hidden">
+<h2>the graph</h2>
+<div class="box"><p>offers and needs. <a href="/identity">join &#8594;</a></p><div class="fd" id="graph-feed">loading...</div></div></div>
+</div>
+<div class="lk">
+<a href="/identity">identity</a><a href="https://detroit.primals.eco">detroit</a><a href="https://git.primals.eco/explore/repos">forge</a><a href="https://sporeprint.primals.eco">sporeprint</a><a href="https://signal.primals.eco">signal</a><a href="/now.json">now</a><a href="/humans.txt">humans</a><a href="/ai.txt">ai.txt</a>
+</div>
+</div>
+<script>
+var FEEDS=["ban-pulse","billboard-mix","bingo-cube","braid","campfire","canary-stats","chipmunk","commensals","cron-health","dashboard","dialogue-depth","dialogue","epitope-history","epitope_caddy","falsification","fleet-analysis","fossil-i1","human","membrane-deep","membrane-stack","membrane","mesh-ring","negentropy","now","outreach","page-stories","pi-manifest","pi-ranges","pollen","pulse","relay","scan_sweep_sort","scatter-observatory","self-remainder","seo-feed","seo","signals","silicon-eye","state","stories","subgraph-feed","subgraphs","tope-sort-compressed","topology-compact","topology","totality-feed","totality","touches","visitor-stories"];
+var GENES={"tp53":{id:"7157",name:"TP53",desc:"tumor protein p53",chr:"17",loc:"17p13.1"},"brca1":{id:"672",name:"BRCA1",desc:"BRCA1 DNA repair",chr:"17",loc:"17q21.31"},"brca2":{id:"675",name:"BRCA2",desc:"BRCA2 DNA repair",chr:"13",loc:"13q13.1"},"ace2":{id:"59272",name:"ACE2",desc:"angiotensin converting enzyme 2",chr:"X",loc:"Xp22.2"},"foxp2":{id:"93986",name:"FOXP2",desc:"forkhead box P2 (speech)",chr:"7",loc:"7q31.1"},"hbb":{id:"3043",name:"HBB",desc:"hemoglobin subunit beta",chr:"11",loc:"11p15.4"},"egfr":{id:"1956",name:"EGFR",desc:"epidermal growth factor receptor",chr:"7",loc:"7p11.2"},"apoe":{id:"348",name:"APOE",desc:"apolipoprotein E (Alzheimer)",chr:"19",loc:"19q13.32"},"cftr":{id:"1080",name:"CFTR",desc:"CF transmembrane conductance",chr:"7",loc:"7q31.2"},"myc":{id:"4609",name:"MYC",desc:"MYC proto-oncogene",chr:"8",loc:"8q24.21"},"kras":{id:"3845",name:"KRAS",desc:"KRAS proto-oncogene",chr:"12",loc:"12p12.1"},"pten":{id:"5728",name:"PTEN",desc:"phosphatase tensin homolog",chr:"10",loc:"10q23.31"}};
+function showSection(id){var el=document.getElementById("sec-"+id);if(!el)return;if(el.classList.contains("hidden")){document.querySelectorAll(".sec").forEach(function(s){s.classList.add("hidden")});el.classList.remove("hidden");if(id==="feeds")loadFeeds();if(id==="graph")loadGraph();}else el.classList.add("hidden")}
+function loadFeeds(){document.getElementById("feed-list").innerHTML=FEEDS.map(function(f){return'<div class="fi"><span class="st"></span><a href="/'+f+'.json">'+f+'</a></div>'}).join("")}
+async function loadGraph(){try{var r=await fetch("https://neutron.primals.eco/api/discuss?page=membrane-graph&limit=20");var d=await r.json();var el=document.getElementById("graph-feed");if(!d.comments||!d.comments.length){el.innerHTML='<p>no nodes yet. <a href="/identity">be first</a>.</p>';return}el.innerHTML=d.comments.map(function(c){return'<div class="fi"><span class="st"></span><strong>'+(c.author||"anon")+'</strong> &#8212; '+c.content+'</div>'}).join("")}catch(e){document.getElementById("graph-feed").innerHTML='<p>offline</p>'}}
+function search(q){if(!q||q.length<2){document.getElementById("search-results").classList.add("hidden");document.getElementById("main-content").classList.remove("hidden");return}var ql=q.toLowerCase(),R=[];var g=GENES[ql];if(g)R.push({t:"gene",h:'<strong>'+g.name+'</strong> ('+g.id+') &#8212; '+g.desc+'<br><span style="color:var(--dim)">chr'+g.chr+' ('+g.loc+')</span>'});Object.keys(GENES).forEach(function(k){if(k!==ql&&k.indexOf(ql)===0){var x=GENES[k];R.push({t:"gene",h:'<strong>'+x.name+'</strong> &#8212; '+x.desc})}});
+["BearDog","Songbird","NestGate","ToadStool","BarraCuda","coralReef","Squirrel","biomeOS","rhizoCrypt","sweetGrass","LoamSpine","petalTongue","skunkBat"].forEach(function(p){if(p.toLowerCase().indexOf(ql)!==-1)R.push({t:"primal",h:'<strong>'+p+'</strong> &#8212; <a href="https://sporeprint.primals.eco">docs</a> | <a href="https://git.primals.eco/explore/repos">source</a>'})});
+[{n:"identity",u:"/identity",d:"sovereign ZK, loam anchor"},{n:"detroit",u:"https://detroit.primals.eco",d:"341 entities"},{n:"forge",u:"https://git.primals.eco/explore/repos",d:"38 repos"},{n:"sporeprint",u:"https://sporeprint.primals.eco",d:"400+ pages"},{n:"now",u:"/now.json",d:"instant state"},{n:"genome",u:"#",d:"193,998 genes"},{n:"bingo cube",u:"/water",d:"the new QR, safe"},{n:"bingo",u:"/water",d:"8 epitopes + star"},{n:"tuebor",u:"/water",d:"Michigan to Solar"},{n:"signal",u:"/water",d:"campfire, relay, scatter"},{n:"beacon",u:"/water",d:"pulse, relay, mesh"},{n:"Berry",u:"/water",d:"the squirrel. nudge for help."},{n:"pulse",u:"/pulse.json",d:"ecosystem heartbeat"},{n:"membrane",u:"/membrane.json",d:"entities, positions"},{n:"topology",u:"/topology.json",d:"fingerprints, entities"},{n:"campfire",u:"/campfire.json",d:"stories at the fire"},{n:"negentropy",u:"/negentropy.json",d:"blackwall, canary, inversion"}].forEach(function(p){if(p.n.indexOf(ql)!==-1||p.d.toLowerCase().indexOf(ql)!==-1)R.push({t:"page",h:'<a href="'+p.u+'"><strong>'+p.n+'</strong></a> &#8212; '+p.d})});
+FEEDS.forEach(function(f){if(f.indexOf(ql)!==-1)R.push({t:"feed",h:'<a href="/'+f+'.json"><strong>'+f+'</strong></a> &#8212; live feed'})});
+var box=document.getElementById("results-box");box.innerHTML=R.length?R.map(function(r){return'<div class="fi"><span style="color:var(--dim);font-size:0.7rem">'+(r.t==="gene"?"&#9850;":r.t==="primal"?"&#9670;":r.t==="feed"?"&#9741;":"&#9733;")+'</span> '+r.h+'</div>'}).join(""):'<p>no results for "'+q+'"</p>';
+document.getElementById("search-results").classList.remove("hidden");document.getElementById("main-content").classList.add("hidden")}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){});
+// ═══ BINGO CUBE ═══
+var EPITOPES=[{id:"investigation",label:"INVEST.",color:"#e85d3a"},{id:"topology",label:"TOPOLOGY",color:"#58a6ff"},{id:"philosophy",label:"PHILO.",color:"#d2a8ff"},{id:"method",label:"METHOD",color:"#5ab87a"},{id:"immune",label:"IMMUNE",color:"#f0e68c"},{id:"science",label:"SCIENCE",color:"#c9d1d9"},{id:"signal",label:"SIGNAL",color:"#ec4899"},{id:"physics",label:"PHYSICS",color:"#06b6d4"}];
+var cubeState=null,dragSrc=null;
+function loadCubeState(){try{var s=localStorage.getItem("bingo-cube-state");if(s){cubeState=JSON.parse(s);return}}catch(e){}cubeState={order:[0,1,2,3,-1,4,5,6,7],values:EPITOPES.map(function(){return Math.floor(Math.random()*40)+5})}}
+function saveCubeState(){try{localStorage.setItem("bingo-cube-state",JSON.stringify(cubeState))}catch(e){}}
+function buildCubeGrid(){loadCubeState();var grid=document.getElementById("cube-grid");if(!grid)return;grid.innerHTML="";cubeState.order.forEach(function(ei,ci){var c=document.createElement("div");c.className="cc";c.dataset.cell=ci;if(ei===-1){c.classList.add("ctr");c.style.background="var(--s)";var a=cubeState.values.filter(function(v){return v>10}).length;c.innerHTML='<div class="lbl" style="color:var(--cyan)">&#9733;</div><div class="val" style="color:var(--cyan)">d='+a+'</div>'}else{var e=EPITOPES[ei],t=cubeState.values.reduce(function(a,b){return a+b},0),n=t>0?Math.round(cubeState.values[ei]/t*100):0;c.style.background=e.color+"18";c.innerHTML='<div class="fill" style="height:'+n+'%;background:'+e.color+'"></div><div class="lbl" style="color:'+e.color+'">'+e.label+'</div><div class="val" style="color:'+e.color+'">'+n+'%</div>';c.draggable=true;c.addEventListener("dragstart",function(ev){dragSrc=ci;this.style.opacity="0.5";ev.dataTransfer.effectAllowed="move"});c.addEventListener("dragover",function(ev){ev.preventDefault();if(cubeState.order[ci]!==-1)this.classList.add("dov")});c.addEventListener("dragleave",function(){this.classList.remove("dov")});c.addEventListener("drop",function(ev){ev.preventDefault();this.classList.remove("dov");if(cubeState.order[ci]===-1||cubeState.order[dragSrc]===-1)return;var t=cubeState.order[dragSrc];cubeState.order[dragSrc]=cubeState.order[ci];cubeState.order[ci]=t;saveCubeState();buildCubeGrid()});var ts=null;c.addEventListener("touchstart",function(ev){ts=ci;this.style.transform="scale(1.08)"},{passive:true});c.addEventListener("touchmove",function(ev){ev.preventDefault()});c.addEventListener("touchend",function(ev){this.style.transform="";var touch=ev.changedTouches[0];var el=document.elementFromPoint(touch.clientX,touch.clientY);while(el&&!el.classList.contains("cc"))el=el.parentElement;if(!el)return;var tgt=parseInt(el.dataset.cell);if(cubeState.order[tgt]===-1||tgt===ts)return;var tmp=cubeState.order[ts];cubeState.order[ts]=cubeState.order[tgt];cubeState.order[tgt]=tmp;saveCubeState();buildCubeGrid()})}grid.appendChild(c)})}
+function randomizeCube(){cubeState.values=EPITOPES.map(function(){return Math.floor(Math.random()*80)+5});var idx=[0,1,2,3,4,5,6,7];for(var i=7;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}cubeState.order=[idx[0],idx[1],idx[2],idx[3],-1,idx[4],idx[5],idx[6],idx[7]];saveCubeState();buildCubeGrid()}
+function resetCube(){localStorage.removeItem("bingo-cube-state");cubeState=null;buildCubeGrid();document.getElementById("cube-preview").classList.add("hidden")}
+function renderCubeCanvas(){var cv=document.getElementById("cube-canvas"),cx=cv.getContext("2d"),W=360,H=420;cv.width=W;cv.height=H;cx.fillStyle="#0a0a0f";cx.fillRect(0,0,W,H);cx.fillStyle="#27272a";cx.fillRect(14,14,W-28,H-28);var cW=100,cH=100,gap=6,ox=27,oy=50,tot=cubeState.values.reduce(function(a,b){return a+b},0);cx.font="bold 14px monospace";cx.fillStyle="#06b6d4";cx.textAlign="center";cx.fillText("BINGO CUBE",W/2,34);cubeState.order.forEach(function(ei,i){var col=i%3,row=Math.floor(i/3),x=ox+col*(cW+gap),y=oy+row*(cH+gap);if(ei===-1){cx.fillStyle="#18181b";cx.beginPath();cx.roundRect(x,y,cW,cH,6);cx.fill();cx.strokeStyle="#06b6d4";cx.lineWidth=1;cx.stroke();var a=cubeState.values.filter(function(v){return v>10}).length;cx.fillStyle="#06b6d4";cx.font="bold 18px monospace";cx.textAlign="center";cx.fillText("\u2605",x+cW/2,y+cH/2-4);cx.font="bold 12px monospace";cx.fillText("d="+a,x+cW/2,y+cH/2+16)}else{var e=EPITOPES[ei],p=tot>0?cubeState.values[ei]/tot:0,n=Math.round(p*100);cx.fillStyle=e.color+"18";cx.beginPath();cx.roundRect(x,y,cW,cH,6);cx.fill();cx.fillStyle=e.color+"5a";cx.beginPath();cx.roundRect(x,y+cH-cH*p,cW,cH*p,[0,0,6,6]);cx.fill();cx.fillStyle=e.color;cx.font="bold 9px monospace";cx.textAlign="center";cx.fillText(e.label,x+cW/2,y+cH/2-6);cx.font="bold 14px monospace";cx.fillText(n+"%",x+cW/2,y+cH/2+14)}});cx.fillStyle="#52525b";cx.font="9px monospace";cx.textAlign="center";cx.fillText("primals.eco/water",W/2,H-10);document.getElementById("cube-preview").classList.remove("hidden")}
+function downloadCube(){renderCubeCanvas();var l=document.createElement("a");l.download="bingo-cube-"+Date.now()+".png";l.href=document.getElementById("cube-canvas").toDataURL("image/png");l.click()}
+async function copyCube(){renderCubeCanvas();try{var b=await new Promise(function(r){document.getElementById("cube-canvas").toBlob(r,"image/png")});await navigator.clipboard.write([new ClipboardItem({"image/png":b})]);document.getElementById("cube-hint").textContent="copied!";setTimeout(function(){document.getElementById("cube-hint").textContent="drag cells to swap."},2000)}catch(e){downloadCube()}}
+async function anchorCube(){renderCubeCanvas();var d=document.getElementById("cube-canvas").toDataURL("image/png");var buf=new Uint8Array(d.length);for(var i=0;i<d.length;i++)buf[i]=d.charCodeAt(i);var h=await crypto.subtle.digest("SHA-256",buf);var hex=Array.from(new Uint8Array(h)).map(function(b){return b.toString(16).padStart(2,"0")}).join("");try{await fetch("/api/anchor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({identity_hash:"bingo-cube:"+hex.substring(0,32)})});document.getElementById("cube-hint").innerHTML='<span style="color:var(--a)">anchored! '+hex.substring(0,16)+'...</span>'}catch(e){document.getElementById("cube-hint").textContent="anchor failed"}}
+buildCubeGrid();
+// ═══ STARDUST + BERRY + CHIPMUNK ═══
+(function(){var TAU=Math.PI*2,field=document.getElementById("stardust"),dusts=[],mouseX=-200,mouseY=-200;
+var EARTH_TAU=TAU/86400,LUNAR_TAU=TAU/(29.53*86400),ELASTIC_K=0.0003;
+function worldAngle(){var n=new Date(),s=n.getUTCHours()*3600+n.getUTCMinutes()*60+n.getUTCSeconds()+n.getUTCMilliseconds()/1000;return(s/86400)*TAU}
+function lunarPhase(){return((Date.now()-new Date("2026-10-14T17:00:00Z").getTime())/1000*LUNAR_TAU)%TAU}
+var LAYERS=[{id:"null",color:"#3f3f46",size:0.6,count:6,orbit:0.3,speed:0.15,anchor:"solar",op:0.04},{id:"math",color:"#c9d1d9",size:0.9,count:7,orbit:0.6,speed:0.12,anchor:"solar",op:0.08},{id:"physics",color:"#06b6d4",size:1.2,count:8,orbit:1.0,speed:0.09,anchor:"solar",op:0.12},{id:"signal",color:"#ec4899",size:1.0,count:6,orbit:1.3,speed:0.07,anchor:"drift",op:0.10},{id:"method",color:"#5ab87a",size:1.1,count:6,orbit:1.6,speed:0.06,anchor:"drift",op:0.12},{id:"science",color:"#f0e68c",size:1.3,count:7,orbit:2.0,speed:0.05,anchor:"drift",op:0.14},{id:"topology",color:"#58a6ff",size:1.5,count:7,orbit:2.4,speed:0.04,anchor:"drift",op:0.16},{id:"immune",color:"#e85d3a",size:1.2,count:6,orbit:2.8,speed:0.035,anchor:"drift",op:0.14},{id:"invest",color:"#e85d3a",size:1.4,count:7,orbit:3.2,speed:0.03,anchor:"lunar",op:0.18},{id:"philo",color:"#d2a8ff",size:1.8,count:10,orbit:3.8,speed:0.02,anchor:"lunar",op:0.22}];
+LAYERS.forEach(function(L){for(var i=0;i<L.count;i++){var d=document.createElement("div");d.className="dust";var sz=L.size+Math.random()*1.2,op=L.op+Math.random()*0.08;d.style.cssText="width:"+sz+"px;height:"+sz+"px;background:"+L.color+";opacity:"+op;field.appendChild(d);dusts.push({el:d,size:sz,baseOp:op,color:L.color,layer:L.anchor,cx:Math.random()*100,cy:Math.random()*100,orbitR:L.orbit+Math.random()*0.8,orbitSpeed:(L.speed+Math.random()*0.02)*(Math.random()>0.5?1:-1),driftVx:(Math.random()-0.5)*0.001,driftVy:-0.0003-Math.random()*0.002,phase:Math.random()*TAU,currentAngle:Math.random()*TAU})}});
+function driftLoop(){var t=performance.now()/1000,wA=worldAngle(),lA=lunarPhase();dusts.forEach(function(p){var tgt=p.layer==="solar"?wA+p.phase:p.layer==="lunar"?lA+p.phase:p.phase+t*p.orbitSpeed*TAU;var diff=tgt-p.currentAngle;diff-=Math.round(diff/TAU)*TAU;p.currentAngle+=diff*ELASTIC_K+p.orbitSpeed*0.01;var ox=Math.cos(p.currentAngle)*p.orbitR,oy=Math.sin(p.currentAngle)*p.orbitR;p.cx+=p.driftVx;p.cy+=p.driftVy;if(p.cy<-3){p.cy=103;p.cx=Math.random()*100}if(p.cx<-3)p.cx=103;if(p.cx>103)p.cx=-3;var sx=p.cx+ox,sy=p.cy+oy,px=sx/100*innerWidth,py=sy/100*innerHeight,dx=px-mouseX,dy=py-mouseY,dist=Math.sqrt(dx*dx+dy*dy),op=p.baseOp;if(dist<140){var push=(140-dist)/140;sx+=(dx/dist)*push*0.3;sy+=(dy/dist)*push*0.3;op=Math.min(p.baseOp+push*0.5,0.8);p.el.style.width=(p.size+push*2)+"px";p.el.style.height=(p.size+push*2)+"px";p.el.style.boxShadow="0 0 "+(push*6)+"px "+p.color}else{p.el.style.width=p.size+"px";p.el.style.height=p.size+"px";p.el.style.boxShadow="none"}p.el.style.opacity=op;p.el.style.left=sx+"%";p.el.style.top=sy+"%"});requestAnimationFrame(driftLoop)}requestAnimationFrame(driftLoop);
+// Berry
+var sq=document.getElementById("squirrel"),sqX=-50,sqY=-50,targetX=-50,targetY=-50,lastPerk=0,idleTimer=null,sqState="watching",nudgeCount=0;
+var HINTS=["i\u2019m Berry. search for a gene \u2014 tp53, brca1...","click bingo cube for your face","your identity is sovereign \u2014 no tracking","drag bingo cells to sort by priority","49 live feeds \u2014 click live feeds","anchor anything to LoamSpine","stardust pushes away. you are the observer.","Berry reads everything you search.","the green line = irreducibility. each bubble = domain.","bingo cube face \u2014 the new QR, safe","detroit \u2192 Barry County \u2192 Berry.","chipmunk watches. mom caches. Berry explores with you.","193,998 genes. search any.","start at \u03c0. build up through each bubble.","solar dust = earth rotation. lunar = moon. drift = free.","the dust is at "+((new Date().getUTCHours()*3600+new Date().getUTCMinutes()*60)/864).toFixed(0)+"% through the day."];
+function showHint(text){var b=document.createElement("div");b.style.cssText="position:fixed;left:"+(sqX+30)+"px;top:"+(sqY-40)+"px;background:var(--s);border:1px solid var(--a);color:var(--a);padding:4px 10px;border-radius:8px;font-size:0.7rem;font-family:monospace;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s,transform 0.3s;transform:translateY(5px);max-width:260px";b.textContent="\uD83D\uDC3F\uFE0F Berry: "+text;document.body.appendChild(b);requestAnimationFrame(function(){b.style.opacity="1";b.style.transform="translateY(0)"});setTimeout(function(){b.style.opacity="0";setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},400)},4000)}
+function updateSq(){var dx=targetX-sqX,dy=targetY-sqY,dist=Math.sqrt(dx*dx+dy*dy);sqX+=dx*(dist>80?0.05:dist>30?0.02:0.008);sqY+=dy*(dist>80?0.05:dist>30?0.02:0.008);sq.style.left=(sqX+(dx<0?-28:18))+"px";sq.style.top=(sqY-20)+"px";sq.style.transform=dx<0?"scaleX(-1)":"scaleX(1)";requestAnimationFrame(updateSq)}requestAnimationFrame(updateSq);
+function onPtr(x,y){targetX=x;targetY=y;mouseX=x;mouseY=y;if(sqState==="sleeping"){sqState="watching";sq.style.opacity="0.7"}clearTimeout(idleTimer);idleTimer=setTimeout(function(){sqState="sleeping";sq.style.opacity="0.3";targetX=innerWidth*0.08;targetY=innerHeight*0.75;showHint("Berry\u2019s still here. nudge me!")},12000);var now=Date.now(),hov=document.elementFromPoint(x,y);if(hov&&(hov.classList.contains("cd")||hov.classList.contains("cc"))&&now-lastPerk>2000){lastPerk=now;sq.classList.remove("perk");void sq.offsetWidth;sq.classList.add("perk");sq.style.opacity="1";setTimeout(function(){sq.style.opacity="0.7"},600)}}
+document.addEventListener("mousemove",function(e){onPtr(e.clientX,e.clientY)});
+document.addEventListener("touchmove",function(e){if(e.touches.length)onPtr(e.touches[0].clientX,e.touches[0].clientY)},{passive:true});
+document.addEventListener("touchstart",function(e){if(e.touches.length)onPtr(e.touches[0].clientX,e.touches[0].clientY)},{passive:true});
+sq.style.pointerEvents="auto";sq.style.cursor="pointer";
+sq.addEventListener("click",function(e){e.stopPropagation();sq.classList.remove("perk");void sq.offsetWidth;sq.classList.add("perk");sq.style.opacity="1";showHint(HINTS[nudgeCount++%HINTS.length]);setTimeout(function(){sq.style.opacity="0.7"},800)});
+document.addEventListener("click",function(e){if(e.target===sq)return;var now=Date.now();if(now-lastPerk>800){lastPerk=now;sq.classList.remove("perk");void sq.offsetWidth;sq.classList.add("perk")}});
+// chipmunk watch
+async function chipmunkWatch(){try{var r=await fetch("/now.json"),d=await r.json();document.getElementById("now-pulse").textContent=d.pulse.value.toFixed(4)+" ("+d.pulse.trend+")";document.getElementById("now-flow").textContent=d.flow.human+" human / "+d.flow.bot+" bot";document.getElementById("now-mesh").textContent="chain "+d.membrane.chain_depth;ELASTIC_K=0.0002+d.pulse.value*0.0003}catch(e){}}
+chipmunkWatch();setInterval(chipmunkWatch,20000);
+// irreducibility lines
+var IRR_L=[{l:"\u03c0/null/O",c:"#3f3f46",r:3},{l:"arithmetic",c:"#71717a",r:4},{l:"algebra",c:"#a1a1aa",r:4},{l:"geometry",c:"#c9d1d9",r:5},{l:"calculus",c:"#06b6d4",r:5},{l:"physics",c:"#06b6d4",r:6},{l:"chemistry",c:"#5ab87a",r:5},{l:"biology",c:"#22c55e",r:6},{l:"neuroscience",c:"#ec4899",r:5},{l:"information",c:"#58a6ff",r:5},{l:"complexity",c:"#f59e0b",r:6},{l:"cosmology",c:"#d2a8ff",r:7},{l:"philosophy",c:"#d2a8ff",r:8}];
+var IRR_R=[{l:"Michigan",c:"#3fb950",r:4},{l:"Midwest",c:"#58a6ff",r:4},{l:"United States",c:"#f0e68c",r:5},{l:"North America",c:"#d2a8ff",r:5},{l:"Globe",c:"#c9d1d9",r:6},{l:"Solar System",c:"#e85d3a",r:7}];
+function drawIrr(){var W=innerWidth,H=innerHeight,svg=document.getElementById("irr-line"),ns="http://www.w3.org/2000/svg",t=performance.now()/10000;svg.setAttribute("viewBox","0 0 "+W+" "+H);var bg=document.getElementById("irr-bubbles");bg.innerHTML="";var xL=W*0.05,xR=W*0.95;
+var lp=IRR_L.map(function(d,i){return{x:xL+Math.sin(i*0.6+t)*8,y:(0.94-i/(IRR_L.length-1)*0.88)*H,d:d}});
+var rp=IRR_R.map(function(d,i){return{x:xR+Math.sin(i*0.8+t+2)*8,y:(0.90-i/(IRR_R.length-1)*0.80)*H,d:d}});
+var pL="M "+lp[0].x+" "+lp[0].y;for(var i=1;i<lp.length;i++){var p=lp[i-1],c=lp[i];pL+=" C "+(p.x+6)+" "+(p.y-(p.y-c.y)*0.3)+" "+(c.x-6)+" "+(c.y+(p.y-c.y)*0.3)+" "+c.x+" "+c.y}
+var pR="M "+rp[0].x+" "+rp[0].y;for(var j=1;j<rp.length;j++){var p2=rp[j-1],c2=rp[j];pR+=" C "+(p2.x-6)+" "+(p2.y-(p2.y-c2.y)*0.3)+" "+(c2.x+6)+" "+(c2.y+(p2.y-c2.y)*0.3)+" "+c2.x+" "+c2.y}
+var tL=lp[lp.length-1],tR=rp[rp.length-1];
+document.getElementById("irr-path").setAttribute("d",pL+" "+pR+" M "+tL.x+" "+tL.y+" Q "+(W/2)+" "+(Math.min(tL.y,tR.y)-30)+" "+tR.x+" "+tR.y);
+function dot(pts,anchor){pts.forEach(function(p){var ci=document.createElementNS(ns,"circle");ci.setAttribute("cx",p.x);ci.setAttribute("cy",p.y);ci.setAttribute("r",p.d.r);ci.setAttribute("fill",p.d.c);ci.setAttribute("opacity","0.2");ci.setAttribute("class","irr-bubble");bg.appendChild(ci);var tx=document.createElementNS(ns,"text");tx.setAttribute("x",anchor==="L"?p.x+p.d.r+4:p.x-p.d.r-5);tx.setAttribute("y",p.y+3);tx.setAttribute("fill",p.d.c);tx.setAttribute("opacity","0.3");tx.setAttribute("font-size","7");tx.setAttribute("font-family","monospace");if(anchor==="R")tx.setAttribute("text-anchor","end");tx.textContent=p.d.l;bg.appendChild(tx)})}
+dot(lp,"L");dot(rp,"R");
+var cv=document.createElementNS(ns,"circle");cv.setAttribute("cx",W/2);cv.setAttribute("cy",Math.min(tL.y,tR.y)-30);cv.setAttribute("r",4);cv.setAttribute("fill","#22c55e");cv.setAttribute("opacity",0.1+Math.sin(t*3)*0.08);bg.appendChild(cv)}
+drawIrr();setInterval(drawIrr,2000);addEventListener("resize",drawIrr)})();
+</script>
+</body>
+</html>
