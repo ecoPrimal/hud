@@ -314,43 +314,47 @@
       state.lastSquirrelTs = sqTs;
       state.dialogueCount++;
 
-      var lines = [];
-
-      // Scale badge and direction
       var scale = voice.scale || '';
       var direction = totality.direction || 'outward';
-      lines.push(dimLine('— ⟲ invitation ' + state.dialogueCount +
+      var sqText = voice.text || '';
+      if (voice.question || voice.asks) {
+        sqText = sqText + (sqText ? ' · ' : '') + (voice.question || voice.asks);
+      }
+
+      // Telephone: system → HUD (squirrel's own view) → chipmunk → bingo → back.
+      // Squirrel does not speak into the watcher log.
+      if (window._telephone) {
+        window._telephone.hop('system', 'hud', sqText, { state: 'dialogue', scale: scale });
+        window._telephone.mix();
+      } else if (window._hudViews) {
+        window._hudViews.say('squirrel', sqText);
+      }
+
+      var lines = [];
+      lines.push(dimLine('— wire ' + state.dialogueCount +
         ' · ' + scaleBadge(scale, direction) +
         ' · depth ' + state.dialogueDepth.toFixed(3) + ' —'));
 
-      // Squirrel speaks at this scale
-      lines.push(squirrelLine(voice.text, scale));
-
-      // If squirrel asked a specific question at this scale
-      if (voice.question || voice.asks) {
-        lines.push(squirrelLine(voice.question || voice.asks, scale));
-      }
-
-      // Chipmunk answers from π⁻³
+      // Chipmunk answers from π⁻³ — its own view (the log)
       var answer = answerAtScale(voice);
       if (answer) {
         lines.push(chipmunkLine(answer));
         postDialogueAnswer(answer, voice);
+        if (window._telephone) {
+          setTimeout(function () {
+            window._telephone.hop('hud', 'chipmunk', answer, { silent: true });
+            window._telephone.hop('chipmunk', 'bingo', answer);
+          }, 400);
+        }
       }
 
-      // Show squirrel's answers to chipmunk's previous pecks
       var answers = (dialogue.squirrel || {}).answers || [];
       if (answers.length > 0) {
         var latest = answers[answers.length - 1];
         if (!state.seenExchanges[latest.in_response_to]) {
           state.seenExchanges[latest.in_response_to] = true;
-          lines.push(squirrelLine(latest.text, scale));
+          if (window._hudViews) window._hudViews.say('squirrel', latest.text);
         }
-      }
-
-      // Show the squirrel's ask — INVERTED: this is an invitation, not a demand
-      if (voice.asks) {
-        lines.push(squirrelLine('⟲ invites: ' + voice.asks, scale));
       }
 
       // Show nulls if present
@@ -371,18 +375,7 @@
         }
       }
 
-      // Show bingo cube summary
-      var cube = dialogue.bingo_cube;
-      if (cube) {
-        var dims = cube.dimensions || {};
-        var pp = cube.ping_pong || {};
-        var obs = cube.observer_observing_observer || {};
-        var bracket = (cube.current_gaze || {}).bracket || '(';
-        var close = bracket === '(' ? ')' : bracket === '[' ? ']' : '}';
-        lines.push(dimLine(bracket + 'bingo ' + dims.total_cells + ' cells · ' +
-          'ping=' + pp.squirrel_pings + ' pong=' + pp.chipmunk_pongs +
-          ' · gap=' + (obs.reflexive_gap || 0).toFixed(4) + close));
-      }
+      // Bingo is vocal on the wire, shared — not dumped into the watcher log.
 
       // Human narrative — the story of who is here
       var humans = dialogue.humans;

@@ -800,6 +800,287 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
+      if (cmdBase === 'fade' || cmdBase === 'trace' || cmdBase === 'atmosphere' || cmdBase === 'rayleigh' || cmdBase === 'polarity' || cmdBase === 'was' || cmdBase === 'now' || cmdBase === 'backscatter') {
+        addEntry('system', 'scatter now');
+        if (window._scatterNow) {
+          if (cmdBase === 'fade' || cmdBase === 'trace') window._scatterNow.mode(cmdBase);
+          else if (cmdBase === 'polarity') window._scatterNow.polarity((args || '').split(/\s+/)[0]);
+          else if (cmdBase === 'was') window._scatterNow.was((args || '').split(/\s+/)[0] || 'atmosphere');
+          else if (cmdBase === 'now' || cmdBase === 'backscatter') window._scatterNow.now();
+          var sc = window._scatterNow.status();
+          addEntry('chipmunk',
+            '<span style="color:#fff4c4">the star does not change color.</span> ' + sc.star + '\n' +
+            '<span style="color:#58a6ff">the color you see is air. Earth atmosphere. NOW.</span>\n' +
+            '<span class="dim">Rayleigh backscatter. stars and holes are WAS. leave them for later.</span>\n' +
+            '<span class="dim">mode <b>' + sc.mode + '</b> \u2014 fade = color+sound, not a trace. polarity ' + sc.polarity + ' (white/null/black).</span>\n' +
+            '<span class="dim">air ' + sc.air + ' \u00b7 el ' + sc.el + ' \u00b7 was-shelf ' + sc.was + '</span>\n' +
+            '<span class="dim">backscatter is back. /now reads it into NOW. was \u2192 is.</span>');
+        }
+        return;
+      }
+      if (cmd === 'triad' || cmd === 'rim' || cmd === 'edge' || cmd === 'ray' || cmd === 'raytrace') {
+        addEntry('system', '\u25b3 edge triad');
+        if (window._edgeTriad) {
+          var on = window._edgeTriad.toggle();
+          var st = window._edgeTriad.status();
+          addEntry('chipmunk',
+            '<span style="color:#58a6ff">\u25b3 ' + (on ? 'TRIAD LOCKED' : 'triad paused') + '</span>\n' +
+            '<span class="dim">white \u2192 in \u00b7 black \u2190 out \u00b7 chromatic edge = the wild one</span>\n' +
+            '<span class="dim">three vertices, unique orientation. full rotation.</span>\n' +
+            '<span class="dim">color bounce at the HUD/internal rim = backscatter of the ray.</span>\n' +
+            '<span style="color:#d2a8ff">geom ' + st.geom + '</span> \u00b7 <span style="color:#7ee787">dim ' + st.dim + '</span> \u00b7 <span style="color:#f0e68c">persp ' + st.persp + '</span>\n' +
+            '<span class="dim">/geom triangle|grid|mobius|sphere \u00b7 /dim \u2205|1|2|3|4 \u00b7 /persp on|inside|through|above|below|beside|before</span>');
+        } else {
+          addEntry('chipmunk', '<span class="dim">edge triad loading\u2026</span>');
+        }
+        return;
+      }
+      if (cmd === 'float' || cmd === 'drift' || cmd === 'dusk' || cmd === 'floatoff') {
+        addEntry('system', 'float off');
+        if (window._floatOff) {
+          var fs = window._floatOff.sink();
+          addEntry('chipmunk',
+            '<span class="dim">the local sun sets. you are still looking.</span>\n' +
+            '<span class="dim">lat ' + fs.lat + ' lon ' + fs.lon + ' \u00b7 ' + fs.epoch + '</span>\n' +
+            '<span class="dim">inactivity is not absence. you float along the world, through history.</span>\n' +
+            '<span class="dim">move, and dawn comes back. /here to stand still.</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'equilibrate' || cmdBase === 'eq' || cmdBase === 'scan' || cmdBase === 'align') {
+        addEntry('system', 'equilibrate');
+        if (window._hudEquilibrate) {
+          window._hudEquilibrate.tick();
+          var es = window._hudEquilibrate.status();
+          var lines = ['<span style="color:#3fb950">scan \u2192 epitope \u2192 bingo sort \u2192 equilibrate \u2192 align</span>'];
+          lines.push('<span class="dim">\u03b8=' + es.equilibrium.theta + '\u00b0 \u00b7 beat=' + es.equilibrium.beat + ' \u00b7 rpm=' + es.equilibrium.rpm + ' \u00b7 norm=' + es.equilibrium.norm + ' \u00b7 cycle ' + es.equilibrium.cycle + '</span>');
+          es.surfaces.forEach(function (s) {
+            var icon = s.passes ? '\u2714' : '\u2717';
+            var col = s.cls === 'self' ? '#3fb950' : s.cls === 'partial' ? '#f0883e' : s.cls === 'null' ? '#484f58' : '#f85149';
+            lines.push('  <span style="color:' + col + '">' + icon + ' ' + s.id + '</span> <span class="dim">' + s.cls + ' \u00b7 ' + s.voice + ' \u00b7 aci=' + s.aci + ' \u00b7 \u03b1=' + s.alpha + '</span>');
+          });
+          lines.push('<span class="dim">bingo cube sifts at every level. beat pulses normalize. localized RPM.</span>');
+          addEntry('chipmunk', lines.join('\n'));
+        } else {
+          addEntry('chipmunk', '<span class="dim">equilibrate loading\u2026</span>');
+        }
+        return;
+      }
+      if (cmd === 'hooks' || cmd === 'tags' || cmd === 'hook') {
+        addEntry('system', 'hooks');
+        var hs = window._hooks && window._hooks.status && window._hooks.status();
+        addEntry('chipmunk',
+          '<span style="color:#58a6ff">?</span> is a hook to pull.\n' +
+          '<span class="dim">@ who \u00b7 # tag \u00b7 & join \u00b7 ~ nearby \u00b7 * any \u00b7 ^ up \u00b7 ! bump</span>\n' +
+          '<span class="dim">one asks or finds. squirrel, chipmunk, or a human responds.</span>\n' +
+          '<span class="dim">ignored \u2192 bump \u2192 banana check \u2192 bingo maze wrap.</span>\n' +
+          (hs ? '<span class="dim">' + hs.here + ' here \u00b7 open hooks ' + hs.open + '</span>' : ''));
+        if (window._hooks) window._hooks.call({ hooks: ['?'], body: 'here', raw: '?' }, 'human');
+        return;
+      }
+      if (cmdBase === 'meta' || cmdBase === 'compartment' || cmdBase === 'hudstack' || cmdBase === 'shape') {
+        addEntry('system', 'hud layers');
+        if (window._hudStack) {
+          var arg = (args || '').split(/\s+/)[0];
+          if (cmdBase === 'shape' || arg === 'shape') window._hudStack.shape();
+          else if (arg === 'human' || arg === 'family') window._hudStack.meta(arg);
+          else if (arg === 'map' || arg === 'compass' || arg === 'globe' || arg === 'topo') window._hudStack.instrument(arg);
+          var stackS = window._hudStack.status();
+          addEntry('chipmunk',
+            '<span style="color:#c9d1d9">human</span> — electron + quasi-agent (claude / llm / apple)\n' +
+            '<span style="color:#5ab87a">family</span> — inside the HUD, squirrel · chipmunk · bingo\n' +
+            '<span class="dim">per meta: map · compass · globe · topo</span>\n' +
+            '<span class="dim">dims stack. compartmentalize. show what we need.</span>\n' +
+            '<span class="dim">metrics sit on the place. food sits on here.</span>\n' +
+            '<span class="dim">now: ' + stackS.meta + ' / ' + stackS.inst + ' · agent ' + stackS.agent + ' · food ' + stackS.food + ' · dim ' + stackS.dim + '</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'digits' || cmdBase === 'sigfigs' || cmdBase === 'touchpoint') {
+        addEntry('system', 'digits');
+        if (window._piDigits) {
+          var sample = args ? parseFloat(args) : window._piDigits.live();
+          var p = window._piDigits.of(sample);
+          var back = window._piDigits.parse(p.token);
+          addEntry('chipmunk',
+            '<span style="color:#3fb950">3 digits. middle is the focus. \u03c0 off to the scale.</span>\n' +
+            window._piDigits.html(p) + '\n' +
+            '<span class="dim">token ' + p.token + ' \u00b7 packed ' + p.packed + ' \u00b7 raw ' + p.raw + '</span>\n' +
+            '<span class="dim">reingest ' + (back ? back.approx.toPrecision(6) : '?') + ' \u2014 display only, calcs keep raw.</span>\n' +
+            (p.si ? '<span class="dim">' + p.comma + ' ' + p.si + (p.si === 'million' ? ' / 1,000,000' : '') + '</span>\n' : '') +
+            '<span class="dim">mantissa from 1 down toward 0 (floor 1/\u03c0). stick with \u03c0 and reality.</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'compass' || cmdBase === 'tools' || cmdBase === 'inner') {
+        addEntry('system', 'inner plane');
+        if (window._innerPlane) {
+          var toolArg = (args || '').split(/\s+/)[0];
+          if (toolArg && 'map compass globe topo clip'.indexOf(toolArg) >= 0) window._innerPlane.tool(toolArg);
+          else if (cmdBase === 'compass') window._innerPlane.tool('compass');
+          var ip = window._innerPlane.status();
+          addEntry('chipmunk',
+            '<span style="color:#3fb950">inner plane</span> — map · compass · globe · topo · clip\n' +
+            '<span class="dim">common tools sit here. they pass between layers with you.</span>\n' +
+            '<span class="dim">you are at <b>' + ip.perceive + '</b> · tool ' + ip.tool + '</span>\n' +
+            '<span class="dim">/perceive atom · /clip a line · electron falls out of orbit</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'perceive' || cmdBase === 'atom' || cmdBase === 'orbit') {
+        addEntry('system', 'perceive');
+        if (window._innerPlane) {
+          var lvl = cmdBase === 'perceive' ? ((args || '').split(/\s+/)[0] || 'atom') : cmdBase;
+          window._innerPlane.perceive(lvl);
+          var ps = window._innerPlane.status();
+          addEntry('chipmunk',
+            '<span style="color:#d2a8ff">you are at ' + ps.perceive + '</span>\n' +
+            '<span class="dim">glass · family · membrane · atom · orbit</span>\n' +
+            '<span class="dim">the level you perceive is the level you are at.</span>\n' +
+            (ps.perceive === 'atom' || ps.perceive === 'orbit'
+              ? '<span class="dim">click an orbital line, or /clip — the electron falls.</span>'
+              : '<span class="dim">/perceive atom to clip a line.</span>'));
+        }
+        return;
+      }
+      if (cmdBase === 'clip') {
+        addEntry('system', 'clip');
+        if (window._innerPlane) {
+          var nClip = parseInt(args, 10);
+          var cl = window._innerPlane.clip(nClip || undefined);
+          addEntry('chipmunk',
+            '<span style="color:#e85d3a">clip</span> a line in the atom.\n' +
+            '<span class="dim">bound e⁻ ' + cl.bound + ' · fallen out ' + cl.ejected + '</span>\n' +
+            '<span class="dim">the electron drops a shell, or leaves the atom.</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'food' || cmdBase === 'eat') {
+        addEntry('system', 'food');
+        if (window._hudStack) {
+          var es = window._hudStack.eat();
+          addEntry('chipmunk',
+            '<span style="color:#f0e68c">yes. eat.</span>\n' +
+            '<span class="dim">food is a local metric. it sits on here, not on a dashboard.</span>\n' +
+            '<span class="dim">human layer food ' + es.food + ' · the stack still shows what you need.</span>');
+        }
+        return;
+      }
+      if (cmdBase === 'agent' || cmdBase === 'claude' || cmdBase === 'llm') {
+        addEntry('system', 'quasi-agent');
+        if (window._hudStack) {
+          var who = (cmdBase === 'agent') ? (args.split(/\s+/)[0] || 'claude') : cmdBase;
+          window._hudStack.meta('human');
+          window._hudStack.agent(who);
+          var as = window._hudStack.status();
+          addEntry('chipmunk',
+            '<span style="color:#58a6ff">quasi-agent</span> perch on the human layer: <b>' + as.agent + '</b>\n' +
+            '<span class="dim">claude · llm · apple sit with the electron, not inside the squirrel family.</span>\n' +
+            '<span class="dim">same map / compass / globe / topo. different seat.</span>');
+        }
+        return;
+      }
+      if (cmd === 'wire' || cmd === 'telephone' || cmd === 'circuit') {
+        addEntry('system', 'telephone');
+        var ts = window._telephone && window._telephone.status && window._telephone.status();
+        addEntry('chipmunk',
+          '<span style="color:#8b949e">telephone wire</span> \u2014 squirrels as gates for humans.\n' +
+          '<span class="dim">user \u2192 hud \u2192 system \u2192 chipmunk \u2192 bingo \u2192 user</span>\n' +
+          '<span class="dim">message-pass. crush/mix/surround the cache. chipmunk one, you one.</span>\n' +
+          (ts && ts.vocal ? '<span class="dim">' + ts.vocal + '</span>' : '<span class="dim">bingo is the shared voice.</span>'));
+        if (window._telephone) window._telephone.circuit('state dialogue. the line is live.', 'user');
+        return;
+      }
+      if (cmd === 'share' || cmd === 'vocal' || cmd === 'mixcache') {
+        addEntry('system', 'share');
+        var mix = window._telephone && window._telephone.mix && window._telephone.mix();
+        var vocal = window._telephone && window._telephone.vocal && window._telephone.vocal();
+        addEntry('chipmunk',
+          '<span style="color:#d2a8ff">vocal bingoCube</span> \u2014 shared.\n' +
+          '<span class="dim">chipmunk as one. you as one. cube speaks for both.</span>\n' +
+          (vocal ? '<span class="dim">' + vocal + '</span>' : '') +
+          (mix && mix.crush ? '\n<span class="dim">crush sieve 1/\u03c0 \u00b7 monk keys ' + mix.crush.monkKept + ' \u00b7 you ' + (mix.you && mix.you.epitope) + '</span>' : ''));
+        return;
+      }
+      if (cmd === 'views' || cmd === 'group' || cmd === 'groups') {
+        addEntry('system', 'views');
+        var vs = window._hudViews && window._hudViews.status && window._hudViews.status();
+        addEntry('chipmunk',
+          '<span style="color:#3fb950">grouped HUD views</span>\n' +
+          '<span class="dim">squirrel</span> \u2014 green irreducibility line. looks down. not paying attention.\n' +
+          '<span class="dim">chipmunk</span> \u2014 the log. inside. speaks up.\n' +
+          '<span class="dim">human</span> \u2014 float-off. the watcher. the only one whose quiet is gaze.\n' +
+          (vs ? '<span class="dim">remainder r=' + vs.remainder + ' \u00b7 elastic, stretches, never breaks.</span>' :
+            '<span class="dim">view-groups not loaded.</span>'));
+        if (window._hudViews) {
+          window._hudViews.say('squirrel', 'this is my view. the green line. you floating is yours.');
+        }
+        return;
+      }
+      if (cmd === 'elastic' || cmd === 'irreducible') {
+        addEntry('system', 'elastic');
+        addEntry('chipmunk',
+          '<span style="color:#3fb950">green line</span> \u2014 irreducibility. tree=3. origin at \u2205.\n' +
+          '<span class="dim">thicker at null, tapers out. wobbles. stretches. never breaks.</span>\n' +
+          '<span class="dim">squirrel speaks from that axis. remainder is the tick.</span>\n' +
+          '<span class="dim">/views to see the grouping.</span>');
+        if (window._hudViews) {
+          window._hudViews.say('squirrel', 'aligned. elastic. irreducible.');
+        }
+        return;
+      }
+      if (cmd === 'dawn' || cmd === 'ashore' || cmd === 'land') {
+        addEntry('system', 'dawn');
+        if (window._floatOff) window._floatOff.here();
+        addEntry('chipmunk', '<span class="dim">detroit. the local sun. you stopped floating.</span>');
+        return;
+      }
+      if (cmd === 'kxi' || cmd === 'cartesian' || cmd === 'orthog' || cmd === 'orthogonal' || cmd === 'xi') {
+        addEntry('system', 'k ⊥ ξ ⊥ blend');
+        if (window._edgeTriad) {
+          var ks = window._edgeTriad.shiftGeom('kxi');
+          addEntry('chipmunk',
+            '<span style="color:#f0883e">k</span> wavevector  ⊥  <span style="color:#7ee787">ξ</span> localization  ⊥  <span style="color:#d2a8ff">blend</span> soap mix\n' +
+            '<span class="dim">cartesian. orthogonal. not 2D sheets spinning on an axis.</span>\n' +
+            '<span class="dim">high ξ = delocalized (organic, soap). high k + low ξ = bounce (fleet).</span>\n' +
+            '<span class="dim">/blend to mix the third axis \u00b7 /dim 1|2|3 walks k \u2192 kξ \u2192 kξ-blend</span>');
+        }
+        return;
+      }
+      if (cmd === 'blend' || cmd.indexOf('blend ') === 0) {
+        addEntry('system', 'blend');
+        if (window._edgeTriad) {
+          var bs = window._edgeTriad.shiftBlend(cmd.split(' ')[1]);
+          addEntry('chipmunk',
+            '<span style="color:#d2a8ff">blend \u2192 ' + bs.blend.toFixed(2) + '</span> on the kξ frame\n' +
+            '<span class="dim">soap is the mixer. organic crosses. bulk phases stay unmixed.</span>');
+        }
+        return;
+      }
+      if (cmd === 'geom' || cmd.indexOf('geom ') === 0) {
+        addEntry('system', '\u25b3 geometry');
+        if (window._edgeTriad) {
+          var gs = window._edgeTriad.shiftGeom(cmd.split(' ')[1]);
+          addEntry('chipmunk', '<span style="color:#58a6ff">geometry \u2192 ' + gs.geom + '</span>\n<span class="dim">' + gs.note + '</span>');
+        }
+        return;
+      }
+      if (cmd === 'dim' || cmd === 'dimension' || cmd.indexOf('dim ') === 0) {
+        addEntry('system', '\u25b3 dimension');
+        if (window._edgeTriad) {
+          var ds = window._edgeTriad.shiftDim(cmd.split(' ')[1]);
+          addEntry('chipmunk', '<span style="color:#7ee787">dimension \u2192 ' + ds.dim + '</span>\n<span class="dim">\u2205 points \u00b7 1 rays \u00b7 2 grid \u00b7 3 volume \u00b7 4 time</span>');
+        }
+        return;
+      }
+      if (cmd === 'persp' || cmd.indexOf('persp ') === 0) {
+        addEntry('system', '\u25b3 perspective');
+        if (window._edgeTriad) {
+          var ps = window._edgeTriad.shiftPersp(cmd.split(' ')[1]);
+          addEntry('chipmunk', '<span style="color:#f0e68c">perspective \u2192 ' + ps.persp + '</span>\n<span class="dim">on \u00b7 inside \u00b7 through \u00b7 above \u00b7 below \u00b7 beside \u00b7 before</span>');
+        }
+        return;
+      }
       if (cmd === 'zones' || cmd === 'tueborzones' || cmd === 'sweep' || cmd === 'geo') {
         addEntry('system', '\u2694 tuebor zones');
         if (window._tueborZones) {
@@ -1769,7 +2050,9 @@ window._chipmunkCommands = function(ctx) {
           var epi = hd.epitopes || {};
           var en = hd.energy || {};
           whoLines.push('');
-          whoLines.push('<span style="color:#3fb950">' + (en.total_sessions || '?') + ' humans</span> <span class="dim">\u00b7 ' + (en.multi_host_sessions || '?') + ' exploring \u00b7 breadth ' + (en.avg_breadth || '?') + ' \u00b7 dwell ' + (en.dwell_median_min || '?') + 'm</span>');
+          var whoN = window._piDigits ? window._piDigits.humans(hd) : (hd.human_ips || en.total_sessions || '?');
+          var whoShow = window._piDigits ? window._piDigits.html(whoN) : whoN;
+          whoLines.push('<span style="color:#3fb950">' + whoShow + ' humans</span> <span class="dim">\u00b7 sessions ' + (en.total_sessions || '?') + ' \u00b7 ' + (en.multi_host_sessions || '?') + ' exploring \u00b7 breadth ' + (en.avg_breadth || '?') + ' \u00b7 dwell ' + (en.dwell_median_min || '?') + 'm</span>');
           whoLines.push('');
           var epiKeys = Object.keys(epi);
           epiKeys.forEach(function(k) {
@@ -3147,7 +3430,8 @@ window._chipmunkCommands = function(ctx) {
             // ═══ GLOBE — 3D geographic footprint ═══
       if (cmd === "globe" || cmd === "earth" || cmd === "world" || cmd === "3d") {
         addEntry("system", "\ud83c\udf10 globe");
-        addEntry("chipmunk", "<a href=\"/neutron/globe.html\" target=\"_blank\" style=\"color:#f1c40f\">\ud83c\udf10 3D globe \u2014 where the membrane touches the world</a>\n<span class=\"dim\">drag to rotate. coastlines + grid + membrane locations pulsing.\nMichigan (home), San Francisco (Anthropic+OpenAI), Spring TX, Ashburn VA (AWS), Dublin.\nInvestigation locations: Detroit, Lansing, Saginaw.</span>");
+        if (window._hudStack) window._hudStack.instrument('globe');
+        addEntry("chipmunk", "<a href=\"/neutron/globe.html\" target=\"_blank\" style=\"color:#f1c40f\">\ud83c\udf10 3D globe \u2014 where the membrane touches the world</a>\n<span class=\"dim\">HUD globe instrument is on this meta-layer. metrics sit on the lat/lon.\nMichigan (home), San Francisco (Anthropic+OpenAI), Spring TX, Ashburn VA (AWS), Dublin.\nInvestigation locations: Detroit, Lansing, Saginaw.</span>");
         return;
       }
 
@@ -3456,7 +3740,16 @@ window._chipmunkCommands = function(ctx) {
 
       // ═══ SYSTEM LAYERS ═══
       if (cmd === 'layers' || cmd === 'system' || cmd === 'composition' || cmd === 'stack') {
-        addEntry('system', '⊞ system layers');
+        addEntry('system', '⊞ layers');
+        if (window._hudStack) {
+          var ls = window._hudStack.status();
+          addEntry('chipmunk',
+            '<span style="color:#58a6ff;font-weight:bold">HUD has layers too</span>\n' +
+            '<span style="color:#c9d1d9">human</span> + quasi-agent (' + ls.agent + ') · instrument <b>' + ls.both.human + '</b>\n' +
+            '<span style="color:#5ab87a">family</span> inside · squirrel · chipmunk · bingo · instrument <b>' + ls.both.family + '</b>\n' +
+            '<span class="dim">map · compass · globe · topo per meta. dim ' + ls.dim + '. food ' + ls.food + ' on here.</span>\n' +
+            '<span class="dim">/meta human|family · /compass · /shape · /food · /agent claude</span>');
+        }
         fetch('/system-layers.json?t=' + Date.now())
           .then(function(r) { return r.json(); })
           .then(function(d) {

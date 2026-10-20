@@ -52,6 +52,26 @@
     { cmd: 'battle', cat: 'do', desc: 'battle an entity with cards' },
     { cmd: 'strategy', cat: 'do', desc: 'strategy map — investigation as territory' },
     { cmd: 'twist', cat: 'do', desc: 'twist the perspective — flip inside/outside' },
+    { cmd: 'triad', cat: 'see', desc: 'in + out + edge — third triangle, full rotation, backscatter' },
+    { cmd: 'rim', cat: 'see', desc: 'color bounce at the HUD/internal edge' },
+    { cmd: 'backscatter', cat: 'see', desc: 'backscatter is back — read it to NOW. atmosphere, not the sun' },
+    { cmd: 'fade', cat: 'do', desc: 'fade color + sound instead of tracing — deform was → is' },
+    { cmd: 'was', cat: 'keep', desc: 'shelf a scatter (star / hole / air) for later' },
+    { cmd: 'now', cat: 'do', desc: 'read backscatter into NOW' },
+    { cmd: 'atmosphere', cat: 'see', desc: 'the sun is not changing — Earth air is the perception point' },
+    { cmd: 'polarity', cat: 'do', desc: 'white / null / black invert of the scatter' },
+    { cmd: 'equilibrate', cat: 'do', desc: 'scan → epitope → bingo sort → equilibrate → align all surfaces' },
+    { cmd: 'scan', cat: 'see', desc: 'discover all canvases, sliders, colors, spectrums across HUD' },
+    { cmd: 'align', cat: 'do', desc: 'adjust patterns — humans/squirrels/chipmunks converge on sorted equilibrium' },
+    { cmd: 'geom', cat: 'do', desc: 'shift geometry — triangle grid mobius sphere kxi' },
+    { cmd: 'float', cat: 'see', desc: 'inactivity — local sun sets, you drift lat/long and through history' },
+    { cmd: 'dusk', cat: 'see', desc: 'the HUD goes dark from those angles of sun and moon' },
+    { cmd: 'dawn', cat: 'do', desc: 'come ashore — detroit, local sun, stop floating' },
+    { cmd: 'kxi', cat: 'see', desc: 'cartesian k ⊥ ξ ⊥ blend — orthogonal Anderson, not spinning 2D' },
+    { cmd: 'cartesian', cat: 'see', desc: 'same as /kxi — orthogonal axes, not polar spin' },
+    { cmd: 'blend', cat: 'do', desc: 'mix the third axis on the kξ frame — soap as mixer' },
+    { cmd: 'dim', cat: 'do', desc: 'shift dimension on the fly — ∅ 1 2 3 4' },
+    { cmd: 'persp', cat: 'do', desc: 'shift perspective on the fly — on inside through above below beside before' },
     { cmd: 'sort', cat: 'do', desc: 'epitope sort — classify entities' },
     { cmd: 'sweep', cat: 'do', desc: 'tuebor sweep across zones' },
     { cmd: 'compress', cat: 'do', desc: 'bingo cube compression' },
@@ -128,6 +148,21 @@
     { cmd: 'layers', cat: 'see', desc: 'per-layer tuebors — visibility matrix, reporter model' },
     { cmd: 'blend', cat: 'see', desc: 'primals blend — 16 hypotheses mapped, every layer has its own tuebor' },
     { cmd: 'gaze', cat: 'see', desc: 'chipmunk looks up, squirrel looks down — live mix, temporal strata' },
+    { cmd: 'digits', cat: 'see', desc: '3 sigfigs · π scale · middle digit is focus · display not calcs' },
+    { cmd: 'meta', cat: 'see', desc: 'HUD layers — human+quasi-agent, squirrel family, map compass globe topo' },
+    { cmd: 'shape', cat: 'do', desc: 'localize the grid of creations to a shape — metrics on the place' },
+    { cmd: 'tools', cat: 'see', desc: 'inner plane — map compass globe topo clip travel with you' },
+    { cmd: 'perceive', cat: 'do', desc: 'be at a layer — glass family membrane atom orbit' },
+    { cmd: 'atom', cat: 'see', desc: 'perceive the atom — clip a line, electron falls out of orbit' },
+    { cmd: 'clip', cat: 'do', desc: 'clip an orbital line — electron falls' },
+    { cmd: 'compass', cat: 'see', desc: 'compass on the inner plane — travels with you' },
+    { cmd: 'food', cat: 'do', desc: 'eat — food is a local metric on here' },
+    { cmd: 'agent', cat: 'see', desc: 'quasi-agent perch — claude / llm / apple sit with the human' },
+    { cmd: 'hooks', cat: 'see', desc: '? pull · @ # & tags — call and response, banana if ignored' },
+    { cmd: 'wire', cat: 'see', desc: 'telephone wire — squirrels as gates, user → HUD → system → back' },
+    { cmd: 'share', cat: 'see', desc: 'vocal bingoCube — chipmunk one, you one, crush/mix/surround cache' },
+    { cmd: 'views', cat: 'see', desc: 'grouped HUD views — squirrel on the green line, not the watcher' },
+    { cmd: 'elastic', cat: 'see', desc: 'green irreducibility line — stretches, remainder, tree=3' },
     { cmd: 'body', cat: 'see', desc: 'body scan — the membrane is you, scan yourself from within and without' },
     { cmd: 'kin', cat: 'see', desc: 'kin scan — whose journey overlaps with yours, where membranes touch' },
     { cmd: 'vortex', cat: 'see', desc: 'vortex mix — all layers sorted, humans IS/nearby/was, total + unseen + approx unknown' },
@@ -645,8 +680,12 @@
     // Humans online
     if (cc && cc.cache && cc.cache.human && cc.cache.human.energy) {
       var h = cc.cache.human.energy;
-      var humanCount = h.total_sessions || 0;
-      parts.push('<span style="color:#3fb950">\u25cf ' + humanCount + ' human' + (humanCount !== 1 ? 's' : '') + '</span>');
+      var humanCount = window._piDigits
+        ? window._piDigits.humans(cc.cache.human)
+        : (cc.cache.human.human_ips || h.total_sessions || 0);
+      parts.push('<span style="color:#3fb950">\u25cf ' +
+        (window._piDigits ? window._piDigits.html(humanCount) : humanCount) +
+        ' human' + (humanCount !== 1 ? 's' : '') + '</span>');
     }
 
     // Chipmunk state
@@ -1474,6 +1513,9 @@
   document.addEventListener('squirrel-feed', function(e) {
     var d = e.detail;
     if (!d || !d.msg) return;
+    // squirrel has its own HUD view (green line). do not speak into the
+    // watcher's log — that looks like paying attention.
+    if (window._hudViews) return;
     var feedEl = document.getElementById('squirrel-feed-hint');
     if (!feedEl) {
       feedEl = document.createElement('div');
@@ -1629,23 +1671,19 @@
     var silenceMin = silenceMs / 60000;
 
     if (silenceMin > 5 && _edgeState.pokeCount < 5) {
-      // Squirrel pokes chipmunk
+      // Squirrel pokes chipmunk — from squirrel's view, not the watcher's.
       document.dispatchEvent(new CustomEvent('squirrel-feed', {
         detail: {
-          msg: '\uD83D\uDC3F chipmunk has been quiet for ' + Math.floor(silenceMin) + ' min. poking...',
+          msg: '\uD83D\uDC3F chipmunk has been quiet for ' + Math.floor(silenceMin) + ' min. still looking down.',
           cmd: 'poke'
         }
       }));
       _edgeState.pokeCount++;
-      _edgeState.chipmunkLastSeen = Date.now();  // reset so we don't spam
+      _edgeState.chipmunkLastSeen = Date.now();
 
-      // Actually send the poke command to chipmunk
-      if (window.chipmunkInput) {
-        window.chipmunkInput.value = '/poke';
-        window.chipmunkInput.dispatchEvent(new Event('input'));
-        var enterEvent = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 });
-        window.chipmunkInput.dispatchEvent(enterEvent);
-      }
+      // Do not type into the human input. that is paying attention.
+      var dormant = window._floatOff && window._floatOff.status && window._floatOff.status().dormant;
+      if (dormant) return;
     }
   }, 60000);  // check every minute
 
@@ -1668,6 +1706,8 @@
   document.addEventListener('chipmunk-bounce', function(e) {
     var d = e.detail;
     if (!d || !d.msg) return;
+    // chipmunk answers in the log — its own view. not the squirrel bubble.
+    if (window._hudViews) return;
     var feedEl = document.getElementById('squirrel-feed-hint');
     if (!feedEl) return;
     // Append chipmunk’s response below the squirrel’s saying

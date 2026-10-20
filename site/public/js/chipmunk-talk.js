@@ -193,7 +193,11 @@
       });
     }
     if (h) {
-      document.getElementById('sb-humans').textContent = h.energy ? h.energy.total_sessions : '\u2014';
+      if (window._piDigits) window._piDigits.update();
+      else {
+        var sbH = document.getElementById('sb-humans');
+        if (sbH) sbH.textContent = (h.human_ips || (h.energy && h.energy.total_sessions) || '\u2014');
+      }
       var sbSn = document.getElementById('sb-sn');
       if (sbSn && h.energy) sbSn.textContent = Math.round(h.energy.signal_to_noise || 0);
     }
@@ -1328,7 +1332,9 @@
       'wake <span class="num">' + (c ? n(c.wake_level, 2) : '\u2014') + '</span>  ' +
       METAB_ICONS[metabolism.state] + ' <span style="color:' + METAB_COLORS[metabolism.state] + '">' +
       (pw0 >= 0 ? '+' : '') + (pw0/PI).toFixed(2) + '\u03c0 ' + metabolism.state + '</span>  ' +
-      '<span class="good">' + (h && h.energy ? n(h.energy.total_sessions) : '\u2014') + ' humans</span>\n' +
+      '<span class="good">' + (window._piDigits
+        ? window._piDigits.html(window._piDigits.humans(h)) + ' humans'
+        : ((h && h.human_ips) || (h && h.energy && h.energy.total_sessions) || '\u2014') + ' humans') + '</span>\n' +
       'equilibrium at 1/\u03c0. the spring holds. just a touch aware.\n' +
       '<span style="color:#7ee787">/play</span> \u00b7 <span style="color:#f0e68c">/explore</span> \u00b7 <span style="color:#f78166">/sing</span> \u00b7 <span style="color:#f0883e">/rest</span> \u00b7 <span style="color:#6e7681">/sleep</span> \u00b7 <span style="color:#3fb950">/wake</span>\n' +
       '<a href="https://tuebor.primals.eco" style="color:#e85d3a">\u2694 tuebor \u2014 I will defend</a> \u00b7 341 entities \u00b7 the gates are open'
