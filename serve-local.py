@@ -705,6 +705,159 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── pi-agent.json: local LLM inference through the membrane ───
+
+        if path == "/pi-agent.json" and self.command == "GET":
+            log_flow("mixed")
+            # GET = status + available models
+            try:
+                import urllib.request
+                resp = urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5)
+                data = json.loads(resp.read())
+                models = [{"name": m["name"], "size_gb": round(m.get("size",0)/(1024**3), 1)} for m in data.get("models",[])]
+            except Exception:
+                models = []
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+            self._json_response({
+                "status": "live" if models else "no-models",
+                "models": models,
+                "capabilities": {
+                    "chain_of_thought": True,
+                    "membrane_context": True,
+                    "organism_count": len(orgs),
+                    "cursor_ide": True,
+                },
+                "note": "pi-agent: local LLM ↔ membrane mesh. "
+                        "The subagent IS the mesh. Chain of thought = data flowing through organisms.",
+            })
+            return
+
+        if path == "/pi-agent.json" and self.command == "POST":
+            log_flow("mixed")
+            # POST = inference request
+            content_len = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(content_len)) if content_len > 0 else {}
+            prompt = body.get("prompt", "")
+            model = body.get("model", "tinyllama:latest")
+            # Inject membrane context into the prompt
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                caps = inside_state.get("capabilities", {})
+            context = (
+                f"You are a pi-agent in the ecoPrimal membrane mesh. "
+                f"There are {len(orgs)} organisms with {len(caps)} capabilities. "
+                f"The mesh runs on {len(orgs)} unix sockets. "
+                f"Answer from the perspective of the membrane.\n\n"
+            )
+            full_prompt = context + prompt
+            try:
+                import urllib.request
+                req_data = json.dumps({
+                    "model": model,
+                    "prompt": full_prompt,
+                    "stream": False,
+                }).encode()
+                req = urllib.request.Request(
+                    "http://localhost:11434/api/generate",
+                    data=req_data,
+                    headers={"Content-Type": "application/json"},
+                )
+                resp = urllib.request.urlopen(req, timeout=30)
+                result = json.loads(resp.read())
+                self._json_response({
+                    "model": result.get("model"),
+                    "response": result.get("response"),
+                    "tokens": result.get("eval_count", 0),
+                    "duration_s": round(result.get("eval_duration", 0) / 1e9, 2),
+                    "membrane_context": True,
+                })
+            except Exception as e:
+                self._json_response({"error": str(e)}, 500)
+            return
+
+        # ─── chain.json: chain of thought = data flowing through organisms ───
+
+        if path == "/chain.json" and self.command == "POST":
+            log_flow("mixed")
+            content_len = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(content_len)) if content_len > 0 else {}
+            prompt = body.get("prompt", "")
+            model = body.get("model", "tinyllama:latest")
+            # Chain = route thought through organism perspectives
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                caps = inside_state.get("capabilities", {})
+                scount = inside_state.get("socket_count", 0)
+            # Build organism context from live mesh
+            org_names = list(orgs.keys())[:8]  # top 8 for context window
+            org_summaries = []
+            for name in org_names:
+                info = orgs.get(name, {})
+                ncaps = len(info.get("capabilities", []))
+                status = info.get("alive", False)
+                org_summaries.append(f"  {name}: {ncaps} caps, {'alive' if status else 'down'}")
+            org_block = "\n".join(org_summaries) if org_summaries else "  (no organisms responding)"
+            chain_context = (
+                f"You are a pi-agent performing chain-of-thought reasoning through the ecoPrimal membrane mesh.\n"
+                f"The mesh has {len(orgs)} organisms on {scount} unix sockets with {len(caps)} capabilities.\n"
+                f"Organisms in the mesh:\n{org_block}\n\n"
+                f"Think step by step. Each step is a 'transit' through a different organism.\n"
+                f"Step 1 (perception — what do the sockets say?): observe the question.\n"
+                f"Step 2 (routing — which organisms are relevant?): identify which organisms to consult.\n"
+                f"Step 3 (synthesis — membrane perspective): combine organism perspectives into an answer.\n\n"
+                f"Question: {prompt}\n\nChain of thought:\n"
+            )
+            try:
+                import urllib.request
+                req_data = json.dumps({
+                    "model": model,
+                    "prompt": chain_context,
+                    "stream": False,
+                }).encode()
+                req = urllib.request.Request(
+                    "http://localhost:11434/api/generate",
+                    data=req_data,
+                    headers={"Content-Type": "application/json"},
+                )
+                resp = urllib.request.urlopen(req, timeout=60)
+                result = json.loads(resp.read())
+                self._json_response({
+                    "model": result.get("model"),
+                    "chain_of_thought": result.get("response"),
+                    "tokens": result.get("eval_count", 0),
+                    "duration_s": round(result.get("eval_duration", 0) / 1e9, 2),
+                    "organisms_consulted": org_names,
+                    "mesh_context": {
+                        "organisms": len(orgs),
+                        "sockets": scount,
+                        "capabilities": len(caps),
+                    },
+                })
+            except Exception as e:
+                self._json_response({"error": str(e)}, 500)
+            return
+
+        if path == "/chain.json" and self.command == "GET":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                caps = inside_state.get("capabilities", {})
+                scount = inside_state.get("socket_count", 0)
+            self._json_response({
+                "description": "Chain of thought = data flowing through organisms. "
+                               "POST a prompt and it routes through organism perspectives.",
+                "method": "POST {prompt, model?}",
+                "mesh": {
+                    "organisms": len(orgs),
+                    "sockets": scount,
+                    "capabilities": len(caps),
+                },
+                "note": "Each thought is a transit. Each organism adds its perspective. "
+                        "This IS the membrane mesh.",
+            })
+            return
+
         # Stub feeds that are neither inside nor outside
         if path.endswith(".json") and path not in FEED_MAP:
             log_flow("outside")
@@ -727,6 +880,10 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
 
         # Static files
         super().do_GET()
+
+    def do_POST(self):
+        """Route POST to same handler (pi-agent needs POST for inference)."""
+        self.do_GET()
 
     def _json_response(self, data, status=200):
         body = json.dumps(data, indent=2).encode("utf-8")
