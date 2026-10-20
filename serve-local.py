@@ -605,6 +605,105 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── willis.json: Circle of Willis — wound state for every path ───
+
+        if path == "/willis.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                all_socks = inside_state.get("sockets", {})
+            with liveness_lock:
+                probes = liveness_cache.get("probes", {})
+
+            # Body region mapping (matches Rust BodyRegion::of_organism)
+            BODY_MAP = {
+                "bingocube": "head", "cellmembrane": "head", "benchscale": "head",
+                "squirrel": "eyes", "songbird": "eyes",
+                "beardog": "hands", "nestgate": "hands",
+                "biomeos": "spine", "petaltongue": "spine", "sweetgrass": "spine",
+                "sourdough": "spine", "loamspine": "spine",
+                "swarmvine": "heart",
+                "skunkbat": "skin", "rhizocrypt": "skin",
+                "toadstool": "feet", "coralreef": "feet", "barracuda": "feet",
+            }
+
+            # Compute wound state per socket
+            wounds = {}
+            for sock_name, sock_data in all_socks.items():
+                alive = sock_data.get("alive", False)
+                # Check if a probe responded (JSON-RPC)
+                has_probe = any(
+                    sock_name.replace(".sock","") in pname and pdata.get("method")
+                    for pname, pdata in probes.items()
+                )
+                # Count alternate sockets for this organism group
+                org_key = sock_name.replace(".sock","").split("-")[0].lower()
+                siblings = [
+                    s for s in all_socks
+                    if s.replace(".sock","").split("-")[0].lower() == org_key and s != sock_name
+                ]
+                has_backup = any(all_socks[s].get("alive", False) for s in siblings)
+
+                # Determine wound state
+                if alive and has_probe:
+                    state = "intact"    # alive + verified
+                elif alive and not has_probe:
+                    state = "scarred"   # alive but can't verify — healed but marked
+                elif not alive and has_backup:
+                    state = "healing"   # down but backup exists (Willis bypass)
+                else:
+                    state = "wounded"   # down, no backup
+
+                region = BODY_MAP.get(org_key, "spine")
+                wounds[sock_name] = {
+                    "state": state,
+                    "alive": alive,
+                    "verified": has_probe,
+                    "region": region,
+                    "backup_count": len([s for s in siblings if all_socks[s].get("alive", False)]),
+                    "siblings": siblings,
+                }
+
+            # Compute Willis summary
+            intact = sum(1 for w in wounds.values() if w["state"] == "intact")
+            scarred = sum(1 for w in wounds.values() if w["state"] == "scarred")
+            healing = sum(1 for w in wounds.values() if w["state"] == "healing")
+            wounded = sum(1 for w in wounds.values() if w["state"] == "wounded")
+            functional = intact + scarred + healing
+            total = len(wounds)
+
+            # Feed wound state (data paths)
+            feed_total = len(FEED_MAP)
+            feed_routes = {}
+            for feed_name in FEED_MAP:
+                routes = 0
+                if os.path.exists(os.path.join(REMOTE_DIR, feed_name)):
+                    routes += 1  # local-pulse pulled it
+                routes += 1      # transducer can serve it
+                feed_routes[feed_name] = {"routes": routes, "state": "intact" if routes >= 2 else "scarred"}
+            feed_redundant = sum(1 for f in feed_routes.values() if f["routes"] >= 2)
+
+            self._json_response({
+                "ts": inside_state.get("ts"),
+                "sockets": wounds,
+                "feeds": {
+                    "total": feed_total,
+                    "redundant": feed_redundant,
+                    "all_routes": feed_routes,
+                },
+                "willis": {
+                    "total": total,
+                    "intact": intact,
+                    "scarred": scarred,
+                    "healing": healing,
+                    "wounded": wounded,
+                    "functional": functional,
+                    "functional_pct": round(functional / max(total, 1) * 100, 1),
+                },
+                "wisdom": "it's the healing that matters, not the wound",
+            })
+            return
+
         # Stub feeds that are neither inside nor outside
         if path.endswith(".json") and path not in FEED_MAP:
             log_flow("outside")
