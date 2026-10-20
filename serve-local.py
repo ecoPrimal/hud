@@ -1140,6 +1140,110 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── npu.json: Akida NPU hardware status via VFIO ─────────
+
+        if path == "/npu.json":
+            log_flow("outside")
+
+            npu = {
+                "pcie_address": "0000:08:00.0",
+                "vendor": "0x1e7c",
+                "device": "0xbca1",
+                "chip": "AKD1000",
+                "generation": "V1",
+                "nps": 80,
+                "sram_mb": 8,
+                "pcie_lanes": 1,
+                "weight_bits": [1, 2, 4],
+                "max_clock_mhz": 300,
+            }
+
+            vfio_bound = False
+            vfio_group = None
+            driver = None
+            bars_enabled = False
+
+            try:
+                driver_link = "/sys/bus/pci/devices/0000:08:00.0/driver"
+                if os.path.islink(driver_link):
+                    driver = os.path.basename(os.readlink(driver_link))
+                    vfio_bound = driver == "vfio-pci"
+
+                if vfio_bound:
+                    iommu_link = "/sys/bus/pci/devices/0000:08:00.0/iommu_group"
+                    if os.path.islink(iommu_link):
+                        vfio_group = int(os.path.basename(os.readlink(iommu_link)))
+
+                control_path = "/sys/bus/pci/devices/0000:08:00.0/config"
+                if os.path.exists(control_path):
+                    with open(control_path, "rb") as f:
+                        f.seek(4)
+                        cmd = int.from_bytes(f.read(2), "little")
+                        bars_enabled = bool(cmd & 0x06)
+            except Exception:
+                pass
+
+            vfio_dev = f"/dev/vfio/{vfio_group}" if vfio_group is not None else None
+            accessible = vfio_dev and os.path.exists(vfio_dev) and os.access(vfio_dev, os.R_OK | os.W_OK)
+
+            if vfio_bound and accessible:
+                state = "READY"
+                tense = "Is"
+            elif vfio_bound and not accessible:
+                state = "BOUND_NO_ACCESS"
+                tense = "WillBe"
+            elif driver:
+                state = "KERNEL_DRIVER"
+                tense = "Was"
+            else:
+                state = "UNBOUND"
+                tense = "Null"
+
+            with inside_lock:
+                pulse = inside_state.get("pulse", {})
+            membrane_rpm = pulse.get("membrane_rpm", 0.0)
+
+            self.send_json({
+                "endpoint": "/npu.json",
+                "chip": npu,
+                "vfio": {
+                    "bound": vfio_bound,
+                    "driver": driver,
+                    "iommu_group": vfio_group,
+                    "device_file": vfio_dev,
+                    "accessible": accessible,
+                    "bars_enabled": bars_enabled,
+                },
+                "state": state,
+                "tense": tense,
+                "membrane_connected": membrane_rpm > 0,
+                "membrane_rpm": round(membrane_rpm, 4),
+                "capabilities": {
+                    "inference": state == "READY",
+                    "reservoir_computing": state == "READY",
+                    "weight_mutation": state == "READY",
+                    "sram_readback": state == "READY",
+                    "power_measurement": state == "READY",
+                },
+                "driver_stack": {
+                    "crate": "akida-driver",
+                    "backend": "VFIO",
+                    "source": "syntheticChemistry/rustChip",
+                    "tests": 376,
+                },
+                "papers_validated": [
+                    "04: Microbial Sentinels (18.8K Hz, coin-cell 11 years)",
+                    "08: Neuromorphic Edge Intelligence (0.0009% active cycle energy)",
+                    "09: Sovereign Field Genomics (MinION + AKD1000 + BarraCuda)",
+                ],
+                "note": (
+                    "eastgate local testbed. AKD1000 rev 01 @ PCIe Gen2 x1. "
+                    f"VFIO group 23. driver: {driver or 'none'}. "
+                    "pure Rust — no C module, no vendor SDK."
+                ),
+            })
+            return
+
         # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
 
         if path == "/quorum.json":
