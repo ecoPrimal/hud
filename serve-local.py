@@ -548,6 +548,63 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
                 })
             return
 
+        # ─── stonebook-live.json: live stoneBook from transducer data ───
+
+        if path == "/stonebook-live.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                ns = inside_state.get("capabilities", {})
+            with liveness_lock:
+                probes = liveness_cache.get("probes", {})
+            # Build live stoneBook: each organism's glyph status
+            tablets = {}
+            for name, org_data in orgs.items():
+                caps = org_data.get("caps", 0)
+                # Check liveness from real JSON-RPC probes
+                probe = None
+                for pname, pdata in probes.items():
+                    if name in pname and pdata.get("method"):
+                        probe = pdata
+                        break
+                if probe:
+                    glyph = "!"
+                    status = probe.get("status", "?")
+                    version = probe.get("version", "?")
+                elif org_data.get("alive"):
+                    glyph = "?"
+                    status = "socket-exists"
+                    version = "?"
+                else:
+                    glyph = "O"
+                    status = "not-found"
+                    version = "?"
+                tablets[name] = {
+                    "glyph": glyph,
+                    "caps": caps,
+                    "status": status,
+                    "version": version,
+                    "method": probe.get("method") if probe else None,
+                }
+            # Totality
+            total_caps = sum(t["caps"] for t in tablets.values())
+            asserted = sum(1 for t in tablets.values() if t["glyph"] == "!")
+            unknown = sum(1 for t in tablets.values() if t["glyph"] == "?")
+            null = sum(1 for t in tablets.values() if t["glyph"] == "O")
+            self._json_response({
+                "ts": inside_state.get("ts"),
+                "tablets": tablets,
+                "totality": {
+                    "organisms": len(tablets),
+                    "capabilities": total_caps,
+                    "asserted": asserted,
+                    "unknown": unknown,
+                    "null": null,
+                    "namespaces": len(ns),
+                },
+            })
+            return
+
         # Stub feeds that are neither inside nor outside
         if path.endswith(".json") and path not in FEED_MAP:
             log_flow("outside")
