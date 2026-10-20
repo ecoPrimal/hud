@@ -705,6 +705,100 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
+
+        if path == "/quorum.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                caps = inside_state.get("capabilities", {})
+                scount = inside_state.get("socket_count", 0)
+            total_orgs = len(orgs)
+            alive_orgs = sum(1 for o in orgs.values() if o.get("alive", False))
+            alive_ratio = alive_orgs / max(total_orgs, 1)
+
+            # Quorum phase from alive ratio (V. cholerae model)
+            # Low density = lag/exponential (glowplug ON)
+            # High density = quorum/stationary (collective behavior)
+            if alive_ratio < 0.2:
+                phase = "lag"
+                glowplug = True
+                has_quorum = False
+            elif alive_ratio < 0.5:
+                phase = "exponential"
+                glowplug = True
+                has_quorum = False
+            elif alive_ratio < 0.8:
+                phase = "quorum"
+                glowplug = False
+                has_quorum = True
+            elif alive_ratio <= 1.0:
+                phase = "stationary"
+                glowplug = False
+                has_quorum = True
+            else:
+                phase = "dispersal"
+                glowplug = False
+                has_quorum = False
+
+            # Autoinducer channels from real data
+            # Specific: per-organism health signals
+            specific_signals = {}
+            for name, info in orgs.items():
+                ncaps = len(info.get("capabilities", []))
+                alive = info.get("alive", False)
+                specific_signals[name] = {
+                    "alive": alive,
+                    "caps": ncaps,
+                    "signal_strength": ncaps / max(scount, 1) if alive else 0.0,
+                }
+            # Universal: aggregate mesh health (AI-2 analog)
+            universal_signal = alive_ratio
+            # Immune: threat detection from wound states
+            immune_signals = []
+            if alive_ratio < 0.5:
+                immune_signals.append("low_quorum_alert")
+            if total_orgs - alive_orgs > 3:
+                immune_signals.append("mass_organism_failure")
+
+            # Symbiosis classification (from visitor.rs model)
+            symbiosis = {
+                "human": "mutualist",
+                "ai_agent": "mutualist",
+                "honest_bot": "commensal",
+                "fleet": "pathogenic",
+                "scanner": "parasitic",
+            }
+
+            self._json_response({
+                "quorum_phase": phase,
+                "glowplug": glowplug,
+                "has_quorum": has_quorum,
+                "density": {
+                    "total_organisms": total_orgs,
+                    "alive_organisms": alive_orgs,
+                    "alive_ratio": round(alive_ratio, 3),
+                },
+                "autoinducers": {
+                    "specific": specific_signals,
+                    "universal": round(universal_signal, 3),
+                    "immune": immune_signals,
+                },
+                "symbiosis": symbiosis,
+                "wound_state": {
+                    "lag": "wounded",
+                    "exponential": "healing",
+                    "quorum": "intact",
+                    "stationary": "intact",
+                    "dispersal": "scarred",
+                }.get(phase, "unknown"),
+                "note": "Anti-strobe: V. cholerae quorum sensing model. "
+                        "Organisms emit autoinducers. When concentration crosses "
+                        "threshold (quorum), collective behavior activates. "
+                        "No coordinator. No clock. The mesh senses itself.",
+            })
+            return
+
         # ─── pi-agent.json: local LLM inference through the membrane ───
 
         if path == "/pi-agent.json" and self.command == "GET":
