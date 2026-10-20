@@ -764,6 +764,69 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── proof.json: the mathematical stack ───
+
+        if path == "/proof.json":
+            log_flow("outside")
+            self._json_response({
+                "proof_stack": {
+                    "axiom": {
+                        "role": "axiom",
+                        "system": "Rust type system",
+                        "statement": "If it compiles, the types are correct. Sound by construction.",
+                        "proven": True,
+                    },
+                    "theorem": {
+                        "role": "theorem",
+                        "system": "arkTIX",
+                        "statement": "The permafrost preserves knowledge. Papers compile. Tests pass. Deposits are viable.",
+                        "proven": True,
+                    },
+                    "corollary": {
+                        "role": "corollary",
+                        "system": "scyBorg Triple (AGPL-3.0 + ORC + CC-BY-SA-4.0)",
+                        "statement": "External protection follows from the theorem. Three licenses. Three artifact types. No gap.",
+                        "proven": True,
+                    },
+                    "conjecture": {
+                        "role": "conjecture",
+                        "system": "tuebor ('I will defend')",
+                        "statement": "The Detroit investigation. Believed true. Not yet proven in court.",
+                        "proven": False,
+                    },
+                    "proof": {
+                        "role": "proof",
+                        "system": "zk-SNARK",
+                        "statement": "15 commits. 12 articles. The complete proof. Zero-knowledge: verifiable without seeing raw sources.",
+                        "proven": True,
+                    },
+                    "next_twist": {
+                        "role": "zkPi",
+                        "system": "zero-knowledge on the \u03c0-graph",
+                        "statement": "Verify the ecosystem through the cold layer (arkTIX) without accessing the hot layer (sockets).",
+                        "proven": False,
+                        "note": "working name — evolves as the proof develops",
+                    },
+                },
+                "fools_conjecture": {
+                    "claim": "Trust it to all humans. See what the best they could do is.",
+                    "trusted": "all humans",
+                    "protected_against": "enclosure, parasites (S=0), stomachs with no eyes",
+                    "best_outcome": "They build on it. They extend it. The commons expands. The mesh gets stronger.",
+                    "enforcement": [
+                        "AGPL-3.0-or-later (code — network use triggers source release)",
+                        "ORC (mechanics — system designs stay open)",
+                        "CC-BY-SA-4.0 (documentation — flows back to commons)",
+                    ],
+                    "open": True,
+                },
+                "zk_layers": [
+                    {"layer": "zk-SNARK", "verifiable": "investigation claims", "hidden": "raw sources"},
+                    {"layer": "zkPi", "verifiable": "ecosystem correctness", "hidden": "hot mesh internals"},
+                ],
+            })
+            return
+
         # ─── arktix.json: permafrost preprint archive ───
 
         if path == "/arktix.json":
