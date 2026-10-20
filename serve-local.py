@@ -48,7 +48,9 @@ CAP_REGISTRY = os.path.join(SOCKET_DIR, "capability-registry.json")
 # OUTSIDE FEEDS (golgi → local cache → HUD)
 # ═══════════════════════════════════════════════════════
 
+# Circle of Willis: all 35 golgi feeds (13 original + 22 newly routed)
 FEED_MAP = {
+    # ── ORIGINAL 13 ──
     "/dashboard.json": os.path.join(FEED_DIR, "dashboard.json"),
     "/scan_sweep_sort.json": os.path.join(FEED_DIR, "scan_sweep_sort.json"),
     "/topology.json": os.path.join(FEED_DIR, "topology.json"),
@@ -62,6 +64,30 @@ FEED_MAP = {
     "/cardiovascular.json": os.path.join(FEED_DIR, "cardiovascular.json"),
     "/passage-totality.json": os.path.join(FEED_DIR, "passage-totality.json"),
     "/neutron-cache.json": os.path.join(FEED_DIR, "neutron-cache.json"),
+    # ── CIRCLE OF WILLIS: 22 dead ends → flowing ──
+    "/human.json": os.path.join(FEED_DIR, "human.json"),
+    "/pulse.json": os.path.join(FEED_DIR, "pulse.json"),
+    "/now.json": os.path.join(FEED_DIR, "now.json"),
+    "/membrane-pulse.json": os.path.join(FEED_DIR, "membrane-pulse.json"),
+    "/negentropy.json": os.path.join(FEED_DIR, "negentropy.json"),
+    "/heartbeat.json": os.path.join(FEED_DIR, "heartbeat.json"),
+    "/mesh-speed.json": os.path.join(FEED_DIR, "mesh-speed.json"),
+    "/genome.json": os.path.join(FEED_DIR, "genome.json"),
+    "/backscatter.json": os.path.join(FEED_DIR, "backscatter.json"),
+    "/reflection.json": os.path.join(FEED_DIR, "reflection.json"),
+    "/fleet-sort.json": os.path.join(FEED_DIR, "fleet-sort.json"),
+    "/pi-ranges.json": os.path.join(FEED_DIR, "pi-ranges.json"),
+    "/seo.json": os.path.join(FEED_DIR, "seo.json"),
+    "/subgraphs.json": os.path.join(FEED_DIR, "subgraphs.json"),
+    "/totality.json": os.path.join(FEED_DIR, "totality.json"),
+    "/page-stories.json": os.path.join(FEED_DIR, "page-stories.json"),
+    "/falsification.json": os.path.join(FEED_DIR, "falsification.json"),
+    "/membrane.json": os.path.join(FEED_DIR, "membrane.json"),
+    "/ban-pulse.json": os.path.join(FEED_DIR, "ban-pulse.json"),
+    "/scatter-observatory.json": os.path.join(FEED_DIR, "scatter-observatory.json"),
+    "/self-remainder.json": os.path.join(FEED_DIR, "self-remainder.json"),
+    "/neutron.json": os.path.join(FEED_DIR, "neutron.json"),
+    # ── LOCAL ──
     "/local-pulse.json": os.path.join(LOCAL_DIR, "local-pulse.json"),
     "/membrane-chain.json": os.path.join(LOCAL_DIR, "membrane-chain.json"),
 }
