@@ -339,6 +339,92 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
                 })
             return
 
+        # ─── pi-body.json: LIVE body-mapped view from sockets ───
+
+        if path == "/pi-body.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                # Map organisms to body regions (same as cellmembrane-types)
+                region_map = {
+                    "head": ["bingocube", "cellmembrane", "benchscale"],
+                    "eyes": ["squirrel", "songbird", "ai"],
+                    "hands": ["beardog", "nestgate", "security", "crypto", "ed25519", "x25519", "btsp"],
+                    "spine": ["biomeos", "petaltongue", "sweetgrass", "sourdough", "loamspine", "biomeos-default"],
+                    "heart": ["swarmvine"],
+                    "skin": ["skunkbat", "rhizocrypt"],
+                    "feet": ["toadstool", "coralreef", "barracuda", "shader"],
+                }
+                body = {}
+                for region, names in region_map.items():
+                    region_orgs = []
+                    total_caps = 0
+                    alive_count = 0
+                    for n in names:
+                        if n in orgs:
+                            o = orgs[n]
+                            region_orgs.append({"name": n, "caps": o["caps"], "alive": o.get("alive", False)})
+                            total_caps += o["caps"]
+                            if o.get("alive"):
+                                alive_count += 1
+                    sensitivity = total_caps / max(len(region_orgs), 1) if region_orgs else 0
+                    body[region] = {
+                        "organisms": region_orgs,
+                        "total_caps": total_caps,
+                        "alive": alive_count,
+                        "total": len(region_orgs),
+                        "sensitivity": round(sensitivity, 1),
+                    }
+                self._json_response({
+                    "ts": inside_state.get("ts"),
+                    "body": body,
+                    "scale": "human",
+                    "null_body": "bee",
+                    "perceive": "mixed",
+                    "total_organisms": len(orgs),
+                    "total_caps": inside_state.get("cap_count", 0),
+                    "total_sockets": inside_state.get("socket_count", 0),
+                })
+            return
+
+        # ─── stone-book.json: namespace glyphs from live caps ───
+
+        if path == "/stone-book.json":
+            log_flow("mixed")
+            with inside_lock:
+                ns = inside_state.get("capabilities", {})
+                orgs = inside_state.get("organisms", {})
+                glyph_book = {}
+                for name, caps in ns.items():
+                    # ! if more than half the cap's orgs are live, ? if any, O if all dead
+                    primals = set(c["primal"] for c in caps if "primal" in c)
+                    alive_orgs = sum(1 for p in primals if orgs.get(p, {}).get("alive"))
+                    total_orgs = len(primals)
+                    if total_orgs == 0:
+                        glyph = "??"
+                    elif alive_orgs == 0:
+                        glyph = "O"
+                    elif alive_orgs > total_orgs / 2:
+                        glyph = "!"
+                    else:
+                        glyph = "?"
+                    glyph_book[name] = {
+                        "glyph": glyph,
+                        "cap_count": len(caps),
+                        "alive_orgs": alive_orgs,
+                        "total_orgs": total_orgs,
+                    }
+                self._json_response({
+                    "ts": inside_state.get("ts"),
+                    "namespaces": glyph_book,
+                    "total_namespaces": len(glyph_book),
+                    "asserted": sum(1 for v in glyph_book.values() if v["glyph"] == "!"),
+                    "unknown": sum(1 for v in glyph_book.values() if v["glyph"] == "?"),
+                    "null": sum(1 for v in glyph_book.values() if v["glyph"] == "O"),
+                    "ungrounded": sum(1 for v in glyph_book.values() if v["glyph"] == "??"),
+                })
+            return
+
         # Stub feeds that are neither inside nor outside
         if path.endswith(".json") and path not in FEED_MAP:
             log_flow("outside")
