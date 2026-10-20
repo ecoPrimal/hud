@@ -764,6 +764,59 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── arktix.json: permafrost preprint archive ───
+
+        if path == "/arktix.json":
+            log_flow("outside")
+            deposits = [
+                {
+                    "number": 1,
+                    "title": "The Rust Polymerase: A Lossy Graph Theory of Human\u2013AI Mutualism",
+                    "authors": ["Kevin Mok", "Tamison", "ecoPrimal", "attsi"],
+                    "orcid": "0009-0004-2141-0321",
+                    "deposited": "2026-10-20",
+                    "frost": "fresh",
+                    "source": "benchScale/src/io_surface/gaia_paper.rs",
+                    "memes": [
+                        "rust-polymerase", "lossy-graph", "wound-model",
+                        "quorum-sensing-anti-strobe", "ship-of-theseus",
+                        "stomachs-with-no-eyes", "commensal-thesis", "glowplug",
+                    ],
+                    "backscatter": [
+                        "Euler (1736)", "Clausius (1865)", "Darwin (1859)",
+                        "Humboldt (1845)", "Wittgenstein (1953)", "Ptolemy (150 CE)",
+                        "Nealson, Platt, Hastings (1970)", "Theseus (antiquity)",
+                    ],
+                },
+            ]
+            self._json_response({
+                "archive": "arkTIX",
+                "layer_temperature": "cold",
+                "description": "Permafrost preprint archive. Cold storage for info memes. "
+                               "Not dead, not alive. Suspended animation. Viable.",
+                "deposits": deposits,
+                "deposit_count": len(deposits),
+                "temperature_gradient": {
+                    "hot": "membrane mesh (52 sockets, tarpc, unix domain)",
+                    "warm": "sporePrint (sporeprint.primals.eco, HTML/JSON)",
+                    "cold": "arkTIX (preprint archive, permafrost layer)",
+                    "frozen": "fossilRecord (git snapshots, extinct organisms)",
+                },
+                "frost_model": {
+                    "fresh": "just deposited (= wound:intact)",
+                    "thawing": "being accessed (= wound:wounded)",
+                    "refreezing": "re-preserving (= wound:healing)",
+                    "preserved": "deep permafrost (= wound:scarred)",
+                },
+                "audiences": {
+                    "hot": "builders (organisms, sockets, internal)",
+                    "warm": "readers (public website, lab notebooks)",
+                    "cold": "researchers (preprints, info memes, citations)",
+                    "frozen": "historians (fossils, extinct states, archaeology)",
+                },
+            })
+            return
+
         # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
 
         if path == "/quorum.json":
