@@ -985,6 +985,161 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── clock.json: temporal devices — ON/OFF/SNOOZE/NULL ────────
+
+        if path == "/clock.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                caps = inside_state.get("capabilities", {})
+            pulse = safe_read("golgi/membrane_pulse.json")
+            rhythm = float(pulse.get("rhythm", 0.774)) if isinstance(pulse, dict) else 0.774
+            wake_level = float(pulse.get("wake_level", 0.5)) if isinstance(pulse, dict) else 0.5
+            rate = float(pulse.get("rate", 0)) if isinstance(pulse, dict) else 0
+            rpm = rate * rhythm
+
+            # Build temporal devices from live state
+            import math
+            now = time.time()
+            uptime = float(pulse.get("uptime_secs", 0)) if isinstance(pulse, dict) else 0
+
+            # State helpers
+            def clock_state(val, threshold_lo=0.1, threshold_hi=0.9):
+                """Map a 0-1 value to ON/OFF/SNOOZE/NULL."""
+                if val is None:
+                    return "NULL"
+                v = float(val)
+                if v >= threshold_hi:
+                    return "ON"
+                elif v <= threshold_lo:
+                    return "OFF"
+                elif v < 0.5:
+                    return "SNOOZE"
+                else:
+                    return "NULL"
+
+            def tense_of(state):
+                return {"ON": "is", "OFF": "was", "SNOOZE": "willbe", "NULL": "null"}.get(state, "null")
+
+            # The 6 membrane temporal devices
+            devices = []
+
+            # 1. Membrane pulse — heartbeat
+            pulse_state = clock_state(rhythm, 0.1, 0.5)
+            devices.append({
+                "name": "membrane_pulse",
+                "kind": "heartbeat",
+                "direction": "pulse",
+                "state": pulse_state,
+                "tense": tense_of(pulse_state),
+                "value": round(rhythm, 6),
+                "snoozable": False,
+                "note": "the heartbeat — RPM, not wall-clock",
+            })
+
+            # 2. Squirrel uptime — runtime
+            rt_state = "ON" if uptime > 0 else "OFF"
+            devices.append({
+                "name": "squirrel_uptime",
+                "kind": "runtime",
+                "direction": "countup",
+                "state": rt_state,
+                "tense": tense_of(rt_state),
+                "value": round(uptime, 1),
+                "snoozable": False,
+                "note": f"{round(uptime / 3600, 1)} hours alive",
+            })
+
+            # 3. Sensory tier — 30s timer
+            staleness_raw = float(pulse.get("staleness", 15)) if isinstance(pulse, dict) else 15.0
+            sensory_remaining = max(0.0, 30.0 - staleness_raw)
+            s_state = "ON" if sensory_remaining > 0 else "OFF"
+            devices.append({
+                "name": "sensory_tier",
+                "kind": "timer",
+                "direction": "countdown",
+                "state": s_state,
+                "tense": tense_of(s_state),
+                "value": round(sensory_remaining, 1),
+                "target": 0.0,
+                "snoozable": False,
+                "note": f"sensory staleness: {round(staleness_raw, 1)}s of 30s",
+            })
+
+            # 4. Cortical tier — 120s timer
+            cortical_remaining = max(0.0, 120.0 - staleness_raw)
+            c_state = "ON" if cortical_remaining > 0 else "OFF"
+            devices.append({
+                "name": "cortical_tier",
+                "kind": "timer",
+                "direction": "countdown",
+                "state": c_state,
+                "tense": tense_of(c_state),
+                "value": round(cortical_remaining, 1),
+                "target": 0.0,
+                "snoozable": False,
+                "note": f"cortical staleness: {round(staleness_raw, 1)}s of 120s",
+            })
+
+            # 5. Wake cycle — circadian alarm
+            w_state = clock_state(wake_level, 0.1, 0.5)
+            devices.append({
+                "name": "wake_cycle",
+                "kind": "alarm",
+                "direction": "alarm",
+                "state": w_state,
+                "tense": tense_of(w_state),
+                "value": round(wake_level, 6),
+                "target": 1.0,
+                "snoozable": True,
+                "note": "circadian wake cycle — snoozable",
+            })
+
+            # 6. Confidence convergence — stopwatch to 85%
+            conf_raw = pulse.get("confidence", 0.538) if isinstance(pulse, dict) else 0.538
+            confidence = float(conf_raw)
+            conf_gap = max(0.0, 0.85 - confidence)
+            conf_state = "OFF" if conf_gap <= 0 else "ON"
+            devices.append({
+                "name": "confidence_convergence",
+                "kind": "stopwatch",
+                "direction": "countup",
+                "state": conf_state,
+                "tense": tense_of(conf_state),
+                "value": round(confidence, 4),
+                "target": 0.85,
+                "gap": round(conf_gap, 4),
+                "snoozable": True,
+                "note": f"sort quality → 85% (gap={round(conf_gap, 3)})",
+            })
+
+            # Summary counts
+            state_counts = {"ON": 0, "OFF": 0, "SNOOZE": 0, "NULL": 0}
+            for d in devices:
+                state_counts[d["state"]] = state_counts.get(d["state"], 0) + 1
+
+            self.respond_json({
+                "temporal_devices": devices,
+                "device_count": len(devices),
+                "state_summary": state_counts,
+                "rpm": round(rpm, 1),
+                "rhythm": round(rhythm, 6),
+                "organism_count": len(orgs),
+                "model": {
+                    "states": ["ON", "OFF", "SNOOZE", "NULL"],
+                    "axiom": "NULL is PAUSE, not OFF. OFF is definite. NULL is the door.",
+                    "tense_map": {"ON": "is", "OFF": "was", "SNOOZE": "willbe", "NULL": "null"},
+                    "directions": ["countdown", "countup", "alarm", "pulse"],
+                },
+                "backscatter": [
+                    "John Harrison (1761) — marine chronometer",
+                    "Christian Huygens (1656) — pendulum clock",
+                    "Antikythera mechanism (~100 BCE) — analog temporal computer",
+                    "dead is not null. null is grey. stasis. the door.",
+                ],
+            })
+            return
+
         # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
 
         if path == "/quorum.json":
