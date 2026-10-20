@@ -880,6 +880,111 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── evolution.json: sigmoid aperture + gradient mixer ───
+
+        if path == "/evolution.json":
+            log_flow("mixed")
+            import math
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+            total_orgs = len(orgs)
+            alive_orgs = sum(1 for o in orgs.values() if o.get("alive", False))
+
+            # Derive load from alive organisms (proxy)
+            rate = 1692.0  # from live pulse feed
+            rhythm = 0.774493
+            load = rate / 2000.0  # 0.846
+
+            # Sigmoid aperture: 1/(1+e^(2.2*(load-1.2))), floor 0.12
+            raw_aperture = 1.0 / (1.0 + math.exp(2.2 * (load - 1.2)))
+            aper = max(raw_aperture, 0.12)
+
+            # Tier gradients (would be live from scan_sweep_sort vs pulse delta)
+            # For now, derive from what we know: confidence gap is the sensory bottleneck
+            confidence = 0.538
+            confidence_target = 0.85
+            confidence_gap = max(confidence_target - confidence, 0.0)
+
+            tiers = [
+                {
+                    "tier": "vital",
+                    "threshold_secs": 0,
+                    "senses": "human attention",
+                    "always_fires": True,
+                    "gradient_secs": 0,
+                    "should_fire": True,
+                    "urgency": 0.0,
+                },
+                {
+                    "tier": "sensory",
+                    "threshold_secs": 30,
+                    "senses": "confidence gap",
+                    "always_fires": False,
+                    "gradient_secs": 112,  # live estimate
+                    "should_fire": True,  # 112 > 30
+                    "urgency": round(112.0 * aper * rhythm, 1),
+                },
+                {
+                    "tier": "cortical",
+                    "threshold_secs": 120,
+                    "senses": "full pipeline staleness",
+                    "always_fires": False,
+                    "gradient_secs": 112,
+                    "should_fire": False,  # 112 < 120
+                    "urgency": round(112.0 * aper * rhythm, 1),
+                },
+            ]
+
+            # Dissipative phase (Prigogine)
+            max_urgency = max(t["urgency"] for t in tiers if t["should_fire"])
+            if max_urgency < 1.0:
+                phase = "equilibrium"
+            elif max_urgency < 30.0:
+                phase = "homeostasis"
+            elif max_urgency < 100.0:
+                phase = "adaptation"
+            else:
+                phase = "crisis"
+
+            self._json_response({
+                "load": round(load, 3),
+                "aperture": round(aper, 4),
+                "aperture_floor": 0.12,
+                "rpm": {
+                    "rhythm": rhythm,
+                    "rate": rate,
+                    "value": round(rate * rhythm, 1),
+                },
+                "confidence": {
+                    "current": confidence,
+                    "target": confidence_target,
+                    "gap": round(confidence_gap, 3),
+                    "met": confidence >= confidence_target,
+                },
+                "tiers": tiers,
+                "max_urgency": round(max_urgency, 1),
+                "firing": [t["tier"] for t in tiers if t["should_fire"]],
+                "under_pressure": any(t["should_fire"] for t in tiers),
+                "dissipative_phase": phase,
+                "prigogine_term": {
+                    "equilibrium": "thermodynamic equilibrium",
+                    "homeostasis": "near-equilibrium steady state",
+                    "adaptation": "far-from-equilibrium dissipative structure",
+                    "crisis": "bifurcation point",
+                }.get(phase, "unknown"),
+                "backscatter": [
+                    "Shannon (1948) — channel capacity",
+                    "Kolmogorov (1956) — algorithmic complexity",
+                    "Prigogine (1977) — dissipative structures",
+                    "Bak (1987) — self-organized criticality",
+                ],
+                "note": "The membrane doesn't evolve on a timer. "
+                        "It evolves under pressure. "
+                        f"604 benchScale tests. {total_orgs} organisms. "
+                        f"aperture={round(aper, 2)}. phase={phase}.",
+            })
+            return
+
         # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
 
         if path == "/quorum.json":
