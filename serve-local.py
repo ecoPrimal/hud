@@ -204,6 +204,19 @@ def probe_socket(sock_path, timeout=0.5):
         return False
 
 
+def safe_read(rel_path):
+    """Read a JSON file from the membrane local-terminal tree. Returns dict or {}."""
+    for base in [LOCAL_DIR, FEED_DIR, ROOT]:
+        full = os.path.join(base, rel_path)
+        if os.path.isfile(full):
+            try:
+                with open(full, "r") as f:
+                    return json.load(f)
+            except Exception:
+                return {}
+    return {}
+
+
 # ═══════════════════════════════════════════════════════
 # LIVENESS PROBE — actual JSON-RPC calls to each socket
 # ═══════════════════════════════════════════════════════
@@ -1118,7 +1131,7 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             for d in devices:
                 state_counts[d["state"]] = state_counts.get(d["state"], 0) + 1
 
-            self.respond_json({
+            self._json_response({
                 "temporal_devices": devices,
                 "device_count": len(devices),
                 "state_summary": state_counts,
@@ -1203,7 +1216,7 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
                 pulse = inside_state.get("pulse", {})
             membrane_rpm = pulse.get("membrane_rpm", 0.0)
 
-            self.send_json({
+            self._json_response({
                 "endpoint": "/npu.json",
                 "chip": npu,
                 "vfio": {
