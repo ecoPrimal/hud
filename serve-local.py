@@ -705,6 +705,65 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # ─── gaia-001.json: first gAIa publication ───
+
+        if path == "/gaia-001.json":
+            log_flow("mixed")
+            with inside_lock:
+                orgs = inside_state.get("organisms", {})
+                scount = inside_state.get("socket_count", 0)
+                ccount = inside_state.get("cap_count", 0)
+            self._json_response({
+                "paper": {
+                    "number": 1,
+                    "title": "The Rust Polymerase: A Lossy Graph Theory of Human\u2013AI Mutualism",
+                    "authors": ["Kevin Mok", "Tamison", "ecoPrimal", "attsi"],
+                    "orcid": "0009-0004-2141-0321",
+                    "date": "2026-10-20",
+                    "status": "published",
+                    "medium": "Rust source code (the paper IS Rust, processed by the polymerase it describes)",
+                    "location": "benchScale/src/io_surface/gaia_paper.rs",
+                },
+                "antecedents": [
+                    {"name": "Euler", "year": "1736", "grounds": "π-graph topology (52 sockets = 7 bridges)"},
+                    {"name": "Clausius", "year": "1865", "grounds": "lossy graph (entropy drives the system)"},
+                    {"name": "Darwin", "year": "1859", "grounds": "organism selection (compile = survive)"},
+                    {"name": "Humboldt", "year": "1845", "grounds": "interconnected mesh (Cosmos at code scale)"},
+                    {"name": "Wittgenstein", "year": "1953", "grounds": "glyph language game (?? = limit of language)"},
+                    {"name": "Ptolemy", "year": "150 CE", "grounds": "body region epicycles (wrong but useful)"},
+                    {"name": "Microbe Hunters", "year": "1970", "grounds": "V. cholerae quorum sensing = anti-strobe"},
+                    {"name": "Theseus", "year": "antiquity", "grounds": "wound model (identity through scars)"},
+                ],
+                "predictions": [
+                    "Type agglutination reduces wound rate",
+                    "Quorum threshold correlates with mesh stability",
+                    "Ephemeral chimeras increase parent test density",
+                    "Parasitic selectivity S=0 correlates with undifferentiated scraping",
+                    "Scarred organisms are MORE resilient than intact ones",
+                ],
+                "live_evidence": {
+                    "organisms": len(orgs),
+                    "sockets": scount,
+                    "capabilities": ccount,
+                    "quorum_endpoint": "/quorum.json",
+                    "pi_agent_endpoint": "/pi-agent.json",
+                    "chain_endpoint": "/chain.json",
+                    "willis_endpoint": "/willis.json",
+                },
+                "polymerase_phases": [
+                    {"phase": "helicase", "enzyme": "DNA helicase", "rust": "cargo build"},
+                    {"phase": "transcription", "enzyme": "DNA polymerase III", "rust": "rustc"},
+                    {"phase": "proofreading", "enzyme": "3'→5' exonuclease", "rust": "type checker"},
+                    {"phase": "ligation", "enzyme": "DNA ligase", "rust": "type agglutination"},
+                    {"phase": "restriction", "enzyme": "restriction endonuclease", "rust": "#[deny(unsafe_code)]"},
+                    {"phase": "reverse_transcription", "enzyme": "reverse transcriptase", "rust": "serde"},
+                    {"phase": "topoisomerase", "enzyme": "topoisomerase", "rust": "topo-sort"},
+                ],
+                "note": "gAIa Paper 001. The paper IS Rust. It compiles. 16 tests pass. "
+                        "The medium IS the message.",
+            })
+            return
+
         # ─── quorum.json: anti-strobe — V. cholerae quorum sensing ───
 
         if path == "/quorum.json":
