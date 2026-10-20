@@ -677,7 +677,8 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
             feed_routes = {}
             for feed_name in FEED_MAP:
                 routes = 0
-                if os.path.exists(os.path.join(REMOTE_DIR, feed_name)):
+                bare = feed_name.lstrip("/")
+                if os.path.exists(os.path.join(FEED_DIR, bare)):
                     routes += 1  # local-pulse pulled it
                 routes += 1      # transducer can serve it
                 feed_routes[feed_name] = {"routes": routes, "state": "intact" if routes >= 2 else "scarred"}
