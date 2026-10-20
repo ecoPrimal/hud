@@ -179,6 +179,85 @@ def probe_socket(sock_path, timeout=0.5):
 
 
 # ═══════════════════════════════════════════════════════
+# LIVENESS PROBE — actual JSON-RPC calls to each socket
+# ═══════════════════════════════════════════════════════
+
+PROBE_METHODS = ["system.ping", "health.check", "system.info"]
+
+liveness_cache = {"ts": None, "probes": {}}
+liveness_lock = threading.Lock()
+
+
+def jsonrpc_call(sock_path, method, timeout=1.0):
+    """Make a JSON-RPC call to a unix socket. Returns result or None."""
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(sock_path)
+        req = json.dumps({"jsonrpc": "2.0", "method": method, "params": {}, "id": 1})
+        s.sendall(req.encode() + b"\n")
+        s.shutdown(socket.SHUT_WR)
+        resp = b""
+        while True:
+            chunk = s.recv(4096)
+            if not chunk:
+                break
+            resp += chunk
+        s.close()
+        data = json.loads(resp.decode())
+        if "result" in data:
+            return data["result"]
+    except Exception:
+        pass
+    return None
+
+
+def probe_all_sockets():
+    """Probe every non-tarpc socket with JSON-RPC. ~2-3s for 44 sockets."""
+    results = {}
+    if not os.path.isdir(SOCKET_DIR):
+        return results
+    for name in sorted(os.listdir(SOCKET_DIR)):
+        full = os.path.join(SOCKET_DIR, name)
+        if not name.endswith(".sock") or ".tarpc." in name:
+            continue
+        for method in PROBE_METHODS:
+            r = jsonrpc_call(full, method, timeout=0.5)
+            if r is not None:
+                results[name] = {
+                    "method": method,
+                    "status": r.get("status", r.get("pong", "ok")),
+                    "version": r.get("version", "?"),
+                    "primal": r.get("primal", name.split(".")[0]),
+                    "alive": True,
+                }
+                break
+        else:
+            results[name] = {
+                "method": None,
+                "status": "no-rpc",
+                "version": "?",
+                "primal": name.split(".")[0],
+                "alive": probe_socket(full, timeout=0.3),
+            }
+    return results
+
+
+def liveness_refresh_loop():
+    """Background thread: full liveness probe every 30s."""
+    while True:
+        try:
+            probes = probe_all_sockets()
+            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            with liveness_lock:
+                liveness_cache["ts"] = ts
+                liveness_cache["probes"] = probes
+        except Exception:
+            pass
+        time.sleep(30)
+
+
+# ═══════════════════════════════════════════════════════
 # FLOW RATE — actual transductions per minute
 # ═══════════════════════════════════════════════════════
 
@@ -336,6 +415,24 @@ class TransducerHandler(http.server.SimpleHTTPRequestHandler):
                     "nearby": {"count": 0},
                     "was": {"count": 0},
                     "note": "transduced: local organism mesh + membrane presence",
+                })
+            return
+
+        # ─── liveness.json: REAL JSON-RPC probes to every socket ───
+
+        if path == "/liveness.json":
+            log_flow("mixed")
+            with liveness_lock:
+                probes = liveness_cache.get("probes", {})
+                responding = sum(1 for p in probes.values() if p.get("method"))
+                connected = sum(1 for p in probes.values() if p.get("alive"))
+                self._json_response({
+                    "ts": liveness_cache.get("ts"),
+                    "probes": probes,
+                    "responding": responding,
+                    "connected": connected,
+                    "silent": len(probes) - responding,
+                    "total_sockets": len(probes),
                 })
             return
 
@@ -503,6 +600,9 @@ def main():
 |    /cap-namespaces.json — capability landscape          |
 |    /dashboard.json   — outside feed (golgi)             |
 |    /presence.json    — MIXED inside+outside             |
+|    /liveness.json    — REAL JSON-RPC socket probes     |
+|    /pi-body.json     — body-mapped organism view       |
+|    /stone-book.json  — namespace glyph ledger          |
 +---------------------------------------------------------+
 |  O=outside  I=inside  M=mixed                           |
 +=========================================================+
@@ -511,6 +611,10 @@ def main():
     # Start background inside-state refresh
     t = threading.Thread(target=inside_refresh_loop, daemon=True)
     t.start()
+
+    # Start background liveness probes (actual JSON-RPC calls)
+    t2 = threading.Thread(target=liveness_refresh_loop, daemon=True)
+    t2.start()
 
     server = http.server.HTTPServer(("0.0.0.0", PORT), TransducerHandler)
     try:
