@@ -1,0 +1,143 @@
+{
+  "generated": "2026-10-21T01:56:36.469314+00:00",
+  "wave": 195,
+  "type": "ghost_resort",
+  "prior": {
+    "prior_label": "Ghost (proxy exit)",
+    "prior_sort": "ELECTRON",
+    "prior_sub_sort": "SHAPESHIFTER",
+    "requests": 257496,
+    "unique_ips": 185832,
+    "fleet_entities": 1319,
+    "anderson_modes": 602,
+    "vitality": 0.0,
+    "honest": false
+  },
+  "behavioral_signals": {
+    "ip_rotation": {
+      "ips_per_request": 2.16,
+      "strategy": "MASSIVE rotation — use once, discard",
+      "classification": "commercial_proxy_service"
+    },
+    "os_distribution": {
+      "macos": 42265,
+      "windows": 42128,
+      "ratio": 1.003,
+      "classification": "COIN FLIP — centrally configured, not real diversity"
+    },
+    "ua_pool": {
+      "chrome_variants": 33,
+      "range": "Chrome/99 → Chrome/155",
+      "classification": "moderate_pool — commercial grade, not scraped browsers"
+    },
+    "sec_fetch": {
+      "monotone_vitality": 0.954,
+      "classification": "automated — same fetch metadata on 95.4% of requests"
+    },
+    "referer": {
+      "absence_vitality": 0.947,
+      "classification": "no_navigation — they don't click links, they URL-target"
+    },
+    "cookies": {
+      "pct": 3.3,
+      "classification": "mimicry — just enough to look real, not enough for sessions"
+    },
+    "territory_distribution": {
+      "git_source": {
+        "pct": 49,
+        "requests": 41676,
+        "territory": "SOURCE"
+      },
+      "lansing_political": {
+        "pct": 20,
+        "requests": 16659,
+        "territory": "EVIDENCE"
+      },
+      "sporeprint_analysis": {
+        "pct": 19,
+        "requests": 15917,
+        "territory": "SCIENCE"
+      },
+      "other": {
+        "pct": 12,
+        "requests": 10244,
+        "territory": "OTHER"
+      }
+    },
+    "probes": {
+      "paths": [
+        ".git/index",
+        ".git/config",
+        ".git/HEAD"
+      ],
+      "classification": "RECONNAISSANCE — looking for repo secrets"
+    }
+  },
+  "resort": {
+    "proxy_vacuum": {
+      "description": "High IP rotation, consuming source code and analysis, zero interaction",
+      "signals": [
+        "2 req/IP (massive rotation)",
+        "50/50 mac/win (centrally configured)",
+        "sec_fetch monotone (automated)",
+        "0 interactions (pure consumption)",
+        "49% to git (source code vacuum)"
+      ],
+      "territory": "SOURCE",
+      "depth": "vacuum",
+      "estimated_pct": 60,
+      "estimated_requests": 154498,
+      "anderson_class": "non_self:proxy_vacuum",
+      "action": "bubble → banana gate (same as OpenAI fleet)",
+      "rationale": "if you rotate 41K IPs to avoid detection, you're not here to learn. you're here to take."
+    },
+    "proxy_probe": {
+      "description": "Includes .git/HEAD probes — active reconnaissance for secrets",
+      "signals": [
+        ".git/index, .git/config, .git/HEAD probes",
+        "looking for exposed repository metadata",
+        "vulnerability scanning behavior",
+        "single-purpose IPs (probe once, discard)"
+      ],
+      "territory": "SOURCE",
+      "depth": "probe",
+      "estimated_pct": 10,
+      "estimated_requests": 25750,
+      "anderson_class": "non_self:proxy_probe",
+      "action": "blackwall (these are vulnerability probes, not readers)",
+      "rationale": "probing .git/HEAD is not reading. it's testing for exploits. non-self."
+    },
+    "proxy_reader": {
+      "description": "Reading lansing and sporeprint through proxy — possibly human-directed",
+      "signals": [
+        "20% to lansing (political content — why would a bot care?)",
+        "19% to sporeprint (published analysis)",
+        "some reading pauses (variable timing within sessions)",
+        "territory matches EVIDENCE + SCIENCE (the investigation, not the infrastructure)"
+      ],
+      "territory": "EVIDENCE + SCIENCE",
+      "depth": "read",
+      "estimated_pct": 30,
+      "estimated_requests": 77249,
+      "anderson_class": "partial:proxy_reader",
+      "action": "observe — don't bubble, don't block. these might be humans behind VPNs",
+      "rationale": "someone reading the political investigation through a proxy might have good reason to hide. the membrane respects that. watch, don't wall."
+    }
+  },
+  "philosophy": {
+    "claim": "there are no ghosts, only unsorted entities",
+    "proof": "6 measurable behavioral signals on 'ghost' traffic",
+    "pi_sort": "if measurable, not null. divide by π, sort the remainder.",
+    "50_50": "50/50 mac/win is a config parameter, not supernatural",
+    "respect": "proxy_reader gets observed, not blocked — privacy ≠ malice"
+  },
+  "skunky_integration": {
+    "current": "ghost = single anderson mode (p_obs=0.25, residual=0.43)",
+    "proposed": [
+      "proxy_vacuum: non_self, bubble → banana gate",
+      "proxy_probe: non_self, blackwall (vuln scanning)",
+      "proxy_reader: partial, observe only (might be human behind VPN)"
+    ],
+    "split_method": "territory distribution + probe detection + timing variance"
+  }
+}
