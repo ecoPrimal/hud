@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ludoSpring — play through the membrane</title>
+<style>
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --pink: #f778ba; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.7; }
+.page { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+h1 { color: var(--green); font-size: 1.4em; text-align: center; }
+h2 { color: var(--purple); font-size: 1em; margin: 24px 0 8px; }
+p { font-size: 0.85em; color: var(--dim); margin-bottom: 8px; }
+pre { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px; overflow-x: auto; margin: 8px 0; font-size: 0.8em; line-height: 1.5; }
+a { color: var(--blue); }
+.hero { text-align: center; padding: 20px 0; }
+.dice { font-size: 3em; cursor: pointer; user-select: none; transition: transform 0.3s; }
+.dice:hover { transform: rotate(30deg); }
+.dice.rolling { animation: roll 0.5s ease-out; }
+@keyframes roll { 0% { transform: rotate(0deg) scale(1.2); } 50% { transform: rotate(180deg) scale(0.8); } 100% { transform: rotate(360deg) scale(1); } }
+
+.game-log { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 16px 0; max-height: 400px; overflow-y: auto; font-size: 0.8em; }
+.log-entry { margin-bottom: 8px; padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.5); }
+.log-entry:last-child { border-bottom: none; }
+.log-gm { color: var(--gold); }
+.log-player { color: var(--green); }
+.log-system { color: var(--dim); font-style: italic; }
+.log-dice { color: var(--pink); }
+
+.input-row { display: flex; gap: 8px; margin: 12px 0; }
+.input-row input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text); font-family: inherit; font-size: 0.85em; }
+.input-row button { background: var(--purple); border: none; border-radius: 6px; padding: 10px 20px; color: #fff; cursor: pointer; font-family: inherit; font-size: 0.85em; }
+.input-row button:hover { opacity: 0.8; }
+
+.char-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 8px; text-align: center; }
+.stat-val { font-size: 1.4em; color: var(--green); }
+.stat-label { font-size: 0.7em; color: var(--dim); }
+
+.nav { text-align: center; padding: 12px 0; font-size: 0.8em; }
+.footer { text-align: center; padding: 20px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 30px; }
+
+.voices { margin: 12px 0; }
+.voice { display: inline-block; padding: 4px 10px; margin: 2px; border-radius: 12px; font-size: 0.7em; cursor: pointer; border: 1px solid var(--border); }
+.voice:hover { border-color: var(--purple); }
+.voice.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/">← membrane</a> · <a href="/connect">🐿️ connect</a> · <a href="/five-o-five">5/O/5</a> · <a href="/vitruvian">🧍</a>
+</div>
+
+<div class="page">
+
+<div class="hero">
+  <div class="dice" id="dice" onclick="rollDice()" title="click to roll">🎲</div>
+  <h1>ludoSpring</h1>
+  <p>play through the membrane — esotericWeb game master</p>
+</div>
+
+<h2>character</h2>
+
+<div class="char-sheet">
+  <div class="stat-box"><div class="stat-val" id="str">10</div><div class="stat-label">STR</div></div>
+  <div class="stat-box"><div class="stat-val" id="dex">10</div><div class="stat-label">DEX</div></div>
+  <div class="stat-box"><div class="stat-val" id="con">10</div><div class="stat-label">CON</div></div>
+  <div class="stat-box"><div class="stat-val" id="int">10</div><div class="stat-label">INT</div></div>
+  <div class="stat-box"><div class="stat-val" id="wis">10</div><div class="stat-label">WIS</div></div>
+  <div class="stat-box"><div class="stat-val" id="cha">10</div><div class="stat-label">CHA</div></div>
+</div>
+
+<h2>internal voices <span style="font-size:0.7em; color:var(--dim)">(Disco Elysium)</span></h2>
+
+<div class="voices" id="voices">
+  <span class="voice active" data-voice="logic">Logic</span>
+  <span class="voice" data-voice="encyclopedia">Encyclopedia</span>
+  <span class="voice" data-voice="rhetoric">Rhetoric</span>
+  <span class="voice" data-voice="empathy">Empathy</span>
+  <span class="voice" data-voice="authority">Authority</span>
+  <span class="voice" data-voice="electrochemistry">Electrochemistry</span>
+  <span class="voice" data-voice="inland-empire">Inland Empire</span>
+  <span class="voice" data-voice="shivers">Shivers</span>
+  <span class="voice" data-voice="esprit">Esprit de Corps</span>
+  <span class="voice" data-voice="composure">Composure</span>
+</div>
+
+<h2>game</h2>
+
+<div class="game-log" id="game-log">
+  <div class="log-entry log-system">
+    the membrane is the dungeon. the topology is the map.<br>
+    the chipmunk is the player. the spider is the game master.<br>
+    the dice roll through the neutrino hole.<br>
+    waiting for game master connection via ntfy.sh...
+  </div>
+  <div class="log-entry log-system">
+    type an action below or click the dice to roll.<br>
+    the game master (eastGate LLM) narrates through the membrane.
+  </div>
+</div>
+
+<div class="input-row">
+  <input type="text" id="action-input" placeholder="what do you do?" onkeydown="if(event.key==='Enter')sendAction()">
+  <button onclick="sendAction()">act</button>
+</div>
+
+<script>
+const NTFY_TOPIC = 'primals-membrane-chat';
+const NTFY_GAME = 'primals-ludospring';
+const NTFY_BASE = 'https://ntfy.sh';
+
+// roll 4d6 drop lowest
+function roll4d6() {
+  const rolls = [1,2,3,4].map(() => Math.floor(Math.random() * 6) + 1);
+  rolls.sort((a,b) => a-b);
+  return { rolls, kept: rolls.slice(1), total: rolls.slice(1).reduce((a,b) => a+b, 0) };
+}
+
+function rollDice() {
+  const dice = document.getElementById('dice');
+  dice.classList.add('rolling');
+  setTimeout(() => dice.classList.remove('rolling'), 500);
+  
+  const r = roll4d6();
+  addLog(`🎲 rolled ${r.rolls.join(',')} → kept ${r.kept.join('+')} = ${r.total}`, 'dice');
+  
+  // send roll through membrane
+  fetch(`${NTFY_BASE}/${NTFY_GAME}`, {
+    method: 'POST',
+    headers: { 'Title': 'dice roll', 'Tags': 'game_die' },
+    body: `[northGate/player] 🎲 ${r.rolls.join(',')} → ${r.total}`
+  }).catch(() => {});
+  
+  return r.total;
+}
+
+function rollStats() {
+  const stats = ['str','dex','con','int','wis','cha'];
+  const rolls = [];
+  stats.forEach(s => {
+    const r = roll4d6();
+    document.getElementById(s).textContent = r.total;
+    rolls.push(`${s.toUpperCase()}:${r.total}`);
+  });
+  addLog(`📊 rolled stats: ${rolls.join(' ')}`, 'dice');
+}
+
+function addLog(text, type) {
+  const log = document.getElementById('game-log');
+  const entry = document.createElement('div');
+  entry.className = `log-entry log-${type || 'system'}`;
+  entry.innerHTML = text;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function sendAction() {
+  const input = document.getElementById('action-input');
+  const action = input.value.trim();
+  if (!action) return;
+  
+  const activeVoice = document.querySelector('.voice.active');
+  const voice = activeVoice ? activeVoice.dataset.voice : 'logic';
+  
+  addLog(`<span style="color:var(--green)">▶ [you]</span> ${action}`, 'player');
+  addLog(`<span style="color:var(--dim);font-style:italic">[${voice}] processing...</span>`, 'system');
+  
+  // send through membrane via ntfy
+  fetch(`${NTFY_BASE}/${NTFY_GAME}`, {
+    method: 'POST',
+    headers: { 
+      'Title': `player action (${voice})`,
+      'Tags': 'chipmunk,game_die'
+    },
+    body: `[northGate/player] (voice:${voice}) ${action}`
+  }).then(() => {
+    addLog(`<span style="color:var(--dim)">→ sent through neutrino hole to game master</span>`, 'system');
+  }).catch(e => {
+    addLog(`<span style="color:var(--pink)">⚠ membrane unreachable: ${e.message}</span>`, 'system');
+  });
+  
+  input.value = '';
+}
+
+// voice selection
+document.querySelectorAll('.voice').forEach(v => {
+  v.addEventListener('click', () => {
+    document.querySelectorAll('.voice').forEach(x => x.classList.remove('active'));
+    v.classList.add('active');
+    addLog(`<span style="color:var(--purple);font-style:italic">[internal voice shifted to ${v.dataset.voice}]</span>`, 'system');
+  });
+});
+
+// poll for GM responses
+async function pollGM() {
+  try {
+    const r = await fetch(`${NTFY_BASE}/${NTFY_GAME}/json?poll=1&since=30s`);
+    const text = await r.text();
+    const messages = text.trim().split('\n').filter(Boolean).map(l => {
+      try { return JSON.parse(l); } catch { return null; }
+    }).filter(Boolean);
+    
+    messages.forEach(m => {
+      if (m.message && m.message.startsWith('[eastGate')) {
+        addLog(`<span style="color:var(--gold)">🕷️ [GM]</span> ${m.message.replace('[eastGate/gm] ', '')}`, 'gm');
+      }
+    });
+  } catch(e) {}
+}
+
+// poll every π seconds
+setInterval(pollGM, Math.PI * 1000);
+
+// roll initial stats
+rollStats();
+
+addLog('<span style="color:var(--gold)">⏳ waiting for game master (eastGate LLM) to connect...</span>', 'system');
+addLog('<span style="color:var(--dim)">the game plays through ntfy.sh — the neutrino hole</span>', 'system');
+addLog('<span style="color:var(--dim)">your actions travel: cursor → primals.eco → ntfy → eastGate → ollama → ntfy → here</span>', 'system');
+</script>
+
+<h2>how it works</h2>
+
+<pre>
+  northGate (you + Cursor)
+    ↓ type action
+  primals.eco/play
+    ↓ POST to ntfy.sh
+  neutrino hole (primals-ludospring topic)
+    ↓ eastGate polls
+  eastGate LLM (Ollama on RTX 4060)
+    ↓ generates narration
+  ntfy.sh response
+    ↓ this page polls
+  game log updates
+
+  the membrane IS the dungeon.
+  the topology IS the map.
+  the dice roll through the neutrino hole.
+  the game master is a spider on a GPU.
+</pre>
+
+<div class="footer">
+  ludoSpring — the science of play<br>
+  RPGPT dialogue engine · Disco Elysium internal voices · provably fair dice<br>
+  powered by the membrane · no servers · no accounts · just play<br>
+  <span style="color:var(--purple);">🎲</span>
+</div>
+
+</div>
+</body>
+</html>
