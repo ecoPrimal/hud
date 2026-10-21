@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trail — the sporePrint original path</title>
+<meta name="description" content="498 commits. 63 active days. March 17 → July 17. Every deadline is a scenic route. Every depth is a pause. Beautifully disorganized and irrational on the inside.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace; }
+#nav { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 6px; padding: 4px 12px; background: rgba(1,4,9,0.88);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 10px; }
+#nav a { color: #58a6ff; text-decoration: none; }
+#nav span { color: #30363d; }
+h1 { font-size: 18px; color: #d2a8ff; text-align: center; margin: 52px 0 4px; }
+.subtitle { text-align: center; color: #8b949e; font-size: 11px; margin-bottom: 24px; line-height: 1.7; }
+.trail { max-width: 900px; margin: 0 auto; padding: 0 16px 100px; position: relative; }
+.trail::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, #21262d, #d2a8ff33, #21262d);
+  transform: translateX(-50%); }
+.epoch { margin: 32px 0; position: relative; }
+.epoch-label { text-align: center; font-size: 13px; color: #d2a8ff; font-weight: 600;
+  margin-bottom: 8px; position: relative; z-index: 2;
+  background: #010409; display: inline-block; padding: 0 12px;
+  left: 50%; transform: translateX(-50%); }
+.day { display: flex; align-items: flex-start; margin: 4px 0; position: relative; }
+.day.left { flex-direction: row; }
+.day.right { flex-direction: row-reverse; }
+.day .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  position: absolute; left: 50%; transform: translateX(-50%); top: 4px; z-index: 2; }
+.day .content { width: 42%; padding: 6px 10px; border-radius: 6px;
+  background: rgba(22,27,34,0.5); border: 1px solid #21262d; font-size: 10px;
+  line-height: 1.5; transition: all 0.3s; }
+.day .content:hover { border-color: rgba(88,166,255,0.3); background: rgba(22,27,34,0.8); }
+.day.left .content { margin-right: auto; text-align: right; margin-left: 0; }
+.day.right .content { margin-left: auto; text-align: left; margin-right: 0; }
+.day .date { color: #6e7681; font-size: 9px; }
+.day .msg { color: #c9d1d9; }
+.day .count { color: #3fb950; font-size: 9px; }
+.day .scenic { color: #d29922; font-style: italic; font-size: 9px; margin-top: 2px; }
+.day .pause { color: #f85149; font-size: 9px; }
+/* Section colors */
+.dot-genesis { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,0.4); }
+.dot-scaffold { background: #58a6ff; box-shadow: 0 0 6px rgba(88,166,255,0.4); }
+.dot-content { background: #d2a8ff; box-shadow: 0 0 6px rgba(210,168,255,0.4); }
+.dot-deep { background: #f0c674; box-shadow: 0 0 6px rgba(240,198,116,0.4); }
+.dot-sprint { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,0.4); }
+.dot-hype { background: #d29922; box-shadow: 0 0 6px rgba(210,153,34,0.4); }
+.dot-demo { background: #a371f7; box-shadow: 0 0 6px rgba(163,113,247,0.4); }
+.gap { text-align: center; padding: 12px; color: #30363d; font-size: 10px;
+  font-style: italic; position: relative; z-index: 2; }
+.gap .days { color: #6e7681; }
+.legend { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  margin: 0 16px 24px; }
+.legend span { font-size: 9px; display: flex; align-items: center; gap: 4px; }
+.legend .swatch { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.stats { text-align: center; color: #6e7681; font-size: 10px; margin: 8px 0 20px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div id="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/tools.html">⚙ tools</a><span>·</span>
+  <a href="/easel.html">🎨 easel</a><span>·</span>
+  <a href="/trail.html" style="color:#d2a8ff">🥾 trail</a><span>·</span>
+  <a href="https://sporeprint.primals.eco" target="_blank">🍄 hub</a>
+</div>
+
+<h1>🥾 the sporePrint trail</h1>
+<p class="subtitle">
+  498 commits · 63 active days · march 17 → july 17, 2026<br>
+  322 pages · 16 sections · 3,598,358 lines of rust behind it<br>
+  <span style="color:#d29922">every deadline is a scenic route.</span>
+  <span style="color:#f85149">every depth is a pause.</span><br>
+  beautifully disorganized and irrational on the inside.
+</p>
+
+<div class="stats">
+  the print landed around the water. curious, lossy, but in its state.<br>
+  you can always look back. sporePrint is the <b>was</b>. wateringHole is the <b>is</b>. HUD is the <b>will_be</b>.
+</div>
+
+<div class="legend">
+  <span><i class="swatch" style="background:#3fb950"></i> genesis</span>
+  <span><i class="swatch" style="background:#58a6ff"></i> scaffold</span>
+  <span><i class="swatch" style="background:#d2a8ff"></i> content</span>
+  <span><i class="swatch" style="background:#f0c674"></i> deep debt</span>
+  <span><i class="swatch" style="background:#f85149"></i> sprint</span>
+  <span><i class="swatch" style="background:#d29922"></i> hype cleanup</span>
+  <span><i class="swatch" style="background:#a371f7"></i> demonstration era</span>
+</div>
+
+<div class="trail" id="trail"></div>
+
+<script>
+// The full trail — every epoch of sporePrint's life
+var TRAIL = [
+  // ═══ GENESIS (March 17-18) ═══
+  { epoch: 'genesis — the first stroke', items: [
+    { date: 'Mar 17', commits: 3, dot: 'genesis',
+      msg: 'initial scaffold → v0.2.0 → v0.3.0',
+      scenic: 'sovereign pipeline profiling. structure prediction. knowledge commons.',
+      pause: 'three versions in one day. the sourdough starter.' },
+    { date: 'Mar 18', commits: 3, dot: 'genesis',
+      msg: 'README: ground before scale, verify before vocabulary',
+      scenic: 'ecoPrimals owns itself. author attribution settled.' },
+  ]},
+
+  { gap: 11, label: '11 days of silence. the starter ferments.' },
+
+  // ═══ SCAFFOLD (March 29 - April 5) ═══
+  { epoch: 'scaffold — Zola, the body plan', items: [
+    { date: 'Mar 29', commits: 1, dot: 'scaffold',
+      msg: 'CNAME for primals.eco on GitHub Pages',
+      scenic: 'the organism gets a name on the outside.' },
+  ]},
+
+  { gap: 5, label: '5 days. the DNA folds.' },
+
+  { epoch: 'the april burst — 14 commits in one day', items: [
+    { date: 'Apr 3', commits: 14, dot: 'sprint',
+      msg: 'v1.0.0 → ecosystem refresh → three-org clarity → style polish',
+      scenic: 'Catppuccin palette. domain groupings. primal catalog rewritten.',
+      pause: '14 commits. the organism found its shape.' },
+    { date: 'Apr 4', commits: 7, dot: 'scaffold',
+      msg: 'entity registry + 2,397 shortcodes + taxonomies',
+      scenic: 'every primal wired. every spring cross-referenced.' },
+    { date: 'Apr 5', commits: 1, dot: 'scaffold',
+      msg: '6 newly public repos reflected',
+      scenic: 'songBird, nestGate, biomeOS, petalTongue, sourDough, bingoCube.' },
+  ]},
+
+  { gap: 45, label: '45 DAYS. the longest pause. the organism is building the mesh, not the print.' },
+
+  // ═══ THE MAY SPRINT ═══
+  { epoch: 'the may sprint — flockGate WAN shadow', items: [
+    { date: 'May 20-21', commits: 24, dot: 'sprint',
+      msg: 'sporePrint team spins up on flockGate',
+      scenic: 'first WAN shadow. across the state. TURN relay.',
+      pause: 'test coverage: 32% → 90%. deep debt in one wave.' },
+    { date: 'May 23-24', commits: 45, dot: 'sprint',
+      msg: 'pseudoSpore gallery + template engine + validation',
+      scenic: 'lithoSpore integration. self-verifying science artifacts.' },
+    { date: 'May 25', commits: 34, dot: 'sprint',
+      msg: '★ BUSIEST DAY: 34 commits',
+      scenic: 'the sprint peak. everything converging.',
+      pause: 'the organism is running flat out.' },
+    { date: 'May 26-28', commits: 46, dot: 'content',
+      msg: 'content pipeline + notebook rendering + validation',
+      scenic: 'Jupyter notebooks become site pages. science goes public.' },
+    { date: 'May 29-31', commits: 54, dot: 'content',
+      msg: 'transport layer + CAS push + NUCLEUS wiring',
+      scenic: 'the print learns to talk to the mesh.' },
+  ]},
+
+  // ═══ JUNE ═══
+  { epoch: 'june — the content deepens', items: [
+    { date: 'Jun 1-4', commits: 42, dot: 'content',
+      msg: 'spring science hubs + cross-spring connections',
+      scenic: 'wetSpring, hotSpring, airSpring, healthSpring, groundSpring all documented.' },
+  ]},
+
+  { gap: 37, label: '37 days. the second long pause. the mesh is proving Tower Atomic.' },
+
+  // ═══ JULY — THE FINAL PUSH ═══
+  { epoch: 'july — the hype cleanup', items: [
+    { date: 'Jul 9', commits: 15, dot: 'deep',
+      msg: 'deep debt sweep + content topology',
+      scenic: 'every shortcode audited. every metric synced.' },
+    { date: 'Jul 11-12', commits: 24, dot: 'hype',
+      msg: 'llms.txt + AI accessibility + privacy scrub + identity detach',
+      scenic: '"a tool that shapes itself." no personal identity. just the work.',
+      pause: 'professor PII scrubbed. institution kept. identity ≠ person.' },
+    { date: 'Jul 13', commits: 11, dot: 'hype',
+      msg: 'dead code sweep + taxonomy gaps closed + agent parity',
+      scenic: '"353× faster" → "LAN topology awareness." the organism cleans its own hype.' },
+    { date: 'Jul 14', commits: 10, dot: 'demo',
+      msg: 'DISCOVERED_BY audit + signal sharpening',
+      scenic: 'SHOW_HN inverted. 26 repos + 4 orgs + 1 user profile updated.',
+      pause: 'engagement pivots from extractive platform to sovereign commons.' },
+    { date: 'Jul 15-16', commits: 6, dot: 'demo',
+      msg: 'demonstration era + metrics refresh + CAC complete',
+      scenic: '79 pages moved to foundation. pseudoSpore as front door.' },
+    { date: 'Jul 17', commits: 3, dot: 'demo',
+      msg: 'dimension sweep. certification re-emitted.',
+      scenic: 'the last commit. 322 pages. root hash emitted. the print is pressed.' },
+  ]},
+
+  { gap: 96, label: '96 days. and counting. the print is pressed. the organism keeps growing. the wateringHole flows. wave 195.' },
+];
+
+// Render the trail
+function render() {
+  var el = document.getElementById('trail');
+  var html = '';
+  var side = 0;
+
+  TRAIL.forEach(function(block) {
+    if (block.gap) {
+      html += '<div class="gap"><span class="days">' + block.gap + ' days</span><br>' + block.label + '</div>';
+      return;
+    }
+    if (block.epoch) {
+      html += '<div class="epoch"><div class="epoch-label">' + block.epoch + '</div>';
+      block.items.forEach(function(item, i) {
+        var dir = side % 2 === 0 ? 'left' : 'right';
+        html += '<div class="day ' + dir + '">' +
+          '<div class="dot dot-' + item.dot + '"></div>' +
+          '<div class="content">' +
+            '<div class="date">' + item.date + ' <span class="count">(' + item.commits + ' commits)</span></div>' +
+            '<div class="msg">' + item.msg + '</div>' +
+            (item.scenic ? '<div class="scenic">🥾 ' + item.scenic + '</div>' : '') +
+            (item.pause ? '<div class="pause">⏸ ' + item.pause + '</div>' : '') +
+          '</div>' +
+        '</div>';
+        side++;
+      });
+      html += '</div>';
+    }
+  });
+
+  el.innerHTML = html;
+}
+
+render();
+</script>
+</body>
+</html>
