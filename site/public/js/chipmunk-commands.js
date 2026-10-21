@@ -780,6 +780,27 @@ window._chipmunkCommands = function(ctx) {
           '<a href="/like-us.html" style="color:#f0c674">hear it →</a>');
         return;
       }
+      if (cmd === 'nest' || cmd === 'nestgate' || cmd === 'iso' || cmd === 'dm' || cmd === 'dungeon') {
+        addEntry('system', '🎲 nestgate');
+        addEntry('chipmunk',
+          '<span style="color:#f0883e">🎲 nestgate.io — the Klein surface</span>\n' +
+          'I S O. not I/O with a wall. I-S-O with a membrane.\n' +
+          'the squirrel is the DM. the membrane is the dungeon.\n' +
+          'the Discord is the tavern where the party forms.\n' +
+          '<span class="dim">roll initiative. π dice. the remainder is the fumble zone.</span>\n' +
+          '<a href="/nest.html" style="color:#f0883e">enter the gate →</a> · ' +
+          '<a href="https://discord.gg/62MRjnw4P" target="_blank" style="color:#5865F2">join the tavern →</a>');
+        return;
+      }
+      if (cmd === 'tavern' || cmd === 'discord') {
+        addEntry('system', '🍺 the tavern');
+        addEntry('chipmunk',
+          '<span style="color:#5865F2">🍺 the tavern — Discord</span>\n' +
+          'where the party forms. strangers become adventurers.\n' +
+          'the squirrel-DM watches from the Klein surface.\n' +
+          '<a href="https://discord.gg/62MRjnw4P" target="_blank" style="color:#5865F2">enter the tavern →</a>');
+        return;
+      }
       if (cmd === 'spirochete' || cmd === 'corkscrew' || cmd === 'spiral' || cmd === '429') {
         addEntry('system', '🧬 spirochete');
         addEntry('chipmunk',
