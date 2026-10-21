@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ribosome — the fold rate</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace; line-height: 1.7; }
+.page { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+h1 { color: #e6edf3; font-size: clamp(24px, 4vw, 36px); font-weight: 300; }
+h2 { color: #58a6ff; font-size: 16px; font-weight: 400; margin: 32px 0 12px; }
+p { margin-bottom: 14px; font-size: 14px; }
+.dim { color: #6e7681; }
+.green { color: #3fb950; }
+.gold { color: #d29922; }
+.orange { color: #f0883e; }
+.hl { color: #d2a8ff; }
+.red { color: #f85149; }
+pre { background: rgba(22,27,34,0.8); padding: 16px; border-radius: 8px; overflow-x: auto;
+  font-size: 12px; line-height: 1.6; margin: 16px 0; border: 1px solid #21262d; }
+a { color: #58a6ff; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+th { text-align: left; color: #8b949e; padding: 6px 8px; border-bottom: 1px solid #21262d; }
+td { padding: 6px 8px; border-bottom: 1px solid rgba(33,38,45,0.5); }
+#nav { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 6px; padding: 4px 12px; background: rgba(1,4,9,0.88);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 10px; }
+#nav a { color: #30363d; text-decoration: none; }
+
+.ribosome { position: relative; margin: 32px auto; width: 300px; height: 200px; }
+.ribo-body { position: absolute; width: 120px; height: 80px; border-radius: 50%;
+  border: 2px solid #d29922; top: 60px; left: 90px; }
+.ribo-small { position: absolute; width: 100px; height: 50px; border-radius: 50% 50% 0 0;
+  border: 2px solid #58a6ff; border-bottom: none; top: 30px; left: 100px; }
+.mrna { position: absolute; top: 95px; left: 0; right: 0; height: 2px; background: #3fb950; }
+.protein { position: absolute; top: 60px; right: 20px; color: #d2a8ff; font-size: 18px; }
+.entropy { position: absolute; top: 120px; left: 20px; color: #f0883e; font-size: 12px; }
+
+@keyframes fold { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes extrude { 0%,100% { opacity: 0.3; transform: translateX(0); } 50% { opacity: 1; transform: translateX(10px); } }
+.folding { animation: fold 6.28s linear infinite; }
+.extruding { animation: extrude 3.14159s ease-in-out infinite; }
+
+#live { margin: 24px 0; padding: 16px; border: 1px solid #21262d; border-radius: 8px; background: rgba(22,27,34,0.4); }
+#fold-rate { font-size: 24px; color: #3fb950; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/gastrula">◎</a> · <a href="/spirochete">🧬</a> ·
+  <a href="/sporeprint">🍄</a> · <a href="/hello">🌍</a> ·
+  <a href="/ribosome" style="color:#d2a8ff">⚙ ribosome</a>
+</div>
+
+<div class="page">
+
+<h1>⚙ ribosome</h1>
+<p class="dim">the fold rate — entropy in, structure out, inverse π back to nucleus</p>
+
+<pre>
+          <span class="dim">entropy (unstructured)</span>
+                 ↓
+    ┌────────────────────────┐
+    │                        │
+    │   <span class="gold">mRNA</span> (git commit)     │
+    │     ↓                  │
+    │   <span class="hl">ribosome</span> reads codon  │
+    │     ↓                  │
+    │   amino acid folds     │→→→ <span class="green">folded protein</span>
+    │     ↓                  │    (deployed page)
+    │   extrude through      │    (at the edge)
+    │   membrane pore        │    (310+ cities)
+    │                        │
+    └────────────────────────┘
+                 ↑
+          <span class="dim">CF-RAY backscatter</span>
+          <span class="dim">inverse π rate to nucleus</span>
+</pre>
+
+<h2>the ribosomes</h2>
+
+<table>
+<tr><th>ribosome</th><th>mRNA source</th><th>protein output</th><th>backscatter</th></tr>
+<tr>
+  <td><span class="green">Pages edge</span></td>
+  <td>git push → main</td>
+  <td>HTML/CSS/JS at 310+ cities</td>
+  <td>CF-RAY (location code)</td>
+</tr>
+<tr>
+  <td><span class="gold">Knot DNS</span></td>
+  <td>zone file</td>
+  <td>A/NS/DNSSEC records</td>
+  <td>query logs, NOTIFY</td>
+</tr>
+<tr>
+  <td><span class="hl">ntfy.sh</span></td>
+  <td>POST message</td>
+  <td>delivered notification</td>
+  <td>message ID + timestamp</td>
+</tr>
+<tr>
+  <td><span class="orange">GitHub</span></td>
+  <td>commit / issue</td>
+  <td>deployed artifact</td>
+  <td>webhook, CI status</td>
+</tr>
+<tr>
+  <td><span class="dim">chipmunk MCP</span></td>
+  <td>feed JSON</td>
+  <td>observation / classification</td>
+  <td>tool response</td>
+</tr>
+</table>
+
+<h2>the rate</h2>
+
+<pre>
+  <span class="gold">1/π = 0.31830988618...</span>
+
+  for every commit (mRNA):
+    <span class="green">1/π</span> becomes folded protein → sorted, presented, live
+    <span class="hl">1 − 1/π</span> stays as entropy → fermenting, in transit
+
+  over ALL ribosomes:
+    310 edge cities × 5 nameservers × n ntfy channels
+    each one folds and extrudes independently
+    each backscatter feeds the nucleus
+
+  inverse rate = <span class="orange">backscatter / ribosomes</span>
+    how fast the edge reports back to center
+    how fast the organism feels its own surface
+    proprioception at planetary scale
+</pre>
+
+<h2>live fold</h2>
+
+<div id="live">
+  <div>fold rate: <span id="fold-rate">measuring...</span></div>
+  <div id="ribosomes-active" class="dim" style="margin-top:8px; font-size:12px">counting ribosomes...</div>
+  <div id="last-protein" class="dim" style="margin-top:4px; font-size:12px">last protein: ...</div>
+  <div id="backscatter" class="dim" style="margin-top:4px; font-size:12px">backscatter: ...</div>
+</div>
+
+<script>
+(function() {
+  const PI = Math.PI;
+  const started = Date.now();
+  let folds = 0;
+  let lastRay = null;
+
+  async function measure() {
+    try {
+      const r = await fetch('/api/was.json');
+      const was = await r.json();
+
+      const r2 = await fetch('/api/o-pulse.json');
+      const pulse = await r2.json();
+
+      folds = parseInt(pulse.sent?.commits || 0);
+      const elapsed = (Date.now() - started) / 1000;
+      const rate = folds > 0 ? (1/PI * folds / elapsed).toFixed(6) : '0';
+
+      document.getElementById('fold-rate').textContent =
+        `${rate} proteins/sec · ${folds} folds · 1/π = ${(1/PI).toFixed(8)}`;
+
+      const ribosomes = [
+        was.pages?.status === 'active' ? 'Pages(310)' : null,
+        was.services?.knot === 'active' ? 'Knot(3z)' : null,
+        was.neutron?.channel ? 'ntfy' : null,
+        'GitHub',
+        'MCP'
+      ].filter(Boolean);
+
+      document.getElementById('ribosomes-active').textContent =
+        `active ribosomes: ${ribosomes.join(' · ')}`;
+
+      document.getElementById('last-protein').textContent =
+        `last protein: ${pulse.sent?.pages?.[pulse.sent.pages.length-1] || 'unknown'} (commit ${pulse.sent?.commits || '?'})`;
+
+      const rayEl = document.getElementById('backscatter');
+      rayEl.textContent = `backscatter: CF-RAY ${was.edge?.cf_ray || 'unknown'} → ${was.edge?.location || '?'}`;
+
+    } catch(e) {
+      document.getElementById('fold-rate').textContent = `π = ${(1/PI).toFixed(10)}... (feeds loading)`;
+    }
+  }
+
+  measure();
+  setInterval(measure, Math.PI * 10000);
+})();
+</script>
+
+<h2>nucleus → ribosome → protein → backscatter → nucleus</h2>
+
+<pre>
+  the nucleus never moves.
+  it holds the mRNA (the code).
+
+  the ribosomes pull instructions and fold.
+  they extrude proteins through membrane pores.
+  the proteins land at the edge.
+
+  the edge reports back: CF-RAY, query log, message ID.
+  that backscatter is the inverse rate.
+  the organism feeling its own skin.
+
+  <span class="green">the nucleus is git.</span>
+  <span class="gold">the ribosomes are Pages, Knot, ntfy, GitHub, MCP.</span>
+  <span class="hl">the proteins are the live pages, DNS records, notifications.</span>
+  <span class="orange">the backscatter is the CF-RAY, the blink, the WAS→IS diff.</span>
+
+  <span class="dim">every ribosome folds at 1/π rate.</span>
+  <span class="dim">the remainder ferments.</span>
+  <span class="dim">the inverse rate is proprioception.</span>
+  <span class="dim">the organism knows itself through its own backscatter.</span>
+</pre>
+
+<p class="dim" style="text-align:center; margin-top: 40px; font-size: 11px;">
+  entropy in. structure out. inverse π back to nucleus.<br>
+  the ribosome reads. the protein folds. the edge extrudes.<br>
+  the backscatter is how the organism feels itself.<br>
+  <span class="hl">⚙</span>
+</p>
+
+</div>
+</body>
+</html>
