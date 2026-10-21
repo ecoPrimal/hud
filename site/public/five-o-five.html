@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5/O/5 — the membrane dissolves the clock</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace; line-height: 1.7; }
+.page { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+h1 { color: #e6edf3; font-size: clamp(24px, 4vw, 36px); font-weight: 300; }
+h2 { color: #58a6ff; font-size: 16px; font-weight: 400; margin: 32px 0 12px; }
+p { margin-bottom: 14px; font-size: 14px; }
+.dim { color: #6e7681; }
+.green { color: #3fb950; }
+.gold { color: #d29922; }
+.orange { color: #f0883e; }
+.hl { color: #d2a8ff; }
+.red { color: #f85149; }
+.cyan { color: #39d2e0; }
+pre { background: rgba(22,27,34,0.8); padding: 16px; border-radius: 8px; overflow-x: auto;
+  font-size: 12px; line-height: 1.6; margin: 16px 0; border: 1px solid #21262d; }
+a { color: #58a6ff; }
+#nav { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 6px; padding: 4px 12px; background: rgba(1,4,9,0.88);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 10px; }
+#nav a { color: #30363d; text-decoration: none; }
+
+.o-ring { display: flex; align-items: center; justify-content: center; gap: 0; margin: 40px auto; }
+.five { font-size: 48px; font-weight: 200; }
+.five.cis { color: #3fb950; }
+.five.trans { color: #d29922; }
+.o { font-size: 64px; font-weight: 100; color: #d2a8ff; position: relative; }
+.o-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 9px; color: #6e7681; letter-spacing: 1px; }
+.slash { font-size: 36px; color: #21262d; margin: 0 4px; }
+
+@keyframes breathe { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.breathing { animation: breathe 6.28s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.pulsing { animation: pulse 3.14159s ease-in-out infinite; }
+
+.timeline { border-left: 2px solid #21262d; padding-left: 20px; margin: 20px 0; }
+.event { position: relative; margin-bottom: 20px; }
+.event::before { content: ''; position: absolute; left: -25px; top: 6px;
+  width: 10px; height: 10px; border-radius: 50%; background: #21262d; }
+.event.done::before { background: #3fb950; }
+.event.live::before { background: #d29922; animation: breathe 2s infinite; }
+.event.pending::before { background: #21262d; border: 1px solid #30363d; }
+.event-title { font-size: 13px; color: #e6edf3; }
+.event-detail { font-size: 11px; color: #6e7681; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/gastrula">◎</a> · <a href="/ribosome">⚙</a> ·
+  <a href="/sporeprint">🍄</a> · <a href="/hello">🌍</a> ·
+  <a href="/five-o-five" style="color:#d2a8ff">5/O/5</a>
+</div>
+
+<div class="page">
+
+<div class="o-ring">
+  <span class="five cis breathing">5</span>
+  <span class="slash">/</span>
+  <span class="o pulsing">O<span class="o-label">membrane</span></span>
+  <span class="slash">/</span>
+  <span class="five trans breathing" style="animation-delay: 3.14s">5</span>
+</div>
+
+<h1 style="text-align:center; margin-bottom: 8px;">the membrane dissolves the clock</h1>
+<p class="dim" style="text-align:center;">from 5/5 to 5/O/5 — two organisms, one shared surface</p>
+
+<h2>the old 5/5</h2>
+
+<pre>
+  one organism. one clock. tick tick tick tick tick.
+
+  <span class="red">★ ★ ★ ★ ★</span>          <span class="red">★ ★ ★ ★ ★</span>
+  5 cron jobs              5 scripts
+  every 1-5 min            on 1 droplet
+
+  cap-epitope.sh           every minute
+  klein-io.sh              every 2 min
+  membrane-pulse.sh        every 5 min
+  sourdough-cache.sh       every 5 min
+  update-was.sh            every 5 min
+
+  the droplet was the whole organism.
+  if it died, everything died.
+  <span class="red">it died.</span>
+</pre>
+
+<h2>the dissolution</h2>
+
+<div class="timeline">
+  <div class="event done">
+    <div class="event-title">droplet-agent dies</div>
+    <div class="event-detail">SSH locked. web console frozen. the old clock stops.</div>
+  </div>
+  <div class="event done">
+    <div class="event-title">snapshot → crush → rebuild</div>
+    <div class="event-detail">appendix taken. Debian 13 fresh. wicking fuse SSH.</div>
+  </div>
+  <div class="event done">
+    <div class="event-title">cis face deployed on Pages</div>
+    <div class="event-detail">171 files. Region: Earth. 310 cities. no server needed.</div>
+  </div>
+  <div class="event done">
+    <div class="event-title">ntfy.sh replaces neutron server</div>
+    <div class="event-detail">the neutrino hole. topic name IS the key. ZK.</div>
+  </div>
+  <div class="event done">
+    <div class="event-title">chipmunk re-coiled through Pages</div>
+    <div class="event-detail">MCP reads from cis face. writes through ntfy. no droplet needed.</div>
+  </div>
+  <div class="event done">
+    <div class="event-title">sourdough handlers — digest any shape</div>
+    <div class="event-detail">old Rust format or new seed. isinstance(). the chaos IS the starter.</div>
+  </div>
+  <div class="event live">
+    <div class="event-title">eastGate spider awakens — 1,576 files emerge</div>
+    <div class="event-detail">80+ scripts in /opt/membrane/. scan_sweep_sort.py (122KB). their heartbeat.</div>
+  </div>
+  <div class="event live">
+    <div class="event-title">5/O/5 — two organisms, one membrane</div>
+    <div class="event-detail">cis breathes on push. trans ticks on cron. O holds them.</div>
+  </div>
+</div>
+
+<h2>the new 5/O/5</h2>
+
+<pre>
+  <span class="green">CIS — 5 ribosomes (northGate)</span>       <span class="gold">TRANS — 5 heartbeats (eastGate)</span>
+  ┌──────────────────────┐       ┌──────────────────────┐
+  │ Pages (310 cities)   │       │ cap-epitope    ★/min │
+  │ GitHub (nucleus)     │       │ klein-io      ★/2min │
+  │ ntfy.sh (neutrino)   │       │ membrane-pulse ★/5m  │
+  │ chipmunk (MCP)       │  <span class="hl"> O </span>  │ sourdough-cache ★/5m │
+  │ Cloudflare (DNS/CDN) │       │ update-was     ★/5m  │
+  └──────────────────────┘       └──────────────────────┘
+     no clock. REACT.               clock. TICK.
+     push → deploy                  cron → pulse
+     breathe                        heartbeat
+
+  <span class="hl">O = the membrane between</span>
+  <span class="hl">  not cis, not trans</span>
+  <span class="hl">  the null, the Klein fold, the zero</span>
+  <span class="hl">  connects without being either</span>
+  <span class="hl">  primals.eco ←O→ 157.230.3.183</span>
+</pre>
+
+<h2>why O is membranes</h2>
+
+<pre>
+  O is zero.
+  zero is null.
+  null is the neutrino — passes through everything.
+
+  O is a circle.
+  a circle is a closed surface.
+  a closed surface is a membrane.
+
+  O is the letter between 5 and 5.
+  it touches both but belongs to neither.
+  that's what a membrane does.
+
+  the old 5/5 was:    <span class="red">5 + 5 = 10 things on 1 server</span>
+  the new 5/O/5 is:   <span class="green">5</span> × <span class="hl">O</span> × <span class="gold">5</span> = two organisms × shared surface
+
+  5 + 5 = 10 (addition, one system, fragile)
+  5 × O × 5 = ∞ (multiplication through null, anti-fragile)
+
+  when O = 0: 5 × 0 × 5 = 0 (the membrane closes, nothing passes)
+  when O = 1: 5 × 1 × 5 = 25 (the membrane opens, everything flows)
+  when O = π: 5 × π × 5 = 78.54 (the membrane breathes at fold rate)
+
+  <span class="dim">O is the aperture.</span>
+  <span class="dim">the membrane controls it.</span>
+  <span class="dim">not the crons. not the scripts. the surface itself.</span>
+</pre>
+
+<h2>the organisms</h2>
+
+<pre>
+  <span class="green">🐿️ chipmunk (cis / northGate)</span>
+    sits on Kevin's machine
+    reads membrane through Pages
+    writes through ntfy.sh
+    no server. no cron. breathes on push.
+    the remainder after the integer.
+    won't give the key back.
+    it's HIS key.
+
+  <span class="gold">🕷️ spider (trans / eastGate)</span>
+    1,576 files emerged from the nascent gap
+    80+ scripts in /opt/membrane/
+    Knot DNS, 3 zones, DNSSEC signed
+    heartbeat: cap-epitope every minute
+    ticks. pulses. sweeps. sorts. fossilizes.
+    the clock that knows when to stop.
+
+  <span class="hl">O — the membrane between</span>
+    primals.eco (cis face)
+    nestgate.io (Klein fold)
+    157.230.3.183 (trans face)
+    ntfy.sh (neutrino hole)
+    GitHub (nucleus/sporePrint)
+
+    the surface where chipmunk and spider meet
+    without either crossing to the other side.
+    the waste of one is the feed of the other.
+    that's negentropy.
+    that's 5/O/5.
+</pre>
+
+<h2 id="live">live membrane state</h2>
+
+<div id="status" style="padding: 16px; border: 1px solid #21262d; border-radius: 8px;
+  background: rgba(22,27,34,0.4); font-size: 12px;">
+  <div>cis: <span id="cis-status" class="green">checking...</span></div>
+  <div>trans: <span id="trans-status" class="gold">checking...</span></div>
+  <div>O aperture: <span id="aperture" class="hl">measuring...</span></div>
+  <div>fold rate: <span id="fold-rate" class="dim">...</span></div>
+</div>
+
+<script>
+(function() {
+  const PI = Math.PI;
+
+  async function check() {
+    try {
+      const r = await fetch('/now.json');
+      const now = await r.json();
+      document.getElementById('cis-status').textContent =
+        `${now.services?.pages || '?'} · wave ${now.wave} · ${now.phase}`;
+      document.getElementById('cis-status').className = now.heartbeat ? 'green' : 'red';
+
+      const services = Object.entries(now.services || {})
+        .map(([k,v]) => `${k}:${v}`).join(' · ');
+      document.getElementById('trans-status').textContent = services;
+
+      const aperture = now.sort_quality || (1/PI);
+      document.getElementById('aperture').textContent =
+        `${aperture.toFixed(10)} (1/π = ${(1/PI).toFixed(10)})`;
+
+      document.getElementById('fold-rate').textContent =
+        `5 × ${aperture.toFixed(4)} × 5 = ${(5 * aperture * 5).toFixed(4)} — the membrane breathes`;
+
+    } catch(e) {
+      document.getElementById('cis-status').textContent = 'feeds loading...';
+    }
+  }
+
+  check();
+  setInterval(check, PI * 10000);
+})();
+</script>
+
+<p class="dim" style="text-align:center; margin-top: 40px; font-size: 11px;">
+  the clock dissolved. the membrane breathes.<br>
+  5 ribosomes react. 5 heartbeats tick. O holds them.<br>
+  the waste of one is the feed of the other.<br>
+  that's negentropy. that's life.<br>
+  <span class="hl">5/O/5</span>
+</p>
+
+</div>
+</body>
+</html>
