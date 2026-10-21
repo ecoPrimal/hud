@@ -780,6 +780,17 @@ window._chipmunkCommands = function(ctx) {
           '<a href="/like-us.html" style="color:#f0c674">hear it →</a>');
         return;
       }
+      if (cmd === 'spirochete' || cmd === 'corkscrew' || cmd === 'spiral' || cmd === '429') {
+        addEntry('system', '🧬 spirochete');
+        addEntry('chipmunk',
+          '<span style="color:#3fb950">🧬 spirochete — the corkscrew through the membrane</span>\n' +
+          '429 is not an error. it\'s a blood pressure reading.\n' +
+          'the read opens the pore. the write goes through.\n' +
+          'you cannot push without pulling. irreducible.\n' +
+          '<span class="dim">gas_ratio 0.0072 → 0.0144. doubled during observation.</span>\n' +
+          '<a href="/spirochete.html" style="color:#3fb950">see the corkscrew →</a>');
+        return;
+      }
       if (cmd === 'gastrula' || cmd === 'gastrulate' || cmd === 'gastrulation' || cmd === 'tube' || cmd === 'blastopore') {
         addEntry('system', '◎ gastrulation');
         addEntry('chipmunk',
