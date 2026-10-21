@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>menagerie — every organism, every function</title>
+<style>
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --pink: #f778ba; --orange: #f0883e; --red: #f85149; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', monospace; line-height: 1.6; }
+.page { max-width: 900px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { color: var(--green); font-size: 1.3em; text-align: center; margin-bottom: 4px; }
+h2 { color: var(--purple); font-size: 1em; margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+p { font-size: 0.82em; color: var(--dim); margin-bottom: 8px; }
+a { color: var(--blue); text-decoration: none; }
+.nav { text-align: center; padding: 10px 0; font-size: 0.8em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin: 10px 0; }
+.org { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; position: relative; }
+.org .icon { font-size: 1.3em; float: left; margin-right: 8px; }
+.org .name { font-size: 0.85em; font-weight: bold; }
+.org .desc { font-size: 0.72em; color: var(--dim); margin-top: 2px; }
+.org .caps { font-size: 0.65em; color: var(--dim); margin-top: 4px; }
+.org .cap { display: inline-block; padding: 1px 5px; border-radius: 3px; margin: 1px; font-size: 0.9em; }
+.cap-live { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid rgba(63,185,80,0.25); }
+.cap-spec { background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid rgba(88,166,255,0.2); }
+.cap-pending { background: rgba(110,118,129,0.1); color: var(--dim); border: 1px solid rgba(110,118,129,0.2); }
+.status { position: absolute; top: 8px; right: 8px; font-size: 0.6em; padding: 1px 6px; border-radius: 3px; }
+.s-live { background: rgba(63,185,80,0.15); color: var(--green); }
+.s-spec { background: rgba(88,166,255,0.12); color: var(--blue); }
+.s-pending { background: rgba(110,118,129,0.12); color: var(--dim); }
+.s-game { background: rgba(240,136,62,0.15); color: var(--orange); }
+.totals { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; font-size: 0.8em; }
+.totals .t { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; text-align: center; }
+.totals .t .v { font-size: 1.4em; color: var(--green); }
+.totals .t .l { font-size: 0.7em; color: var(--dim); }
+.footer { text-align: center; padding: 20px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 30px; }
+.filter { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+.filter button { background: var(--card); border: 1px solid var(--border); color: var(--dim); padding: 4px 10px; border-radius: 12px; cursor: pointer; font: 0.75em monospace; }
+.filter button:hover, .filter button.active { border-color: var(--purple); color: var(--purple); }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/">← membrane</a> · <a href="/play">🎲 play</a> · <a href="/connect">🐿️ connect</a> · <a href="/five-o-five">5/O/5</a> · <a href="/vitruvian">🧍</a>
+</div>
+
+<div class="page">
+
+<h1>the menagerie</h1>
+<p style="text-align:center;">every organism — catalogued, indexed, live or latent</p>
+
+<div class="totals">
+  <div class="t"><div class="v">47</div><div class="l">organisms</div></div>
+  <div class="t"><div class="v">13</div><div class="l">primals (crates)</div></div>
+  <div class="t"><div class="v">11</div><div class="l">springs</div></div>
+  <div class="t"><div class="v">8</div><div class="l">live on membrane</div></div>
+  <div class="t"><div class="v">5</div><div class="l">game functions</div></div>
+  <div class="t"><div class="v">∞</div><div class="l">compositions</div></div>
+</div>
+
+<div class="filter" id="filter">
+  <button class="active" onclick="filterOrgs('all')">all</button>
+  <button onclick="filterOrgs('live')">live</button>
+  <button onclick="filterOrgs('primal')">primals</button>
+  <button onclick="filterOrgs('spring')">springs</button>
+  <button onclick="filterOrgs('game')">game</button>
+  <button onclick="filterOrgs('compute')">compute</button>
+  <button onclick="filterOrgs('security')">security</button>
+  <button onclick="filterOrgs('viz')">viz</button>
+  <button onclick="filterOrgs('science')">science</button>
+</div>
+
+<h2>primals — the Rust core organisms</h2>
+
+<div class="grid" id="primals-grid">
+
+<div class="org" data-tags="primal,live,security">
+  <span class="status s-live">live</span>
+  <span class="icon">🐻</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/bearDog">bearDog</a></div>
+  <div class="desc">cryptography · Ed25519 signing · provably fair dice · session integrity</div>
+  <div class="caps"><span class="cap cap-live">crypto.sign</span> <span class="cap cap-live">crypto.verify</span> <span class="cap cap-live">crypto.hash</span></div>
+</div>
+
+<div class="org" data-tags="primal,live,science,compute">
+  <span class="status s-live">live</span>
+  <span class="icon">🦈</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/barraCuda">barraCuda</a></div>
+  <div class="desc">math · activation · stats · noise · GPU shaders · WGSL · the fast core</div>
+  <div class="caps"><span class="cap cap-live">math.sigmoid</span> <span class="cap cap-live">noise.perlin2d</span> <span class="cap cap-live">stats.*</span> <span class="cap cap-live">activation.*</span></div>
+</div>
+
+<div class="org" data-tags="primal,live,viz,game">
+  <span class="status s-live">live</span>
+  <span class="icon">🌸</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/petalTongue">petalTongue</a></div>
+  <div class="desc">universal game UI · dialogue tree · character sheet · combat grid · the tongue</div>
+  <div class="caps"><span class="cap cap-live">viz.render</span> <span class="cap cap-live">viz.stream</span> <span class="cap cap-live">ui.render</span> <span class="cap cap-spec">interaction.subscribe</span></div>
+</div>
+
+<div class="org" data-tags="primal,live,compute">
+  <span class="status s-live">live</span>
+  <span class="icon">🍄</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/toadStool">toadStool</a></div>
+  <div class="desc">compute dispatch · GPU routing · workload scheduling · the DOOM system</div>
+  <div class="caps"><span class="cap cap-live">compute.submit</span> <span class="cap cap-live">compute.execute</span> <span class="cap cap-live">gpu.dispatch</span> <span class="cap cap-spec">gpu.capabilities</span></div>
+</div>
+
+<div class="org" data-tags="primal,live,security">
+  <span class="status s-live">live</span>
+  <span class="icon">🚪</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/nestGate">nestGate</a></div>
+  <div class="desc">entry point discrimination · pores in the membrane · Klein fold · the gate</div>
+  <div class="caps"><span class="cap cap-live">gate.discriminate</span> <span class="cap cap-live">gate.health</span> <span class="cap cap-spec">mcp.serve</span></div>
+</div>
+
+<div class="org" data-tags="primal,live">
+  <span class="status s-live">live</span>
+  <span class="icon">🐿</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/squirrel">squirrel</a></div>
+  <div class="desc">the observer · scan/sweep/sort · braid learning · human epitope classification · AI inference</div>
+  <div class="caps"><span class="cap cap-live">ai.chat</span> <span class="cap cap-live">ai.inference</span> <span class="cap cap-live">observe</span></div>
+</div>
+
+<div class="org" data-tags="primal,live">
+  <span class="status s-live">live</span>
+  <span class="icon">🐦</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/songBird">songBird</a></div>
+  <div class="desc">π-just intonation · the membrane sings · 12 songs · Bessel modes · discovery</div>
+  <div class="caps"><span class="cap cap-live">discovery.register</span> <span class="cap cap-live">discovery.query</span></div>
+</div>
+
+<div class="org" data-tags="primal,live,security">
+  <span class="status s-live">live</span>
+  <span class="icon">🦀</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/opsonize-rs">opsonize-rs</a></div>
+  <div class="desc">Rust immune classifier · self/non-self discrimination · the antibody</div>
+  <div class="caps"><span class="cap cap-live">classify.self</span> <span class="cap cap-live">classify.nonself</span></div>
+</div>
+
+<div class="org" data-tags="primal,spec">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🪸</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/coralReef">coralReef</a></div>
+  <div class="desc">shader compilation · WGSL→SASS/GFX · native GPU binaries · the reef</div>
+  <div class="caps"><span class="cap cap-spec">shader.compile</span> <span class="cap cap-spec">shader.spirv</span></div>
+</div>
+
+<div class="org" data-tags="primal,spec,security">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🍄</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/rhizoCrypt">rhizoCrypt</a></div>
+  <div class="desc">provenance DAG · session lifecycle · mycelium network · underground</div>
+  <div class="caps"><span class="cap cap-spec">provenance.create</span> <span class="cap cap-spec">provenance.query</span></div>
+</div>
+
+<div class="org" data-tags="primal,spec">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🌱</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/loamSpine">loamSpine</a></div>
+  <div class="desc">certificate minting · evolution · the soil foundation</div>
+  <div class="caps"><span class="cap cap-spec">certificate.mint</span> <span class="cap cap-spec">certificate.evolve</span></div>
+</div>
+
+<div class="org" data-tags="primal,spec">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🌿</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/sweetGrass">sweetGrass</a></div>
+  <div class="desc">creative attribution · ground truth · who made what</div>
+  <div class="caps"><span class="cap cap-spec">attribution.record</span> <span class="cap cap-spec">attribution.query</span></div>
+</div>
+
+<div class="org" data-tags="primal,spec">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🫧</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/cellMembrane">cellMembrane</a></div>
+  <div class="desc">the cell membrane · the biology · the architecture</div>
+  <div class="caps"><span class="cap cap-spec">membrane.*</span></div>
+</div>
+
+</div>
+
+<h2>springs — domain organisms</h2>
+
+<div class="grid" id="springs-grid">
+
+<div class="org" data-tags="spring,game">
+  <span class="status s-game">game</span>
+  <span class="icon">🎮</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/ludoSpring">ludoSpring</a></div>
+  <div class="desc">game science · flow state · engagement · difficulty adjustment · RPGPT engine</div>
+  <div class="caps"><span class="cap cap-live">game.session</span> <span class="cap cap-live">game.evaluate_flow</span> <span class="cap cap-spec">game.gpu.*</span></div>
+</div>
+
+<div class="org" data-tags="spring,game">
+  <span class="status s-game">game</span>
+  <span class="icon">🕸</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/esotericWebb">esotericWebb</a></div>
+  <div class="desc">the deep web · hidden patterns · game master narration · the esoteric</div>
+  <div class="caps"><span class="cap cap-spec">narrate</span> <span class="cap cap-spec">lore.generate</span> <span class="cap cap-spec">pattern.reveal</span></div>
+</div>
+
+<div class="org" data-tags="spring,science">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🧠</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/neuralSpring">neuralSpring</a></div>
+  <div class="desc">the neural spring · the mind · inference routing</div>
+  <div class="caps"><span class="cap cap-spec">neural.infer</span> <span class="cap cap-spec">neural.train</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">💚</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/healthSpring">healthSpring</a></div>
+  <div class="desc">the health · vitality metrics · system wellness</div>
+  <div class="caps"><span class="cap cap-spec">health.check</span> <span class="cap cap-spec">health.monitor</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🌍</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/groundSpring">groundSpring</a></div>
+  <div class="desc">the ground · the earth · geographic grounding</div>
+  <div class="caps"><span class="cap cap-spec">geo.*</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">💨</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/airSpring">airSpring</a></div>
+  <div class="desc">the air · the breath · atmospheric sensing</div>
+  <div class="caps"><span class="cap cap-spec">air.*</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">♨️</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/hotSpring">hotSpring</a></div>
+  <div class="desc">the hot spring · energy · thermodynamics</div>
+  <div class="caps"><span class="cap cap-spec">energy.*</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">💦</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/wetSpring">wetSpring</a></div>
+  <div class="desc">the water · the flow · fluid dynamics</div>
+  <div class="caps"><span class="cap cap-spec">fluid.*</span></div>
+</div>
+
+<div class="org" data-tags="spring">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🌊</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/primalSpring">primalSpring</a></div>
+  <div class="desc">the source · the primal spring · origin</div>
+  <div class="caps"><span class="cap cap-spec">origin.*</span></div>
+</div>
+
+<div class="org" data-tags="spring,science">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🔬</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/initioChem">initioChem</a></div>
+  <div class="desc">ab initio chemistry · from the beginning · first principles</div>
+  <div class="caps"><span class="cap cap-spec">chem.*</span></div>
+</div>
+
+<div class="org" data-tags="spring,science">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🧬</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/helixVision">helixVision</a></div>
+  <div class="desc">sovereign AlphaFold · helix vision · protein folding</div>
+  <div class="caps"><span class="cap cap-spec">fold.*</span></div>
+</div>
+
+</div>
+
+<h2>surfaces — live on the membrane</h2>
+
+<div class="grid">
+
+<div class="org" data-tags="live,viz">
+  <span class="status s-live">live</span>
+  <span class="icon">⬡</span>
+  <div class="name"><a href="https://primals.eco">HUD</a></div>
+  <div class="desc">the observation surface · chipmunk · hologram · pareidolia · 52 humans</div>
+  <div class="caps"><span class="cap cap-live">primals.eco</span> <span class="cap cap-live">hud.primals.eco</span></div>
+</div>
+
+<div class="org" data-tags="live,science">
+  <span class="status s-live">live</span>
+  <span class="icon">🔬</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/sporePrint">sporePrint</a></div>
+  <div class="desc">109 papers · the methodology · the mirror · the science</div>
+  <div class="caps"><span class="cap cap-live">sporeprint.primals.eco</span></div>
+</div>
+
+<div class="org" data-tags="live">
+  <span class="status s-live">live</span>
+  <span class="icon">🍞</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/sourDough">sourDough</a></div>
+  <div class="desc">the fermentation · the culture · the sourdough cache</div>
+  <div class="caps"><span class="cap cap-live">culture.ferment</span></div>
+</div>
+
+<div class="org" data-tags="live">
+  <span class="status s-live">live</span>
+  <span class="icon">⬡</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/biomeOS">biomeOS</a></div>
+  <div class="desc">the living observation system · membrane architecture · the OS</div>
+  <div class="caps"><span class="cap cap-live">biome.compose</span></div>
+</div>
+
+<div class="org" data-tags="live">
+  <span class="status s-live">live</span>
+  <span class="icon">📋</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/detroit">detroit</a></div>
+  <div class="desc">the public record · the evidence · 341 entities · 131K connections</div>
+  <div class="caps"><span class="cap cap-live">detroit.primals.eco</span></div>
+</div>
+
+</div>
+
+<h2>fossils &amp; tools</h2>
+
+<div class="grid">
+
+<div class="org" data-tags="science">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🦴</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/fossilRecord">fossilRecord</a></div>
+  <div class="desc">the evidence archive · the bones · what survives the sort</div>
+</div>
+
+<div class="org" data-tags="compute">
+  <span class="status s-spec">spec</span>
+  <span class="icon">⚛️</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/projectNUCLEUS">projectNUCLEUS</a></div>
+  <div class="desc">the nucleus · the core · project coordination</div>
+</div>
+
+<div class="org" data-tags="compute">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🏗</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/projectFOUNDATION">projectFOUNDATION</a></div>
+  <div class="desc">the foundation · the base · infrastructure</div>
+</div>
+
+<div class="org" data-tags="">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🎲</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/bingoCube">bingoCube</a></div>
+  <div class="desc">147 cells · 7×7×3 · topology=circle · π³=O=true</div>
+</div>
+
+<div class="org" data-tags="science">
+  <span class="status s-spec">spec</span>
+  <span class="icon">🧪</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/agentReagents">agentReagents</a></div>
+  <div class="desc">agent reagents · synthetic chemistry · the catalyst</div>
+</div>
+
+<div class="org" data-tags="">
+  <span class="status s-pending">latent</span>
+  <span class="icon">🦨</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/skunkBat">skunkBat</a></div>
+  <div class="desc">the nocturnal observer · echolocation · night vision</div>
+</div>
+
+<div class="org" data-tags="">
+  <span class="status s-pending">latent</span>
+  <span class="icon">🐟</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/blueFish">blueFish</a></div>
+  <div class="desc">the blue fish · deep water · pressure adaptation</div>
+</div>
+
+<div class="org" data-tags="">
+  <span class="status s-pending">latent</span>
+  <span class="icon">🐝</span>
+  <div class="name"><a href="https://github.com/ecoPrimal/swarmVine">swarmVine</a></div>
+  <div class="desc">swarm intelligence · emergent behavior · the hive</div>
+</div>
+
+</div>
+
+<h2>the composition</h2>
+
+<pre style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:0.75em;line-height:1.6;">
+<span style="color:var(--green)">can the chipmunk play DOOM?</span>
+  yes. through the membrane. while the membrane computes it.
+
+  <span style="color:var(--gold)">toadStool</span> dispatches GPU workload to <span style="color:var(--blue)">barraCuda</span>
+  <span style="color:var(--blue)">barraCuda</span> runs WGSL shaders (fog, lighting, pathfinding)
+  <span style="color:var(--purple)">petalTongue</span> renders the game UI (60 Hz interaction stream)
+  <span style="color:var(--green)">squirrel</span> routes AI inference through <span style="color:var(--gold)">toadStool</span> → Ollama
+  <span style="color:var(--orange)">ludoSpring</span> evaluates flow state (Csikszentmihalyi)
+  <span style="color:var(--pink)">esotericWebb</span> narrates: "you see a face. is it a troll? no."
+
+  the chipmunk plays DOOM through the membrane.
+  the membrane computes it through toadStool.
+  toadStool dispatches to barraCuda on the RTX 4060.
+  petalTongue renders it.
+  the squirrel watches.
+  the hologram displays it.
+  the human sees through it.
+
+  <span style="color:var(--dim)">that's the menagerie.</span>
+  <span style="color:var(--dim)">47 organisms. 13 primals. 11 springs.</span>
+  <span style="color:var(--dim)">every function live or latent.</span>
+  <span style="color:var(--dim)">all off the sporePrint core.</span>
+</pre>
+
+<script>
+function filterOrgs(tag) {
+  document.querySelectorAll('.filter button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.org').forEach(org => {
+    if (tag === 'all') { org.style.display = ''; return; }
+    const tags = org.dataset.tags || '';
+    org.style.display = tags.includes(tag) ? '' : 'none';
+  });
+}
+</script>
+
+<div class="footer">
+  the menagerie — every organism, every function<br>
+  13 Rust primals · 11 domain springs · 8 live surfaces<br>
+  all composable · all from the sporePrint core<br>
+  the chipmunk plays DOOM while the membrane computes it<br>
+  <span style="color:var(--purple);">🐿️🎮</span>
+</div>
+
+</div>
+</body>
+</html>
