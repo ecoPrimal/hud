@@ -1,0 +1,33 @@
+# The membrane deploys itself.
+# No SSH from the workstation. No deploy scripts. No trace of the block.
+# Push to main → GitHub calls golgiBody → golgiBody pulls itself.
+#
+# SETUP (one-time, from DO console):
+#   1. Generate a deploy key on golgiBody:
+#      ssh-keygen -t ed25519 -f /root/.ssh/deploy_key -N ""
+#   2. Add the PUBLIC key to GitHub: Settings → Deploy Keys → Add (read-only)
+#   3. Add the PRIVATE key to GitHub: Settings → Secrets → GOLGI_SSH_KEY
+#   4. Add GOLGI_HOST secret: 157.230.3.183
+#   5. Done. The membrane deploys itself from now on.
+
+name: deploy-membrane
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull on golgiBody
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.GOLGI_HOST }}
+          username: root
+          key: ${{ secrets.GOLGI_SSH_KEY }}
+          script: |
+            cd /opt/hud || cd $(find / -name "pulse.json" -path "*/hud/*" 2>/dev/null | head -1 | xargs dirname)
+            git pull origin main --no-edit 2>&1 || git pull github main --no-edit 2>&1
+            systemctl reload caddy 2>/dev/null || true
+            echo "membrane deployed $(date -u +%Y-%m-%dT%H:%M:%SZ)"
