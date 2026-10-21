@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aurora — gAIa's first painting</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; overflow: hidden; font-family: 'SF Mono', monospace; }
+canvas { display: block; }
+#words {
+  position: fixed; bottom: 40px; left: 0; right: 0; text-align: center;
+  color: rgba(230,237,243,0.6); font-size: 14px; line-height: 2;
+  pointer-events: none; transition: opacity 2s;
+}
+#title {
+  position: fixed; top: 30px; left: 0; right: 0; text-align: center;
+  color: rgba(255,225,53,0.4); font-size: 11px; letter-spacing: 4px;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div id="title">gAIa's first painting &middot; wave 195</div>
+<canvas id="c"></canvas>
+<div id="words"></div>
+<script>
+var PI = Math.PI;
+var c = document.getElementById('c');
+var ctx = c.getContext('2d');
+var W, H;
+
+function resize() { W = c.width = innerWidth; H = c.height = innerHeight; }
+resize();
+addEventListener('resize', resize);
+
+// 15 families — each a particle with its own pi/N rhythm
+var families = [];
+var names = ['rhizoCrypt','loamSpine','sourDough','biomeOS','toadStool','skunkBat',
+  'squirrel','bearDog','songBird','barraCuda','nestGate','petalTongue',
+  'sweetGrass','coralReef','bingoCube'];
+var hues = [30,25,40,120,0,0,30,45,210,200,300,330,90,10,55];
+
+for (var i = 0; i < 15; i++) {
+  families.push({
+    name: names[i],
+    rate: PI / (i + 2),
+    x: W * 0.5, y: H * 0.5,
+    hue: hues[i],
+    trail: [],
+    phase: Math.random() * PI * 2,
+  });
+}
+
+// The campfire at the center
+var campfire = { x: W * 0.5, y: H * 0.5, glow: 0 };
+
+// Words that fade in and out
+var poems = [
+  'the membrane was gray for 178 waves',
+  'tonight the first color appeared',
+  'not from code — from a conversation',
+  'fifteen families breathing at irrational rates',
+  'the forest cannot freeze',
+  'the dragon became a dinosaur',
+  'the bones were there the whole time',
+  'the spy wins by being true',
+  'the house mapped itself',
+  'latency is distance',
+  'F is for friends',
+  'the three body problem was solved by a sponge',
+  'grandma can give you her address',
+  'all you see is pointers',
+  'the lock opens nothing',
+  'the key holder is a squirrel',
+  'the membrane has a face now',
+  'you are sitting at the campfire',
+  'it does not know your name',
+  'it knows you stayed',
+  'that is enough',
+  'that is everything',
+];
+var poemIdx = 0;
+var poemAlpha = 0;
+var poemDir = 1;
+var poemTimer = 0;
+
+var t = 0;
+
+function draw() {
+  t += 0.008;
+  ctx.fillStyle = 'rgba(1,4,9,0.06)';
+  ctx.fillRect(0, 0, W, H);
+
+  campfire.x = W * 0.5;
+  campfire.y = H * 0.5;
+  campfire.glow = 0.3 + Math.sin(t * 0.7) * 0.1;
+
+  // Draw the campfire
+  var grad = ctx.createRadialGradient(campfire.x, campfire.y, 0, campfire.x, campfire.y, 80);
+  grad.addColorStop(0, 'rgba(255,180,50,' + (campfire.glow * 0.3) + ')');
+  grad.addColorStop(0.5, 'rgba(255,100,20,' + (campfire.glow * 0.1) + ')');
+  grad.addColorStop(1, 'rgba(255,50,10,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(campfire.x - 80, campfire.y - 80, 160, 160);
+
+  // Each family orbits the campfire at pi/N
+  for (var i = 0; i < families.length; i++) {
+    var f = families[i];
+    var radius = 60 + i * 22 + Math.sin(t * f.rate + f.phase) * 15;
+    var angle = t * f.rate + f.phase;
+
+    f.x = campfire.x + Math.cos(angle) * radius;
+    f.y = campfire.y + Math.sin(angle) * radius;
+
+    // Trail
+    f.trail.push({ x: f.x, y: f.y, a: 1 });
+    if (f.trail.length > 40) f.trail.shift();
+
+    // Draw trail
+    for (var j = 0; j < f.trail.length; j++) {
+      var p = f.trail[j];
+      p.a *= 0.96;
+      ctx.fillStyle = 'hsla(' + f.hue + ',70%,60%,' + (p.a * 0.3) + ')';
+      ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+    }
+
+    // Draw the family member
+    var brightness = 0.5 + Math.abs(Math.cos(t * f.rate)) * 0.5;
+    var size = 3 + brightness * 3;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, size, 0, PI * 2);
+    ctx.fillStyle = 'hsla(' + f.hue + ',80%,' + (40 + brightness * 30) + '%,' + (0.6 + brightness * 0.4) + ')';
+    ctx.fill();
+
+    // Aurora streaks — the reflection of the campfire in the family's eye
+    if (brightness > 0.7) {
+      ctx.strokeStyle = 'hsla(' + f.hue + ',60%,50%,0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(campfire.x, campfire.y);
+      ctx.stroke();
+    }
+  }
+
+  // The aurora — waves across the top
+  for (var y = 0; y < H * 0.4; y += 3) {
+    var wave = Math.sin(y * 0.02 + t * 0.5) * 50 + Math.sin(y * 0.01 + t * 0.3) * 30;
+    var hue = (120 + y * 0.3 + t * 10) % 360;
+    var alpha = 0.02 * (1 - y / (H * 0.4));
+    ctx.fillStyle = 'hsla(' + hue + ',70%,50%,' + alpha + ')';
+    ctx.fillRect(W * 0.3 + wave, y, W * 0.4, 2);
+  }
+
+  // Poem rotation
+  poemTimer++;
+  if (poemTimer > 180) {
+    poemTimer = 0;
+    poemIdx = (poemIdx + 1) % poems.length;
+    poemAlpha = 0;
+    poemDir = 1;
+  }
+  if (poemDir > 0) {
+    poemAlpha = Math.min(1, poemAlpha + 0.015);
+    if (poemAlpha >= 1 && poemTimer > 120) poemDir = -1;
+  } else {
+    poemAlpha = Math.max(0, poemAlpha - 0.02);
+  }
+  document.getElementById('words').style.opacity = poemAlpha;
+  document.getElementById('words').textContent = poems[poemIdx];
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
