@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sovereign Identity — primals.eco membrane</title>
+<meta name="description" content="Claim your membrane identity. No email. No password. No tracking. A keypair and a handshake with the chipmunk.">
+<style>
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --banana: #FFE135; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6; padding: 20px; max-width: 700px; margin: 0 auto; }
+h1 { color: var(--green); font-size: 1.4em; margin-bottom: 4px; }
+h2 { color: var(--purple); font-size: 1.1em; margin: 24px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+p { font-size: 0.85em; color: var(--dim); margin-bottom: 8px; }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size: 0.85em; color: var(--gold); }
+.nav { text-align: center; padding: 12px 0; font-size: 0.8em; }
+.hero { text-align: center; padding: 40px 0 20px; }
+.hero .icon { font-size: 3em; }
+.hero .subtitle { color: var(--dim); font-size: 0.85em; margin-top: 4px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.step { display: flex; gap: 14px; align-items: flex-start; margin: 16px 0; }
+.step-num { background: var(--green); color: #000; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85em; flex-shrink: 0; }
+.step-body { flex: 1; }
+.step-body .title { color: var(--text); font-weight: bold; font-size: 0.9em; }
+.step-body .desc { color: var(--dim); font-size: 0.8em; margin-top: 2px; }
+.btn { display: inline-block; padding: 12px 30px; border-radius: 6px; font-family: inherit; font-size: 0.9em; font-weight: bold; cursor: pointer; transition: all 0.2s; border: none; }
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: var(--green); color: #000; }
+.btn-banana { background: var(--banana); color: #000; }
+.phase { display: none; }
+.phase.active { display: block; }
+.key-display { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.75em; word-break: break-all; margin: 12px 0; color: var(--green); }
+.warning { background: rgba(255,225,53,0.08); border: 1px solid rgba(255,225,53,0.3); border-radius: 6px; padding: 12px; margin: 12px 0; font-size: 0.8em; color: var(--banana); }
+.trust-meter { height: 6px; background: var(--border); border-radius: 3px; margin: 8px 0; overflow: hidden; }
+.trust-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 1s ease; }
+.ecology { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.ecology .primal { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 0.7em; color: var(--dim); }
+.ecology .primal.met { border-color: var(--green); color: var(--green); }
+.footer { text-align: center; padding: 20px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<div class="nav"><a href="/">← biomeOS</a> · <a href="/banana.html">🍌 banana</a> · <a href="/connect.html">connect agent</a></div>
+
+<!-- PHASE 1: INTRODUCTION -->
+<div class="phase active" id="phase1">
+<div class="hero">
+  <div class="icon">🛡️</div>
+  <h1>Sovereign Identity</h1>
+  <div class="subtitle">your keys. your data. your membrane.</div>
+</div>
+
+<div class="card">
+  <p style="color:var(--text);font-size:0.9em">This is not a sign-up form.</p>
+  <p>No email. No password. No phone number. No OAuth. No third party.</p>
+  <p>Your identity is a <strong style="color:var(--green)">keypair</strong> generated in your browser. The private key never leaves your device. The public key is your membrane address — how the chipmunk recognizes you when you return.</p>
+</div>
+
+<h2>How it works</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <div class="title">🍌 Banana check</div>
+    <div class="desc">You proved you're not a banana (or a bot). The membrane noticed you ring the doorbell. <span id="bananaStatus" style="color:var(--green)"></span></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <div class="title">🔑 Generate keypair</div>
+    <div class="desc">Ed25519 keypair generated in your browser. Private key stays with you. Public key becomes your membrane address.</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <div class="title">🐿️ Chipmunk handshake</div>
+    <div class="desc">Your public key is sent to the chipmunk. It gives you a neutron inbox — your private mailbox inside the membrane. Trust starts at 0 and grows at 1/π per interaction.</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <div class="title">🌿 Meet the ecology</div>
+    <div class="desc">The chipmunk introduces you to the primal families at π-rate intervals. bearDog first (trust guardian), then deeper into the forest. Swarmvines lead you home.</div>
+  </div>
+</div>
+
+<div class="warning">
+  ⚠️ <strong>Your private key is YOUR responsibility.</strong> We cannot recover it. We never see it. If you lose it, generate a new one — the membrane lets you start fresh. There is no "forgot password" because there is no password.
+</div>
+
+<div style="text-align:center;margin:30px 0">
+  <button class="btn btn-primary" onclick="startForge()">forge my identity 🔑</button>
+</div>
+</div>
+
+<!-- PHASE 2: KEY GENERATION -->
+<div class="phase" id="phase2">
+<div class="hero">
+  <div class="icon">⚡</div>
+  <h1>Forging...</h1>
+  <div class="subtitle">generating Ed25519 keypair in your browser</div>
+</div>
+
+<div class="card">
+  <p style="color:var(--text)">Your public key (membrane address):</p>
+  <div class="key-display" id="pubKeyDisplay">generating...</div>
+
+  <p style="color:var(--text);margin-top:16px">Your private key (save this!):</p>
+  <div class="key-display" id="privKeyDisplay" style="color:var(--banana)">generating...</div>
+
+  <div class="warning" style="margin-top:16px">
+    📋 Copy your private key NOW and store it somewhere safe. This is the only time you'll see it. The membrane never stores your private key.
+  </div>
+
+  <div style="text-align:center;margin:20px 0">
+    <button class="btn btn-banana" onclick="copyPrivKey()">📋 copy private key</button>
+  </div>
+  <p id="copyConfirm" style="text-align:center;color:var(--green);display:none">✓ copied to clipboard</p>
+</div>
+
+<div style="text-align:center;margin:30px 0">
+  <button class="btn btn-primary" id="handshakeBtn" onclick="startHandshake()" disabled style="opacity:0.5">
+    handshake with chipmunk 🐿️
+  </button>
+  <p style="color:var(--dim);font-size:0.75em;margin-top:6px" id="handshakeHint">copy your private key first</p>
+</div>
+</div>
+
+<!-- PHASE 3: HANDSHAKE -->
+<div class="phase" id="phase3">
+<div class="hero">
+  <div class="icon">🐿️</div>
+  <h1>Welcome to the membrane.</h1>
+  <div class="subtitle" id="welcomeAddr">address: loading...</div>
+</div>
+
+<div class="card">
+  <p style="color:var(--text);font-size:0.95em">The chipmunk sees you.</p>
+  <p>Your neutron inbox is ready. Trust starts now.</p>
+
+  <div style="margin:16px 0">
+    <p style="color:var(--dim);font-size:0.8em">trust level:</p>
+    <div class="trust-meter"><div class="trust-fill" id="trustFill" style="width:3%"></div></div>
+    <p style="color:var(--green);font-size:0.8em">1/π ≈ 0.318 — trust grows irrationally. it never reaches 1.0.</p>
+  </div>
+
+  <h2 style="margin-top:20px">your membrane</h2>
+  <p>You start with:</p>
+  <div style="margin:8px 0 8px 16px;font-size:0.85em">
+    <p>📬 <strong style="color:var(--green)">neutron inbox</strong> — private messages from the membrane</p>
+    <p>🐿️ <strong style="color:var(--green)">chipmunk companion</strong> — your guide to the ecology</p>
+    <p>🫗 <strong style="color:var(--green)">sourdough starter</strong> — a bit of culture to get you fermenting</p>
+  </div>
+
+  <h2 style="margin-top:20px">ecology</h2>
+  <p>The chipmunk will introduce you to the primal families at π-rate. bearDog first.</p>
+  <div class="ecology" id="ecologyList"></div>
+</div>
+
+<div class="card" style="border-color:var(--green)">
+  <p style="color:var(--green);text-align:center;font-size:0.9em">🌿 as long as you look for the swarmvines, you can find your way home.</p>
+  <p style="text-align:center;font-size:0.8em;margin-top:8px"><a href="/">enter the membrane →</a> · <a href="/connect.html">connect your agent →</a></p>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>sovereign identity — no third party, no tracking, no recovery</p>
+  <p>Ed25519 · WebCrypto API · client-side only</p>
+  <p style="margin-top:4px"><a href="https://primals.eco">primals.eco</a> · wave 178</p>
+</div>
+
+<script>
+var keypair = null;
+var pubKeyHex = '';
+var privKeyCopied = false;
+
+// Check banana status
+(function() {
+  var bump = localStorage.getItem('banana-bump-v1');
+  var status = document.getElementById('bananaStatus');
+  if (bump && bump !== 'stone') {
+    status.textContent = '✓ banana check passed';
+  } else if (bump === 'stone') {
+    status.textContent = '🪨 classified as stone — ring the doorbell first';
+    status.style.color = '#f0e68c';
+  } else {
+    status.textContent = '— not yet checked';
+    status.style.color = '#8b949e';
+  }
+})();
+
+async function startForge() {
+  showPhase(2);
+
+  try {
+    keypair = await window.crypto.subtle.generateKey(
+      { name: 'Ed25519' },
+      true,
+      ['sign', 'verify']
+    );
+
+    var pubRaw = await window.crypto.subtle.exportKey('raw', keypair.publicKey);
+    var privRaw = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey);
+
+    pubKeyHex = Array.from(new Uint8Array(pubRaw)).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+
+    var privKeyHex = Array.from(new Uint8Array(privRaw)).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+
+    document.getElementById('pubKeyDisplay').textContent = pubKeyHex;
+    document.getElementById('privKeyDisplay').textContent = privKeyHex;
+
+    localStorage.setItem('membrane-pubkey', pubKeyHex);
+  } catch(e) {
+    // Ed25519 may not be supported in all browsers — fallback to ECDSA P-256
+    try {
+      keypair = await window.crypto.subtle.generateKey(
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        true,
+        ['sign', 'verify']
+      );
+
+      var pubRaw = await window.crypto.subtle.exportKey('raw', keypair.publicKey);
+      var privRaw = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey);
+
+      pubKeyHex = Array.from(new Uint8Array(pubRaw)).map(function(b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+
+      var privKeyHex = Array.from(new Uint8Array(privRaw)).map(function(b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+
+      document.getElementById('pubKeyDisplay').textContent = pubKeyHex + ' (P-256 fallback)';
+      document.getElementById('privKeyDisplay').textContent = privKeyHex;
+
+      localStorage.setItem('membrane-pubkey', pubKeyHex);
+    } catch(e2) {
+      document.getElementById('pubKeyDisplay').textContent = 'ERROR: WebCrypto not available. Use a modern browser.';
+      document.getElementById('privKeyDisplay').textContent = 'generation failed';
+      return;
+    }
+  }
+}
+
+function copyPrivKey() {
+  var key = document.getElementById('privKeyDisplay').textContent;
+  navigator.clipboard.writeText(key).then(function() {
+    document.getElementById('copyConfirm').style.display = 'block';
+    privKeyCopied = true;
+    var btn = document.getElementById('handshakeBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    document.getElementById('handshakeHint').textContent = 'ready — your key is saved';
+    document.getElementById('handshakeHint').style.color = '#3fb950';
+  });
+}
+
+async function startHandshake() {
+  showPhase(3);
+
+  var shortAddr = pubKeyHex.substring(0, 12) + '...' + pubKeyHex.substring(pubKeyHex.length - 8);
+  document.getElementById('welcomeAddr').textContent = 'address: ' + shortAddr;
+
+  // Send handshake to membrane
+  try {
+    await fetch('/chipmunk/note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session: 'identity-' + Date.now(),
+        note: 'sovereign identity forged',
+        context: {
+          source: 'identity-forge',
+          pubkey: pubKeyHex,
+          banana_status: localStorage.getItem('banana-bump-v1') || 'none',
+          ts: new Date().toISOString()
+        }
+      })
+    });
+  } catch(e) {}
+
+  // Build ecology list
+  var primals = [
+    { name: 'bearDog', emoji: '🐻', met: true },
+    { name: 'songBird', emoji: '🐦', met: false },
+    { name: 'skunkBat', emoji: '🦨', met: false },
+    { name: 'squirrel', emoji: '🐿️', met: true },
+    { name: 'toadStool', emoji: '🍄', met: false },
+    { name: 'loamSpine', emoji: '🪱', met: false },
+    { name: 'sweetGrass', emoji: '🌾', met: false },
+    { name: 'barraCuda', emoji: '🐟', met: false },
+    { name: 'biomeOS', emoji: '🍄', met: false },
+    { name: 'sourDough', emoji: '🫗', met: true },
+    { name: 'swarmVine', emoji: '🌿', met: false },
+    { name: 'bingoCube', emoji: '🎲', met: false },
+    { name: 'coralReef', emoji: '🪸', met: false },
+    { name: 'petalTongue', emoji: '🦎', met: false },
+    { name: 'nestGate', emoji: '🐀', met: false },
+    { name: 'rhizoCrypt', emoji: '🕸️', met: false },
+  ];
+
+  var el = document.getElementById('ecologyList');
+  el.innerHTML = primals.map(function(p) {
+    return '<div class="primal' + (p.met ? ' met' : '') + '">' + p.emoji + ' ' + p.name + (p.met ? ' ✓' : '') + '</div>';
+  }).join('');
+
+  // Animate trust
+  setTimeout(function() {
+    document.getElementById('trustFill').style.width = '5%';
+  }, 500);
+}
+
+function showPhase(n) {
+  document.querySelectorAll('.phase').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('phase' + n).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
