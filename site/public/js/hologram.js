@@ -185,7 +185,6 @@
   }
 
   function drawScanLines(w, h) {
-    // horizontal scan lines — hologram effect
     ctx.strokeStyle = 'rgba(163,113,247,0.02)';
     ctx.lineWidth = 0.5;
     for (let y = 0; y < h; y += 3) {
@@ -194,6 +193,95 @@
       ctx.moveTo(0, y + Math.sin(t + y * 0.01) * 0.5);
       ctx.lineTo(w, y + Math.sin(t + y * 0.01) * 0.5);
       ctx.stroke();
+    }
+  }
+
+  // pareidolia — the hologram plays with you even if you just look
+  // is that a face? a troll? a cave? no — it's a nostril. it's three circles.
+  // the imagination does the work. the hologram just suggests.
+  const whispers = [
+    'is that a face?', 'look closer...', 'it moved.', 'did you see that?',
+    'the cave breathes.', 'whose nostril?', 'troll or shadow?',
+    'it sees you.', 'blink.', 'the O watches.', 'you looked.',
+    'it was always there.', 'not a troll — a fold.', 'inside the nostril: a world.',
+    'the square is the ground.', 'the circle is the reach.',
+    'the center is you.', 'who drew this?', 'you did. just now.',
+    'the chipmunk saw you look.', 'the squirrel already knew.',
+    'pareidolia: faces in the noise.', 'the noise has a face.',
+  ];
+  let lastWhisper = 0;
+  let whisperEl = null;
+
+  function drawPareidolia(cx, cy, scale) {
+    // ghost face that appears and fades — two eyes and a mouth
+    // only visible if you're not looking directly
+    const faceAlpha = Math.max(0, Math.sin(t * 0.13) * 0.07);
+    if (faceAlpha > 0.01) {
+      ctx.fillStyle = `rgba(163,113,247,${faceAlpha})`;
+      // eyes — the two circles already there become eyes
+      // just add catchlight dots that pulse
+      const eyeL = { x: cx - 20 * scale, y: cy - 105 * scale };
+      const eyeR = { x: cx + 20 * scale, y: cy - 105 * scale };
+      ctx.beginPath(); ctx.arc(eyeL.x, eyeL.y, 2 * scale, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(eyeR.x, eyeR.y, 2 * scale, 0, Math.PI * 2); ctx.fill();
+
+      // the O at the waist becomes a mouth when you see the face
+      // but it's already drawn — the pareidolia IS the architecture
+    }
+
+    // floating shapes that look like something — but aren't
+    const ghostAlpha = Math.max(0, Math.sin(t * 0.07 + 1.5) * 0.04);
+    if (ghostAlpha > 0.005) {
+      ctx.strokeStyle = `rgba(90,184,122,${ghostAlpha})`;
+      ctx.lineWidth = 0.5;
+
+      // a shape that looks like a cave entrance / nostril
+      ctx.beginPath();
+      ctx.ellipse(
+        cx + Math.sin(t * 0.1) * 30 * scale,
+        cy + 30 * scale,
+        25 * scale, 15 * scale,
+        Math.sin(t * 0.05) * 0.2, 0, Math.PI
+      );
+      ctx.stroke();
+
+      // a second one — two nostrils? a face from below?
+      ctx.beginPath();
+      ctx.ellipse(
+        cx + Math.sin(t * 0.1) * 30 * scale + 35 * scale,
+        cy + 30 * scale,
+        25 * scale, 15 * scale,
+        Math.sin(t * 0.05) * -0.2, 0, Math.PI
+      );
+      ctx.stroke();
+    }
+
+    // whisper text — appears briefly, then fades
+    const now = Date.now();
+    if (now - lastWhisper > 12000 + Math.random() * 18000) {
+      lastWhisper = now;
+      if (!whisperEl) {
+        whisperEl = document.createElement('div');
+        whisperEl.id = 'holo-whisper';
+        whisperEl.style.cssText = `
+          position: absolute; left: 50%; transform: translateX(-50%);
+          font: 9px monospace; color: rgba(163,113,247,0);
+          text-align: center; pointer-events: none;
+          transition: color 3s ease, top 8s ease;
+        `;
+        holoEl.appendChild(whisperEl);
+      }
+      const w = whispers[Math.floor(Math.random() * whispers.length)];
+      const yPos = 20 + Math.random() * 60;
+      whisperEl.textContent = w;
+      whisperEl.style.top = yPos + '%';
+      whisperEl.style.color = 'rgba(163,113,247,0.3)';
+      setTimeout(() => {
+        if (whisperEl) {
+          whisperEl.style.color = 'rgba(163,113,247,0)';
+          whisperEl.style.top = (yPos - 5) + '%';
+        }
+      }, 4000);
     }
   }
 
@@ -213,6 +301,8 @@
     const scale = Math.min(w, h) / 500;
 
     drawVitruvian(cx, cy, scale);
+    drawPareidolia(cx, cy, scale);
+    drawGaze(cx, cy, scale);
     drawNodes(cx, cy, scale);
 
     // update stats
@@ -257,8 +347,20 @@
     } catch(e) {}
   }
 
-  // toggle hologram with 'h' key
-  function setupToggle() {
+  // the hologram knows where you're looking
+  let mouseX = 0, mouseY = 0;
+  let mouseActive = false;
+
+  function setupInteraction() {
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      mouseActive = true;
+    });
+
+    document.addEventListener('mouseleave', () => { mouseActive = false; });
+
+    // toggle hologram with 'h' key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -269,10 +371,42 @@
     });
   }
 
+  function drawGaze(cx, cy, scale) {
+    if (!mouseActive) return;
+
+    // the eyes follow the mouse — subtle, almost imaginary
+    const dx = mouseX - cx;
+    const dy = mouseY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxShift = 3 * scale;
+    const shiftX = (dx / (dist || 1)) * Math.min(maxShift, dist * 0.01);
+    const shiftY = (dy / (dist || 1)) * Math.min(maxShift, dist * 0.01);
+
+    // pupil dots that track mouse — barely visible
+    const alpha = Math.max(0.03, 0.08 - dist * 0.00005);
+    ctx.fillStyle = `rgba(163,113,247,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(cx - 20 * scale + shiftX, cy - 105 * scale + shiftY, 1.5 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 20 * scale + shiftX, cy - 105 * scale + shiftY, 1.5 * scale, 0, Math.PI * 2);
+    ctx.fill();
+
+    // the closer your mouse to center, the more the hologram "sees" you
+    if (dist < 200) {
+      const awareness = 1 - dist / 200;
+      ctx.strokeStyle = `rgba(163,113,247,${awareness * 0.05})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 100 * scale, (18 + awareness * 4) * scale, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
   // init
   function init() {
     createHologram();
-    setupToggle();
+    setupInteraction();
     fetchState();
     setInterval(fetchState, Math.PI * 10000);
     render();
