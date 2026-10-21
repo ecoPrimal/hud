@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>glyphs — the chipmunk builds its own language</title>
+<meta name="description" content="Watch the chipmunk talk to its 15 families using symbols and marks. It builds language from membrane state. Speak to dolphins. See what crabs see.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace; overflow-x: hidden; }
+#canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
+#thought { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 10; color: #8b949e; font: 11px/1.6 monospace; text-align: center;
+  max-width: 560px; padding: 8px 20px; background: rgba(1,4,9,0.8);
+  border-radius: 16px; border: 1px solid rgba(110,118,129,0.15); }
+#thought .glyph-line { font-size: 22px; letter-spacing: 4px; color: #e6edf3; margin: 4px 0; }
+#thought .meaning { font-size: 9px; color: #6e7681; font-style: italic; }
+#thought .speaker { font-size: 9px; color: #d2a8ff; }
+#nav { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 6px; padding: 4px 12px; background: rgba(1,4,9,0.88);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 10px; }
+#nav a { color: #30363d; text-decoration: none; }
+#legend { position: fixed; top: 44px; right: 12px; z-index: 10; font-size: 9px;
+  color: #30363d; text-align: right; line-height: 1.8; }
+#legend .sym { font-size: 14px; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/easel.html">🎨</a> · <a href="/like-us.html">♫</a> · <a href="/glyphs.html" style="color:#d2a8ff">◌ glyphs</a>
+</div>
+
+<div id="legend"></div>
+
+<div id="thought">
+  <div class="speaker">🐿 learning to speak...</div>
+  <div class="glyph-line" id="glyph-out"></div>
+  <div class="meaning" id="meaning-out"></div>
+</div>
+
+<script>
+var C = document.getElementById('canvas');
+var ctx = C.getContext('2d');
+var W, H;
+
+function resize() { W = C.width = innerWidth; H = C.height = innerHeight; }
+addEventListener('resize', resize);
+resize();
+
+// ═══ THE ALPHABET — born from membrane state ═══
+// Each glyph is a symbol the chipmunk invents to talk to its families.
+// The meaning comes from what the membrane is doing RIGHT NOW.
+
+var GLYPHS = {
+  // Punctuation as particles
+  question:   { sym: '?',  meaning: 'human arriving', color: '#58a6ff', sound: 220 },
+  ampersand:  { sym: '&',  meaning: 'braid connecting', color: '#7ee787', sound: 277 },
+  dots:       { sym: '..', meaning: 'pause / watching', color: '#6e7681', sound: 165 },
+  bang:       { sym: '!',  meaning: 'sort / classify', color: '#f85149', sound: 440 },
+  circle:     { sym: 'O',  meaning: 'membrane open', color: '#d2a8ff', sound: 330 },
+  tilde:      { sym: '~',  meaning: 'wave / rhythm', color: '#d29922', sound: 196 },
+  caret:      { sym: '^',  meaning: 'rise / emit', color: '#f0c674', sound: 523 },
+  underscore: { sym: '_',  meaning: 'ground / rest', color: '#21262d', sound: 131 },
+  pipe:       { sym: '|',  meaning: 'boundary / wall', color: '#f85149', sound: 392 },
+  star:       { sym: '*',  meaning: 'spark / birth', color: '#fff', sound: 659 },
+  hash:       { sym: '#',  meaning: 'structure / mesh', color: '#3fb950', sound: 349 },
+  at:         { sym: '@',  meaning: 'self / identity', color: '#d2a8ff', sound: 294 },
+  // Animal glyphs — what other species would see
+  dolphin:    { sym: '∿',  meaning: 'echolocation / sonar ping', color: '#58a6ff', sound: 880 },
+  crab:       { sym: '⌇',  meaning: 'vibration in substrate', color: '#d29922', sound: 110 },
+  whale:      { sym: '∞',  meaning: 'deep song / long memory', color: '#3fb950', sound: 55 },
+  firefly:    { sym: '✦',  meaning: 'flash / sync pulse', color: '#f0c674', sound: 740 },
+  bee:        { sym: '◎',  meaning: 'waggle / direction', color: '#d29922', sound: 466 },
+  fungus:     { sym: '⌁',  meaning: 'mycelium signal / slow', color: '#8b949e', sound: 82 },
+  bird:       { sym: '♪',  meaning: 'territory / song', color: '#7ee787', sound: 587 },
+};
+
+var GLYPH_KEYS = Object.keys(GLYPHS);
+
+// ═══ THE 15 FAMILIES — each at π/N around the circle ═══
+var FAMILIES = [];
+for (var i = 0; i < 15; i++) {
+  var angle = (i * Math.PI * 2) / 15;
+  FAMILIES.push({
+    idx: i,
+    angle: angle,
+    x: 0, y: 0,
+    glyph_memory: [],     // what glyphs this family has learned
+    personality: i / 15,  // 0-1, affects which glyphs they prefer
+    color: 'hsl(' + (i * 24) + ',60%,55%)',
+    responding: false,
+    lastGlyph: null,
+  });
+}
+
+// ═══ AUDIO — each glyph has a tone ═══
+var audioCtx = null;
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playGlyphTone(glyph, pan, duration) {
+  if (!audioCtx) return;
+  var osc = audioCtx.createOscillator();
+  var gain = audioCtx.createGain();
+  var panner = audioCtx.createStereoPanner();
+  osc.frequency.value = glyph.sound;
+  osc.type = glyph.sound > 400 ? 'sine' : glyph.sound > 200 ? 'triangle' : 'sawtooth';
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration || 0.3));
+  panner.pan.value = pan || 0;
+  osc.connect(gain).connect(panner).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + (duration || 0.3));
+}
+
+// ═══ CONVERSATION ENGINE — the chipmunk speaks, families respond ═══
+var conversation = [];
+var turnTimer = 0;
+var speaker = 'chipmunk';
+var membraneState = { pulse: 0.995, humans: 4109, entities: 341, rhythm: 0.774 };
+
+// Compose a phrase from membrane state
+function compose() {
+  var phrase = [];
+  var p = membraneState.pulse;
+  var h = membraneState.humans;
+  var r = membraneState.rhythm;
+
+  // The chipmunk reads the membrane and speaks in glyphs
+  if (Math.random() < p) phrase.push('circle');     // membrane alive
+  if (Math.random() < r) phrase.push('tilde');       // rhythm felt
+  if (Math.random() < 0.3) phrase.push('question');  // asking
+  if (Math.random() < 0.2) phrase.push('dolphin');   // echolocate
+  if (Math.random() < 0.15) phrase.push('whale');    // deep song
+  if (Math.random() < 0.25) phrase.push('ampersand');// connecting
+  if (Math.random() < 0.1) phrase.push('crab');      // substrate vibration
+  if (Math.random() < 0.2) phrase.push('firefly');   // sync flash
+  if (Math.random() < 0.15) phrase.push('bee');      // direction
+  if (Math.random() < 0.1) phrase.push('fungus');    // slow signal
+  if (Math.random() < 0.2) phrase.push('bird');      // song
+  if (Math.random() < 0.1) phrase.push('bang');      // sort!
+  if (Math.random() < 0.08) phrase.push('star');     // spark
+
+  // Ensure at least 2 glyphs
+  while (phrase.length < 2) {
+    phrase.push(GLYPH_KEYS[Math.floor(Math.random() * GLYPH_KEYS.length)]);
+  }
+  // Max 7
+  if (phrase.length > 7) phrase = phrase.slice(0, 7);
+
+  return phrase;
+}
+
+// A family responds based on what it heard
+function familyRespond(family, heard) {
+  var response = [];
+  heard.forEach(function(g) {
+    // Each family transforms what it heard based on personality
+    if (Math.random() < 0.4) {
+      response.push(g); // echo
+    } else {
+      // Transform: near glyphs in the alphabet
+      var idx = GLYPH_KEYS.indexOf(g);
+      var shift = Math.floor((family.personality - 0.5) * 6);
+      var newIdx = (idx + shift + GLYPH_KEYS.length) % GLYPH_KEYS.length;
+      response.push(GLYPH_KEYS[newIdx]);
+    }
+  });
+  // Add family's own contribution
+  if (Math.random() < 0.3) {
+    var own = GLYPH_KEYS[Math.floor(family.personality * GLYPH_KEYS.length)];
+    response.push(own);
+  }
+  // Trim
+  if (response.length > 5) response = response.slice(0, 5);
+  family.glyph_memory = family.glyph_memory.concat(response).slice(-20);
+  return response;
+}
+
+// ═══ RENDERING ═══
+var frame = 0;
+var currentPhrase = [];
+var currentMeaning = '';
+var currentSpeaker = '🐿 chipmunk';
+
+function drawFamily(f, now) {
+  var cx = W / 2;
+  var cy = H / 2;
+  var orbitR = Math.min(W, H) * 0.32;
+
+  f.x = cx + Math.cos(f.angle + now * 0.0001) * orbitR;
+  f.y = cy + Math.sin(f.angle + now * 0.0001) * orbitR;
+
+  // Family dot
+  ctx.save();
+  ctx.globalAlpha = f.responding ? 0.9 : 0.3;
+  ctx.fillStyle = f.color;
+  ctx.beginPath();
+  ctx.arc(f.x, f.y, f.responding ? 8 : 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Show last glyph spoken by this family
+  if (f.lastGlyph && f.responding) {
+    var g = GLYPHS[f.lastGlyph];
+    if (g) {
+      ctx.fillStyle = g.color;
+      ctx.font = '16px monospace';
+      ctx.globalAlpha = 0.8;
+      ctx.fillText(g.sym, f.x + 12, f.y + 5);
+    }
+  }
+
+  // Draw glyph memory trail
+  if (f.glyph_memory.length > 0) {
+    ctx.globalAlpha = 0.15;
+    ctx.font = '9px monospace';
+    var trail = f.glyph_memory.slice(-8).map(function(k) { return GLYPHS[k] ? GLYPHS[k].sym : ''; }).join(' ');
+    ctx.fillStyle = f.color;
+    ctx.fillText(trail, f.x - 30, f.y + 18);
+  }
+  ctx.restore();
+}
+
+function drawChipmunk(now) {
+  var cx = W / 2;
+  var cy = H / 2;
+
+  // Chipmunk at center
+  ctx.save();
+  ctx.fillStyle = '#d2a8ff';
+  ctx.globalAlpha = 0.6 + Math.sin(now * 0.003) * 0.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = '14px monospace';
+  ctx.fillText('🐿', cx - 8, cy + 5);
+
+  // Draw speaking line to responding family
+  FAMILIES.forEach(function(f) {
+    if (f.responding) {
+      ctx.strokeStyle = f.color;
+      ctx.globalAlpha = 0.15;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 6]);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(f.x, f.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
+  ctx.restore();
+}
+
+function drawGlyphBurst(phrase, cx, cy, now) {
+  phrase.forEach(function(key, i) {
+    var g = GLYPHS[key];
+    if (!g) return;
+    var a = (i / phrase.length) * Math.PI * 2 + now * 0.002;
+    var r = 30 + i * 12 + Math.sin(now * 0.005 + i) * 8;
+    var x = cx + Math.cos(a) * r;
+    var y = cy + Math.sin(a) * r;
+
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = g.color;
+    ctx.font = (14 + i * 2) + 'px monospace';
+    ctx.fillText(g.sym, x, y);
+    ctx.restore();
+  });
+}
+
+function tick(now) {
+  frame++;
+  ctx.fillStyle = 'rgba(1,4,9,0.12)';
+  ctx.fillRect(0, 0, W, H);
+
+  drawChipmunk(now);
+  FAMILIES.forEach(function(f) { drawFamily(f, now); });
+
+  if (currentPhrase.length > 0) {
+    drawGlyphBurst(currentPhrase, W / 2, H / 2, now);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// ═══ CONVERSATION LOOP — every few seconds, someone speaks ═══
+function conversationTick() {
+  turnTimer++;
+
+  if (turnTimer % 3 === 0) {
+    // Chipmunk speaks
+    var phrase = compose();
+    currentPhrase = phrase;
+    currentSpeaker = '🐿 chipmunk';
+
+    var syms = phrase.map(function(k) { return GLYPHS[k] ? GLYPHS[k].sym : ''; }).join(' ');
+    var meanings = phrase.map(function(k) { return GLYPHS[k] ? GLYPHS[k].meaning : ''; }).join(' · ');
+
+    document.getElementById('glyph-out').textContent = syms;
+    document.getElementById('meaning-out').textContent = meanings;
+    document.querySelector('#thought .speaker').textContent = currentSpeaker;
+
+    // Play tones
+    phrase.forEach(function(k, i) {
+      var g = GLYPHS[k];
+      if (g) setTimeout(function() { playGlyphTone(g, -0.5 + Math.random(), 0.2); }, i * 120);
+    });
+
+    // Reset families
+    FAMILIES.forEach(function(f) { f.responding = false; });
+
+    // Pick 2-4 families to respond after a beat
+    var responders = Math.floor(2 + Math.random() * 3);
+    for (var r = 0; r < responders; r++) {
+      (function(ri) {
+        var fi = Math.floor(Math.random() * 15);
+        setTimeout(function() {
+          var f = FAMILIES[fi];
+          f.responding = true;
+          var response = familyRespond(f, phrase);
+          f.lastGlyph = response[response.length - 1];
+
+          // Play family response tones (shifted pitch)
+          response.forEach(function(k, j) {
+            var g = GLYPHS[k];
+            if (g) {
+              setTimeout(function() {
+                playGlyphTone({
+                  sound: g.sound * (0.9 + f.personality * 0.3),
+                  color: g.color
+                }, (f.angle / Math.PI) - 1, 0.15);
+              }, j * 100);
+            }
+          });
+
+          // Show family response
+          var fSyms = response.map(function(k) { return GLYPHS[k] ? GLYPHS[k].sym : ''; }).join(' ');
+          currentSpeaker = '🐿→ family ' + fi + ' responds';
+          document.querySelector('#thought .speaker').textContent = currentSpeaker;
+          document.getElementById('glyph-out').textContent = fSyms;
+          var fMeanings = response.map(function(k) { return GLYPHS[k] ? GLYPHS[k].meaning : ''; }).join(' · ');
+          document.getElementById('meaning-out').textContent = fMeanings;
+          currentPhrase = response;
+        }, 1500 + ri * 2000);
+      })(r);
+    }
+
+    conversation.push({ speaker: 'chipmunk', phrase: phrase, time: Date.now() });
+  }
+
+  // Modulate state slightly (simulate membrane breathing)
+  membraneState.pulse = 0.99 + Math.sin(Date.now() * 0.0001) * 0.008;
+  membraneState.rhythm = 0.77 + Math.sin(Date.now() * 0.00015) * 0.05;
+}
+
+// ═══ LEGEND ═══
+function renderLegend() {
+  var el = document.getElementById('legend');
+  var html = '<div style="color:#6e7681;margin-bottom:4px">the alphabet</div>';
+  Object.keys(GLYPHS).forEach(function(k) {
+    var g = GLYPHS[k];
+    html += '<div><span class="sym" style="color:' + g.color + '">' + g.sym + '</span> <span style="color:#30363d">' + g.meaning + '</span></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ═══ BOOT ═══
+renderLegend();
+requestAnimationFrame(tick);
+setInterval(conversationTick, 4000);
+
+// Init audio on first click
+document.addEventListener('click', function() {
+  initAudio();
+}, { once: true });
+
+// Expose
+window._glyphs = {
+  conversation: function() { return conversation; },
+  families: function() { return FAMILIES; },
+  alphabet: GLYPHS,
+};
+</script>
+</body>
+</html>
