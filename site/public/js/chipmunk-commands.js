@@ -780,6 +780,18 @@ window._chipmunkCommands = function(ctx) {
           '<a href="/like-us.html" style="color:#f0c674">hear it →</a>');
         return;
       }
+      if (cmd === 'sporeprint' || cmd === 'spore' || cmd === 'sporePrint' || cmd === 'lab' || cmd === 'notebook' || cmd === 'rebuild') {
+        addEntry('system', '🍄 sporePrint');
+        addEntry('chipmunk',
+          '<span style="color:#3fb950">🍄 sporePrint — lab notebook</span>\n' +
+          'how the membrane rebuilt itself. October 21, 2026.\n' +
+          'the jar broke. the culture survived. 42 minutes.\n' +
+          'Pages deployed 171 files to Region: Earth.\n' +
+          'droplet wiped and rebuilt. Debian 13. fresh.\n' +
+          '<span class="dim">the appendix isn\'t vestigial — it\'s the sourdough mother.</span>\n' +
+          '<a href="/sporeprint.html" style="color:#3fb950">read the lab notebook →</a>');
+        return;
+      }
       if (cmd === 'nest' || cmd === 'nestgate' || cmd === 'iso' || cmd === 'dm' || cmd === 'dungeon') {
         addEntry('system', '🎲 nestgate');
         addEntry('chipmunk',
