@@ -128,7 +128,10 @@ canvas { width: 100%; height: 300px; margin: 16px 0; border-radius: 6px; }
 </nav>
 <script src="https://hud.primals.eco/js/footer-ring.js" async></script>
 <script>
-var API = '/neutron.json';
+// WAVE 195 FIX: neutron.json lives on HUD, not on neutron subdomain
+// neutron.primals.eco/neutron.json → 404 (no static files here)
+// hud.primals.eco/neutron.json → 200 (16K, alive)
+var API = 'https://hud.primals.eco/neutron.json';
 var POLL_MS = 120000;
 var state = null;
 
