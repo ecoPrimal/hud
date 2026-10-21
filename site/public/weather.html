@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>weather — the sun writes the score</title>
+<meta name="description" content="Live NOAA Kp, GOES X-ray, solar wind, and USGS quakes turned into color and π-just sound. The measurement is the Klein fold.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; overflow: hidden; font-family: 'SF Mono', ui-monospace, monospace; color: #c9d1d9; }
+canvas { display: block; }
+#nav {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 8px; padding: 4px 14px; background: rgba(1,4,9,0.85);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 11px;
+  flex-wrap: wrap; justify-content: center; max-width: 92vw;
+}
+#nav a { color: #58a6ff; text-decoration: none; }
+#nav span { color: #30363d; }
+#title {
+  position: fixed; top: 42px; left: 0; right: 0; text-align: center;
+  color: rgba(255,225,53,0.45); font-size: 11px; letter-spacing: 3px;
+  pointer-events: none;
+}
+#score {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  z-index: 20; width: min(720px, 94vw);
+  background: rgba(1,4,9,0.88); border: 1px solid rgba(88,166,255,0.18);
+  border-radius: 14px; padding: 12px 16px; text-align: center;
+}
+#score .row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+#score .stat { min-width: 72px; }
+#score .num { font-size: 18px; font-weight: 700; }
+#score .lbl { font-size: 8px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+#poem { font-size: 12px; color: rgba(230,237,243,0.7); line-height: 1.6; min-height: 2.4em; }
+#listen {
+  margin-top: 8px; background: transparent; border: 1px solid rgba(255,225,53,0.35);
+  color: #ffe135; padding: 6px 16px; border-radius: 16px; cursor: pointer;
+  font: 11px monospace; letter-spacing: 1px;
+}
+#listen.on { border-color: rgba(63,185,80,0.5); color: #3fb950; }
+#hint { font-size: 9px; color: #6e7681; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div id="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/aurora.html" style="color:#7ee787">aurora</a><span>·</span>
+  <a href="/weather.html" style="color:#ffe135">☀ weather</a><span>·</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149">♥ circ</a><span>·</span>
+  <a href="/neutron/core.html">◉ core</a>
+</div>
+<div id="title">the sun writes the score · Klein fold · wave 195</div>
+<canvas id="c"></canvas>
+<div id="score">
+  <div class="row" id="stats">listening for the sky…</div>
+  <div id="poem">NOAA is inside Earth reading the outside. tap to hear the fold.</div>
+  <button id="listen" type="button">tap to hear the sun</button>
+  <div id="hint">Kp → hue · X-ray → heat · wind → tempo · quake → pluck · pulse → breath · π/N families → voices</div>
+</div>
+<script src="/js/membrane-sound.js?v=4"></script>
+<script src="/js/weather-song.js?v=1"></script>
+<script>
+var PI = Math.PI;
+var c = document.getElementById('c');
+var ctx = c.getContext('2d');
+var W, H, score = null, t = 0;
+var families = [];
+var names = ['rhizoCrypt','loamSpine','sourDough','biomeOS','toadStool','skunkBat',
+  'squirrel','bearDog','songBird','barraCuda','nestGate','petalTongue',
+  'sweetGrass','coralReef','bingoCube'];
+var rings = [];
+
+function resize() { W = c.width = innerWidth; H = c.height = innerHeight; }
+resize();
+addEventListener('resize', resize);
+
+for (var i = 0; i < 15; i++) {
+  families.push({
+    name: names[i],
+    rate: PI / (i + 2),
+    hue: 30 + i * 18,
+    trail: [],
+    phase: Math.random() * PI * 2
+  });
+}
+
+function applyScore(s) {
+  score = s;
+  var stormColor = s.kp < 4 ? '#3fb950' : s.kp < 5 ? '#d29922' : '#f85149';
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><div class="num" style="color:' + stormColor + '">' + s.kp.toFixed(2) + '</div><div class="lbl">Kp ' + s.storm + '</div></div>' +
+    '<div class="stat"><div class="num" style="color:#ffe135">' + s.xray_class + '</div><div class="lbl">x-ray</div></div>' +
+    '<div class="stat"><div class="num">' + Math.round(s.wind_kms) + '</div><div class="lbl">wind km/s</div></div>' +
+    '<div class="stat"><div class="num" style="color:#58a6ff">' + (s.quake_max ? s.quake_max.toFixed(1) : '—') + '</div><div class="lbl">earth</div></div>' +
+    '<div class="stat"><div class="num" style="color:#d2a8ff">' + s.pulse.toFixed(3) + '</div><div class="lbl">pulse</div></div>' +
+    '<div class="stat"><div class="num" style="color:#7ee787">' + s.tempo.toFixed(3) + '</div><div class="lbl">tempo Hz</div></div>';
+  document.getElementById('poem').textContent = s.poem;
+  if (s.quake_max >= 4) {
+    rings.push({ r: 8, a: 0.45, x: W * 0.5, y: H * 0.78 });
+  }
+}
+
+if (window._weatherSong) window._weatherSong.onScore(applyScore);
+
+var btn = document.getElementById('listen');
+function syncBtn() {
+  var on = window._weatherSong && window._weatherSong.isListening();
+  btn.textContent = on ? 'hearing the sun · tap to hush' : 'tap to hear the sun';
+  btn.className = on ? 'on' : '';
+}
+btn.onclick = function () {
+  if (!window._weatherSong) return;
+  window._weatherSong.toggle();
+  syncBtn();
+};
+document.addEventListener('keydown', function (e) {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); btn.click(); }
+});
+
+function draw() {
+  t += 0.008 * ((score && score.wind_norm) || 1);
+  var hue = score ? score.hue : 140;
+  var sat = score ? score.sat : 60;
+  var bright = score ? score.brightness : 0.4;
+  var voices = score ? score.voices : 4;
+  var cx = W * 0.5, cy = H * 0.48;
+
+  ctx.fillStyle = 'rgba(1,4,9,0.07)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Campfire heat from X-ray class
+  var glow = 0.22 + bright * 0.45 + Math.sin(t * 0.7) * 0.08;
+  var heat = ctx.createRadialGradient(cx, cy, 0, cx, cy, 110 + bright * 80);
+  heat.addColorStop(0, 'hsla(' + (hue + 40) + ',' + sat + '%,60%,' + (glow * 0.35) + ')');
+  heat.addColorStop(0.45, 'hsla(' + hue + ',' + sat + '%,45%,' + (glow * 0.12) + ')');
+  heat.addColorStop(1, 'hsla(' + hue + ',70%,30%,0)');
+  ctx.fillStyle = heat;
+  ctx.fillRect(cx - 200, cy - 200, 400, 400);
+
+  // Aurora curtain — Kp stretches amplitude
+  var amp = 40 + (score ? score.kp * 18 : 20);
+  for (var y = 0; y < H * 0.42; y += 3) {
+    var wave = Math.sin(y * 0.02 + t * 0.5) * amp + Math.sin(y * 0.01 + t * 0.3) * amp * 0.6;
+    var ah = (hue + y * 0.25 + t * 8) % 360;
+    var alpha = 0.025 * (1 - y / (H * 0.42)) * (0.7 + bright);
+    ctx.fillStyle = 'hsla(' + ah + ',' + sat + '%,55%,' + alpha + ')';
+    ctx.fillRect(W * 0.22 + wave, y, W * 0.56, 2);
+  }
+
+  // 15 families orbit at π/N · wind
+  for (var i = 0; i < families.length; i++) {
+    var f = families[i];
+    var speed = f.rate * ((score && score.wind_norm) || 1);
+    var radius = 55 + i * 20 + Math.sin(t * speed + f.phase) * (10 + (score ? score.kp : 1) * 2);
+    var angle = t * speed + f.phase;
+    var x = cx + Math.cos(angle) * radius;
+    var y = cy + Math.sin(angle) * radius;
+    f.trail.push({ x: x, y: y, a: 1 });
+    if (f.trail.length > 36) f.trail.shift();
+    for (var j = 0; j < f.trail.length; j++) {
+      var p = f.trail[j];
+      p.a *= 0.95;
+      ctx.fillStyle = 'hsla(' + hue + ',' + sat + '%,60%,' + (p.a * 0.28) + ')';
+      ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+    }
+    var live = i < voices;
+    var b = 0.45 + Math.abs(Math.cos(t * speed)) * 0.5;
+    ctx.beginPath();
+    ctx.arc(x, y, live ? 3 + b * 3 : 1.5, 0, PI * 2);
+    ctx.fillStyle = 'hsla(' + (live ? hue : f.hue) + ',80%,' + (40 + b * 30) + '%,' + (live ? 0.85 : 0.25) + ')';
+    ctx.fill();
+    if (live && b > 0.75) {
+      ctx.strokeStyle = 'hsla(' + hue + ',60%,50%,0.1)';
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(cx, cy); ctx.stroke();
+    }
+  }
+
+  // Quake rings — earth answering
+  for (var r = rings.length - 1; r >= 0; r--) {
+    var ring = rings[r];
+    ring.r += 2.4;
+    ring.a *= 0.985;
+    ctx.strokeStyle = 'hsla(' + hue + ',70%,70%,' + ring.a + ')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(ring.x, ring.y, ring.r, 0, PI * 2);
+    ctx.stroke();
+    if (ring.a < 0.02 || ring.r > Math.max(W, H)) rings.splice(r, 1);
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

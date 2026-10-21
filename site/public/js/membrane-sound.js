@@ -1,4 +1,4 @@
-// membrane-sound.js v3 — the membrane sings HARDER
+// membrane-sound.js v4 — the membrane sings HARDER + the sun writes the score
 //
 // π-just intonation. Waveshaper distortion. Karplus-Strong plucked strings.
 // Ring modulation. Comb filters. Delay lines at membrane tempo.
@@ -1266,9 +1266,62 @@
       'singularity': function() { shepardTone(-1, 3); ringMod(PI_NOTES[0], PI_NOTES[6], 2, 0.04, 'center'); playNoise(0.3, 500, 2, 0.06, 'center', 1); },
       'bessel':      function() { besselMembrane(PI_NOTES[3], 8, 4, 0.03); },
       'karplus':     function() { [0,1,2,3,4,5,6].forEach(function(i) { karplusStrong(PI_NOTES[i], 2, 0.03, i % 2 === 0 ? 'left' : 'right'); }); },
+      'weather':     function() { if (window._weatherSong) { window._weatherSong.listen(); } else { playChord('breathe', 2.5, 0.05); besselMembrane(PI_NOTES[3], 4, 3, 0.025); say('the sun writes the score', { rate: 0.45, pitch: 0.25, volume: 0.1 }); } },
+      'sun':         function() { speak('weather'); },
+      'kp':          function() { speak('weather'); },
     };
     var fn = tones[w];
     if (fn) fn();
+  }
+
+  // ═══════════════════════════════════════════
+  // WEATHER — the sun writes the score
+  // Kp / X-ray / wind / quake / pulse → existing instruments
+  // ═══════════════════════════════════════════
+  function playWeather(score) {
+    if (!score) return;
+    if (!_active) activate();
+    var kp = Number(score.kp) || 0;
+    var tempo = Number(score.tempo) || 0.476;
+    var modes = Math.max(2, Math.min(8, Number(score.bessel_modes) || 3));
+    var t0 = _ctx.currentTime;
+
+    if (_delayLine && score.delay_sec) {
+      _delayLine.delayTime.setTargetAtTime(Math.max(0.2, Math.min(1.9, score.delay_sec)), t0, 0.4);
+    }
+    pulseDrone(tempo);
+
+    if (kp < 2) {
+      playChord('breathe', 2.6, 0.04);
+      binaural(PI_NOTES[3], 4, 4, 0.012);
+      playFormant('o', PI_NOTES[3], 1.4, 0.02, 'center');
+    } else if (kp < 4) {
+      playChord('wake', 2.2, 0.055, { piWave: true });
+      besselMembrane(PI_NOTES[3], modes, 3, 0.025);
+      grainBurst(PI_NOTES[4], 8, 0.2, 0.015);
+    } else {
+      duck(0.45, 1.6);
+      playChord('spark', 1.3, 0.07);
+      ringMod(PI_NOTES[1], PI_NOTES[6], 1.2, 0.03, 'center');
+      playNoise(0.22, 1800 + kp * 350, 8, 0.04, 'center', 0);
+      besselMembrane(PI_NOTES[3], modes, 4, 0.03);
+    }
+
+    var nq = Math.min(5, Number(score.quake_count) || (score.quake_max > 0 ? 1 : 0));
+    for (var i = 0; i < nq; i++) {
+      var qf = PI_NOTES[(i + 1) % 7] * (1 + (Number(score.quake_max) || 0) * 0.04);
+      karplusStrong(qf, 1.6, 0.035, i % 2 ? 'left' : 'right');
+    }
+
+    var cls = score.xray_class || 'B';
+    if (cls === 'C') grainBurst(PI_NOTES[5], 10, 0.16, 0.018);
+    if (cls === 'M' || cls === 'X') {
+      duck(0.6, 2);
+      shepardTone(1, 3);
+      playNoise(0.4, 900, 3, 0.05, 'center', 0.1);
+    }
+
+    if (score.poem) say(score.poem, { rate: 0.45, pitch: 0.25, volume: 0.1 });
   }
 
   // ═══ ACTIVATE / DEACTIVATE ═══
@@ -1332,6 +1385,7 @@
     onTwist: onTwist,
     onPassage: onPassage,
     onSing: onSing,
+    playWeather: playWeather,
     setVolume: setVolume,
     pulseDrone: pulseDrone,
     isActive: function() { return _active; },

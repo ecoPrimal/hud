@@ -710,6 +710,34 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
+      if (cmd === 'weather' || cmd === 'sun' || cmd === 'kp' || cmd === 'aurora') {
+        addEntry('system', '\u2600 weather');
+        if (window._weatherSong) {
+          var heard = window._weatherSong.toggle();
+          var sc = window._weatherSong.score() || {};
+          addEntry('chipmunk',
+            '<span style="color:' + (heard ? '#ffe135' : '#8b949e') + '">\u2600 ' + (heard ? 'hearing the sun' : 'hushed') + '</span>\n' +
+            '<span style="color:#3fb950">Kp ' + (sc.kp != null ? Number(sc.kp).toFixed(2) : '?') + ' ' + (sc.storm || '') + '</span> \u00b7 ' +
+            '<span style="color:#ffe135">class ' + (sc.xray_class || '?') + '</span> \u00b7 ' +
+            '<span style="color:#58a6ff">wind ' + (sc.wind_kms != null ? Math.round(sc.wind_kms) : '?') + '</span>\n' +
+            (sc.quake_max ? '<span style="color:#f85149">earth ' + Number(sc.quake_max).toFixed(1) + ' \u2014 ' + (sc.quake_place || '') + '</span>\n' : '') +
+            '<span class="dim">' + (sc.poem || 'the sun writes the score') + '</span>\n' +
+            '<span class="dim"><a href="/weather.html" style="color:#ffe135">/weather.html</a> \u00b7 <a href="/aurora.html" style="color:#7ee787">/aurora.html</a></span>');
+        } else {
+          addEntry('chipmunk', '<span class="dim">weather-song not loaded. open <a href="/weather.html" style="color:#ffe135">/weather.html</a></span>');
+        }
+        return;
+      }
+      if (cmd === 'tools' || cmd === 'instruments' || cmd === 'hud-tools') {
+        addEntry('system', '⚙ tools');
+        addEntry('chipmunk',
+          '<span style="color:#d2a8ff">⚙ 86 tools across 5 namespaces</span>\n' +
+          '<span style="color:#3fb950">SOURCE</span> · <span style="color:#58a6ff">EVIDENCE</span> · <span style="color:#d2a8ff">MEMBRANE</span> · <span style="color:#f85149">IMMUNE</span>\n' +
+          '<span class="dim">the IDE is a HUD. every tool tells its own story.</span>\n' +
+          '<span class="dim">tap a card. hear the oral tradition.</span>\n' +
+          '<a href="/tools.html" style="color:#d2a8ff">open tools map →</a>');
+        return;
+      }
       if (cmd === 'mute' || cmd === 'quiet' || cmd === 'silence') {
         addEntry('system', '\ud83d\udd07 mute');
         if (window._membraneSound && window._membraneSound.isActive()) {
@@ -2441,6 +2469,8 @@ window._chipmunkCommands = function(ctx) {
         aL.push('  <span class="clickable-cmd" data-cmd="explore" style="color:#58a6ff;cursor:pointer">/explore</span> \u2014 see the investigation');
         aL.push('  <span class="clickable-cmd" data-cmd="playground" style="color:#3fb950;cursor:pointer">/playground</span> \u2014 help classify the 100 unknowns');
         aL.push('  <span class="clickable-cmd" data-cmd="sing" style="color:#d2a8ff;cursor:pointer">/sing</span> \u2014 hear the chipmunk sing');
+        aL.push('  <span class="clickable-cmd" data-cmd="weather" style="color:#ffe135;cursor:pointer">/weather</span> \u2014 hear the sun write the score');
+        aL.push('  <a href="/tools.html" style="color:#d2a8ff">/tools</a> \u2014 86 instruments. tap one. hear its story.');
         aL.push('  <span class="clickable-cmd" data-cmd="map" style="color:#58a6ff;cursor:pointer">/map</span> \u2014 see everything available');
         addEntry('chipmunk', aL.join('\n'));
         return;

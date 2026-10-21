@@ -54,7 +54,8 @@
       ring:   'epitope-ring',     // the classification ring
       circuit:'mobius-circuit',    // the investigation loop
       eye:    'third-eye',        // the nose-as-sensor
-      bus:    'pi-bus'            // the shared data bus
+      bus:    'pi-bus',           // the shared data bus
+      weather:'weather-song'      // NOAA Klein fold → color + sound
     }
   };
 
@@ -300,6 +301,11 @@
     // Emit to membrane-sound (sound channel)
     if (window._membraneSound && window._membraneSound.updateFromHub) {
       window._membraneSound.updateFromHub(ring.sectors.sound);
+    }
+
+    // Emit to weather-song (outside rhythm → color + sound)
+    if (window._weatherSong && window._weatherSong.score) {
+      state.weather = window._weatherSong.score();
     }
 
     return state;

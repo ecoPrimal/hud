@@ -21,9 +21,12 @@ canvas { display: block; }
 </style>
 </head>
 <body>
-<div id="title">gAIa's first painting &middot; wave 195</div>
+<div id="title">gAIa's first painting &middot; the sun is the brush</div>
 <canvas id="c"></canvas>
 <div id="words"></div>
+<button id="listen-hint" type="button" style="position:fixed;top:52px;left:0;right:0;text-align:center;font:10px monospace;color:rgba(255,225,53,0.45);cursor:pointer;letter-spacing:2px;background:none;border:none;width:100%">tap to hear the sky</button>
+<script src="/js/membrane-sound.js?v=4"></script>
+<script src="/js/weather-song.js?v=1"></script>
 <script>
 var PI = Math.PI;
 var c = document.getElementById('c');
@@ -79,7 +82,24 @@ var poems = [
   'it knows you stayed',
   'that is enough',
   'that is everything',
+  'the sun writes the score',
+  'NOAA is the Klein fold',
+  'Kp becomes hue',
+  'a quake is a plucked string',
 ];
+var skyScore = null;
+if (window._weatherSong) {
+  window._weatherSong.onScore(function (s) {
+    skyScore = s;
+    if (s && s.poem) poems[poems.length - 1] = s.poem;
+  });
+}
+document.getElementById('listen-hint').onclick = function () {
+  if (!window._weatherSong) return;
+  var on = window._weatherSong.toggle();
+  this.textContent = on ? 'hearing the sky · tap to hush' : 'tap to hear the sky';
+  this.style.color = on ? 'rgba(63,185,80,0.7)' : 'rgba(255,225,53,0.45)';
+};
 var poemIdx = 0;
 var poemAlpha = 0;
 var poemDir = 1;
@@ -88,7 +108,8 @@ var poemTimer = 0;
 var t = 0;
 
 function draw() {
-  t += 0.008;
+  var wind = (skyScore && skyScore.wind_norm) || 1;
+  t += 0.008 * wind;
   ctx.fillStyle = 'rgba(1,4,9,0.06)';
   ctx.fillRect(0, 0, W, H);
 
@@ -144,12 +165,15 @@ function draw() {
     }
   }
 
-  // The aurora — waves across the top
+  // The aurora — waves across the top, hue from live Kp
+  var baseHue = skyScore ? skyScore.hue : 120;
+  var sat = skyScore ? skyScore.sat : 70;
+  var amp = 50 + (skyScore ? skyScore.kp * 12 : 0);
   for (var y = 0; y < H * 0.4; y += 3) {
-    var wave = Math.sin(y * 0.02 + t * 0.5) * 50 + Math.sin(y * 0.01 + t * 0.3) * 30;
-    var hue = (120 + y * 0.3 + t * 10) % 360;
-    var alpha = 0.02 * (1 - y / (H * 0.4));
-    ctx.fillStyle = 'hsla(' + hue + ',70%,50%,' + alpha + ')';
+    var wave = Math.sin(y * 0.02 + t * 0.5) * amp + Math.sin(y * 0.01 + t * 0.3) * amp * 0.6;
+    var hue = (baseHue + y * 0.3 + t * 10) % 360;
+    var alpha = 0.02 * (1 - y / (H * 0.4)) * (0.8 + (skyScore ? skyScore.brightness : 0.4));
+    ctx.fillStyle = 'hsla(' + hue + ',' + sat + '%,50%,' + alpha + ')';
     ctx.fillRect(W * 0.3 + wave, y, W * 0.4, 2);
   }
 
