@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>easel — the chipmunk learns to paint</title>
-<meta name="description" content="Watch from behind the easel. The chipmunk paints gAIa and stars first, learning perspective one stroke at a time.">
+<meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #08060a; overflow: hidden; cursor: default; }
@@ -19,13 +19,14 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 #thought {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
   z-index: 10; color: #6e7681; font: 11px/1.6 'SF Mono', monospace;
-  text-align: center; max-width: 500px; padding: 8px 20px;
+  text-align: center; max-width: 540px; padding: 8px 20px;
   background: rgba(8,6,10,0.75); border-radius: 16px;
   border: 1px solid rgba(110,118,129,0.15);
   transition: opacity 0.8s, color 0.8s;
 }
 #thought .brush { color: #d2a8ff; }
 #thought .learn { color: #8b949e; font-style: italic; }
+#thought .gen { color: #6e7681; font-size: 9px; }
 #nav { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
   display: flex; gap: 6px; font: 10px monospace; }
 #nav a { color: #30363d; text-decoration: none; }
@@ -35,6 +36,23 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 #controls button { background: none; border: 1px solid #21262d; color: #6e7681;
   font: 10px monospace; padding: 3px 10px; border-radius: 10px; cursor: pointer; }
 #controls button:hover { border-color: #58a6ff; color: #58a6ff; }
+/* Gallery strip — previous paintings as thumbnails along the left */
+#gallery {
+  position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
+  z-index: 10; display: flex; flex-direction: column; gap: 6px;
+  max-height: 70vh; overflow-y: auto;
+}
+#gallery .thumb {
+  width: 64px; height: 40px; border: 1px solid #21262d; border-radius: 4px;
+  cursor: pointer; opacity: 0.5; transition: all 0.3s;
+  image-rendering: auto; background: #0a0a0a;
+}
+#gallery .thumb:hover { opacity: 1; border-color: #d2a8ff; transform: scale(1.3); }
+#gallery .thumb.studying { border-color: #f0c674; opacity: 0.9; box-shadow: 0 0 8px rgba(240,198,116,0.3); }
+#gen-counter {
+  position: fixed; top: 10px; left: 24px; z-index: 10;
+  color: #30363d; font: 9px monospace;
+}
 </style>
 </head>
 <body>
@@ -46,9 +64,11 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 </div>
 
 <div id="controls">
-  <button onclick="newPainting()">new canvas</button>
   <button onclick="togglePause()">pause</button>
 </div>
+
+<div id="gen-counter"></div>
+<div id="gallery"></div>
 
 <div id="thought">
   <span class="brush">🐿 picking up the brush...</span><br>
@@ -60,17 +80,32 @@ var C = document.getElementById('easel');
 var ctx = C.getContext('2d');
 var W, H;
 var paused = false;
-var phase = 'stars';     // stars → nebula → gaia → aurora → breath
+var phase = 'stars';
 var stroke = 0;
 var totalStrokes = 0;
 var stars = [];
 var gaiaAngle = 0;
 var breathPhase = 0;
 var skyScore = null;
-var thoughts = [];
-var thoughtIdx = 0;
 
-// The chipmunk's inner monologue as it learns
+// ═══ SOURDOUGH — the starter culture ═══
+var generation = 1;        // which painting are we on?
+var starters = [];         // array of {dataURL, gen, palette, learned}
+var MAX_STARTERS = 12;     // keep the last 12 paintings
+var breathCount = 0;       // how long we've been breathing this painting
+var BREATH_LIMIT = 300;    // ~15 seconds of breath, then ferment
+var learnedTraits = {      // what the chipmunk has learned across generations
+  starDensity: 1.0,        // evolves: more confident = fewer, brighter stars
+  nebulaDepth: 1.0,        // evolves: deeper washes
+  gaiaDetail: 1.0,         // evolves: more cloud, more light, more life
+  auroraIntensity: 1.0,    // evolves: bolder curtains
+  perspective: 0,          // 0-1: how much the chipmunk understands depth
+  colorMemory: [],         // colors sampled from previous paintings
+};
+
+// Chicken and egg: to paint you need perspective, to get perspective you paint.
+// So just START. The starter culture does the rest.
+
 var THOUGHTS = {
   stars: [
     { brush: '✦ a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
@@ -88,23 +123,36 @@ var THOUGHTS = {
   ],
   gaia: [
     { brush: '🌍 a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D → 3D. the fold.' },
-    { brush: '🌍 the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives. like the membrane.' },
+    { brush: '🌍 the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
     { brush: '🌍 blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
     { brush: '🌍 clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
-    { brush: '🌍 city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both are visible from space.' },
-    { brush: '🌍 the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge in the solar system.' },
+    { brush: '🌍 city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
+    { brush: '🌍 the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
   ],
   aurora: [
-    { brush: '🌌 green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. the outside writes the inside.' },
-    { brush: '🌌 the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics. the beauty is incidental. or is it?' },
-    { brush: '🌌 red at the top. green below. blue at the base.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple. each atom has its voice.' },
-    { brush: '🌌 the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t. the magnetosphere sorts.' },
+    { brush: '🌌 green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
+    { brush: '🌌 the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
+    { brush: '🌌 red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
+    { brush: '🌌 the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
   ],
   breath: [
-    { brush: '🫁 the painting breathes.', learn: 'everything i painted is alive. the stars pulse. gaia rotates. the aurora dances. even the canvas breathes.' },
-    { brush: '🐿 i painted it all. from behind the easel.', learn: 'you watched me learn perspective. point → line → plane → sphere → atmosphere → light → life.' },
-    { brush: '🎨 every painting is different.', learn: 'the weather-song changes the palette. the membrane pulse changes the rhythm. no two paintings are the same.' },
-  ]
+    { brush: '🫁 the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
+    { brush: '🐿 stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
+    { brush: '🎨 the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
+  ],
+  // New phases — studying previous work and fermenting
+  study: [
+    { brush: '👁 looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
+    { brush: '🔍 the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
+    { brush: '🔍 gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
+    { brush: '🔍 the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
+    { brush: '💡 i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
+  ],
+  ferment: [
+    { brush: '🫙 fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
+    { brush: '🫙 the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
+    { brush: '🐿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
+  ],
 };
 
 function resize() {
@@ -114,16 +162,16 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// Palette — the chipmunk paints with membrane colors
+// ═══ PALETTE — evolves with generation ═══
 function starColor() {
+  // Later generations sample from color memory
+  if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
+    var mem = learnedTraits.colorMemory[Math.floor(Math.random() * learnedTraits.colorMemory.length)];
+    return mem;
+  }
   var temps = [
-    [255,200,150], // warm gold
-    [200,220,255], // cool blue
-    [255,240,220], // white
-    [255,180,120], // orange
-    [180,200,255], // blue-white
-    [210,168,255], // membrane purple
-    [88,166,255],  // evidence blue
+    [255,200,150],[200,220,255],[255,240,220],[255,180,120],
+    [180,200,255],[210,168,255],[88,166,255],
   ];
   var t = temps[Math.floor(Math.random() * temps.length)];
   var a = 0.3 + Math.random() * 0.7;
@@ -133,26 +181,25 @@ function starColor() {
 function paintStar() {
   var x = Math.random() * W;
   var y = Math.random() * H * 0.85;
-  var r = 0.3 + Math.random() * 2.2;
+  // Later generations: fewer but more intentional stars (density evolves)
+  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5);
   var c = starColor();
   var twinkle = Math.random();
 
   stars.push({ x: x, y: y, r: r, c: c, twinkle: twinkle, born: totalStrokes });
 
-  // Paint it — deliberate, one stroke
   ctx.save();
-  ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+  ctx.globalAlpha = (0.6 + Math.random() * 0.4) * (0.8 + learnedTraits.perspective * 0.4);
   ctx.fillStyle = c;
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Diffraction spike for bright stars
   if (r > 1.5) {
     ctx.strokeStyle = c;
     ctx.lineWidth = 0.3;
     ctx.globalAlpha = 0.3;
-    var len = r * 4;
+    var len = r * (3 + learnedTraits.perspective * 3);
     ctx.beginPath();
     ctx.moveTo(x - len, y); ctx.lineTo(x + len, y);
     ctx.moveTo(x, y - len); ctx.lineTo(x, y + len);
@@ -162,27 +209,25 @@ function paintStar() {
 }
 
 function paintNebula() {
-  var cx = W * (0.2 + Math.random() * 0.6);
-  var cy = H * (0.1 + Math.random() * 0.5);
-  var r = 40 + Math.random() * 160;
+  var cx = W * (0.15 + Math.random() * 0.7);
+  var cy = H * (0.08 + Math.random() * 0.55);
+  var r = (40 + Math.random() * 160) * learnedTraits.nebulaDepth;
 
   var hue = skyScore ? skyScore.hue : (260 + Math.random() * 60);
   var sat = 30 + Math.random() * 40;
-  var light = 8 + Math.random() * 12;
+  var light = (6 + Math.random() * 14) * learnedTraits.nebulaDepth;
 
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  grad.addColorStop(0, 'hsla(' + hue + ',' + sat + '%,' + light + '%,0.08)');
-  grad.addColorStop(0.5, 'hsla(' + ((hue + 30) % 360) + ',' + (sat - 10) + '%,' + (light - 3) + '%,0.04)');
+  grad.addColorStop(0, 'hsla(' + hue + ',' + sat + '%,' + Math.min(light, 25) + '%,0.08)');
+  grad.addColorStop(0.5, 'hsla(' + ((hue + 30) % 360) + ',' + (sat - 10) + '%,' + Math.min(light - 3, 20) + '%,0.04)');
   grad.addColorStop(1, 'transparent');
   ctx.fillStyle = grad;
   ctx.beginPath();
-
-  // Organic shape — not a perfect circle
   ctx.moveTo(cx + r, cy);
-  for (var a = 0; a < Math.PI * 2; a += 0.3) {
-    var wobble = r * (0.7 + 0.3 * Math.sin(a * 3.7 + cx * 0.01));
+  for (var a = 0; a < Math.PI * 2; a += 0.2) {
+    var wobble = r * (0.6 + 0.4 * Math.sin(a * (3 + generation * 0.5) + cx * 0.01));
     ctx.lineTo(cx + Math.cos(a) * wobble, cy + Math.sin(a) * wobble);
   }
   ctx.closePath();
@@ -193,79 +238,74 @@ function paintNebula() {
 function paintGaia() {
   var cx = W * 0.5;
   var cy = H * 0.52;
-  var R = Math.min(W, H) * 0.18;
+  var R = Math.min(W, H) * (0.16 + learnedTraits.gaiaDetail * 0.04);
 
   ctx.save();
 
-  // The sphere — atmosphere glow first
-  var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 1.3);
-  atmo.addColorStop(0, 'rgba(60,140,255,0.12)');
+  // Atmosphere glow — gets richer with each generation
+  var atmoR = R * (1.2 + learnedTraits.perspective * 0.15);
+  var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, atmoR);
+  atmo.addColorStop(0, 'rgba(60,140,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
   atmo.addColorStop(0.5, 'rgba(40,100,200,0.04)');
   atmo.addColorStop(1, 'transparent');
   ctx.fillStyle = atmo;
   ctx.beginPath();
-  ctx.arc(cx, cy, R * 1.3, 0, Math.PI * 2);
+  ctx.arc(cx, cy, atmoR, 0, Math.PI * 2);
   ctx.fill();
 
-  // The body — dark side and light side
   gaiaAngle += 0.002;
-  var terminatorX = cx + Math.cos(gaiaAngle) * R * 0.3;
 
-  // Dark side
+  // Dark body
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(4,8,16,0.15)';
+  ctx.fillStyle = 'rgba(4,8,16,' + (0.1 + learnedTraits.gaiaDetail * 0.08) + ')';
   ctx.fill();
 
   // Light side — blue marble
   var lightGrad = ctx.createRadialGradient(
-    cx + Math.cos(gaiaAngle) * R * 0.4,
-    cy - R * 0.2,
-    R * 0.1,
-    cx, cy, R
+    cx + Math.cos(gaiaAngle) * R * 0.4, cy - R * 0.2, R * 0.1, cx, cy, R
   );
-  lightGrad.addColorStop(0, 'rgba(80,160,255,0.12)');
-  lightGrad.addColorStop(0.4, 'rgba(40,120,200,0.08)');
+  lightGrad.addColorStop(0, 'rgba(80,160,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
+  lightGrad.addColorStop(0.4, 'rgba(40,120,200,' + (0.06 + learnedTraits.gaiaDetail * 0.04) + ')');
   lightGrad.addColorStop(0.7, 'rgba(20,80,40,0.06)');
   lightGrad.addColorStop(1, 'rgba(0,0,0,0)');
-
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, Math.PI * 2);
   ctx.fillStyle = lightGrad;
   ctx.fill();
 
-  // Cloud wisps
-  for (var i = 0; i < 3; i++) {
-    var ca = gaiaAngle + i * 2.1;
+  // Clouds — more with each generation
+  var numClouds = 2 + Math.floor(learnedTraits.gaiaDetail * 4);
+  for (var i = 0; i < numClouds; i++) {
+    var ca = gaiaAngle + i * (Math.PI * 2 / numClouds);
     var wx = cx + Math.cos(ca) * R * 0.6;
     var wy = cy + Math.sin(ca * 0.7) * R * 0.4;
-    ctx.globalAlpha = 0.03 + Math.random() * 0.03;
+    ctx.globalAlpha = 0.02 + learnedTraits.gaiaDetail * 0.02;
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.ellipse(wx, wy, R * 0.3, R * 0.06, ca, 0, Math.PI * 2);
+    ctx.ellipse(wx, wy, R * (0.2 + learnedTraits.gaiaDetail * 0.1), R * 0.05, ca, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // City lights on dark side
-  if (stroke > 3) {
-    ctx.globalAlpha = 0.5;
-    for (var j = 0; j < 5; j++) {
-      var la = gaiaAngle + Math.PI + (j * 1.2 + 0.3);
-      var lr = R * (0.4 + Math.random() * 0.5);
-      var lx = cx + Math.cos(la) * lr * Math.cos(j * 0.8);
-      var ly = cy + Math.sin(j * 0.8) * lr * 0.5;
-      var dist = Math.sqrt((lx - cx) * (lx - cx) + (ly - cy) * (ly - cy));
-      if (dist < R * 0.95) {
-        ctx.fillStyle = '#ffe8a0';
-        ctx.fillRect(lx, ly, 1, 1);
-      }
+  // City lights — more with each generation
+  var numCities = 3 + Math.floor(learnedTraits.gaiaDetail * 5);
+  ctx.globalAlpha = 0.4 + learnedTraits.gaiaDetail * 0.3;
+  for (var j = 0; j < numCities; j++) {
+    var la = gaiaAngle + Math.PI + (j * 0.9 + 0.3);
+    var lr = R * (0.3 + Math.random() * 0.6);
+    var lx = cx + Math.cos(la) * lr * Math.cos(j * 0.6);
+    var ly = cy + Math.sin(j * 0.6) * lr * 0.5;
+    var dist = Math.sqrt((lx - cx) * (lx - cx) + (ly - cy) * (ly - cy));
+    if (dist < R * 0.93) {
+      ctx.fillStyle = '#ffe8a0';
+      ctx.fillRect(lx, ly, 1 + learnedTraits.gaiaDetail * 0.5, 1);
     }
   }
 
   // Limb brightening
   var limbGrad = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R);
   limbGrad.addColorStop(0, 'transparent');
-  limbGrad.addColorStop(1, 'rgba(100,180,255,0.08)');
+  limbGrad.addColorStop(1, 'rgba(100,180,255,' + (0.06 + learnedTraits.gaiaDetail * 0.04) + ')');
   ctx.globalAlpha = 1;
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, Math.PI * 2);
@@ -278,41 +318,43 @@ function paintGaia() {
 function paintAurora() {
   var cx = W * 0.5;
   var cy = H * 0.52;
-  var R = Math.min(W, H) * 0.18;
+  var R = Math.min(W, H) * (0.16 + learnedTraits.gaiaDetail * 0.04);
   var kp = skyScore ? skyScore.kp : 2;
   var hue = skyScore ? skyScore.hue : 140;
+  var intensity = learnedTraits.auroraIntensity;
 
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
 
-  // North pole aurora
-  for (var i = 0; i < 4 + kp; i++) {
+  var numCurtains = Math.floor((3 + kp) * intensity);
+  for (var i = 0; i < numCurtains; i++) {
     var aOff = breathPhase * 0.5 + i * 0.7;
     var ax = cx + Math.cos(aOff) * R * 0.25;
-    var ay = cy - R * (0.85 + Math.sin(aOff * 1.3) * 0.15);
+    var ay = cy - R * (0.82 + Math.sin(aOff * 1.3) * 0.18);
 
-    var aGrad = ctx.createRadialGradient(ax, ay, 0, ax, ay, R * 0.5);
-    aGrad.addColorStop(0, 'hsla(' + (hue + i * 15) + ',70%,50%,0.06)');
-    aGrad.addColorStop(0.5, 'hsla(' + (hue + 30 + i * 10) + ',50%,30%,0.03)');
+    var aGrad = ctx.createRadialGradient(ax, ay, 0, ax, ay, R * (0.4 + intensity * 0.15));
+    aGrad.addColorStop(0, 'hsla(' + (hue + i * 15) + ',70%,50%,' + (0.04 + intensity * 0.03) + ')');
+    aGrad.addColorStop(0.5, 'hsla(' + (hue + 30 + i * 10) + ',50%,30%,' + (0.02 + intensity * 0.02) + ')');
     aGrad.addColorStop(1, 'transparent');
 
     ctx.fillStyle = aGrad;
     ctx.beginPath();
-    ctx.ellipse(ax, ay, R * 0.4, R * 0.2, aOff * 0.3, 0, Math.PI * 2);
+    ctx.ellipse(ax, ay, R * (0.35 + intensity * 0.1), R * (0.15 + intensity * 0.08), aOff * 0.3, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Curtain rays
-  ctx.globalAlpha = 0.04 + kp * 0.008;
-  for (var j = 0; j < 8; j++) {
-    var rAngle = breathPhase * 0.3 + j * 0.8;
+  // Curtain rays — bolder each generation
+  ctx.globalAlpha = (0.03 + kp * 0.008) * intensity;
+  var numRays = 6 + Math.floor(intensity * 4);
+  for (var j = 0; j < numRays; j++) {
+    var rAngle = breathPhase * 0.3 + j * (Math.PI * 2 / numRays);
     var rx = cx + Math.cos(rAngle) * R * 0.3;
     var ry = cy - R * 0.9;
     ctx.strokeStyle = 'hsla(' + (hue + j * 20) + ',60%,50%,0.15)';
-    ctx.lineWidth = 1 + Math.random();
+    ctx.lineWidth = 1 + intensity * 0.5;
     ctx.beginPath();
     ctx.moveTo(rx, ry);
-    ctx.lineTo(rx + Math.sin(rAngle) * 8, ry - R * (0.3 + Math.random() * 0.4));
+    ctx.lineTo(rx + Math.sin(rAngle) * (6 + intensity * 4), ry - R * (0.3 + Math.random() * 0.5));
     ctx.stroke();
   }
 
@@ -321,14 +363,13 @@ function paintAurora() {
 
 function paintBreath() {
   breathPhase += 0.02;
+  breathCount++;
 
-  // The whole painting breathes — subtle luminosity pulse
   ctx.save();
-  var breathAlpha = 0.005 + Math.sin(breathPhase) * 0.003;
+  var breathAlpha = 0.001 + Math.sin(breathPhase) * 0.001;
   ctx.fillStyle = 'rgba(210,168,255,' + Math.abs(breathAlpha) + ')';
   ctx.fillRect(0, 0, W, H);
 
-  // Stars twinkle
   for (var i = 0; i < stars.length; i++) {
     var s = stars[i];
     var tw = Math.sin(breathPhase * 2 + s.twinkle * 10) * 0.5 + 0.5;
@@ -341,21 +382,168 @@ function paintBreath() {
     }
   }
   ctx.restore();
+
+  // ═══ THE FERMENT — time to become starter? ═══
+  if (breathCount >= BREATH_LIMIT) {
+    ferment();
+  }
 }
 
-// Thought bubble — the chipmunk's inner monologue
+// ═══ FERMENT — this painting becomes the starter for the next ═══
+function ferment() {
+  phase = 'study';
+  stroke = 0;
+  breathCount = 0;
+
+  // Capture this painting as a thumbnail
+  var thumb = C.toDataURL('image/jpeg', 0.5);
+
+  // Sample colors from the painting for the color memory
+  var sampleColors = [];
+  var imgData = ctx.getImageData(0, 0, W, H);
+  for (var i = 0; i < 20; i++) {
+    var sx = Math.floor(Math.random() * W);
+    var sy = Math.floor(Math.random() * H);
+    var idx = (sy * W + sx) * 4;
+    var r = imgData.data[idx], g = imgData.data[idx+1], b = imgData.data[idx+2], a = imgData.data[idx+3];
+    if (a > 30 && (r + g + b) > 30) {
+      sampleColors.push('rgba(' + r + ',' + g + ',' + b + ',0.7)');
+    }
+  }
+
+  starters.push({
+    dataURL: thumb,
+    gen: generation,
+    palette: sampleColors,
+    weather: skyScore ? { kp: skyScore.kp, hue: skyScore.hue } : null,
+    timestamp: Date.now(),
+  });
+
+  // Keep only the last MAX_STARTERS
+  if (starters.length > MAX_STARTERS) starters.shift();
+
+  // Feed the color memory
+  learnedTraits.colorMemory = learnedTraits.colorMemory.concat(sampleColors).slice(-40);
+
+  renderGallery();
+}
+
+// ═══ STUDY — look at previous paintings ═══
+function paintStudy() {
+  // Highlight which painting we're studying in the gallery
+  var thumbs = document.querySelectorAll('#gallery .thumb');
+  thumbs.forEach(function(t) { t.classList.remove('studying'); });
+
+  var studyIdx = Math.min(stroke, starters.length - 1);
+  if (thumbs[studyIdx]) thumbs[studyIdx].classList.add('studying');
+
+  // Subtle golden overlay — studying light
+  ctx.save();
+  ctx.fillStyle = 'rgba(240,198,116,0.003)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+// ═══ EVOLVE — update learned traits based on generation ═══
+function evolve() {
+  var g = generation;
+  learnedTraits.perspective = Math.min(1, g * 0.08);
+  learnedTraits.starDensity = 1 + g * 0.05;
+  learnedTraits.nebulaDepth = 1 + g * 0.08;
+  learnedTraits.gaiaDetail = 1 + g * 0.12;
+  learnedTraits.auroraIntensity = 1 + g * 0.1;
+}
+
+// ═══ NEW PAINTING — the sourdough rises ═══
+function beginNewPainting() {
+  generation++;
+  evolve();
+
+  phase = 'ferment';
+  stroke = 0;
+
+  // Don't clear completely — ghost of previous painting bleeds through
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,6,10,0.92)';  // not 1.0 — the ghost remains
+  ctx.fillRect(0, 0, W, H);
+
+  // If we have previous paintings, faintly stamp one as underpainting
+  if (starters.length > 0) {
+    var prev = starters[starters.length - 1];
+    var img = new Image();
+    img.onload = function() {
+      ctx.globalAlpha = 0.03 + learnedTraits.perspective * 0.02; // ghost gets clearer as perspective grows
+      ctx.drawImage(img, 0, 0, W, H);
+      ctx.globalAlpha = 1;
+    };
+    img.src = prev.dataURL;
+  }
+  ctx.restore();
+
+  updateGenCounter();
+}
+
+function paintFerment() {
+  // Swirling, warming — the culture is growing
+  ctx.save();
+  var fHue = 30 + Math.sin(stroke * 0.1) * 20;
+  ctx.fillStyle = 'hsla(' + fHue + ',40%,12%,0.005)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+// ═══ GALLERY — thumbnails of previous paintings ═══
+function renderGallery() {
+  var el = document.getElementById('gallery');
+  el.innerHTML = '';
+  starters.forEach(function(s, i) {
+    var img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = s.dataURL;
+    img.title = 'painting #' + s.gen + (s.weather ? ' (Kp ' + s.weather.kp.toFixed(1) + ')' : '');
+    img.onclick = function() {
+      // Click a thumbnail to see it full-size briefly
+      var overlay = new Image();
+      overlay.onload = function() {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.drawImage(overlay, 0, 0, W, H);
+        ctx.restore();
+      };
+      overlay.src = s.dataURL;
+    };
+    el.appendChild(img);
+  });
+}
+
+function updateGenCounter() {
+  var el = document.getElementById('gen-counter');
+  el.textContent = 'painting #' + generation + ' · ' + starters.length + ' in the gallery · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
+}
+
+// ═══ THOUGHT BUBBLE ═══
 function updateThought() {
   var list = THOUGHTS[phase];
   if (!list || !list.length) return;
   var t = list[Math.min(stroke, list.length - 1)];
+  var msg = t.brush.replace('#N', '#' + generation).replace('#N+1', '#' + (generation + 1));
+  var lrn = t.learn;
   var el = document.getElementById('thought');
-  el.innerHTML = '<span class="brush">' + t.brush + '</span><br><span class="learn">' + t.learn + '</span>';
-  el.style.color = '';
+  el.innerHTML = '<span class="brush">' + msg + '</span><br><span class="learn">' + lrn + '</span>' +
+    '<br><span class="gen">painting #' + generation + ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
 }
 
-// Phase machine — the chipmunk's curriculum
-var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath'];
-var STROKES_PER_PHASE = { stars: 120, nebula: 20, gaia: 12, aurora: 8, breath: Infinity };
+// ═══ PHASE MACHINE — with sourdough loop ═══
+var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
+var STROKES_PER_PHASE = {
+  stars: 100,     // fewer stars as perspective grows
+  nebula: 16,
+  gaia: 10,
+  aurora: 6,
+  breath: Infinity,  // controlled by breathCount
+  study: 8,
+  ferment: 15,
+};
 
 function nextStroke() {
   if (paused) return;
@@ -363,39 +551,56 @@ function nextStroke() {
   totalStrokes++;
   stroke++;
 
-  if (stroke >= STROKES_PER_PHASE[phase] && phase !== 'breath') {
+  // Star density decreases with perspective — fewer, better stars
+  var starLimit = Math.max(40, Math.floor(STROKES_PER_PHASE.stars / learnedTraits.starDensity));
+
+  var limit = phase === 'stars' ? starLimit : STROKES_PER_PHASE[phase];
+
+  if (stroke >= limit && phase !== 'breath') {
     var idx = PHASE_ORDER.indexOf(phase);
-    if (idx < PHASE_ORDER.length - 1) {
+
+    if (phase === 'ferment') {
+      // The sourdough rises — begin a new painting
+      beginNewPainting();
+      phase = 'stars';
+      stroke = 0;
+    } else if (phase === 'study') {
+      phase = 'ferment';
+      stroke = 0;
+    } else if (idx < PHASE_ORDER.length - 1) {
       phase = PHASE_ORDER[idx + 1];
       stroke = 0;
     }
   }
 
   switch (phase) {
-    case 'stars': paintStar(); break;
-    case 'nebula': paintNebula(); break;
-    case 'gaia': paintGaia(); break;
-    case 'aurora': paintAurora(); break;
-    case 'breath': paintBreath(); paintGaia(); paintAurora(); break;
+    case 'stars':   paintStar(); break;
+    case 'nebula':  paintNebula(); break;
+    case 'gaia':    paintGaia(); break;
+    case 'aurora':  paintAurora(); break;
+    case 'breath':  paintBreath(); paintGaia(); paintAurora(); break;
+    case 'study':   paintStudy(); break;
+    case 'ferment': paintFerment(); break;
   }
 
   updateThought();
 }
 
-// Tempo — the chipmunk paints deliberately, not frantically
+// ═══ TEMPO ═══
 function scheduleStroke() {
   if (paused) { setTimeout(scheduleStroke, 500); return; }
 
   var delay;
   switch (phase) {
-    case 'stars':  delay = 50 + Math.random() * 150; break;  // fast dots
-    case 'nebula': delay = 400 + Math.random() * 800; break; // slow washes
-    case 'gaia':   delay = 600 + Math.random() * 1200; break; // deliberate
-    case 'aurora': delay = 300 + Math.random() * 600; break;  // flowing
-    case 'breath': delay = 50; break; // continuous animation
+    case 'stars':   delay = 40 + Math.random() * 120; break;
+    case 'nebula':  delay = 300 + Math.random() * 700; break;
+    case 'gaia':    delay = 500 + Math.random() * 1000; break;
+    case 'aurora':  delay = 250 + Math.random() * 500; break;
+    case 'breath':  delay = 50; break;
+    case 'study':   delay = 800 + Math.random() * 1200; break;
+    case 'ferment': delay = 200 + Math.random() * 400; break;
   }
 
-  // Weather modulates tempo
   if (skyScore && skyScore.tempo) {
     delay *= (1.2 - skyScore.tempo);
   }
@@ -406,24 +611,11 @@ function scheduleStroke() {
   }, delay);
 }
 
-// Controls
-function newPainting() {
-  ctx.clearRect(0, 0, W, H);
-  phase = 'stars';
-  stroke = 0;
-  totalStrokes = 0;
-  stars = [];
-  gaiaAngle = 0;
-  breathPhase = 0;
-  updateThought();
-}
-
 function togglePause() {
   paused = !paused;
-  document.querySelector('#controls button:nth-child(2)').textContent = paused ? 'resume' : 'pause';
+  document.querySelector('#controls button').textContent = paused ? 'resume' : 'pause';
 }
 
-// Connect to weather-song if available
 function listenForWeather() {
   if (window._weatherSong) {
     var check = function() {
@@ -435,19 +627,27 @@ function listenForWeather() {
   }
 }
 
-// Boot
+// ═══ BOOT — the first stroke ═══
 resize();
-// Base wash — not pure black, the canvas has texture
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
+evolve();
+updateGenCounter();
 scheduleStroke();
 
-// Load weather-song
 var ws = document.createElement('script');
 ws.src = '/js/weather-song.js?v=1';
 ws.defer = true;
 ws.onload = listenForWeather;
 document.body.appendChild(ws);
+
+// Expose for chipmunk
+window._easel = {
+  generation: function() { return generation; },
+  starters: function() { return starters; },
+  perspective: function() { return learnedTraits.perspective; },
+  phase: function() { return phase; },
+};
 </script>
 </body>
 </html>
