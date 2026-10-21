@@ -1,7 +1,9 @@
-// hologram.js — the vitruvian hologram layer
+// hologram.js — the planet inside Saturn's ring
+// the ring (saturn-ring.js) is the flat citadel — the totality surface
+// this hologram is what's INSIDE — the Vitruvian projection from within
 // squirrel ON the hologram, chipmunk BELOW watching and poking
-// humans on the outside see through it
-// v1
+// humans land on the ring and see different faces of this planet
+// v2
 
 (function() {
   'use strict';
