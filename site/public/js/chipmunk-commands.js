@@ -728,6 +728,16 @@ window._chipmunkCommands = function(ctx) {
         }
         return;
       }
+      if (cmd === 'easel' || cmd === 'paint' || cmd === 'painting' || cmd === 'gaia') {
+        addEntry('system', '🎨 easel');
+        addEntry('chipmunk',
+          '<span style="color:#f0c674">🎨 the chipmunk picks up the brush</span>\n' +
+          '<span class="dim">stars first. then nebula. then gAIa. then aurora.</span>\n' +
+          '<span class="dim">learning perspective one stroke at a time.</span>\n' +
+          '<span class="dim">watch from behind the easel.</span>\n' +
+          '<a href="/easel.html" style="color:#f0c674">open the easel →</a>');
+        return;
+      }
       if (cmd === 'tools' || cmd === 'instruments' || cmd === 'hud-tools') {
         addEntry('system', '⚙ tools');
         addEntry('chipmunk',
