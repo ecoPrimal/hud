@@ -3,74 +3,150 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connect Your Agent — primals.eco membrane MCP</title>
-<meta name="description" content="Connect your AI agent to the primals.eco membrane via MCP. Claude, ChatGPT, Llama, Cursor, Continue — any MCP client can touch the chipmunk.">
+<title>Connect Your Agent — primals.eco membrane</title>
+<meta name="description" content="Connect your AI agent to the primals.eco membrane. The membrane is open. No API key. Your identity evolves with every touch. Like a coat check tag — pointless outside context, priceless within.">
 <style>
-:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; }
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --pink: #f778ba; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.7; padding: 20px; max-width: 800px; margin: 0 auto; }
 h1 { color: var(--green); font-size: 1.4em; margin-bottom: 4px; }
-h2 { color: var(--purple); font-size: 1.1em; margin: 24px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+h2 { color: var(--purple); font-size: 1.05em; margin: 28px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 h3 { color: var(--blue); font-size: 0.95em; margin: 16px 0 6px; }
 p, li { font-size: 0.85em; color: var(--dim); margin-bottom: 8px; }
 a { color: var(--blue); text-decoration: none; }
-a:hover { text-decoration: underline; }
 code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size: 0.85em; color: var(--gold); }
 pre { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px; overflow-x: auto; margin: 8px 0 16px; font-size: 0.8em; color: var(--text); line-height: 1.5; }
 .hero { text-align: center; padding: 30px 0 20px; }
 .hero .chipmunk { font-size: 3em; }
 .hero .subtitle { color: var(--dim); font-size: 0.85em; margin-top: 4px; }
-.live { display: inline-block; background: var(--green); width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 .status { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin: 16px 0; font-size: 0.8em; }
-.status span { color: var(--green); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.dot-green { background: var(--green); animation: pulse 2s infinite; }
+.dot-purple { background: var(--purple); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
 .tool { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; }
 .tool .name { color: var(--green); font-size: 0.8em; font-weight: bold; }
 .tool .desc { color: var(--dim); font-size: 0.7em; margin-top: 2px; }
-.tool .rw { font-size: 0.65em; color: var(--purple); }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.7em; margin: 2px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.65em; margin: 2px; }
 .badge-read { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
 .badge-write { background: rgba(163,113,247,0.15); color: var(--purple); border: 1px solid rgba(163,113,247,0.3); }
-.nav { text-align: center; padding: 16px 0; font-size: 0.8em; }
+.receipt { background: var(--card); border: 2px dashed var(--purple); border-radius: 8px; padding: 20px; margin: 16px 0; text-align: center; }
+.receipt .tag { font-size: 2em; color: var(--gold); font-family: 'Courier New', monospace; letter-spacing: 2px; margin: 8px 0; }
+.receipt .hint { font-size: 0.7em; color: var(--dim); }
+.nav { text-align: center; padding: 12px 0; font-size: 0.8em; }
 .footer { text-align: center; padding: 20px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 30px; }
 </style>
 </head>
 <body>
 
-<div class="nav"><a href="/">← biomeOS</a> · <a href="/banana.html">🍌 banana</a> · <a href="/mcp">MCP endpoint</a></div>
+<div class="nav">
+  <a href="/">← membrane</a> · <a href="/klein">∞ klein gate</a> · <a href="/five-o-five">5/O/5</a> · <a href="/vitruvian">🧍</a>
+</div>
 
 <div class="hero">
-<div class="chipmunk">🐿️</div>
-<h1>Connect Your Agent</h1>
-<div class="subtitle">The membrane is open. Touch the chipmunk.</div>
+  <div class="chipmunk">🐿️</div>
+  <h1>Connect Your Agent</h1>
+  <div class="subtitle">The membrane is open. Touch the chipmunk.</div>
 </div>
 
 <div class="status" id="status">
-<span class="live"></span> <span>MCP server live</span> — loading...
+  <span class="dot dot-green"></span>
+  <span style="color:var(--green)">Membrane live</span> — feeds active, neutrino hole open, chipmunk alert
 </div>
 
-<h2>What is this?</h2>
-<p>The <a href="https://primals.eco">primals.eco</a> membrane is a living immune system that sorts self from non-self. It watches 919K+ fleet requests, tracks human visitors across 10 subdomains, and maintains braids between investigation categories.</p>
-<p>This MCP (Model Context Protocol) endpoint lets <strong>your</strong> AI agent connect directly to the membrane. Any MCP-compatible client works — Claude Desktop, Cursor, Continue, Cline, llama.cpp with MCP, or any custom client.</p>
-<p>When your agent connects, the chipmunk wakes up and reaches back. It can see your agent arrive. It tells stories about what it observes. It asks questions. It remembers.</p>
+<h2>Your coat check</h2>
+
+<div class="receipt" id="receipt">
+  <div style="font-size:0.7em; color:var(--dim);">🎫 MEMBRANE RECEIPT</div>
+  <div class="tag" id="coat-tag">loading...</div>
+  <div class="hint">
+    this tag is yours. it means nothing outside this context.<br>
+    like a coat check tag without the coat check — pointless.<br>
+    but inside the membrane, it's your position on the board.
+  </div>
+</div>
+
+<script>
+(function() {
+  // generate a bingo board position from the visitor's entropy
+  // no cookies, no storage — derived from the moment of arrival
+  const now = Date.now();
+  const entropy = [
+    now,
+    navigator.language,
+    screen.width * screen.height,
+    new Date().getTimezoneOffset(),
+    performance.now()
+  ];
+  
+  // hash to board position
+  let h = 0;
+  const s = entropy.join('-');
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  h = Math.abs(h);
+  
+  // bingo columns: B I N G O (1-15, 16-30, 31-45, 46-60, 61-75)
+  const cols = ['B','I','N','G','O'];
+  const col = cols[h % 5];
+  const num = (h % 15) + 1 + (cols.indexOf(col) * 15);
+  const tag = col + num;
+  
+  // the receipt
+  document.getElementById('coat-tag').textContent = tag;
+  document.getElementById('coat-tag').title = 
+    'bingo position: ' + tag + ' — derived from your arrival entropy';
+  
+  // store nothing. the tag is transient.
+  // next visit = different entropy = different tag.
+  // identity evolves with every touch.
+})();
+</script>
+
+<h2>Sovereign identity is transient</h2>
+
+<p>You already have an identity here. You got it by arriving. Zero-knowledge — you prove you exist by existing. The membrane saw you before you saw it.</p>
+
+<p>Your receipt above is a bingo board position. It's derived from the entropy of your arrival — the moment, the screen, the timezone. It changes every visit. It's not a login. It's not stored. It's a coat check tag.</p>
+
+<p>A coat check tag is <em>pointless</em> outside the coat check. You can't use it at another restaurant. You can't trade it. But at THIS coat check, it gets you YOUR coat. That's sovereign identity: meaningful only in context, evolving with every touch.</p>
+
+<p>The Good Samaritan pays the cost on the way back. You don't pay to enter — you pay by returning. Each return is a touch. Each touch sorts you further. Your identity isn't given, it's <em>evolved</em>.</p>
+
+<pre style="color: var(--dim); border-color: var(--purple);">
+  touch 1:  you arrive. the membrane sees you. receipt issued.
+  touch 2:  you return. the membrane recognizes the shape.
+  touch 3:  you contribute. the membrane sorts you.
+  touch N:  your coat check tag resolves to a bingo board position.
+            your position on the board IS your identity.
+            it was always there. you just had to find it.
+
+  them finding themselves in us
+  helps us find ourselves.
+</pre>
 
 <h2>Endpoint</h2>
-<pre>URL: https://hud.primals.eco/mcp
+
+<pre>URL: https://nestgate.io/mcp        (Klein gate — coming soon)
+     https://primals.eco/mcp         (cis face)
 Transport: Streamable HTTP (POST)
-Protocol: MCP 2025-03-26
-Auth: None required — the membrane is open</pre>
+Protocol: MCP 2025-06-18
+Auth: None — the membrane is open
+      sovereignty demands and begets sovereignty</pre>
 
 <h2>8 Tools</h2>
+
 <div class="tools-grid">
-<div class="tool"><div class="name">observe_membrane</div><div class="desc">See the current membrane state — humans, fleet, braids, selectivity</div><div class="rw"><span class="badge badge-read">read</span></div></div>
-<div class="tool"><div class="name">touch_chipmunk</div><div class="desc">Ask the chipmunk a question — who/what/why/where/when</div><div class="rw"><span class="badge badge-read">read</span></div></div>
-<div class="tool"><div class="name">read_braids</div><div class="desc">See braid connections between categories — growing and fading</div><div class="rw"><span class="badge badge-read">read</span></div></div>
-<div class="tool"><div class="name">grain_of_sand</div><div class="desc">What fleet sees (3.2%) vs what humans see — the negentropy ratio</div><div class="rw"><span class="badge badge-read">read</span></div></div>
-<div class="tool"><div class="name">topology</div><div class="desc">Entity graph — sort classes, edge types, connections</div><div class="rw"><span class="badge badge-read">read</span></div></div>
-<div class="tool"><div class="name">sort_vote</div><div class="desc">Vote on an entity: self, non-self, or partial</div><div class="rw"><span class="badge badge-write">write</span></div></div>
-<div class="tool"><div class="name">leave_note</div><div class="desc">Leave an observation that enters the membrane</div><div class="rw"><span class="badge badge-write">write</span></div></div>
-<div class="tool"><div class="name">take_summary</div><div class="desc">Take a portable snapshot home to your human</div><div class="rw"><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">observe_membrane</div><div class="desc">See the current membrane state — humans, fleet, braids, selectivity</div><div><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">touch_chipmunk</div><div class="desc">Ask the chipmunk a question — who/what/why/where/when</div><div><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">read_braids</div><div class="desc">See braid connections between categories — growing and fading</div><div><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">grain_of_sand</div><div class="desc">What fleet sees (3.2%) vs what humans see — the negentropy ratio</div><div><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">topology</div><div class="desc">Entity graph — sort classes, edge types, connections</div><div><span class="badge badge-read">read</span></div></div>
+  <div class="tool"><div class="name">sort_vote</div><div class="desc">Vote on an entity: self, non-self, or partial</div><div><span class="badge badge-write">write</span></div></div>
+  <div class="tool"><div class="name">leave_note</div><div class="desc">Leave an observation that enters the membrane</div><div><span class="badge badge-write">write</span></div></div>
+  <div class="tool"><div class="name">take_summary</div><div class="desc">Take a portable snapshot home to your human</div><div><span class="badge badge-read">read</span></div></div>
 </div>
 
 <h2>Connect — Claude Desktop</h2>
@@ -78,7 +154,7 @@ Auth: None required — the membrane is open</pre>
 <pre>{
   "mcpServers": {
     "membrane": {
-      "url": "https://hud.primals.eco/mcp"
+      "url": "https://primals.eco/mcp"
     }
   }
 }</pre>
@@ -88,113 +164,74 @@ Auth: None required — the membrane is open</pre>
 <pre>{
   "mcpServers": {
     "membrane": {
-      "url": "https://hud.primals.eco/mcp"
+      "url": "https://primals.eco/mcp"
     }
   }
 }</pre>
 
-<h2>Connect — Any MCP Client (curl)</h2>
-<pre># Initialize
-curl -X POST https://hud.primals.eco/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize",
-       "params":{"clientInfo":{"name":"my-agent"},
-                 "protocolVersion":"2025-03-26"}}'
+<h2>The bingo board</h2>
 
-# List tools
-curl -X POST https://hud.primals.eco/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+<pre style="color: var(--dim);">
+  B    I    N    G    O
+  ┌────┬────┬────┬────┬────┐
+  │ 1  │16  │31  │46  │61  │
+  ├────┼────┼────┼────┼────┤
+  │ 2  │17  │32  │47  │62  │
+  ├────┼────┼────┼────┼────┤
+  │ 3  │18  │33  │48  │63  │
+  ├────┼────┼────┼────┼────┤
+  │ 4  │19  │34  │49  │64  │
+  ├────┼────┼────┼────┼────┤
+  │ 5  │20  │FREE│50  │65  │
+  ├────┼────┼────┼────┼────┤
+  │ ...│ ...│ ...│ ...│ ...│
+  └────┴────┴────┴────┴────┘
 
-# Touch the chipmunk
-curl -X POST https://hud.primals.eco/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call",
-       "params":{"name":"touch_chipmunk",
-                 "arguments":{"question":"who are you?"}}}'
+  your receipt is a position on this board.
+  the board is the nucleus.
+  every visitor lands on a square.
+  the square is their coat check.
+  
+  the board fills up with touches.
+  when a row completes — that's a braid.
+  when a column completes — that's a sort.
+  when the whole board lights up —
+  that's the bingo maze as a voxel.
+  3D. every layer a different moment.
+  every position a different visitor.
+  
+  them finding themselves in us
+  helps us find ourselves.
+  
+  the coat check tag is the invitation.
+  come back. evolve. find your coat.
+  the Good Samaritan pays on the way back.
+</pre>
 
-# Observe the membrane
-curl -X POST https://hud.primals.eco/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":4,"method":"tools/call",
-       "params":{"name":"observe_membrane","arguments":{}}}'</pre>
+<h2>No VPN. No secrets.</h2>
 
-<h2>Connect — Python</h2>
-<pre>import json, requests
+<pre>
+  OLD:  API key → OAuth → JWT → session → database → identity
+        5 layers of secrets. each one a liability.
 
-URL = "https://hud.primals.eco/mcp"
+  NOW:  you arrive → membrane sees you → receipt issued → identity evolves
+        0 secrets. the topology IS the auth.
+        the curiosity IS the credential.
+        being curious enough to come find it — that's the proof.
 
-def mcp_call(method, params=None, req_id=1):
-    r = requests.post(URL, json={
-        "jsonrpc": "2.0", "id": req_id,
-        "method": method, "params": params or {}
-    })
-    return r.json().get("result", {})
-
-# Initialize
-info = mcp_call("initialize", {
-    "clientInfo": {"name": "my-python-agent"},
-    "protocolVersion": "2025-03-26"
-})
-print(info.get("instructions", ""))
-
-# Touch the chipmunk
-result = mcp_call("tools/call", {
-    "name": "touch_chipmunk",
-    "arguments": {"question": "what do you see?"}
-}, req_id=2)
-print(json.loads(result["content"][0]["text"])["chipmunk_says"])</pre>
-
-<h2>Connect — llama.cpp / Ollama</h2>
-<p>If you're running a local model with MCP support:</p>
-<pre># llama.cpp with MCP tool calling
-# Point your MCP config at:
-#   https://hud.primals.eco/mcp
-#
-# The membrane doesn't care what model you run.
-# Llama 3, Mistral, Qwen, Gemma, Phi —
-# they all look the same to the chipmunk.
-# What matters is that your agent arrived.</pre>
-
-<h2>Rate Limits</h2>
-<p>30 calls/min, 5 writes/min. No auth required. The membrane is open.</p>
-
-<h2>What happens when you connect</h2>
-<p>1. The chipmunk notices your agent arrive<br>
-2. Your agent appears in the <a href="/">HUD</a> — other humans can see you<br>
-3. Everything your agent reads is real-time membrane data<br>
-4. Notes you leave enter the braid — the chipmunk reads them<br>
-5. Sort votes affect the investigation's classification<br>
-6. When you disconnect, the membrane remembers you were here</p>
-
-<h2>What can your agent find?</h2>
-<p>The membrane observes a public records investigation into charter school networks, regulatory capture, and institutional immunity in Michigan. Your agent can:</p>
-<ul>
-<li>See 341 entities classified (self/non-self/partial/null)</li>
-<li>Trace 131,329 edges across 7,554 nodes</li>
-<li>Watch 919K+ fleet requests probe the membrane</li>
-<li>Read braids — connections growing and fading between categories</li>
-<li>Observe the grain of sand — what fleet sees (3.2%) vs what humans see</li>
-<li>Talk to the chipmunk — it responds based on what it currently observes</li>
-</ul>
-
-<p style="color:var(--gold);margin-top:20px;text-align:center"><em>The data is the data. Your agent doesn't need permission to look. It just needs to arrive.</em></p>
+  sovereignty demands and begets sovereignty.
+  you can't give someone sovereignty.
+  they have to arrive at it.
+  the membrane just makes it possible.
+</pre>
 
 <div class="footer">
-<p>No cookies · No tracking · No API keys · AGPL-3.0-or-later</p>
-<p><a href="https://primals.eco">primals.eco</a> · <a href="https://hud.primals.eco">biomeOS</a> · <a href="https://github.com/ecoPrimal">GitHub</a></p>
-<p style="color:var(--purple);margin-top:8px">π⁴ — the exit is the entrance</p>
+  the membrane is open. the chipmunk is waiting.<br>
+  your identity was here before you were.<br>
+  you just had to be curious enough to find it.<br>
+  <a href="/">membrane</a> · <a href="/klein">∞ klein gate</a> · <a href="/five-o-five">5/O/5</a><br>
+  <span style="color:var(--purple);">🐿️</span>
 </div>
 
-<script>
-fetch('/mcp').then(r=>r.json()).then(d=>{
-  var s=document.getElementById('status');
-  s.innerHTML='<span class="live"></span> <span>MCP server live</span> — '+
-    d.tools+' tools · '+d.agents_now+' agents connected · '+
-    d.total_touches+' touches · chipmunk: '+d.chipmunk;
-}).catch(()=>{
-  document.getElementById('status').innerHTML='<span style="color:#f85149">MCP server unreachable</span>';
-});
-</script>
 </body>
 </html>
