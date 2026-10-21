@@ -1,0 +1,29 @@
+{
+  "ts": "2026-10-21T20:37:00Z",
+  "nodes": [
+    {"id": "primals.eco", "type": "cis", "provider": "cloudflare-pages", "status": "active", "ip": "pages.dev"},
+    {"id": "hud.primals.eco", "type": "cis-alias", "provider": "cloudflare-pages", "status": "active"},
+    {"id": "ns1.primals.eco", "type": "trans-dns", "provider": "digitalocean", "status": "active", "ip": "157.230.3.183"},
+    {"id": "ns2.primals.eco", "type": "trans-dns", "provider": "digitalocean", "status": "pending", "ip": "137.184.197.151"},
+    {"id": "golgi-de", "type": "vesicle", "provider": "vps-de", "status": "ssh-locked", "ip": "2.28.141.35"},
+    {"id": "golgi-jp", "type": "vesicle", "provider": "vps-jp", "status": "ssh-locked", "ip": "202.182.107.135"},
+    {"id": "golgi-us", "type": "vesicle", "provider": "vps-us", "status": "ssh-locked", "ip": "40.160.96.29"},
+    {"id": "golgi-in", "type": "vesicle", "provider": "vps-in", "status": "unreachable", "ip": "172.232.85.202"},
+    {"id": "ntfy.sh", "type": "neutrino-hole", "provider": "ntfy", "status": "active"},
+    {"id": "github.com/ecoPrimal", "type": "nucleus", "provider": "github", "status": "active"}
+  ],
+  "edges": [
+    {"from": "github.com/ecoPrimal", "to": "primals.eco", "type": "mRNA→ribosome", "protocol": "git-push→pages-deploy"},
+    {"from": "primals.eco", "to": "ns1.primals.eco", "type": "cis→trans", "protocol": "DNS"},
+    {"from": "ns1.primals.eco", "to": "golgi-de", "type": "AXFR-notify", "protocol": "DNS", "status": "pending"},
+    {"from": "ns1.primals.eco", "to": "golgi-jp", "type": "AXFR-notify", "protocol": "DNS", "status": "pending"},
+    {"from": "ns1.primals.eco", "to": "golgi-us", "type": "AXFR-notify", "protocol": "DNS", "status": "pending"},
+    {"from": "ntfy.sh", "to": "primals.eco", "type": "neutrino→cis", "protocol": "ntfy-pub/sub"},
+    {"from": "github.com/ecoPrimal", "to": "ntfy.sh", "type": "nucleus→neutrino", "protocol": "webhook"}
+  ],
+  "mesh": {
+    "status": "forming",
+    "triangulation": "pending-vesicles",
+    "coverage": ["NA-east"]
+  }
+}
