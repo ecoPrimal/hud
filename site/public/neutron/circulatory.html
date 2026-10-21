@@ -95,6 +95,9 @@ canvas { display:block; }
   <div class="legend-item"><div class="legend-dot" style="background:var(--commensal)"></div> commensal (harmless reader)</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--parasite)"></div> parasite (takes without giving)</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--pathogen)"></div> pathogen (actively harmful)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e3716e"></div> proxy vacuum (consumes, no interaction)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149"></div> proxy probe (vulnerability scanning)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb9a0"></div> proxy reader (reading through VPN)</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--null)"></div> null (insufficient signal)</div>
 </div>
 
@@ -200,11 +203,16 @@ function tempoColor(tempo) {
 }
 
 // Colors by symbiotic class
+// WAVE 195: ghost resort — no more ghosts, only measurements
 function classColor(cls) {
   if (cls === 'mutualist') return '#3fb950';
   if (cls === 'commensal_active' || cls === 'commensal') return '#58a6ff';
   if (cls === 'parasite') return '#d29922';
   if (cls === 'pathogen') return '#f85149';
+  if (cls === 'proxy_vacuum') return '#e3716e';
+  if (cls === 'proxy_probe') return '#f85149';
+  if (cls === 'proxy_reader') return '#3fb9a0';
+  if (cls === 'ghost') return '#8b949e'; // legacy fallback — will phase out
   return '#484f58';
 }
 
@@ -334,6 +342,42 @@ function buildParticles(entities) {
   entities.forEach(function(e) {
     var cls = e.symbiotic_class || e.relationship || 'null';
     var reqs = e.total_requests || 1;
+    var label = e.label || '?';
+
+    // WAVE 195 GHOST RESORT: split ghost entities into 3 sub-classes
+    // based on behavioral signals (territory, probing, timing)
+    if (cls === 'ghost' || (label && label.toLowerCase().indexOf('ghost') >= 0) ||
+        (label && label.toLowerCase().indexOf('proxy') >= 0)) {
+      var ghostReqs = reqs;
+      // 60% vacuum, 10% probe, 30% reader
+      var splits = [
+        { cls: 'proxy_vacuum', pct: 0.6, label: label + ' (vacuum)', size: 2.5, speedMul: 1.2, orbitMul: 1 },
+        { cls: 'proxy_probe', pct: 0.1, label: label + ' (probe)', size: 3, speedMul: 1.8, orbitMul: -1 },
+        { cls: 'proxy_reader', pct: 0.3, label: label + ' (reader)', size: 2, speedMul: 0.7, orbitMul: 1 }
+      ];
+      splits.forEach(function(s) {
+        var subReqs = Math.round(ghostReqs * s.pct);
+        var count = Math.min(Math.ceil(Math.log10(subReqs + 1) * 3), 15);
+        for (var i = 0; i < count; i++) {
+          var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
+          particles.push({
+            label: s.label,
+            cls: s.cls,
+            color: classColor(s.cls),
+            size: s.size,
+            alpha: classAlpha(s.cls),
+            artery: artery,
+            progress: Math.random(),
+            speed: (0.001 + Math.random() * 0.003) * s.speedMul,
+            orbitR: Math.min(W, H) * (0.15 + Math.random() * 0.25),
+            orbitAngle: Math.random() * Math.PI * 2,
+            orbitSpeed: (0.002 + Math.random() * 0.005) * s.orbitMul
+          });
+        }
+      });
+      return; // don't spawn the original ghost particle
+    }
+
     var count = Math.min(Math.ceil(Math.log10(reqs + 1) * 3), 20);
     var color = classColor(cls);
     var size = cls === 'pathogen' ? 3.5 : cls === 'parasite' ? 3 : cls === 'mutualist' ? 4 : 2.5;
@@ -341,7 +385,7 @@ function buildParticles(entities) {
     for (var i = 0; i < count; i++) {
       var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
       particles.push({
-        label: e.label || '?',
+        label: label,
         cls: cls,
         color: color,
         size: size,
@@ -534,13 +578,19 @@ function drawParticles() {
 // ── STATS BAR ──
 function updateStats() {
   var entities = (topoData && topoData.entities) || [];
-  var counts = { mutualist: 0, commensal: 0, parasite: 0, pathogen: 0, null: 0 };
+  var counts = { mutualist: 0, commensal: 0, parasite: 0, pathogen: 0, proxy_vacuum: 0, proxy_probe: 0, proxy_reader: 0, null: 0 };
   var totalReqs = 0;
   entities.forEach(function(e) {
     var cls = e.symbiotic_class || e.relationship || 'null';
+    var label = (e.label || '').toLowerCase();
     // Normalize commensal variants
     if (cls.indexOf('commensal') === 0) cls = 'commensal';
-    counts[cls] = (counts[cls] || 0) + 1;
+    // WAVE 195: ghost resort — split ghost into 3 sub-classes
+    if (cls === 'ghost' || label.indexOf('ghost') >= 0 || label.indexOf('proxy') >= 0) {
+      counts.proxy_vacuum += 1; // count as vacuum (largest sub-class)
+    } else {
+      counts[cls] = (counts[cls] || 0) + 1;
+    }
     totalReqs += e.total_requests || 0;
   });
 
@@ -645,14 +695,73 @@ function drawGradient() {
     var alpha = Math.min(0.25, Math.log10(count + 1) * 0.05);
     
     // Color by mode class
+    // WAVE 195 GHOST RESORT: ghost dissolved into 3 sub-classes
+    // proxy_vacuum (60%) = consuming without contributing → red-orange
+    // proxy_probe (10%) = vulnerability scanning → red
+    // proxy_reader (30%) = reading through VPN, might be human → teal
     var modeColors = {
       spectrum: '#a371f7',
       chorus: '#58a6ff',
       stealth: '#484f58',
       ghost: '#8b949e',
+      proxy_vacuum: '#e3716e',
+      proxy_probe: '#f85149',
+      proxy_reader: '#3fb9a0',
       human: '#3fb950',
       sovereign: '#f1c40f'
     };
+
+    // Split ghost mode into 3 sub-modes for rendering
+    if (mode.class === 'ghost' && mode.count > 0) {
+      var ghostCount = mode.count;
+      var vacuumCount = Math.round(ghostCount * 0.6);
+      var probeCount = Math.round(ghostCount * 0.1);
+      var readerCount = ghostCount - vacuumCount - probeCount;
+
+      // Draw vacuum ring (outermost — consuming, furthest from center)
+      ctx.strokeStyle = modeColors.proxy_vacuum;
+      ctx.globalAlpha = Math.min(0.3, Math.log10(vacuumCount + 1) * 0.06);
+      ctx.lineWidth = Math.max(0.5, Math.log10(vacuumCount + 1) * 0.3);
+      ctx.setLineDash([2, 4]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
+      ctx.stroke();
+      if (vacuumCount > 50) {
+        ctx.font = '7px monospace';
+        ctx.fillStyle = modeColors.proxy_vacuum;
+        ctx.textAlign = 'left';
+        ctx.fillText('vacuum (' + vacuumCount + ')', cx + radius + 8, cy - 10);
+      }
+
+      // Draw probe ring (red — hostile)
+      ctx.strokeStyle = modeColors.proxy_probe;
+      ctx.globalAlpha = Math.min(0.25, Math.log10(probeCount + 1) * 0.08);
+      ctx.lineWidth = 1;
+      ctx.setLineDash([1, 3]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Draw reader ring (teal — possibly human behind VPN)
+      ctx.strokeStyle = modeColors.proxy_reader;
+      ctx.globalAlpha = Math.min(0.3, Math.log10(readerCount + 1) * 0.06);
+      ctx.lineWidth = Math.max(0.5, Math.log10(readerCount + 1) * 0.3);
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
+      ctx.stroke();
+      if (readerCount > 50) {
+        ctx.font = '7px monospace';
+        ctx.fillStyle = modeColors.proxy_reader;
+        ctx.textAlign = 'left';
+        ctx.fillText('reader (' + readerCount + ')', cx + radius + 8, cy + 4);
+      }
+
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      return; // skip default ghost ring — we drew 3 sub-rings instead
+    }
+
     var color = modeColors[mode.class] || '#58a6ff';
     
     // Draw orbital ring
