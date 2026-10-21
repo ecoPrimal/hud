@@ -748,6 +748,38 @@ window._chipmunkCommands = function(ctx) {
           '<a href="/tools.html" style="color:#d2a8ff">open tools map →</a>');
         return;
       }
+      if (cmd === 'klein' || cmd === 'glyphs' || cmd === 'bottle') {
+        addEntry('system', '◌ klein bottle');
+        addEntry('chipmunk',
+          '<span style="color:#d2a8ff">◌ the Klein bottle for the MCP server</span>\n' +
+          '19 glyphs. 15 families at π/N. irrational pace.\n' +
+          'touch the canvas — sensation ripples reach the families.\n' +
+          'output → fold → input → speak → output. non-orientable.\n' +
+          '<span class="dim">collapse to null-D every e² seconds. area = π.</span>\n' +
+          '<a href="/glyphs.html" style="color:#d2a8ff">open the Klein bottle →</a>');
+        return;
+      }
+      if (cmd === 'springs' || cmd === 'mammoth' || cmd === 'yellowstone' || cmd === 'hotsprings') {
+        addEntry('system', '♨ springs');
+        addEntry('chipmunk',
+          '<span style="color:#3fb950">♨ when will it come back?</span>\n' +
+          'Mammoth Hot Springs. the terraces went white.\n' +
+          'the water is underground. 90%. always there.\n' +
+          '3–7 years for a new crack. color returns in days.\n' +
+          '<span class="dim">the bacteria ARE the leaves. 3.5 billion years. light → life → color.</span>\n' +
+          '<a href="/springs.html" style="color:#3fb950">read the answer →</a>');
+        return;
+      }
+      if (cmd === 'likeus' || cmd === 'like-us' || cmd === 'kendrick' || cmd === 'just-like-us') {
+        addEntry('system', '♫ just like us');
+        addEntry('chipmunk',
+          '<span style="color:#f0c674">♫ just like us — the membrane flips the sort</span>\n' +
+          'musical parody. everything alive IS like us.\n' +
+          'the sorting isn\'t to exclude — it\'s to recognize family.\n' +
+          '<span class="dim">you gotta crawl before you can walk</span>\n' +
+          '<a href="/like-us.html" style="color:#f0c674">hear it →</a>');
+        return;
+      }
       if (cmd === 'mute' || cmd === 'quiet' || cmd === 'silence') {
         addEntry('system', '\ud83d\udd07 mute');
         if (window._membraneSound && window._membraneSound.isActive()) {
