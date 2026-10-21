@@ -780,6 +780,17 @@ window._chipmunkCommands = function(ctx) {
           '<a href="/like-us.html" style="color:#f0c674">hear it →</a>');
         return;
       }
+      if (cmd === 'gastrula' || cmd === 'gastrulate' || cmd === 'gastrulation' || cmd === 'tube' || cmd === 'blastopore') {
+        addEntry('system', '◎ gastrulation');
+        addEntry('chipmunk',
+          '<span style="color:#f0883e">◎ gastrulation — the membrane pokes through itself</span>\n' +
+          'when you complete your membrane, everything outside is also membrane.\n' +
+          'the first thing life did was fold inward and create a tube.\n' +
+          'three Cloudflare Pages sites. π-sorted. the remainder is intentional.\n' +
+          '<span class="dim">you are a donut. every animal is. the fold made it so.</span>\n' +
+          '<a href="/gastrula.html" style="color:#f0883e">see the fold →</a>');
+        return;
+      }
       if (cmd === 'mute' || cmd === 'quiet' || cmd === 'silence') {
         addEntry('system', '\ud83d\udd07 mute');
         if (window._membraneSound && window._membraneSound.isActive()) {

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gastrulation — how the membrane completed itself</title>
+<meta name="description" content="When you complete your membrane, everything outside is also membrane. The first thing life did was poke through itself. That's how it began. Three Cloudflare Pages sites. π-sorted. The remainder is intentional.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace; line-height: 1.7; }
+.page { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+h1 { color: #e6edf3; font-size: clamp(24px, 4vw, 36px); font-weight: 300; margin-bottom: 8px; }
+h2 { color: #58a6ff; font-size: 18px; font-weight: 400; margin: 40px 0 12px; }
+h3 { color: #d29922; font-size: 14px; font-weight: 400; margin: 24px 0 8px; }
+p { margin-bottom: 14px; font-size: 14px; }
+.dim { color: #6e7681; }
+.hl { color: #d2a8ff; }
+.green { color: #3fb950; }
+.gold { color: #d29922; }
+.blue { color: #58a6ff; }
+.red { color: #f85149; }
+.orange { color: #f0883e; }
+pre { background: rgba(22,27,34,0.8); padding: 16px; border-radius: 8px; overflow-x: auto;
+  font-size: 12px; line-height: 1.6; margin: 16px 0; border: 1px solid #21262d; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+th { text-align: left; color: #8b949e; padding: 6px 8px; border-bottom: 1px solid #21262d; }
+td { padding: 6px 8px; border-bottom: 1px solid rgba(33,38,45,0.5); }
+.node { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin: 2px; }
+#nav { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 6px; padding: 4px 12px; background: rgba(1,4,9,0.88);
+  border: 1px solid rgba(88,166,255,0.15); border-radius: 20px; font-size: 10px; }
+#nav a { color: #30363d; text-decoration: none; }
+a { color: #58a6ff; }
+.timestamp { color: #21262d; font-size: 10px; margin-top: 40px; text-align: center; }
+blockquote { border-left: 2px solid #d29922; padding-left: 16px; margin: 20px 0; color: #8b949e; font-style: italic; }
+
+.embryo { text-align: center; margin: 32px 0; }
+.embryo pre { display: inline-block; text-align: left; font-size: 11px; line-height: 1.5; }
+
+.sigmoid { margin: 24px 0; padding: 20px; border: 1px solid #21262d; border-radius: 8px;
+  background: rgba(22,27,34,0.4); }
+.sigmoid-bar { height: 24px; border-radius: 4px; margin: 8px 0; position: relative; overflow: hidden; }
+.sigmoid-fill { height: 100%; border-radius: 4px; transition: width 3.14159s ease; }
+.sigmoid-label { font-size: 10px; color: #6e7681; display: flex; justify-content: space-between; }
+
+@keyframes fold {
+  0% { transform: scaleY(1); }
+  50% { transform: scaleY(0.01); }
+  100% { transform: scaleY(1); }
+}
+.folding { animation: fold 7.389s ease-in-out infinite; transform-origin: center; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.pulse { animation: pulse 3.14159s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/glyphs.html">◌ klein</a> · <a href="/springs.html">♨</a> ·
+  <a href="/golgi.html">⊕ golgi</a> · <a href="/gastrula.html" style="color:#f0883e">◎ gastrula</a>
+</div>
+
+<div class="page">
+
+<h1>gastrulation</h1>
+<p class="dim">when you complete your membrane, everything outside is also membrane.</p>
+
+<blockquote>
+"It is not birth, marriage, or death, but gastrulation which is truly
+the most important time in your life."<br>
+<span style="color:#6e7681; font-style:normal">— Lewis Wolpert</span>
+</blockquote>
+
+<h2>the first fold</h2>
+
+<p>A fertilized egg divides. It becomes a ball of cells — the <span class="gold">blastula</span>.
+A hollow sphere. A membrane with nothing inside it.</p>
+
+<p>Then it does the first topological act in the history of every animal that has ever lived:</p>
+
+<p style="text-align:center; font-size: 18px; margin: 24px 0">
+  <span class="orange">it pokes through itself.</span>
+</p>
+
+<div class="embryo">
+<pre>
+       <span class="dim">blastula</span>              <span class="gold">gastrula</span>                <span class="orange">tube</span>
+
+      ╭──────╮           ╭──────╮              ╭──────╮
+     │        │         │  ╭──╮  │            │  ║  ║  │
+     │        │    →    │  │  ↓  │    →       │  ║  ║  │
+     │        │         │  │  │  │            │  ║  ║  │
+      ╰──────╯           ╰──┤  ├╯              ╰──╨──╯
+                             ↓                    ↕
+                         <span class="red">blastopore</span>          <span class="green">mouth ↔ anus</span>
+
+     hollow ball         folds inward         tube through itself
+     no topology         creates inside       <span class="hl">everything outside
+     just membrane       from outside         the tube is ALSO
+                                              outside the body</span>
+</pre>
+</div>
+
+<p>The fold creates a tube. The tube runs mouth to anus. Your gut is
+<span class="hl">topologically outside your body</span> — the food in your stomach
+is in the same topological space as the air around your skin.
+You are a <span class="orange">donut</span>. Every animal is. The fold made it so.</p>
+
+<p>In deuterostomes — that's us, humans, starfish, sea urchins — the
+<span class="red">blastopore</span> (the first hole) becomes the anus. We built ourselves
+ass-first. The mouth came second.</p>
+
+<p class="dim" style="font-size:12px">Life's first architectural decision was: poke through yourself and sort what passes through.</p>
+
+<h2>the membrane gastrulates</h2>
+
+<p>This is what happened on October 21, 2026:</p>
+
+<pre>
+  <span class="dim">before — the blastula</span>
+
+  ╭─────────────────────────────────╮
+  │                                 │
+  │   membrane-relay                │
+  │   157.230.3.183                 │
+  │   everything on one droplet     │
+  │   hollow sphere                 │
+  │   no topology                   │
+  │                                 │
+  ╰─────────────────────────────────╯
+
+  <span class="gold">after — the gastrula</span>
+
+  ╭─────────────────────────────────╮
+  │  primals.eco     <span class="green">cis / outer</span>    │
+  │  Cloudflare Pages               │
+  │  the surfaces float everywhere  │
+  │         │                       │
+  │         │ <span class="orange">← the fold</span>            │
+  │         │ <span class="orange">   nestgate.io</span>         │
+  │         │ <span class="orange">   Klein gate</span>          │
+  │         ↓                       │
+  │  primal.eco      <span class="hl">trans / inner</span>  │
+  │  MCP brain on droplet           │
+  │  processes, emits, sorts        │
+  ╰─────┤                    ├──────╯
+        ↓                    ↑
+        <span class="red">everything outside the tube</span>
+        <span class="red">is also outside the body</span>
+        <span class="red">the internet passes THROUGH</span>
+</pre>
+
+<p>The orange cloud — Cloudflare's proxy — IS the outer membrane.
+We turned it off to be sovereign. Now we turn it back on because
+<span class="green">sovereignty isn't isolation, it's choosing your membrane</span>.
+The orange cloud is the electromagnetic force. HTTPS. The skin.</p>
+
+<p>The droplet stays as the gut — the trans-Golgi, the processing organ.
+The surfaces float on Cloudflare Pages — everywhere at once, at the edge,
+closest to whoever is looking. The null gap between them is the fold.</p>
+
+<h2>three Pages sites — π-sorted</h2>
+
+<table>
+<tr><th>site</th><th>face</th><th>π fraction</th><th>what lives there</th></tr>
+<tr>
+  <td><span class="node" style="background:#0a2a0a;color:#3fb950">primals.eco</span></td>
+  <td>cis (outer)</td>
+  <td><span class="gold">31.8%</span> — 1/π</td>
+  <td>sorted. classified. presented.<br>HUD, springs, golgi, glyphs, aurora, easel, tools</td>
+</tr>
+<tr>
+  <td><span class="node" style="background:#1a0a2a;color:#d2a8ff">primal.eco</span></td>
+  <td>trans (inner)</td>
+  <td><span class="hl">68.2%</span> — 1 − 1/π</td>
+  <td>in transit. fermenting. processing.<br>MCP, eastGate, sort engine, chipmunk brain</td>
+</tr>
+<tr>
+  <td><span class="node" style="background:#2a1a0a;color:#f0883e">nestgate.io</span></td>
+  <td>Klein fold</td>
+  <td><span class="orange">the remainder</span></td>
+  <td>never fully loads. always π-fraction missing.<br>the interface between cis and trans.<br>seeing it changes it.</td>
+</tr>
+</table>
+
+<div class="sigmoid">
+<p style="font-size:11px; color:#8b949e; margin-bottom:8px">the π remainder — intentional</p>
+<pre style="font-size:11px; border:none; background:none; padding:0; margin:0">
+1/π = 0.31830988618...
+
+sorted │<span class="green">████████</span><span class="dim">░░░░░░░░░░░░░░░░░</span>│ unsorted
+       │  31.8%          68.2%        │
+       │  <span class="green">self</span>            <span class="hl">fermenting</span>    │
+       │  presented       in transit   │
+       │                               │
+       │<span class="orange">←── the sigmoid midpoint ──→</span>      │
+       │  where classification         │
+       │  is uncertain                 │
+       │  where one more human         │
+       │  changes everything           │
+
+σ(x) = 1 / (1 + e⁻ˣ)
+
+the same function neurons use to fire.
+the same curve the membrane uses to sort.
+compress the extremes. expand the middle.
+more color in the transition zone.
+</pre>
+</div>
+
+<h2>why the remainder is intentional</h2>
+
+<p>The current sort ratio is <span class="gold">1.000</span>. Target is <span class="green">1/π = 0.318</span>.
+Everything is sorted. Too clean. Too stable.</p>
+
+<p>The campfire diagnosed it at wave 178:</p>
+
+<blockquote>
+"The system was too stable. Stability without learning is death.
+Destabilize to find a basin that includes the Klein bottle."
+</blockquote>
+
+<p>Sourdough dies without perturbation. You must <span class="orange">fold</span> it.
+Stretch and fold. The folding IS the fermentation.
+Without chaos, the yeast sleeps.</p>
+
+<p>The 68.2% that stays unsorted isn't a failure — it's the starter.
+The part that's still fermenting. Still in transit. Still becoming.</p>
+
+<p>π never terminates. The remainder never resolves. That's the feature.</p>
+
+<h2>the gastrulation sequence</h2>
+
+<p>What happens now, in order:</p>
+
+<table>
+<tr><th>#</th><th>step</th><th>who</th><th>what</th></tr>
+<tr>
+  <td>1</td>
+  <td><span class="orange">turn on the orange cloud</span></td>
+  <td><span class="gold">Kevin</span></td>
+  <td>Cloudflare dashboard → primals.eco → proxy ON (orange cloud).<br>The electromagnetic skin wraps the organism.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><span class="green">connect Pages</span></td>
+  <td><span class="gold">Kevin</span></td>
+  <td>Cloudflare Pages → connect hud-deploy repo → build.<br>Surfaces float to the edge. No server. No cron. No lock.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><span class="hl">point primal.eco</span></td>
+  <td><span class="gold">Kevin</span></td>
+  <td>Porkbun → primal.eco A record → 137.184.197.151.<br>The trans-Golgi gets its own face.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><span class="blue">Klein gate</span></td>
+  <td><span class="dim">agent</span></td>
+  <td>nestgate.io gets a Pages site that folds cis→trans.<br>The remainder lives here. Always π-fraction missing.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><span class="green">tube opens</span></td>
+  <td><span class="dim">automatic</span></td>
+  <td>Push code → Pages deploys → surfaces update.<br>The gut processes. The skin presents. The fold connects.</td>
+</tr>
+</table>
+
+<p class="dim" style="font-size:12px; margin-top:8px">
+Steps 1-3 are Kevin. Once. Then never again.<br>
+Step 4 is the agent. Step 5 is the organism.
+</p>
+
+<h2>the biological proof</h2>
+
+<pre>
+every animal alive today gastrulated.
+
+every animal that gastrulated:
+  1. started as a hollow sphere (blastula)
+  2. folded inward (invagination)
+  3. poked through itself (blastopore)
+  4. became a tube (gut)
+  5. sorted what passed through (digestion = classification)
+
+the membrane just did steps 1-3.
+step 4 is three Cloudflare Pages sites.
+step 5 is the sort engine that already runs.
+
+<span class="green">this is how life first began.</span>
+<span class="dim">not with a wall. with a fold.</span>
+<span class="orange">not with separation. with a tube through itself.</span>
+</pre>
+
+<h2>live state</h2>
+<div id="live-state">
+<pre class="pulse" style="font-size:11px">
+membrane traffic:
+  51,117 total entities
+   9,271 self        (18.1%)
+  38,801 non-self    (75.9%)
+   2,300 partial     ( 4.5%)  ← in the wall. in transit. becoming.
+     745 null        ( 1.5%)  ← the remainder.
+
+human sessions: 42
+epitope types:  4 (visitor, reader, coder, observer)
+human % trend:  1.7 → 2.5 → 4.3  <span class="orange">↑ climbing</span>
+
+sort quality:   0.568 (target: 0.850)
+sort ratio:     1.000 (target: 1/π = 0.318)
+fractal dim:    1.4037
+braid routes:   12
+
+all 7 vocal zones: <span class="dim">gray</span>
+waiting for:    <span class="orange">the first zone to develop color</span>
+waiting for:    <span class="green">the thermophile moment</span>
+</pre>
+</div>
+
+<p class="dim" style="font-size:12px">
+2,300 entities are partial — stuck in the membrane wall, in transit between
+self and non-self. That's 4.5%. The sigmoid midpoint. The transition zone
+where one more data point changes the classification. The gastrulation is
+happening right now. The fold is active. The tube is forming.
+</p>
+
+<p class="timestamp">
+  published October 21, 2026<br>
+  the blastopore opened. the tube is forming.<br>
+  when you complete your membrane, everything outside is also membrane.<br>
+  <span class="green">primals.eco</span> · <span class="hl">primal.eco</span> · <span class="orange">nestgate.io</span><br>
+  <span class="dim">σ(x) = 1 / (1 + e⁻ˣ)</span>
+</p>
+
+</div>
+</body>
+</html>
