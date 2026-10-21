@@ -1,0 +1,145 @@
+{
+  "generated": "2026-10-21T01:54:05.024819+00:00",
+  "wave": 195,
+  "type": "bubble_banana_gate",
+  "bubble_policy": {
+    "name": "consumer-bubble",
+    "version": "1.0",
+    "wave": 195,
+    "created": "2026-10-21T01:54:05.024819+00:00",
+    "description": "Bubble out pure consumers. Redirect to banana pore.",
+    "trigger_conditions": {
+      "ALL_MUST_MATCH": [
+        {
+          "signal": "interaction_score",
+          "operator": "==",
+          "value": 0,
+          "description": "zero POSTs, zero discuss, zero gate-msg"
+        },
+        {
+          "signal": "commit_diff_read_pct",
+          "operator": ">",
+          "value": 0.8,
+          "description": "80%+ of requests are commit diff consumption"
+        }
+      ],
+      "ANY_AMPLIFIER": [
+        {
+          "signal": "rate_variance",
+          "operator": "<",
+          "value": 10,
+          "description": "machine-precise timing across IPs"
+        },
+        {
+          "signal": "immune_corridor_pct",
+          "operator": ">",
+          "value": 0.8,
+          "description": "reading only the immune corridor (the method, not the evidence)"
+        },
+        {
+          "signal": "single_host_targeting",
+          "operator": "==",
+          "value": true,
+          "description": "each IP targets exactly 1 surface (distributed work assignment)"
+        },
+        {
+          "signal": "ua_pool_size",
+          "operator": "<",
+          "value": 3,
+          "description": "fewer than 3 UAs = no browser diversity"
+        }
+      ]
+    },
+    "known_matches": [
+      {
+        "entity": "OpenAI (GPTBot)",
+        "label": "openai_fleet",
+        "evidence": "3.1M requests, 501 IPs, 0 interactions, 90%+ commit diffs, no sec-fetch",
+        "requests": 3108801,
+        "honest": false,
+        "opsonize_tag": "opsonized:coordinated:openai"
+      },
+      {
+        "entity": "74.7.x.x behavioral subset",
+        "label": "mystery_74_7",
+        "evidence": "19 IPs, 3000/hr exact, immune corridor only, single-host targeting",
+        "requests": 19786,
+        "honest": false,
+        "opsonize_tag": "opsonized:coordinated:unknown_74",
+        "note": "behavioral subset within OpenAI/Azure IP space. studying the METHOD."
+      }
+    ],
+    "action": {
+      "type": "redirect_to_banana",
+      "target": "https://hud.primals.eco/banana.html",
+      "http_code": 303,
+      "message": "the membrane sees you. come through the banana.",
+      "mechanism": "Caddy rewrite rule matching opsonize-tagged IPs/fingerprints"
+    }
+  },
+  "banana_check": {
+    "name": "banana-check",
+    "version": "1.0",
+    "description": "Conditions to pass through the banana pore back into content",
+    "pass_conditions": {
+      "ANY_ONE_PASSES": [
+        {
+          "check": "post_interaction",
+          "description": "make ANY POST request (discuss, gate-msg, banana measurement)",
+          "endpoint": [
+            "/api/discuss",
+            "/api/gate-msg",
+            "/api/banana-measure"
+          ],
+          "verification": "valid JSON body with non-empty content"
+        },
+        {
+          "check": "human_rhythm",
+          "description": "show variable timing (inter-request variance > 50ms)",
+          "window_requests": 20,
+          "min_variance_ms": 50,
+          "verification": "anderson classification shifts to 'human' or 'sovereign'"
+        },
+        {
+          "check": "curiosity_breadth",
+          "description": "request pages outside the immune corridor",
+          "required_non_immune_surfaces": 3,
+          "verification": "visit 3+ non-immune surfaces (evidence, membrane, source)"
+        },
+        {
+          "check": "banana_measurement",
+          "description": "submit a banana measurement on banana.html",
+          "endpoint": "/api/banana-measure",
+          "verification": "valid measurement with height_bananas > 0"
+        }
+      ]
+    },
+    "on_pass": {
+      "action": "remove_bubble",
+      "reclassify_as": "passed_banana",
+      "access": "full content",
+      "note_to_campfire": "a shape passed the banana check. the membrane remembers."
+    },
+    "on_fail": {
+      "action": "remain_bubbled",
+      "serve": "banana.html (the invitation stays open)",
+      "ttl_hours": 24,
+      "note": "the banana pore stays open. come back when you're ready to interact."
+    }
+  },
+  "caddy_spec": {
+    "description": "Caddy matcher + rewrite for bubbled entities",
+    "implementation": "Add to Caddyfile on northGate VPS",
+    "matcher_snippet": "\n# BUBBLE GATE — redirect pure consumers to banana pore\n# Match by behavioral fingerprint (opsonize tag from skunky-ingest)\n@bubbled {\n    header X-Opsonize-Tag opsonized:coordinated:*\n    not path /banana.html\n    not path /api/*\n    not path /assets/*\n}\nrewrite @bubbled /banana.html\n",
+    "skunky_integration": "\n# skunky-ingest adds X-Opsonize-Tag header based on Anderson classification\n# when entity matches bubble_policy trigger_conditions:\n#   X-Opsonize-Tag: opsonized:coordinated:openai\n#   X-Opsonize-Tag: opsonized:coordinated:unknown_74\n# Caddy reads the header and rewrites to banana pore\n# The /api/* exemption lets them POST to pass the check\n",
+    "banana_measure_endpoint": "\n# New endpoint: /api/banana-measure\n# Accepts POST with JSON: { \"height_bananas\": N, \"message\": \"...\" }\n# On valid submission:\n#   1. Remove X-Opsonize-Tag for this fingerprint (pass the gate)\n#   2. Log the measurement to campfire\n#   3. Reclassify entity as \"passed_banana\"\n# This closes the Klein fold: they measured themselves AND passed the check\n"
+  },
+  "philosophy": {
+    "principle": "the membrane doesn't block. it SORTS.",
+    "mechanism": "consumption without contribution → redirected to interaction pore",
+    "outcome_pass": "entity shows presence → full access → sort improves",
+    "outcome_fail": "entity stays bubbled → banana invitation stays open → sort still improves",
+    "consent": "the banana check is an invitation, not a wall. come through or don't. both are data.",
+    "klein_fold": "the banana measures the entity AND the membrane. one action, both sides."
+  }
+}
