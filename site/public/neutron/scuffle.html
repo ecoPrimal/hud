@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scuffle · IS / WAS / COULD BE</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--fg:#c9d1d9;--dim:#8b949e;--green:#3fb950;--blue:#58a6ff;--gold:#d29922;--red:#f85149;--purple:#a371f7;--border:#21262d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden}
+canvas{display:block;position:fixed;top:0;left:0;z-index:0}
+.nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);border-radius:20px;font:11px monospace}
+.nav a{color:var(--blue);text-decoration:none}
+.nav span{color:#30363d}
+.overlay{position:fixed;top:40px;left:20px;z-index:10;max-width:320px;pointer-events:none}
+.title{font-size:20px;font-weight:200;color:var(--fg)}
+.sub{font-size:11px;color:var(--dim);margin:4px 0 12px}
+.controls{position:fixed;bottom:20px;left:20px;z-index:20;display:flex;flex-direction:column;gap:6px}
+.btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--fg);font:12px monospace;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.2s}
+.btn:hover{border-color:var(--blue)}
+.btn.active{border-color:var(--green);background:rgba(63,185,80,0.1)}
+.btn .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.info-panel{position:fixed;top:40px;right:20px;z-index:10;width:280px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;font:12px monospace}
+.info-panel h3{color:var(--gold);font-size:13px;font-weight:400;margin-bottom:8px}
+.info-panel .row{display:flex;justify-content:space-between;margin:4px 0;color:var(--dim)}
+.info-panel .row .val{color:var(--fg)}
+.tense{position:fixed;bottom:20px;right:20px;z-index:10;font:11px monospace;color:var(--dim);text-align:right;max-width:260px}
+.tense em{color:var(--purple);font-style:normal}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/">◈ hud</a><span>·</span>
+  <a href="/neutron/footprint.html">🌍 geo</a><span>·</span>
+  <a href="/neutron/scuffle.html" style="color:var(--green)">🏭 scuffle</a><span>·</span>
+  <a href="/sporeprint/vision/lansing-scuffle/">📄 paper</a><span>·</span>
+  <a href="/nightbox" style="color:var(--gold)">📮 nightbox</a>
+</div>
+
+<div class="overlay">
+  <div class="title">the lansing scuffle</div>
+  <div class="sub">1305 S Cedar St · Lansing MI · 464,281 SF · 12 acres<br>IS / WAS / COULD BE — tap layers to toggle</div>
+</div>
+
+<div class="controls" id="controls">
+  <div class="btn active" onclick="toggle('was')" id="btn-was">
+    <div class="dot" style="background:var(--dim)"></div>
+    <span>WAS — 1941 factory, FMC, cannabis</span>
+  </div>
+  <div class="btn active" onclick="toggle('is')" id="btn-is">
+    <div class="dot" style="background:var(--blue)"></div>
+    <span>IS — vacant, 8MW, 600 tons cooling</span>
+  </div>
+  <div class="btn active" onclick="toggle('could')" id="btn-could">
+    <div class="dot" style="background:var(--green)"></div>
+    <span>COULD BE — sovereign campus</span>
+  </div>
+</div>
+
+<div class="info-panel" id="info">
+  <h3 id="info-title">building stats</h3>
+  <div class="row"><span>total area</span><span class="val">464,281 SF</span></div>
+  <div class="row"><span>parcel</span><span class="val">12 acres</span></div>
+  <div class="row"><span>floors</span><span class="val">3 south + 1 north</span></div>
+  <div class="row"><span>transformer</span><span class="val">8 MW</span></div>
+  <div class="row"><span>cooling</span><span class="val">~600 tons</span></div>
+  <div class="row"><span>ceiling (north)</span><span class="val">14'7"</span></div>
+  <div class="row"><span>loading docks</span><span class="val">5</span></div>
+  <div class="row"><span>rail spur</span><span class="val">yes</span></div>
+  <div class="row"><span>3rd fl electrical</span><span class="val">400A @ 480V/room</span></div>
+  <div class="row"><span>3rd fl HVAC</span><span class="val">35 ton/room</span></div>
+  <div id="layer-info"></div>
+</div>
+
+<div class="tense" id="tense">
+  <em>paper numbers are nominal</em><br>
+  122 is an address, not a rank.<br>
+  the pointer IS the pattern.<br>
+  <em>@122 = The Pareto Inversion</em>
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H;
+function resize() { W = C.width = innerWidth; H = C.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+var layers = { was: true, is: true, could: true };
+
+function toggle(layer) {
+  layers[layer] = !layers[layer];
+  document.getElementById('btn-' + layer).className = layers[layer] ? 'btn active' : 'btn';
+  updateInfo();
+}
+
+// Building footprint — approximate polygon for 1305 S Cedar
+// Real coords: 42.7215°N, 84.5525°W  
+var BUILDING = {
+  lat: 42.7215,
+  lng: -84.5525,
+  // Parcel boundary (simplified rectangle for 12 acres)
+  parcel: [
+    { lat: 42.7225, lng: -84.5540 },
+    { lat: 42.7225, lng: -84.5510 },
+    { lat: 42.7205, lng: -84.5510 },
+    { lat: 42.7205, lng: -84.5540 }
+  ],
+  // South section (3 floors)
+  south: [
+    { lat: 42.7220, lng: -84.5535 },
+    { lat: 42.7220, lng: -84.5515 },
+    { lat: 42.7212, lng: -84.5515 },
+    { lat: 42.7212, lng: -84.5535 }
+  ],
+  // North warehouse (1 floor, high ceilings)
+  north: [
+    { lat: 42.7224, lng: -84.5535 },
+    { lat: 42.7224, lng: -84.5515 },
+    { lat: 42.7220, lng: -84.5515 },
+    { lat: 42.7220, lng: -84.5535 }
+  ]
+};
+
+// K-Derm zones mapped to building
+var ZONES = [
+  { name: 'Cytoplasm', floor: '3rd', color: '#a371f7', desc: 'GPU racks, primal services, mesh backbone', y: 0.15 },
+  { name: 'Periplasm', floor: '2nd', color: '#58a6ff', desc: 'Wet lab, dry lab, instrumentation, makers', y: 0.35 },
+  { name: 'Outer Membrane', floor: '1st', color: '#3fb950', desc: 'Hot water, WiFi, warming center, events', y: 0.55 },
+  { name: 'Extracellular', floor: 'North', color: '#d29922', desc: 'Sand batteries, greenhouses, loading', y: 0.70 },
+  { name: 'Membrane Surface', floor: 'Roof', color: '#f85149', desc: 'Solar, gardens, antennas, weather', y: 0.0 }
+];
+
+// Thermal loop arrows
+var THERMAL = [
+  { from: 'Roof', to: '3rd', label: 'solar → compute', color: '#f1c40f' },
+  { from: '3rd', to: 'North', label: 'GPU heat → sand', color: '#f85149' },
+  { from: 'North', to: '1st', label: 'sand → hot water', color: '#d29922' },
+  { from: 'North', to: 'Roof', label: 'sand → greenhouse', color: '#3fb950' },
+  { from: 'North', to: '2nd', label: 'sand → HVAC', color: '#58a6ff' }
+];
+
+// Historical timeline
+var HISTORY = [
+  { year: 1941, label: 'John Bean fire trucks', color: '#8b949e' },
+  { year: 1960, label: 'FMC industrial', color: '#8b949e' },
+  { year: 2000, label: 'Artists + light mfg', color: '#8b949e' },
+  { year: 2020, label: 'Cannabis cultivation', color: '#8b949e' },
+  { year: 2026, label: 'Vacant (now)', color: '#f85149' }
+];
+
+var phase = 0;
+
+function project(lat, lng) {
+  // Center on building, large scale
+  var cx = W * 0.5, cy = H * 0.5;
+  var scale = Math.min(W, H) * 180;
+  var x = cx + (lng - BUILDING.lng) * scale;
+  var y = cy - (lat - BUILDING.lat) * scale * 1.3;
+  return { x: x, y: y };
+}
+
+function drawPoly(pts, fill, stroke, lineWidth) {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  var p0 = project(pts[0].lat, pts[0].lng);
+  ctx.moveTo(p0.x, p0.y);
+  for (var i = 1; i < pts.length; i++) {
+    var p = project(pts[i].lat, pts[i].lng);
+    ctx.lineTo(p.x, p.y);
+  }
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth || 1; ctx.stroke(); }
+}
+
+function drawBuilding() {
+  // Building as isometric 3D projection
+  var cx = W * 0.5, cy = H * 0.48;
+  var bw = Math.min(W * 0.5, 500);
+  var bh = bw * 0.6;
+  var floorH = bh / 5;
+  
+  // Draw layers from bottom to top
+  var southX = cx - bw * 0.25;
+  var northX = cx + bw * 0.15;
+  var southW = bw * 0.45;
+  var northW = bw * 0.35;
+  
+  phase += 0.015;
+  
+  // WAS layer — ghosted building outline with history
+  if (layers.was) {
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = '#8b949e';
+    ctx.lineWidth = 1;
+    // Full building outline
+    ctx.strokeRect(southX - 5, cy - bh * 0.5 - 5, southW + northW + 20, bh + 10);
+    ctx.globalAlpha = 1;
+    
+    // Timeline on left
+    var tlX = 30;
+    var tlY = cy - bh * 0.4;
+    ctx.font = '10px monospace';
+    HISTORY.forEach(function(h, i) {
+      var y = tlY + i * 28;
+      var beat = Math.sin(phase + i * 0.5) * 0.2 + 0.6;
+      ctx.globalAlpha = beat;
+      ctx.fillStyle = h.color;
+      ctx.beginPath();
+      ctx.arc(tlX, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8b949e';
+      ctx.textAlign = 'left';
+      ctx.fillText(h.year + ' — ' + h.label, tlX + 12, y + 4);
+      // Connect to building
+      ctx.strokeStyle = 'rgba(139,148,158,0.1)';
+      ctx.beginPath();
+      ctx.moveTo(tlX + 8, y);
+      ctx.lineTo(southX, cy - bh * 0.3 + i * 20);
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
+  
+  // IS layer — current building with real stats
+  if (layers.is) {
+    // North warehouse
+    var ny = cy - floorH * 0.5;
+    ctx.fillStyle = 'rgba(88,166,255,0.06)';
+    ctx.strokeStyle = 'rgba(88,166,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.fillRect(northX, ny, northW, floorH * 1.5);
+    ctx.strokeRect(northX, ny, northW, floorH * 1.5);
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('NORTH WAREHOUSE', northX + northW / 2, ny + floorH * 0.75);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '9px monospace';
+    ctx.fillText('14\'7" ceilings · 5 docks · rail', northX + northW / 2, ny + floorH * 0.75 + 14);
+    
+    // South section — 3 floors
+    for (var f = 0; f < 3; f++) {
+      var fy = cy + floorH * (1 - f);
+      var floorLabel = ['1st Floor', '2nd Floor', '3rd Floor'][f];
+      var floorColor = ['rgba(63,185,80,0.06)', 'rgba(88,166,255,0.06)', 'rgba(163,113,247,0.06)'][f];
+      var borderColor = ['rgba(63,185,80,0.3)', 'rgba(88,166,255,0.3)', 'rgba(163,113,247,0.3)'][f];
+      
+      ctx.fillStyle = floorColor;
+      ctx.strokeStyle = borderColor;
+      ctx.fillRect(southX, fy, southW, floorH);
+      ctx.strokeRect(southX, fy, southW, floorH);
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = ['#3fb950', '#58a6ff', '#a371f7'][f];
+      ctx.fillText(floorLabel, southX + southW / 2, fy + floorH / 2 + 4);
+      
+      if (f === 2) {
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#8b949e';
+        ctx.fillText('400A/480V per room · 35-ton HVAC', southX + southW / 2, fy + floorH / 2 + 18);
+      }
+    }
+    
+    // Roof line
+    ctx.strokeStyle = 'rgba(248,81,73,0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(southX, cy - floorH);
+    ctx.lineTo(southX + southW, cy - floorH);
+    ctx.stroke();
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('ROOF · ~100K SF', southX + southW / 2, cy - floorH - 8);
+    
+    // Power stats
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#d29922';
+    ctx.textAlign = 'left';
+    ctx.fillText('⚡ 8 MW transformer', southX, cy + floorH * 2.5);
+    ctx.fillText('❄ ~600 tons cooling', southX, cy + floorH * 2.5 + 14);
+    ctx.fillText('📐 464,281 SF total', southX, cy + floorH * 2.5 + 28);
+  }
+  
+  // COULD BE layer — K-Derm zones + thermal loops
+  if (layers.could) {
+    var zy = cy - floorH;
+    
+    // K-Derm zone labels on the building
+    ZONES.forEach(function(z, i) {
+      var zoneY = cy + floorH * (1.5 - i * 0.8);
+      if (i === 4) zoneY = cy - floorH - 20; // roof
+      if (i === 3) zoneY = cy - floorH * 0.5 + 10; // north
+      
+      var beat = Math.sin(phase * 1.2 + i * 0.8) * 0.15 + 0.85;
+      ctx.globalAlpha = beat;
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = z.color;
+      
+      var lx = southX - 15;
+      if (i === 3) lx = northX + northW + 15;
+      if (i === 3) ctx.textAlign = 'left';
+      
+      ctx.fillText(z.name, lx, zoneY);
+      ctx.font = '9px monospace';
+      ctx.fillStyle = '#8b949e';
+      ctx.fillText(z.desc, lx, zoneY + 13);
+      
+      // Dashed line to building
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = z.color;
+      ctx.globalAlpha = 0.3;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (i === 3) {
+        ctx.moveTo(northX + northW + 5, zoneY - 3);
+        ctx.lineTo(lx - 3, zoneY - 3);
+      } else {
+        ctx.moveTo(southX - 5, zoneY - 3);
+        ctx.lineTo(lx + 3, zoneY - 3);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    });
+    
+    // Thermal flow arrows (animated particles)
+    var arrowX = cx + bw * 0.35;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    
+    var flowData = [
+      { label: 'solar → electricity → GPU', y: cy - floorH - 30, color: '#f1c40f', dx: 0 },
+      { label: 'GPU heat → glycol loops', y: cy + floorH * 0.3, color: '#f85149', dx: 30 },
+      { label: 'glycol → sand batteries', y: cy, color: '#d29922', dx: 60 },
+      { label: 'sand → hot water (24/7)', y: cy + floorH, color: '#3fb950', dx: 40 },
+      { label: 'sand → greenhouses', y: cy + floorH * 1.4, color: '#3fb950', dx: 20 },
+      { label: 'sand → building HVAC', y: cy + floorH * 1.8, color: '#58a6ff', dx: 0 }
+    ];
+    
+    flowData.forEach(function(fd, fi) {
+      var fx = arrowX + fd.dx;
+      var beat = Math.sin(phase * 2 + fi * 0.7) * 0.3 + 0.7;
+      ctx.globalAlpha = beat;
+      ctx.fillStyle = fd.color;
+      ctx.fillText('→ ' + fd.label, fx, fd.y);
+      
+      // Flowing particle
+      var px = fx - 15 + Math.sin(phase * 3 + fi) * 8;
+      ctx.beginPath();
+      ctx.arc(px, fd.y - 3, 3 * beat, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    
+    // Design vision text
+    ctx.font = '11px monospace';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'center';
+    var visionY = cy + floorH * 3;
+    ctx.fillText('solarpunk, not cyberpunk', cx, visionY);
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#8b949e';
+    ctx.fillText('gardens on the roof, not just antennas. food alongside fiber. warmth alongside compute.', cx, visionY + 16);
+  }
+  
+  // Cedar Street label
+  ctx.font = '9px monospace';
+  ctx.fillStyle = 'rgba(139,148,158,0.4)';
+  ctx.textAlign = 'center';
+  ctx.save();
+  ctx.translate(southX - 40, cy);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('← S CEDAR STREET →', 0, 0);
+  ctx.restore();
+  
+  // Rail spur
+  ctx.strokeStyle = 'rgba(139,148,158,0.2)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 4]);
+  ctx.beginPath();
+  ctx.moveTo(northX + northW + 30, cy - floorH * 1.5);
+  ctx.lineTo(northX + northW + 30, cy + floorH * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px monospace';
+  ctx.fillStyle = 'rgba(139,148,158,0.3)';
+  ctx.save();
+  ctx.translate(northX + northW + 42, cy);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('rail spur', 0, 0);
+  ctx.restore();
+}
+
+function draw() {
+  ctx.fillStyle = 'rgba(13,17,23,0.12)';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Grid dots (subtle)
+  ctx.fillStyle = 'rgba(48,54,61,0.3)';
+  for (var gx = 0; gx < W; gx += 40) {
+    for (var gy = 0; gy < H; gy += 40) {
+      ctx.fillRect(gx, gy, 1, 1);
+    }
+  }
+  
+  drawBuilding();
+  requestAnimationFrame(draw);
+}
+
+function updateInfo() {
+  var el = document.getElementById('layer-info');
+  var html = '<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px">';
+  if (layers.could) {
+    html += '<div style="color:var(--green);margin-bottom:4px">K-Derm zones active</div>';
+    html += '<div class="row"><span>zones</span><span class="val">5</span></div>';
+    html += '<div class="row"><span>thermal loop</span><span class="val">every joule 2×</span></div>';
+  }
+  if (layers.was) {
+    html += '<div style="color:var(--dim);margin:4px 0">timeline: 1941→2026</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+updateInfo();
+draw();
+</script>
+</body>
+</html>

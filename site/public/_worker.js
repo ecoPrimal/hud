@@ -276,10 +276,16 @@ export default {
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)
     if (sub === 'nightbox') {
-      return env.ASSETS.fetch(new Request(new URL('/nightbox' + url.search, url.origin), request));
+      const nbResp = await env.ASSETS.fetch(new Request(new URL('/nightbox' + url.search, url.origin), request));
+      const nbh = new Headers(nbResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => nbh.set(k, v));
+      return new Response(nbResp.body, { status: nbResp.status, headers: nbh });
     }
     if (sub === 'artisan') {
-      return env.ASSETS.fetch(new Request(new URL('/artisan' + url.search, url.origin), request));
+      const arResp = await env.ASSETS.fetch(new Request(new URL('/artisan' + url.search, url.origin), request));
+      const arh = new Headers(arResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => arh.set(k, v));
+      return new Response(arResp.body, { status: arResp.status, headers: arh });
     }
 
     // === TRAILHEAD ROUTING (#) ===
@@ -386,13 +392,12 @@ export default {
 
     if (FOLDS[sub]) {
       const fold = FOLDS[sub];
-      // External URLs (https://...) redirect directly; internal paths go through primals.eco
-      if (fold.startsWith('http')) {
-        return Response.redirect(fold, 302);
-      }
-      const targetPath = url.pathname === '/' ? fold : url.pathname;
-      const targetUrl = `https://primals.eco${targetPath}${url.search}`;
-      return Response.redirect(targetUrl, 302);
+      const target = fold.startsWith('http') ? fold
+        : `https://primals.eco${url.pathname === '/' ? fold : url.pathname}${url.search}`;
+      return new Response(null, {
+        status: 302,
+        headers: { Location: target, ...triadHeaders },
+      });
     }
 
     // unknown subdomain — you've entered the maze (*)
