@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Berry's Journey — chipmunk traveling salesman</title>
+<meta name="description" content="Berry the chipmunk visits every surface in the membrane. Campfire stories, teaching, rest. The forever traveling salesman. π rotates the start each day.">
+<meta property="og:title" content="Berry's Journey — the forever traveling salesman">
+<meta property="og:description" content="A chipmunk walks every surface of a living research membrane. At each stop: a campfire story, one lesson, then rest. The route changes daily with π.">
+<meta property="og:url" content="https://hud.primals.eco/journey.html">
+<link rel="canonical" href="https://hud.primals.eco/journey.html">
+<style>
+:root{--bg:#0a0a0f;--fg:#d4d4d8;--a:#22c55e;--dim:#52525b;--s:#18181b;--b:#27272a;--cyan:#06b6d4;--gold:#f59e0b;--pink:#ec4899}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:0.82rem/1.6 "JetBrains Mono",monospace;background:var(--bg);color:var(--fg);min-height:100vh;padding:1rem}
+a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
+.c{max-width:640px;margin:0 auto}
+h1{color:var(--cyan);font-size:1.2rem;margin-bottom:0.5rem}
+.meta{font-size:0.72rem;color:var(--dim);margin-bottom:1.5rem}
+.stop{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:1rem;margin:0.8rem 0;position:relative;opacity:0.4;transition:opacity 0.5s,border-color 0.5s}
+.stop.active{opacity:1;border-color:var(--a)}
+.stop.visited{opacity:0.7;border-color:var(--dim)}
+.stop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem}
+.stop-num{color:var(--cyan);font-weight:bold;font-size:0.9rem}
+.stop-ptr{font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:3px}
+.stop-ptr.cis{background:#22c55e22;color:var(--a)}
+.stop-ptr.trans{background:#ec489922;color:var(--pink)}
+.stop-name{font-weight:bold;color:var(--fg);font-size:0.85rem;margin-bottom:0.3rem}
+.stop-name a{color:var(--fg)}
+.campfire{color:var(--gold);font-size:0.78rem;font-style:italic;margin:0.4rem 0;padding-left:0.8rem;border-left:2px solid var(--gold)}
+.teach{color:var(--cyan);font-size:0.78rem;margin:0.4rem 0;padding-left:0.8rem;border-left:2px solid var(--cyan)}
+.rest{font-size:0.68rem;color:var(--dim);margin-top:0.4rem}
+.arrow{text-align:center;color:var(--dim);font-size:0.7rem;margin:0.3rem 0}
+.arrow .trans-label{color:var(--pink);font-weight:bold}
+.arrow .cis-label{color:var(--a);font-weight:bold}
+.controls{display:flex;gap:0.5rem;margin:1rem 0;flex-wrap:wrap}
+button{background:var(--a);color:var(--bg);border:none;padding:0.4rem 0.8rem;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:0.78rem}
+button:hover{opacity:0.9}
+button.cy{background:var(--cyan);color:#000}
+.progress{height:3px;background:var(--b);border-radius:2px;margin:0.5rem 0;overflow:hidden}
+.progress-fill{height:100%;background:var(--a);transition:width 0.5s}
+.nav{font-size:0.75rem;margin-top:1rem;padding-top:0.5rem;border-top:1px solid var(--b);display:flex;gap:0.8rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="c">
+<h1>🐿️ Berry's Journey</h1>
+<p style="color:var(--dim);font-size:0.78rem;margin-bottom:0.3rem">the forever traveling salesman — campfire, teach, rest, move on</p>
+<div class="meta">
+  <span id="j-hash">loading...</span> · 
+  <span id="j-count">20 surfaces</span> · 
+  <span id="j-time">~12 min</span> · 
+  π-start: <span id="j-start" style="color:var(--cyan)">...</span>
+</div>
+<div class="progress"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+<div class="controls">
+  <button onclick="prevStop()">← prev</button>
+  <button onclick="nextStop()">next →</button>
+  <button class="cy" onclick="autoPlay()">▶ auto-walk</button>
+  <button onclick="jumpTo(0)" style="background:var(--dim)">restart</button>
+</div>
+<div id="stops"></div>
+<div class="nav">
+  <a href="/water.html">🌊 water</a>
+  <a href="/">◈ hud</a>
+  <a href="/trail.html">🥾 trail</a>
+  <a href="https://sporeprint.primals.eco/science/">📖 papers</a>
+  <a href="https://github.com/ecoPrimals">💻 code</a>
+</div>
+</div>
+<script>
+var journey=null,current=0,autoTimer=null;
+
+fetch('/data/chipmunk-journey.json')
+  .then(function(r){return r.json()})
+  .then(function(d){
+    journey=d;
+    document.getElementById('j-hash').textContent='#'+d.journey_hash;
+    document.getElementById('j-count').textContent=d.surfaces_total+' surfaces';
+    document.getElementById('j-time').textContent='~'+d.total_rest_min+' min';
+    document.getElementById('j-start').textContent=d.pi_start;
+    renderStops();
+    jumpTo(0);
+  })
+  .catch(function(){
+    document.getElementById('stops').innerHTML='<p style="color:var(--dim)">journey data not loaded. <a href="/data/chipmunk-journey.json">raw</a></p>';
+  });
+
+function renderStops(){
+  if(!journey)return;
+  var html='';
+  journey.stops.forEach(function(s,i){
+    var url=s.url_cis||s.url_trans;
+    html+='<div class="stop" id="stop-'+i+'">';
+    html+='<div class="stop-head">';
+    html+='<span class="stop-num">'+i+'</span>';
+    html+='<span class="stop-ptr '+s.pointer+'">'+s.pointer+'</span>';
+    html+='</div>';
+    html+='<div class="stop-name"><a href="'+url+'">'+s.name+'</a></div>';
+    html+='<div class="campfire">🔥 '+s.campfire+'</div>';
+    html+='<div class="teach">📚 '+s.teach+'</div>';
+    html+='<div class="rest">rest '+s.rest_sec+'s · d='+s.distance_to_next.toFixed(3)+' → <a href="'+(s.next_url||'#')+'">'+s.next+'</a></div>';
+    html+='</div>';
+    if(i<journey.stops.length-1){
+      var t=s.transition.split('→');
+      html+='<div class="arrow"><span class="'+t[0]+'-label">'+t[0]+'</span> → <span class="'+t[1]+'-label">'+t[1]+'</span></div>';
+    }else{
+      html+='<div class="arrow" style="color:var(--pink)">↺ Klein fold back to start</div>';
+    }
+  });
+  document.getElementById('stops').innerHTML=html;
+}
+
+function jumpTo(i){
+  if(!journey)return;
+  current=i;
+  journey.stops.forEach(function(_,j){
+    var el=document.getElementById('stop-'+j);
+    el.classList.remove('active','visited');
+    if(j<i)el.classList.add('visited');
+    if(j===i)el.classList.add('active');
+  });
+  var pct=Math.round((i/(journey.stops.length-1))*100);
+  document.getElementById('progress').style.width=pct+'%';
+  var el=document.getElementById('stop-'+i);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function nextStop(){
+  if(!journey)return;
+  if(current<journey.stops.length-1)jumpTo(current+1);
+  else jumpTo(0);
+}
+
+function prevStop(){
+  if(!journey)return;
+  if(current>0)jumpTo(current-1);
+  else jumpTo(journey.stops.length-1);
+}
+
+function autoPlay(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;return}
+  var stop=journey.stops[current];
+  autoTimer=setInterval(function(){
+    nextStop();
+    if(current===0){clearInterval(autoTimer);autoTimer=null}
+  },(stop?stop.rest_sec:30)*1000);
+  nextStop();
+}
+</script>
+</body>
+</html>
