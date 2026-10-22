@@ -379,6 +379,8 @@ export default {
       'csf':        '/data/csf-arena.json',                 // cerebrospinal fluid — AI arena between inner and outer
       'arena':      '/data/csf-arena.json',                 // the arena IS the CSF. models swim here.
       'fluid':      '/data/csf-arena.json',                 // the fluid between brain and skull
+      'higgs':      '/data/csf-arena.json',                 // the Higgs field IS the CSF. engagement gives mass.
+      'osmosis':    '/data/csf-arena.json',                 // osmolarity gradient pulls visitors IN
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
