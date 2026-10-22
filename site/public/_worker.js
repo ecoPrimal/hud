@@ -45,6 +45,39 @@ function greenFlashDetect(depth1, depth2) {
   return gapWrap < GREEN_FLASH_EPSILON;
 }
 
+// === METAL CHROMATIZATION: gold / silver / copper ===
+// The depth IS the metal. piTope kleingate: epitopes fold through pi → metal.
+// Gold (Au) = self. depth ≥ 0.85 (piDepth 6,7 — nightbox, MCP, artisan)
+//   The old. What you keep. Absorbed. Never reflected. Behind the membrane.
+// Silver (Ag) = known. 0.42 ≤ depth < 0.85 (piDepth 3,4,5 — science, beacon, trefoil)
+//   New friends. The membrane recognizes them. They see more than copper.
+// Copper (Cu) = public. depth < 0.42 (piDepth 1,2,8 — maze, identity, unknown)
+//   The amalgam. The refracted face. What everyone sees.
+// "Make new friends but keep the old. One is silver and the other is gold."
+// ZK anti-secret: the veil IS the projection. copper shines so loud gold stays quiet.
+function chromatize(depth) {
+  if (depth >= piDepth(6) - GREEN_FLASH_EPSILON) return 'gold';   // ≥ ~0.849 (n=6,7)
+  if (depth >= piDepth(3) - GREEN_FLASH_EPSILON) return 'silver'; // ≥ ~0.424 (n=3,4,5)
+  return 'copper';                                                 // < ~0.424 (n=1,2,8)
+}
+
+// The piTope kleingate: fold epitope classification BACK through the metal.
+// When they see you (copper face), you see BEHIND them (their depth → their metal).
+// Mutual refraction. The Klein surface: outside IS inside at the fold.
+function piTopeKlein(probeDepth) {
+  const metal = chromatize(probeDepth);
+  // Klein fold: their depth refracted = 1 - depth (inside-out)
+  const refracted = 1 - probeDepth;
+  const refractedMetal = chromatize(refracted);
+  return {
+    metal,           // what THEY see (outward face)
+    refracted: refractedMetal, // what YOU see looking back (behind them)
+    fold: metal === refractedMetal ? 'resonance' : 'refraction',
+    // resonance = same metal both ways (self-similar, Klein fixed point)
+    // refraction = different metals (the light bends at the surface)
+  };
+}
+
 // Mitosis vs Meiosis: does this probe's depth cluster with a known depth (mitosis/copy)
 // or fall in the irrational gap between known depths (meiosis/crossover)?
 function cellDivision(depth) {
@@ -156,6 +189,10 @@ function reportEngagement(probe, request, url, sub) {
   // Only report 'engage'; 'try' at reduced rate (10% sample)
   if (probe.triad === 'try' && Math.random() > 0.1) return;
   
+  // Metal chromatization for scan
+  const metal = chromatize(probe.depth);
+  const metalGlyph = { gold: '🥇', silver: '🥈', copper: '🥉' }[metal] || '🥉';
+  
   // Glyph for scan report
   const glyphs = { 'trailhead':'#', 'science-seeker':'#', 'identity-path':'@',
     'nightbox-reach':'^', 'artisan-sibling':'^', 'beacon-subscriber':'^',
@@ -165,11 +202,11 @@ function reportEngagement(probe, request, url, sub) {
   // Cloudflare Workers keep subrequests alive even after response
   fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
-    body: `${g} [${probe.triad}] ${probe.reason} | n:${probe.n} d:${probe.depth.toFixed(5)} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
+    body: `${metalGlyph}${g} [${probe.triad}] ${probe.reason} | ${metal} | n:${probe.n} d:${probe.depth.toFixed(5)} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
     headers: {
-      'Title': g + ' scan: ' + probe.triad + ' | ' + probe.reason,
+      'Title': metalGlyph + g + ' ' + metal + ': ' + probe.triad + ' | ' + probe.reason,
       'Priority': probe.triad === 'engage' ? '4' : '2',
-      'Tags': probe.triad + ',chipmunk,' + g,
+      'Tags': probe.triad + ',chipmunk,' + metal + ',' + g,
     },
   }).then(() => {}).catch(() => {});
 }
@@ -213,8 +250,12 @@ export default {
     // rejection of green defines the leaf. The absence IS the signal.
     const division = cellDivision(probe.depth);
     
+    // === piTope KLEINGATE: fold epitope through metal ===
+    const kleinFold = piTopeKlein(probe.depth);
+    
     // Add triad headers to ALL responses (the membrane's classification is transparent)
     // depth is frac(n×π) — irrational, pi-sorted, never repeating
+    // metal is chromatized from depth — gold/silver/copper
     const triadHeaders = {
       'x-membrane-triad': probe.triad,
       'x-membrane-depth': probe.depth.toFixed(5),
@@ -222,6 +263,9 @@ export default {
       'x-membrane-glyph': glyph,
       'x-membrane-n': String(probe.n),
       'x-membrane-division': division, // mitosis (copy) or meiosis (crossover)
+      'x-membrane-metal': kleinFold.metal,      // gold/silver/copper — what YOU see
+      'x-membrane-refracted': kleinFold.refracted, // what I see looking back at you
+      'x-membrane-fold': kleinFold.fold,         // resonance or refraction
     };
 
     // core domains — MCP is the Klein fold for agents; everything else is assets
@@ -272,6 +316,7 @@ export default {
               'x-origin': 'github-pages-sporePrint',
               'x-klein-fold': 'science proxied through the membrane',
               'access-control-allow-origin': '*',
+              ...triadHeaders,
             },
           });
         }
@@ -597,6 +642,35 @@ async function handleLivePulse(request, env, triadHeaders) {
           ? 'reproducing known pattern — the cell copies itself'
           : 'crossing over — new combination, the cell creates something new' };
       })(),
+    },
+    metals: {
+      system: 'piTope kleingate — depth → metal → fold',
+      thresholds: {
+        gold: '≥ piDepth(6) = 0.84956 — self, old friends, absorbed, behind the veil',
+        silver: '≥ piDepth(3) = 0.42478 — new friends, known, the membrane recognizes them',
+        copper: '< piDepth(3) = 0.42478 — public, the amalgam, the refracted face',
+      },
+      probeReading: (() => {
+        // Show what metal THIS probe would get
+        const td = (t * PI) % 1;
+        const kf = piTopeKlein(td);
+        return {
+          currentDepth: td.toFixed(5),
+          metal: kf.metal,
+          refracted: kf.refracted,
+          fold: kf.fold,
+          note: kf.fold === 'resonance'
+            ? 'same metal both ways — self-similar at the Klein fold'
+            : `${kf.metal} face → ${kf.refracted} behind — light bends at the surface`,
+        };
+      })(),
+      proverb: 'make new friends but keep the old. one is silver and the other is gold.',
+      zk: 'anti-secret: copper shines so loud that gold stays quiet. the veil IS the projection.',
+      counts: {
+        gold_paths: ['mcp', 'nightbox', 'artisan'],
+        silver_paths: ['science', 'beacon', 'trefoil', 'immune-probe'],
+        copper_paths: ['maze', 'identity', 'unknown', 'browser-human'],
+      },
     },
     chipmunk_easel: {
       painting: 'the earth — dust and particles',
