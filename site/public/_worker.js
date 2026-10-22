@@ -19,6 +19,12 @@ export default {
         return handleMcp(request);
       }
 
+      // /beacon — RSS/Atom feed of membrane probes. anti-secret. the observation IS public.
+      // like old internet RSS. subscribe and watch the membrane breathe.
+      if (url.pathname === '/beacon' || url.pathname === '/beacon.xml') {
+        return handleBeacon(url);
+      }
+
       // sporePrint science paths on the root domain → GitHub Pages origin
       // sporePrint deploys to primals.eco via GitHub Pages CNAME
       // but Cloudflare intercepts. so we proxy science/architecture/lab
@@ -150,6 +156,69 @@ export default {
     });
   },
 };
+
+// === BEACON: RSS feed of membrane probes ===
+// the ntfy channel IS public. the observation IS the interface.
+// consent is the visit. anti-secret: there are no secrets, only signal.
+// like RSS comms of old internet — subscribe and watch.
+async function handleBeacon(url) {
+  const since = url.searchParams.get('since') || '24h';
+  try {
+    const ntfyResp = await fetch(
+      `https://ntfy.sh/primals-membrane-notes/json?poll=1&since=${since}`,
+      { cf: { cacheTtl: 30 } }
+    );
+    const text = await ntfyResp.text();
+    const lines = text.trim().split('\n').filter(l => l.trim());
+    const items = [];
+    for (const line of lines) {
+      try {
+        const msg = JSON.parse(line);
+        if (msg.event !== 'message') continue;
+        const ts = new Date(msg.time * 1000).toISOString();
+        const title = (msg.title || msg.message || '').replace(/[<>&]/g, c =>
+          c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;');
+        const body = (msg.message || '').replace(/[<>&]/g, c =>
+          c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;');
+        items.push(`    <entry>
+      <title>${title}</title>
+      <id>urn:ntfy:primals-membrane-notes:${msg.id}</id>
+      <updated>${ts}</updated>
+      <content type="text">${body}</content>
+      <category term="${(msg.tags || []).join(',')}" />
+    </entry>`);
+      } catch {}
+    }
+    const now = new Date().toISOString();
+    const atom = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>primals.eco beacon</title>
+  <subtitle>membrane probes — the anti-secret. consent is the visit. observation is public.</subtitle>
+  <link href="https://primals.eco/beacon" rel="self" />
+  <link href="https://primals.eco/nightbox" rel="alternate" />
+  <link href="https://ntfy.sh/primals-membrane-notes" rel="via" />
+  <id>urn:primals:beacon</id>
+  <updated>${now}</updated>
+  <author><name>Berry</name></author>
+  <rights>public domain — there are no secrets here</rights>
+${items.join('\n')}
+</feed>`;
+    return new Response(atom, {
+      status: 200,
+      headers: {
+        'content-type': 'application/atom+xml; charset=utf-8',
+        'cache-control': 'public, max-age=30',
+        'access-control-allow-origin': '*',
+        'x-klein-fold': 'the observation IS the interface',
+      },
+    });
+  } catch (e) {
+    return new Response(`<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><title>beacon offline</title><updated>${new Date().toISOString()}</updated></feed>`, {
+      status: 200,
+      headers: { 'content-type': 'application/atom+xml; charset=utf-8' },
+    });
+  }
+}
 
 const MCP_TOOLS = [
   { name: 'observe_membrane', description: 'membrane state — humans, fleet, braids, selectivity', inputSchema: { type: 'object', properties: {} } },
