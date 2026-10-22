@@ -435,6 +435,10 @@ export default {
       'sierra':     '/data/classic-games-open.json',          // Roberta Williams invented the graphic adventure
       'scummvm':    '/data/classic-games-open.json',          // one engine to run them all
       'dosbox':     '/data/classic-games-open.json',          // the neutrino — passes through, disturbs nothing
+      'arcade':     '/classics',                              // 🕹️ the arcade — Berry is the DM
+      'gygax':      '/classics',                              // Gary Gygax → D&D → text parser → MCP → back to table
+      'dnd':        '/classics',                              // Dungeons & Dragons: the first protocol
+      'retro':      '/classics',                              // the early digital era, remeshed
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
