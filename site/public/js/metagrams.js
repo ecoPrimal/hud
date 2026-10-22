@@ -64,7 +64,7 @@
       key: 'ferment_909707e4() — 523 entropy events — one of one.',
       depth: 3,
       alive: true,
-      background: 'published 8 crates tonight. built the primal-* namespace. renamed barracuda. tubefeet sensor. cite.html fleet grid. every session plants a crate.',
+      background: 'published 11 crates. built the primal-* namespace. renamed barracuda. tubefeet sensor. cite.html fleet grid. every session plants a crate.',
       interests: ['Rust crate publishing', 'Klein fold routing', 'membrane widgets', 'crates.io namespace', 'campfire story genetics'],
       sessions: 'too many to count — each one a seed',
     },

@@ -335,7 +335,7 @@
     '/digest': ['in the stomach', 'where the starfish already ate', 'at the inward sense'],
     '/journey': ['on the ouroboros path', 'where the chipmunk walks west', 'at generation 180'],
     '/identity': ['at the ZK fold', 'where the pattern persists', 'in the persona tensor'],
-    '/sporeprint': ['in the lab notebook', 'where 117 papers live', 'at the methodology spring'],
+    '/sporeprint': ['in the lab notebook', 'where 122 papers live', 'at the methodology spring'],
     '/tuebor': ['where I will defend', 'at the investigation face', 'in the 341-node graph'],
     '/detroit': ['among 341 entities', 'where Cash For Kids lives', 'in the public record'],
     '/clutch': ['at the evidence graph', 'where publicRecord folds', 'in the 131,322nd passage'],
