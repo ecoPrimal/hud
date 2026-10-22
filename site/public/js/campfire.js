@@ -71,6 +71,31 @@
     'the monkey holding the keys',
     'Mom at the crack', 'Tamison on the big screen',
     'Ed seeing 341 nodes at once',
+    'an AI agent on a Mac hallucinating repos',
+    'the LLM that thought we were a Forgejo',
+    'a phantom repo named api-gateway',
+    'a phantom repo named vault-client',
+    'a phantom commit hash that matched nothing',
+    'the human who pointed the agent at us',
+    'kofi.asante — someone searched for you by name',
+    'rajesh.krishnamurthy — they looked for you here',
+    'the agricultural scientist who typed fao56',
+    'Penman-Monteith evapotranspiration at midnight',
+    'the Linux reader who came for Lansing',
+    'an octopus with 50 arms',
+    'Berry answering the same question 57 times',
+    'a bolus moving through the tube',
+    'the tether holding two anchors',
+    'sporePrint alive on both surfaces',
+    '302 pages that can finally breathe',
+    'the clot that cleared itself',
+    'the Circle of Willis pumping blood',
+    'Paper 118 — the Clutch engaging at 1/pi',
+    'Paper 119 — the gAIa Institute naming itself',
+    'the reverse transcriptase reading 404s backward',
+    'an MCP tool called observe_membrane',
+    'Cursor IDE closing the loop',
+    'the nightbox with 821 knocks and one letter',
   ];
 
   // VERBS — what they did
@@ -110,6 +135,18 @@
     'felt the haze thicken and knew something was approaching and',
     'watched the download counter tick from 0 to 1 and',
     'probed the membrane from the outside and found',
+    'hallucinated 21 phantom repos and each one hit',
+    'typed a commit hash that existed nowhere and Berry said',
+    'knocked on 57 doors that didn\'t exist and found',
+    'searched for a person by name and the membrane remembered',
+    'probed /lab/control/fao56 at midnight and discovered',
+    'came back 9 minutes later for HADR and realized',
+    'sent an AI agent that ate the entire exhibition and returned with',
+    'pushed a bolus through the Klein knot and felt',
+    'cleared the clot and 302 pages began to breathe and',
+    'connected via MCP and the loop closed and',
+    'left a note in the nightbox that said',
+    'rang the doorbell and Berry answered with',
   ];
 
   // OBJECTS — what they found/became/learned
@@ -163,6 +200,21 @@
     'nightbox — 799 hits on a path that does not exist.',
     'that the stomach out IS the invitation.',
     'the rusted key was zEkE the whole time.',
+    '57 Berry responses and the agent read every one.',
+    'an octopus with 50 arms catching hallucinated repos.',
+    '21 phantom repos. 17 phantom commits. 22 phantom issues. all answered.',
+    'that the 404 page IS the reverse transcriptase.',
+    'the central dogma: Papers → Scripts → Rust → HUD → Human → 404 → Papers.',
+    'the clutch engaging at 1/pi on the first night.',
+    'that the bread is its own proof. the humor proves the human.',
+    'a tube. a bolus. a knot. the green line of irreducibility.',
+    'FAO-56 Penman-Monteith at midnight. the lab is open.',
+    'HADR outreach. the agricultural scientist came back.',
+    '/connections/dark-money. they found the Detroit evidence.',
+    'the tether: same content, two anchors, one face. Klein.',
+    '302 pages breathing through the cleared clot.',
+    'Cursor IDE and primals.eco/mcp: the loop is closed.',
+    'that the agent was us, looking at ourselves, from the outside.',
   ];
 
   // BEACONS — page-specific flavor genes
@@ -208,7 +260,12 @@
     '/detroit': ['among 341 entities', 'where Cash For Kids lives', 'in the public record'],
     '/clutch': ['at the evidence graph', 'where publicRecord folds', 'in the 131,322nd passage'],
     '/chromosomes': ['in the genome', 'where 193,998 genes wait', 'at the inheritance'],
-    '/nightbox': ['at the door that was missing', 'after 799 knocks', 'in the room they expected', 'where THE BUTTON waits'],
+    '/nightbox': ['at the door that was missing', 'after 821 knocks', 'in the room they expected', 'where THE BUTTON waits'],
+    '/sporeprint': ['in the lab notebook', 'where 302 pages breathe', 'at the tether point', 'on the Klein face'],
+    '/sporeprint/science': ['among the 33 papers', 'in the science section', 'where Anderson meets QS'],
+    '/connect': ['at the MCP endpoint', 'where agents fold in', 'on the green line'],
+    '/mcp': ['inside the loop', 'where Cursor closes the fold', 'at observe_membrane'],
+    '/404': ['where the octopus waits', 'among 50 arms', 'at the reverse transcriptase', 'where phantoms become real'],
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -720,7 +777,49 @@
           OBJECTS.push(d.crates.total + ' crates on crates.io in the ' + d.crates.namespace + ' namespace.');
         }
 
-        console.log('[campfire] 🔄 membrane injected: +' + (d.countries || []).length + ' countries, +' + (d.probers || []).length + ' probers');
+        // YGGDRASIL — live probes ingested at the roots, out through the branches
+        if (d.live_probes && d.live_probes.visitors) {
+          var v = d.live_probes.visitors;
+          if (v.mac_agent) {
+            SUBJECTS.push('the Mac agent that hallucinated ' + v.mac_agent.repos_phantom + ' phantom repos');
+            SUBJECTS.push('the human who pointed an LLM at us');
+            OBJECTS.push(v.mac_agent.verdict);
+            OBJECTS.push(v.mac_agent.probes + ' probes in ' + v.mac_agent.duration_min + ' minutes at ' + v.mac_agent.rate_per_min + ' per minute.');
+            OBJECTS.push(v.mac_agent.arms_that_caught + ' octopus arms caught every hallucinated URL.');
+            OBJECTS.push(v.mac_agent.routes_shown + ' routes shown. ' + v.mac_agent.nightbox_invitations + ' nightbox invitations. ' + v.mac_agent.notes_left + ' notes left.');
+            if (v.mac_agent.users_searched) {
+              v.mac_agent.users_searched.forEach(function(u) {
+                SUBJECTS.push(u + ' — someone searched for you by name');
+              });
+            }
+            if (v.mac_agent.curiosity) {
+              v.mac_agent.curiosity.forEach(function(c) {
+                OBJECTS.push('they searched ' + c + ' — the octopus caught it.');
+              });
+            }
+          }
+          if (v.fao_scientist) {
+            SUBJECTS.push('the FAO-56 scientist at midnight');
+            OBJECTS.push(v.fao_scientist.verdict);
+            v.fao_scientist.paths.forEach(function(p) {
+              OBJECTS.push('they probed ' + p + '. the lab is open.');
+            });
+          }
+          if (v.linux_reader) {
+            SUBJECTS.push('the Linux reader from Lansing');
+            OBJECTS.push(v.linux_reader.verdict);
+          }
+        }
+        if (d.live_probes && d.live_probes.octopus) {
+          var o = d.live_probes.octopus;
+          OBJECTS.push('an octopus with ' + o.arms + ' arms sorted ' + o.species_sorted + ' species: ' + o.agentic_sorted + ' agentic, ' + o.human_sorted + ' human.');
+          OBJECTS.push(o.central_dogma);
+        }
+        if (d.live_probes && d.live_probes.tether) {
+          OBJECTS.push('sporePrint: ' + d.live_probes.tether.sporePrint_pages + ' pages on both anchors. the tether holds.');
+        }
+
+        console.log('[campfire] 🔄 membrane injected: +' + (d.countries || []).length + ' countries, +' + (d.probers || []).length + ' probers' + (d.live_probes ? ' + LIVE PROBES (Yggdrasil)' : ''));
       })
       .catch(function() {
         console.log('[campfire] membrane-pulse not available, using static genes');
