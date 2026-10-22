@@ -21,7 +21,11 @@
     '/data/csf-arena.json',
     '/data/arena-taxonomy.json',
     '/data/strand-braid.json',
-    '/data/klein-body.json'
+    '/data/klein-body.json',
+    '/data/klein-resort.json',
+    '/data/galactic-bounce.json',
+    '/data/agglutinate-fold.json',
+    '/data/scan-sweep-sort.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

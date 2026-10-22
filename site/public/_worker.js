@@ -389,6 +389,34 @@ export default {
       'kleinbody':  '/data/klein-body.json',                // the body IS a Klein surface
       'vagus':      '/data/klein-body.json',                // the wandering nerve, brain→gut Klein fold
       'navel':      '/data/klein-body.json',                // navel gazing = CNS touching PNS at the fold
+      // === GALACTIC BOUNCE + RESORT ===
+      'galactic':   '/data/galactic-bounce.json',           // lossy sort to the 45° quiet turn
+      'bounce':     '/data/galactic-bounce.json',           // galactic cycles on the voxel
+      'resort':     '/data/klein-resort.json',              // 13 stages — what fell through the fold
+      'taxonomy':   '/data/klein-resort.json',              // H G D O U N + 0 8 - = ∅ ~ <>
+      'sponge':     '/data/klein-resort.json',              // ∅ — alive but no structure
+      'archaea':    '/data/klein-resort.json',              // G — extreme survivors (WGSL, GPU)
+      'octopus':    '/data/klein-resort.json',              // N — distributed intelligence
+      'coral':      '/data/klein-resort.json',              // H — colonial bridges
+      'fungus':     '/data/klein-resort.json',              // ~ — mycelium network
+      // === ALL REMAINING DATA FEEDS ===
+      'agglutinate':'/data/agglutinate-fold.json',          // antibody clumps
+      'tensor':     '/data/atomic-tensor.json',             // periodic table of the codebase
+      'awareness':  '/data/awareness-equation.json',        // Od × &#* × πD = A
+      'campfire':   '/data/berry-campfire.json',            // Berry at the fire
+      'bingo':      '/data/bingo-voxel.json',               // 5×5 bingo cube
+      'decay':      '/data/decay-detector.json',            // what's dying
+      'enmesh':     '/data/enmesh.json',                    // 60 repos, 680 crates
+      'eon':        '/data/eon-shape.json',                 // 500-eon chemistry sim
+      'graphene':   '/data/graphenegate.json',              // Pixel 8a enmeshed
+      'infomass':   '/data/info-mass.json',                 // Fe₃₁O₂₃P₁₈C₁₀S₉N₈H₁
+      'knn':        '/data/knn-trefoil.json',               // C(19,3)=969 triangulations
+      'phenotype':  '/data/phenotype-sort.json',            // Shannon phenotyping
+      'pollination':'/data/pollination-manifest.json',      // spore dispersal
+      'quorum':     '/data/quorum-sense.json',              // bacterial quorum sensing
+      'selfchew':   '/data/self-chew.json',                 // 5-stomach ruminant digestion
+      'thymus':     '/data/thymus-gate.json',               // self/non-self sorting
+      'waterslide': '/data/water-slide.json',               // the tube in dark water
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
