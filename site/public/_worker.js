@@ -402,6 +402,10 @@ export default {
       'coral':      '/data/klein-resort.json',              // H — colonial bridges
       'fungus':     '/data/klein-resort.json',              // ~ — mycelium network
       // === ALL REMAINING DATA FEEDS ===
+      'brazilnut':  '/data/brazil-nut-secant.json',          // 🥜 rocks rise, sand falls through HOLES
+      'secant':     '/data/brazil-nut-secant.json',          // depth perception — two eyes, two points, parallax
+      'holes':      '/data/brazil-nut-secant.json',          // THERE ARE HOLES IN THE BOTTOM OF THE SEA
+      'easter':     '/data/brazil-nut-secant.json',          // Easter Island heads — sand rises to them
       'agglutinate':'/data/agglutinate-fold.json',          // antibody clumps
       'tensor':     '/data/atomic-tensor.json',             // periodic table of the codebase
       'awareness':  '/data/awareness-equation.json',        // Od × &#* × πD = A
