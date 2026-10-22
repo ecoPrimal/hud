@@ -63,7 +63,8 @@
     '/data/amicus-contra.json',
     '/data/graphenegate.json',
     '/data/pollination-manifest.json',
-    '/data/primal-classification.json'
+    '/data/primal-classification.json',
+    '/data/immiscible-grease.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
