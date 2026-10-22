@@ -43,6 +43,7 @@ export default {
       'springs':    '/springs',       // the face. when will it come back? it already is.
       'frame':      '/frame',         // Steam Frame. membrane on your TV. HADR.
       'cite':       '/cite',          // citation page. take it and publish yourself.
+      'crates':     'https://crates.io/users/ecoPrimal',  // the tongue. primal-* namespace. lick the face.
     };
 
     if (FOLDS[sub]) {
