@@ -20,7 +20,8 @@
     '/data/peripheral-nervous-system.json',
     '/data/csf-arena.json',
     '/data/arena-taxonomy.json',
-    '/data/strand-braid.json'
+    '/data/strand-braid.json',
+    '/data/klein-body.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

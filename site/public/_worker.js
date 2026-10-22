@@ -385,6 +385,10 @@ export default {
       'strand':     '/data/strand-braid.json',              // Death Stranding × membrane. full credit to Kojima.
       'kojima':     '/data/strand-braid.json',              // Hideo Kojima invented the strand game genre.
       'deathstranding': '/data/strand-braid.json',          // the game IS the metaphor IS the reality.
+      'vitruvian':  '/data/klein-body.json',                // the Vitruvian Man climbing the Klein ladder
+      'kleinbody':  '/data/klein-body.json',                // the body IS a Klein surface
+      'vagus':      '/data/klein-body.json',                // the wandering nerve, brain→gut Klein fold
+      'navel':      '/data/klein-body.json',                // navel gazing = CNS touching PNS at the fold
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
