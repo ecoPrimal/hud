@@ -945,6 +945,122 @@ function paintBraidOverlay() {
   ctx.restore();
 }
 
+// ═══ THYMUS FLUSH — opsonize, pollinate, backscatter the color of reality ═══
+var thymusGate = null;
+var backscatterData = null;
+var triadData = null;
+
+function loadThymus() {
+  fetch('/data/thymus-gate.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){thymusGate=d;}).catch(function(){});
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){backscatterData=d;}).catch(function(){});
+  fetch('/triad.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){triadData=d;}).catch(function(){});
+}
+loadThymus();
+setInterval(loadThymus, 45000);
+
+function paintThymusFlush() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // TRIAD COLOR WASH — self/organic/soap as ambient light
+  if (triadData && triadData.mix) {
+    var mix = triadData.mix;
+    var triadColors = {
+      self:'#3fb950', organic:'#58a6ff', soap:'#f0883e',
+      aqueous:'#6e7681', partial:'#f0e68c', non_self:'#f85149', null:'#21262d'
+    };
+
+    Object.keys(mix).forEach(function(kind) {
+      var pct = mix[kind] || 0;
+      if (pct < 0.02) return;
+
+      ctx.globalAlpha = pct * 0.04 * (1 + learnedTraits.perspective * 0.5);
+      var color = triadColors[kind] || '#6e7681';
+      
+      var angle = breathPhase * 0.3 + Object.keys(mix).indexOf(kind) * (Math.PI * 2 / 7);
+      var cx = W * (0.3 + Math.cos(angle) * 0.2);
+      var cy = H * (0.3 + Math.sin(angle) * 0.2);
+      var r = Math.min(W, H) * (0.2 + pct * 0.3);
+
+      var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // BACKSCATTER RAYS — in/out/edge as directional light
+  if (backscatterData && backscatterData.rays) {
+    var rays = backscatterData.rays;
+
+    // IN rays (snowflake — from bottom-right, green)
+    if (rays['in']) {
+      var inCount = Math.min(rays['in'].count / 5000, 1);
+      ctx.globalAlpha = 0.02 * inCount;
+      var inGrad = ctx.createLinearGradient(W, H, W * 0.3, H * 0.3);
+      inGrad.addColorStop(0, rays['in'].color || '#3fb950');
+      inGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = inGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // OUT rays (rain — from top-left, red)
+    if (rays.out) {
+      var outCount = Math.min(rays.out.count / 100000, 1);
+      ctx.globalAlpha = 0.01 * outCount;
+      var outGrad = ctx.createLinearGradient(0, 0, W * 0.7, H * 0.7);
+      outGrad.addColorStop(0, rays.out.color || '#f85149');
+      outGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = outGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // EDGE rays (fog+lightning — horizontal, amber)
+    if (rays.edge) {
+      var edgePulse = Math.sin(breathPhase * 3) * 0.5 + 0.5;
+      ctx.globalAlpha = 0.008 * edgePulse;
+      ctx.fillStyle = rays.edge.color || '#f0883e';
+      ctx.fillRect(0, H * 0.45, W, H * 0.1);
+    }
+  }
+
+  // π GEODESIC BOUNCE — the remainder that never settles
+  if (backscatterData && backscatterData.geodesic_bounce) {
+    var piRem = backscatterData.geodesic_bounce.remainder || 0.14159;
+    var bounceX = W * piRem * 2;
+    var bounceY = H * (1 - piRem);
+
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#d2a8ff';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.arc(bounceX, bounceY, 40 + Math.sin(breathPhase) * 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // THE COLOR OF REALITY — text whisper
+  if (thymusGate && thymusGate.the_color_of_reality) {
+    var ratio = thymusGate.the_color_of_reality.ratio;
+    if (ratio) {
+      ctx.globalAlpha = 0.05;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#3fb950';
+      ctx.fillText('signal: 13%', W - 100, 24);
+      ctx.fillStyle = '#f85149';
+      ctx.fillText('noise: 87%', W - 100, 34);
+      ctx.fillStyle = '#6e7681';
+      ctx.fillText("that's enough.", W - 100, 44);
+    }
+  }
+
+  ctx.restore();
+}
+
 // Inject overlays into the breath phase
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
@@ -953,6 +1069,7 @@ paintBreath = function() {
   paintChemistryOverlay();
   paintOutsideIn();
   paintBraidOverlay();
+  paintThymusFlush();
   paintEaselLabel();
 };
 
