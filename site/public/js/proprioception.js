@@ -121,7 +121,18 @@
 
       addChipmunkNote('you touched the ' + face + ' face of the ring — ' + getFaceInfo(face));
 
-      // Navigate to relevant content
+      // Navigate to relevant content — face IS the pointer
+      var faceRoutes = {
+        science: '/springs',       // the face. my space, my thoughts, my reality.
+        evidence: '/totality',     // the evidence. every grain weighed.
+        culture: '/like-us',       // the culture. just like us.
+        surface: '/',              // the HUD IS the surface.
+        discovery: '/menagerie',   // the menagerie. all 47 organisms.
+        security: '/nest',         // the nest. the DM's table.
+        compute: '/ribosome',      // ribosome. fold and extrude.
+        infra: '/vitruvian',       // vitruvian. body as architecture.
+      };
+      if (faceRoutes[face]) window.location.href = faceRoutes[face];
       if (window.C) window.C.act('explore');
     } else {
       // Clicked outer edge → the boundary, the weather

@@ -40,6 +40,7 @@ export default {
       'ribosome':   '/ribosome',
       'vitruvian':  '/vitruvian',
       'menagerie':  '/menagerie',
+      'springs':    '/springs',       // the face. when will it come back? it already is.
     };
 
     if (FOLDS[sub]) {
