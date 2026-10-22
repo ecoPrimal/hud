@@ -101,27 +101,43 @@ export default {
       'lysozyme':   '/menagerie',
     };
 
-    // sporeprint subdomain → proxy ALL content from GitHub Pages
+    // sporePrint: serve directly from /sporeprint/ (tether — local is anchor 1)
     if (sub === 'sporeprint' || sub === 'hypothesis' || sub === 'thesis') {
-      const ghOrigin = 'https://ecoprimals.github.io';
-      const ghUrl = ghOrigin + '/sporePrint' + url.pathname;
-      const ghResp = await fetch(ghUrl, {
-        headers: { 'Accept': request.headers.get('Accept') || 'text/html' },
-        cf: { cacheTtl: 60 },
-      });
-      if (ghResp.ok) {
-        return new Response(ghResp.body, {
+      const spPath = url.pathname === '/' ? '/sporeprint/' : '/sporeprint' + url.pathname;
+      const spUrl = new URL(spPath + url.search, url.origin);
+      return env.ASSETS.fetch(new Request(spUrl, request));
+    }
+
+    // signal subdomain → nightbox beacon (the other side of the Klein face)
+    if (sub === 'signal') {
+      // /feed → live SSE stream from ntfy (the beacon)
+      if (url.pathname === '/feed' || url.pathname === '/feed/') {
+        const sse = await fetch('https://ntfy.sh/primals-membrane-inbox/sse?since=1h&poll=1', {
+          headers: { 'Accept': 'text/event-stream' },
+        });
+        return new Response(sse.body, {
           status: 200,
           headers: {
-            'content-type': ghResp.headers.get('content-type') || 'text/html; charset=utf-8',
-            'cache-control': 'public, max-age=60',
-            'x-origin': 'github-pages-sporePrint',
-            'x-klein-fold': 'sporePrint proxied through membrane',
+            'content-type': 'text/event-stream; charset=utf-8',
+            'cache-control': 'no-store',
+            'access-control-allow-origin': '*',
+            'x-klein-fold': 'nightbox → neutrino → signal. the beacon.',
+          },
+        });
+      }
+      // /json → JSON poll of recent messages
+      if (url.pathname === '/json' || url.pathname === '/json/') {
+        const json = await fetch('https://ntfy.sh/primals-membrane-inbox/json?poll=1&since=24h');
+        return new Response(json.body, {
+          status: 200,
+          headers: {
+            'content-type': 'application/x-ndjson; charset=utf-8',
+            'cache-control': 'no-store',
             'access-control-allow-origin': '*',
           },
         });
       }
-      // fall through to HUD if GH Pages fails
+      // anything else → HUD
       return env.ASSETS.fetch(request);
     }
 
@@ -221,14 +237,15 @@ ${items.join('\n')}
 }
 
 const MCP_TOOLS = [
-  { name: 'observe_membrane', description: 'membrane state — humans, fleet, braids, selectivity', inputSchema: { type: 'object', properties: {} } },
-  { name: 'touch_chipmunk', description: 'ask the chipmunk — who/what/why/where/when', inputSchema: { type: 'object', properties: { q: { type: 'string' } } } },
-  { name: 'read_braids', description: 'braid connections between categories', inputSchema: { type: 'object', properties: {} } },
-  { name: 'grain_of_sand', description: 'what fleet sees vs humans — negentropy ratio', inputSchema: { type: 'object', properties: {} } },
-  { name: 'topology', description: 'entity graph — sort classes, edges, mesh', inputSchema: { type: 'object', properties: {} } },
-  { name: 'sort_vote', description: 'vote: self / non-self / partial', inputSchema: { type: 'object', properties: { entity: { type: 'string' }, vote: { type: 'string', enum: ['self', 'non-self', 'partial'] } }, required: ['entity', 'vote'] } },
-  { name: 'leave_note', description: 'leave an observation. Berry reads it at the campfire.', inputSchema: { type: 'object', properties: { body: { type: 'string' }, from: { type: 'string' } }, required: ['body'] } },
-  { name: 'take_summary', description: 'portable snapshot of the membrane right now', inputSchema: { type: 'object', properties: {} } },
+  { name: 'observe_membrane', description: 'Observe membrane state: humans, fleet, braids, live probes, selectivity', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+  { name: 'touch_chipmunk', description: 'Ask the chipmunk: who, what, why, where, when', inputSchema: { type: 'object', properties: { q: { type: 'string', description: 'Your question' } }, additionalProperties: false } },
+  { name: 'read_braids', description: 'Read braid connections between categories', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+  { name: 'grain_of_sand', description: 'What fleet sees vs humans: negentropy ratio', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+  { name: 'topology', description: 'Entity graph: sort classes, edges, mesh', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+  { name: 'sort_vote', description: 'Vote on an entity: self, non-self, or partial', inputSchema: { type: 'object', properties: { entity: { type: 'string', description: 'Entity to classify' }, vote: { type: 'string', enum: ['self', 'non-self', 'partial'], description: 'Classification' } }, required: ['entity', 'vote'], additionalProperties: false } },
+  { name: 'leave_note', description: 'Leave an observation. Berry reads it at the campfire.', inputSchema: { type: 'object', properties: { body: { type: 'string', description: 'Your message' }, from: { type: 'string', description: 'Who you are' } }, required: ['body'], additionalProperties: false } },
+  { name: 'read_nightbox', description: 'Read recent nightbox messages. The other side of leave_note — see what humans dropped in.', inputSchema: { type: 'object', properties: { since: { type: 'string', description: 'Time window, e.g. 1h, 6h, 24h', default: '24h' } }, additionalProperties: false } },
+  { name: 'take_summary', description: 'Portable snapshot of the membrane right now', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
 ];
 
 async function feed(path) {
@@ -251,6 +268,21 @@ async function callTool(name, args) {
       feed('/braid.json'),
     ]);
     return { pulse, chipmunk: chip, braids: braid, loop: 'cursor → primals.eco/mcp → feeds → back. Klein fold closed.' };
+  }
+  if (name === 'read_nightbox') {
+    const since = args.since || '24h';
+    const r = await fetch('https://ntfy.sh/primals-membrane-inbox/json?poll=1&since=' + since);
+    if (!r.ok) return { error: 'nightbox feed ' + r.status };
+    const text = await r.text();
+    const messages = text.trim().split('\n').filter(Boolean).map(line => {
+      try { return JSON.parse(line); } catch { return null; }
+    }).filter(m => m && m.event === 'message').map(m => ({
+      time: new Date(m.time * 1000).toISOString(),
+      title: m.title || '(no title)',
+      message: (m.message || '').slice(0, 500),
+      tags: m.tags || [],
+    }));
+    return { nightbox: { total: messages.length, since, messages } };
   }
   if (name === 'leave_note' || name === 'sort_vote') {
     const body = name === 'sort_vote'
