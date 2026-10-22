@@ -406,6 +406,13 @@ export default {
       'secant':     '/data/brazil-nut-secant.json',          // depth perception — two eyes, two points, parallax
       'holes':      '/data/brazil-nut-secant.json',          // THERE ARE HOLES IN THE BOTTOM OF THE SEA
       'easter':     '/data/brazil-nut-secant.json',          // Easter Island heads — sand rises to them
+      'mesh':       '/data/mesh-enmesh.json',               // 🕸️ full sovereign mesh — all gates, all devices
+      'enmesh':     '/data/mesh-enmesh.json',               // LAN cytoplasm topology
+      'fleet':      '/data/mesh-enmesh.json',               // the fleet IS the cytoplasm
+      'steamframe': '/data/mesh-enmesh.json',               // Valve Steam Frame — living room nerve ending
+      'steamdeck':  '/data/mesh-enmesh.json',               // Gen 1 LCD — 6th phylum portable
+      'vive':       '/data/mesh-enmesh.json',               // HTC Vive — VR = inside the Klein bottle
+      'lighthouse': '/data/mesh-enmesh.json',               // spatial tracking — IR laser sweep
       'agglutinate':'/data/agglutinate-fold.json',          // antibody clumps
       'tensor':     '/data/atomic-tensor.json',             // periodic table of the codebase
       'awareness':  '/data/awareness-equation.json',        // Od × &#* × πD = A

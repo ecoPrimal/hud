@@ -26,7 +26,8 @@
     '/data/galactic-bounce.json',
     '/data/agglutinate-fold.json',
     '/data/scan-sweep-sort.json',
-    '/data/brazil-nut-secant.json'
+    '/data/brazil-nut-secant.json',
+    '/data/mesh-enmesh.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
