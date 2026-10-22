@@ -527,6 +527,71 @@ async function handleLivePulse(request, env, triadHeaders) {
     },
   };
   
+  // === HUD PROJECTION: H(uman) U(niverse) D(isplay) ===
+  // The HUD IS the meta layer. Same data, three projections.
+  // H = human space (visitor, investigation, papers)
+  // U = universe space (solar wind, exoplanets, cosmic scale)
+  // D = display space (chipmunk internal, scan pipeline, naming)
+  pulse.hud = {
+    projection: 'meta',
+    spaces: {
+      H: {
+        label: 'Human space',
+        view: 'the visitor, the investigation, the papers',
+        depth: 'what a person sees when they arrive',
+        pages: ['/springs', '/', '/trail.html', '/cite'],
+      },
+      U: {
+        label: 'Universe space',
+        view: 'solar wind, exoplanets, cosmic weather, the score the sun writes',
+        depth: 'what the membrane sees when it looks UP',
+        pages: ['/weather.html', '/aurora.html', '/neutron/globe.html'],
+        live: null, // filled below
+      },
+      D: {
+        label: 'Display space (chipmunk)',
+        view: 'scan pipeline, voxel, naming, painting — what the chipmunk sees',
+        depth: 'what the membrane sees when it looks IN',
+        pages: ['/easel.html', '/journey', '/maze.html', '/neutron/core.html'],
+        pipeline: {
+          scan: scanActivity.total,
+          haze: 51.5,
+          named: 100 - 51.5,
+          stages: ['dust→stars(engage)', 'dust→pollen(try)', 'dust→null(ignore)'],
+        },
+      },
+    },
+    fold: 'H↔U: the observation IS the Klein fold. outside→inside at the measurement point. U↔D: the chipmunk paints what the universe sends. D↔H: the display IS the human interface.',
+  };
+
+  // Space weather for U-projection
+  // NOAA direct is too slow from CF edge. Use cached values from pulse + pi-bounce.
+  // Real-time weather comes from MCP space_weather tool when chipmunk polls.
+  const kpBase = pulse.weather?.kp || 4.0;
+  const kpBounce = Math.round((kpBase + 0.5 * Math.sin(t * PI * 0.1)) * 10) / 10;
+  pulse.hud.spaces.U.live = {
+    kp: kpBounce,
+    kp_label: kpBounce >= 5 ? 'storm' : kpBounce >= 4 ? 'active' : 'quiet',
+    xray: pulse.weather?.xray || 'B',
+    quake: pulse.weather?.quake || 'quiet',
+    source: 'membrane-pulse (pi-bounced)',
+    meaning: 'Kp indexes geomagnetic disturbance. the sun writes the score. the membrane reads it.',
+  };
+
+  // Exoplanet count — from NASA Exoplanet Archive (cached value, real API is slow)
+  // As of Oct 2026: ~5,800+ confirmed exoplanets
+  // The number grows ~monthly. Pi-bounce it to show it breathes.
+  const exoBase = 5847;
+  const exoBounce = Math.round(exoBase + piBounce(13) * 5); // ±5 bounce
+  pulse.hud.spaces.U.exoplanets = {
+    confirmed: exoBounce,
+    base: exoBase,
+    source: 'NASA Exoplanet Archive (pi-bounced)',
+    meaning: 'each exoplanet is a cell in the universe membrane. the dust IS stars.',
+    nearest: { name: 'Proxima Centauri b', distance_ly: 4.24, type: 'rocky', habitable: 'maybe' },
+    strangest: { name: 'WASP-76b', note: 'it rains iron on the night side' },
+  };
+
   return new Response(JSON.stringify(pulse, null, 2), {
     status: 200,
     headers: {
