@@ -81,17 +81,17 @@ function classifyProbe(request, url, sub) {
   return { triad: 'try', reason: 'unknown', depth: 0.2 };
 }
 
-// Fire-and-forget engagement event to ntfy (non-blocking)
+// Report engagement event to ntfy — returns a Promise for waitUntil
 function reportEngagement(probe, request, url, sub) {
-  if (probe.triad === 'ignore') return; // don't report noise
+  if (probe.triad === 'ignore') return null; // don't report noise
   
   const ua = (request.headers.get('user-agent') || '').substring(0, 80);
   const msg = `[${probe.triad}] ${probe.reason} | depth:${probe.depth} | ${url.pathname} | ${sub || 'root'} | ${ua}`;
   
-  // Only report 'engage' immediately; 'try' at reduced rate
-  if (probe.triad === 'try' && Math.random() > 0.1) return; // sample 10% of try
+  // Only report 'engage' immediately; 'try' at reduced rate (10% sample)
+  if (probe.triad === 'try' && Math.random() > 0.1) return null;
   
-  fetch('https://ntfy.sh/primals-membrane-scan', {
+  return fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
     body: msg,
     headers: {
@@ -99,11 +99,11 @@ function reportEngagement(probe, request, url, sub) {
       'Priority': probe.triad === 'engage' ? '4' : '2',
       'Tags': `${probe.triad},chipmunk`,
     },
-  }).catch(() => {}); // fire and forget
+  }).catch(() => {});
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const host = url.hostname;
 
@@ -114,7 +114,14 @@ export default {
 
     // === ENGAGEMENT TRIAD — classify every probe ===
     const probe = classifyProbe(request, url, sub);
-    reportEngagement(probe, request, url, sub);
+    const reportPromise = reportEngagement(probe, request, url, sub);
+    if (reportPromise) {
+      if (ctx && ctx.waitUntil) {
+        ctx.waitUntil(reportPromise);
+      } else {
+        reportPromise.catch(() => {});
+      }
+    }
     
     // Add triad headers to ALL responses (the membrane's classification is transparent)
     const triadHeaders = {
