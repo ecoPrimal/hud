@@ -27,7 +27,8 @@
     '/data/agglutinate-fold.json',
     '/data/scan-sweep-sort.json',
     '/data/brazil-nut-secant.json',
-    '/data/mesh-enmesh.json'
+    '/data/mesh-enmesh.json',
+    '/data/classic-games-open.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

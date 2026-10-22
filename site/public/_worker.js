@@ -430,6 +430,11 @@ export default {
       'selfchew':   '/data/self-chew.json',                 // 5-stomach ruminant digestion
       'thymus':     '/data/thymus-gate.json',               // self/non-self sorting
       'waterslide': '/data/water-slide.json',               // the tube in dark water
+      'classics':   '/data/classic-games-open.json',          // 🕹️ Oregon Trail, Sierra, ScummVM, open remakes — the early digital era
+      'oregontrail':'/data/classic-games-open.json',          // you have died of dysentery
+      'sierra':     '/data/classic-games-open.json',          // Roberta Williams invented the graphic adventure
+      'scummvm':    '/data/classic-games-open.json',          // one engine to run them all
+      'dosbox':     '/data/classic-games-open.json',          // the neutrino — passes through, disturbs nothing
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
