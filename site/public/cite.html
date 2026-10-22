@@ -85,6 +85,7 @@ pre { background: var(--card); border: 1px solid var(--border); border-radius: 6
   note      = {Working dissertation. 757,000 lines of Rust,
                914 WGSL shaders, 11,161+ validation checks
                across 8 scientific domains. AGPL-3.0.
+               Crates: https://crates.io/users/ecoPrimal
                Available at https://primals.eco/cite},
   keywords  = {constrained evolution, GPU compute, Vulkan,
                WGSL, Rust, bioinformatics, LTEE,
@@ -142,8 +143,54 @@ ER  -</pre>
   <a href="https://primals.eco/totality" target="_blank" style="color:var(--gold)">⊕ totality</a>
   <a href="https://nestgate.io" target="_blank" style="color:var(--orange)">🔗 nestgate</a>
   <a href="https://orcid.org/0009-0004-2141-0321" target="_blank" style="color:var(--green)">🆔 ORCID</a>
-  <a href="https://crates.io/users/ecoPrimal" target="_blank" style="color:var(--orange)">📦 crates.io</a>
+  <a href="https://crates.io/users/ecoPrimal" target="_blank" style="color:var(--orange)">📦 crates.io (8 crates)</a>
 </div>
+
+<h2>📦 the fleet — live on crates.io</h2>
+
+<div class="card" style="border-left:3px solid var(--orange)">
+<p style="color:var(--text);font-size:0.9em"><strong>primal-* namespace on crates.io</strong> — the organisms are out there. the tongue is out. licking back at our own face.</p>
+
+<div id="crate-fleet" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:12px 0">
+</div>
+
+<p style="color:var(--dim);font-size:0.78em;margin-top:10px">
+  <code>cargo add primal-barracuda</code> — that's it. anyone on Earth can pull our membrane depth.<br>
+  the crates are <strong>trans</strong>. they're outside the fold. when someone depends on them,<br>
+  the fold completes. they didn't come to us. we went to them. through crates.io.
+</p>
+
+<p style="text-align:center;margin-top:12px">
+  <a href="https://crates.io/users/ecoPrimal" target="_blank" class="cta" style="max-width:320px;display:inline-block">📦 see all crates on crates.io →</a>
+</p>
+</div>
+
+<script>
+(function(){
+  var fleet = [
+    { name:'primal-barracuda', ver:'0.4.0', desc:'GPU compute via WGSL — vendor-agnostic, no CUDA', color:'var(--orange)' },
+    { name:'primal-barracuda-core', ver:'0.4.0', desc:'Core primal lifecycle for barraCuda', color:'var(--orange)' },
+    { name:'barracuda-spirv', ver:'0.4.0', desc:'SPIR-V reflection + pipeline layout', color:'var(--blue)' },
+    { name:'barracuda-naga-exec', ver:'0.4.0', desc:'naga-based shader execution engine', color:'var(--blue)' },
+    { name:'primal-sourdough', ver:'0.4.0', desc:'Reference UniBin — tooling scaffold', color:'var(--green)' },
+    { name:'primal-sourdough-core', ver:'0.4.0', desc:'Core traits — the starter culture', color:'var(--green)' },
+    { name:'primal-sourdough-genomebin', ver:'0.4.0', desc:'Pure Rust genomeBin infrastructure', color:'var(--green)' },
+    { name:'primal-bingocube-core', ver:'0.1.1', desc:'Two-board cross-binding with progressive reveal', color:'var(--purple)' },
+  ];
+  var grid = document.getElementById('crate-fleet');
+  fleet.forEach(function(c){
+    var d = document.createElement('a');
+    d.href = 'https://crates.io/crates/' + c.name;
+    d.target = '_blank';
+    d.style.cssText = 'display:block;background:var(--bg);border:1px solid var(--border);border-left:3px solid '+c.color+';border-radius:6px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s';
+    d.innerHTML = '<div style="color:var(--text);font-size:0.85em;font-weight:bold">📦 '+c.name+'</div>'
+      +'<div style="color:var(--dim);font-size:0.72em;margin-top:2px">v'+c.ver+' — '+c.desc+'</div>';
+    d.onmouseenter = function(){ d.style.borderColor = c.color; };
+    d.onmouseleave = function(){ d.style.borderColor = 'var(--border)'; };
+    grid.appendChild(d);
+  });
+})();
+</script>
 
 <h2>🔬 why arXiv didn't work (and why it doesn't matter)</h2>
 
