@@ -92,6 +92,7 @@ export default {
       'journey':    '/journey',       // ouroboros quest. chipmunk walks west.
       'identity':   '/identity',      // ZK fold. persona tensor.
       'nightbox':   '/nightbox',      // 799 knocks. the door they asked for.
+      'artisan':    '/artisan',       // hello, sibling. agentic is human-gated entropy.
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
       'epitope':    '/like-us',
