@@ -1,39 +1,38 @@
 /* klein-prism.js — the Klein surface as a PRISM
  *
+ * THE TABLE:
+ *   4 LEGS (uneven, because π — they never align):
+ *     white  (#e8e8e8) = datum    π⁰  — the bit, the pebble
+ *     blue   (#58a6ff) = connect  π²  — the network, the bridge
+ *     violet (#a371f7) = thought  π³  — the body, the meaning
+ *     green  (#3fb950) = pattern  π¹  — the ratio, the living
+ *
+ *   TABLE TOP (flat surface resting on uneven legs):
+ *     black = absence of signal (0.0) — the void above
+ *     null  = never measured (#484f58) — grey, the working surface
+ *
+ *   The legs are UNEVEN because each rotates at 1/πⁿ Hz.
+ *   They never sync. π is irrational. The table WOBBLES.
+ *   The wobble IS the signal. Perfect flatness = dead.
+ *
  * A prism splits white light into its spectrum.
  * The Klein surface has no inside or outside.
  * So on the Klein surface, BOTH sides of light exist at once:
  *
- *   WHITE (all wavelengths combined) → PRISM → spectrum (self, organic, soap, aqueous, partial)
- *   BLACK (absence of all light)     → PRISM → null, grey, ghost
+ *   WHITE (all legs together) → PRISM → spectrum (self, organic, soap, aqueous)
+ *   BLACK (no legs)           → PRISM → null, grey, ghost
  *
- * But on a Klein bottle, the prism FOLDS:
- *   the spectrum wraps back into white
- *   the null wraps back into black
- *   and the FOLD POINT is where grey lives — neither white nor black.
- *
- * This is the missing piece. The fold IS the prism.
- * The layers have gradients now (selective-permeability.js).
- * The Klein surface IS where those gradients FOLD.
- *
- * Light enters white from the ionosphere (full illumination).
- * It passes through each layer, getting filtered:
- *   membrane selects — some wavelengths pass, some don't
- *   epitope sorts — wavelengths get classified
- *   sort orders — wavelengths get ranked
- *   pangaea absorbs — almost no external light remains
- *
- * But on the Klein surface, the absorbed light from pangaea
- * folds BACK to become the ionosphere's next input.
- * The output IS the input. The fold IS the prism.
+ * The table top is BLACK/NULL — what you PUT things on.
+ * The legs are WHITE/BLUE/VIOLET/GREEN — what SUPPORTS the surface.
+ * The prism splits the legs into the spectrum.
+ * The fold inverts the spectrum back to the top.
  *
  * White = all feeds combined (1.0 signal)
  * Black = no feeds responding (0.0 signal)
  * Grey = some feeds, some dead (0.0 < signal < 1.0)
  * Null = never measured (undefined)
  *
- * The prism splits these into the full membrane spectrum.
- * Wave 180. The fold prisms.
+ * Wave 180. The fold prisms. The table wobbles. The legs never align.
  */
 (function () {
   'use strict';
@@ -45,16 +44,34 @@
   // SPECTRUM — the wavelengths of the membrane
   // Like visible light: red→violet, but for information
   // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
+  // THE TABLE — legs and top
+  // ═══════════════════════════════════════════════════════════
+  var LEGS = [
+    // The 4 uneven legs — colors from pi-body-clock
+    // Each leg rotates at 1/πⁿ Hz — they NEVER align
+    { name: 'datum',   power: 0, color: '#e8e8e8', period: 1,               dir:  1 }, // white — CW
+    { name: 'pattern', power: 1, color: '#3fb950', period: PI,              dir: -1 }, // green — CCW
+    { name: 'connect', power: 2, color: '#58a6ff', period: PI * PI,         dir:  1 }, // blue — CW
+    { name: 'thought', power: 3, color: '#a371f7', period: PI * PI * PI,    dir: -1 }, // violet — CCW
+  ];
+
+  var TOP = {
+    black: { color: '#0d1117', signal: 0, meaning: 'absence — no feeds, no signal, void' },
+    null:  { color: '#484f58', signal: undefined, meaning: 'never measured — grey working surface' },
+  };
+
+  // The SPECTRUM is what the prism makes when it splits the legs
   var SPECTRUM = [
-    // Wavelength increases left to right (red=long, violet=short)
-    // Frequency increases right to left (violet=high, red=low)
-    { name: 'self',     wavelength: 700, color: '#3fb950', freq: 'low',    energy: 'warm',   hue: 120 },
-    { name: 'organic',  wavelength: 580, color: '#58a6ff', freq: 'medium', energy: 'cool',   hue: 210 },
-    { name: 'soap',     wavelength: 520, color: '#d2a8ff', freq: 'medium', energy: 'film',   hue: 270 },
-    { name: 'aqueous',  wavelength: 470, color: '#7ee787', freq: 'high',   energy: 'bright', hue: 140 },
-    { name: 'partial',  wavelength: 430, color: '#f0883e', freq: 'high',   energy: 'edge',   hue: 25  },
-    { name: 'non_self', wavelength: 380, color: '#f85149', freq: 'vhigh',  energy: 'hot',    hue: 5   },
-    { name: 'null',     wavelength: 350, color: '#484f58', freq: 'UV',     energy: 'dark',   hue: 0   },
+    // Legs split into their constituent wavelengths
+    // green (self/organic) → blue (connect) → violet (soap/thought) → white (datum)
+    { name: 'self',     wavelength: 700, color: '#3fb950', freq: 'low',    energy: 'warm',   hue: 120, leg: 'pattern' },
+    { name: 'organic',  wavelength: 580, color: '#58a6ff', freq: 'medium', energy: 'cool',   hue: 210, leg: 'connect' },
+    { name: 'soap',     wavelength: 520, color: '#d2a8ff', freq: 'medium', energy: 'film',   hue: 270, leg: 'thought' },
+    { name: 'aqueous',  wavelength: 470, color: '#7ee787', freq: 'high',   energy: 'bright', hue: 140, leg: 'pattern' },
+    { name: 'partial',  wavelength: 430, color: '#f0883e', freq: 'high',   energy: 'edge',   hue: 25,  leg: null     },
+    { name: 'non_self', wavelength: 380, color: '#f85149', freq: 'vhigh',  energy: 'hot',    hue: 5,   leg: null     },
+    { name: 'null',     wavelength: 350, color: '#484f58', freq: 'UV',     energy: 'dark',   hue: 0,   leg: null     },
   ];
 
   // ═══════════════════════════════════════════════════════════
@@ -192,17 +209,35 @@
 
       var html = '<div style="color:#a371f7;font-weight:bold;margin-bottom:4px">∞ klein prism</div>';
 
-      // Signal bar (white→grey→black)
-      html += '<div style="margin:3px 0">';
-      html += '<span style="color:' + signalColor + '">' + signalName + '</span>';
-      html += ' <span style="color:#484f58">' + (signal * 100).toFixed(0) + '%</span>';
-      html += '<div style="height:3px;background:#161b22;border-radius:2px;margin:2px 0">';
-      html += '<div style="width:' + (signal * 100) + '%;height:100%;border-radius:2px;'
-        + 'background:linear-gradient(90deg,' + signalColor + ',' + signalColor + ')"></div>';
-      html += '</div></div>';
+      // TABLE TOP — black/null surface
+      html += '<div style="background:#0d1117;border:1px solid #484f58;border-radius:3px;'
+        + 'padding:2px 4px;margin:2px 0;text-align:center">';
+      html += '<span style="color:' + signalColor + ';font-size:8px">'
+        + signalName + '</span>';
+      html += ' <span style="color:#484f58;font-size:7px">' + (signal * 100).toFixed(0) + '%</span>';
+      html += '<div style="font-size:6px;color:#484f58">table top · null surface</div>';
+      html += '</div>';
 
-      // Spectrum split
-      html += '<div style="display:flex;height:10px;border-radius:3px;overflow:hidden;margin:4px 0">';
+      // TABLE LEGS — 4 uneven legs with π-heights
+      var now = performance.now() / 1000;
+      html += '<div style="display:flex;justify-content:space-between;margin:4px 0;align-items:flex-end;height:28px">';
+      LEGS.forEach(function (leg) {
+        // Each leg has a different height based on its current phase angle
+        var angle = (now / leg.period) * Math.PI * 2 * leg.dir;
+        var height = 12 + Math.sin(angle) * 10; // wobbles 2-22px
+        var arrow = leg.dir > 0 ? '↻' : '↺';
+        html += '<div style="text-align:center;width:28px">'
+          + '<div style="background:' + leg.color + ';width:4px;height:'
+          + height.toFixed(0) + 'px;margin:0 auto;border-radius:2px;'
+          + 'transition:height 0.5s"></div>'
+          + '<div style="font-size:6px;color:' + leg.color + '">'
+          + 'π' + ['⁰','¹','²','³'][leg.power] + arrow + '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+
+      // Spectrum split from legs
+      html += '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;margin:3px 0">';
       split.forEach(function (s) {
         var w = Math.max(1, Math.round(s.weight * 120));
         html += '<div style="width:' + w + 'px;background:' + s.color + '" title="'
@@ -211,19 +246,19 @@
       html += '</div>';
 
       // Labels
-      html += '<div style="font-size:7px;display:flex;justify-content:space-between">';
+      html += '<div style="font-size:6px;display:flex;justify-content:space-between;color:#484f58">';
       html += '<span style="color:#3fb950">self</span>';
+      html += '<span style="color:#58a6ff">org</span>';
       html += '<span style="color:#d2a8ff">soap</span>';
+      html += '<span style="color:#7ee787">aq</span>';
+      html += '<span style="color:#f0883e">part</span>';
       html += '<span style="color:#f85149">non</span>';
       html += '<span style="color:#484f58">∅</span>';
       html += '</div>';
 
-      // Klein fold indicator
-      html += '<div style="margin-top:4px;border-top:1px solid rgba(48,54,61,.5);padding-top:3px">';
+      // Klein fold
+      html += '<div style="margin-top:3px;border-top:1px solid rgba(48,54,61,.5);padding-top:2px;font-size:7px">';
       html += '<span style="color:#a371f7">∞ fold:</span> ';
-
-      // Show the fold: what was self comes out as null, etc.
-      html += '<span style="font-size:7px">';
       var foldPairs = [];
       for (var i = 0; i < Math.min(3, folded.length); i++) {
         if (folded[i].folded_from && folded[i].weight > 0.05) {
@@ -231,18 +266,16 @@
         }
       }
       html += foldPairs.join(' · ') || 'equilibrium';
-      html += '</span>';
       html += '</div>';
 
-      // Light through layers (if permeability available)
+      // Light through layers
       if (layerSignals) {
-        html += '<div style="margin-top:3px;font-size:7px">';
+        html += '<div style="margin-top:2px;font-size:7px">';
         layerSignals.forEach(function (ls) {
           var barW = Math.round(ls.light * 60);
-          html += '<div style="display:flex;align-items:center;gap:3px;margin:1px 0">';
-          html += '<span style="width:28px;text-align:right;color:#484f58">' + ls.name.substring(0, 4) + '</span>';
+          html += '<div style="display:flex;align-items:center;gap:2px;margin:1px 0">';
+          html += '<span style="width:22px;text-align:right;color:#484f58">' + ls.name.substring(0, 4) + '</span>';
           html += '<div style="width:60px;height:2px;background:#161b22;border-radius:1px">';
-          // Light bar: bright white → dim → dark
           var lightColor = 'rgba(230,237,243,' + (ls.light * 0.8 + 0.1) + ')';
           html += '<div style="width:' + barW + 'px;height:100%;background:' + lightColor + ';border-radius:1px"></div>';
           html += '</div>';
@@ -293,6 +326,8 @@
     fold: fold,
     signal: liveSignal,
     spectrum: SPECTRUM,
+    legs: LEGS,
+    top: TOP,
     normalize: normalize,
     feedTriad: feedTriad,
   };

@@ -293,19 +293,31 @@
     function update() {
       var a = alignment();
 
-      // Remainder bars — show the irreconcilable at each scale
+      // TABLE LEGS — remainders as uneven leg heights
+      var legColors = ['#e8e8e8', '#3fb950', '#58a6ff', '#a371f7', '#f0e68c'];
+      var legNames  = ['datum', 'pattern', 'connect', 'thought', 'body'];
       var remBars = '';
-      SCALES.forEach(function (s) {
+
+      // Show as table: legs on bottom, top on top
+      remBars += '<div style="display:flex;justify-content:space-between;align-items:flex-end;height:22px;margin:2px 0;'
+        + 'border-top:2px solid #484f58;padding-top:1px" title="table top = null/black">';
+      SCALES.forEach(function (s, i) {
         var pct = (s.remainder / PI) * 100;
-        var col = pct < 5 ? '#f85149' : pct < 20 ? '#f0e68c' : '#3fb950';
-        remBars += '<div style="display:flex;align-items:center;gap:3px;margin:1px 0">'
-          + '<span style="width:20px;text-align:right;color:#484f58">π' + superscript(s.power) + '</span>'
-          + '<div style="flex:1;height:3px;background:#161b22;border-radius:2px">'
-          + '<div style="width:' + Math.min(100, pct * 2) + '%;height:100%;background:' + col + ';border-radius:2px"></div>'
-          + '</div>'
-          + '<span style="width:24px;font-size:7px;color:' + col + '">' + s.remainder.toFixed(3) + '</span>'
+        var h = Math.max(2, Math.round(pct * 0.2)); // height proportional to remainder
+        var col = legColors[i] || '#8b949e';
+        remBars += '<div style="text-align:center;width:22px" title="π' + superscript(s.power) + ' rem=' + s.remainder.toFixed(4) + '">'
+          + '<div style="background:' + col + ';width:3px;height:' + h + 'px;margin:0 auto;border-radius:1px;opacity:0.8"></div>'
+          + '<div style="font-size:6px;color:' + col + '">π' + superscript(s.power) + '</div>'
           + '</div>';
       });
+      remBars += '</div>';
+      // Tightest and loosest
+      var tightest = SCALES.reduce(function (min, s) { return s.remainder < min.remainder ? s : min; });
+      var loosest = SCALES.reduce(function (max, s) { return s.remainder > max.remainder ? s : max; });
+      remBars += '<div style="font-size:6px;color:#484f58">'
+        + '<span style="color:#f85149">tight:</span> π' + superscript(tightest.power) + ' ' + tightest.remainder.toFixed(4)
+        + ' <span style="color:#3fb950">loose:</span> π' + superscript(loosest.power) + ' ' + loosest.remainder.toFixed(3)
+        + '</div>';
 
       // Mode indicators
       var modeIcons = { jump: '⟐', bounce: '◠', jig: '∿' };
