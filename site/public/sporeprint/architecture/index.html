@@ -1,0 +1,434 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport><title>Architecture — ecoPrimals — Self-Hosted Scientific Computing</title><meta content="What was built — the ecosystem architecture, NUCLEUS composition model, primal catalog, spring catalog, ecosystem inventory, deployment model, and evolution timeline." name=description><link href=https://sporeprint.primals.eco/architecture/ rel=canonical><meta content="Architecture — ecoPrimals — Self-Hosted Scientific Computing" property=og:title><meta content="What was built — the ecosystem architecture, NUCLEUS composition model, primal catalog, spring catalog, ecosystem inventory, deployment model, and evolution timeline." property=og:description><meta content=website property=og:type><meta content=https://sporeprint.primals.eco/architecture/ property=og:url><meta content="sporePrint — ecoPrimals" property=og:site_name><meta content=https://sporeprint.primals.eco/img/og-card.svg property=og:image><meta content=summary_large_image name=twitter:card><meta content="Architecture — ecoPrimals — Self-Hosted Scientific Computing" name=twitter:title><meta content="What was built — the ecosystem architecture, NUCLEUS composition model, primal catalog, spring catalog, ecosystem inventory, deployment model, and evolution timeline." name=twitter:description><meta content=https://sporeprint.primals.eco/img/og-card.svg name=twitter:image><link href=https://sporeprint.primals.eco/css/base.css rel=stylesheet><link href=https://sporeprint.primals.eco/css/main.css rel=stylesheet><link href=https://sporeprint.primals.eco/search.css rel=stylesheet><meta content="scientific computing, bioinformatics, Rust, WebGPU, WGSL, GPU computing, vendor-agnostic, self-hosted, sovereign infrastructure, high-performance computing, HPC, metagenomics, protein structure prediction, lattice QCD, molecular dynamics, reproducible science, AGPL, open source" name=keywords><link title="ecoPrimals — Self-Hosted Scientific Computing" href=https://sporeprint.primals.eco/atom.xml rel=alternate type=application/atom+xml><link title="Site context for AI agents" href=https://sporeprint.primals.eco/llms.txt rel=describedby type=text/plain><script type=application/ld+json>
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "sporePrint",
+        "alternateName": ["ecoPrimals", "primals.eco"],
+        "url": "https:&#x2F;&#x2F;sporeprint.primals.eco",
+        "description": "Self-hosted scientific computing in pure Rust with vendor-agnostic WebGPU&#x2F;WGSL GPU compute. Reproducible bioinformatics, protein structure prediction, lattice QCD, molecular dynamics, and pharmacometrics on commodity hardware — no CUDA, no cloud, no vendor lock-in.",
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+        "publisher": {
+          "@type": "Organization",
+          "name": "ecoPrimals",
+          "url": "https:&#x2F;&#x2F;github.com&#x2F;ecoPrimals",
+          "description": "Developer of the ecoPrimals sovereign scientific computing ecosystem. 15 composable programs (primals), 8 validation domains (springs), vendor-agnostic GPU compute via WebGPU&#x2F;WGSL. 175+ peer-reviewed papers reproduced. No CUDA, no cloud, no vendor lock-in. AGPL-3.0-or-later.",
+          "sameAs": [
+            "https:&#x2F;&#x2F;orcid.org&#x2F;0009-0004-2141-0321",
+            "https:&#x2F;&#x2F;github.com&#x2F;ecoPrimals",
+            "https:&#x2F;&#x2F;git.primals.eco"
+          ]
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "ecoPrimals",
+        "applicationCategory": "Scientific Computing",
+        "applicationSubCategory": "Bioinformatics, Computational Physics, Molecular Dynamics, High-Performance Computing",
+        "operatingSystem": "Linux",
+        "programmingLanguage": ["Rust", "WGSL"],
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+        "url": "https:&#x2F;&#x2F;sporeprint.primals.eco",
+        "description": "Self-hosted scientific computing ecosystem: 15 Rust binaries coordinated via JSON-RPC 2.0, executing reproducible science across genomics, protein structure prediction, lattice QCD, pharmacometrics, and precision agriculture using vendor-agnostic WebGPU/WGSL compute shaders on consumer GPUs.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "name": "barraCuda",
+        "description": "Vendor-agnostic GPU compute library: pure Rust, WGSL/WebGPU compute shaders, f64 precision on consumer GPUs. Replaces CUDA dependency for scientific computing workloads.",
+        "programmingLanguage": ["Rust", "WGSL"],
+        "codeRepository": "https://github.com/ecoPrimals/toadStool",
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+        "runtimePlatform": "WebGPU / Vulkan"
+      }
+    ]
+  }
+  </script><link href=https://www.gnu.org/licenses/agpl-3.0.html rel=license><meta content=AGPL-3.0-or-later name=rights><meta content=https://www.gnu.org/licenses/agpl-3.0.html name=dcterms.license><link href=https://sporeprint.primals.eco/favicon.svg rel=icon type=image/svg+xml><body><a class=skip-link href=#main>Skip to content</a><nav aria-label="Main navigation" class=site-nav><div class=nav-inner><a class=nav-brand href=https://sporeprint.primals.eco><span aria-hidden=true>🍄</span> sporePrint</a><button aria-label="Toggle navigation" aria-controls=nav-links aria-expanded=false class=nav-toggle><span></span><span></span><span></span></button><ul class=nav-links id=nav-links><li><a href=https://sporeprint.primals.eco/science/>Science</a><li><a aria-current=true class=active href=https://sporeprint.primals.eco/architecture/>Architecture</a><li><a href=https://sporeprint.primals.eco/guidestone/>guideStone</a><li><a href=https://sporeprint.primals.eco/products/>Products</a><li><a href=https://sporeprint.primals.eco/lab/>Lab</a><li><a href=https://sporeprint.primals.eco/thesis/>Thesis</a><li><a href=https://sporeprint.primals.eco/philosophy/>Philosophy</a><li><a href=https://sporeprint.primals.eco/story/>Story</a><li class=nav-divider><li><a href=/primals/>Primals</a><li><a href=/springs/>Springs</a><li><a href=https://github.com/ecoPrimals rel=noopener>GitHub</a><li><a href=https://sporeprint.primals.eco/contact/>Contact</a></ul><div aria-expanded=false aria-haspopup=listbox aria-owns=search-results class=nav-search role=combobox><input aria-label="Search site" aria-autocomplete=list aria-controls=search-results id=search-input placeholder=Search... type=search><ul aria-label="Search results" class=search-results id=search-results role=listbox></ul></div></div></nav><div class=site-layout><main class=site-main id=main><script type=application/ld+json>
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Architecture",
+  "author": { "@type": "Organization", "name": "ecoPrimals", "url": "https://primals.eco" },
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+  "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;",
+  "description": "What was built — the ecosystem architecture, NUCLEUS composition model, primal catalog, spring catalog, ecosystem inventory, deployment model, and evolution timeline.",
+  "isPartOf": { "@type": "WebSite", "name": "ecoPrimals", "url": "https:&#x2F;&#x2F;sporeprint.primals.eco" },
+  "hasPart": [
+    
+    {
+      "@type": "Article",
+      "name": "Evidence Snapshot",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;evidence-snapshot&#x2F;",
+      "description": "Canonical metrics for the ecoPrimals ecosystem — single source of truth for all counts, definitions, and measurement methodology. Every other page should agree with this one."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Ecosystem Visualization",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;ecosystem-visualization&#x2F;",
+      "description": "Interactive entity graph explorer for the ecoPrimals ecosystem"
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Generational Arc",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;generational-arc&#x2F;",
+      "description": "The five-generation evolution of ecoPrimals — from building hardware to producing external science."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "ecoPrimals Ecosystem Architecture: From Binary to Bonding",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;ecosystem-architecture&#x2F;",
+      "description": "UniBin&#x2F;ecoBin&#x2F;genomeBin ladder, NUCLEUS deployment, bonding model, Neural API"
+    },
+    
+    {
+      "@type": "Article",
+      "name": "NUCLEUS Composition Model",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;nucleus-architecture&#x2F;",
+      "description": "How primals compose into a system — the atomics ladder, Neural API, deploy graphs, Dark Forest, and Plasmodium."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Composition Patterns",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;composition-patterns&#x2F;",
+      "description": "How primals compose into products — PrimalBridge, deploy graphs, graceful degradation, and the gen4 architecture that makes primals invisible."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Composition Pipeline: Springs → Primals → Products → Foundation",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;composition-pipeline&#x2F;",
+      "description": "How validated science from 8 springs flows through primal composition into emergent products and institutional adoption."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Renvois de Choses: Knowledge Topology via the Provenance Trio",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;renvois-knowledge-topology&#x2F;",
+      "description": "How typed bidirectional connections between ideas — not links between pages — complete a 275-year arc from Diderot through Bush and Nelson to the provenance trio."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Self-Certifying Publication: sporePrint as guideStone",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;guidestone-publication&#x2F;",
+      "description": "Every claim on this site is backed by executable verification. Clone the repo, run one command, compare the hash."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "K-Derm Diderm Architecture",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;kderm-diderm-architecture&#x2F;",
+      "description": "The Gram-negative cell envelope model applied to sovereign infrastructure — inner membrane, peptidoglycan, outer membrane, and bond-mediated communication."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Sovereign Deployment",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;sovereign-deployment&#x2F;",
+      "description": "K-Derm cell envelope topology, WireGuard mesh overlay, multi-gate enrollment, and the PostPrimordial sovereignty model."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Transport Evolution",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;transport-evolution&#x2F;",
+      "description": "From nanowire SSH scripts to quorum-sensing coordination — the evolutionary path of inter-node communication."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "External Collaboration Model",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;external-collaboration&#x2F;",
+      "description": "How sovereign infrastructure enables external science production — the gen5 collaborator gate pattern."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Sovereign CI — Build Infrastructure",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;sovereign-ci&#x2F;",
+      "description": "How ecoPrimals builds, checksums, and distributes 30 binary artifacts across 15 primals and 2 architectures — entirely self-hosted."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Gate Mesh — Live Topology",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;mesh-topology&#x2F;",
+      "description": "Real-time view of the ecoPrimals sovereign compute mesh: gates, links, latencies, and capability routing."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "ecoPrimals Primal Catalog: Status, Capabilities, and Achievements",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;primal-catalog&#x2F;",
+      "description": "All 15 primals — capabilities, test counts, production status, repository visibility"
+    },
+    
+    {
+      "@type": "Article",
+      "name": "ecoPrimals Spring Catalog: Status, Science, and Evolution",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;spring-catalog&#x2F;",
+      "description": "All 8 springs — 7 science domains + 1 meta-spring — checks, papers reproduced, cross-spring data flow"
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Ecosystem Inventory",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;ecosystem-inventory&#x2F;",
+      "description": "Complete repository inventory across all three ecoPrimals organizations — every repo, its purpose, and current status."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "The Golden Cage",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;golden-cage&#x2F;",
+      "description": "How sovereign infrastructure bootstraps itself inside the services it will replace — and why the cage is golden because it works."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Sovereign HPC Evolution",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;sovereign-hpc-evolution&#x2F;",
+      "description": "From basement cluster to gram-negative organism — how sovereign hardware composes into a living system through the cell membrane model."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Silicon Deism — The Abstraction Elimination Thesis",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;silicon-deism&#x2F;",
+      "description": "There is only math, energy, and silicon. Everything else is an abstraction. Three phases from vendor agnostic to silicon deistic."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "The Stadial&#x2F;Interstadial Pattern",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;stadial-interstadial&#x2F;",
+      "description": "A constraint-driven optimization framework for evolving distributed systems — glacial cycles applied to software evolution."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Sovereign Transaction Membrane",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;sovereign-transaction-membrane&#x2F;",
+      "description": "How the organism transacts with the world — value in, value out, trust at each boundary crossing through the gram-negative membrane."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Deploy Graph Composition",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;deploy-graph-composition&#x2F;",
+      "description": "How deploy graphs become the interface between infrastructure (primals) and products (gardens) — BYOB TOML, topological sort, and session-as-primal."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Creative Surface Architecture",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;creative-surface&#x2F;",
+      "description": "The sporeGarden organizational model — how products relate to infrastructure through the &#x27;powered by&#x27; consumption pattern."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "K-Derm Reconciliation",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;k-derm-reconciliation&#x2F;",
+      "description": "From gram-staining to cell envelope architecture — bridging the gen3 gram-negative&#x2F;gram-positive framing to the canonical K-Derm model."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Coordination Triad",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;coordination-triad&#x2F;",
+      "description": "Three coordination patterns — quorumSignal (sense), rootPulse (action), waterFall (sync) — integrated through the Neural API."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "waterFall — Temporal Ecosystem Sync",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;waterfall&#x2F;",
+      "description": "Autonomic heartbeat of the ecosystem — temporal reconciliation that keeps multi-gate, multi-remote systems convergent without a central coordinator."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "rootPulse — Emergent Version Control",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;rootpulse&#x2F;",
+      "description": "Git reimagined as coordination between sovereign primitives — version control that emerges from primal composition rather than a monolithic tool."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Neural API — Adaptive Multi-Layer Orchestration",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;neural-api&#x2F;",
+      "description": "The biomeOS orchestration layer — capability graph execution over 13 primals, composition collapse, and bidirectional learning."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Deployment Model: plasmidBin &amp; BYOB",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;deployment-model&#x2F;",
+      "description": "How primal binaries are distributed, versioned, and composed — the plasmidBin binary distribution surface and BYOB composition model."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Ecosystem Economics",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;economics&#x2F;",
+      "description": "The flywheel, enzymatic bounties, sunCloud metabolic economics, and loam certificates — guiding concepts for how the ecosystem sustains itself through attribution rather than artificial scarcity."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Primal Evolution — From AI Swarm to Sovereign Compute",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;primal-evolution&#x2F;",
+      "description": "How 15 primals emerged through convergent evolution under the Pure Rust + JSON-RPC constraint — gen1 through gen3 splits, merges, and promotions."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Primal Interactions — IPC Architecture",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;primal-interactions&#x2F;",
+      "description": "How primals communicate: JSON-RPC 2.0 over Unix sockets, the discovery hierarchy, the Neural API semantic layer, and the no-coupling rule."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Discovery Log — Capability Hunting Methodology",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;discovery-log&#x2F;",
+      "description": "How the ecosystem discovers capabilities through probing hardware rather than reading documentation — the empirical method behind constrained evolution."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Atlas — A Memory Palace for Humans and AI",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;atlas-memory-palace&#x2F;",
+      "description": "The ecoPrimals ecosystem as a navigable landscape: mountain (primals), river (springs), garden (products), water (sync) — a Lewis-and-Clark map of sovereign computation."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Ecosystem Coordination",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;coordination&#x2F;",
+      "description": "Public coordination standards, glossary, and operational documents — the wateringHole repository as the ecosystem&#x27;s inter-team communication layer."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Content-Addressed Convergence — The Newton-Leibniz Pattern",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;content-addressed-convergence&#x2F;",
+      "description": "When independent agents produce identical content at different times, temporal divergence is provenance metadata, not conflict. One principle, applied fractally at every layer."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Cross-Platform Parity — OS Atheism to Silicon Atheism",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;cross-platform-parity&#x2F;",
+      "description": "Six-phase roadmap from OS-specific code to universal substrate deployment. Phases 1-2 complete: platform types shipped, transport abstraction shipped for all 14 primals. 59 depot binaries across 4 architectures."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Foundation Connection: From baseCamp to Institutional Adoption",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;foundation-connection&#x2F;",
+      "description": "How validated baseCamp science flows through NUCLEUS composition into foundation&#x27;s institutional adoption pipeline."
+    },
+    
+    {
+      "@type": "Article",
+      "name": "ecoPrimals — Sovereign Prior Art Catalog",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;sovereign-prior-art-catalog&#x2F;",
+      "description": "Lysogeny prior art record for sovereign compute"
+    },
+    
+    {
+      "@type": "Article",
+      "name": "Evolution Timeline: 27 Days, Seven Domains, 20,695+ Checks",
+      "url": "https:&#x2F;&#x2F;sporeprint.primals.eco&#x2F;architecture&#x2F;evolution-timeline&#x2F;",
+      "description": "27-day sprint day-by-day record and velocity analysis"
+    }
+    
+  ]
+}
+</script><article class=section-page><header class=section-header><nav aria-label=Breadcrumbs class=breadcrumbs><a href=https://sporeprint.primals.eco>Home</a><span aria-hidden=true>/</span><span aria-current=page>Architecture</span></nav><h1>Architecture</h1><p class=section-desc>What was built — the ecosystem architecture, NUCLEUS composition model, primal catalog, spring catalog, ecosystem inventory, deployment model, and evolution timeline.</header><div class=content><p>Small, purpose-built Rust programs (primals) compose into larger systems (atomics), which compose into sovereign compute substrates (NUCLEUS), which run science. The architecture follows chemistry, not enterprise software.<pre style="color-scheme:light dark;color:light-dark(#24292e,#e1e4e8);background-color:light-dark(#fff,#24292e)" class=giallo><code data-lang=plain><span class=giallo-l><span>Springs (8 domains)               → validate the science</span></span>
+<span class=giallo-l><span>  ↓ produce kernels, experiments, evidence</span></span>
+<span class=giallo-l><span>Primals (15 Rust binaries)        → provide the capabilities</span></span>
+<span class=giallo-l><span>  ↓ compose via deploy graphs</span></span>
+<span class=giallo-l><span>Atomics (Tower / Node / Nest)    → minimum viable compositions</span></span>
+<span class=giallo-l><span>  ↓ assemble into</span></span>
+<span class=giallo-l><span>NUCLEUS (full composition)       → sovereign compute substrate</span></span>
+<span class=giallo-l><span>  ↓ runs</span></span>
+<span class=giallo-l><span>Products (helixVision, etc.)     → emergent tools for real work</span></span>
+<span class=giallo-l><span>  ↓ proves patterns for</span></span>
+<span class=giallo-l><span>foundation                       → institutional adoption</span></span></code></pre><hr><h2 id=where-to-start>Where to start</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/ecosystem-architecture/>Ecosystem Architecture</a></strong> — primals, springs, composition, Neural API<li><strong><a href=https://sporeprint.primals.eco/architecture/generational-arc/>Generational Arc</a></strong> — gen1→gen5, from hardware to external science<li><strong><a href=https://sporeprint.primals.eco/architecture/nucleus-architecture/>NUCLEUS Architecture</a></strong> — atomics ladder, deploy graphs, lifecycle<li><strong><a href=https://sporeprint.primals.eco/architecture/composition-patterns/>Composition Patterns</a></strong> — PrimalBridge, deploy graphs, guideStone<li><strong><a href=https://sporeprint.primals.eco/architecture/kderm-diderm-architecture/>K-Derm Diderm Architecture</a></strong> — inner/outer membrane, bond types<li><strong><a href=https://sporeprint.primals.eco/architecture/sovereign-deployment/>Sovereign Deployment</a></strong> — PostPrimordial journey, VPS topology<li><strong><a href=https://sporeprint.primals.eco/architecture/transport-evolution/>Transport Evolution</a></strong> — nanowire → quorum sensing<li><strong><a href=https://sporeprint.primals.eco/architecture/external-collaboration/>External Collaboration</a></strong> — collaborator gates, spore cycle<li><strong><a href=https://sporeprint.primals.eco/architecture/evidence-snapshot/>Evidence Snapshot</a></strong> — canonical numbers, definitions, measurement methodology<li><strong><a href=https://sporeprint.primals.eco/architecture/primal-catalog/>Primal Catalog</a></strong> — 15 primals with metrics, primitives, and tiers<li><strong><a href=https://sporeprint.primals.eco/architecture/spring-catalog/>Spring Catalog</a></strong> — 8 springs with checks and papers reproduced<li><strong><a href=https://sporeprint.primals.eco/architecture/deployment-model/>Deployment Model</a></strong> — <a class="entity-ref entity-infra" title="Binary distribution surface — pre-built primal binaries, checksummed and versioned" href=/architecture/deployment-model/><span aria-hidden=true>🧬📦 </span><span>plasmidBin</span></a> binary distribution<li><strong><a href=https://sporeprint.primals.eco/architecture/evolution-timeline/>Evolution Timeline</a></strong> — the 27-day sprint narrative<li><strong><a href=https://sporeprint.primals.eco/architecture/ecosystem-inventory/>Ecosystem Inventory</a></strong> — complete map across all organizations<li><strong><a href=https://sporeprint.primals.eco/architecture/sovereign-prior-art-catalog/>Sovereign Prior Art</a></strong> — AGPL analysis per primal<li><strong><a href=https://sporeprint.primals.eco/architecture/composition-pipeline/>Composition Pipeline</a></strong> — springs → compositions → products → foundation</ul><h2 id=deep-architecture-gen4>Deep Architecture (gen4)</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/golden-cage/>The Golden Cage</a></strong> — bootstrapping sovereignty inside the services you will replace<li><strong><a href=https://sporeprint.primals.eco/architecture/sovereign-hpc-evolution/>Sovereign HPC Evolution</a></strong> — basement cluster to gram-negative organism<li><strong><a href=https://sporeprint.primals.eco/architecture/silicon-deism/>Silicon Deism</a></strong> — the abstraction elimination thesis<li><strong><a href=https://sporeprint.primals.eco/architecture/stadial-interstadial/>Stadial/Interstadial Pattern</a></strong> — constraint-driven evolution framework<li><strong><a href=https://sporeprint.primals.eco/architecture/sovereign-transaction-membrane/>Sovereign Transaction Membrane</a></strong> — how the organism transacts with the world<li><strong><a href=https://sporeprint.primals.eco/architecture/k-derm-reconciliation/>K-Derm Reconciliation</a></strong> — from gram-staining to cell envelope architecture<li><strong><a href=https://sporeprint.primals.eco/architecture/deploy-graph-composition/>Deploy Graph Composition</a></strong> — the product interface via BYOB TOML<li><strong><a href=https://sporeprint.primals.eco/architecture/creative-surface/>Creative Surface Architecture</a></strong> — the sporeGarden organizational model</ul><h2 id=coordination-triad>Coordination Triad</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/coordination-triad/>Coordination Triad</a></strong> — sense, action, sync — the ecosystem’s nervous system<li><strong><a href=https://sporeprint.primals.eco/architecture/waterfall/>waterFall</a></strong> — temporal ecosystem sync (SYNC domain)<li><strong><a href=https://sporeprint.primals.eco/architecture/rootpulse/>rootPulse</a></strong> — emergent version control (ACTION domain)<li><strong><a href=https://sporeprint.primals.eco/architecture/neural-api/>Neural API</a></strong> — adaptive multi-layer orchestration (integration)</ul><h2 id=primal-deep-docs>Primal Deep-Docs</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/primal-evolution/>Primal Evolution</a></strong> — gen1 to gen3, splits, merges, promotions<li><strong><a href=https://sporeprint.primals.eco/architecture/primal-interactions/>Primal Interactions</a></strong> — IPC architecture, JSON-RPC, discovery<li><strong><a href=https://sporeprint.primals.eco/architecture/discovery-log/>Discovery Log</a></strong> — capability hunting methodology</ul><h2 id=convergence-and-platform>Convergence and Platform</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/content-addressed-convergence/>Content-Addressed Convergence</a></strong> — the Newton-Leibniz pattern: content identity supersedes temporal identity<li><strong><a href=https://sporeprint.primals.eco/architecture/cross-platform-parity/>Cross-Platform Parity</a></strong> — OS Atheism → Silicon Atheism: deploying on any substrate</ul><h2 id=ecosystem>Ecosystem</h2><ul><li><strong><a href=https://sporeprint.primals.eco/architecture/atlas-memory-palace/>Atlas Memory Palace</a></strong> — mountain, river, garden, water<li><strong><a href=https://sporeprint.primals.eco/architecture/economics/>Ecosystem Economics</a></strong> — flywheel, sunCloud, loam certificates<li><strong><a href=https://sporeprint.primals.eco/architecture/coordination/>Ecosystem Coordination</a></strong> — wateringHole standards and public operations</ul></div><nav aria-label="Pages in this section" class=page-listing><ul><li><a href=https://sporeprint.primals.eco/architecture/evidence-snapshot/> <strong>Evidence Snapshot</strong> <span>Canonical metrics for the ecoPrimals ecosystem — single source of truth for all counts, definitions, and measurement methodology. Every other page should agree with this one.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-visualization/> <strong>Ecosystem Visualization</strong> <span>Interactive entity graph explorer for the ecoPrimals ecosystem</span> </a><li><a href=https://sporeprint.primals.eco/architecture/generational-arc/> <strong>Generational Arc</strong> <span>The five-generation evolution of ecoPrimals — from building hardware to producing external science.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-architecture/> <strong>ecoPrimals Ecosystem Architecture: From Binary to Bonding</strong> <span>UniBin/ecoBin/genomeBin ladder, NUCLEUS deployment, bonding model, Neural API</span> </a><li><a href=https://sporeprint.primals.eco/architecture/nucleus-architecture/> <strong>NUCLEUS Composition Model</strong> <span>How primals compose into a system — the atomics ladder, Neural API, deploy graphs, Dark Forest, and Plasmodium.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/composition-patterns/> <strong>Composition Patterns</strong> <span>How primals compose into products — PrimalBridge, deploy graphs, graceful degradation, and the gen4 architecture that makes primals invisible.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/composition-pipeline/> <strong>Composition Pipeline: Springs → Primals → Products → Foundation</strong> <span>How validated science from 8 springs flows through primal composition into emergent products and institutional adoption.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/renvois-knowledge-topology/> <strong>Renvois de Choses: Knowledge Topology via the Provenance Trio</strong> <span>How typed bidirectional connections between ideas — not links between pages — complete a 275-year arc from Diderot through Bush and Nelson to the provenance trio.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/guidestone-publication/> <strong>Self-Certifying Publication: sporePrint as guideStone</strong> <span>Every claim on this site is backed by executable verification. Clone the repo, run one command, compare the hash.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/kderm-diderm-architecture/> <strong>K-Derm Diderm Architecture</strong> <span>The Gram-negative cell envelope model applied to sovereign infrastructure — inner membrane, peptidoglycan, outer membrane, and bond-mediated communication.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-deployment/> <strong>Sovereign Deployment</strong> <span>K-Derm cell envelope topology, WireGuard mesh overlay, multi-gate enrollment, and the PostPrimordial sovereignty model.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/transport-evolution/> <strong>Transport Evolution</strong> <span>From nanowire SSH scripts to quorum-sensing coordination — the evolutionary path of inter-node communication.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/external-collaboration/> <strong>External Collaboration Model</strong> <span>How sovereign infrastructure enables external science production — the gen5 collaborator gate pattern.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-ci/> <strong>Sovereign CI — Build Infrastructure</strong> <span>How ecoPrimals builds, checksums, and distributes 30 binary artifacts across 15 primals and 2 architectures — entirely self-hosted.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/mesh-topology/> <strong>Gate Mesh — Live Topology</strong> <span>Real-time view of the ecoPrimals sovereign compute mesh: gates, links, latencies, and capability routing.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/primal-catalog/> <strong>ecoPrimals Primal Catalog: Status, Capabilities, and Achievements</strong> <span>All 15 primals — capabilities, test counts, production status, repository visibility</span> </a><li><a href=https://sporeprint.primals.eco/architecture/spring-catalog/> <strong>ecoPrimals Spring Catalog: Status, Science, and Evolution</strong> <span>All 8 springs — 7 science domains + 1 meta-spring — checks, papers reproduced, cross-spring data flow</span> </a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-inventory/> <strong>Ecosystem Inventory</strong> <span>Complete repository inventory across all three ecoPrimals organizations — every repo, its purpose, and current status.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/golden-cage/> <strong>The Golden Cage</strong> <span>How sovereign infrastructure bootstraps itself inside the services it will replace — and why the cage is golden because it works.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-hpc-evolution/> <strong>Sovereign HPC Evolution</strong> <span>From basement cluster to gram-negative organism — how sovereign hardware composes into a living system through the cell membrane model.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/silicon-deism/> <strong>Silicon Deism — The Abstraction Elimination Thesis</strong> <span>There is only math, energy, and silicon. Everything else is an abstraction. Three phases from vendor agnostic to silicon deistic.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/stadial-interstadial/> <strong>The Stadial/Interstadial Pattern</strong> <span>A constraint-driven optimization framework for evolving distributed systems — glacial cycles applied to software evolution.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-transaction-membrane/> <strong>Sovereign Transaction Membrane</strong> <span>How the organism transacts with the world — value in, value out, trust at each boundary crossing through the gram-negative membrane.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/deploy-graph-composition/> <strong>Deploy Graph Composition</strong> <span>How deploy graphs become the interface between infrastructure (primals) and products (gardens) — BYOB TOML, topological sort, and session-as-primal.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/creative-surface/> <strong>Creative Surface Architecture</strong> <span>The sporeGarden organizational model — how products relate to infrastructure through the 'powered by' consumption pattern.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/k-derm-reconciliation/> <strong>K-Derm Reconciliation</strong> <span>From gram-staining to cell envelope architecture — bridging the gen3 gram-negative/gram-positive framing to the canonical K-Derm model.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/coordination-triad/> <strong>Coordination Triad</strong> <span>Three coordination patterns — quorumSignal (sense), rootPulse (action), waterFall (sync) — integrated through the Neural API.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/waterfall/> <strong>waterFall — Temporal Ecosystem Sync</strong> <span>Autonomic heartbeat of the ecosystem — temporal reconciliation that keeps multi-gate, multi-remote systems convergent without a central coordinator.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/rootpulse/> <strong>rootPulse — Emergent Version Control</strong> <span>Git reimagined as coordination between sovereign primitives — version control that emerges from primal composition rather than a monolithic tool.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/neural-api/> <strong>Neural API — Adaptive Multi-Layer Orchestration</strong> <span>The biomeOS orchestration layer — capability graph execution over 13 primals, composition collapse, and bidirectional learning.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/deployment-model/> <strong>Deployment Model: plasmidBin & BYOB</strong> <span>How primal binaries are distributed, versioned, and composed — the plasmidBin binary distribution surface and BYOB composition model.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/economics/> <strong>Ecosystem Economics</strong> <span>The flywheel, enzymatic bounties, sunCloud metabolic economics, and loam certificates — guiding concepts for how the ecosystem sustains itself through attribution rather than artificial scarcity.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/primal-evolution/> <strong>Primal Evolution — From AI Swarm to Sovereign Compute</strong> <span>How 15 primals emerged through convergent evolution under the Pure Rust + JSON-RPC constraint — gen1 through gen3 splits, merges, and promotions.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/primal-interactions/> <strong>Primal Interactions — IPC Architecture</strong> <span>How primals communicate: JSON-RPC 2.0 over Unix sockets, the discovery hierarchy, the Neural API semantic layer, and the no-coupling rule.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/discovery-log/> <strong>Discovery Log — Capability Hunting Methodology</strong> <span>How the ecosystem discovers capabilities through probing hardware rather than reading documentation — the empirical method behind constrained evolution.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/atlas-memory-palace/> <strong>Atlas — A Memory Palace for Humans and AI</strong> <span>The ecoPrimals ecosystem as a navigable landscape: mountain (primals), river (springs), garden (products), water (sync) — a Lewis-and-Clark map of sovereign computation.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/coordination/> <strong>Ecosystem Coordination</strong> <span>Public coordination standards, glossary, and operational documents — the wateringHole repository as the ecosystem's inter-team communication layer.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/content-addressed-convergence/> <strong>Content-Addressed Convergence — The Newton-Leibniz Pattern</strong> <span>When independent agents produce identical content at different times, temporal divergence is provenance metadata, not conflict. One principle, applied fractally at every layer.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/cross-platform-parity/> <strong>Cross-Platform Parity — OS Atheism to Silicon Atheism</strong> <span>Six-phase roadmap from OS-specific code to universal substrate deployment. Phases 1-2 complete: platform types shipped, transport abstraction shipped for all 14 primals. 59 depot binaries across 4 architectures.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/foundation-connection/> <strong>Foundation Connection: From baseCamp to Institutional Adoption</strong> <span>How validated baseCamp science flows through NUCLEUS composition into foundation's institutional adoption pipeline.</span> </a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-prior-art-catalog/> <strong>ecoPrimals — Sovereign Prior Art Catalog</strong> <span>Lysogeny prior art record for sovereign compute</span> </a><li><a href=https://sporeprint.primals.eco/architecture/evolution-timeline/> <strong>Evolution Timeline: 27 Days, Seven Domains, 20,695+ Checks</strong> <span>27-day sprint day-by-day record and velocity analysis</span> </a></ul></nav></article></main><aside aria-label="Site navigation tree" class=site-tree data-nosnippet><details open><summary>Site Map</summary> <nav><ul class=tree-root><li class=tree-fold><details><summary class=tree-fold-label>Evidence</summary> <ul class=tree-fold-sections><li class=tree-section><a href=https://sporeprint.primals.eco/lab/>Lab</a><li class=tree-section><a href=https://sporeprint.primals.eco/science/>Science</a></ul></details><li class=tree-fold><details open><summary class=tree-fold-label>Architecture</summary> <ul class=tree-fold-sections><li class="tree-section tree-active"><details open><summary><a href=https://sporeprint.primals.eco/architecture/>Architecture</a></summary> <ul class=tree-pages><li><a href=https://sporeprint.primals.eco/architecture/evidence-snapshot/>Evidence Snapshot</a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-visualization/>Ecosystem Visualization</a><li><a href=https://sporeprint.primals.eco/architecture/generational-arc/>Generational Arc</a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-architecture/>ecoPrimals Ecosystem Architecture: From Binary to Bonding</a><li><a href=https://sporeprint.primals.eco/architecture/nucleus-architecture/>NUCLEUS Composition Model</a><li><a href=https://sporeprint.primals.eco/architecture/composition-patterns/>Composition Patterns</a><li><a href=https://sporeprint.primals.eco/architecture/composition-pipeline/>Composition Pipeline: Springs → Primals → Products → Foundation</a><li><a href=https://sporeprint.primals.eco/architecture/renvois-knowledge-topology/>Renvois de Choses: Knowledge Topology via the Provenance Trio</a><li><a href=https://sporeprint.primals.eco/architecture/guidestone-publication/>Self-Certifying Publication: sporePrint as guideStone</a><li><a href=https://sporeprint.primals.eco/architecture/kderm-diderm-architecture/>K-Derm Diderm Architecture</a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-deployment/>Sovereign Deployment</a><li><a href=https://sporeprint.primals.eco/architecture/transport-evolution/>Transport Evolution</a><li><a href=https://sporeprint.primals.eco/architecture/external-collaboration/>External Collaboration Model</a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-ci/>Sovereign CI — Build Infrastructure</a><li><a href=https://sporeprint.primals.eco/architecture/mesh-topology/>Gate Mesh — Live Topology</a><li><a href=https://sporeprint.primals.eco/architecture/primal-catalog/>ecoPrimals Primal Catalog: Status, Capabilities, and Achievements</a><li><a href=https://sporeprint.primals.eco/architecture/spring-catalog/>ecoPrimals Spring Catalog: Status, Science, and Evolution</a><li><a href=https://sporeprint.primals.eco/architecture/ecosystem-inventory/>Ecosystem Inventory</a><li><a href=https://sporeprint.primals.eco/architecture/golden-cage/>The Golden Cage</a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-hpc-evolution/>Sovereign HPC Evolution</a><li><a href=https://sporeprint.primals.eco/architecture/silicon-deism/>Silicon Deism — The Abstraction Elimination Thesis</a><li><a href=https://sporeprint.primals.eco/architecture/stadial-interstadial/>The Stadial/Interstadial Pattern</a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-transaction-membrane/>Sovereign Transaction Membrane</a><li><a href=https://sporeprint.primals.eco/architecture/deploy-graph-composition/>Deploy Graph Composition</a><li><a href=https://sporeprint.primals.eco/architecture/creative-surface/>Creative Surface Architecture</a><li><a href=https://sporeprint.primals.eco/architecture/k-derm-reconciliation/>K-Derm Reconciliation</a><li><a href=https://sporeprint.primals.eco/architecture/coordination-triad/>Coordination Triad</a><li><a href=https://sporeprint.primals.eco/architecture/waterfall/>waterFall — Temporal Ecosystem Sync</a><li><a href=https://sporeprint.primals.eco/architecture/rootpulse/>rootPulse — Emergent Version Control</a><li><a href=https://sporeprint.primals.eco/architecture/neural-api/>Neural API — Adaptive Multi-Layer Orchestration</a><li><a href=https://sporeprint.primals.eco/architecture/deployment-model/>Deployment Model: plasmidBin & BYOB</a><li><a href=https://sporeprint.primals.eco/architecture/economics/>Ecosystem Economics</a><li><a href=https://sporeprint.primals.eco/architecture/primal-evolution/>Primal Evolution — From AI Swarm to Sovereign Compute</a><li><a href=https://sporeprint.primals.eco/architecture/primal-interactions/>Primal Interactions — IPC Architecture</a><li><a href=https://sporeprint.primals.eco/architecture/discovery-log/>Discovery Log — Capability Hunting Methodology</a><li><a href=https://sporeprint.primals.eco/architecture/atlas-memory-palace/>Atlas — A Memory Palace for Humans and AI</a><li><a href=https://sporeprint.primals.eco/architecture/coordination/>Ecosystem Coordination</a><li><a href=https://sporeprint.primals.eco/architecture/content-addressed-convergence/>Content-Addressed Convergence — The Newton-Leibniz Pattern</a><li><a href=https://sporeprint.primals.eco/architecture/cross-platform-parity/>Cross-Platform Parity — OS Atheism to Silicon Atheism</a><li><a href=https://sporeprint.primals.eco/architecture/foundation-connection/>Foundation Connection: From baseCamp to Institutional Adoption</a><li><a href=https://sporeprint.primals.eco/architecture/sovereign-prior-art-catalog/>ecoPrimals — Sovereign Prior Art Catalog</a><li><a href=https://sporeprint.primals.eco/architecture/evolution-timeline/>Evolution Timeline: 27 Days, Seven Domains, 20,695+ Checks</a></ul></details><li class=tree-section><details><summary><a href=https://sporeprint.primals.eco/technical/>Technical</a></summary></details><li class=tree-section><details><summary><a href=https://sporeprint.primals.eco/products/>Products</a></summary></details></ul></details><li class=tree-fold><details><summary class=tree-fold-label>Methodology</summary> <ul class=tree-fold-sections><li class=tree-section><a href=https://sporeprint.primals.eco/methodology/>Methodology</a><li class=tree-section><a href=https://sporeprint.primals.eco/guidestone/>guideStone</a></ul></details><li class=tree-fold><details><summary class=tree-fold-label>Philosophy</summary> <ul class=tree-fold-sections><li class=tree-section><a href=https://sporeprint.primals.eco/philosophy/>Philosophy</a><li class=tree-section><a href=https://sporeprint.primals.eco/story/>Story</a><li class=tree-section><a href=https://sporeprint.primals.eco/thesis/>Thesis</a></ul></details><li class=tree-fold><details><summary class=tree-fold-label>Engagement</summary> <ul class=tree-fold-sections><li class=tree-section><a href=https://sporeprint.primals.eco/glossary/>Glossary</a><li class=tree-section><a href=https://sporeprint.primals.eco/audience/>Audience</a><li class=tree-section><a href=https://sporeprint.primals.eco/outreach/>reachOut</a><li class=tree-section><a href=https://sporeprint.primals.eco/collaborators/>Collaborators</a></ul></details><li class=tree-section><a href=https://sporeprint.primals.eco/contact/>Contact</a><li class=tree-divider><li class=tree-section><a href=/trails/>Reading Trails</a><li class=tree-divider><li class=tree-section><a href=/primals/>Primals Index</a><li class=tree-section><a href=/springs/>Springs Index</a></ul></nav></details></aside></div><footer class=site-footer><div class=footer-inner><p><strong>ecoPrimals</strong> — self-hosted scientific computing.<br> Code: <a href=https://www.gnu.org/licenses/agpl-3.0.html>AGPL-3.0-or-later</a> · Mechanics: <a href=https://azoralaw.com/orclicense/>ORC</a> · Docs: <a href=https://creativecommons.org/licenses/by-sa/4.0/>CC-BY-SA 4.0</a><p class=footer-tagline>The science is not a claim — it is executable evidence.<p class=cert-line>Certified: 2026-07-16 | <a href=/certification/manifest.json>Verify</a></div></footer><script src=https://sporeprint.primals.eco/elasticlunr.min.js></script><script src=https://sporeprint.primals.eco/search_index.en.js></script><script>(function() {
+      var input = document.getElementById('search-input');
+      var results = document.getElementById('search-results');
+      var combo = input && input.closest('[role="combobox"]');
+      if (!input || !results || !window.elasticlunr) return;
+      var index = elasticlunr.Index.load(window.searchIndex);
+      var active = -1;
+
+      function update() {
+        var query = input.value.trim();
+        if (query.length < 2) { clear(); return; }
+        var hits = index.search(query, { expand: true }).slice(0, 8);
+        results.innerHTML = hits.map(function(h, i) {
+          var d = h.doc;
+          return '<li role="option" id="sr-' + i + '"><a class="search-result" href="' + d.id + '">' +
+            '<strong>' + d.title + '</strong>' +
+            (d.description ? '<span>' + d.description + '</span>' : '') +
+            '</a></li>';
+        }).join('');
+        active = -1;
+        if (combo) combo.setAttribute('aria-expanded', hits.length > 0 ? 'true' : 'false');
+        input.removeAttribute('aria-activedescendant');
+      }
+
+      function clear() {
+        results.innerHTML = '';
+        active = -1;
+        if (combo) combo.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+      }
+
+      function setActive(idx) {
+        var items = results.querySelectorAll('[role="option"]');
+        items.forEach(function(el) { el.classList.remove('search-active'); el.setAttribute('aria-selected', 'false'); });
+        if (idx >= 0 && idx < items.length) {
+          active = idx;
+          items[idx].classList.add('search-active');
+          items[idx].setAttribute('aria-selected', 'true');
+          input.setAttribute('aria-activedescendant', items[idx].id);
+          items[idx].scrollIntoView({ block: 'nearest' });
+        } else {
+          active = -1;
+          input.removeAttribute('aria-activedescendant');
+        }
+      }
+
+      input.addEventListener('input', update);
+      input.addEventListener('keydown', function(e) {
+        var items = results.querySelectorAll('[role="option"]');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(active + 1, items.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(active - 1, -1)); }
+        else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); var a = items[active].querySelector('a'); if (a) a.click(); }
+        else if (e.key === 'Escape') { clear(); }
+      });
+      document.addEventListener('click', function(e) { if (!e.target.closest('.nav-search')) clear(); });
+    })();</script><script>(function() {
+      var toggle = document.querySelector('.nav-toggle');
+      var links = document.querySelector('.nav-links');
+      if (!toggle || !links) return;
+      toggle.addEventListener('click', function() {
+        var expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', !expanded);
+        links.classList.toggle('open');
+      });
+    })();</script>

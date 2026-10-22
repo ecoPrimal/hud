@@ -1,0 +1,113 @@
+/* sporePrint — design system tokens and reset
+   SPDX-License-Identifier: AGPL-3.0-or-later
+   System fonts, no external dependencies, dark mode, accessible.
+   This file defines the design tokens consumed by main.css and any
+   future component stylesheets. */
+
+:root {
+  --c-bg: #eff1f5;
+  --c-bg-alt: #e6e9ef;
+  --c-text: #4c4f69;
+  --c-text-muted: #6c6f85;
+  --c-link: #8839ef;
+  --c-link-hover: #7287fd;
+  --c-border: #ccd0da;
+  --c-accent: #2e7d20;
+  --c-accent-light: #e6f5e0;
+  --c-muted: #7c7f93;
+  --c-code-bg: #e6e9ef;
+  --c-nav-bg: #dce0e8;
+  --c-nav-text: #4c4f69;
+  --c-hero-bg: #dce0e8;
+  --c-hero-text: #4c4f69;
+  --c-surface: #ccd0da;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --max-w: 52rem;
+  --max-w-wide: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: #1e1e2e;
+    --c-bg-alt: #313244;
+    --c-text: #cdd6f4;
+    --c-text-muted: #a6adc8;
+    --c-link: #f5c2e7;
+    --c-link-hover: #f5e0dc;
+    --c-border: #45475a;
+    --c-accent: #a6e3a1;
+    --c-accent-light: #1e2030;
+    --c-muted: #7f849c;
+    --c-code-bg: #181825;
+    --c-nav-bg: #181825;
+    --c-nav-text: #cdd6f4;
+    --c-hero-bg: #11111b;
+    --c-hero-text: #cdd6f4;
+    --c-surface: #313244;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --c-text: #000;
+    --c-bg: #fff;
+    --c-bg-alt: #f0f0f0;
+    --c-link: #6200ee;
+    --c-link-hover: #3700b3;
+    --c-border: #333;
+    --c-accent: #1b5e12;
+    --c-muted: #333;
+    --c-code-bg: #f0f0f0;
+    --c-nav-bg: #e0e0e0;
+    --c-surface: #bbb;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    --c-text: #fff;
+    --c-bg: #000;
+    --c-bg-alt: #111;
+    --c-link: #f5c2e7;
+    --c-link-hover: #fff;
+    --c-border: #ccc;
+    --c-accent: #90ee90;
+    --c-muted: #ccc;
+    --c-code-bg: #111;
+    --c-nav-bg: #111;
+    --c-surface: #444;
+  }
+}
+
+@media (forced-colors: active) {
+  .maturity-badge,
+  .entity-ref,
+  .cert-line { border: 1px solid CanvasText; }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  line-height: 1.65;
+  color: var(--c-text);
+  background: var(--c-bg);
+}
