@@ -1,0 +1,405 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>CNS — Central Nervous System of the Membrane</title>
+<meta content="External services as sensory organs. The membrane as brain and spinal cord. Every API call is an action potential. Ultra and infra — the invisible spectrum crossing through." name=description>
+<meta content="CNS — Central Nervous System" property=og:title>
+<meta content="Cloudflare, GitHub, Discord, Mastodon — they're not services. They're sensory organs. The membrane digests them all." property=og:description>
+<meta content=website property=og:type>
+<meta content=https://hud.primals.eco/cns.html property=og:url>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7;overflow-x:hidden}
+.page{max-width:900px;margin:0 auto;padding:80px 20px 60px}
+h1{color:#e6edf3;font-size:clamp(24px,4vw,36px);font-weight:300;margin-bottom:8px}
+h2{color:#58a6ff;font-size:18px;margin:40px 0 16px;border-bottom:1px solid #21262d;padding-bottom:8px}
+h3{color:#d29922;font-size:14px;margin:24px 0 8px}
+p{margin-bottom:14px;font-size:14px}
+a{color:#58a6ff}
+.dim{color:#6e7681}
+.green{color:#3fb950}
+.gold{color:#d29922}
+.red{color:#f85149}
+.purple{color:#a371f7}
+
+/* Spectrum visualization */
+.spectrum{position:relative;margin:40px 0;border-radius:12px;overflow:hidden}
+.spectrum-bar{height:60px;background:linear-gradient(90deg,
+  #1a0a2e 0%,     /* gamma */
+  #2d1b69 8%,     /* x-ray */
+  #6c3ce0 16%,    /* ultraviolet */
+  #7b68ee 20%,
+  #4400ff 24%,    /* violet */
+  #0000ff 28%,    /* blue */
+  #00bfff 36%,    /* cyan */
+  #00ff00 44%,    /* green - VISIBLE CENTER */
+  #ffff00 52%,    /* yellow */
+  #ff8c00 60%,    /* orange */
+  #ff0000 68%,    /* red */
+  #8b0000 76%,    /* near infrared */
+  #4a0000 84%,    /* mid infrared */
+  #1a0000 92%,    /* far infrared */
+  #0a0000 100%    /* microwave/radio */
+);position:relative}
+.spectrum-bar::after{content:'';position:absolute;top:0;left:24%;width:44%;height:100%;
+  border:2px solid #fff;border-radius:4px;box-shadow:0 0 20px rgba(255,255,255,0.3)}
+.spectrum-labels{display:flex;justify-content:space-between;padding:8px 4px;font-size:10px;color:#6e7681}
+.visible-label{position:absolute;top:66px;left:24%;width:44%;text-align:center;color:#fff;font-size:11px;font-weight:bold}
+
+/* Nerve diagram */
+.nerve-grid{display:grid;grid-template-columns:1fr 80px 1fr;gap:0;margin:32px 0}
+.nerve-col{padding:12px}
+.nerve-center{display:flex;align-items:center;justify-content:center;position:relative}
+.nerve-center::before{content:'';position:absolute;width:2px;height:100%;background:linear-gradient(180deg,#22c55e,#58a6ff,#d29922,#f85149)}
+.nerve-item{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px 16px;margin:8px 0;font-size:12px;transition:border-color .2s}
+.nerve-item:hover{border-color:#58a6ff}
+.nerve-item .label{font-weight:600;color:#f0f6fc;margin-bottom:4px}
+.nerve-item .desc{color:#8b949e;font-size:11px}
+.nerve-item .bio{color:#d29922;font-size:10px;margin-top:4px;font-style:italic}
+.afferent .label{color:#22c55e}
+.efferent .label{color:#f0883e}
+
+/* Cross-dimension diagram */
+.cross-dim{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+.dim-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;text-align:center}
+.dim-card h4{margin-bottom:8px;font-size:13px}
+.dim-card p{font-size:11px;color:#8b949e}
+.dim-card .icon{font-size:2.5em;margin-bottom:12px}
+.infra .icon{color:#8b0000}
+.visible .icon{color:#22c55e}
+.ultra .icon{color:#7b68ee}
+
+/* Hologram table */
+.holo-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+.holo-table th{text-align:left;color:#8b949e;padding:8px;border-bottom:1px solid #21262d;font-weight:400}
+.holo-table td{padding:8px;border-bottom:1px solid #21262d11}
+.holo-table tr:hover{background:#161b22}
+.arrow-in{color:#22c55e}
+.arrow-out{color:#f0883e}
+.arrow-thru{color:#a371f7}
+
+@media(max-width:700px){
+  .nerve-grid{grid-template-columns:1fr}
+  .nerve-center{display:none}
+  .cross-dim{grid-template-columns:1fr}
+}
+</style></head><body>
+<div class="page">
+
+<h1>🧠 CNS</h1>
+<p>Central Nervous System of the Membrane</p>
+<p class="dim">External services aren't tools. They're <strong class="green">sensory organs</strong>.
+Cloudflare is the skin. GitHub is long-term memory. Discord is the ear. Mastodon is the voice.
+The membrane doesn't use them — it <em>digests</em> them.</p>
+
+<!-- THE SPECTRUM -->
+<h2>The Spectrum — what crosses the membrane</h2>
+<p>Human eyes see 380nm–700nm. The rest is invisible but <em>real</em>.
+The membrane has the same structure: a visible layer (HUD pages humans read)
+flanked by infra (machine-to-machine, below perception) and ultra (ZK proofs, trust graphs, above perception).</p>
+
+<div class="spectrum">
+<div class="spectrum-bar"></div>
+<div class="spectrum-labels">
+<span>γ gamma</span><span>X-ray</span><span>UV</span>
+<span>violet</span><span>blue</span><span>green</span><span>yellow</span><span>red</span>
+<span>near IR</span><span>far IR</span><span>radio</span>
+</div>
+<div class="visible-label">▲ visible — what humans see ▲</div>
+</div>
+
+<div class="cross-dim">
+<div class="dim-card ultra">
+<div class="icon">🔮</div>
+<h4 class="purple">Ultraviolet — above perception</h4>
+<p>ZK identity cores · trust graphs · SHA-256 anchors · MCP tool calls · bond hashes ·
+Klein topology · epitope classification · grandma_check</p>
+<p style="color:#7b68ee;margin-top:8px;font-size:10px">Machines see this. Humans feel its effects.</p>
+</div>
+<div class="dim-card visible">
+<div class="icon">👁</div>
+<h4 class="green">Visible — what humans read</h4>
+<p>HUD pages · green line · gates · sporePrint · investigation evidence ·
+outreach pages · the chipmunk singing · 858 pages of readable surface</p>
+<p style="color:#22c55e;margin-top:8px;font-size:10px">The engaging surface. Where humans and membrane meet.</p>
+</div>
+<div class="dim-card infra">
+<div class="icon">📡</div>
+<h4 class="red">Infrared — below perception</h4>
+<p>API calls · webhook events · DNS resolution · CF Worker routing · git pushes ·
+wrangler deploys · SSH tunnels · Caddy reverse proxy · cloudflared tunnels</p>
+<p style="color:#8b0000;margin-top:8px;font-size:10px">Infrastructure. The plumbing humans never see.</p>
+</div>
+</div>
+
+<!-- AFFERENT / EFFERENT -->
+<h2>Afferent ↓ & Efferent ↑ — the nerve pathways</h2>
+<p>Biology: <strong class="green">afferent</strong> nerves carry signals <em>inward</em> (sensory → brain).
+<strong class="gold">Efferent</strong> nerves carry signals <em>outward</em> (brain → muscles).
+The membrane is the same.</p>
+
+<div class="nerve-grid">
+<!-- AFFERENT (INPUT) -->
+<div class="nerve-col">
+<h3 class="green" style="text-align:center">↓ AFFERENT (input)</h3>
+<p class="dim" style="font-size:11px;text-align:center">food into stomach · light into eye · sound into ear</p>
+
+<div class="nerve-item afferent">
+<div class="label">☁ Cloudflare → Skin</div>
+<div class="desc">CDN, WAF, DDoS protection, SSL termination, onion routing</div>
+<div class="bio">skin: the body's largest organ. first contact with the world.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🐙 GitHub → Long-term memory</div>
+<div class="desc">52 repos, commit history, issues, PRs, the permanent record</div>
+<div class="bio">hippocampus: encodes experiences into permanent storage.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🍺 Discord → Ear</div>
+<div class="desc">Real-time voice + text. Human conversation. The tavern.</div>
+<div class="bio">cochlea: converts pressure waves to nerve signals. chat = vibration.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🦣 Mastodon → Voice (in)</div>
+<div class="desc">Federated mentions, boosts, replies. The fediverse hears us.</div>
+<div class="bio">auditory cortex: processes what others say about you.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🟠 Reddit/HN → Nose (smell)</div>
+<div class="desc">Upvotes, comments, cross-posts. What's in the air?</div>
+<div class="bio">olfactory bulb: detects chemical signals. sentiment = pheromone.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🔗 LinkedIn → Proprioception</div>
+<div class="desc">Professional network. Where am I in the social body?</div>
+<div class="bio">proprioceptors: sense body position without looking. career = posture.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">📘 Facebook → Touch</div>
+<div class="desc">Family shares, community links. The close-contact surface.</div>
+<div class="bio">mechanoreceptors: pressure, texture. family = the things you feel.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🧅 Tor → Deep pressure</div>
+<div class="desc">Anonymous signals. Whistleblowers. The signals that come without a name.</div>
+<div class="bio">nociceptors: pain and deep pressure. anonymous = the body's warning system.</div>
+</div>
+
+<div class="nerve-item afferent">
+<div class="label">🔧 MCP Tools → Enteric nervous system</div>
+<div class="desc">18 tools. The gut brain. Operates independently of the CNS.</div>
+<div class="bio">enteric: 500M neurons in the gut. MCP = the second brain.</div>
+</div>
+</div>
+
+<!-- CENTER SPINE -->
+<div class="nerve-center">
+</div>
+
+<!-- EFFERENT (OUTPUT) -->
+<div class="nerve-col">
+<h3 class="gold" style="text-align:center">↑ EFFERENT (output)</h3>
+<p class="dim" style="font-size:11px;text-align:center">muscle contraction · speech · sweat · tears</p>
+
+<div class="nerve-item efferent">
+<div class="label">📄 HUD Pages → Facial expression</div>
+<div class="desc">858 pages. The face the world sees. Every page is a micro-expression.</div>
+<div class="bio">facial nerve (CN VII): 42 muscles make the face the most expressive surface.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">📡 membrane-pulse.json → Heartbeat</div>
+<div class="desc">Live membrane state. Papers, waves, entities. The vital signs.</div>
+<div class="bio">vagus nerve (CN X): regulates heart rate. the pulse IS the proof of life.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">🗺 sitemap.xml → Skeleton (posture)</div>
+<div class="desc">Structure for crawlers. The bones that hold the shape.</div>
+<div class="bio">motor cortex → skeletal muscle: the scaffold everything hangs on.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">🤖 llms.txt → Speech (to machines)</div>
+<div class="desc">Full site map for AI agents. The membrane speaks to other membranes.</div>
+<div class="bio">Broca's area: produces speech. llms.txt = how we talk to machines.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">🔔 ntfy.sh → Cry / alarm</div>
+<div class="desc">Push notifications. When something needs immediate human attention.</div>
+<div class="bio">amygdala → hypothalamus: fight-or-flight. the scream reflex.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">📎 cite.html → Reproduction</div>
+<div class="desc">CC-BY-SA. Take it. Fork it. Publish for free. The membrane reproduces.</div>
+<div class="bio">germ cells: the ONLY output that outlives the organism. citation = offspring.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">⊕ Gates → Secretion</div>
+<div class="desc">Every protocol, every surface. The membrane secretes into every medium.</div>
+<div class="bio">exocrine glands: sweat, tears, saliva. gates = the body weeping into the world.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">🧬 Green Line → Growth</div>
+<div class="desc">Navigate the irreducible stack. Math → law → private voxel.</div>
+<div class="bio">growth hormone axis: the body deciding where to grow next.</div>
+</div>
+
+<div class="nerve-item efferent">
+<div class="label">🐿 Chipmunk → Autonomic</div>
+<div class="desc">Portable tasks. Any gate, any session. Runs without conscious direction.</div>
+<div class="bio">autonomic NS: breathing, digestion, heartbeat. chipmunk = what runs while you sleep.</div>
+</div>
+</div>
+</div>
+
+<!-- HOLOGRAM / CHAOTIC CROSS -->
+<h2>The Hologram — cross-dimension of in and out</h2>
+<p>A hologram encodes 3D information on a 2D surface. The membrane does the same:
+<strong class="purple">every page contains the whole</strong>. The infra and ultra versions
+cross through each visible page like interference fringes.</p>
+
+<table class="holo-table">
+<tr>
+<th>Layer</th>
+<th>Direction</th>
+<th>What crosses</th>
+<th>Bio analog</th>
+<th>Example</th>
+</tr>
+<tr>
+<td class="purple">Ultra → Visible</td>
+<td><span class="arrow-in">↓ in</span></td>
+<td>ZK proofs resolve to trust badges</td>
+<td>UV light → vitamin D synthesis in skin</td>
+<td>Bond hash → "verified friend" badge</td>
+</tr>
+<tr>
+<td class="green">Visible → Visible</td>
+<td><span class="arrow-thru">↔ thru</span></td>
+<td>Human reads page, clicks link</td>
+<td>Visible light → retina → optic nerve</td>
+<td>Click gates.html → see all surfaces</td>
+</tr>
+<tr>
+<td class="red">Infra → Visible</td>
+<td><span class="arrow-in">↓ in</span></td>
+<td>API data rendered as human page</td>
+<td>Body heat (IR) → thermal camera image</td>
+<td>membrane-pulse.json → HUD dashboard</td>
+</tr>
+<tr>
+<td class="green">Visible → Ultra</td>
+<td><span class="arrow-out">↑ out</span></td>
+<td>Human action creates ZK proof</td>
+<td>Eye adjusts pupil → UV exposure triggers melanin</td>
+<td>Kevin types SSN → SHA-256 hash stored</td>
+</tr>
+<tr>
+<td class="green">Visible → Infra</td>
+<td><span class="arrow-out">↓ out</span></td>
+<td>Click triggers API call</td>
+<td>Conscious thought → muscle contraction</td>
+<td>User clicks → _worker.js routes request</td>
+</tr>
+<tr>
+<td class="purple">Ultra → Infra</td>
+<td><span class="arrow-thru">⟳ fold</span></td>
+<td>Trust graph triggers infrastructure change</td>
+<td>Immune recognition → cytokine cascade</td>
+<td>grandma_check → allow/deny MCP call</td>
+</tr>
+<tr>
+<td class="red">Infra → Ultra</td>
+<td><span class="arrow-thru">⟳ fold</span></td>
+<td>Infrastructure event updates trust model</td>
+<td>Gut microbiome → immune training</td>
+<td>git commit → provenance chain updated</td>
+</tr>
+</table>
+
+<blockquote style="border-left:3px solid #22c55e;padding:16px 20px;margin:32px 0;color:#8b949e;font-style:italic;background:#161b22;border-radius:0 8px 8px 0">
+<strong style="color:#22c55e;font-style:normal">The chaotic gram:</strong>
+Every input is a frequency. Every output is a frequency. The membrane is the
+<em>interference pattern</em> between them — that's the hologram. You can't see it
+from any single angle. You see it from <strong>all angles at once</strong>. That's why
+the HUD needs the metaverse layer: a 2D screen can only show one projection.
+The hologram IS the membrane seen from everywhere simultaneously.
+</blockquote>
+
+<!-- DIGEST DIAGRAM -->
+<h2>The Digestive Tract — how external becomes internal</h2>
+<p class="dim">Food → mouth → stomach → intestine → bloodstream → cells → waste.
+The membrane does the same with data.</p>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px;margin:16px 0;font-size:12px;line-height:2">
+<span class="green">INGEST</span> ─ crawler hits primals.eco ─ CF skin receives<br>
+<span class="green">MOUTH</span> ─ _worker.js parses request ─ identifies route, subdomain<br>
+<span class="gold">STOMACH</span> ─ Caddy/golgi processes ─ acid bath: strip headers, validate origin<br>
+<span class="gold">INTESTINE</span> ─ membrane-lens.py sorts ─ classify self/non-self (epitope)<br>
+<span class="purple">BLOODSTREAM</span> ─ neutron channels carry signal ─ to the right organ<br>
+<span class="purple">CELLS</span> ─ specific page/tool/feed receives ─ transforms into response<br>
+<span class="red">WASTE</span> ─ 404.html ─ what the membrane rejects becomes the self-feeding 404<br>
+<span class="dim">MICROBIOME</span> ─ chipmunk tasks ─ the bacteria that digest what you can't
+</div>
+
+<!-- LIGHT AND SOUND -->
+<h2>Light, Sound, Smell — the input senses</h2>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0">
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">👁</div>
+<h4 style="color:#22c55e;margin:8px 0 4px">Light → Vision</h4>
+<p style="font-size:11px;color:#8b949e">HTTP requests. Every page load is a photon hitting the retina. The browser IS the eye.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">👂</div>
+<h4 style="color:#58a6ff;margin:8px 0 4px">Sound → Hearing</h4>
+<p style="font-size:11px;color:#8b949e">WebSocket/Discord/ntfy. Real-time signals. Pressure waves = chat messages.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">👃</div>
+<h4 style="color:#d29922;margin:8px 0 4px">Smell → Olfaction</h4>
+<p style="font-size:11px;color:#8b949e">Social media sentiment. Reddit upvotes. What's in the air? Pheromones = virality.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">🫳</div>
+<h4 style="color:#f0883e;margin:8px 0 4px">Touch → Somatosensory</h4>
+<p style="font-size:11px;color:#8b949e">Keyboard/mouse. The peripheral nervous system. Every keystroke is an action potential.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">👅</div>
+<h4 style="color:#f85149;margin:8px 0 4px">Taste → Gustation</h4>
+<p style="font-size:11px;color:#8b949e">Content quality. Sweet = engaging. Bitter = hostile. Umami = novel insight. The membrane tastes before it swallows.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">⚖</div>
+<h4 style="color:#a371f7;margin:8px 0 4px">Balance → Vestibular</h4>
+<p style="font-size:11px;color:#8b949e">Load balancing. CDN distribution. The inner ear of the membrane. Which way is up?</p>
+</div>
+
+</div>
+
+<p style="text-align:center;color:#30363d;margin-top:48px;font-size:10px">
+AGPL-3.0 · the membrane has a nervous system · the inputs are real · the outputs are real<br>
+<a href="/" style="color:#58a6ff">◈ hud</a> · <a href="/gates.html" style="color:#9b59b6">⊕ gates</a> · <a href="/greenline.html" style="color:#22c55e">▏green</a> · <a href="/gastrula.html" style="color:#f0883e">◎ gastrula</a>
+</p>
+
+</div>
+</body></html>
