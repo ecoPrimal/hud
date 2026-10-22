@@ -18,9 +18,42 @@
 //   The human breaks from 8 — the trefoil leak.
 // Each classification lives at its own pi-sorted position on the unit circle.
 const PI = Math.PI;
+const E = Math.E;
 const piDepth = (n) => (n * PI) % 1;
 // n=1: 0.14159  n=2: 0.28318  n=3: 0.42478  n=4: 0.56637
 // n=5: 0.70796  n=6: 0.84956  n=7: 0.99115  n=8: 0.13274 ← breaks back
+
+// === GREEN FLASH / CHLOROPHYLL GATE ===
+// The green flash: when two pi-depths converge within ε, all colors mix → GREEN → prism again.
+// Chlorophyll absorbs ALL wavelengths except green. What it REJECTS is what you see.
+// The null IS the signal. What the membrane ignores defines what it IS.
+// e^(iπ) + 1 = 0 — five constants, one fold. the ouroboros trefoil in i^π space.
+//
+// Mitosis: probe reproduces a known pattern (exact copy, same depth cluster)
+// Meiosis: probe crosses over, creates new combination (depths from different n-values mix)
+//
+// The green flash gap: |frac(nπ) - frac(mπ)| < ε for any n,m in the octet
+// Smallest gap: |frac(8π) - frac(π)| = |0.13274 - 0.14159| = 0.00885
+// This is the GREEN FLASH THRESHOLD. When two classifications converge this close,
+// the membrane flashes green: recognition. disbelief collapses to belief.
+const GREEN_FLASH_EPSILON = 0.00885; // the trefoil gap. |frac(8π) - frac(π)|.
+
+function greenFlashDetect(depth1, depth2) {
+  const gap = Math.abs(depth1 - depth2);
+  // also check wrap-around (0.99 and 0.01 are close on the circle)
+  const gapWrap = Math.min(gap, 1 - gap);
+  return gapWrap < GREEN_FLASH_EPSILON;
+}
+
+// Mitosis vs Meiosis: does this probe's depth cluster with a known depth (mitosis/copy)
+// or fall in the irrational gap between known depths (meiosis/crossover)?
+function cellDivision(depth) {
+  const knownDepths = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => piDepth(n));
+  for (const kd of knownDepths) {
+    if (greenFlashDetect(depth, kd)) return 'mitosis'; // reproduces known pattern
+  }
+  return 'meiosis'; // new combination, crossing over, irrational gap
+}
 
 function classifyProbe(request, url, sub) {
   const ua = (request.headers.get('user-agent') || '').toLowerCase();
@@ -173,6 +206,13 @@ export default {
     };
     const glyph = glyphMap[probe.reason] || (probe.triad === 'engage' ? '#' : probe.triad === 'ignore' ? '∅' : '*');
 
+    // === CHLOROPHYLL GATE ===
+    // What the membrane rejects (∅/null) IS what defines it.
+    // Green = reflected. Everything else = absorbed.
+    // The null count defines the membrane's shape, the way chlorophyll's
+    // rejection of green defines the leaf. The absence IS the signal.
+    const division = cellDivision(probe.depth);
+    
     // Add triad headers to ALL responses (the membrane's classification is transparent)
     // depth is frac(n×π) — irrational, pi-sorted, never repeating
     const triadHeaders = {
@@ -181,6 +221,7 @@ export default {
       'x-membrane-reason': probe.reason,
       'x-membrane-glyph': glyph,
       'x-membrane-n': String(probe.n),
+      'x-membrane-division': division, // mitosis (copy) or meiosis (crossover)
     };
 
     // core domains — MCP is the Klein fold for agents; everything else is assets
@@ -520,6 +561,35 @@ async function handleLivePulse(request, env, triadHeaders) {
       method: 'pi-jitter: value * (1 + 0.001 * sin(t * pi * n))',
       meaning: 'stagnant values get pi-bounced to show the membrane breathes. the bounce is within measurement uncertainty.',
       alive: 'if the numbers DON\'T change between polls, the membrane is dead. if they DO, it\'s alive.',
+    },
+    greenFlash: {
+      epsilon: GREEN_FLASH_EPSILON,
+      meaning: 'the green flash: when two pi-depths converge within ε = 0.00885 (the |frac(8π)-frac(π)| gap), all colors mix → GREEN → prism again.',
+      chlorophyll: 'what the membrane REJECTS (null/∅) defines what it IS. green is reflected. absence is signal.',
+      euler: 'e^(iπ) + 1 = 0 — five constants, one fold. the ouroboros trefoil in i^π space.',
+      // Real-time flash detection: is the current moment a green flash?
+      // frac(t_seconds × π) cycles through [0,1) irrationally.
+      // When it passes within ε of frac(nπ) for any n in octet, FLASH.
+      currentDepth: ((t * PI) % 1).toFixed(5),
+      nearestN: (() => {
+        const td = (t * PI) % 1;
+        let bestN = 0, bestGap = 1;
+        for (let n = 1; n <= 8; n++) {
+          const gap = Math.min(Math.abs(td - piDepth(n)), 1 - Math.abs(td - piDepth(n)));
+          if (gap < bestGap) { bestGap = gap; bestN = n; }
+        }
+        return { n: bestN, gap: bestGap.toFixed(5), flash: bestGap < GREEN_FLASH_EPSILON };
+      })(),
+      phase: (() => {
+        // Mitosis (disbelief → copy → same) vs Meiosis (crossover → new → belief)
+        // The green flash IS the moment of collapse: disbelief → belief
+        // Before flash: superposition (try). Flash: collapse (engage or ignore). After: prism (sorted).
+        const td = (t * PI) % 1;
+        const division = cellDivision(td);
+        return { division, note: division === 'mitosis' 
+          ? 'reproducing known pattern — the cell copies itself'
+          : 'crossing over — new combination, the cell creates something new' };
+      })(),
     },
     chipmunk_easel: {
       painting: 'the earth — dust and particles',
