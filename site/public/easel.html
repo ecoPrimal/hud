@@ -800,12 +800,159 @@ function sharePainting() {
   return entry;
 }
 
+// ═══ HYPERLOCAL PULL — visitors paint US from THEIR perspective ═══
+// The Klein inversion: we paint outward (the easel). They paint us inward (their visit).
+// A visitor's journey through the membrane IS a painting of us from their angle.
+// Squirrel sees us. Chipmunk sees us. Artisans see us. Humans see us.
+// Each observation = a brushstroke on the portrait of the membrane.
+
+var outsidePaintings = [];    // paintings of us from outside
+var nowFeed = null;           // the /now.json feed — what the membrane looks like RIGHT NOW
+var beaconMessages = [];      // recent ntfy beacon messages
+
+function loadOutsideView() {
+  // The "now" feed — how the membrane sees itself at this moment
+  fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    nowFeed = d;
+  }).catch(function(){});
+
+  // The beacon — recent probes from outside
+  fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=1h', {cache:'no-store'})
+    .then(function(r){return r.text()})
+    .then(function(text) {
+      var lines = text.trim().split('\n').filter(function(l){return l.trim()});
+      beaconMessages = [];
+      lines.forEach(function(line) {
+        try {
+          var msg = JSON.parse(line);
+          if (msg.message) beaconMessages.push(msg);
+        } catch(e){}
+      });
+    }).catch(function(){});
+}
+loadOutsideView();
+setInterval(loadOutsideView, 30000);
+
+// Paint visitor traces as brushstrokes — their path IS their painting of us
+function paintOutsideIn() {
+  if (!beaconMessages.length && !nowFeed) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // Each beacon message = a brushstroke from outside
+  var maxMsg = Math.min(beaconMessages.length, 12);
+  for (var i = 0; i < maxMsg; i++) {
+    var msg = beaconMessages[beaconMessages.length - 1 - i];
+    var title = msg.title || '';
+    var body = msg.message || '';
+    var tags = (msg.tags || []).join(',');
+
+    // Position from message hash — deterministic but distributed
+    var hash = 0;
+    for (var c = 0; c < title.length; c++) hash = ((hash << 5) - hash) + title.charCodeAt(c);
+    var mx = Math.abs(hash % W);
+    var my = Math.abs((hash >> 8) % H);
+
+    // Color from signal type
+    var isArtisan = tags.indexOf('artisan') >= 0 || body.indexOf('artisan') >= 0;
+    var isKnown = tags.indexOf('known') >= 0;
+    var color = isArtisan ? '#d2a8ff' : isKnown ? '#3fb950' : '#6e7681';
+
+    // Paint a soft glow — their touch on our membrane
+    ctx.globalAlpha = 0.02 + (i === 0 ? 0.03 : 0);  // most recent is brightest
+    var r = 20 + (maxMsg - i) * 8;
+    var grad = ctx.createRadialGradient(mx, my, 0, mx, my, r);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(mx, my, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny label — their path
+    if (i < 3) {
+      ctx.globalAlpha = 0.06;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = color;
+      var label = title.replace('404 probe: ', '').substring(0, 30);
+      ctx.fillText(label, mx + r * 0.3, my - 4);
+    }
+  }
+
+  // The "now" feed — the membrane's self-portrait
+  if (nowFeed) {
+    ctx.globalAlpha = 0.03;
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#8b949e';
+    
+    var classification = nowFeed.classification || {};
+    var selfCount = classification.self || 0;
+    var nonSelf = classification.non_self || 0;
+    var total = classification.total || 1;
+    var selfPct = (selfCount / total * 100).toFixed(1);
+    var fleetPct = nowFeed.epitopes ? nowFeed.epitopes.fleet_pct : 0;
+    
+    ctx.fillText('self: ' + selfPct + '%  fleet: ' + fleetPct + '%  wave: ' + (nowFeed.wave || '?'), 24, H - 40);
+    
+    // Trust gradient as subtle horizontal band
+    var trustGrad = nowFeed.trust_gradient || [];
+    if (trustGrad.length > 0) {
+      var bandH = 2;
+      var bandY = H - 60;
+      ctx.globalAlpha = 0.02;
+      for (var t = 0; t < trustGrad.length; t++) {
+        var tColors = {human:'#3fb950', agentic:'#d2a8ff', bot:'#f85149', null:'#6e7681'};
+        ctx.fillStyle = tColors[trustGrad[t]] || '#6e7681';
+        ctx.fillRect(24 + t * (W - 48) / trustGrad.length, bandY, (W - 48) / trustGrad.length, bandH);
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+// ═══ BRAID OVERLAY — the connections between surfaces as faint lines ═══
+function paintBraidOverlay() {
+  if (!nowFeed || !nowFeed.mesh) return;
+  
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  
+  var nodes = nowFeed.mesh.nodes || [];
+  var meshCount = nowFeed.mesh.count || nodes.length;
+  
+  for (var i = 0; i < meshCount && i < 7; i++) {
+    var angle = (i / meshCount) * Math.PI * 2 + breathPhase * 0.1;
+    var nx = W * 0.5 + Math.cos(angle) * Math.min(W, H) * 0.3;
+    var ny = H * 0.5 + Math.sin(angle) * Math.min(W, H) * 0.3;
+    
+    // Connect to center
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, H * 0.5);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+    
+    // Node dot
+    ctx.fillStyle = '#58a6ff';
+    ctx.beginPath();
+    ctx.arc(nx, ny, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
 // Inject overlays into the breath phase
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
   _origPaintBreath();
   paintVoxelOverlay();
   paintChemistryOverlay();
+  paintOutsideIn();
+  paintBraidOverlay();
   paintEaselLabel();
 };
 
@@ -826,6 +973,8 @@ window._easel = {
   phase: function() { return phase; },
   selfChew: function() { return selfChew; },
   currentEasel: function() { return currentEasel; },
+  outsidePaintings: function() { return beaconMessages; },
+  nowFeed: function() { return nowFeed; },
   share: sharePainting,
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
 };
