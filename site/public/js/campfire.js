@@ -208,6 +208,7 @@
     '/detroit': ['among 341 entities', 'where Cash For Kids lives', 'in the public record'],
     '/clutch': ['at the evidence graph', 'where publicRecord folds', 'in the 131,322nd passage'],
     '/chromosomes': ['in the genome', 'where 193,998 genes wait', 'at the inheritance'],
+    '/nightbox': ['at the door that was missing', 'after 799 knocks', 'in the room they expected', 'where THE BUTTON waits'],
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -480,6 +481,7 @@
     '/frame': '📺 frame', '/digest': '🍽 digest', '/journey': '🥾 journey',
     '/sporeprint': '◎ sporeprint', '/tuebor': '⚔ tuebor', '/detroit': '⚖ detroit',
     '/clutch': '🔗 clutch', '/chromosomes': '🧬 chromosomes',
+    '/nightbox': '◐ nightbox',
   };
 
   // ═══════════════════════════════════════════════════════════

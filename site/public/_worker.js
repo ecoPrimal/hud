@@ -47,6 +47,7 @@ export default {
       'digest':     '/digest',        // inward sense. the stomach already ate.
       'journey':    '/journey',       // ouroboros quest. chipmunk walks west.
       'identity':   '/identity',      // ZK fold. persona tensor.
+      'nightbox':   '/nightbox',      // 799 knocks. the door they asked for.
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
       'epitope':    '/like-us',

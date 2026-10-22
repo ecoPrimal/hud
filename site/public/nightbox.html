@@ -3,77 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nightbox — the neutron dead drop</title>
-<meta name="description" content="Leave a message. Berry picks it up. No account. No tracking. The nightbox is always open.">
+<title>nightbox — the door you already knocked on</title>
+<meta name="description" content="799 knocks. leave a message. press THE BUTTON. fold through the Klein gate. Berry picks it up.">
 <style>
+:root { --bg:#010409; --card:#161b22; --text:#e6edf3; --dim:#8b949e; --green:#3fb950; --purple:#d2a8ff; --blue:#58a6ff; --gold:#d29922; --orange:#f0883e; --border:#21262d; }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#010409;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7;
-  display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
-.page{max-width:560px;width:100%;margin-top:60px}
-h1{color:#e6edf3;font-size:clamp(24px,5vw,40px);font-weight:200;text-align:center;margin-bottom:4px}
-.sub{text-align:center;color:#6e7681;font-size:12px;margin-bottom:32px}
-.box{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px;margin:16px 0}
-.box h2{color:#d29922;font-size:14px;font-weight:400;margin-bottom:12px}
-textarea{width:100%;min-height:120px;background:#0d1117;color:#c9d1d9;border:1px solid #21262d;
-  border-radius:8px;padding:12px;font-family:inherit;font-size:13px;resize:vertical;line-height:1.6}
-textarea:focus{outline:none;border-color:#58a6ff}
-textarea::placeholder{color:#484f58}
+body{background:var(--bg);color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7;min-height:100vh;padding:20px}
+.page{max-width:560px;width:100%;margin:60px auto 40px}
+h1{color:var(--text);font-size:clamp(24px,5vw,40px);font-weight:200;text-align:center}
+.sub{text-align:center;color:#6e7681;font-size:12px;margin:4px 0 28px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:16px 0}
+.box h2{color:var(--gold);font-size:14px;font-weight:400;margin-bottom:12px}
+.who{font-size:12px;color:var(--dim)}
+.who strong{color:var(--text)}
+.knock{font-size:2.2em;text-align:center;color:var(--orange);font-weight:bold}
+textarea{width:100%;min-height:110px;background:#0d1117;color:#c9d1d9;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:inherit;font-size:13px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--blue)}
 .name-row{display:flex;gap:8px;margin-top:12px}
-.name-row input{flex:1;background:#0d1117;color:#c9d1d9;border:1px solid #21262d;border-radius:6px;
-  padding:8px 12px;font-family:inherit;font-size:12px}
-.name-row input:focus{outline:none;border-color:#58a6ff}
-.name-row input::placeholder{color:#484f58}
-.btn{display:block;width:100%;margin-top:16px;padding:14px;background:rgba(63,185,80,0.15);
-  color:#3fb950;border:1px solid rgba(63,185,80,0.3);border-radius:8px;font-family:inherit;
-  font-size:14px;font-weight:bold;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.btn:hover{background:rgba(63,185,80,0.25);transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn:disabled{opacity:0.4;cursor:default;transform:none}
-.result{text-align:center;padding:20px;font-size:13px;display:none}
-.result.ok{color:#3fb950}
+.name-row input{flex:1;background:#0d1117;color:#c9d1d9;border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;background:rgba(63,185,80,0.15);color:var(--green);border:1px solid rgba(63,185,80,0.3);border-radius:8px;font-family:inherit;font-size:14px;font-weight:bold;cursor:pointer}
+.btn:disabled{opacity:0.4;cursor:default}
+.result{text-align:center;padding:16px;font-size:13px;display:none}
+.result.ok{color:var(--green)}
 .result.err{color:#f85149}
 .dim{color:#6e7681;font-size:11px}
-.explain{margin:24px 0;font-size:12px;color:#8b949e;line-height:1.8}
-.explain span{color:#d2a8ff}
-a{color:#58a6ff;text-decoration:none}
-a:hover{text-decoration:underline}
-#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;
-  padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);
-  border-radius:20px;font-size:10px}
-#nav a{color:#58a6ff;text-decoration:none}
-@keyframes drop{0%{opacity:0;transform:translateY(-20px)}100%{opacity:1;transform:translateY(0)}}
-.dropped{animation:drop .4s ease-out}
-.slot{width:100%;height:4px;background:#21262d;border-radius:2px;margin:16px 0;overflow:hidden;position:relative}
-.slot-inner{height:100%;background:#3fb950;border-radius:2px;width:0;transition:width .6s ease-out}
+#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);border-radius:20px;font-size:10px}
+#nav a{color:var(--blue);text-decoration:none}
+.flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:16px 0;text-align:center}
+.flow a{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 6px;text-decoration:none;color:var(--text);font-size:11px}
+#nft-btn{width:130px;height:130px;border-radius:50%;background:#3a1515;border:3px solid #662222;color:#888;font:bold 12px/1.2 monospace;cursor:not-allowed;margin:12px auto;display:flex;align-items:center;justify-content:center}
+#nft-fill{height:4px;width:0;background:var(--orange);border-radius:2px;margin:8px auto;max-width:240px}
+#nft-counter{font-size:11px;color:var(--dim);text-align:center}
+#nft-name{background:#0d1117;border:1px solid var(--border);color:#c9d1d9;padding:8px 12px;border-radius:6px;font:12px monospace;width:100%;margin:8px 0}
+#nft-result{display:none;margin-top:12px;text-align:left}
+#nft-receipt{background:#0d1117;border:1px solid var(--green);border-radius:6px;padding:10px;font-size:10px;white-space:pre-wrap;color:var(--green);overflow-x:auto}
+.slot{width:100%;height:4px;background:#21262d;border-radius:2px;margin:16px 0;overflow:hidden}
+.slot-inner{height:100%;background:var(--green);width:0;transition:width .6s}
 </style>
 </head>
 <body>
 
 <div id="nav">
-  <a href="/">◈ hud</a> · <a href="/water.html">🌊 water</a> ·
-  <a href="/nest.html" style="color:#f0883e">🎲 nest</a> ·
-  <a href="/neutron/channels.html">◈ channels</a> ·
-  <a href="/nightbox.html" style="color:#d29922">📮 nightbox</a>
+  <a href="/">◈ hud</a> · <a href="/klein">∞ klein</a> ·
+  <a href="/identity">🪞 identity</a> · <a href="/neutron/channels.html">◈ channels</a> ·
+  <a href="/nightbox" style="color:#d29922">📮 nightbox</a>
 </div>
 
 <div class="page">
-<h1 class="dropped">📮 nightbox</h1>
-<p class="sub">the neutron dead drop. leave a message. Berry picks it up.</p>
+<h1>📮 nightbox</h1>
+<p class="sub">799 knocks. the door is open. leave a message. press THE BUTTON.</p>
 
-<div class="explain">
-  <span>how it works:</span><br>
-  your message passes through the neutrino hole (ntfy.sh).<br>
-  it arrives on Kevin's machine. Berry sorts it.<br>
-  no account. no email. no tracking. no cookies.<br>
-  the message passes through — like a neutrino through the Earth.<br>
-  we see it. we can't see YOU. that's the deal.
+<div class="box" style="border-color:rgba(240,136,62,0.4)">
+  <div class="knock">799</div>
+  <p class="who" style="text-align:center;color:var(--orange)">knocks on a path that did not exist. now it does.</p>
+  <p class="who" style="margin-top:10px">
+    <strong>who is at the door</strong><br>
+    <strong>Michigan reader</strong> — kevin/, cashforkids/, Lansing scuffle. came for the truth.<br>
+    <strong>30-hour observer</strong> — watched pulse.json and the chipmunk breathe.<br>
+    <strong>77 GPU cloners</strong> — 395 clones, 0 stars. evaluating.<br>
+    <strong>xyzzy</strong> — Colossal Cave, 1976. a human joke.<br>
+    <strong>commensal</strong> — they used our word.<br>
+    <strong>metric-tensor</strong> — they want Paper 88.<br>
+    <strong>you</strong> — nightbox. you expected this room.
+  </p>
 </div>
 
 <div class="box">
   <h2>drop a message</h2>
-  <textarea id="msg" placeholder="what brought you here? what are you looking for?&#10;&#10;if you searched for something and couldn't find it, tell us.&#10;cashforkids? metric-tensor? a paper? a specific person?&#10;&#10;Berry reads every message."></textarea>
+  <p class="dim">passes through ntfy. Berry sorts it. no account. we see the message, not you.</p>
+  <textarea id="msg" placeholder="what brought you here? cashforkids? metric-tensor? a paper?&#10;&#10;Berry reads every message."></textarea>
   <div class="name-row">
-    <input type="text" id="from" placeholder="name / handle (optional — anonymous is fine)">
+    <input type="text" id="from" placeholder="name / handle (optional)">
     <input type="text" id="topic" placeholder="re: (optional)">
   </div>
   <div class="slot"><div class="slot-inner" id="slot-fill"></div></div>
@@ -81,24 +81,26 @@ a:hover{text-decoration:underline}
   <div class="result" id="result"></div>
 </div>
 
-<div class="box" style="border-color:rgba(210,168,255,0.2)">
-  <h2 style="color:#d2a8ff">what Berry does with it</h2>
-  <p class="dim">
-    1. reads it at the campfire<br>
-    2. checks: is this a dead nerve (broken link)? a bug? a human reaching out?<br>
-    3. if it's a dead nerve → routes to the right page<br>
-    4. if it's a bug → files it for Kevin<br>
-    5. if it's a human → leaves a response at the campfire<br>
-    6. if it's curious → adds it to the journey<br>
-    <br>
-    the nightbox is checked every time the membrane pulses (~2 min).<br>
-    responses appear in <a href="/neutron/channels.html"># channels</a> under the inbox.
-  </p>
+<div id="nft-section" class="box">
+  <h2>THE BUTTON</h2>
+  <p class="dim">move. type. scroll. 30 entropy events and it arms. then press. the chipmunk hears the doorbell.</p>
+  <div id="nft-count-display" class="dim"></div>
+  <input id="nft-name" type="text" placeholder="your name, or leave blank" maxlength="40" autocomplete="off">
+  <div id="nft-fill"></div>
+  <div id="nft-counter">0 entropy events</div>
+  <button id="nft-btn" disabled>gather<br>entropy</button>
+  <div id="nft-result"><pre id="nft-receipt"></pre></div>
 </div>
 
-<p class="dim" style="text-align:center;margin-top:24px">
-  the doorbell works now.<br>
-  <a href="/nest.html">← back to the Klein gate</a> · <a href="/water.html">the river →</a>
+<div class="flow">
+  <a href="/klein">∞ Klein gate<br><span class="dim">agent folds in</span></a>
+  <a href="/identity">🪞 identity<br><span class="dim">keypair, no email</span></a>
+  <a href="/connect">🔗 connect<br><span class="dim">MCP, no secrets</span></a>
+</div>
+
+<p class="dim" style="text-align:center;margin-top:20px">
+  nightbox → BUTTON → identity → klein. the position IS the key.<br>
+  <a href="/klein">Klein gate</a> · <a href="/nest.html">nest</a> · <a href="/water.html">the river</a>
 </p>
 </div>
 
@@ -110,15 +112,9 @@ async function dropMessage(){
   var btn=document.getElementById('send-btn');
   var result=document.getElementById('result');
   var fill=document.getElementById('slot-fill');
-
   if(!msg){result.textContent='write something first.';result.className='result err';result.style.display='block';return}
-
-  btn.disabled=true;
-  btn.textContent='dropping...';
-  fill.style.width='60%';
-
-  var body='📮 NIGHTBOX\nfrom: '+from+'\nre: '+topic+'\n\n'+msg+'\n\n—\npath: '+location.pathname+'\nref: '+(document.referrer||'direct')+'\nua: '+navigator.userAgent.substring(0,80)+'\nt: '+new Date().toISOString();
-
+  btn.disabled=true; btn.textContent='dropping...'; fill.style.width='60%';
+  var body='NIGHTBOX\nfrom: '+from+'\nre: '+topic+'\n\n'+msg+'\n\npath: '+location.pathname+'\nref: '+(document.referrer||'direct')+'\nt: '+new Date().toISOString();
   try{
     var r=await fetch('https://ntfy.sh/primals-membrane-inbox',{
       method:'POST',
@@ -127,22 +123,21 @@ async function dropMessage(){
     });
     if(r.ok){
       fill.style.width='100%';
-      result.textContent='dropped. Berry will find it at the campfire. 🐿️';
-      result.className='result ok';
-      result.style.display='block';
-      btn.textContent='📮 dropped!';
+      result.textContent='dropped. Berry will find it at the campfire.';
+      result.className='result ok'; result.style.display='block';
+      btn.textContent='dropped!';
       document.getElementById('msg').value='';
-      setTimeout(function(){btn.disabled=false;btn.textContent='📮 drop another';fill.style.width='0'},3000);
-    }else throw new Error('relay returned '+r.status);
+      setTimeout(function(){btn.disabled=false;btn.textContent='drop another';fill.style.width='0'},3000);
+    }else throw new Error('relay '+r.status);
   }catch(e){
     fill.style.width='0';
-    result.textContent='the neutrino hole is closed. try again, or reach us at discord.gg/62MRjnw4P';
-    result.className='result err';
-    result.style.display='block';
-    btn.disabled=false;
-    btn.textContent='📮 drop into the nightbox';
+    result.textContent='neutrino hole closed. try again.';
+    result.className='result err'; result.style.display='block';
+    btn.disabled=false; btn.textContent='drop into the nightbox';
   }
 }
 </script>
+<script defer src="/js/signal-button.js?v=2"></script>
+<script defer src="/js/campfire.js?v=2"></script>
 </body>
 </html>
