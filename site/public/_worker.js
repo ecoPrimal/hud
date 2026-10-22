@@ -1,5 +1,4 @@
-// chromatized: 2026-10-22T12:52:52Z
-// _worker.js — the Klein fold
+// _worker.js — the Klein fold (chromatized: gold/silver/copper piTope kleingate)
 // catches ALL requests to *.primals.eco
 // routes subdomains → HUD paths
 // the wildcard IS the maze. this worker IS the fold.
