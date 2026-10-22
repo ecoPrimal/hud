@@ -360,13 +360,18 @@ export default {
     }
 
     if (FOLDS[sub]) {
-      const targetPath = url.pathname === '/' ? FOLDS[sub] : url.pathname;
+      const fold = FOLDS[sub];
+      // External URLs (https://...) redirect directly; internal paths go through primals.eco
+      if (fold.startsWith('http')) {
+        return Response.redirect(fold, 302);
+      }
+      const targetPath = url.pathname === '/' ? fold : url.pathname;
       const targetUrl = `https://primals.eco${targetPath}${url.search}`;
       return Response.redirect(targetUrl, 302);
     }
 
-    // unknown subdomain — you've entered the maze
-    // serve the maze page so they see where they are
+    // unknown subdomain — you've entered the maze (*)
+    // the wildcard catches everything not explicitly routed
     const mazeUrl = new URL('/maze.html', url.origin);
     const mazeReq = new Request(mazeUrl, request);
     const mazeResp = await env.ASSETS.fetch(mazeReq);
@@ -375,6 +380,7 @@ export default {
       status: 200,
       headers: {
         ...Object.fromEntries(mazeResp.headers),
+        ...triadHeaders,
         'content-type': 'text/html; charset=utf-8',
         'x-maze-cell': sub,
         'x-klein-fold': 'you are inside the maze. the wildcard caught you.',
