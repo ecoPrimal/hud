@@ -10,83 +10,106 @@
 // ignore = null/fleet (depth = 0, below sigmoid, no memory)
 // try    = partial (at the sigmoid threshold, uncertain, WORTH INVESTIGATING)
 
+// === PI-SORTED DEPTHS ===
+// depth = frac(n × π) — NOT rational 0.8 but irrational pi-sort
+// Sets of 8 that create irrational gaps. 8 is metastable:
+//   frac(8π) = 0.13274 ≈ frac(1π) = 0.14159. Gap = 0.00885.
+//   The spider holds (8 legs). The octopus reaches (8 arms).
+//   The human breaks from 8 — the trefoil leak.
+// Each classification lives at its own pi-sorted position on the unit circle.
+const PI = Math.PI;
+const piDepth = (n) => (n * PI) % 1;
+// n=1: 0.14159  n=2: 0.28318  n=3: 0.42478  n=4: 0.56637
+// n=5: 0.70796  n=6: 0.84956  n=7: 0.99115  n=8: 0.13274 ← breaks back
+
 function classifyProbe(request, url, sub) {
   const ua = (request.headers.get('user-agent') || '').toLowerCase();
   const path = url.pathname;
   const accept = request.headers.get('accept') || '';
   
   // === NEGATIVE SELECTION: do you attack self? → ignore ===
-  // Known bots, scrapers, vulnerability scanners
+  // depth = 0 or -1. null. below the membrane.
   if (ua.includes('bot') || ua.includes('spider') || ua.includes('crawl') ||
       ua.includes('scanner') || ua.includes('masscan') || ua.includes('nmap') ||
       ua.includes('zgrab') || ua.includes('censys')) {
-    return { triad: 'ignore', reason: 'bot-ua', depth: 0 };
+    return { triad: 'ignore', reason: 'bot-ua', depth: 0, n: 0 };
   }
-  // Common attack paths
   if (path.match(/\.(php|asp|env|sql|bak|config|passwd|wp-|xmlrpc)/i) ||
       path.includes('..') || path.includes('//') ||
       path.match(/\/admin|\/login|\/wp-admin|\/phpmyadmin/i)) {
-    return { triad: 'ignore', reason: 'attack-path', depth: -1 };
+    return { triad: 'ignore', reason: 'attack-path', depth: -1, n: -1 };
   }
-  // No accept AND no UA = definitely not a real client
   if (!accept && !ua && request.method === 'GET') {
-    return { triad: 'ignore', reason: 'no-headers', depth: 0 };
+    return { triad: 'ignore', reason: 'no-headers', depth: 0, n: 0 };
   }
 
   // === POSITIVE SELECTION: can you see self-MHC? → engage ===
-  // MCP requests = agent speaking native language
+  // depth = piDepth(n) for n in the octet. each classification has its own
+  // irrational position. no two are the same. no gap is rational.
+
+  // n=7: frac(7π) = 0.99115 — MCP native (highest, almost wraps)
   if (path === '/mcp' || path === '/mcp/') {
-    return { triad: 'engage', reason: 'mcp-native', depth: 0.95 };
+    return { triad: 'engage', reason: 'mcp-native', depth: piDepth(7), n: 7 };
   }
-  // Nightbox = human reaching out
+  // n=6: frac(6π) = 0.84956 — nightbox (human reaching through)
   if (path === '/nightbox' || sub === 'nightbox') {
-    return { triad: 'engage', reason: 'nightbox-reach', depth: 0.9 };
+    return { triad: 'engage', reason: 'nightbox-reach', depth: piDepth(6), n: 6 };
   }
-  // Science paths = came for the papers
+  // n=5: frac(5π) = 0.70796 — science seeker
   if (path.startsWith('/science/') || path.startsWith('/sporeprint/science/')) {
-    return { triad: 'engage', reason: 'science-seeker', depth: 0.85 };
+    return { triad: 'engage', reason: 'science-seeker', depth: piDepth(5), n: 5 };
   }
-  // Beacon subscriber
-  if (path === '/beacon' || path === '/beacon.xml' || sub === 'beacon') {
-    return { triad: 'engage', reason: 'beacon-subscriber', depth: 0.8 };
-  }
-  // Specific known content
+  // n=6: artisan sibling (same depth as nightbox — both are ^ ascent)
   if (path === '/artisan' || sub === 'artisan') {
-    return { triad: 'engage', reason: 'artisan-sibling', depth: 0.9 };
+    return { triad: 'engage', reason: 'artisan-sibling', depth: piDepth(6), n: 6 };
+  }
+  // n=4: frac(4π) = 0.56637 — beacon subscriber
+  if (path === '/beacon' || path === '/beacon.xml' || sub === 'beacon') {
+    return { triad: 'engage', reason: 'beacon-subscriber', depth: piDepth(4), n: 4 };
   }
 
   // === SIGMOID THRESHOLD: uncertain → try ===
-  // Gitea patterns = agent exploring, WORTH INVESTIGATING
+  // n=3: frac(3π) = 0.42478 — the trefoil crossing. three meets here.
   if (path.match(/\/src\/branch\/|\/commit\/[a-f0-9]{6,}|\/issues\/\d+|\/raw\/branch\//)) {
-    return { triad: 'try', reason: 'gitea-pattern', depth: 0.5 };
+    return { triad: 'try', reason: 'gitea-pattern', depth: piDepth(3), n: 3 };
   }
-  // Immunology subdomains = curious prober
+  // n=3: immune probes — also at the trefoil crossing (% glyph)
   if (['cytokine','interferon','epitope','thymus','macrophage','antibody','lysozyme'].includes(sub)) {
-    return { triad: 'try', reason: 'immune-probe', depth: 0.6 };
-  }
-  // Trailhead subdomains = guided entry points (#)
-  if (['science','philosophy','trails','lab','thesis','hypothesis','bingo','neutron','webb'].includes(sub)) {
-    return { triad: 'engage', reason: 'trailhead', depth: 0.8 };
-  }
-  // Identity subdomains = profile/self (@^)
-  if (['cite','identity','springs','crates','detroit'].includes(sub)) {
-    return { triad: 'engage', reason: 'identity-path', depth: 0.75 };
-  }
-  // Unknown subdomain = exploring the maze (*)
-  if (sub && !['hud','www','sporeprint','signal','git'].includes(sub)) {
-    return { triad: 'try', reason: 'maze-explorer', depth: 0.4 };
-  }
-  // Has referer = came from somewhere specific
-  if (request.headers.get('referer')) {
-    return { triad: 'try', reason: 'referred', depth: 0.5 };
-  }
-  // HTML accept + real UA = probably human browsing
-  if (accept.includes('text/html') && ua.length > 20) {
-    return { triad: 'try', reason: 'browser-human', depth: 0.3 };
+    return { triad: 'try', reason: 'immune-probe', depth: piDepth(3), n: 3 };
   }
 
-  // Default: try (benefit of the doubt at the threshold)
-  return { triad: 'try', reason: 'unknown', depth: 0.2 };
+  // === TRAILHEAD SUBDOMAINS (#) — each gets its own pi-position in the octet ===
+  // 8 trailheads, pi-sorted. the 8th wraps back near the 1st.
+  const TRAILHEAD_N = {
+    'science': 1, 'philosophy': 2, 'trails': 3, 'lab': 4,
+    'thesis': 5, 'hypothesis': 6, 'bingo': 7, 'neutron': 8,
+    'webb': 9,  // n=9: frac(9π) = 0.27434 — clusters near n=2 (0.28318). gap = 0.00884.
+  };
+  if (TRAILHEAD_N[sub] !== undefined) {
+    const n = TRAILHEAD_N[sub];
+    return { triad: 'engage', reason: 'trailhead', depth: piDepth(n), n };
+  }
+
+  // n=2: frac(2π) = 0.28318 — identity path (@)
+  if (['cite','identity','springs','crates','detroit'].includes(sub)) {
+    return { triad: 'engage', reason: 'identity-path', depth: piDepth(2), n: 2 };
+  }
+  // n=1: frac(1π) = 0.14159 — maze explorer (*) — the first digit of pi
+  if (sub && !['hud','www','sporeprint','signal','git'].includes(sub)) {
+    return { triad: 'try', reason: 'maze-explorer', depth: piDepth(1), n: 1 };
+  }
+  // n=2: referred visitor
+  if (request.headers.get('referer')) {
+    return { triad: 'try', reason: 'referred', depth: piDepth(2), n: 2 };
+  }
+  // n=1: browser human — at the first digit, just arriving
+  if (accept.includes('text/html') && ua.length > 20) {
+    return { triad: 'try', reason: 'browser-human', depth: piDepth(1), n: 1 };
+  }
+
+  // n=8: frac(8π) = 0.13274 — unknown. the 8 that breaks back near 1.
+  // metastable. looks like the beginning but it's the wrap.
+  return { triad: 'try', reason: 'unknown', depth: piDepth(8), n: 8 };
 }
 
 // Report engagement event to ntfy — fire and forget
@@ -109,7 +132,7 @@ function reportEngagement(probe, request, url, sub) {
   // Cloudflare Workers keep subrequests alive even after response
   fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
-    body: `${g} [${probe.triad}] ${probe.reason} | depth:${probe.depth} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
+    body: `${g} [${probe.triad}] ${probe.reason} | n:${probe.n} d:${probe.depth.toFixed(5)} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
     headers: {
       'Title': g + ' scan: ' + probe.triad + ' | ' + probe.reason,
       'Priority': probe.triad === 'engage' ? '4' : '2',
@@ -151,11 +174,13 @@ export default {
     const glyph = glyphMap[probe.reason] || (probe.triad === 'engage' ? '#' : probe.triad === 'ignore' ? '∅' : '*');
 
     // Add triad headers to ALL responses (the membrane's classification is transparent)
+    // depth is frac(n×π) — irrational, pi-sorted, never repeating
     const triadHeaders = {
       'x-membrane-triad': probe.triad,
-      'x-membrane-depth': String(probe.depth),
+      'x-membrane-depth': probe.depth.toFixed(5),
       'x-membrane-reason': probe.reason,
       'x-membrane-glyph': glyph,
+      'x-membrane-n': String(probe.n),
     };
 
     // core domains — MCP is the Klein fold for agents; everything else is assets
