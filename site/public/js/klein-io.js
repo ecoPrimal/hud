@@ -14,7 +14,8 @@
     '/membrane.json',
     '/data/ouroboros-metabolism.json',
     '/data/tree-topology.json',
-    '/data/ribocipher.json'
+    '/data/ribocipher.json',
+    '/data/water-slide.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
