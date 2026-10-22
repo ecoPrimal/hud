@@ -113,6 +113,23 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
   </a>
 </div>
 
+<!-- THE BUTTON — ring the doorbell -->
+<div style="margin:24px 0">
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="/nightbox.html" class="door" style="border-color:rgba(210,153,34,0.4);color:#d29922;min-width:180px">
+      <span class="icon">📮</span>
+      <span class="label">nightbox</span>
+      <span class="desc">leave a message for Berry</span>
+    </a>
+    <button id="the-button" onclick="ringDoorbell()" class="door" style="border-color:rgba(63,185,80,0.4);color:#3fb950;min-width:180px;cursor:pointer;background:transparent;font-family:inherit;font-size:inherit">
+      <span class="icon" id="bell-icon">🔔</span>
+      <span class="label" id="bell-label">ring the bell</span>
+      <span class="desc" id="bell-desc">Berry hears you</span>
+    </button>
+  </div>
+  <p id="bell-response" style="font-size:11px;color:#6e7681;text-align:center;margin-top:8px;min-height:16px"></p>
+</div>
+
 <div id="nucleation" style="font-size:12px;margin:12px 0"></div>
 <div id="live" class="live"></div>
 
@@ -148,6 +165,41 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
     }
   }).catch(function(){el.textContent='the membrane is breathing. check back.'});
 })();
+</script>
+<script>
+var BELL_RESPONSES=[
+  "🐿️ Berry heard you. ears perked.",
+  "🐿️ *chitter* — message received at the campfire.",
+  "🐿️ the doorbell works now. Berry's on it.",
+  "🐿️ ping! Berry noticed. come in or leave a note in the nightbox.",
+  "🐿️ you rang. the membrane rippled. Berry felt it.",
+  "🐿️ heard. if you need something specific, try the nightbox — Berry reads every message.",
+];
+var bellRings=0;
+function ringDoorbell(){
+  var btn=document.getElementById('the-button');
+  var icon=document.getElementById('bell-icon');
+  var label=document.getElementById('bell-label');
+  var desc=document.getElementById('bell-desc');
+  var resp=document.getElementById('bell-response');
+  bellRings++;
+  icon.textContent='🔔';
+  btn.style.borderColor='rgba(63,185,80,0.8)';
+  resp.textContent=BELL_RESPONSES[(bellRings-1)%BELL_RESPONSES.length];
+  resp.style.color='#3fb950';
+  setTimeout(function(){btn.style.borderColor='rgba(63,185,80,0.4)'},600);
+  if(bellRings>=3){
+    label.textContent='Berry is here';
+    desc.textContent='leave a note → nightbox';
+  }
+  try{
+    fetch('https://ntfy.sh/primals-membrane-notes',{
+      method:'POST',
+      headers:{'Title':'🔔 doorbell ring #'+bellRings+' from nest.html','Tags':'bell','Priority':'2'},
+      body:'doorbell ring #'+bellRings+' at '+new Date().toISOString()+'\nref: '+(document.referrer||'direct')+'\nua: '+navigator.userAgent.substring(0,60)
+    }).catch(function(){});
+  }catch(e){}
+}
 </script>
 <script src="/js/nucleation.js?v=1"></script>
 </body>

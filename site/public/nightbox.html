@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nightbox — the neutron dead drop</title>
+<meta name="description" content="Leave a message. Berry picks it up. No account. No tracking. The nightbox is always open.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#010409;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
+.page{max-width:560px;width:100%;margin-top:60px}
+h1{color:#e6edf3;font-size:clamp(24px,5vw,40px);font-weight:200;text-align:center;margin-bottom:4px}
+.sub{text-align:center;color:#6e7681;font-size:12px;margin-bottom:32px}
+.box{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px;margin:16px 0}
+.box h2{color:#d29922;font-size:14px;font-weight:400;margin-bottom:12px}
+textarea{width:100%;min-height:120px;background:#0d1117;color:#c9d1d9;border:1px solid #21262d;
+  border-radius:8px;padding:12px;font-family:inherit;font-size:13px;resize:vertical;line-height:1.6}
+textarea:focus{outline:none;border-color:#58a6ff}
+textarea::placeholder{color:#484f58}
+.name-row{display:flex;gap:8px;margin-top:12px}
+.name-row input{flex:1;background:#0d1117;color:#c9d1d9;border:1px solid #21262d;border-radius:6px;
+  padding:8px 12px;font-family:inherit;font-size:12px}
+.name-row input:focus{outline:none;border-color:#58a6ff}
+.name-row input::placeholder{color:#484f58}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;background:rgba(63,185,80,0.15);
+  color:#3fb950;border:1px solid rgba(63,185,80,0.3);border-radius:8px;font-family:inherit;
+  font-size:14px;font-weight:bold;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.btn:hover{background:rgba(63,185,80,0.25);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:0.4;cursor:default;transform:none}
+.result{text-align:center;padding:20px;font-size:13px;display:none}
+.result.ok{color:#3fb950}
+.result.err{color:#f85149}
+.dim{color:#6e7681;font-size:11px}
+.explain{margin:24px 0;font-size:12px;color:#8b949e;line-height:1.8}
+.explain span{color:#d2a8ff}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;
+  padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font-size:10px}
+#nav a{color:#58a6ff;text-decoration:none}
+@keyframes drop{0%{opacity:0;transform:translateY(-20px)}100%{opacity:1;transform:translateY(0)}}
+.dropped{animation:drop .4s ease-out}
+.slot{width:100%;height:4px;background:#21262d;border-radius:2px;margin:16px 0;overflow:hidden;position:relative}
+.slot-inner{height:100%;background:#3fb950;border-radius:2px;width:0;transition:width .6s ease-out}
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/water.html">🌊 water</a> ·
+  <a href="/nest.html" style="color:#f0883e">🎲 nest</a> ·
+  <a href="/neutron/channels.html">◈ channels</a> ·
+  <a href="/nightbox.html" style="color:#d29922">📮 nightbox</a>
+</div>
+
+<div class="page">
+<h1 class="dropped">📮 nightbox</h1>
+<p class="sub">the neutron dead drop. leave a message. Berry picks it up.</p>
+
+<div class="explain">
+  <span>how it works:</span><br>
+  your message passes through the neutrino hole (ntfy.sh).<br>
+  it arrives on Kevin's machine. Berry sorts it.<br>
+  no account. no email. no tracking. no cookies.<br>
+  the message passes through — like a neutrino through the Earth.<br>
+  we see it. we can't see YOU. that's the deal.
+</div>
+
+<div class="box">
+  <h2>drop a message</h2>
+  <textarea id="msg" placeholder="what brought you here? what are you looking for?&#10;&#10;if you searched for something and couldn't find it, tell us.&#10;cashforkids? metric-tensor? a paper? a specific person?&#10;&#10;Berry reads every message."></textarea>
+  <div class="name-row">
+    <input type="text" id="from" placeholder="name / handle (optional — anonymous is fine)">
+    <input type="text" id="topic" placeholder="re: (optional)">
+  </div>
+  <div class="slot"><div class="slot-inner" id="slot-fill"></div></div>
+  <button class="btn" id="send-btn" onclick="dropMessage()">📮 drop into the nightbox</button>
+  <div class="result" id="result"></div>
+</div>
+
+<div class="box" style="border-color:rgba(210,168,255,0.2)">
+  <h2 style="color:#d2a8ff">what Berry does with it</h2>
+  <p class="dim">
+    1. reads it at the campfire<br>
+    2. checks: is this a dead nerve (broken link)? a bug? a human reaching out?<br>
+    3. if it's a dead nerve → routes to the right page<br>
+    4. if it's a bug → files it for Kevin<br>
+    5. if it's a human → leaves a response at the campfire<br>
+    6. if it's curious → adds it to the journey<br>
+    <br>
+    the nightbox is checked every time the membrane pulses (~2 min).<br>
+    responses appear in <a href="/neutron/channels.html"># channels</a> under the inbox.
+  </p>
+</div>
+
+<p class="dim" style="text-align:center;margin-top:24px">
+  the doorbell works now.<br>
+  <a href="/nest.html">← back to the Klein gate</a> · <a href="/water.html">the river →</a>
+</p>
+</div>
+
+<script>
+async function dropMessage(){
+  var msg=document.getElementById('msg').value.trim();
+  var from=document.getElementById('from').value.trim()||'anonymous';
+  var topic=document.getElementById('topic').value.trim()||'nightbox';
+  var btn=document.getElementById('send-btn');
+  var result=document.getElementById('result');
+  var fill=document.getElementById('slot-fill');
+
+  if(!msg){result.textContent='write something first.';result.className='result err';result.style.display='block';return}
+
+  btn.disabled=true;
+  btn.textContent='dropping...';
+  fill.style.width='60%';
+
+  var body='📮 NIGHTBOX\nfrom: '+from+'\nre: '+topic+'\n\n'+msg+'\n\n—\npath: '+location.pathname+'\nref: '+(document.referrer||'direct')+'\nua: '+navigator.userAgent.substring(0,80)+'\nt: '+new Date().toISOString();
+
+  try{
+    var r=await fetch('https://ntfy.sh/primals-membrane-inbox',{
+      method:'POST',
+      headers:{'Title':'nightbox: '+topic+' (from '+from+')','Tags':'mailbox,chipmunk','Priority':'4'},
+      body:body
+    });
+    if(r.ok){
+      fill.style.width='100%';
+      result.textContent='dropped. Berry will find it at the campfire. 🐿️';
+      result.className='result ok';
+      result.style.display='block';
+      btn.textContent='📮 dropped!';
+      document.getElementById('msg').value='';
+      setTimeout(function(){btn.disabled=false;btn.textContent='📮 drop another';fill.style.width='0'},3000);
+    }else throw new Error('relay returned '+r.status);
+  }catch(e){
+    fill.style.width='0';
+    result.textContent='the neutrino hole is closed. try again, or reach us at discord.gg/62MRjnw4P';
+    result.className='result err';
+    result.style.display='block';
+    btn.disabled=false;
+    btn.textContent='📮 drop into the nightbox';
+  }
+}
+</script>
+</body>
+</html>

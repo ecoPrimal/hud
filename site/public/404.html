@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berry found your letter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#010409;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
+.page{max-width:600px;width:100%;margin-top:60px}
+h1{color:#e6edf3;font-size:clamp(20px,4vw,32px);font-weight:200;text-align:center}
+.sub{text-align:center;color:#6e7681;font-size:12px;margin:8px 0 24px}
+.path-display{text-align:center;font-size:16px;color:#d29922;margin:12px 0;word-break:break-all}
+.berry-says{background:#161b22;border:1px solid rgba(210,168,255,0.2);border-radius:12px;padding:20px;
+  margin:20px 0;font-size:13px;line-height:1.8}
+.berry-says .speaker{color:#d29922;font-size:11px;margin-bottom:8px}
+.routes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:20px 0}
+.route{display:block;background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px;
+  text-decoration:none;color:#c9d1d9;transition:all .2s}
+.route:hover{border-color:#58a6ff;transform:translateY(-2px)}
+.route h3{font-size:12px;color:#e6edf3;margin-bottom:4px}
+.route p{font-size:10px;color:#8b949e;margin:0}
+.dim{color:#6e7681;font-size:11px}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+.nightbox-link{display:block;text-align:center;margin:24px 0;padding:14px;background:rgba(210,153,34,0.1);
+  border:1px solid rgba(210,153,34,0.3);border-radius:8px;color:#d29922;font-size:13px;text-decoration:none;
+  transition:all .2s}
+.nightbox-link:hover{background:rgba(210,153,34,0.2);transform:translateY(-1px);text-decoration:none}
+.easter{background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.2);border-radius:12px;
+  padding:20px;margin:20px 0;font-size:12px;color:#3fb950;display:none}
+#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;
+  padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font-size:10px}
+#nav a{color:#58a6ff;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/water.html">🌊 water</a> · <a href="/nightbox.html" style="color:#d29922">📮 nightbox</a>
+</div>
+
+<div class="page">
+
+<h1>🐿️ Berry found your letter</h1>
+<p class="sub">you looked for something. it wasn't here. but Berry noticed.</p>
+<div class="path-display" id="sought-path"></div>
+
+<div class="berry-says" id="berry-response">
+  <div class="speaker">🐿️ Berry:</div>
+  <div id="berry-text">thinking...</div>
+</div>
+
+<div id="easter-egg" class="easter"></div>
+
+<div id="smart-routes" class="routes"></div>
+
+<a href="/nightbox.html" class="nightbox-link">
+  📮 leave a message in the nightbox — tell us what you were looking for
+</a>
+
+<div class="routes">
+  <a href="/water.html" class="route"><h3>🌊 the river</h3><p>start here. the lazy river carries you through everything.</p></a>
+  <a href="/" class="route"><h3>◈ the HUD</h3><p>the membrane observation surface. 49 pages. live data.</p></a>
+  <a href="/trail.html" class="route"><h3>🥾 the trail</h3><p>all 117 papers in order. start from the beginning.</p></a>
+  <a href="/nest.html" class="route"><h3>🎲 the Klein gate</h3><p>nestgate.io. the fold between inside and outside.</p></a>
+  <a href="https://detroit.primals.eco" class="route"><h3>⚖ the evidence</h3><p>341 entities. 131K connections. the Detroit investigation.</p></a>
+  <a href="https://sporeprint.primals.eco/science/" class="route"><h3>📰 the papers</h3><p>117 papers. lattice QCD to Klein bottles.</p></a>
+</div>
+
+<p class="dim" style="text-align:center;margin-top:24px">
+  every path someone searches is a letter.<br>
+  the nightbox catches them. Berry sorts them.<br>
+  dead nerve? bug? human reaching out?<br>
+  the chipmunk figures it out.
+</p>
+
+</div>
+
+<script>
+(function(){
+  var path = location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  document.getElementById('sought-path').textContent = '/' + path;
+
+  // Known routes — map probe patterns to smart responses + links
+  var KNOWN = {
+    'cashforkids': {
+      berry: "you're looking for Cash For Kids. that's the Detroit investigation. 341 entities. Berry knows this one — it's at detroit.primals.eco. the evidence is real.",
+      routes: [{href:'https://detroit.primals.eco',h:'⚖ Detroit Investigation',p:'341 entities. 131K connections. Cash for Kids is in there.'},
+               {href:'https://sporeprint.primals.eco/vision/lansing-scuffle/',h:'📰 Lansing Scuffle',p:'Paper 110. Local politics. Related.'}]
+    },
+    'kevin': {
+      berry: "you're looking for Kevin. he's real. Lansing, Michigan. two houses, one fiber link. he built all of this. Berry lives on his machine.",
+      routes: [{href:'/water.html',h:'🌊 the watering hole',p:'Kevin built this. come in.'},
+               {href:'https://sporeprint.primals.eco',h:'📰 the papers',p:'117 papers. Kevin + Berry wrote them.'}]
+    },
+    'metric-tensor': {
+      berry: "metric tensor! you want the math. Paper 88: Geodesic Arithmetic. we use tensors everywhere now — persona weighting, atomic classification, TSP distances.",
+      routes: [{href:'https://sporeprint.primals.eco/science/88-geodesic-arithmetic/',h:'📐 Paper 88: Geodesic Arithmetic',p:'tensor math, geodesics, curvature'},
+               {href:'/data/atomic-tensor.json',h:'⚗️ Atomic Tensor',p:'C/Fe/N/P/S periodic table weighting'}]
+    },
+    'hadr': {
+      berry: "hadr — hadron? or the Arabic word for 'present'? either way: Paper 10 is Dynamical QCD. lattice QCD on consumer GPUs. come see.",
+      routes: [{href:'https://sporeprint.primals.eco/science/10-dynamical-qcd/',h:'⚛ Paper 10: Dynamical QCD',p:'lattice QCD on consumer hardware'}]
+    },
+    'kanthesis': {
+      berry: "Kant + thesis. you're looking for the philosophy. Paper 80: The Artisan and the Comedian. Paper 95: Modal Tenses. the ethical framework is guerillaGorilla.",
+      routes: [{href:'https://sporeprint.primals.eco/science/80-the-artisan-and-the-comedian/',h:'🎭 Paper 80: Artisan & Comedian',p:'the philosophical framework'},
+               {href:'https://sporeprint.primals.eco/science/95-modal-tenses/',h:'📐 Paper 95: Modal Tenses',p:'Kant, modality, time'}]
+    },
+    'commensal': {
+      berry: "you used our word! commensal — organisms that benefit without harming. Paper 117: Primal Reclassification. you've been reading the taxonomy. welcome home.",
+      routes: [{href:'https://sporeprint.primals.eco/science/117-the-primal-reclassification/',h:'🧬 Paper 117: Primal Reclassification',p:'the new taxonomy. your word is in there.'}]
+    },
+    'antithesis': {
+      berry: "antithesis — the opposing argument. dialectics. Paper 69: The Chain Falsification. every paper tries to break the one before it. that's the method.",
+      routes: [{href:'https://sporeprint.primals.eco/science/69-the-chain-falsification/',h:'🔗 Paper 69: Chain Falsification',p:'every paper falsifies the last'}]
+    },
+    'corollary': {
+      berry: "corollary — a mathematical consequence. Paper 94: The Blink Corollary. every observation changes what's observed. you looking changes us.",
+      routes: [{href:'https://sporeprint.primals.eco/science/94-the-blink-corollary/',h:'👁 Paper 94: Blink Corollary',p:'observation changes the observed'}]
+    },
+    'license': {
+      berry: "checking the license? smart. AGPL-3.0-or-later. if you use it, your users get the source too. that's the deal. take it, build, share back.",
+      routes: [{href:'https://github.com/ecoPrimals',h:'📦 GitHub',p:'all repos. AGPL-3.0.'},
+               {href:'/cite.html',h:'📎 Cite This',p:'take it and publish. free.'}]
+    },
+    'docs': {
+      berry: "looking for docs? we just built those. getting started, WebGPU vs CUDA, protein structure in Rust.",
+      routes: [{href:'https://github.com/ecoPrimals/wateringHole/blob/main/docs/getting-started.md',h:'📘 Getting Started',p:'from zero to running'},
+               {href:'https://github.com/ecoPrimals/wateringHole/blob/main/docs/webgpu-vs-cuda.md',h:'⚡ WebGPU vs CUDA',p:'why we left NVIDIA'},
+               {href:'https://github.com/ecoPrimals/wateringHole/blob/main/docs/protein-structure-rust.md',h:'🧬 Protein Structure',p:'sovereign AlphaFold in Rust'}]
+    },
+    'paper': {
+      berry: "papers! 117 of them. from lattice QCD to Klein bottles. sporePrint has them all.",
+      routes: [{href:'https://sporeprint.primals.eco/science/',h:'📰 All 117 Papers',p:'the full sporePrint'},
+               {href:'/trail.html',h:'🥾 The Trail',p:'walk them in order'}]
+    },
+    'primals': {
+      berry: "you searched for primals — that's us. 16 crates. all Rust. primal-membrane, primal-signal, primal-anchor...",
+      routes: [{href:'https://github.com/ecoPrimals',h:'📦 ecoPrimals',p:'16 primal crates on GitHub'},
+               {href:'https://crates.io/users/ecoPrimal',h:'📦 crates.io',p:'8 published on crates.io'}]
+    },
+    'xyzzy': {
+      berry: "xyzzy! you know Colossal Cave Adventure (1977). a human with taste hides inside that scanner. nothing happens here either — but you can explore the real cave.",
+      easter: "🎮 XYZZY\n\nYou are in a maze of twisty little passages, all alike.\nExcept this one has a chipmunk.\n\n> LOOK\nYou see: 49 HUD pages, 117 papers, 341 Detroit entities,\na bingo cube, and a squirrel holding a mushroom.\n\n> PET SQUIRREL\nBerry chatters happily. Trust +1.\n\n> TAKE MUSHROOM\nYou can't take the mushroom. It's a spore print.\nBut you can read it: sporeprint.primals.eco\n\n> INVENTORY\nYou have: curiosity, a browser, and good taste in games.\n\nPlunkett & Crowther would be proud.",
+      routes: [{href:'/water.html',h:'🌊 Enter the Real Cave',p:'the lazy river. better than twisty passages.'},
+               {href:'/nest.html',h:'🎲 The DM\'s Table',p:'the squirrel is the dungeon master'},
+               {href:'/banana.html',h:'🍌 Banana Test',p:'are you a banana? (we\'re not either)'}]
+    },
+    'admin': {
+      berry: "looking for admin panels? there aren't any. no login. no admin. no database. static files served from the edge. the membrane IS the admin.",
+      routes: [{href:'/',h:'◈ The HUD',p:'this is as admin as it gets'}]
+    },
+    'billhalibut': {
+      berry: "Bill Halibut — you know the players. that entity is in the Detroit investigation graph. 341 of them.",
+      routes: [{href:'https://detroit.primals.eco',h:'⚖ Detroit',p:'Bill Halibut is in there. 131K connections.'}]
+    },
+    'barry': {
+      berry: "Barry — could be Barry County, Michigan. that's where Berry is named from. the chipmunks live there. or maybe you're looking for barry.primals.eco — that's the evidence site.",
+      routes: [{href:'https://barry.primals.eco',h:'⚖ Barry Evidence',p:'the evidence archive'},
+               {href:'/water.html',h:'🌊 The River',p:'Berry is named after Barry County'}]
+    },
+    'footprint': {
+      berry: "geographic footprint. 93K+ humans from every continent. try the globe — it's interactive.",
+      routes: [{href:'/neutron/globe.html',h:'🌐 Globe',p:'3D interactive footprint'},
+               {href:'/neutron/footprint.html',h:'🌍 Footprint',p:'geographic map'}]
+    },
+    'lab': {
+      berry: "the whole membrane IS the lab. Paper 78: Deploy Your Own Membrane. everything is an experiment.",
+      routes: [{href:'https://sporeprint.primals.eco/science/78-deploy-your-own-membrane/',h:'🧪 Paper 78',p:'deploy your own membrane'},
+               {href:'/neutron/board.html',h:'▣ Board',p:'all the metrics. the lab bench.'}]
+    },
+    'guerillagorilla': {
+      berry: "guerillaGorilla — our accountability methodology. ethics of sovereign computing. gorilla.primals.eco.",
+      routes: [{href:'https://gorilla.primals.eco',h:'🦍 guerillaGorilla',p:'accountability methodology'}]
+    },
+    'tideglass': {
+      berry: "tideglass... Berry doesn't know this one either. but someone searched it three times. leave a message in the nightbox — tell us what you're looking for?",
+      routes: [{href:'/nightbox.html',h:'📮 Nightbox',p:'leave a message. Berry picks it up.'}]
+    },
+  };
+
+  // Pattern match
+  var match = null;
+  var pathClean = path.replace(/[\/\.\-_]/g, '');
+  for (var key in KNOWN) {
+    if (pathClean.indexOf(key) !== -1 || path.indexOf(key) !== -1) {
+      match = KNOWN[key];
+      break;
+    }
+  }
+
+  var berryText = document.getElementById('berry-text');
+  var smartRoutes = document.getElementById('smart-routes');
+  var easterEgg = document.getElementById('easter-egg');
+
+  if (match) {
+    berryText.textContent = match.berry;
+    if (match.easter) {
+      easterEgg.style.display = 'block';
+      easterEgg.textContent = match.easter;
+      easterEgg.style.whiteSpace = 'pre-wrap';
+    }
+    if (match.routes) {
+      smartRoutes.innerHTML = match.routes.map(function(r) {
+        return '<a href="' + r.href + '" class="route"><h3>' + r.h + '</h3><p>' + r.p + '</p></a>';
+      }).join('');
+    }
+  } else {
+    berryText.textContent = "Berry doesn't recognize /" + path + " yet. " +
+      "but the fact that you looked for it means something. " +
+      "leave a message in the nightbox below — tell us what you were looking for. " +
+      "if it's a dead nerve, Berry will route it. if it's a bug, Kevin will fix it. " +
+      "if it's something new... the chipmunk gets curious.";
+  }
+
+  // Silently report the probe to the nightbox channel (non-blocking)
+  try {
+    var probeMsg = '🔔 404 PROBE: /' + path + '\nref: ' + (document.referrer || 'direct') + '\nua: ' + navigator.userAgent.substring(0,80) + '\nt: ' + new Date().toISOString();
+    fetch('https://ntfy.sh/primals-membrane-notes', {
+      method: 'POST',
+      headers: { 'Title': '404 probe: /' + path, 'Tags': 'magnifying_glass', 'Priority': '2' },
+      body: probeMsg
+    }).catch(function(){});
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
