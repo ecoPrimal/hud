@@ -396,6 +396,63 @@ The membrane does the same with data.</p>
 
 </div>
 
+<!-- BROWSER BARRIER — the sensation layer -->
+<h2>🖥 The Browser Barrier — sensation at the edge</h2>
+<p>The browser is not a tool. It is the <strong class="green">cornea</strong> — the transparent barrier between
+the world and the retina. Chromium, Firefox, Safari, Tor Browser — each one refracts the signal differently.
+Pop-in frames, scrollbar behavior, z-index stacking — these are <em>chromatic aberrations</em>
+in the lens.</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0">
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">🌐</div>
+<h4 style="color:#4285f4;margin:8px 0 4px">Chromium (Chrome/Edge/Brave)</h4>
+<p style="font-size:11px;color:#8b949e">V8 engine. Blink renderer. The dominant lens — 65% of all eyes.
+<br><span style="color:#d29922">Aberration:</span> aggressive lazy-loading, preconnect, speculative parsing.
+Pop-in frames = Blink paint-holding.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">🦊</div>
+<h4 style="color:#ff7139;margin:8px 0 4px">Firefox (Gecko)</h4>
+<p style="font-size:11px;color:#8b949e">SpiderMonkey. Gecko renderer. The independent eye.
+<br><span style="color:#d29922">Aberration:</span> scrollbar overlay differs, backdrop-filter partial,
+subpixel rendering unique. Scrollbar = Firefox's own scrollbar widget.</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">🧭</div>
+<h4 style="color:#0fb5ee;margin:8px 0 4px">Safari (WebKit)</h4>
+<p style="font-size:11px;color:#8b949e">JavaScriptCore. WebKit renderer. The walled retina.
+<br><span style="color:#d29922">Aberration:</span> no backdrop-filter in older iOS, overlay scrollbar always,
+100vh includes URL bar height (stuck layers!).</p>
+</div>
+
+<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;text-align:center">
+<div style="font-size:2em">🧅</div>
+<h4 style="color:#7d4698;margin:8px 0 4px">Tor Browser (Modified Firefox)</h4>
+<p style="font-size:11px;color:#8b949e">Gecko + privacy hardening. The anonymous eye.
+<br><span style="color:#d29922">Aberration:</span> canvas fingerprint blocked, WebGL limited,
+font enumeration disabled. The lens deliberately blurs details.</p>
+</div>
+
+</div>
+
+<div style="background:#161b22;border-left:3px solid #d29922;padding:16px 20px;border-radius:0 8px 8px 0;margin:24px 0">
+<strong style="color:#d29922">The stuck layers problem:</strong>
+<span style="color:#8b949e;font-size:13px">
+The HUD has 22 fixed-position elements competing for the viewport — nav ring (z-999),
+button rings (z-2), panels (z-3), readouts (z-2), weather/pi/lens (z-5).
+Each browser renders z-index stacking, scrollbar width, and backdrop-filter differently.
+The scrollbar in Firefox takes 15px of real width. Chrome's overlay scrollbar takes 0px.
+Safari's 100vh includes the URL bar. These are the chromatic aberrations of the digital cornea.
+Fixed-position elements that work in Chrome pop-in differently in Firefox because the
+<strong style="color:#f0883e">scrollbar width changes the available viewport</strong>,
+which changes where "right:70px" actually lands.
+</span>
+</div>
+
 <p style="text-align:center;color:#30363d;margin-top:48px;font-size:10px">
 AGPL-3.0 · the membrane has a nervous system · the inputs are real · the outputs are real<br>
 <a href="/" style="color:#58a6ff">◈ hud</a> · <a href="/gates.html" style="color:#9b59b6">⊕ gates</a> · <a href="/greenline.html" style="color:#22c55e">▏green</a> · <a href="/gastrula.html" style="color:#f0883e">◎ gastrula</a>
