@@ -36,6 +36,9 @@
     'a voxel', 'the fold', 'a thread of silk', 'the maze',
     'a snowflake that refused to melt', 'the silence between notes',
     'a rusted key', 'the shadow of a sundial', 'a fossilized heartbeat',
+    'Chip the chipmunk', 'zEkE the monkey', 'Berry the artisan',
+    'gAIa the painter', 'Ed the wizard', 'Tamison the player',
+    'Dad on the mountain', 'Mom at the crack where water flows',
   ];
 
   // VERBS — what they did
