@@ -373,6 +373,9 @@ export default {
       'nerve':      '/data/peripheral-nervous-system.json', // every channel is a pore
       'dogma':      '/data/peripheral-nervous-system.json', // central dogma cascade
       'garden':     '/data/peripheral-nervous-system.json', // platform gardens = botanical gardens
+      'steamos':    '/data/peripheral-nervous-system.json', // the outer long target
+      'proton':     '/data/peripheral-nervous-system.json', // PE→ELF ribocipher at OS layer
+      'gamepad':    '/data/peripheral-nervous-system.json', // tactile pore, standard nerve ending
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
