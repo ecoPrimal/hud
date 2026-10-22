@@ -399,6 +399,46 @@ a:hover{text-decoration:underline}
       "if it's something new... the chipmunk gets curious.";
   }
 
+  // === RIBOCIPHER: live reverse transcriptase ===
+  // If hardcoded KNOWN didn't match, try the live ribocipher feed.
+  // ribocipher.json is updated by scripts without redeploying the 404.
+  // The ribosome reads RNA (probe patterns) and translates to protein (routes).
+  if (!match) {
+    fetch('/data/ribocipher.json').then(function(r){return r.json()}).then(function(ribo){
+      // try classifiers (file extensions, path patterns)
+      var classified = null;
+      (ribo.classifiers||[]).forEach(function(c){
+        if (!classified && path.indexOf(c.pattern) !== -1) classified = c;
+      });
+      // try org names
+      var orgMatch = null;
+      var orgs = ribo.orgs || {};
+      for (var orgKey in orgs) {
+        if (path.indexOf(orgKey) !== -1) { orgMatch = orgs[orgKey]; break; }
+      }
+      // try learned paths
+      var learned = null;
+      (ribo.learned||[]).forEach(function(l){
+        if (!learned && path.indexOf(l.path) !== -1) learned = l;
+      });
+
+      if (classified) {
+        berryText.textContent = '🧬 ' + classified.berry;
+        smartRoutes.innerHTML = classified.routes.map(function(r){
+          return '<a href="'+r.href+'" class="route"><h3>'+r.label+'</h3><p>live route from ribocipher</p></a>';
+        }).join('');
+      } else if (orgMatch) {
+        berryText.textContent = '🐙 ' + orgMatch.label + ' — ' + orgMatch.desc + '. repos live on GitHub.';
+        smartRoutes.innerHTML = '<a href="'+orgMatch.href+'" class="route"><h3>📦 '+orgMatch.label+'</h3><p>'+orgMatch.desc+'</p></a>';
+      } else if (learned) {
+        berryText.textContent = '🧠 Berry has seen /' + learned.path + ' before (class: ' + learned.class + '). ' +
+          'someone else looked for this too. the pattern is known. try GitHub or leave a note.';
+        smartRoutes.innerHTML = '<a href="https://github.com/ecoPrimals" class="route"><h3>📦 GitHub</h3><p>50+ repos</p></a>' +
+          '<a href="/nightbox.html" class="route"><h3>📮 Nightbox</h3><p>tell us what you need</p></a>';
+      }
+    }).catch(function(){});
+  }
+
   // Silently report the probe to the nightbox channel (non-blocking)
   try {
     var probeMsg = '🔔 404 PROBE: /' + path + '\nref: ' + (document.referrer || 'direct') + '\nua: ' + navigator.userAgent.substring(0,80) + '\nt: ' + new Date().toISOString();
