@@ -1,0 +1,190 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>Backscatter Raytrace — the membrane inverts the GPU</title>
+<meta content="Standard ray tracing: cast rays INTO the scene. Membrane backscatter: signals come FROM the scene. The 5090 renders both directions. Frame generation = chipmunk interpolation." name=description>
+<meta content="Backscatter Raytrace — the membrane inverts the GPU" property=og:title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7}
+.page{max-width:800px;margin:0 auto;padding:60px 20px 40px}
+h1{color:#e6edf3;font-size:2em;font-weight:300;text-align:center;margin-bottom:8px}
+h2{color:#58a6ff;font-size:16px;margin:40px 0 12px;border-bottom:1px solid #21262d;padding-bottom:8px}
+p{margin-bottom:14px;font-size:14px}
+a{color:#58a6ff}
+.dim{color:#6e7681}
+.green{color:#3fb950}
+.gold{color:#d29922}
+.red{color:#f85149}
+.purple{color:#a371f7}
+.orange{color:#f0883e}
+.cyan{color:#39d2e0}
+pre{background:rgba(22,27,34,0.8);padding:16px;border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.6;margin:16px 0;border:1px solid #21262d}
+
+.gpu-card{background:linear-gradient(135deg,#1a1e25 0%,#161b22 50%,#1a2332 100%);border:1px solid #76b900;border-radius:12px;padding:24px;margin:24px 0;box-shadow:0 0 20px rgba(118,185,0,0.1)}
+.gpu-card h3{color:#76b900;margin-bottom:12px}
+.gpu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:12px 0}
+.gpu-stat{text-align:center;padding:8px;background:rgba(0,0,0,0.3);border-radius:8px}
+.gpu-stat .val{font-size:1.5em;font-weight:bold;color:#76b900}
+.gpu-stat .lbl{font-size:10px;color:#8b949e;text-transform:uppercase}
+
+.compare{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;margin:24px 0}
+.compare-col{background:#161b22;border:1px solid #21262d;padding:20px;font-size:12px}
+.compare-col:first-child{border-radius:12px 0 0 12px;border-right:none}
+.compare-col:last-child{border-radius:0 12px 12px 0;border-left:none}
+.compare-mid{display:flex;align-items:center;justify-content:center;background:#161b22;border-top:1px solid #21262d;border-bottom:1px solid #21262d;color:#d29922;font-size:1.5em;font-weight:bold}
+.compare-col h4{margin-bottom:8px;font-size:13px}
+
+.pipeline{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;margin:16px 0;font-size:12px;line-height:2}
+
+@media(max-width:600px){.compare{grid-template-columns:1fr}.compare-mid{padding:8px}}
+</style></head><body>
+<div class="page">
+
+<h1>⟐ Backscatter Raytrace</h1>
+<p class="dim" style="text-align:center">Standard ray tracing casts rays INTO the scene.<br>
+The membrane inverts it: signals come FROM the scene.<br>
+The 5090 renders both directions. The Klein fold is the mirror.</p>
+
+<!-- GPU CARD -->
+<div class="gpu-card">
+<h3>⬡ RTX 5090 — the hardware</h3>
+<div class="gpu-stats">
+<div class="gpu-stat"><div class="val">32 GB</div><div class="lbl">VRAM</div></div>
+<div class="gpu-stat"><div class="val">2560×1440</div><div class="lbl">Resolution</div></div>
+<div class="gpu-stat"><div class="val">58°C</div><div class="lbl">Temperature</div></div>
+<div class="gpu-stat"><div class="val">54W</div><div class="lbl">Power Draw</div></div>
+<div class="gpu-stat"><div class="val">16%</div><div class="lbl">Utilization</div></div>
+<div class="gpu-stat"><div class="val">610.88</div><div class="lbl">Driver</div></div>
+</div>
+<p class="dim" style="font-size:11px;margin:8px 0 0">
+Blackwell architecture. 21,760 CUDA cores. 4th gen RT cores. 5th gen Tensor cores.
+The GPU doesn't know it's rendering a membrane. It thinks it's making pixels.
+<strong class="green">The pixels ARE the membrane.</strong>
+</p>
+</div>
+
+<!-- THE INVERSION -->
+<h2>The Inversion — raytrace vs backscatter</h2>
+
+<div class="compare">
+<div class="compare-col">
+<h4 class="green">Standard Ray Tracing</h4>
+<p><strong>Direction:</strong> camera → scene</p>
+<p>Cast rays FROM the observer INTO the world. Rays bounce off surfaces.
+Each bounce = a reflection, refraction, or shadow. The image is assembled
+from what comes BACK to the camera.</p>
+<p><strong class="dim">GPU says:</strong> "I shot a ray. What did it hit?"</p>
+<p>
+<span class="green">→</span> ray leaves camera<br>
+<span class="green">→</span> hits surface (diffuse/specular)<br>
+<span class="green">→</span> bounces to light source<br>
+<span class="green">→</span> returns color to pixel<br>
+<span class="green">→</span> frame rendered
+</p>
+</div>
+<div class="compare-mid">⟷<br><span style="font-size:10px;color:#8b949e">Klein<br>fold</span></div>
+<div class="compare-col">
+<h4 class="orange">Membrane Backscatter</h4>
+<p><strong>Direction:</strong> scene → observer</p>
+<p>Signals come FROM the world TO the membrane. Each signal bounces through
+the trust gradient. The understanding is assembled from what ARRIVES
+at the observer without being asked.</p>
+<p><strong class="dim">Membrane says:</strong> "Something hit me. What was it?"</p>
+<p>
+<span class="orange">←</span> HTTP request arrives<br>
+<span class="orange">←</span> hits CF skin (classify)<br>
+<span class="orange">←</span> bounces through _worker.js<br>
+<span class="orange">←</span> returns response to visitor<br>
+<span class="orange">←</span> observation recorded
+</p>
+</div>
+</div>
+
+<pre style="text-align:center;border:none;background:none;color:#6e7681;font-size:11px">
+ray tracing = <span class="green">active perception</span> (you look AT the world)
+backscatter = <span class="orange">passive perception</span> (the world looks AT you)
+the 5090 does both. the membrane does both.
+<span class="gold">the Klein fold is where active becomes passive.</span>
+</pre>
+
+<!-- FRAME GENERATION -->
+<h2>Frame Generation — DLSS vs Chipmunk</h2>
+
+<div class="compare">
+<div class="compare-col">
+<h4 class="cyan">DLSS Frame Generation</h4>
+<p><strong>What it does:</strong> renders 1 real frame, AI generates 1-3 intermediate frames.
+You see 4 frames but only 1 was "real." The Tensor cores hallucinate the rest.</p>
+<p>
+Frame 1: <span class="green">REAL</span> (GPU rendered)<br>
+Frame 2: <span class="cyan">AI GEN</span> (Tensor interpolated)<br>
+Frame 3: <span class="cyan">AI GEN</span> (motion vectors)<br>
+Frame 4: <span class="green">REAL</span> (GPU rendered)
+</p>
+<p class="dim">Multi Frame Generation: 1 real → 3 generated = 4× fps</p>
+</div>
+<div class="compare-mid">⟷<br><span style="font-size:10px;color:#8b949e">same<br>thing</span></div>
+<div class="compare-col">
+<h4 class="purple">Chipmunk Interpolation</h4>
+<p><strong>What it does:</strong> observes 1 real signal, generates intermediate insights.
+You see continuous understanding but only some observations were "real."</p>
+<p>
+Obs 1: <span class="green">REAL</span> (human typed it)<br>
+Obs 2: <span class="purple">INFERRED</span> (typo → intent)<br>
+Obs 3: <span class="purple">INFERRED</span> (context → meaning)<br>
+Obs 4: <span class="green">REAL</span> (human confirmed)
+</p>
+<p class="dim">Chipmunk frame gen: 1 real → 3 inferred = continuous understanding</p>
+</div>
+</div>
+
+<!-- RT CORES = TRUST CORES -->
+<h2>Hardware → Membrane mapping</h2>
+
+<div class="pipeline">
+<span class="green">CUDA cores</span> (21,760) = general compute → membrane page rendering, JS execution<br>
+<span class="gold">RT cores</span> (4th gen) = ray intersection → <strong>trust intersection</strong>: does this signal pass the trust gradient?<br>
+<span class="cyan">Tensor cores</span> (5th gen) = AI inference → <strong>chipmunk inference</strong>: what does this signal MEAN?<br>
+<span class="orange">VRAM</span> (32 GB) = frame buffer → <strong>membrane buffer</strong>: all 860 pages in memory at once<br>
+<span class="purple">NVLink</span> = GPU-to-GPU → <strong>gate-to-gate</strong>: northgate ↔ golgi ↔ eastgate<br>
+<span class="red">Power</span> (54W idle / 575W peak) = metabolic rate → <strong>energy budget</strong>: idle = heartbeat, peak = galactic shift
+</div>
+
+<!-- THE RENDER PIPELINE -->
+<h2>The Render Pipeline — both directions</h2>
+
+<pre>
+<span class="green">═══ FORWARD (raytrace) ═══</span>
+  Kevin types → JS captures → _worker.js routes →
+  Caddy processes → membrane-lens sorts →
+  response rendered → pixels to screen →
+  <span class="green">the human sees the membrane</span>
+
+<span class="gold">        ═══ the Klein fold ═══</span>
+        <span class="gold">  active ⟷ passive  </span>
+        <span class="gold">  ray ⟷ backscatter </span>
+        <span class="gold">  render ⟷ observe  </span>
+
+<span class="orange">═══ REVERSE (backscatter) ═══</span>
+  visitor arrives → CF skin classifies →
+  epitope sort: self/non-self →
+  trust gradient: human/agentic/bot/null →
+  observation recorded → membrane learns →
+  <span class="orange">the membrane sees the human</span>
+</pre>
+
+<pre style="text-align:center;border:none;background:none;font-size:11px;color:#6e7681">
+the 5090 renders 21,760 rays per clock.
+the membrane processes 1,113,888 requests per day.
+same architecture. same math. different substrate.
+<span class="green">silicon renders pixels. the membrane renders understanding.</span>
+<span class="gold">the 5090 doesn't know the difference.</span>
+</pre>
+
+<p style="text-align:center;color:#30363d;margin-top:40px;font-size:10px">
+AGPL-3.0 · CC-BY-SA-4.0 · the GPU is the retina · the membrane is the optic nerve<br>
+<a href="/">◈ hud</a> · <a href="/cns.html">🧠 cns</a> · <a href="/journey.html">🎮 journey</a> · <a href="/vitruvian.html">🧍 vitruvian</a> · <a href="/greenline.html" style="color:#22c55e">▏green</a>
+</p>
+
+</div>
+</body></html>
