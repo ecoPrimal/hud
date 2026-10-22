@@ -339,7 +339,7 @@ export default {
       'clutch':     '/clutch',        // ENGAGED — surface 3 of 3 in the trefoil
       // hypothesis and thesis handled above with sporeprint proxy
       'gorilla':    '/',              // verification IS the membrane
-      'barry':      '/',              // evidence → HUD
+      'barry':      '/clutch',        // evidence pulled OUT → clutch → settles under tuebor
       'live':       '/',              // petalTongue → HUD (it IS live)
       // git handled above — redirects to GitHub
       'totality':   '/totality',
