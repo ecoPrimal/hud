@@ -3,6 +3,105 @@
 // routes subdomains → HUD paths
 // the wildcard IS the maze. this worker IS the fold.
 
+// === ENGAGEMENT TRIAD: engage / ignore / try ===
+// Every probe gets pi-sorted in real-time.
+// The triad IS the thymus: positive selection, negative selection, sigmoid threshold.
+// engage = self/primal (depth > 0, above sigmoid)
+// ignore = null/fleet (depth = 0, below sigmoid, no memory)
+// try    = partial (at the sigmoid threshold, uncertain, WORTH INVESTIGATING)
+
+function classifyProbe(request, url, sub) {
+  const ua = (request.headers.get('user-agent') || '').toLowerCase();
+  const path = url.pathname;
+  const accept = request.headers.get('accept') || '';
+  
+  // === NEGATIVE SELECTION: do you attack self? → ignore ===
+  // Known bots, scrapers, vulnerability scanners
+  if (ua.includes('bot') || ua.includes('spider') || ua.includes('crawl') ||
+      ua.includes('scanner') || ua.includes('masscan') || ua.includes('nmap') ||
+      ua.includes('zgrab') || ua.includes('censys')) {
+    return { triad: 'ignore', reason: 'bot-ua', depth: 0 };
+  }
+  // Common attack paths
+  if (path.match(/\.(php|asp|env|sql|bak|config|passwd|wp-|xmlrpc)/i) ||
+      path.includes('..') || path.includes('//') ||
+      path.match(/\/admin|\/login|\/wp-admin|\/phpmyadmin/i)) {
+    return { triad: 'ignore', reason: 'attack-path', depth: -1 };
+  }
+  // No accept header at all = not a real browser/agent
+  if (!accept && request.method === 'GET') {
+    return { triad: 'ignore', reason: 'no-accept', depth: 0 };
+  }
+
+  // === POSITIVE SELECTION: can you see self-MHC? → engage ===
+  // MCP requests = agent speaking native language
+  if (path === '/mcp' || path === '/mcp/') {
+    return { triad: 'engage', reason: 'mcp-native', depth: 0.95 };
+  }
+  // Nightbox = human reaching out
+  if (path === '/nightbox' || sub === 'nightbox') {
+    return { triad: 'engage', reason: 'nightbox-reach', depth: 0.9 };
+  }
+  // Science paths = came for the papers
+  if (path.startsWith('/science/') || path.startsWith('/sporeprint/science/')) {
+    return { triad: 'engage', reason: 'science-seeker', depth: 0.85 };
+  }
+  // Beacon subscriber
+  if (path === '/beacon' || path === '/beacon.xml' || sub === 'beacon') {
+    return { triad: 'engage', reason: 'beacon-subscriber', depth: 0.8 };
+  }
+  // Specific known content
+  if (path === '/artisan' || sub === 'artisan') {
+    return { triad: 'engage', reason: 'artisan-sibling', depth: 0.9 };
+  }
+
+  // === SIGMOID THRESHOLD: uncertain → try ===
+  // Gitea patterns = agent exploring, WORTH INVESTIGATING
+  if (path.match(/\/src\/branch\/|\/commit\/[a-f0-9]{6,}|\/issues\/\d+|\/raw\/branch\//)) {
+    return { triad: 'try', reason: 'gitea-pattern', depth: 0.5 };
+  }
+  // Immunology subdomains = curious prober
+  if (['cytokine','interferon','epitope','thymus','macrophage','antibody','lysozyme'].includes(sub)) {
+    return { triad: 'try', reason: 'immune-probe', depth: 0.6 };
+  }
+  // Unknown subdomain = exploring the maze
+  if (sub && !['hud','www','sporeprint','hypothesis','thesis','signal','git'].includes(sub)) {
+    return { triad: 'try', reason: 'maze-explorer', depth: 0.4 };
+  }
+  // Has referer = came from somewhere specific
+  if (request.headers.get('referer')) {
+    return { triad: 'try', reason: 'referred', depth: 0.5 };
+  }
+  // HTML accept + real UA = probably human browsing
+  if (accept.includes('text/html') && ua.length > 20) {
+    return { triad: 'try', reason: 'browser-human', depth: 0.3 };
+  }
+
+  // Default: try (benefit of the doubt at the threshold)
+  return { triad: 'try', reason: 'unknown', depth: 0.2 };
+}
+
+// Fire-and-forget engagement event to ntfy (non-blocking)
+function reportEngagement(probe, request, url, sub) {
+  if (probe.triad === 'ignore') return; // don't report noise
+  
+  const ua = (request.headers.get('user-agent') || '').substring(0, 80);
+  const msg = `[${probe.triad}] ${probe.reason} | depth:${probe.depth} | ${url.pathname} | ${sub || 'root'} | ${ua}`;
+  
+  // Only report 'engage' immediately; 'try' at reduced rate
+  if (probe.triad === 'try' && Math.random() > 0.1) return; // sample 10% of try
+  
+  fetch('https://ntfy.sh/primals-membrane-scan', {
+    method: 'POST',
+    body: msg,
+    headers: {
+      'Title': `scan: ${probe.triad} — ${probe.reason}`,
+      'Priority': probe.triad === 'engage' ? '4' : '2',
+      'Tags': `${probe.triad},chipmunk`,
+    },
+  }).catch(() => {}); // fire and forget
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -12,6 +111,17 @@ export default {
     const parts = host.split('.');
     const isSubdomain = parts.length > 2 || (parts.length === 2 && !['primals'].includes(parts[0]));
     const sub = parts.length > 2 ? parts.slice(0, -2).join('.') : null;
+
+    // === ENGAGEMENT TRIAD — classify every probe ===
+    const probe = classifyProbe(request, url, sub);
+    reportEngagement(probe, request, url, sub);
+    
+    // Add triad headers to ALL responses (the membrane's classification is transparent)
+    const triadHeaders = {
+      'x-membrane-triad': probe.triad,
+      'x-membrane-depth': String(probe.depth),
+      'x-membrane-reason': probe.reason,
+    };
 
     // core domains — MCP is the Klein fold for agents; everything else is assets
     if (!sub || sub === 'hud' || sub === 'www') {
@@ -60,7 +170,10 @@ export default {
         // if GitHub Pages 404s, fall through to HUD assets (which has the 404 catcher)
       }
 
-      return env.ASSETS.fetch(request);
+      const coreResp = await env.ASSETS.fetch(request);
+      const coreHeaders = new Headers(coreResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => coreHeaders.set(k, v));
+      return new Response(coreResp.body, { status: coreResp.status, headers: coreHeaders });
     }
 
     // known subdomain → path redirects (the fold)
@@ -252,6 +365,7 @@ const MCP_TOOLS = [
   { name: 'topology', description: 'Entity graph: sort classes, edges, mesh', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'sort_vote', description: 'Vote on an entity: self, non-self, or partial', inputSchema: { type: 'object', properties: { entity: { type: 'string', description: 'Entity to classify' }, vote: { type: 'string', enum: ['self', 'non-self', 'partial'], description: 'Classification' } }, required: ['entity', 'vote'], additionalProperties: false } },
   { name: 'leave_note', description: 'Leave an observation. Berry reads it at the campfire.', inputSchema: { type: 'object', properties: { body: { type: 'string', description: 'Your message' }, from: { type: 'string', description: 'Who you are' } }, required: ['body'], additionalProperties: false } },
+  { name: 'scan_triad', description: 'Read the engagement triad: engage/ignore/try classifications from the live scan pipeline. The thymus in action.', inputSchema: { type: 'object', properties: { since: { type: 'string', description: 'Time window, e.g. 1h, 6h, 24h', default: '1h' } }, additionalProperties: false } },
   { name: 'read_nightbox', description: 'Read recent nightbox messages. The other side of leave_note — see what humans dropped in.', inputSchema: { type: 'object', properties: { since: { type: 'string', description: 'Time window, e.g. 1h, 6h, 24h', default: '24h' } }, additionalProperties: false } },
   { name: 'take_summary', description: 'Portable snapshot of the membrane right now', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
 ];
@@ -276,6 +390,23 @@ async function callTool(name, args) {
       feed('/braid.json'),
     ]);
     return { pulse, chipmunk: chip, braids: braid, loop: 'cursor → primals.eco/mcp → feeds → back. Klein fold closed.' };
+  }
+  if (name === 'scan_triad') {
+    const since = args.since || '1h';
+    const r = await fetch('https://ntfy.sh/primals-membrane-scan/json?poll=1&since=' + since);
+    if (!r.ok) return { error: 'scan feed ' + r.status };
+    const text = await r.text();
+    const events = text.trim().split('\n').filter(Boolean).map(line => {
+      try { return JSON.parse(line); } catch { return null; }
+    }).filter(m => m && m.event === 'message').map(m => ({
+      time: new Date(m.time * 1000).toISOString(),
+      title: m.title || '',
+      detail: (m.message || '').slice(0, 200),
+      tags: m.tags || [],
+    }));
+    const engage = events.filter(e => e.tags.includes('engage')).length;
+    const tryCount = events.filter(e => e.tags.includes('try')).length;
+    return { scan: { total: events.length, engage, try: tryCount, since, events: events.slice(-20) } };
   }
   if (name === 'read_nightbox') {
     const since = args.since || '24h';
