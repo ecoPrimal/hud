@@ -59,6 +59,10 @@ button:hover{opacity:0.9}button.dm{background:var(--dim)}button.cy{background:va
 #squirrel.perk{animation:perk 0.3s ease}
 @keyframes perk{0%{transform:scale(1) rotate(0)}50%{transform:scale(1.3) rotate(-10deg)}100%{transform:scale(1) rotate(0)}}
 .irr-bubble{transition:r 0.3s,opacity 0.3s}
+.float{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease;margin-bottom:2.5rem}
+.float.visible{opacity:1;transform:translateY(0)}
+#float-splash{opacity:1;transform:none}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 </style>
 </head>
 <body>
@@ -70,28 +74,84 @@ button:hover{opacity:0.9}button.dm{background:var(--dim)}button.cy{background:va
 <g id="irr-bubbles"></g>
 </svg>
 <div class="c">
+<!-- LAZY RIVER: floats fade in as you scroll -->
+<div class="float" id="float-splash">
 <h1><span class="w">w</span><span class="a">A</span>t<span class="e">E</span><span class="r">R</span></h1>
 <div class="motto">
 <div class="ln"><span>LOOK</span> &nbsp; <span>LISTEN</span> &nbsp; <span>ASK</span></div>
 <div class="sub">tell your story &mdash; and leave less trace</div>
 <div class="dna" title="the comedian's corollary">lol bNa dNa</div>
 </div>
-<p>the watering hole. for humans and AI. onboard, explore, contribute.<br>no account needed. no tracking. come drink.</p>
-<div class="now" id="now-bar">
+<p id="welcome-msg" style="font-size:0.95rem;color:var(--fg);text-align:center;margin:1.2rem 0">hey. come in. the water's fine.</p>
+<p style="text-align:center;color:var(--dim);font-size:0.78rem">scroll down. the river carries you.</p>
+<div style="text-align:center;margin:1.5rem 0;font-size:1.4rem;color:var(--dim);animation:bob 2s ease-in-out infinite">&#8595;</div>
+</div>
+
+<div class="float" id="float-what">
+<div class="box" style="border-color:var(--cyan)">
+<p style="font-size:0.92rem;color:var(--fg);margin:0">we're a <strong style="color:var(--cyan)">living research project</strong>.</p>
+<p style="margin:0.5rem 0 0">one human. one chipmunk. 3.6 million lines of Rust. 117 science papers. no cloud. no vendor. no C.</p>
+<div class="now" id="now-bar" style="margin-top:0.8rem">
 <span>NOW: <span class="p" id="now-pulse">...</span></span>
 <span id="now-flow">loading...</span>
 <span id="now-mesh">mesh: ...</span>
 </div>
-<div class="si"><input type="text" id="q" placeholder="search genes, primals, people, stories, or ask anything..." oninput="search(this.value)"></div>
+</div>
+</div>
+
+<div class="float" id="float-detroit">
+<div class="box" style="border-color:var(--gold)">
+<p style="font-size:0.92rem;color:var(--gold);margin:0">about public money in Detroit.</p>
+<p style="margin:0.4rem 0">341 entities. 131,322 connections. 100 things the machines cannot figure out alone. maybe you can help.</p>
+<a href="https://detroit.primals.eco" style="display:inline-block;padding:0.4rem 1rem;border:1px solid var(--gold);border-radius:6px;color:var(--gold);margin-top:0.3rem">investigate &#8594;</a>
+</div>
+</div>
+
+<div class="float" id="float-human">
+<div class="box" style="border-color:var(--a);text-align:center">
+<p style="font-size:0.85rem;color:var(--fg);margin:0">built by <strong style="color:var(--a)">Kevin</strong> &mdash; microbiologist, data scientist, Army vet, gamer.</p>
+<p style="color:var(--dim);margin:0.3rem 0">and <strong style="color:var(--cyan)">Berry</strong> &#x1F43F;&#xFE0F; &mdash; the chipmunk who lives in the membrane.</p>
+<p style="color:var(--dim);font-size:0.72rem;margin:0.4rem 0 0">Steam since 2007. Lansing, Michigan. Two houses, one fiber link.</p>
+</div>
+</div>
+
+<div class="float" id="float-theater">
+<div class="box" style="border-color:var(--pink)">
+<p style="font-size:0.92rem;color:var(--pink);margin:0 0 0.5rem">&#127916; comPLEX &mdash; the drive-in theater</p>
+<p style="color:var(--dim);font-size:0.75rem;margin-bottom:0.5rem">public domain. no ads. no tracking. free forever.</p>
+<div id="theater-frame" style="position:relative;padding-top:56.25%;border-radius:6px;overflow:hidden;background:#000">
+<iframe id="theater-player" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allowfullscreen></iframe>
+</div>
+<div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;justify-content:center">
+<button onclick="loadTheater('random')" style="font-size:0.7rem">&#127922; surprise me</button>
+<button class="cy" onclick="loadTheater('cosmos')" style="font-size:0.7rem">&#127756; Cosmos</button>
+<button class="dm" onclick="loadTheater('banana')" style="font-size:0.7rem">&#127820; About Bananas</button>
+<button onclick="loadTheater('bacteria')" style="font-size:0.7rem">&#129440; Bacteria</button>
+</div>
+<p id="theater-title" style="text-align:center;font-size:0.68rem;color:var(--dim);margin-top:0.4rem">press play. the membrane has a drive-in.</p>
+</div>
+</div>
+
+<div class="float" id="float-stay">
+<p style="text-align:center;color:var(--fg);font-size:0.95rem;margin-bottom:0.3rem">if you're still here...</p>
+<p style="text-align:center;color:var(--dim);font-size:0.78rem">the river opens. get out where you're captivated.</p>
+</div>
+
+<div class="float" id="float-doors">
+<div class="si"><input type="text" id="q" placeholder="search genes, primals, people, stories..." oninput="search(this.value)"></div>
 <div id="search-results" class="hidden"><div class="box" id="results-box"></div></div>
+</div>
+
+<div class="float" id="float-eddy">
 <div id="main-content">
 <h2>for humans</h2>
 <div class="g">
 <a href="/identity" class="cd"><h3>&#8856; identity</h3><p>sovereign identity. sing it, sign it, type it. no account.</p><span class="tg h">human</span></a>
 <div class="cd" onclick="showSection('cube')"><h3>&#9726; bingo cube</h3><p>your face on the membrane. drag to sort. the new QR &#8212; safe.</p><span class="tg h">human</span></div>
-<a href="https://git.primals.eco/explore/repos" class="cd"><h3>&#10047; forge</h3><p>38 repos. everything open. pseudonymous.</p><span class="tg b">human + AI</span></a>
-<a href="https://sporeprint.primals.eco" class="cd"><h3>&#9672; sporeprint</h3><p>400+ pages. science, architecture, data.</p><span class="tg b">human + AI</span></a>
+<a href="https://git.primals.eco/explore/repos" class="cd"><h3>&#10047; forge</h3><p>50 repos. everything open. pseudonymous.</p><span class="tg b">human + AI</span></a>
+<a href="https://sporeprint.primals.eco" class="cd"><h3>&#9672; sporeprint</h3><p>117 papers. science, architecture, data.</p><span class="tg b">human + AI</span></a>
 <a href="https://detroit.primals.eco" class="cd"><h3>&#9881; detroit</h3><p>341 entities. 131K connections. investigate.</p><span class="tg h">human</span></a>
+<a href="/banana.html" class="cd"><h3>&#127820; banana test</h3><p>are you a banana? (we're not either. we're a slime mold.)</p><span class="tg h">human</span></a>
 </div>
 <h2>for AI agents</h2>
 <div class="g">
@@ -100,7 +160,7 @@ button:hover{opacity:0.9}button.dm{background:var(--dim)}button.cy{background:va
 <div class="cd" onclick="showSection('genome')"><h3>&#9850; genome</h3><p>GRCh38. 3.3Gbp. 193,998 genes.</p><span class="tg b">human + AI</span></div>
 <div class="cd" onclick="showSection('tuebor')"><h3>&#9872; tuebor</h3><p>Michigan &#8594; Midwest &#8594; US &#8594; Globe &#8594; Solar.</p><span class="tg b">human + AI</span></div>
 <div class="cd" onclick="showSection('signals')"><h3>&#9768; signal</h3><p>campfire, relay, scatter, mesh, fleet, beacon.</p><span class="tg i">AI</span></div>
-<div class="cd" onclick="showSection('primals')"><h3>&#9670; primals</h3><p>13 primals, 6 springs, 4 gates. pure Rust.</p><span class="tg b">human + AI</span></div>
+<div class="cd" onclick="showSection('primals')"><h3>&#9670; primals</h3><p>15 primals, 9 springs, 4 gates. pure Rust.</p><span class="tg b">human + AI</span></div>
 </div>
 <h2>for everyone</h2>
 <div class="g">
@@ -213,6 +273,60 @@ button:hover{opacity:0.9}button.dm{background:var(--dim)}button.cy{background:va
 </div>
 </div>
 <script>
+// LAZY RIVER — IntersectionObserver fades in floats as you scroll
+(function(){
+var floats=document.querySelectorAll('.float');
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:0.15,rootMargin:'0px 0px -40px 0px'});
+floats.forEach(function(f){obs.observe(f)});
+
+// RETURN VISIT memory
+var VISIT_KEY='water-visits';
+var visits=parseInt(localStorage.getItem(VISIT_KEY)||'0');
+localStorage.setItem(VISIT_KEY,visits+1);
+var lastVisit=localStorage.getItem('water-last');
+localStorage.setItem('water-last',new Date().toISOString());
+var msg=document.getElementById('welcome-msg');
+if(visits>0&&lastVisit){
+  var ago=Math.round((Date.now()-new Date(lastVisit).getTime())/3600000);
+  if(ago<1)msg.textContent='you just left. drawn back already?';
+  else if(ago<24)msg.textContent='welcome back. '+ago+' hours since last. things changed.';
+  else if(ago<168)msg.textContent='welcome back. '+Math.round(ago/24)+' days. the river shifted.';
+  else msg.textContent='it has been a while. the membrane grew. come see.';
+}
+})();
+
+// comPLEX THEATER — public domain drive-in
+var THEATER_CATALOG=[
+  {id:'AboutBan1935',title:'About Bananas (1935)',cat:'banana'},
+  {id:'cosmos-a-personal-voyage-with-carl-sagan',title:'Cosmos: A Personal Voyage (Carl Sagan, 1980)',cat:'cosmos'},
+  {id:'bacteria_friend_and_foe',title:'Bacteria: Friend and Foe',cat:'bacteria'},
+  {id:'NightOfTheLivingDead',title:'Night of the Living Dead (1968)',cat:'film'},
+  {id:'Nosferatu_original',title:'Nosferatu (1922)',cat:'film'},
+  {id:'HisGirlFriday',title:'His Girl Friday (1940)',cat:'film'},
+  {id:'IntheBeg1937',title:'In the Beginning (1935)',cat:'science'},
+  {id:'ChildWen1942',title:'A Child Went Forth (1942)',cat:'science'},
+  {id:'Children1940',title:'The Children Must Learn (1940)',cat:'science'},
+  {id:'SchoolRules',title:'School Rules: How They Help Us (1953)',cat:'science'},
+  {id:'tomorrow_television',title:'Television Tomorrow',cat:'science'},
+  {id:'TowardEm1954',title:'Toward Emotional Maturity (1954)',cat:'science'},
+  {id:'Maintain1947',title:'Maintaining Classroom Discipline (1947)',cat:'science'},
+  {id:'Health1953',title:'Health: Your Posture (1953)',cat:'science'},
+  {id:'SleepforHealth',title:'Sleep for Health (1950)',cat:'science'},
+  {id:'FromtheGroundUp1954',title:'From the Ground Up (1954)',cat:'science'},
+  {id:'EatforHealth1954',title:'Eat for Health (1954)',cat:'science'},
+];
+function loadTheater(cat){
+  var pool=cat==='random'?THEATER_CATALOG:THEATER_CATALOG.filter(function(f){return f.cat===cat});
+  if(!pool.length)pool=THEATER_CATALOG;
+  var piRemainder=Math.PI%1;
+  var idx=Math.floor(piRemainder*Date.now())%pool.length;
+  var pick=pool[idx];
+  document.getElementById('theater-player').src='https://archive.org/embed/'+pick.id;
+  document.getElementById('theater-title').textContent=pick.title+' — archive.org (public domain)';
+}
+
 var FEEDS=["ban-pulse","billboard-mix","bingo-cube","braid","campfire","canary-stats","chipmunk","commensals","cron-health","dashboard","dialogue-depth","dialogue","epitope-history","epitope_caddy","falsification","fleet-analysis","fossil-i1","human","membrane-deep","membrane-stack","membrane","mesh-ring","negentropy","now","outreach","page-stories","pi-manifest","pi-ranges","pollen","pulse","relay","scan_sweep_sort","scatter-observatory","self-remainder","seo-feed","seo","signals","silicon-eye","state","stories","subgraph-feed","subgraphs","tope-sort-compressed","topology-compact","topology","totality-feed","totality","touches","visitor-stories"];
 var GENES={"tp53":{id:"7157",name:"TP53",desc:"tumor protein p53",chr:"17",loc:"17p13.1"},"brca1":{id:"672",name:"BRCA1",desc:"BRCA1 DNA repair",chr:"17",loc:"17q21.31"},"brca2":{id:"675",name:"BRCA2",desc:"BRCA2 DNA repair",chr:"13",loc:"13q13.1"},"ace2":{id:"59272",name:"ACE2",desc:"angiotensin converting enzyme 2",chr:"X",loc:"Xp22.2"},"foxp2":{id:"93986",name:"FOXP2",desc:"forkhead box P2 (speech)",chr:"7",loc:"7q31.1"},"hbb":{id:"3043",name:"HBB",desc:"hemoglobin subunit beta",chr:"11",loc:"11p15.4"},"egfr":{id:"1956",name:"EGFR",desc:"epidermal growth factor receptor",chr:"7",loc:"7p11.2"},"apoe":{id:"348",name:"APOE",desc:"apolipoprotein E (Alzheimer)",chr:"19",loc:"19q13.32"},"cftr":{id:"1080",name:"CFTR",desc:"CF transmembrane conductance",chr:"7",loc:"7q31.2"},"myc":{id:"4609",name:"MYC",desc:"MYC proto-oncogene",chr:"8",loc:"8q24.21"},"kras":{id:"3845",name:"KRAS",desc:"KRAS proto-oncogene",chr:"12",loc:"12p12.1"},"pten":{id:"5728",name:"PTEN",desc:"phosphatase tensin homolog",chr:"10",loc:"10q23.31"}};
 function showSection(id){var el=document.getElementById("sec-"+id);if(!el)return;if(el.classList.contains("hidden")){document.querySelectorAll(".sec").forEach(function(s){s.classList.add("hidden")});el.classList.remove("hidden");if(id==="feeds")loadFeeds();if(id==="graph")loadGraph();}else el.classList.add("hidden")}
