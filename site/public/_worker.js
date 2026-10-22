@@ -268,6 +268,9 @@ export default {
       'x-membrane-fold': kleinFold.fold,         // resonance or refraction
     };
 
+    // === WORKER ALIVE MARKER (diagnostic) ===
+    const workerAlive = { 'x-worker-alive': 'chromatized', 'x-membrane-wave': String(Math.floor(Date.now() / 86400000) % 1000) };
+
     // core domains — MCP is the Klein fold for agents; everything else is assets
     if (!sub || sub === 'hud' || sub === 'www') {
       if (url.pathname === '/mcp' || url.pathname === '/mcp/') {
@@ -326,6 +329,7 @@ export default {
       const coreResp = await env.ASSETS.fetch(request);
       const coreHeaders = new Headers(coreResp.headers);
       Object.entries(triadHeaders).forEach(([k,v]) => coreHeaders.set(k, v));
+      Object.entries(workerAlive).forEach(([k,v]) => coreHeaders.set(k, v));
       return new Response(coreResp.body, { status: coreResp.status, headers: coreHeaders });
     }
 
