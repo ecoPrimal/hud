@@ -190,7 +190,7 @@
           var avgH = entropies.reduce(function (s, h) { return s + h; }, 0) / entropies.length;
           // Mid-entropy (2-4 bits) = most musical
           var musicFromH = 1 - Math.abs(avgH - 3) / 3;
-          base = (base + Math.max(0, musicFromH)) / 2;
+          if (isFinite(musicFromH)) base = (base + Math.max(0, musicFromH)) / 2;
         }
       }
     }
