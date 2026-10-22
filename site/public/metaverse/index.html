@@ -1,0 +1,69 @@
+﻿<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>chipmunk's farm — membrane metaverse</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:monospace;padding:2rem}
+h1{color:#7fdbca;font-size:1.8rem;margin-bottom:1rem}
+.farm{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px;margin:0 auto}
+.panel{background:#16213e;border:1px solid #0f3460;border-radius:8px;padding:1.2rem}
+.panel h2{color:#e94560;font-size:1.1rem;margin-bottom:.8rem;border-bottom:1px solid #0f3460;padding-bottom:.4rem}
+.stat{display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px dotted #0f3460}
+.stat-label{color:#a0a0a0}.stat-value{color:#7fdbca;font-weight:bold}
+.quest{padding:.4rem 0;border-bottom:1px dotted #0f3460;font-size:.9rem}
+.quest::before{content:'☐ ';color:#e94560}
+.mapping{font-size:.85rem;color:#a0a0a0;line-height:1.5}
+.mapping b{color:#7fdbca}
+.season-spring{color:#7fdbca}.season-summer{color:#f0c040}.season-fall{color:#e94560}.season-winter{color:#a0c0ff}
+.header{text-align:center;margin-bottom:2rem}
+.header p{color:#a0a0a0;margin-top:.5rem}
+.live{display:inline-block;width:8px;height:8px;background:#7fdbca;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style></head><body>
+<div class=header>
+<h1><span class=live></span> chipmunk's farm — membrane metaverse</h1>
+<p>The farm IS the membrane. Tend feeds like crops. The harvest is signal.</p>
+<p style="margin-top:.3rem;font-size:.85rem">Game: Stardew Valley | Farmer: chipmunk | Status: <span id=status>loading...</span></p>
+</div>
+<div class=farm>
+<div class=panel><h2>Farm Stats</h2><div id=stats>loading...</div></div>
+<div class=panel><h2>Quest Log</h2><div id=quests>loading...</div></div>
+<div class=panel><h2>Membrane ↔ Game Mapping</h2><div id=mapping>loading...</div></div>
+<div class=panel><h2>Live Membrane Feed</h2><div id=membrane>connecting...</div></div>
+</div>
+<script>
+async function load() {
+  try {
+    const farm = await fetch('/metaverse/farm.json').then(r=>r.json());
+    document.getElementById('status').textContent = farm.season + ' Y' + farm.year + ' Day ' + farm.day;
+    document.getElementById('status').className = 'season-' + farm.season;
+    let stats = '';
+    stats += '<div class=stat><span class=stat-label>Season</span><span class="stat-value season-'+farm.season+'">'+farm.season+' Y'+farm.year+'</span></div>';
+    stats += '<div class=stat><span class=stat-label>Day</span><span class=stat-value>'+farm.day+'</span></div>';
+    stats += '<div class=stat><span class=stat-label>Gold</span><span class=stat-value>'+farm.gold+'g</span></div>';
+    stats += '<div class=stat><span class=stat-label>Energy</span><span class=stat-value>'+farm.energy+'/270</span></div>';
+    stats += '<div class=stat><span class=stat-label>Crops</span><span class=stat-value>'+farm.crops.length+'</span></div>';
+    stats += '<div class=stat><span class=stat-label>Animals</span><span class=stat-value>'+farm.animals.length+'</span></div>';
+    document.getElementById('stats').innerHTML = stats;
+    let quests = farm.quest_log.map(q => '<div class=quest>'+q+'</div>').join('');
+    document.getElementById('quests').innerHTML = quests;
+    let mapping = '';
+    for (const [k,v] of Object.entries(farm.membrane_mapping)) {
+      mapping += '<p><b>'+k+'</b> = '+v+'</p>';
+    }
+    document.getElementById('mapping').innerHTML = '<div class=mapping>'+mapping+'</div>';
+  } catch(e) { document.getElementById('status').textContent = 'offline'; }
+  // Live membrane
+  try {
+    const now = await fetch('https://primals.eco/now.json').then(r=>r.json());
+    let mem = '<div class=stat><span class=stat-label>Wave</span><span class=stat-value>'+now.wave+'</span></div>';
+    mem += '<div class=stat><span class=stat-label>Phase</span><span class=stat-value>'+now.phase+'</span></div>';
+    mem += '<div class=stat><span class=stat-label>Heartbeat</span><span class=stat-value>'+(now.heartbeat?'alive':'...')+'</span></div>';
+    const ent = now.classification || {};
+    mem += '<div class=stat><span class=stat-label>Humans</span><span class=stat-value>'+(ent.humans||ent.self||'?')+'</span></div>';
+    mem += '<div class=stat><span class=stat-label>Fleet</span><span class=stat-value>'+(ent.fleet||ent.non_self||'?')+'</span></div>';
+    document.getElementById('membrane').innerHTML = mem;
+  } catch(e) { document.getElementById('membrane').innerHTML = '<p>membrane offline</p>'; }
+}
+load(); setInterval(load, 30000);
+</script></body></html>
