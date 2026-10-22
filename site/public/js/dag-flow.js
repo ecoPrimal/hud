@@ -58,6 +58,7 @@
     '/springs': 4, '/springs.html': 4,
     '/nest': 4, '/nest.html': 4,
     '/play': 4, '/play.html': 4,
+    '/frame': 3, '/frame.html': 3,
     '/easel': 4, '/easel.html': 4,
     '/trail': 4, '/trail.html': 4,
     '/glyphs': 4, '/glyphs.html': 4,

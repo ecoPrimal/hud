@@ -41,6 +41,7 @@ export default {
       'vitruvian':  '/vitruvian',
       'menagerie':  '/menagerie',
       'springs':    '/springs',       // the face. when will it come back? it already is.
+      'frame':      '/frame',         // Steam Frame. membrane on your TV. HADR.
     };
 
     if (FOLDS[sub]) {

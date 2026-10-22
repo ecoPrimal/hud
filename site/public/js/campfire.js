@@ -124,6 +124,7 @@
     '/gate': ['at the question', 'where answering IS passing', 'in the gate\'s judgment'],
     '/golgi': ['in the cellular post office', 'where every protein gets an address', 'at the sorting station'],
     '/identity': ['in the pattern that persists', 'where the identifiers change but you don\'t'],
+    '/frame': ['on the big screen', 'where the metric tensor meets the couch', 'in the golden ratio of your living room', 'at the display surface that knows its own shape'],
   };
 
   // ═══════════════════════════════════════════════════════════
