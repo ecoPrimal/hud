@@ -381,6 +381,7 @@ export default {
       'fluid':      '/data/csf-arena.json',                 // the fluid between brain and skull
       'higgs':      '/data/csf-arena.json',                 // the Higgs field IS the CSF. engagement gives mass.
       'osmosis':    '/data/csf-arena.json',                 // osmolarity gradient pulls visitors IN
+      'carnival':   '/sporeprint/outreach/higgs-carnival/', // 🎪 step right up. the bearded lady IS the spectacle.
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
