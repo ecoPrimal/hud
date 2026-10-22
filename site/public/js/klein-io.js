@@ -64,7 +64,8 @@
     '/data/graphenegate.json',
     '/data/pollination-manifest.json',
     '/data/primal-classification.json',
-    '/data/immiscible-grease.json'
+    '/data/immiscible-grease.json',
+    '/data/raytrace-lan.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
