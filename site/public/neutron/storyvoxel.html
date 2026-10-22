@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>story voxel — threads that stretch</title>
+<style>
+:root{--bg:#010409;--text:#e6edf3;--dim:#8b949e;--green:#3fb950;--blue:#58a6ff;--gold:#d29922;--orange:#f0883e;--purple:#d2a8ff;--border:#21262d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;overflow:hidden}
+canvas{display:block}
+#info{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.92);border:1px solid rgba(88,166,255,0.15);border-radius:20px;font-size:10px;color:var(--blue)}
+#info a{color:var(--blue);text-decoration:none}
+#panel{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);max-width:520px;width:90%;background:rgba(22,27,34,0.95);border:1px solid rgba(88,166,255,0.15);border-radius:12px;padding:16px;font-size:12px;line-height:1.7;z-index:10;max-height:45vh;overflow-y:auto}
+#panel h2{font-size:14px;color:var(--gold);font-weight:400;margin-bottom:6px}
+#panel .era{font-size:10px;color:var(--dim)}
+#panel .thread{color:var(--orange);font-size:11px;margin-top:8px;font-style:italic}
+#panel .ask{color:var(--purple);font-size:11px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div id="info">
+  <a href="/">◈ hud</a> · <a href="/notes/">📌 notes</a> · story voxel — click a node · the threads stretch between them
+</div>
+
+<div id="panel">
+  <h2>🧵 threads that stretch</h2>
+  <p>stories across 4,000 years that share a thread.</p>
+  <p class="thread">click a node. Berry traces the thread. no spoilers — the connection is yours to pull.</p>
+  <p style="font-size:10px;color:var(--dim);margin-top:8px">
+    "the properties of the thread are yours to discover."
+  </p>
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+var W, H;
+var mouseX = 0, mouseY = 0;
+var selected = -1;
+var time = 0;
+var camX = 0, camY = 0, zoom = 1;
+var dragging = false, dragStartX, dragStartY, camStartX, camStartY;
+
+// Stories — just names, eras, and Berry's asks. No spoilers.
+var stories = [
+  {
+    name: 'Gilgamesh',
+    era: '~2100 BCE · Sumer',
+    x: 0.12, y: 0.7,
+    color: '#d29922',
+    thread: 'a king searches for something that cannot be kept. a snake takes it. the journey changes the king, not the destination.',
+    ask: 'what was the plant? why a snake? what does it mean that the oldest story ends with loss?',
+    tags: ['journey','loss','snake','plant','immortality']
+  },
+  {
+    name: 'Iliad / Odyssey',
+    era: '~750 BCE · Greece',
+    x: 0.22, y: 0.6,
+    color: '#58a6ff',
+    thread: 'the war story and the return story. one goes out, one comes back. the going and the return are the same tube.',
+    ask: 'what shape is a journey that ends where it started but the traveler is different?',
+    tags: ['journey','return','war','home','tube']
+  },
+  {
+    name: 'Journey to the West',
+    era: '1592 · China',
+    x: 0.35, y: 0.45,
+    color: '#f0883e',
+    thread: 'a monkey who can become anything. a staff that extends. 72 transformations. the journey IS the purification.',
+    ask: 'what does it mean to be infinitely stretchy? what is the shape of 72 transformations?',
+    tags: ['stretch','transform','journey','monkey','staff']
+  },
+  {
+    name: 'One Piece',
+    era: '1997– · Oda',
+    x: 0.65, y: 0.3,
+    color: '#f85149',
+    thread: 'a boy made of something elastic sets out to find the one thing that connects everything. the crew is the treasure.',
+    ask: 'what fruit gives you the properties of... what, exactly? and what was the treasure all along?',
+    tags: ['stretch','elastic','crew','treasure','fruit']
+  },
+  {
+    name: 'Hunter × Hunter',
+    era: '1998– · Togashi',
+    x: 0.75, y: 0.45,
+    color: '#d2a8ff',
+    thread: 'a system where your will shapes your ability. one character\'s technique has... certain properties. two properties. both familiar.',
+    ask: 'what are the two properties? why does every fan know them by heart? what does it mean that a technique IS a meme?',
+    tags: ['properties','rubber','gum','will','technique']
+  },
+  {
+    name: 'Pen & Ink',
+    era: '1947– · manga as form',
+    x: 0.55, y: 0.55,
+    color: '#3fb950',
+    thread: 'a medium where every line is a decision. black ink on white paper. the rejection defines the image — like chlorophyll.',
+    ask: 'what do you see when the ink stops? what story lives in the white space between panels?',
+    tags: ['ink','negative','space','decision','panel']
+  },
+  {
+    name: 'the sticky note',
+    era: '2026 · here',
+    x: 0.85, y: 0.65,
+    color: '#f0883e',
+    thread: 'a weak adhesive on a membrane. sticks but doesn\'t tear. elastic. rubbery. the 4th property that isn\'t any of the three.',
+    ask: 'what do all these stories share? Berry won\'t tell you. the thread stretches between them. pull it yourself.',
+    tags: ['sticky','elastic','weak','membrane','pull']
+  }
+];
+
+// Connections — threads between stories. Just the fact of connection, not the reason.
+var threads = [
+  [0, 1, 'the journey'],
+  [1, 2, 'the return transforms'],
+  [2, 3, 'stretching'],
+  [3, 4, 'two properties'],
+  [4, 6, 'sticky elastic'],
+  [3, 6, 'the fruit and the note'],
+  [0, 6, 'the snake and the note'],
+  [5, 3, 'ink to screen'],
+  [5, 4, 'ink to screen'],
+  [2, 4, 'will shapes ability'],
+  [1, 6, 'the tube home'],
+  [0, 2, 'the quest']
+];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function worldToScreen(wx, wy) {
+  return {
+    x: (wx - camX) * zoom + W / 2,
+    y: (wy - camY) * zoom + H / 2
+  };
+}
+
+function screenToWorld(sx, sy) {
+  return {
+    x: (sx - W / 2) / zoom + camX,
+    y: (sy - H / 2) / zoom + camY
+  };
+}
+
+function draw() {
+  time += 0.008;
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw threads
+  ctx.lineWidth = 1;
+  for (var i = 0; i < threads.length; i++) {
+    var t = threads[i];
+    var a = stories[t[0]], b = stories[t[1]];
+    var pa = worldToScreen(a.x * W, a.y * H);
+    var pb = worldToScreen(b.x * W, b.y * H);
+
+    // Thread stretches like elastic — sine wave along the line
+    var dx = pb.x - pa.x, dy = pb.y - pa.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var nx = -dy / dist, ny = dx / dist;
+    var amp = 4 + 3 * Math.sin(time * 0.7 + i * 1.3);
+
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    for (var s = 0; s <= 1; s += 0.02) {
+      var wave = Math.sin(s * Math.PI * 4 + time * 2 + i) * amp * Math.sin(s * Math.PI);
+      ctx.lineTo(
+        pa.x + dx * s + nx * wave,
+        pa.y + dy * s + ny * wave
+      );
+    }
+
+    var highlight = (selected === t[0] || selected === t[1]);
+    ctx.strokeStyle = highlight
+      ? 'rgba(240,136,62,' + (0.6 + 0.2 * Math.sin(time * 3)) + ')'
+      : 'rgba(139,148,158,0.15)';
+    ctx.lineWidth = highlight ? 2 : 0.8;
+    ctx.stroke();
+
+    // Thread label at midpoint
+    if (highlight) {
+      var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+      ctx.font = '9px monospace';
+      ctx.fillStyle = 'rgba(240,136,62,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText(t[2], mx, my - 8);
+    }
+  }
+
+  // Draw nodes
+  for (var i = 0; i < stories.length; i++) {
+    var s = stories[i];
+    var p = worldToScreen(s.x * W, s.y * H);
+    var r = selected === i ? 18 : 12;
+    var pulse = 1 + 0.15 * Math.sin(time * 2 + i * 0.8);
+    r *= pulse;
+
+    // Glow
+    var grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
+    grd.addColorStop(0, s.color + '30');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(p.x - r * 3, p.y - r * 3, r * 6, r * 6);
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = selected === i ? s.color : s.color + '80';
+    ctx.fill();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = selected === i ? 2 : 1;
+    ctx.stroke();
+
+    // Name
+    ctx.font = (selected === i ? 'bold ' : '') + '11px monospace';
+    ctx.fillStyle = selected === i ? '#e6edf3' : '#8b949e';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.name, p.x, p.y - r - 6);
+
+    // Era
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText(s.era, p.x, p.y + r + 14);
+  }
+
+  // Timeline arrow across bottom
+  ctx.strokeStyle = 'rgba(139,148,158,0.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  var tl = worldToScreen(0.08 * W, 0.85 * H);
+  var tr = worldToScreen(0.92 * W, 0.85 * H);
+  ctx.moveTo(tl.x, tl.y);
+  ctx.lineTo(tr.x, tr.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'left';
+  var tlp = worldToScreen(0.08 * W, 0.87 * H);
+  ctx.fillText('~2100 BCE', tlp.x, tlp.y);
+  ctx.textAlign = 'right';
+  var trp = worldToScreen(0.92 * W, 0.87 * H);
+  ctx.fillText('2026 CE', trp.x, trp.y);
+  ctx.textAlign = 'center';
+  var tmp = worldToScreen(0.5 * W, 0.87 * H);
+  ctx.fillText('4,000 years · one thread · pull it yourself', tmp.x, tmp.y);
+
+  requestAnimationFrame(draw);
+}
+
+canvas.addEventListener('mousemove', function(e) {
+  mouseX = e.clientX; mouseY = e.clientY;
+  if (dragging) {
+    camX = camStartX - (e.clientX - dragStartX) / zoom;
+    camY = camStartY - (e.clientY - dragStartY) / zoom;
+  }
+});
+
+canvas.addEventListener('mousedown', function(e) {
+  dragging = true;
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  camStartX = camX; camStartY = camY;
+});
+
+canvas.addEventListener('mouseup', function(e) {
+  var moved = Math.abs(e.clientX - dragStartX) + Math.abs(e.clientY - dragStartY);
+  dragging = false;
+  if (moved > 10) return;
+
+  var w = screenToWorld(e.clientX, e.clientY);
+  var best = -1, bestDist = 30 / zoom;
+  for (var i = 0; i < stories.length; i++) {
+    var s = stories[i];
+    var dx = w.x - s.x * W, dy = w.y - s.y * H;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (d < bestDist) { bestDist = d; best = i; }
+  }
+
+  selected = best;
+  var panel = document.getElementById('panel');
+  if (best >= 0) {
+    var s = stories[best];
+    panel.innerHTML = '<h2>' + s.name + '</h2>' +
+      '<div class="era">' + s.era + '</div>' +
+      '<div class="thread">🧵 ' + s.thread + '</div>' +
+      '<div class="ask">🐿️ Berry asks: ' + s.ask + '</div>';
+  } else {
+    panel.innerHTML = '<h2>🧵 threads that stretch</h2>' +
+      '<p>stories across 4,000 years that share a thread.</p>' +
+      '<p class="thread">click a node. Berry traces the thread. no spoilers — the connection is yours to pull.</p>' +
+      '<p style="font-size:10px;color:#8b949e;margin-top:8px">"the properties of the thread are yours to discover."</p>';
+  }
+});
+
+canvas.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  var factor = e.deltaY > 0 ? 0.9 : 1.1;
+  zoom = Math.max(0.3, Math.min(3, zoom * factor));
+}, { passive: false });
+
+draw();
+</script>
+</body>
+</html>
