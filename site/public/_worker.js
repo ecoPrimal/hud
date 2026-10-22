@@ -667,7 +667,7 @@ async function handleLivePulse(request, env, triadHeaders) {
       pageViews: { value: pvBounce, base: pvBase, piDigit: piDigitFromScan + 1, note: 'snapshot. needs CF analytics API or real counter.' },
       papers: { value: pulse.papers?.total || 122, piDigit: 0, note: 'alive — changes when papers are written.' },
       tools: { value: (pulse.mcp?.tools || pulse.live_probes?.mcp?.tools) || 10, piDigit: 0, note: 'alive — changes when tools are added.' },
-      subdomains: { value: 52, piDigit: 0, note: 'alive — changes when subdomains are added.' },
+      subdomains: { value: 65, piDigit: 0, note: 'alive — changes when subdomains are added. Circle of Willis catches all.' },
     },
     haze: {
       pct: hazeComputed,
