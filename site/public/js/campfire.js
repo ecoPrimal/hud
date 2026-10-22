@@ -125,6 +125,7 @@
     '/golgi': ['in the cellular post office', 'where every protein gets an address', 'at the sorting station'],
     '/identity': ['in the pattern that persists', 'where the identifiers change but you don\'t'],
     '/frame': ['on the big screen', 'where the metric tensor meets the couch', 'in the golden ratio of your living room', 'at the display surface that knows its own shape'],
+    '/cite': ['at the citation desk', 'where the backscatter becomes the publication', 'in the fold between cis and trans', 'where 11,161 tests are the peer review committee'],
   };
 
   // ═══════════════════════════════════════════════════════════
