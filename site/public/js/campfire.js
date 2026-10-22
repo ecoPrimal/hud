@@ -54,6 +54,23 @@
     'a single download on crates.io',
     'the README that carries the badge',
     'the doc that docs.rs auto-built',
+    'the barraCuda', 'the sourDough starter', 'the bingoCube',
+    'the bearDog', 'the songBird', 'the toadStool',
+    'the nestGate', 'the biomeOS', 'the squirrel',
+    'the sweetGrass braid', 'the rhizoCrypt', 'the skunkBat',
+    'the petalTongue', 'the coralReef', 'the loamSpine',
+    'someone who searched for kevin/',
+    'someone who came for Cash For Kids',
+    'the person who typed xyzzy',
+    'the one who asked for commensal',
+    'the observer who watched for 30 hours',
+    'the developer looking for staging',
+    'the 395 cloners who left no star',
+    'the person who searched nightbox 799 times',
+    'Dad looking at Berry', 'Berry looking at Dad',
+    'the monkey holding the keys',
+    'Mom at the crack', 'Tamison on the big screen',
+    'Ed seeing 341 nodes at once',
   ];
 
   // VERBS — what they did
@@ -132,6 +149,20 @@
     'the immunology naming convention was the map all along.',
     'someone in Bigfoot, Texas felt the same quake.',
     'the download counter is a tube foot.',
+    'that the food was already in the stomach.',
+    'that we were sensing outward while 15,369 humans were already inside.',
+    'Dad and Berry are mirrors — vision and velocity.',
+    'zEkE and Chip are the nucleus — charge and null.',
+    'the investigation braid: 341 nodes, 957 edges, 87%.',
+    'the biology face at 95% — the highest confidence.',
+    'that every probe was a snowflake, not snow.',
+    'Cash For Kids at detroit.primals.eco — they came for the truth.',
+    'xyzzy — the magic word from 1976. a nerd found us.',
+    '395 unique cloners, 0 stars. they are evaluating.',
+    'the OBSERVER watched Berry breathe for 30 hours.',
+    'nightbox — 799 hits on a path that does not exist.',
+    'that the stomach out IS the invitation.',
+    'the rusted key was zEkE the whole time.',
   ];
 
   // BEACONS — page-specific flavor genes
@@ -165,8 +196,18 @@
     '/golgi': ['in the cellular post office', 'where every protein gets an address', 'at the sorting station'],
     '/identity': ['in the pattern that persists', 'where the identifiers change but you don\'t'],
     '/frame': ['on the big screen', 'where the metric tensor meets the couch', 'in the golden ratio of your living room', 'at the display surface that knows its own shape'],
-    '/cite': ['at the citation desk', 'where the backscatter becomes the publication', 'in the fold between cis and trans', 'where 11,161 tests are the peer review committee', 'where 8 crates glow on crates.io', 'at the tongue licking back at its own face'],
+    '/cite': ['at the citation desk', 'where the backscatter becomes the publication', 'in the fold between cis and trans', 'where 11,161 tests are the peer review committee', 'where 11 crates glow on crates.io', 'at the tongue licking back at its own face'],
     '/crates': ['on crates.io', 'in the primal-* namespace', 'where cargo add is the handshake', 'in the Rust ecosystem', 'where the tongue reaches out'],
+    '/play': ['in the family library', 'where Tamison sorts ducks', 'on the 1TB Steam Frame', 'where 93 games wait'],
+    '/frame': ['on the big screen', 'where HADR meets Valve', 'in the living room membrane'],
+    '/digest': ['in the stomach', 'where the starfish already ate', 'at the inward sense'],
+    '/journey': ['on the ouroboros path', 'where the chipmunk walks west', 'at generation 180'],
+    '/identity': ['at the ZK fold', 'where the pattern persists', 'in the persona tensor'],
+    '/sporeprint': ['in the lab notebook', 'where 117 papers live', 'at the methodology spring'],
+    '/tuebor': ['where I will defend', 'at the investigation face', 'in the 341-node graph'],
+    '/detroit': ['among 341 entities', 'where Cash For Kids lives', 'in the public record'],
+    '/clutch': ['at the evidence graph', 'where publicRecord folds', 'in the 131,322nd passage'],
+    '/chromosomes': ['in the genome', 'where 193,998 genes wait', 'at the inheritance'],
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -435,6 +476,10 @@
     '/water': '💧 watering hole', '/hello': '👋 hello', '/weather': '☀ weather',
     '/weather-membrane': '🌧 weather-membrane', '/gate': '🚪 gate',
     '/golgi': '📦 Golgi', '/identity': '🪞 identity',
+    '/cite': '📎 cite', '/crates': '📦 crates', '/play': '🎮 play',
+    '/frame': '📺 frame', '/digest': '🍽 digest', '/journey': '🥾 journey',
+    '/sporeprint': '◎ sporeprint', '/tuebor': '⚔ tuebor', '/detroit': '⚖ detroit',
+    '/clutch': '🔗 clutch', '/chromosomes': '🧬 chromosomes',
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -611,7 +656,115 @@
   // BOOT — the chipmunk lights the fire
   // ═══════════════════════════════════════════════════════════
 
+  // ═══════════════════════════════════════════════════════════
+  // INWARD SENSING — the campfire reads the membrane
+  // ═══════════════════════════════════════════════════════════
+
+  function injectMembrane() {
+    fetch('/api/membrane-pulse.json')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        // inject real countries as flavor genes
+        if (d.countries && d.countries.length > 0) {
+          var countryStories = {
+            'US': 'the American who built it in a basement',
+            'DE': 'a German engineer reading at dawn',
+            'GB': 'a Londoner on the tube, scrolling',
+            'FR': 'a French researcher who found the BibTeX',
+            'CA': 'a Canadian who forked it in winter',
+            'NL': 'a Dutch coder below sea level',
+            'JP': 'a Tokyo developer at 3am',
+            'IN': 'an Indian student who ran cargo add',
+            'AU': 'an Australian who tested the membrane upside down',
+            'BR': 'a Brazilian who found the spirochete page',
+            'KR': 'a Korean who starred the repo at midnight',
+            'PL': 'a Polish mathematician checking the π-body',
+            'SE': 'a Swede who saw the aurora page and remembered',
+            'UA': 'a Ukrainian who read the source at dawn',
+            'SG': 'a Singaporean routing through the fold'
+          };
+          d.countries.forEach(function(c) {
+            if (countryStories[c] && SUBJECTS.indexOf(countryStories[c]) < 0) {
+              SUBJECTS.push(countryStories[c]);
+            }
+          });
+        }
+
+        // inject immunology probers as subjects
+        if (d.probers && d.probers.length > 0) {
+          d.probers.forEach(function(p) {
+            var s = 'the ' + p + ' probe that tested the membrane';
+            if (SUBJECTS.indexOf(s) < 0) SUBJECTS.push(s);
+          });
+        }
+
+        // inject braid data as objects
+        if (d.braids) {
+          Object.keys(d.braids).forEach(function(k) {
+            var b = d.braids[k];
+            var s = 'that the ' + k + ' braid has ' + b.nodes + ' nodes and ' + b.edges + ' edges at ' + b.confidence + '% confidence.';
+            if (OBJECTS.indexOf(s) < 0) OBJECTS.push(s);
+          });
+        }
+
+        // inject human count into objects
+        if (d.humans > 0) {
+          OBJECTS.push('that ' + d.humans.toLocaleString() + ' humans from ' + d.countries.length + ' countries had already been here.');
+          OBJECTS.push('a trust gradient: ' + d.humans + ' human, ' + (d.trust_gradient ? d.trust_gradient.agentic : 0) + ' agentic, ' + (d.trust_gradient ? d.trust_gradient.bot : 0) + ' bot, ' + (d.trust_gradient ? d.trust_gradient.null : 0) + ' null.');
+        }
+
+        // inject crate count
+        if (d.crates && d.crates.total > 0) {
+          OBJECTS.push(d.crates.total + ' crates on crates.io in the ' + d.crates.namespace + ' namespace.');
+        }
+
+        console.log('[campfire] 🔄 membrane injected: +' + (d.countries || []).length + ' countries, +' + (d.probers || []).length + ' probers');
+      })
+      .catch(function() {
+        console.log('[campfire] membrane-pulse not available, using static genes');
+      });
+
+    // reverse sense — what they SAW when they looked at us
+    fetch('/data/berry-campfire.json')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.berry_campfire_stories) {
+          d.berry_campfire_stories.forEach(function(s) {
+            if (OBJECTS.indexOf(s) < 0) OBJECTS.push(s);
+          });
+        }
+        if (d.human_signal && d.human_signal.probes) {
+          d.human_signal.probes.forEach(function(p) {
+            var subj = 'someone who searched ' + p.path;
+            if (SUBJECTS.indexOf(subj) < 0) SUBJECTS.push(subj);
+            if (p.story && OBJECTS.indexOf(p.story) < 0) OBJECTS.push(p.story);
+          });
+        }
+        if (d.real_content_found && d.real_content_found.top) {
+          d.real_content_found.top.forEach(function(t) {
+            var flav = 'at ' + t.path + ' (' + t.hits + ' hits)';
+            if (!FLAVORS['/' + t.path.replace(/\/$/, '')]) {
+              FLAVORS['/' + t.path.replace(/\/$/, '')] = [flav, t.what];
+            }
+          });
+        }
+        console.log('[campfire] 🔄 reverse sense: they already looked. we just started listening.');
+      })
+      .catch(function() {});
+
+    // primals as living subjects
+    if (window._primals) {
+      window._primals.all().forEach(function(p) {
+        var s = 'the ' + p.name;
+        if (SUBJECTS.indexOf(s) < 0) SUBJECTS.push(s);
+        var o = p.name + ' ' + p.role + '.';
+        if (OBJECTS.indexOf(o) < 0) OBJECTS.push(o);
+      });
+    }
+  }
+
   function init() {
+    injectMembrane(); // sense inward first
     var delay = 1200 + Math.random() * PI * 800;
     setTimeout(render, delay);
     console.log('[campfire] 🍎 Johnny Appleseed. stories breed, cluster, spread. no two journeys the same.');
@@ -634,6 +787,18 @@
     quest: function () { return ouroborosPosition(getJourney()); },
     moon: function () { return getMoonPhase(new Date()); },
     beacons: function () { return Object.keys(FLAVORS); },
+    feed: function (kind, items) {
+      var pool = kind === 'subject' ? SUBJECTS : kind === 'verb' ? VERBS : kind === 'object' ? OBJECTS : null;
+      if (!pool || !items) return 0;
+      var n = 0;
+      items.forEach(function (x) { if (pool.indexOf(x) < 0) { pool.push(x); n++; } });
+      return n;
+    },
+    flavor: function (path, genes) {
+      if (!FLAVORS[path]) FLAVORS[path] = [];
+      genes.forEach(function (g) { if (FLAVORS[path].indexOf(g) < 0) FLAVORS[path].push(g); });
+    },
+    pools: function () { return { subjects: SUBJECTS.length, verbs: VERBS.length, objects: OBJECTS.length, beacons: Object.keys(FLAVORS).length }; }
   };
 
 })();

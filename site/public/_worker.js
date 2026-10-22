@@ -44,6 +44,16 @@ export default {
       'frame':      '/frame',         // Steam Frame. membrane on your TV. HADR.
       'cite':       '/cite',          // citation page. take it and publish yourself.
       'crates':     'https://crates.io/users/ecoPrimal',  // the tongue. primal-* namespace. lick the face.
+      'digest':     '/digest',        // inward sense. the stomach already ate.
+      'journey':    '/journey',       // ouroboros quest. chipmunk walks west.
+      'identity':   '/identity',      // ZK fold. persona tensor.
+      'cytokine':   '/menagerie',
+      'interferon': '/menagerie',
+      'epitope':    '/like-us',
+      'thymus':     '/menagerie',
+      'macrophage': '/menagerie',
+      'antibody':   '/like-us',
+      'lysozyme':   '/menagerie',
     };
 
     if (FOLDS[sub]) {
