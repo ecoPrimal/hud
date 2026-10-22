@@ -243,13 +243,193 @@ addLog('<span style="color:var(--dim)">your actions travel: cursor → primals.e
   the game master is a spider on a GPU.
 </pre>
 
+<h2 id="library">🍎 the orchard — steam library</h2>
+<p>93 games. Sorted by how we can play together. Click a category to filter. Click a game to invite.</p>
+<p style="color:var(--green)">Steam ID: <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--green)">76561198002558137</a> · <a href="https://s.team/p/cjbk-bmvh/JQFVCWHJ" style="color:var(--green)" target="_blank">add friend</a></p>
+
+<div id="steam-filters" style="display:flex;flex-wrap:wrap;gap:4px;margin:12px 0">
+  <button class="steam-filter active" data-filter="all" onclick="filterGames('all')">all (93)</button>
+  <button class="steam-filter" data-filter="play-together" onclick="filterGames('play-together')" style="border-color:var(--green)">🎮 play together</button>
+  <button class="steam-filter" data-filter="solve-together" onclick="filterGames('solve-together')" style="border-color:var(--blue)">🧩 solve together</button>
+  <button class="steam-filter" data-filter="pass-the-controller" onclick="filterGames('pass-the-controller')" style="border-color:var(--gold)">🎯 pass the controller</button>
+  <button class="steam-filter" data-filter="all-ages" onclick="filterGames('all-ages')" style="border-color:var(--pink)">🌱 all ages</button>
+  <button class="steam-filter" data-filter="watch" onclick="filterGames('watch')" style="border-color:var(--purple)">👀 watch together</button>
+  <button class="steam-filter" data-filter="chill" onclick="filterGames('chill')" style="border-color:var(--dim)">☕ chill</button>
+  <button class="steam-filter" data-filter="solo" onclick="filterGames('solo')" style="border-color:#484f58">🧘 solo</button>
+</div>
+
+<div id="steam-games" style="margin:12px 0"></div>
+
+<style>
+.steam-filter { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 4px 12px; color: var(--dim); cursor: pointer; font-family: inherit; font-size: 0.75em; transition: all 0.2s; }
+.steam-filter:hover { color: var(--text); border-color: var(--green); }
+.steam-filter.active { background: var(--green); color: var(--bg); border-color: var(--green); }
+.game-card { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 3px; font-size: 0.78em; cursor: pointer; transition: all 0.2s; text-decoration: none; color: var(--text); vertical-align: top; max-width: 220px; }
+.game-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(63,185,80,0.15); }
+.game-card .game-name { font-weight: bold; margin-bottom: 3px; }
+.game-card .game-tags { font-size: 0.8em; color: var(--dim); }
+.game-card .game-family { font-size: 0.75em; margin-top: 4px; }
+.game-card[data-family="play-together"] { border-left: 3px solid var(--green); }
+.game-card[data-family="solve-together"] { border-left: 3px solid var(--blue); }
+.game-card[data-family="pass-the-controller"] { border-left: 3px solid var(--gold); }
+.game-card[data-family="all-ages"] { border-left: 3px solid var(--pink); }
+.game-card[data-family="watch"] { border-left: 3px solid var(--purple); }
+.game-card[data-family="chill"] { border-left: 3px solid var(--dim); }
+.game-card[data-family="solo"] { border-left: 3px solid #484f58; }
+.invite-bar { background: var(--card); border: 1px solid var(--green); border-radius: 8px; padding: 12px 16px; margin: 16px 0; display: none; }
+.invite-bar.show { display: block; }
+</style>
+
+<div id="invite-bar" class="invite-bar">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <span style="color:var(--green);font-size:0.85em" id="invite-title">🎮 invite to play</span>
+    <button onclick="closeInvite()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.2em">×</button>
+  </div>
+  <div id="invite-body" style="font-size:0.8em;color:var(--dim)"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button onclick="copyInvite()" style="background:var(--green);border:none;border-radius:6px;padding:6px 14px;color:var(--bg);cursor:pointer;font-family:inherit;font-size:0.8em">📋 copy invite</button>
+    <a id="steam-launch" href="#" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--blue);text-decoration:none;font-size:0.8em">🚀 open in Steam</a>
+  </div>
+</div>
+
+<script>
+var steamGames = [];
+fetch('/api/steam-library.json').then(r=>r.json()).then(function(data){
+  steamGames = data.games;
+  renderGames(steamGames);
+}).catch(function(){ document.getElementById('steam-games').textContent = 'loading library...'; });
+
+var familyLabels = {
+  'play-together': '🎮 co-op/multiplayer — let\'s play!',
+  'solve-together': '🧩 puzzle — we solve it together on the couch',
+  'pass-the-controller': '🎯 take turns — pass the controller',
+  'all-ages': '🌱 family-friendly — Tamison can play too',
+  'watch': '👀 spectator — fun to watch together',
+  'chill': '☕ relaxing — no pressure, just vibes',
+  'solo': '🧘 deep solo — one player journey',
+};
+
+var familyColors = {
+  'play-together': 'var(--green)', 'solve-together': 'var(--blue)',
+  'pass-the-controller': 'var(--gold)', 'all-ages': 'var(--pink)',
+  'watch': 'var(--purple)', 'chill': 'var(--dim)', 'solo': '#484f58',
+};
+
+function renderGames(games) {
+  var container = document.getElementById('steam-games');
+  // group by family
+  var groups = {};
+  games.forEach(function(g) {
+    if (!groups[g.family]) groups[g.family] = [];
+    groups[g.family].push(g);
+  });
+  
+  var order = ['play-together','all-ages','solve-together','pass-the-controller','watch','chill','solo'];
+  var html = [];
+  
+  order.forEach(function(fam) {
+    if (!groups[fam]) return;
+    var label = familyLabels[fam] || fam;
+    var color = familyColors[fam] || 'var(--dim)';
+    html.push('<div style="margin:16px 0 6px"><span style="color:'+color+';font-size:0.8em;font-weight:bold">'+label+' ('+groups[fam].length+')</span></div>');
+    groups[fam].sort(function(a,b){ return a.name.localeCompare(b.name); });
+    groups[fam].forEach(function(g) {
+      html.push('<a class="game-card" data-family="'+g.family+'" data-id="'+g.id+'" onclick="showInvite('+g.id+')" title="'+g.tags.join(', ')+'">');
+      html.push('<div class="game-name">'+g.name+'</div>');
+      html.push('<div class="game-tags">'+g.tags.slice(0,3).join(' · ')+'</div>');
+      if (g.coop) html.push('<div class="game-family" style="color:var(--green)">✓ co-op</div>');
+      if (g.multi && !g.coop) html.push('<div class="game-family" style="color:var(--blue)">✓ multiplayer</div>');
+      html.push('</a>');
+    });
+  });
+  
+  container.innerHTML = html.join('');
+}
+
+function filterGames(filter) {
+  document.querySelectorAll('.steam-filter').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('[data-filter="'+filter+'"]').classList.add('active');
+  
+  if (filter === 'all') { renderGames(steamGames); return; }
+  renderGames(steamGames.filter(function(g){ return g.family === filter; }));
+}
+
+var currentInviteGame = null;
+
+function showInvite(id) {
+  var game = steamGames.find(function(g){ return g.id === id; });
+  if (!game) return;
+  currentInviteGame = game;
+  
+  var bar = document.getElementById('invite-bar');
+  bar.classList.add('show');
+  
+  document.getElementById('invite-title').innerHTML = '🎮 ' + game.name;
+  
+  var body = '<strong>' + game.name + '</strong><br>';
+  body += 'tags: ' + game.tags.join(', ') + '<br>';
+  if (game.coop) body += '<span style="color:var(--green)">✓ has co-op!</span> ';
+  if (game.multi) body += '<span style="color:var(--blue)">✓ multiplayer</span>';
+  body += '<br><br>';
+  body += '<span style="color:var(--text)">hey — want to play ' + game.name + ' together? ';
+  if (game.coop) body += 'it\'s co-op so we can team up. ';
+  body += 'add me on Steam and let\'s go! 🎮</span>';
+  
+  document.getElementById('invite-body').innerHTML = body;
+  document.getElementById('steam-launch').href = 'steam://run/' + game.id;
+}
+
+function closeInvite() {
+  document.getElementById('invite-bar').classList.remove('show');
+}
+
+function copyInvite() {
+  if (!currentInviteGame) return;
+  var g = currentInviteGame;
+  var text = 'hey! want to play ' + g.name + ' together? ';
+  if (g.coop) text += 'it has co-op! ';
+  text += '\n\nadd me on Steam: https://s.team/p/cjbk-bmvh/JQFVCWHJ';
+  text += '\nor see my whole library: https://primals.eco/play#library';
+  text += '\n\n🎮 let\'s go!';
+  
+  navigator.clipboard.writeText(text).then(function(){
+    var btn = document.querySelector('[onclick="copyInvite()"]');
+    btn.textContent = '✓ copied!';
+    setTimeout(function(){ btn.textContent = '📋 copy invite'; }, 2000);
+  });
+}
+</script>
+
+<pre style="margin-top:20px">
+  🍎 the orchard — sorted by how we play
+
+  🎮 play together  — co-op/multiplayer, jump in
+  🌱 all ages       — Tamison can play
+  🧩 solve together — puzzle it out on the couch  
+  🎯 pass it        — take turns, share the controller
+  👀 watch together — one plays, the other narrates
+  ☕ chill           — no pressure, just vibes
+  🧘 solo           — deep journeys, one traveler
+
+  like Johnny Appleseed:
+  plant a game, share the orchard, 
+  the invite IS the seed.
+
+  steam://run/{id} opens it directly.
+  every game is a campfire.
+  come play. 🎲🍎
+</pre>
+
 <div class="footer">
   ludoSpring — the science of play<br>
   RPGPT dialogue engine · Disco Elysium internal voices · provably fair dice<br>
+  93 games sorted by how we play together · <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--blue)">Steam profile</a><br>
   powered by the membrane · no servers · no accounts · just play<br>
-  <span style="color:var(--purple);">🎲</span>
+  <span style="color:var(--purple);">🎲</span> <span style="color:var(--green);">🍎</span>
 </div>
 
 </div>
+
+<script defer src="/js/campfire.js?v=1"></script>
 </body>
 </html>
