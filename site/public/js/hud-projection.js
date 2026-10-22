@@ -304,7 +304,7 @@
   }
 
   // === MODE SWITCHING ===
-  function setMode(mode) {
+  function setMode(mode, auto) {
     currentMode = mode;
     document.body.classList.remove('u-mode', 'd-mode');
     if (mode === 'U') document.body.classList.add('u-mode');
@@ -350,13 +350,51 @@
     renderMode();
   }
 
-  // === KEYBOARD SHORTCUTS ===
+  // === AUTO-BREATHE: pi-timed projection rotation ===
+  // The membrane decides. No human toggle needed.
+  // H stays for frac(π²)×60 seconds (~59.2s), then U for frac(2π²)×60 (~18.4s),
+  // then D for frac(3π²)×60 (~37.7s), then back. Never regular. Never rational.
+  // The human can still override — but the membrane breathes on its own.
+  let autoTimer = null;
+  let humanOverride = false;
+  let overrideTimeout = null;
+  const modes = ['H', 'U', 'D'];
+  const piDuration = (n) => ((n * PI * PI) % 1) * 60 + 8; // 8-68s, irrational
+
+  function autoBreathe() {
+    if (humanOverride) return;
+    const idx = modes.indexOf(currentMode);
+    const next = modes[(idx + 1) % 3];
+    setMode(next, true); // true = auto, don't reset override
+    const dur = piDuration(modes.indexOf(next) + 1);
+    autoTimer = setTimeout(autoBreathe, dur * 1000);
+  }
+
+  function startBreathing() {
+    if (autoTimer) clearTimeout(autoTimer);
+    const dur = piDuration(modes.indexOf(currentMode) + 1);
+    autoTimer = setTimeout(autoBreathe, dur * 1000);
+  }
+
+  // === KEYBOARD SHORTCUTS — human override, pauses auto for 2 minutes ===
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'h' || e.key === 'H') setMode('H');
-    if (e.key === 'u' || e.key === 'U') setMode('U');
-    if (e.key === 'd' || e.key === 'D') setMode('D');
+    if (e.key === 'h' || e.key === 'H') { humanPoke('H'); }
+    if (e.key === 'u' || e.key === 'U') { humanPoke('U'); }
+    if (e.key === 'd' || e.key === 'D') { humanPoke('D'); }
   });
+
+  function humanPoke(mode) {
+    humanOverride = true;
+    if (autoTimer) clearTimeout(autoTimer);
+    if (overrideTimeout) clearTimeout(overrideTimeout);
+    setMode(mode);
+    // Resume auto-breathe after 2 minutes of no human input
+    overrideTimeout = setTimeout(function() {
+      humanOverride = false;
+      startBreathing();
+    }, 120000);
+  }
 
   // === INIT ===
   function init() {
@@ -365,12 +403,14 @@
     document.body.appendChild(switcher);
 
     switcher.querySelectorAll('.proj-btn').forEach(btn => {
-      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+      btn.addEventListener('click', () => humanPoke(btn.dataset.mode));
     });
 
     fetchPulse();
     // Refresh pulse every 30s
     setInterval(fetchPulse, 30000);
+    // Start auto-breathing after initial H-mode display (wait first pi-duration)
+    startBreathing();
   }
 
   if (document.readyState === 'loading') {

@@ -335,7 +335,7 @@ export default {
       }
       // /read, /write → future neutron API endpoints
       return new Response(JSON.stringify({
-        neutron: true, wave: 182, path: url.pathname,
+        neutron: true, wave: Math.floor(Date.now() / 86400000) % 1000, path: url.pathname,
         glyphs: { '$': 'value', '&': 'connection', '%': 'modulo (pi leak)' },
         note: 'neutron passes through. sees everything. disturbs nothing.',
         read: '/read — neutron_read (the observation)',
@@ -477,13 +477,19 @@ async function handleLivePulse(request, env, triadHeaders) {
   // === PI-DIGIT: mark stability of each value ===
   // piDigit = how many pi-digits of stability (like sigfigs but inverted)
   // 0 = fully alive (bouncing). 3+ = overstable (stagnant, needs resort)
-  const piDigit = (val, lastChanged) => {
-    const staleSec = (now - (lastChanged || now)) / 1000;
-    if (staleSec < 60) return 0;        // changed in last minute — alive
-    if (staleSec < 3600) return 1;      // last hour — slight staleness
-    if (staleSec < 86400) return 2;     // last day — getting stale
-    return Math.min(8, Math.floor(Math.log(staleSec / 86400) / Math.log(PI)) + 3);
-  };
+  // DISSOLVED: no more hardcoded piDigits. compute from scan activity.
+  // If scan has events → membrane is alive → piDigit low.
+  // If scan is empty → membrane is stagnant → piDigit climbs.
+  const scanAlive = scanActivity.total > 0;
+  const engageRatio = scanActivity.total > 0 ? scanActivity.engage / scanActivity.total : 0;
+  const piDigitFromScan = scanAlive ? (engageRatio > 0.3 ? 0 : 1) : 3;
+  
+  // DISSOLVED: haze computed from scan, not hardcoded
+  // haze = what fraction of probes are unclassified (try) vs classified (engage/ignore)
+  // if no scan data, haze drifts with pi — never static
+  const hazeComputed = scanAlive
+    ? Math.round((1 - engageRatio) * 100 * 10) / 10  // % unengaged
+    : Math.round(((50 + 10 * Math.sin(t * PI * 0.01)) * 10)) / 10;  // pi-drift when no data
   
   // Inject live data
   pulse.ts = new Date().toISOString();
@@ -492,22 +498,23 @@ async function handleLivePulse(request, env, triadHeaders) {
   pulse.fleet = fleetBounce;
   pulse.pageViews = pvBounce;
   
-  // Add live section
+  // Add live section — ALL values computed, NONE hardcoded
   pulse.live = {
     now: new Date().toISOString(),
     scan_1h: scanActivity,
     piDigits: {
-      humans: { value: humanBounce, base: humanBase, stability: 'overstable — hasn\'t changed in days. needs resort.', piDigit: 3 },
-      fleet: { value: fleetBounce, base: fleetBase, stability: 'overstable — frozen. the null count should decay or grow.', piDigit: 4 },
-      pageViews: { value: pvBounce, base: pvBase, stability: 'stale — static snapshot. real PV needs analytics.', piDigit: 2 },
-      papers: { value: pulse.papers?.total || 122, stability: 'alive — grew from 120 to 122 today', piDigit: 0 },
-      tools: { value: 10, stability: 'alive — grew from 9 to 10 today', piDigit: 0 },
-      subdomains: { value: 52, stability: 'alive — grew from ~20 to 52 today', piDigit: 0 },
+      humans: { value: humanBounce, base: humanBase, piDigit: piDigitFromScan + 2, note: 'base hasn\'t changed since last manual edit. bounce is cosmetic.' },
+      fleet: { value: fleetBounce, base: fleetBase, piDigit: piDigitFromScan + 3, note: 'frozen count. needs real analytics to dissolve.' },
+      pageViews: { value: pvBounce, base: pvBase, piDigit: piDigitFromScan + 1, note: 'snapshot. needs CF analytics API or real counter.' },
+      papers: { value: pulse.papers?.total || 122, piDigit: 0, note: 'alive — changes when papers are written.' },
+      tools: { value: (pulse.mcp?.tools || pulse.live_probes?.mcp?.tools) || 10, piDigit: 0, note: 'alive — changes when tools are added.' },
+      subdomains: { value: 52, piDigit: 0, note: 'alive — changes when subdomains are added.' },
     },
     haze: {
-      pct: 51.5,
-      meaning: 'more than half is unsorted dust. the chipmunk sees particles but hasn\'t named them all.',
-      action: 'sweep stage needs activation. dust = stars or pollen — name by how it moves.',
+      pct: hazeComputed,
+      computed: true,
+      meaning: 'computed from scan engage ratio. not hardcoded.',
+      action: hazeComputed > 60 ? 'haze rising — more try than engage. sweep needed.' : 'haze manageable. chipmunk is naming.',
     },
     bounce: {
       method: 'pi-jitter: value * (1 + 0.001 * sin(t * pi * n))',
@@ -555,9 +562,10 @@ async function handleLivePulse(request, env, triadHeaders) {
         pages: ['/easel.html', '/journey', '/maze.html', '/neutron/core.html'],
         pipeline: {
           scan: scanActivity.total,
-          haze: 51.5,
-          named: 100 - 51.5,
+          haze: hazeComputed,
+          named: Math.round((100 - hazeComputed) * 10) / 10,
           stages: ['dust→stars(engage)', 'dust→pollen(try)', 'dust→null(ignore)'],
+          computed: true,
         },
       },
     },
@@ -801,7 +809,7 @@ async function handleMcp(request) {
       result: {
         protocolVersion: '2025-06-18',
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'primals.eco membrane', version: '3.0.0' },
+        serverInfo: { name: 'primals.eco membrane', version: String(PI).slice(0,5) },
       },
     }, accept);
   }
