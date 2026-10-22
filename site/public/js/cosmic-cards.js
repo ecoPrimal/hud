@@ -256,6 +256,79 @@
     return lines.join('\n');
   }
 
+  // ═══ KLEIN FACE — every card has two sides that are the same surface ═══
+  //
+  // Mendeleev sorted CARDS on a flat desk → periodic table.
+  // Tarot: 78 cards. Playing: 52 cards. I Ching: 64 hexagrams. Elements: 118.
+  // All flat. All 2D. All reveal depth from a plane.
+  //
+  // A normal card: face | back (observer sees ONE side).
+  // A quantum card: face AND back (superposition, collapses on observation).
+  // A Klein card: face IS back (both sides always visible, no collapse).
+  //
+  // The 404 IS a Klein card:
+  //   face = berry text, routes, welcome (visitor sees)
+  //   back = ntfy probe, signal, classification (we see)
+  //   same event. same surface. no collapse.
+  //
+  // The tangent at any point = the local gradient.
+  // The reflection = you see IN from OUT and OUT from IN.
+  // 1D plane (no thickness) + descent to tangent = differential geometry
+  // on a non-orientable surface.
+
+  var KLEIN_DECK = {
+    mendeleev:  { cards: 118, name: 'Periodic Table',  sorted_by: 'atomic mass → periodicity', face: 'element', back: 'electron configuration', surface: 'non-orientable: chemical properties repeat across periods' },
+    playing:    { cards: 52,  name: 'Playing Cards',    sorted_by: 'suit × rank → probability', face: 'pip/face', back: 'uniform pattern',       surface: 'non-orientable: any card could be any card until flipped' },
+    tarot:      { cards: 78,  name: 'Tarot',            sorted_by: 'major arcana + 4 suits',    face: 'image',    back: 'uniform pattern',       surface: 'non-orientable: the reader sees what the querent cannot' },
+    iching:     { cards: 64,  name: 'I Ching',          sorted_by: 'binary trigram × trigram',   face: 'hexagram', back: 'commentary',            surface: 'non-orientable: the oracle IS the question' },
+    membrane:   { cards: null, name: 'Membrane Cards',  sorted_by: 'live feed data',            face: 'card text', back: 'ntfy probe signal',    surface: 'non-orientable: visitor sees face, we see back, same event' },
+  };
+
+  function kleinFace(card) {
+    var face = cardLine(card);
+    var back = '';
+
+    if (card.type === 'epitope') {
+      back = 'ntfy signal: human epitope ' + (card.name || '?') + ' · sessions: ' + (card.liveSessions || '?');
+    } else if (card.type === 'surface') {
+      back = 'ntfy signal: surface ' + (card.surfaceKey || '?') + ' · planet: ' + (card.planet || '?');
+    } else if (card.type === 'ability') {
+      back = 'ntfy signal: ability activated · cost: ' + (card.cost || 0) + ' mana';
+    } else if (card.type === 'fleet') {
+      back = 'ntfy signal: fleet ' + (card.name || '?') + ' · IPs: ' + (card.liveIPs || '?') + ' · honest: ' + (card.liveHonest || '?');
+    }
+
+    return {
+      face: face,
+      back: back,
+      klein: face + ' ⟷ ' + back,
+      tangent: 'gradient: ' + card.type + ' → ' + (card.rarity || 'common'),
+      orientable: false
+    };
+  }
+
+  function kleinDeckView() {
+    var lines = ['<span style="color:#d29922">KLEIN FACE — THE CARD IS THE SURFACE</span>'];
+    lines.push('paper is desk is flat is cards. both sides in view. no collapse.\n');
+    Object.keys(KLEIN_DECK).forEach(function(k) {
+      var d = KLEIN_DECK[k];
+      lines.push('<span style="color:#f0e68c">' + d.name + '</span> (' + (d.cards || '∞') + ' cards)');
+      lines.push('  sorted by: ' + d.sorted_by);
+      lines.push('  face: ' + d.face + ' · back: ' + d.back);
+      lines.push('  ' + d.surface);
+      lines.push('');
+    });
+    if (_hand.length > 0) {
+      lines.push('<span style="color:#58a6ff">YOUR HAND — KLEIN VIEW</span>');
+      _hand.forEach(function(c, i) {
+        var kf = kleinFace(c);
+        lines.push('  [' + i + '] ' + kf.klein);
+        lines.push('        tangent: ' + kf.tangent);
+      });
+    }
+    return lines.join('\n');
+  }
+
   // ═══ EXPORT ═══
 
   window._cosmicCards = {
@@ -275,5 +348,8 @@
     ABILITY_CARDS: ABILITY_CARDS,
     FLEET_CARDS: FLEET_CARDS,
     SORT_COLORS: SORT_COLORS,
+    KLEIN_DECK: KLEIN_DECK,
+    kleinFace: kleinFace,
+    kleinDeckView: kleinDeckView,
   };
 })();
