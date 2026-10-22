@@ -1,3 +1,4 @@
+// chromatized: 2026-10-22T12:52:52Z
 // _worker.js — the Klein fold
 // catches ALL requests to *.primals.eco
 // routes subdomains → HUD paths
@@ -983,3 +984,4 @@ async function handleMcp(request) {
   }
   return mcpReply({ jsonrpc: '2.0', id, error: { code: -32601, message: 'unknown method ' + method } }, accept);
 }
+
