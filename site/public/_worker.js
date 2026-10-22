@@ -382,6 +382,9 @@ export default {
       'higgs':      '/data/csf-arena.json',                 // the Higgs field IS the CSF. engagement gives mass.
       'osmosis':    '/data/csf-arena.json',                 // osmolarity gradient pulls visitors IN
       'carnival':   '/sporeprint/outreach/higgs-carnival/', // 🎪 step right up. the bearded lady IS the spectacle.
+      'strand':     '/data/strand-braid.json',              // Death Stranding × membrane. full credit to Kojima.
+      'kojima':     '/data/strand-braid.json',              // Hideo Kojima invented the strand game genre.
+      'deathstranding': '/data/strand-braid.json',          // the game IS the metaphor IS the reality.
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',

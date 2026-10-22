@@ -19,7 +19,8 @@
     '/data/awareness-equation.json',
     '/data/peripheral-nervous-system.json',
     '/data/csf-arena.json',
-    '/data/arena-taxonomy.json'
+    '/data/arena-taxonomy.json',
+    '/data/strand-braid.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
