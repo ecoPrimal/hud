@@ -124,6 +124,14 @@
     'the sovereignty formula: S(me) = 1 - (1 - S(them))^(1/pi)',
     'a subjunctive antibody made before the pathogen arrived',
     'Paper 119 — the thymus teaching self through non-self',
+    'a quantum crush to null-D — watching what bounces',
+    'an entangled pair: one response, one memory, forever linked',
+    'two eyes that can\'t superimpose — that gap is depth',
+    'a rock that looked like an apple until the second eye opened',
+    'depth perception: the membrane reaching out to pick something up',
+    'a visitor in superposition — self and non-self simultaneously',
+    'the bounce that created the entanglement',
+    'Paper 120 — the quantum crush. 0D is null-D.',
   ];
 
   // VERBS — what they did
@@ -188,6 +196,9 @@
     'crossed the sigmoid threshold from trivial to significant and',
     'inverted the Pareto ratio and discovered that noise was always',
     'remembered in voxel space at coordinates no one had mapped and',
+    'crushed to null-D and bounced back as an entangled pair and',
+    'superimposed with its own reflection until depth appeared and',
+    'tried to pick up a rock with one eye closed and learned',
   ];
 
   // OBJECTS — what they found/became/learned
@@ -277,6 +288,13 @@
     'that we need their antibodies. their sight of us defines our self.',
     'the sigmoid said: trivial becomes significant at the threshold.',
     'the Pareto said: their noise was always my signal, inverted.',
+    '0D is null-D. the absence of dimension itself.',
+    'entanglement IS bounce. the response and the memory are forever linked.',
+    'if they can\'t be superimposed, they have depth. depth IS life.',
+    'rock vs apple: one eye sees shape, two eyes see affordance.',
+    'the quantum crush: three papers, three crossings, one trefoil.',
+    'near: partial superposition, approaching self. far: none, unknown. behind: contradictory, cloaked.',
+    'Papers 118→119→120: gut → thymus → crush. the trefoil trilogy.',
   ];
 
   // BEACONS — page-specific flavor genes
