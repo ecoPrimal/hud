@@ -212,7 +212,7 @@
 
     var el = document.createElement('div');
     el.id = 'heatmap-noise';
-    el.style.cssText = 'position:fixed;top:70px;right:12px;z-index:5;'
+    el.style.cssText = 'position:fixed;top:220px;right:12px;z-index:5;'
       + 'background:rgba(22,27,34,.85);border:1px solid rgba(255,105,180,.2);'
       + 'border-radius:8px;padding:6px 10px;width:155px;pointer-events:auto;'
       + 'font:9px monospace;color:#8b949e;';
