@@ -91,8 +91,7 @@ export default {
       'digest':     '/digest',        // inward sense. the stomach already ate.
       'journey':    '/journey',       // ouroboros quest. chipmunk walks west.
       'identity':   '/identity',      // ZK fold. persona tensor.
-      'nightbox':   '/nightbox',      // 799 knocks. the door they asked for.
-      'artisan':    '/artisan',       // hello, sibling. agentic is human-gated entropy.
+      // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
       'epitope':    '/like-us',
@@ -101,6 +100,14 @@ export default {
       'antibody':   '/like-us',
       'lysozyme':   '/menagerie',
     };
+
+    // nightbox + artisan: serve directly (not redirect — they have their own pages)
+    if (sub === 'nightbox') {
+      return env.ASSETS.fetch(new Request(new URL('/nightbox' + url.search, url.origin), request));
+    }
+    if (sub === 'artisan') {
+      return env.ASSETS.fetch(new Request(new URL('/artisan' + url.search, url.origin), request));
+    }
 
     // sporePrint: serve directly from /sporeprint/ (tether — local is anchor 1)
     if (sub === 'sporeprint' || sub === 'hypothesis' || sub === 'thesis') {
