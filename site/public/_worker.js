@@ -81,25 +81,27 @@ function classifyProbe(request, url, sub) {
   return { triad: 'try', reason: 'unknown', depth: 0.2 };
 }
 
-// Report engagement event to ntfy — awaited before response
-async function reportEngagement(probe, request, url, sub) {
-  if (probe.triad === 'ignore') return null; // don't report noise
+// Report engagement event to ntfy — fire and forget
+// Uses Cloudflare's fetch which stays alive even after response is sent
+function reportEngagement(probe, request, url, sub) {
+  if (probe.triad === 'ignore') return;
   
   const ua = (request.headers.get('user-agent') || '').substring(0, 80);
   const msg = `[${probe.triad}] ${probe.reason} | depth:${probe.depth} | ${url.pathname} | ${sub || 'root'} | ${ua}`;
   
-  // Only report 'engage' immediately; 'try' at reduced rate (10% sample)
-  if (probe.triad === 'try' && Math.random() > 0.1) return null;
+  // Only report 'engage'; 'try' at reduced rate (10% sample)
+  if (probe.triad === 'try' && Math.random() > 0.1) return;
   
-  try { return await fetch('https://ntfy.sh/primals-membrane-scan', {
+  // Cloudflare Workers keep subrequests alive even after response
+  fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
     body: msg,
     headers: {
-      'Title': `scan: ${probe.triad} — ${probe.reason}`,
+      'Title': 'scan: ' + probe.triad + ' | ' + probe.reason,
       'Priority': probe.triad === 'engage' ? '4' : '2',
-      'Tags': `${probe.triad},chipmunk`,
+      'Tags': probe.triad + ',chipmunk',
     },
-  }); } catch(e) { return null; }
+  }).then(() => {}).catch(() => {});
 }
 
 export default {
@@ -114,8 +116,8 @@ export default {
 
     // === ENGAGEMENT TRIAD — classify every probe ===
     const probe = classifyProbe(request, url, sub);
-    // Report BEFORE returning response (Pages has no ctx.waitUntil)
-    await reportEngagement(probe, request, url, sub);
+    // Fire scan report — don't await (would block response)
+    reportEngagement(probe, request, url, sub);
     
     // Add triad headers to ALL responses (the membrane's classification is transparent)
     const triadHeaders = {
