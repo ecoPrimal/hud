@@ -18,23 +18,58 @@ export default {
       if (url.pathname === '/mcp' || url.pathname === '/mcp/') {
         return handleMcp(request);
       }
+
+      // sporePrint science paths on the root domain → GitHub Pages origin
+      // sporePrint deploys to primals.eco via GitHub Pages CNAME
+      // but Cloudflare intercepts. so we proxy science/architecture/lab
+      // from the GitHub Pages origin. the Circle of Willis: multiple arteries.
+      const sciencePaths = ['/science/', '/architecture/', '/lab/', '/glossary/',
+                            '/primals/', '/springs/', '/thesis/', '/philosophy/',
+                            '/story/', '/vision/', '/audience/', '/collaborators/',
+                            '/backstory/', '/certification/', '/contact/',
+                            '/atom.xml', '/sitemap.xml', '/llms.txt',
+                            '/search_index.en.json'];
+      const isSporePrint = sciencePaths.some(p => url.pathname.startsWith(p));
+
+      if (isSporePrint) {
+        // proxy from GitHub Pages — the shared forge across all
+        const ghOrigin = 'https://ecoprimals.github.io';
+        const ghUrl = ghOrigin + '/sporePrint' + url.pathname;
+        const ghResp = await fetch(ghUrl, {
+          headers: { 'Accept': request.headers.get('Accept') || 'text/html' },
+          cf: { cacheTtl: 60 },
+        });
+        if (ghResp.ok) {
+          return new Response(ghResp.body, {
+            status: 200,
+            headers: {
+              'content-type': ghResp.headers.get('content-type') || 'text/html; charset=utf-8',
+              'cache-control': 'public, max-age=60',
+              'x-origin': 'github-pages-sporePrint',
+              'x-klein-fold': 'science proxied through the membrane',
+              'access-control-allow-origin': '*',
+            },
+          });
+        }
+        // if GitHub Pages 404s, fall through to HUD assets (which has the 404 catcher)
+      }
+
       return env.ASSETS.fetch(request);
     }
 
     // known subdomain → path redirects (the fold)
     const FOLDS = {
       'water':      '/',              // wateringHole IS the core, becomes the HUD
-      'sporeprint': '/sporeprint',    // sporePrint bedrock
+      // sporeprint handled separately below — proxied from GitHub Pages
       'tuebor':     '/',              // defense IS the membrane
       'detroit':    '/',              // evidence lives in the HUD dashboard
       'signal':     '/',              // observatory IS the membrane view
       'clutch':     '/',              // investigation IS the sort deck
-      'hypothesis': '/sporeprint',    // hypothesis → sporePrint
-      'thesis':     '/sporeprint',    // thesis → sporePrint
+      // hypothesis and thesis handled above with sporeprint proxy
       'gorilla':    '/',              // verification IS the membrane
       'barry':      '/',              // evidence → HUD
       'live':       '/',              // petalTongue → HUD (it IS live)
-      'git':        '/',              // source → HUD (nav ring has git link)
+      // git handled above — redirects to GitHub
       'totality':   '/totality',
       'maze':       '/maze',
       'play':       '/play',
@@ -60,8 +95,39 @@ export default {
       'lysozyme':   '/menagerie',
     };
 
+    // sporeprint subdomain → proxy ALL content from GitHub Pages
+    if (sub === 'sporeprint' || sub === 'hypothesis' || sub === 'thesis') {
+      const ghOrigin = 'https://ecoprimals.github.io';
+      const ghUrl = ghOrigin + '/sporePrint' + url.pathname;
+      const ghResp = await fetch(ghUrl, {
+        headers: { 'Accept': request.headers.get('Accept') || 'text/html' },
+        cf: { cacheTtl: 60 },
+      });
+      if (ghResp.ok) {
+        return new Response(ghResp.body, {
+          status: 200,
+          headers: {
+            'content-type': ghResp.headers.get('content-type') || 'text/html; charset=utf-8',
+            'cache-control': 'public, max-age=60',
+            'x-origin': 'github-pages-sporePrint',
+            'x-klein-fold': 'sporePrint proxied through membrane',
+            'access-control-allow-origin': '*',
+          },
+        });
+      }
+      // fall through to HUD if GH Pages fails
+      return env.ASSETS.fetch(request);
+    }
+
+    // git subdomain → redirect to GitHub (Forgejo is the backup artery)
+    if (sub === 'git') {
+      const ghTarget = url.pathname === '/' 
+        ? 'https://github.com/ecoPrimals'
+        : 'https://github.com/ecoPrimals' + url.pathname;
+      return Response.redirect(ghTarget, 302);
+    }
+
     if (FOLDS[sub]) {
-      // preserve the path if one was given
       const targetPath = url.pathname === '/' ? FOLDS[sub] : url.pathname;
       const targetUrl = `https://primals.eco${targetPath}${url.search}`;
       return Response.redirect(targetUrl, 302);
