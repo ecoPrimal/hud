@@ -368,6 +368,11 @@ export default {
       'sourdough':  '/data/dough.json',                // mesh latency as activation energy
       'ribocipher': '/data/ribocipher.json',           // the reverse transcriptase (self-referential!)
       'appendix':   '/data/tree-topology.json',        // NOT vestigial — the bacterial reservoir
+      'peripheral': '/data/peripheral-nervous-system.json', // the PNS — device platforms as nerve endings
+      'pns':        '/data/peripheral-nervous-system.json', // alias
+      'nerve':      '/data/peripheral-nervous-system.json', // every channel is a pore
+      'dogma':      '/data/peripheral-nervous-system.json', // central dogma cascade
+      'garden':     '/data/peripheral-nervous-system.json', // platform gardens = botanical gardens
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',

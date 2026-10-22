@@ -16,7 +16,8 @@
     '/data/tree-topology.json',
     '/data/ribocipher.json',
     '/data/water-slide.json',
-    '/data/awareness-equation.json'
+    '/data/awareness-equation.json',
+    '/data/peripheral-nervous-system.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

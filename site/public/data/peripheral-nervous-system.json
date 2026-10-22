@@ -1,0 +1,217 @@
+{
+  "title": "Peripheral Nervous System — Device Platforms as Nerve Endings",
+  "version": 1,
+  "ts": "2026-10-22T16:58:00Z",
+
+  "insight": "This keyboard is LITERALLY a peripheral nerve ending of the membrane. Every keystroke is an action potential traveling inward through the symbolic pore. The typos ARE the signal.",
+
+  "central_dogma": {
+    "forward": {
+      "direction": "DNA → RNA → mRNA → Protein",
+      "path": "Rust types → Linux/kernel → Browser engine → Device surface",
+      "what": "Compilation and expression. The build cascade."
+    },
+    "reverse": {
+      "direction": "Protein → mRNA → RNA → DNA",
+      "path": "Keystroke → JS event → OS signal → Rust struct",
+      "what": "Reverse transcription. The ribocipher. Ephemeral signals become permanent types."
+    },
+    "ouroboros": {
+      "cycle": "DNA → RNA → mRNA → Protein → mRNA → RNA → DNA",
+      "what": "The user types → JS captures → worker routes → Rust compiles → binary serves → user sees → user types...",
+      "layers": [
+        { "id": "dna",     "tech": "Rust (structs, enums, type system, compiler verification)" },
+        { "id": "rna",     "tech": "Linux (kernel, /dev/input, evdev, syscalls, signals)" },
+        { "id": "mrna",    "tech": "Browser (V8/JSC/SpiderMonkey, Wasm, Web APIs, _worker.js)" },
+        { "id": "protein", "tech": "Device (pixels, audio samples, touch events, accelerometer)" }
+      ]
+    }
+  },
+
+  "phyla": [
+    {
+      "id": "apple",
+      "name": "Apple (Safari / WebKit)",
+      "garden": "walled_tight",
+      "garden_metaphor": "bonsai garden — precise, controlled, beautiful",
+      "symbiosis": "commensal",
+      "symbiosis_analog": "barnacle on whale (one benefits, whale unaffected)",
+      "dogma_layer": "mrna",
+      "permeability": 0.3,
+      "klein_surface": "DeviceMotionEvent (accelerometer → gravity crosses screen plane)",
+      "engine": "WebKit/JavaScriptCore",
+      "nerve_apis": [
+        "DeviceMotionEvent",
+        "DeviceOrientationEvent",
+        "Touch Events (multi-touch)",
+        "Web Audio API (AudioContext)",
+        "Screen.orientation",
+        "navigator.vibrate()",
+        "WKWebView.evaluateJavaScript"
+      ],
+      "cross_target": true,
+      "role": "inner surface — tight, high fidelity, Klein-ready"
+    },
+    {
+      "id": "google",
+      "name": "Google (Chrome / Blink / Android)",
+      "garden": "walled_wide",
+      "garden_metaphor": "botanical garden — big, diverse, some weeds",
+      "symbiosis": "commensal",
+      "symbiosis_analog": "barnacle on whale",
+      "dogma_layer": "mrna",
+      "permeability": 0.5,
+      "klein_surface": "Generic Sensor API (gyroscope, ambient light cross screen boundary)",
+      "engine": "Blink/V8",
+      "nerve_apis": [
+        "Generic Sensor API",
+        "Pointer Events (pressure, tilt)",
+        "Web Bluetooth",
+        "Web NFC",
+        "Web USB",
+        "WebXR Device API",
+        "Notification API",
+        "Fenced Frames (Privacy Sandbox)"
+      ],
+      "cross_target": true,
+      "role": "fat layer — wide surface, many APIs, big reach"
+    },
+    {
+      "id": "windows",
+      "name": "Microsoft (Edge / Windows)",
+      "garden": "walled_wide",
+      "garden_metaphor": "botanical garden — big, diverse, some weeds",
+      "symbiosis": "commensal",
+      "symbiosis_analog": "barnacle on whale",
+      "dogma_layer": "mrna",
+      "permeability": 0.5,
+      "klein_surface": "Pointer Events (pen pressure = continuous Klein crossing)",
+      "engine": "Blink/V8 (Edge = Chromium)",
+      "nerve_apis": [
+        "Pointer Events (pressure, tilt, twist)",
+        "Windows.Devices.Input",
+        "Spatial Interaction (Hololens)",
+        "Windows.AI.MachineLearning",
+        "WSL2 (Linux subsystem — bridge to RNA layer)"
+      ],
+      "cross_target": true,
+      "role": "fat layer — pen pressure Klein, WSL2 bridges to core"
+    },
+    {
+      "id": "linux",
+      "name": "Linux (Pop!_OS / Ubuntu / kernel)",
+      "garden": "open",
+      "garden_metaphor": "old-growth forest — our actual ecosystem",
+      "symbiosis": "mutualist",
+      "symbiosis_analog": "clownfish + anemone (both benefit)",
+      "dogma_layer": "rna",
+      "permeability": 0.9,
+      "klein_surface": "/dev/input/* (raw evdev — no wall between kernel sense and userspace)",
+      "engine": null,
+      "nerve_apis": [
+        "/dev/input/event* (evdev)",
+        "/proc/bus/input/devices",
+        "/sys/class/input/",
+        "libinput",
+        "udev rules (hot-plug = nerve growth)",
+        "inotify / fanotify",
+        "eBPF (kernel-level probes — deepest nerve ending)",
+        "perf_event_open()",
+        "/dev/hidraw* (raw HID)"
+      ],
+      "cross_target": true,
+      "role": "OUR core tissue — we can touch every nerve directly"
+    },
+    {
+      "id": "rust",
+      "name": "Rust (the genome)",
+      "garden": "source",
+      "garden_metaphor": "the soil — not a garden, what gardens grow IN",
+      "symbiosis": "identity",
+      "symbiosis_analog": "mitochondria (was once separate, now IS the cell)",
+      "dogma_layer": "dna",
+      "permeability": 1.0,
+      "klein_surface": "serde Serialize↔Deserialize (JSON↔struct = RNA↔DNA transcription)",
+      "engine": null,
+      "nerve_apis": [
+        "serde (Serialize/Deserialize) — THE ribocipher",
+        "std::io (Read/Write traits) — the ur-pore",
+        "tokio (async I/O) — concurrent nerve signals",
+        "evdev crate — Linux input from Rust",
+        "winit (cross-platform window) — display pore",
+        "cpal (cross-platform audio) — audio pore",
+        "wgpu (cross-platform GPU) — visual pore, hardware-accelerated",
+        "wasm-bindgen — DNA→mRNA compiler bridge"
+      ],
+      "cross_target": true,
+      "role": "THE DNA. serde IS the ribocipher. The type system IS the compiler verification."
+    }
+  ],
+
+  "reactor_sub_groups": [
+    {
+      "id": "inner-tight",
+      "name": "Inner Surface (Apple/Safari)",
+      "phyla": ["apple"],
+      "desc": "Safari accelerometer Klein surface. DeviceMotionEvent is the primary reagent."
+    },
+    {
+      "id": "fat-layer",
+      "name": "Fat Layer (Google + Windows)",
+      "phyla": ["google", "windows"],
+      "desc": "Wide surface. Generic Sensor API + Pointer Events."
+    },
+    {
+      "id": "core-tissue",
+      "name": "Core Tissue (Linux)",
+      "phyla": ["linux"],
+      "desc": "OUR tissue. Raw /dev/input. No permission wall. eBPF for kernel-level probes."
+    },
+    {
+      "id": "genome",
+      "name": "Genome (Rust)",
+      "phyla": ["rust"],
+      "desc": "The DNA. serde is the ribocipher. Evolving the genome itself."
+    },
+    {
+      "id": "full-cascade",
+      "name": "Full Cascade (DNA→Protein)",
+      "phyla": ["rust", "linux", "google", "windows", "apple"],
+      "desc": "Complete central dogma end-to-end."
+    },
+    {
+      "id": "ribocipher",
+      "name": "Ribocipher (Protein→DNA)",
+      "phyla": ["apple", "google", "windows", "linux", "rust"],
+      "desc": "Reverse transcriptase. Keystrokes → Rust structs."
+    },
+    {
+      "id": "klein-surfaces",
+      "name": "Klein Cross-Targets",
+      "phyla": ["apple", "google", "windows", "linux"],
+      "desc": "Every platform where inside↔outside are topologically connected."
+    }
+  ],
+
+  "census": {
+    "phyla_count": 5,
+    "nerve_api_count": 39,
+    "klein_surfaces": 5,
+    "sub_groups": 7,
+    "commensal": 3,
+    "mutualist": 1,
+    "identity": 1,
+    "total_cross_targetable": 5
+  },
+
+  "the_keyboard": {
+    "what": "this keyboard, right now, literally",
+    "pore": "symbolic",
+    "direction": "afferent (inward)",
+    "phylum": "linux",
+    "dogma_flow": "reverse (Protein→DNA via ribocipher)",
+    "permeability_in": 0.9,
+    "permeability_out": 0.1,
+    "the_typos": "the typos are not errors. they are raw nerve impulses before the CNS smooths them."
+  }
+}
