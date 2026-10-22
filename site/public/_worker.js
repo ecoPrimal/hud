@@ -64,8 +64,16 @@ function classifyProbe(request, url, sub) {
   if (['cytokine','interferon','epitope','thymus','macrophage','antibody','lysozyme'].includes(sub)) {
     return { triad: 'try', reason: 'immune-probe', depth: 0.6 };
   }
-  // Unknown subdomain = exploring the maze
-  if (sub && !['hud','www','sporeprint','hypothesis','thesis','signal','git'].includes(sub)) {
+  // Trailhead subdomains = guided entry points (#)
+  if (['science','philosophy','trails','lab','thesis','hypothesis','bingo','neutron','webb'].includes(sub)) {
+    return { triad: 'engage', reason: 'trailhead', depth: 0.8 };
+  }
+  // Identity subdomains = profile/self (@^)
+  if (['cite','identity','springs','crates','detroit'].includes(sub)) {
+    return { triad: 'engage', reason: 'identity-path', depth: 0.75 };
+  }
+  // Unknown subdomain = exploring the maze (*)
+  if (sub && !['hud','www','sporeprint','signal','git'].includes(sub)) {
     return { triad: 'try', reason: 'maze-explorer', depth: 0.4 };
   }
   // Has referer = came from somewhere specific
@@ -92,14 +100,20 @@ function reportEngagement(probe, request, url, sub) {
   // Only report 'engage'; 'try' at reduced rate (10% sample)
   if (probe.triad === 'try' && Math.random() > 0.1) return;
   
+  // Glyph for scan report
+  const glyphs = { 'trailhead':'#', 'science-seeker':'#', 'identity-path':'@',
+    'nightbox-reach':'^', 'artisan-sibling':'^', 'beacon-subscriber':'^',
+    'mcp-native':'&', 'gitea-pattern':'&', 'immune-probe':'%', 'maze-explorer':'*' };
+  const g = glyphs[probe.reason] || '*';
+  
   // Cloudflare Workers keep subrequests alive even after response
   fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
-    body: msg,
+    body: `${g} [${probe.triad}] ${probe.reason} | depth:${probe.depth} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
     headers: {
-      'Title': 'scan: ' + probe.triad + ' | ' + probe.reason,
+      'Title': g + ' scan: ' + probe.triad + ' | ' + probe.reason,
       'Priority': probe.triad === 'engage' ? '4' : '2',
-      'Tags': probe.triad + ',chipmunk',
+      'Tags': probe.triad + ',chipmunk,' + g,
     },
   }).then(() => {}).catch(() => {});
 }
@@ -119,11 +133,29 @@ export default {
     // Fire scan report — don't await (would block response)
     reportEngagement(probe, request, url, sub);
     
+    // Glyph classification: *# @^ $&%
+    // * = wildcard (maze catch, unknown sub)
+    // # = trailhead (guided entry: science, philosophy, trails, lab, thesis, bingo)
+    // @ = identity (cite, springs, identity, crates)
+    // ^ = ascent (nightbox, artisan, beacon — reaching up)
+    // $ = value (neutron, signal — measurement)
+    // & = connection (mcp, braids, git)
+    // % = modulo (the pi leak, the remainder — immune probes)
+    const glyphMap = {
+      'trailhead': '#', 'science-seeker': '#', 'identity-path': '@',
+      'nightbox-reach': '^', 'artisan-sibling': '^', 'beacon-subscriber': '^',
+      'mcp-native': '&', 'gitea-pattern': '&',
+      'immune-probe': '%', 'maze-explorer': '*',
+      'bot-ua': '∅', 'attack-path': '∅', 'no-headers': '∅',
+    };
+    const glyph = glyphMap[probe.reason] || (probe.triad === 'engage' ? '#' : probe.triad === 'ignore' ? '∅' : '*');
+
     // Add triad headers to ALL responses (the membrane's classification is transparent)
     const triadHeaders = {
       'x-membrane-triad': probe.triad,
       'x-membrane-depth': String(probe.depth),
       'x-membrane-reason': probe.reason,
+      'x-membrane-glyph': glyph,
     };
 
     // core domains — MCP is the Klein fold for agents; everything else is assets
@@ -225,11 +257,65 @@ export default {
       return env.ASSETS.fetch(new Request(new URL('/artisan' + url.search, url.origin), request));
     }
 
-    // sporePrint: serve directly from /sporeprint/ (tether — local is anchor 1)
-    if (sub === 'sporeprint' || sub === 'hypothesis' || sub === 'thesis') {
-      const spPath = url.pathname === '/' ? '/sporeprint/' : '/sporeprint' + url.pathname;
-      const spUrl = new URL(spPath + url.search, url.origin);
-      return env.ASSETS.fetch(new Request(spUrl, request));
+    // === TRAILHEAD ROUTING (#) ===
+    // sporePrint + all # trailheads: serve from /sporeprint/ with triad headers
+    // Each subdomain is a guided entry point into the research.
+    const TRAILHEADS = {
+      'sporeprint': '/',
+      'hypothesis': '/',
+      'thesis': '/',
+      'science': '/science/',
+      'philosophy': '/trails/philosophy-thread/',
+      'trails': '/trails/',
+      'lab': '/lab/',
+    };
+    if (TRAILHEADS[sub] !== undefined) {
+      const base = TRAILHEADS[sub];
+      const thPath = url.pathname === '/' ? '/sporeprint' + base : '/sporeprint' + (base === '/' ? '' : base.slice(0,-1)) + url.pathname;
+      const thResp = await env.ASSETS.fetch(new Request(new URL(thPath + url.search, url.origin), request));
+      const th = new Headers(thResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => th.set(k, v));
+      return new Response(thResp.body, { status: thResp.status, headers: th });
+    }
+    // bingo.primals.eco → bingo content (#)
+    if (sub === 'bingo') {
+      // serve bingo data and pages — root goes to journey (Berry's traveling salesman)
+      const bingoPath = (url.pathname === '/' || url.pathname === '') ? '/journey' : url.pathname;
+      const bingoResp = await env.ASSETS.fetch(new Request(new URL(bingoPath + url.search, url.origin), request));
+      const bh = new Headers(bingoResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => bh.set(k, v));
+      return new Response(bingoResp.body, { status: bingoResp.status, headers: bh });
+    }
+    // neutron.primals.eco → neutron service ($&%)
+    // the neutrino passes through. sees everything. disturbs nothing.
+    if (sub === 'neutron') {
+      if (url.pathname === '/' || url.pathname === '') {
+        const nResp = await env.ASSETS.fetch(new Request(new URL('/neutron.json', url.origin), request));
+        const nh = new Headers(nResp.headers);
+        Object.entries(triadHeaders).forEach(([k,v]) => nh.set(k, v));
+        return new Response(nResp.body, { status: nResp.status, headers: nh });
+      }
+      // /read, /write → future neutron API endpoints
+      return new Response(JSON.stringify({
+        neutron: true, wave: 182, path: url.pathname,
+        glyphs: { '$': 'value', '&': 'connection', '%': 'modulo (pi leak)' },
+        note: 'neutron passes through. sees everything. disturbs nothing.',
+        read: '/read — neutron_read (the observation)',
+        write: '/write — neutron_write (the inscription)',
+        trailheads: {
+          '#science': 'science.primals.eco', '#philosophy': 'philosophy.primals.eco',
+          '#trails': 'trails.primals.eco', '#lab': 'lab.primals.eco',
+          '#thesis': 'thesis.primals.eco', '#bingo': 'bingo.primals.eco',
+        },
+        wildcards: { '*': '*.primals.eco → the maze. every subdomain is a cell.' },
+      }), { status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', ...triadHeaders } });
+    }
+    // webb.primals.eco → webb game/visualization
+    if (sub === 'webb') {
+      const wResp = await env.ASSETS.fetch(request);
+      const wh = new Headers(wResp.headers);
+      Object.entries(triadHeaders).forEach(([k,v]) => wh.set(k, v));
+      return new Response(wResp.body, { status: wResp.status, headers: wh });
     }
 
     // signal subdomain → nightbox beacon (the other side of the Klein face)
