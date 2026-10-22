@@ -312,6 +312,13 @@ export default {
       'digest':     '/digest',        // inward sense. the stomach already ate.
       'journey':    '/journey',       // ouroboros quest. chipmunk walks west.
       'identity':   '/identity',      // ZK fold. persona tensor.
+      'ouroboros':  '/data/ouroboros-metabolism.json', // the snake eats its own tail
+      'tree':       '/data/tree-topology.json',       // pine→Klein→palm→rainforest
+      'yggdrasil':  '/data/yggdrasil-cascade.json',   // the world tree
+      'metabolism': '/data/metabolize.json',           // eat→digest→ferment→excrete→replenish
+      'sourdough':  '/data/dough.json',                // mesh latency as activation energy
+      'ribocipher': '/data/ribocipher.json',           // the reverse transcriptase (self-referential!)
+      'appendix':   '/data/tree-topology.json',        // NOT vestigial — the bacterial reservoir
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',

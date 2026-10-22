@@ -11,7 +11,10 @@
     '/pulse.json',
     '/neutron.json',
     '/topology.json',
-    '/membrane.json'
+    '/membrane.json',
+    '/data/ouroboros-metabolism.json',
+    '/data/tree-topology.json',
+    '/data/ribocipher.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
