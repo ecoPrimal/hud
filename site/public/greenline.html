@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Green Line — Navigate the Irreducible Stack</title>
+<meta name="description" content="The green line connects all layers of human knowledge. Math to philosophy to biology to sociology to humanities to law. Navigate between and across. Up and down. The line of irreducibility.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #010409;
+  color: #c9d1d9;
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.greenline {
+  position: fixed;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 80vh;
+  background: linear-gradient(
+    to bottom,
+    #22c55e 0%,     /* math */
+    #3fb950 16%,    /* philosophy */
+    #2ea043 33%,    /* biology */
+    #56d364 50%,    /* sociology */
+    #7ee787 66%,    /* humanities */
+    #aff5b4 83%,    /* law */
+    #d4ffd4 100%   /* governance */
+  );
+  border-radius: 2px;
+  z-index: 100;
+}
+.layer-node {
+  position: fixed;
+  left: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 101;
+  text-decoration: none;
+}
+.layer-node:hover {
+  transform: scale(1.4);
+  box-shadow: 0 0 12px currentColor;
+}
+.layer-label {
+  position: fixed;
+  left: 48px;
+  font-size: 11px;
+  color: #8b949e;
+  transition: color 0.3s;
+  z-index: 101;
+}
+.layer-node:hover + .layer-label,
+.layer-label:hover { color: #22c55e; }
+.main {
+  max-width: 680px;
+  padding: 60px 24px 40px 80px;
+  width: 100%;
+}
+h1 { color: #22c55e; font-size: 1.6em; margin-bottom: 8px; }
+h2 { color: #3fb950; font-size: 1.1em; margin: 32px 0 12px; border-bottom: 1px solid #21262d; padding-bottom: 4px; }
+.subtitle { color: #8b949e; font-size: 0.85em; margin-bottom: 32px; }
+.stack-layer {
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  transition: border-color 0.3s;
+}
+.stack-layer:hover { border-color: #22c55e; }
+.layer-title { color: #22c55e; font-weight: bold; margin-bottom: 6px; }
+.layer-desc { color: #8b949e; font-size: 0.85em; line-height: 1.5; }
+.layer-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.layer-links a {
+  color: #58a6ff;
+  text-decoration: none;
+  font-size: 0.8em;
+  padding: 2px 8px;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+.layer-links a:hover { border-color: #22c55e; color: #22c55e; }
+.arrow { color: #22c55e; text-align: center; font-size: 1.2em; margin: 4px 0; }
+.private-gate {
+  background: #161b22;
+  border: 1px solid #d29922;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 24px 0;
+}
+.private-gate .layer-title { color: #d29922; }
+.relay-note {
+  color: #8b949e;
+  font-size: 0.75em;
+  text-align: center;
+  margin-top: 32px;
+  font-style: italic;
+}
+@media (max-width: 600px) {
+  .greenline { left: 8px; }
+  .layer-node { left: 0; width: 20px; height: 20px; font-size: 9px; }
+  .layer-label { left: 28px; font-size: 9px; }
+  .main { padding-left: 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- THE GREEN LINE — fixed left rail -->
+<div class="greenline"></div>
+
+<!-- Layer nodes on the green line -->
+<a class="layer-node" href="#math" style="top:10vh; border-color:#22c55e; color:#22c55e;" title="Mathematics">π</a>
+<span class="layer-label" style="top:10vh; line-height:26px;">math · π φ primes BLAKE3</span>
+
+<a class="layer-node" href="#philosophy" style="top:21vh; border-color:#3fb950; color:#3fb950;" title="Philosophy">φ</a>
+<span class="layer-label" style="top:21vh; line-height:26px;">philosophy · ethics ZK anti-secret</span>
+
+<a class="layer-node" href="#biology" style="top:32vh; border-color:#2ea043; color:#2ea043;" title="Biology">🧬</a>
+<span class="layer-label" style="top:32vh; line-height:26px;">biology · membrane self/non-self MHC</span>
+
+<a class="layer-node" href="#sociology" style="top:43vh; border-color:#56d364; color:#56d364;" title="Sociology">◎</a>
+<span class="layer-label" style="top:43vh; line-height:26px;">sociology · shared privacy = N</span>
+
+<a class="layer-node" href="#humanities" style="top:54vh; border-color:#7ee787; color:#7ee787;" title="Humanities">♫</a>
+<span class="layer-label" style="top:54vh; line-height:26px;">humanities · dignity confrontation music</span>
+
+<a class="layer-node" href="#anatomy" style="top:65vh; border-color:#aff5b4; color:#aff5b4;" title="Anatomy">♥</a>
+<span class="layer-label" style="top:65vh; line-height:26px;">anatomy · Golgi relay vesicle voxel</span>
+
+<a class="layer-node" href="#law" style="top:76vh; border-color:#d4ffd4; color:#d4ffd4;" title="Law & Governance">⚖</a>
+<span class="layer-label" style="top:76vh; line-height:26px;">law · tuebor TALOS confrontation clause</span>
+
+<a class="layer-node" href="#private" style="top:87vh; border-color:#d29922; color:#d29922;" title="Private Voxel">🔒</a>
+<span class="layer-label" style="top:87vh; line-height:26px;">your voxel · trust-gated, relay-safe</span>
+
+<div class="main">
+<h1>The Green Line</h1>
+<p class="subtitle">Navigate the irreducible stack. Up and down. Between and across.<br>
+Each layer is built on the one above it. If the law contradicts math, the law is wrong.</p>
+
+<div id="math" class="stack-layer">
+  <div class="layer-title">π MATHEMATICS</div>
+  <div class="layer-desc">You can't argue with math. π, φ, primes, BLAKE3 hashing, SHA-256. The foundation everything else is built on. The hash doesn't lie. The ratio doesn't change. The proof is the proof.</div>
+  <div class="layer-links">
+    <a href="/sporeprint/science/">75 papers</a>
+    <a href="/neutron/helix.html">helix</a>
+    <a href="/glyphs.html">π glyphs</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="philosophy" class="stack-layer">
+  <div class="layer-title">φ PHILOSOPHY</div>
+  <div class="layer-desc">Ethics, ZK identity, anti-secret principle. Shared privacy is the inverse power of shared secret. Strength = N. The anti-secret protects by proving, not hiding.</div>
+  <div class="layer-links">
+    <a href="/sporeprint/outreach/zk-identity-cairn/">ZK identity</a>
+    <a href="/banana.html">grandma check</a>
+    <a href="/sporeprint/outreach/the-gardener/">the gardener</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="biology" class="stack-layer">
+  <div class="layer-title">🧬 BIOLOGY</div>
+  <div class="layer-desc">The membrane sorts self from non-self. MHC shares fragments to strengthen immunity. The lipid bilayer is selective, not secret. 80% noise is 20% signal, inverted. Evolution doesn't argue — it sorts.</div>
+  <div class="layer-links">
+    <a href="/gastrula.html">gastrula</a>
+    <a href="/sporeprint/">sporePrint</a>
+    <a href="https://detroit.primals.eco">membrane in action</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="sociology" class="stack-layer">
+  <div class="layer-title">◎ SOCIOLOGY</div>
+  <div class="layer-desc">Community, shared privacy, the graph of trust. Each person who joins makes everyone's identity harder to steal. The network IS the security. You can't fake a mesh of relationships that all independently verify the same truth.</div>
+  <div class="layer-links">
+    <a href="/sporeprint/outreach/backscatter/">backscatter</a>
+    <a href="/connect.html">connect</a>
+    <a href="/like-us.html">like us</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="humanities" class="stack-layer">
+  <div class="layer-title">♫ HUMANITIES</div>
+  <div class="layer-desc">Dignity. The right to face your accuser. Music, art, the campfire. The Good Samaritan. "In my Father's house are many rooms." The place prepared. The hand IS the work.</div>
+  <div class="layer-links">
+    <a href="/weather.html">space weather</a>
+    <a href="/aurora.html">aurora</a>
+    <a href="/easel.html">easel</a>
+    <a href="/like-us.html">♫ like us</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="anatomy" class="stack-layer">
+  <div class="layer-title">♥ ANATOMY</div>
+  <div class="layer-desc">The Golgi body: receive, process, route. The relay. Vesicles carry data to the right destination. Each human has a voxel — a volume element of their life. The membrane keeps it safe. Not storage — relay.</div>
+  <div class="layer-links">
+    <a href="/golgi.html">golgi</a>
+    <a href="/neutron/circulatory.html">circulatory</a>
+    <a href="/neutron/core.html">core</a>
+  </div>
+</div>
+<div class="arrow">↕</div>
+
+<div id="law" class="stack-layer">
+  <div class="layer-title">⚖ LAW &amp; GOVERNANCE</div>
+  <div class="layer-desc">Built ON TOP of everything above. If the law contradicts math, the law is wrong. tuebor — I will defend. TALOS — the guardian at the gate. Confrontation clause — the right to face your accuser. Action across a class, not class action.</div>
+  <div class="layer-links">
+    <a href="https://detroit.primals.eco">detroit investigation</a>
+    <a href="https://barry.primals.eco">barry county</a>
+    <a href="https://clutchjustice.com">clutch justice</a>
+  </div>
+</div>
+<div class="arrow" style="color:#d29922;">↓ trust gate ↓</div>
+
+<div id="private" class="private-gate">
+  <div class="layer-title">🔒 YOUR PRIVATE VOXEL</div>
+  <div class="layer-desc">Behind the identity is the bingo board of your life. The membrane keeps it safe. Not secret — private. Touch it with trust and it appears. The relay carries your data so you don't have to. Chipmunk translates. The meek inherit the template.</div>
+  <div class="layer-links">
+    <a href="#" style="border-color:#d29922; color:#d29922;">trust required</a>
+  </div>
+</div>
+
+<h2>How to Navigate</h2>
+<p style="color:#8b949e; font-size:0.85em; line-height:1.6;">
+<strong style="color:#22c55e;">Up ↑</strong> — toward math, toward certainty, toward proof<br>
+<strong style="color:#22c55e;">Down ↓</strong> — toward law, toward governance, toward human systems<br>
+<strong style="color:#22c55e;">Across ↔</strong> — between domains at the same depth<br><br>
+When the law fails, go UP. Find where it contradicts math, biology, or philosophy. 
+The contradiction IS the argument. The irreducible layer below cannot be wrong.<br><br>
+When math is abstract, go DOWN. Find where it touches humanity, anatomy, law.
+The application IS the proof. The human above gives the math meaning.<br><br>
+<strong style="color:#d29922;">Through the trust gate</strong> — your private voxel. The relay holds your data.
+Chipmunk helps translate between layers. Any human, any surface, any input.
+</p>
+
+<p class="relay-note">
+the green line connects all layers · the relay carries what you can't · the meek sense the signal<br>
+tuebor · TALOS · 🐿️
+</p>
+</div>
+
+<script>
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const el = document.querySelector(a.getAttribute('href'));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+});
+</script>
+</body>
+</html>
