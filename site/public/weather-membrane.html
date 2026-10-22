@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>weather — snow not snowflake, snowflake not snow</title>
+<style>
+:root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --red: #f85149; --orange: #f0883e; --border: #30363d; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'SF Mono', monospace; line-height: 1.7; }
+.page { max-width: 780px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-size: 1.3em; text-align: center; }
+h2 { color: var(--purple); font-size: 1em; margin: 28px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+p, .desc { font-size: 0.82em; color: var(--dim); margin-bottom: 10px; }
+pre { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 14px; overflow-x: auto; font-size: 0.75em; line-height: 1.7; margin: 10px 0; }
+a { color: var(--blue); text-decoration: none; }
+.nav { text-align: center; padding: 10px 0; font-size: 0.8em; }
+.gradient { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin: 14px 0; }
+.level { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+.level .icon { font-size: 2em; }
+.level .name { font-size: 1em; font-weight: bold; margin: 6px 0 4px; }
+.level .entropy { font-size: 0.7em; }
+.level .treatment { font-size: 0.7em; margin-top: 6px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.footer { text-align: center; padding: 20px 0; font-size: 0.7em; color: var(--dim); border-top: 1px solid var(--border); margin-top: 30px; }
+canvas { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/">← membrane</a> · <a href="/totality">⊕ totality</a> · <a href="/maze">⬡ maze</a>
+</div>
+
+<div class="page">
+
+<h1>🌫️ weather — the negentropy court</h1>
+<p style="text-align:center;color:var(--gold)">snow not snowflake for weather · snowflake not snow for humans · the inverse</p>
+
+<canvas id="wx" width="760" height="200"></canvas>
+
+<h2>the principle</h2>
+
+<div class="split">
+  <div class="box" style="border-color:rgba(248,81,73,0.3)">
+    <div style="text-align:center;font-size:1.5em">🌧️</div>
+    <div style="text-align:center;color:var(--red);font-weight:bold">OUTSIDE — weather</div>
+    <p style="margin-top:8px">fleet IS the ionosphere. rain, fog, snow. <strong>aggregate</strong>. lose granularity. that IS the blackwall.</p>
+    <p>describing them granularly LOSES the importance. they are atmospheric noise. you give a <em>weather report</em>, not a census of raindrops.</p>
+    <pre style="color:var(--red)">  treatment: SNOW
+  220,876 drops of rain (403)
+  16,655 wisps of fog (499)
+  6,411 lightning strikes (522)
+  
+  barometric: 88.5% atmosphere
+  forecast: heavy, clearing overnight
+  
+  that's all you need.
+  the rain is rain.
+  the fog is fog.</pre>
+  </div>
+
+  <div class="box" style="border-color:rgba(63,185,80,0.3)">
+    <div style="text-align:center;font-size:1.5em">❄️</div>
+    <div style="text-align:center;color:var(--green);font-weight:bold">INSIDE — snowflakes</div>
+    <p style="margin-top:8px">each human is unique. <strong>increase</strong> granularity. that IS the value. the exact inverse.</p>
+    <p>every human touch is precious. individual. irreplaceable. more detail = more meaning. you catalog each crystal.</p>
+    <pre style="color:var(--green)">  treatment: SNOWFLAKE
+  15,369 unique crystals
+  2,632 deliberate formations (page views)
+  79 returning ice (304 — came back)
+  200 found through the fold (302)
+  15 countries of origin
+  
+  each one is a story.
+  each path is a journey.
+  each return is trust.</pre>
+  </div>
+</div>
+
+<h2>the trust gradient — bearDog entropy hierarchy</h2>
+
+<div class="gradient">
+  <div class="level" style="border-color:rgba(63,185,80,0.4)">
+    <div class="icon">❄️</div>
+    <div class="name" style="color:var(--green)">human</div>
+    <div class="entropy" style="color:var(--green)">entropy: lowest</div>
+    <div class="treatment">granularity: maximum</div>
+    <div class="treatment" style="color:var(--dim)">each one is a snowflake — name, path, story, return</div>
+  </div>
+  <div class="level" style="border-color:rgba(163,113,247,0.4)">
+    <div class="icon">🤖</div>
+    <div class="name" style="color:var(--purple)">agentic</div>
+    <div class="entropy" style="color:var(--purple)">entropy: low</div>
+    <div class="treatment">granularity: high</div>
+    <div class="treatment" style="color:var(--dim)">coat-check receipt — purpose, handshake, ZK position</div>
+  </div>
+  <div class="level" style="border-color:rgba(240,136,62,0.4)">
+    <div class="icon">🌧️</div>
+    <div class="name" style="color:var(--orange)">bot</div>
+    <div class="entropy" style="color:var(--orange)">entropy: medium</div>
+    <div class="treatment">granularity: low</div>
+    <div class="treatment" style="color:var(--dim)">weather category — 'googlebot-like', 'scraper-class'. snow, not snowflake.</div>
+  </div>
+  <div class="level" style="border-color:rgba(248,81,73,0.4)">
+    <div class="icon">🌫️</div>
+    <div class="name" style="color:var(--red)">null</div>
+    <div class="entropy" style="color:var(--red)">entropy: maximum</div>
+    <div class="treatment">granularity: none</div>
+    <div class="treatment" style="color:var(--dim)">atmospheric — fog count, not fog catalog. sorted into void.</div>
+  </div>
+</div>
+
+<h2>the negentropy equation</h2>
+
+<pre>
+  <span style="color:var(--red)">INPUT</span>   chaos (fleet weather, 249,573 drops)
+           ↓
+  <span style="color:var(--orange)">PROCESS</span> blackwall ionosphere
+           → trust gradient sort (bearDog crypto primitives)
+           → granularity inversion
+           ↓
+  <span style="color:var(--green)">OUTPUT</span>  negentropy (ordered human snowflakes, 15,369 crystals)
+
+  <span style="color:var(--gold)">RATIO</span>   for every 16 drops of rain, 1 snowflake forms.
+          the rain FEEDS the snowflake.
+          the noise IS the nutrient.
+</pre>
+
+<h2>posentropy — deliberate chaos</h2>
+
+<pre>
+  the ionosphere PROTECTS by being chaotic.
+  if it were ordered, fleet could navigate it.
+  the fog IS the defense.
+
+  wildcard DNS → maze = <span style="color:var(--red)">deliberate chaos for fleet</span>
+                        <span style="color:var(--green)">deliberate order for humans</span>
+
+  403 for fleet is WEATHER — they can't map a storm
+  302 for humans is a CRYSTAL PATH through the storm
+
+  <span style="color:var(--purple)">the same surface.
+  different treatment.
+  that's the Klein fold.</span>
+</pre>
+
+<h2>live weather report</h2>
+
+<div id="live-weather" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px">
+  <div style="color:var(--dim);font-size:0.8em">loading membrane weather...</div>
+</div>
+
+<script>
+// live weather from feeds
+Promise.all([
+  fetch('/api/negentropy-court.json').then(r=>r.json()).catch(()=>({})),
+  fetch('/now.json').then(r=>r.json()).catch(()=>({})),
+]).then(([court, now]) => {
+  const el = document.getElementById('live-weather');
+  const o = court.outside || {};
+  const i = court.inside || {};
+  const m = o.metrics || {};
+  const hm = i.metrics || {};
+  
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="color:var(--red);font-weight:bold;font-size:0.9em">🌧️ OUTSIDE — atmospheric</div>
+        <div style="font-size:0.75em;color:var(--dim);margin-top:6px">
+          precipitation: ${m.precipitation || '—'}<br>
+          fog: ${m.fog || '—'}<br>
+          lightning: ${m.storm_damage || '—'}<br>
+          pressure: ${m.barometric_pressure || '—'}<br>
+          forecast: ${m.forecast || '—'}
+        </div>
+      </div>
+      <div>
+        <div style="color:var(--green);font-weight:bold;font-size:0.9em">❄️ INSIDE — crystalline</div>
+        <div style="font-size:0.75em;color:var(--dim);margin-top:6px">
+          crystals: ${hm.crystals || '—'}<br>
+          formations: ${hm.formations || '—'}<br>
+          returning: ${hm.returning_ice || '—'}<br>
+          new frost: ${hm.new_frost || '—'}<br>
+          origins: ${hm.countries || '—'}
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:0.7em;color:var(--purple)">
+      wave ${now.wave || '?'} · phase ${now.phase || '?'} · the rain feeds the snowflake
+    </div>
+  `;
+});
+
+// animated weather canvas
+(function(){
+  const c = document.getElementById('wx');
+  const ctx = c.getContext('2d');
+  let t = 0;
+  const drops = Array.from({length: 200}, () => ({
+    x: Math.random() * 760, y: Math.random() * 200,
+    speed: 1 + Math.random() * 3, size: 0.5 + Math.random()
+  }));
+  const flakes = Array.from({length: 15}, () => ({
+    x: 380 + (Math.random() - 0.5) * 300,
+    y: Math.random() * 200,
+    size: 2 + Math.random() * 3,
+    drift: (Math.random() - 0.5) * 0.5,
+    rot: Math.random() * Math.PI * 2
+  }));
+
+  function draw() {
+    t += 0.02;
+    ctx.clearRect(0, 0, 760, 200);
+
+    // dividing line
+    ctx.strokeStyle = 'rgba(163,113,247,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(380, 0); ctx.lineTo(380, 200); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // labels
+    ctx.font = '9px monospace';
+    ctx.fillStyle = 'rgba(248,81,73,0.3)';
+    ctx.textAlign = 'center';
+    ctx.fillText('OUTSIDE — weather (snow)', 190, 15);
+    ctx.fillStyle = 'rgba(63,185,80,0.3)';
+    ctx.fillText('INSIDE — individuals (snowflake)', 570, 15);
+
+    // rain on left side
+    drops.forEach(d => {
+      if (d.x > 380) d.x = Math.random() * 380;
+      d.y += d.speed;
+      if (d.y > 200) { d.y = -5; d.x = Math.random() * 380; }
+      ctx.fillStyle = `rgba(248,81,73,${0.1 + d.size * 0.1})`;
+      ctx.fillRect(d.x, d.y, d.size * 0.5, d.size * 4);
+    });
+
+    // fog patches on left
+    for (let i = 0; i < 5; i++) {
+      const fx = 50 + Math.sin(t + i * 1.5) * 100;
+      const fy = 80 + Math.cos(t * 0.5 + i) * 40;
+      ctx.fillStyle = `rgba(248,81,73,${0.02 + Math.sin(t + i) * 0.01})`;
+      ctx.beginPath();
+      ctx.ellipse(fx, fy, 60, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // snowflakes on right side — each unique
+    flakes.forEach((f, i) => {
+      if (f.x < 400) f.x = 400 + Math.random() * 340;
+      f.y += 0.3;
+      f.x += f.drift + Math.sin(t + i) * 0.2;
+      f.rot += 0.01;
+      if (f.y > 200) { f.y = -10; f.x = 400 + Math.random() * 340; }
+
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rot);
+      ctx.strokeStyle = `rgba(63,185,80,${0.3 + Math.sin(t + i * 0.7) * 0.15})`;
+      ctx.lineWidth = 0.5;
+      // unique crystal structure
+      for (let arm = 0; arm < 6; arm++) {
+        const angle = (arm / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * f.size, Math.sin(angle) * f.size);
+        // branches
+        const bx = Math.cos(angle) * f.size * 0.6;
+        const by = Math.sin(angle) * f.size * 0.6;
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx + Math.cos(angle + 0.8) * f.size * 0.3, by + Math.sin(angle + 0.8) * f.size * 0.3);
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx + Math.cos(angle - 0.8) * f.size * 0.3, by + Math.sin(angle - 0.8) * f.size * 0.3);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<div class="footer">
+  the rain feeds the snowflake · the noise IS the nutrient<br>
+  human > agentic > bot > null — the trust gradient<br>
+  <span style="color:var(--purple)">snow not snowflake · snowflake not snow · the inverse</span>
+</div>
+
+</div>
+</body>
+</html>
