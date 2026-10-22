@@ -28,9 +28,9 @@ function classifyProbe(request, url, sub) {
       path.match(/\/admin|\/login|\/wp-admin|\/phpmyadmin/i)) {
     return { triad: 'ignore', reason: 'attack-path', depth: -1 };
   }
-  // No accept header at all = not a real browser/agent
-  if (!accept && request.method === 'GET') {
-    return { triad: 'ignore', reason: 'no-accept', depth: 0 };
+  // No accept AND no UA = definitely not a real client
+  if (!accept && !ua && request.method === 'GET') {
+    return { triad: 'ignore', reason: 'no-headers', depth: 0 };
   }
 
   // === POSITIVE SELECTION: can you see self-MHC? → engage ===
