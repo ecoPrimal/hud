@@ -1,53 +1,99 @@
 {
-  "ts": "2026-10-21T20:37:00Z",
+  "ts": "2026-10-22T00:50:00Z",
   "wave": 180,
+  "model": "selective-permeability",
+  "note": "layers are NOT walls. they are concentration gradients. Anderson selective permeability. data flows by osmosis, not by permission.",
+  "composition": {
+    "N2": "structure (low entropy, predictable, skeleton)",
+    "O2": "novelty (high entropy, surprising, alive)",
+    "Ar": "inert buffer (stable, unchanging)",
+    "trace": "rare signals (anomalies, discoveries, trace elements)"
+  },
+  "ocean_analogy": {
+    "salinity": "information density (bits per voxel)",
+    "temperature": "activity (events per second)",
+    "pressure": "depth × π",
+    "light": "visibility from surface",
+    "conductivity": "how easily signals flow"
+  },
   "layers": [
     {
       "name": "ionosphere",
       "depth": 0,
-      "status": "active",
-      "description": "geographic signal, physical arrival — fleet weather, human snowflakes",
-      "feeds": ["space-weather.json", "human.json"],
-      "treatment": "coarse grain for fleet, fine grain for humans"
+      "N2": 0.82, "O2": 0.15, "Ar": 0.02, "trace": 0.01,
+      "salinity_ppt": 1.75,
+      "temperature_C": 27,
+      "pressure_pi": 0,
+      "light_pct": 100,
+      "conductivity": 0.3,
+      "analogy": "surface ocean + upper atmosphere. warm, dilute, fully lit. fleet weather and human snowflakes arrive here.",
+      "feeds": ["space-weather.json", "human.json", "presence.json", "fleet-sort.json"]
     },
     {
       "name": "membrane",
       "depth": 1,
-      "status": "active",
-      "description": "temporal ring, IS×WAS×WILLBE particles — the selectively permeable boundary",
-      "feeds": ["membrane.json", "now.json", "dashboard.json"],
-      "treatment": "1/π fold rate"
+      "N2": 0.55, "O2": 0.30, "Ar": 0.10, "trace": 0.05,
+      "salinity_ppt": 7.0,
+      "temperature_C": 21,
+      "pressure_pi": 3.14,
+      "light_pct": 70,
+      "conductivity": 0.6,
+      "analogy": "thermocline + stratosphere. the selective boundary. lipid bilayer. fold rate 1/π. things pass or don't based on concentration gradient.",
+      "feeds": ["membrane.json", "now.json", "dashboard.json", "energy.json", "temperature.json", "amphiphile.json"]
     },
     {
       "name": "epitope",
       "depth": 2,
-      "status": "active",
-      "description": "sort surface — self/non-self/partial/null classification",
-      "feeds": ["scan_sweep_sort.json", "negentropy.json"],
-      "treatment": "Anderson sort → backscatter → triad"
+      "N2": 0.40, "O2": 0.40, "Ar": 0.12, "trace": 0.08,
+      "salinity_ppt": 15.75,
+      "temperature_C": 15,
+      "pressure_pi": 6.28,
+      "light_pct": 40,
+      "conductivity": 0.8,
+      "analogy": "twilight zone + mesosphere. sort by feel not sight. epitopes are receptors — high conductance. maximum diversity of classification.",
+      "feeds": ["scan_sweep_sort.json", "negentropy.json"]
     },
     {
       "name": "sort",
       "depth": 3,
-      "status": "active",
-      "description": "the negentropy court — trust gradient from bearDog",
-      "feeds": ["api/negentropy-court.json", "triad.json", "backscatter.json"],
-      "treatment": "human > agentic > bot > null"
+      "N2": 0.30, "O2": 0.25, "Ar": 0.20, "trace": 0.25,
+      "salinity_ppt": 24.5,
+      "temperature_C": 9,
+      "pressure_pi": 9.42,
+      "light_pct": 15,
+      "conductivity": 0.5,
+      "analogy": "bathypelagic + thermosphere. deep, cold, bioluminescent only. trust channels — verified paths. the negentropy court judges here.",
+      "feeds": ["api/negentropy-court.json", "triad.json", "backscatter.json", "system-layers.json"]
     },
     {
       "name": "pangaea",
       "depth": 4,
-      "status": "active",
-      "description": "inner body — organisms, topology, mesh nodes",
-      "feeds": ["topology.json", "chipmunk.json", "braid.json"],
-      "treatment": "the planet inside Saturn's ring"
+      "N2": 0.15, "O2": 0.10, "Ar": 0.25, "trace": 0.50,
+      "salinity_ppt": 33.25,
+      "temperature_C": 3,
+      "pressure_pi": 12.57,
+      "light_pct": 2,
+      "conductivity": 0.9,
+      "analogy": "abyssal zone + exosphere. near-saturated information. almost no external light — chemosynthetic. superconducting braids. the planet inside the ring.",
+      "feeds": ["topology.json", "chipmunk.json", "braid.json", "totality.json", "neutron.json"]
     }
   ],
+  "clines": {
+    "thermocline": "between membrane and epitope — temperature drops fastest here (fold rate boundary)",
+    "halocline": "between sort and pangaea — salinity jumps here (information concentrates)",
+    "pycnocline": "between epitope and sort — density changes fastest (the court is dense)",
+    "conductocline": "between ionosphere and membrane — conductivity jumps at the selective boundary"
+  },
+  "osmosis": {
+    "mechanism": "data flows from high concentration (pangaea) to low (ionosphere) via osmotic pressure = Δsalinity × π",
+    "direction": "outward for evidence (tuebor, detroit). inward for visitors.",
+    "diffusion_rate": "tick every π³ ≈ 31 seconds",
+    "permeability": "all boundaries permeable. degree varies with conductivity."
+  },
   "geodesic": {
     "base": "π",
     "circumference": 3.14159265358979,
     "primitives": ["point", "balance", "wedge", "arc"],
-    "note": "the geodesic circle IS the base system. each layer has its own circumference."
-  },
-  "anchor": "hyperlocal — each visitor sees from THEIR position on the geodesic"
+    "note": "the gradient IS continuous on the geodesic. no integer depths. depth 2.7 is a real place."
+  }
 }
