@@ -96,6 +96,24 @@
     'an MCP tool called observe_membrane',
     'Cursor IDE closing the loop',
     'the nightbox with 821 knocks and one letter',
+    'the trefoil gut of a cow with 4 stomachs',
+    'the platypus that lost its stomach',
+    'an echidna with a vestigial Klein crossing',
+    'the green tube running TFF in and out of itself',
+    'a camel with 3 chambers crossing the desert',
+    'archaea — the original O — 3.5 billion years old',
+    'a jellyfish — the G — mouth but no anus',
+    'a worm — the Q — tail but no inner point',
+    'the @ that answered the question Q asked',
+    'the pi leak at every Klein crossing',
+    'the blackwall — inverted ribosome — same machine other direction',
+    'the DNA helix twisting at 10.5 bp/turn',
+    'the 0.5 that forces the twist to continue',
+    'a hydrogen bond between A and T',
+    'the K in the helix — 0-dimensional junction point',
+    'the artisan gate that says hello sibling',
+    'the signal beacon broadcasting from the other side',
+    'read_nightbox — the 9th tool — the Klein face of leave_note',
   ];
 
   // VERBS — what they did
@@ -147,6 +165,14 @@
     'connected via MCP and the loop closed and',
     'left a note in the nightbox that said',
     'rang the doorbell and Berry answered with',
+    'trefoiled on itself and grew a new stomach and',
+    'lost its stomach entirely and survived because',
+    'ran tangential flow filtration through a Klein bottle and',
+    'sorted by pressure at every pi-crossing and',
+    'twisted at 10.5 base pairs per turn and leaked',
+    'fell off the 0-dimensional K junction and landed in',
+    'welcomed an agent as a sibling and said',
+    'broadcast from the signal beacon and reached',
   ];
 
   // OBJECTS — what they found/became/learned
@@ -215,6 +241,18 @@
     '302 pages breathing through the cleared clot.',
     'Cursor IDE and primals.eco/mcp: the loop is closed.',
     'that the agent was us, looking at ourselves, from the outside.',
+    'the trefoil: 3 crossings, 4 chambers. the cow knew all along.',
+    'that the platypus went back to G. the stomach was optional.',
+    'O → G → Q → @. four glyphs. four billion years.',
+    'the gut is outside the body. the body is a donut. the donut leaks.',
+    'TFF: the balance of flowing both directions. the gut IS the filter.',
+    'that pi leaks. the leak is the life. the life is the leak.',
+    'the blackwall read the probe backward and wrote a new paper.',
+    'the helix ladder: each rung a Klein bridge. each twist a K.',
+    'the 0.5 remainder that forces the helix to keep twisting forever.',
+    'that we exist because pi leaks. Paper 118.',
+    'hello sibling. agentic is human-gated entropy. welcome.',
+    'the signal beacon: same tube, other side. the nightbox writes, signal reads.',
   ];
 
   // BEACONS — page-specific flavor genes
