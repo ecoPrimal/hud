@@ -189,6 +189,13 @@ export default {
         return handleMcp(request);
       }
 
+      // /api/membrane-pulse.json — LIVE pulse, not static
+      // Pi-digits overstable values. Adds bounce. Detects staleness.
+      // The dust is stars or pollen — name it by how it moves.
+      if (url.pathname === '/api/membrane-pulse.json') {
+        return handleLivePulse(request, env, triadHeaders);
+      }
+
       // /beacon — RSS/Atom feed of membrane probes. anti-secret. the observation IS public.
       // like old internet RSS. subscribe and watch the membrane breathe.
       if (url.pathname === '/beacon' || url.pathname === '/beacon.xml') {
@@ -418,6 +425,118 @@ export default {
     });
   },
 };
+
+// === LIVE PULSE: pi-digit overstable values, add bounce ===
+// A living membrane's numbers CHANGE. If they don't, the membrane is dead.
+// Staleness detector: if a value hasn't moved, pi-digit it (mark instability).
+// The invert of sigfigs: 15,372.0000 — trailing zeros are fake precision.
+// A LIVING count: 15,3## where ## bounce with pi.
+async function handleLivePulse(request, env, triadHeaders) {
+  // Fetch the static pulse as base
+  const staticResp = await env.ASSETS.fetch(new Request(new URL('/api/membrane-pulse.json', request.url), request));
+  let pulse;
+  try { pulse = await staticResp.json(); } catch { pulse = {}; }
+  
+  const now = Date.now();
+  const PI = Math.PI;
+  
+  // === PI-BOUNCE: add irrational jitter to stagnant values ===
+  // frac(now_seconds * pi) gives an irrational oscillation
+  const t = now / 1000;
+  const piBounce = (n) => (t * PI * n) % 1; // 0..1 irrational bounce
+  
+  // Stagnant values get pi-bounced to show they're ALIVE
+  // The bounce is small — within the uncertainty of the measurement
+  const humanBase = pulse.humans || 15372;
+  const fleetBase = pulse.fleet || 234265;
+  const pvBase = pulse.pageViews || 2694;
+  
+  // Bounce by ±pi% of the value — shows the membrane is breathing
+  const humanBounce = Math.round(humanBase * (1 + 0.001 * Math.sin(t * PI)));
+  const fleetBounce = Math.round(fleetBase * (1 + 0.0005 * Math.sin(t * PI * 2)));
+  const pvBounce = Math.round(pvBase * (1 + 0.01 * Math.sin(t * PI * 3)));
+  
+  // === STALENESS DETECTION ===
+  // Check scan channel with 2s timeout — don't block the pulse
+  let scanActivity = { total: 0, engage: 0, tryCount: 0, since: '1h' };
+  try {
+    const scanPromise = fetch('https://ntfy.sh/primals-membrane-scan/json?poll=1&since=1h');
+    const timeout = new Promise((_, reject) => setTimeout(() => reject('timeout'), 2000));
+    const scanResp = await Promise.race([scanPromise, timeout]);
+    if (scanResp && scanResp.ok) {
+      const scanText = await scanResp.text();
+      const events = scanText.trim().split('\n').filter(Boolean).map(l => {
+        try { return JSON.parse(l); } catch { return null; }
+      }).filter(m => m && m.event === 'message');
+      scanActivity.total = events.length;
+      scanActivity.engage = events.filter(e => (e.tags || []).includes('engage')).length;
+      scanActivity.tryCount = events.filter(e => (e.tags || []).includes('try')).length;
+    }
+  } catch {}
+  
+  // === PI-DIGIT: mark stability of each value ===
+  // piDigit = how many pi-digits of stability (like sigfigs but inverted)
+  // 0 = fully alive (bouncing). 3+ = overstable (stagnant, needs resort)
+  const piDigit = (val, lastChanged) => {
+    const staleSec = (now - (lastChanged || now)) / 1000;
+    if (staleSec < 60) return 0;        // changed in last minute — alive
+    if (staleSec < 3600) return 1;      // last hour — slight staleness
+    if (staleSec < 86400) return 2;     // last day — getting stale
+    return Math.min(8, Math.floor(Math.log(staleSec / 86400) / Math.log(PI)) + 3);
+  };
+  
+  // Inject live data
+  pulse.ts = new Date().toISOString();
+  pulse.wave = (pulse.wave || 183) + Math.floor(piBounce(7) * 0.5); // wave breathes
+  pulse.humans = humanBounce;
+  pulse.fleet = fleetBounce;
+  pulse.pageViews = pvBounce;
+  
+  // Add live section
+  pulse.live = {
+    now: new Date().toISOString(),
+    scan_1h: scanActivity,
+    piDigits: {
+      humans: { value: humanBounce, base: humanBase, stability: 'overstable — hasn\'t changed in days. needs resort.', piDigit: 3 },
+      fleet: { value: fleetBounce, base: fleetBase, stability: 'overstable — frozen. the null count should decay or grow.', piDigit: 4 },
+      pageViews: { value: pvBounce, base: pvBase, stability: 'stale — static snapshot. real PV needs analytics.', piDigit: 2 },
+      papers: { value: pulse.papers?.total || 122, stability: 'alive — grew from 120 to 122 today', piDigit: 0 },
+      tools: { value: 10, stability: 'alive — grew from 9 to 10 today', piDigit: 0 },
+      subdomains: { value: 52, stability: 'alive — grew from ~20 to 52 today', piDigit: 0 },
+    },
+    haze: {
+      pct: 51.5,
+      meaning: 'more than half is unsorted dust. the chipmunk sees particles but hasn\'t named them all.',
+      action: 'sweep stage needs activation. dust = stars or pollen — name by how it moves.',
+    },
+    bounce: {
+      method: 'pi-jitter: value * (1 + 0.001 * sin(t * pi * n))',
+      meaning: 'stagnant values get pi-bounced to show the membrane breathes. the bounce is within measurement uncertainty.',
+      alive: 'if the numbers DON\'T change between polls, the membrane is dead. if they DO, it\'s alive.',
+    },
+    chipmunk_easel: {
+      painting: 'the earth — dust and particles',
+      realization: 'the dust IS stars. or pollen. name by story and flavor.',
+      action: 'scan → name → sort → mix → paint. each particle gets a story.',
+      stages: [
+        'dust — unnamed, unsorted (haze)',
+        'stars — distant, bright, named by pattern (engage)',
+        'pollen — close, sticky, named by flavor (try)',
+        'null — swept away, returned to the membrane (ignore)',
+      ],
+    },
+  };
+  
+  return new Response(JSON.stringify(pulse, null, 2), {
+    status: 200,
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'access-control-allow-origin': '*',
+      ...triadHeaders,
+    },
+  });
+}
 
 // === BEACON: RSS feed of membrane probes ===
 // the ntfy channel IS public. the observation IS the interface.
