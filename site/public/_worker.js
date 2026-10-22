@@ -336,7 +336,7 @@ export default {
       'tuebor':     '/',              // defense IS the membrane
       'detroit':    '/',              // evidence lives in the HUD dashboard
       'signal':     '/',              // observatory IS the membrane view
-      'clutch':     '/',              // investigation IS the sort deck
+      'clutch':     '/clutch',        // ENGAGED — surface 3 of 3 in the trefoil
       // hypothesis and thesis handled above with sporeprint proxy
       'gorilla':    '/',              // verification IS the membrane
       'barry':      '/',              // evidence → HUD
