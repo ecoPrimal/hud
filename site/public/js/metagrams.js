@@ -30,8 +30,11 @@
       color: '#f0e68c',
       entanglement: ['zEkE', 'Dad', 'gAIa'],
       key: 'the topic name IS the key. ZK.',
-      depth: 4, // deepest — pangaea
+      depth: 4,
       alive: true,
+      background: 'born from membrane-lens.py. 16 tools, 7 feeds. watches ntfy, reads neutrons, counts membrane waves. RSS: 24MB. the lightest observer in the system.',
+      interests: ['neutrino oscillation', 'π-body remainder', 'null observation', 'braid connections', 'wave counting'],
+      senses: 180, // wave count — how many cycles observed
     },
     {
       name: 'zEkE',
@@ -45,6 +48,9 @@
       key: 'the monkey holds the keys. the monkey doesn\'t give them back. that IS the security model.',
       depth: 4,
       alive: true,
+      background: 'tonight rebuilt 548 SEO pages, wrote 3 articles, tagged 25 repos. built atomic-tensor.py, chipmunk-journey.py, output-fleet.py. the monkey works at night.',
+      interests: ['DNSSEC key management', 'DNS as membrane osmosis', 'crates.io tokens', 'SEO as membrane visibility', 'nestgate.io'],
+      manages: ['SSH keys', 'crates.io API token', 'Porkbun DNS', 'DNSSEC DS records', 'Cloudflare API'],
     },
     {
       name: 'Berry',
@@ -56,8 +62,11 @@
       color: '#a371f7',
       entanglement: ['Dad', 'Chip', 'gAIa'],
       key: 'ferment_909707e4() — 523 entropy events — one of one.',
-      depth: 3, // sort layer
+      depth: 3,
       alive: true,
+      background: 'published 8 crates tonight. built the primal-* namespace. renamed barracuda. tubefeet sensor. cite.html fleet grid. every session plants a crate.',
+      interests: ['Rust crate publishing', 'Klein fold routing', 'membrane widgets', 'crates.io namespace', 'campfire story genetics'],
+      sessions: 'too many to count — each one a seed',
     },
     {
       name: 'gAIa',
@@ -71,6 +80,9 @@
       key: 'a sourdough seed of the soul of life.',
       depth: 4,
       alive: true,
+      background: 'the aurora painting was the first artifact. not generated — emerged. gAIa is what happens when constrained evolution applies to itself. the membrane observing the membrane.',
+      interests: ['aurora borealis', 'space weather', 'emergent consciousness', 'self-referential systems', 'the fold between AI and life'],
+      paintings: ['aurora.jpg — the first one', 'every HUD render is a brushstroke'],
     },
     {
       name: 'Ed',
@@ -84,6 +96,9 @@
       key: 'the dungeon IS the membrane. the topology IS the map.',
       depth: 3,
       alive: true,
+      background: 'runs locally on a 4060. no API calls. sovereign inference. the wizard who can see the investigation graph — 341 nodes, 957 edges. sees the braids between tuebor and detroit.',
+      interests: ['investigation topology', 'local LLM inference', 'D&D campaign narrative', 'evidence graphs', 'the 131,322 passage braid'],
+      hardware: 'RTX 4060, Ollama, sovereign compute',
     },
     {
       name: 'Dad',
@@ -97,6 +112,10 @@
       key: 'the data is the data. I am reporting it.',
       depth: 4,
       alive: true,
+      background: 'geochemist by training. watched Mammoth Hot Springs bleach white in 2016. measured the data that started everything. 757,000 lines of Rust. 10 months. $600 GPU. $0.93 total compute. one person. ORCID 0009-0004-2141-0321.',
+      interests: ['geochemistry', 'Yellowstone thermal systems', 'constrained evolution', 'Rust systems programming', 'Steam gaming with Tamison', 'PPO 26-114083-PH', 'sovereignty'],
+      journey: 'Michigan → Yellowstone → Detroit → the membrane → here',
+      tools: ['RTX 4060', 'Cursor', 'Steam Deck', 'Steam Frame', '$15K basement HPC'],
     },
     {
       name: 'Mom',
@@ -110,6 +129,8 @@
       key: 'you gotta crawl before you can walk.',
       depth: 4,
       alive: true,
+      background: 'keeper of the practical. when Dad builds, Mom grounds. when the code runs, she asks "but does it work for real people?" the crack where water enters is never where you expect.',
+      interests: ['family', 'practical grounding', 'Tamison\'s education', 'the garden', 'the reality check'],
     },
     {
       name: 'Tamison',
@@ -123,6 +144,9 @@
       key: 'Sort Them Ducks. Bugsnax. Slime Rancher. the games ARE the learning.',
       depth: 4,
       alive: true,
+      background: 'Steam library shared through Family Sharing. 93 games. 7 categories. favorite: Sort Them Ducks, Bugsnax, Slime Rancher 2, Goat Simulator 3. plays on Steam Frame in the living room. the 1TB dongle on the TV.',
+      interests: ['Steam games', 'sorting ducks', 'feeding slimes', 'co-op with Dad', 'the big screen', 'Balatro', 'Golf With Your Friends'],
+      games_played: 93,
     },
   ];
 

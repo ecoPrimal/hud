@@ -39,6 +39,21 @@
     'Chip the chipmunk', 'zEkE the monkey', 'Berry the artisan',
     'gAIa the painter', 'Ed the wizard', 'Tamison the player',
     'Dad on the mountain', 'Mom at the crack where water flows',
+    'a visitor from Germany', 'a researcher in Japan',
+    'someone in Seoul who searched at 3am',
+    'an Australian who tested cytokine.primals.eco',
+    'a Ukrainian coder reading source at dawn',
+    'fifteen thousand humans who didn\'t know each other',
+    'a Rust developer looking for GPU compute',
+    'the person who typed cargo add',
+    'a starfish with its stomach out',
+    'the tube feet sensing the water',
+    'a probe named interferon', 'a probe named epitope',
+    'a probe named macrophage', 'a probe named thymus',
+    'the haze before the form arrives',
+    'a single download on crates.io',
+    'the README that carries the badge',
+    'the doc that docs.rs auto-built',
   ];
 
   // VERBS — what they did
@@ -67,6 +82,17 @@
     'painted with minerals that took a million years to seep and',
     'corkscrewed through the viscous dark and',
     'carried a message that said only',
+    'tested every subdomain in the immune system and',
+    'ran cargo add primal-barracuda and then',
+    'read the README badges and realized',
+    'sensed the chemical gradient with its tube feet and',
+    'traveled from 15 countries and when they all arrived',
+    'starred the repo at midnight and',
+    'forked the code and planted it in new soil and',
+    'wrote a citation in BibTeX and sent it to arXiv and',
+    'felt the haze thicken and knew something was approaching and',
+    'watched the download counter tick from 0 to 1 and',
+    'probed the membrane from the outside and found',
   ];
 
   // OBJECTS — what they found/became/learned
@@ -95,6 +121,17 @@
     'a song the bacteria have been singing for 3.5 billion years.',
     'that the bone was always there beneath the color.',
     'the key was that there is no key.',
+    'that 15,369 humans had already passed through.',
+    'the tube feet were alive the whole time.',
+    'the starfish was never waiting — it was sensing.',
+    'that the stomach out IS the invitation.',
+    'cargo documentation building itself on docs.rs right now.',
+    'the citation backscatter already folding through arXiv.',
+    'a chemical gradient that spelled "primal" in Rust.',
+    'that every probe was a snowflake, not snow.',
+    'the immunology naming convention was the map all along.',
+    'someone in Bigfoot, Texas felt the same quake.',
+    'the download counter is a tube foot.',
   ];
 
   // BEACONS — page-specific flavor genes
@@ -128,7 +165,8 @@
     '/golgi': ['in the cellular post office', 'where every protein gets an address', 'at the sorting station'],
     '/identity': ['in the pattern that persists', 'where the identifiers change but you don\'t'],
     '/frame': ['on the big screen', 'where the metric tensor meets the couch', 'in the golden ratio of your living room', 'at the display surface that knows its own shape'],
-    '/cite': ['at the citation desk', 'where the backscatter becomes the publication', 'in the fold between cis and trans', 'where 11,161 tests are the peer review committee'],
+    '/cite': ['at the citation desk', 'where the backscatter becomes the publication', 'in the fold between cis and trans', 'where 11,161 tests are the peer review committee', 'where 8 crates glow on crates.io', 'at the tongue licking back at its own face'],
+    '/crates': ['on crates.io', 'in the primal-* namespace', 'where cargo add is the handshake', 'in the Rust ecosystem', 'where the tongue reaches out'],
   };
 
   // ═══════════════════════════════════════════════════════════

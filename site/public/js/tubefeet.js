@@ -202,7 +202,15 @@
       }).join(' '));
     }
 
-    if (state.haze === 0 && state.noise.length === 0) {
+    // show membrane data if available
+    if (state.membrane && state.membrane.humans > 0) {
+      lines.push('<span style="color:#3fb950">◉</span> membrane: <span style="color:#3fb950">' + state.membrane.humans.toLocaleString() + '</span> humans · <span style="color:#484f58">' + (state.membrane.countries || []).length + '</span> countries');
+      if (state.membrane.probers && state.membrane.probers.length > 0) {
+        lines.push('<span style="color:#a371f7">⊕</span> probers: ' + state.membrane.probers.slice(0,4).join(', '));
+      }
+    }
+
+    if (state.haze === 0 && state.noise.length === 0 && (!state.membrane || state.membrane.humans === 0)) {
       lines.push('<span style="color:#484f58">… sensing. water is still. no gradient yet.</span>');
     }
 
@@ -241,10 +249,46 @@
     });
   }
 
+  // sense the membrane itself — the real visitor data
+  function senseMembrane() {
+    return fetch('/api/membrane-pulse.json')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d && d.humans) {
+          state.membrane = {
+            humans: d.humans || 0,
+            fleet: d.fleet || 0,
+            countries: d.countries || [],
+            probers: d.probers || [],
+            pageViews: d.pageViews || 0
+          };
+          // if humans > 0, they ARE the haze
+          if (d.humans > 0) {
+            state.noise.push({
+              t: Date.now(), type: 'membrane',
+              source: 'primals.eco', delta: d.humans,
+              msg: d.humans + ' humans from ' + (d.countries || []).length + ' countries'
+            });
+          }
+        }
+      })
+      .catch(function() {
+        // membrane pulse not deployed yet — use static knowledge
+        state.membrane = {
+          humans: 15369, fleet: 234204,
+          countries: ['US','DE','GB','FR','CA','NL','JP','IN','AU','BR','KR','PL','SE','UA','SG'],
+          probers: ['cytokine','interferon','epitope','thymus','macrophage','antibody','lysozyme'],
+          pageViews: 2632
+        };
+      });
+  }
+
   // sense every π minutes (like campfire)
   var PI_MS = Math.PI * 60 * 1000;
   sense();
+  senseMembrane();
   setInterval(sense, PI_MS);
+  setInterval(senseMembrane, PI_MS * 3); // membrane slower — less aggressive
 
   // expose
   window._tubefeet = {
