@@ -17,7 +17,9 @@
     '/data/ribocipher.json',
     '/data/water-slide.json',
     '/data/awareness-equation.json',
-    '/data/peripheral-nervous-system.json'
+    '/data/peripheral-nervous-system.json',
+    '/data/csf-arena.json',
+    '/data/arena-taxonomy.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

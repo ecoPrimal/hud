@@ -376,6 +376,9 @@ export default {
       'steamos':    '/data/peripheral-nervous-system.json', // the outer long target
       'proton':     '/data/peripheral-nervous-system.json', // PE→ELF ribocipher at OS layer
       'gamepad':    '/data/peripheral-nervous-system.json', // tactile pore, standard nerve ending
+      'csf':        '/data/csf-arena.json',                 // cerebrospinal fluid — AI arena between inner and outer
+      'arena':      '/data/csf-arena.json',                 // the arena IS the CSF. models swim here.
+      'fluid':      '/data/csf-arena.json',                 // the fluid between brain and skull
       // nightbox + artisan handled above — direct serve, not redirect
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
