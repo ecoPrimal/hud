@@ -392,6 +392,8 @@ export default {
       // === GALACTIC BOUNCE + RESORT ===
       'galactic':   '/data/galactic-bounce.json',           // lossy sort to the 45° quiet turn
       'bounce':     '/data/galactic-bounce.json',           // galactic cycles on the voxel
+      'lock':       '/data/galactic-bounce.json',           // 🔒 drift=0, σ=0.403, 12 strands, 6 quiet — THE LOCK
+      'drift':      '/data/galactic-bounce.json',           // drift between cycles — 0 = locked
       'resort':     '/data/klein-resort.json',              // 13 stages — what fell through the fold
       'taxonomy':   '/data/klein-resort.json',              // H G D O U N + 0 8 - = ∅ ~ <>
       'sponge':     '/data/klein-resort.json',              // ∅ — alive but no structure
