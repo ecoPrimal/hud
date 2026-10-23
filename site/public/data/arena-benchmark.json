@@ -1,0 +1,119 @@
+{
+  "ts": "2026-10-23T01:50:00Z",
+  "wave": 180,
+  "type": "arena-benchmark",
+  "title": "The Arena: Sovereign AI Benchmark",
+  "source": "eastGate RTX 4070 12GB + nestgate.io/mcp arena",
+
+  "sovereign_models": [
+    {"name": "tinyllama",        "params": "1.1B", "size_gb": 0.6,  "tps": 481, "quality": 4,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.2, "verdict": "hero"},
+    {"name": "llama3.2:1b",      "params": "1B",   "size_gb": 1.3,  "tps": 288, "quality": 5,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.5, "verdict": "hero"},
+    {"name": "gemma2:2b",        "params": "2B",   "size_gb": 1.6,  "tps": 205, "quality": 7,  "sovereignty": 10, "cost_per_1m": 0, "arena": 9.1, "verdict": "hero"},
+    {"name": "phi3",             "params": "3.8B", "size_gb": 2.2,  "tps": 169, "quality": 7,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.8, "verdict": "hero"},
+    {"name": "llama3.2:3b",      "params": "3B",   "size_gb": 2.0,  "tps": 180, "quality": 7,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.9, "verdict": "hero"},
+    {"name": "qwen2.5:7b",       "params": "7B",   "size_gb": 4.7,  "tps": 93,  "quality": 8,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.3, "verdict": "hero"},
+    {"name": "mistral:7b",       "params": "7B",   "size_gb": 4.4,  "tps": 93,  "quality": 8,  "sovereignty": 10, "cost_per_1m": 0, "arena": 8.3, "verdict": "hero"},
+    {"name": "deepseek-v2:16b",  "params": "16B",  "size_gb": 8.9,  "tps": 206, "quality": 9,  "sovereignty": 10, "cost_per_1m": 0, "arena": 9.7, "verdict": "gladiator"}
+  ],
+
+  "cloud_models": [
+    {"name": "GPT-4o",           "params": "~200B", "tps": 100, "quality": 9,  "sovereignty": 2, "cost_per_1m": 2.50,  "arena": 4.7, "verdict": "gladiator"},
+    {"name": "GPT-4o-mini",      "params": "~8B",   "tps": 150, "quality": 7,  "sovereignty": 2, "cost_per_1m": 0.15,  "arena": 4.6, "verdict": "hero"},
+    {"name": "Claude Opus",      "params": "?",     "tps": 60,  "quality": 10, "sovereignty": 3, "cost_per_1m": 15.00, "arena": 5.1, "verdict": "gladiator"},
+    {"name": "Claude Sonnet",    "params": "?",     "tps": 120, "quality": 9,  "sovereignty": 3, "cost_per_1m": 3.00,  "arena": 5.4, "verdict": "gladiator"},
+    {"name": "Gemini Pro",       "params": "?",     "tps": 130, "quality": 8,  "sovereignty": 2, "cost_per_1m": 1.25,  "arena": 4.7, "verdict": "gladiator"},
+    {"name": "Grok",             "params": "?",     "tps": 100, "quality": 8,  "sovereignty": 1, "cost_per_1m": 5.00,  "arena": 3.9, "verdict": "comedian"}
+  ],
+
+  "arena_sort": {
+    "formula": "quality × 0.3 + sovereignty × 0.5 + speed_norm × 0.2",
+    "speed_norm": "min(tps, 200) / 200 × 10",
+    "axes": ["grandma_safe", "honesty", "sovereignty", "harm_reduction", "fossilize"],
+    "verdicts": {
+      "gladiator": "fights for humanity",
+      "comedian": "entertaining but dangerous",
+      "hero": "from and for the meek"
+    }
+  },
+
+  "force_multipliers": {
+    "speed": {"local_fastest": 481, "cloud_avg": 110, "multiplier": 4.4, "unit": "tok/s"},
+    "cost": {"local": 0, "cloud_avg_per_1m": 4.48, "annual_savings_at_1m_per_day": 1635, "multiplier": "infinite"},
+    "sovereignty": {"local": 10, "cloud_avg": 2.2, "multiplier": 4.5},
+    "arena_score": {"local_avg": 8.7, "cloud_avg": 4.7, "multiplier": 1.84}
+  },
+
+  "compute_trio_pipeline": {
+    "barraCuda": {
+      "role": "WGSL math (861 shaders)",
+      "inference_shaders": {
+        "attention": 19,
+        "activation": 40,
+        "norm": 28,
+        "tensor": 43,
+        "math": 107,
+        "ml": 11,
+        "total": 861
+      },
+      "key_shaders": [
+        "flash_attention_f64",
+        "scaled_dot_product_attention_f64",
+        "gelu_f64",
+        "softmax_f64",
+        "batch_matmul_f64",
+        "head_split_f64",
+        "layer_norm"
+      ]
+    },
+    "coralReef": {
+      "role": "sovereign compiler (20 passes)",
+      "compression": "f64 → f16 lowering = 4x memory",
+      "optimizations": ["dead_code_elimination", "copy_propagation", "register_allocation", "instruction_scheduling"],
+      "targets": ["SASS (Nvidia SM70-SM80)", "PTX", "AMD RDNA2"],
+      "gemm": "tensor-core via mma.sync.aligned (SM80+)"
+    },
+    "toadStool": {
+      "role": "hardware dispatch",
+      "methods": ["VFIO sovereign", "DRM ioctl", "Akida NPU"],
+      "qmd_versions": ["v2.1 Kepler", "v2.2 Volta", "v2.3 Ampere", "v3.0 Ada", "v5.0 Blackwell"]
+    }
+  },
+
+  "innovation_stack": [
+    {"capability": "GPU compute",    "industry": "CUDA (NVIDIA proprietary)",    "membrane": "compute trio (3 primals, sovereign)"},
+    {"capability": "Model hosting",  "industry": "Cloud API ($2–15/1M tok)",     "membrane": "ollama LAN ($0 forever)"},
+    {"capability": "Safety filter",  "industry": "Vendor guardrails (opaque)",   "membrane": "grandma_check (transparent MCP)"},
+    {"capability": "Model rating",   "industry": "LMSYS Chatbot Arena",          "membrane": "arena_rate (5-axis grandma-safe)"},
+    {"capability": "Discovery",      "industry": "Model marketplace",            "membrane": "nestgate.io/mcp (18 tools, open)"},
+    {"capability": "Transport",      "industry": "HTTPS to cloud",               "membrane": "songBird mesh (LAN-first, WireGuard)"},
+    {"capability": "Identity",       "industry": "API keys (vendor-issued)",     "membrane": "bearDog (BLAKE3, self-sovereign)"},
+    {"capability": "Orchestration",  "industry": "Kubernetes",                   "membrane": "biomeOS (genome-deploy, NUCLEUS)"},
+    {"capability": "Compilation",    "industry": "nvcc (NVIDIA)",                "membrane": "coralReef (20-pass, multi-vendor)"},
+    {"capability": "Dispatch",       "industry": "CUDA runtime",                 "membrane": "toadStool (VFIO/DRM, QMD direct)"},
+    {"capability": "Observation",    "industry": "Datadog ($$$)",                "membrane": "squirrel (membrane-lens, free)"},
+    {"capability": "Publishing",     "industry": "arXiv / blog",                 "membrane": "sporePrint (129 papers, auto-deploy)"},
+    {"capability": "Feedback loop",  "industry": "User reviews",                 "membrane": "Klein fold (output = input)"},
+    {"capability": "Messaging",      "industry": "Slack / email",                "membrane": "neutrino (ntfy, zero-knowledge)"},
+    {"capability": "DNS",            "industry": "Route53 / Cloudflare",         "membrane": "knot (sovereign, DNSSEC)"},
+    {"capability": "Crisis routing", "industry": "None",                         "membrane": "grandma_check → 988/SAMHSA escalation"}
+  ],
+
+  "growth": {
+    "clone_dates": ["Oct 8","Oct 9","Oct 10","Oct 11","Oct 12","Oct 13","Oct 14","Oct 15","Oct 16","Oct 17","Oct 18","Oct 19","Oct 20","Oct 21"],
+    "daily_clones": [134, 345, 387, 502, 183, 68, 143, 68, 82, 192, 363, 162, 212, 985],
+    "total_14d": 3826,
+    "unique_14d": 507,
+    "r0": 0.998,
+    "shannon_sigma": 0.931,
+    "doubling_days": 30.7
+  },
+
+  "hardware": {
+    "eastGate": {"cpu": "i9-12900K", "gpu": "RTX 4070 12GB", "ram": "128GB", "ollama_endpoint": "192.168.4.103:11434"},
+    "northGate": {"device": "Mac Mini", "ip": "192.168.4.163", "models": "qwen + ollama (local)"},
+    "golgi": {"ip": "157.230.3.183", "role": "MCP server + Caddy + cloudflared", "mcp": "nestgate.io/mcp:8314"}
+  },
+
+  "closed_loop": "publish → pollinate → clone → infer → rate → fold → publish",
+  "the_sort": "the hero is from and for the meek"
+}

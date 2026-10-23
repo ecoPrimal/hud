@@ -66,8 +66,7 @@
     '/data/primal-classification.json',
     '/data/immiscible-grease.json',
     '/data/raytrace-lan.json',
-    '/data/tube-foot.json',
-    '/data/immiscible-surface.json'
+    '/data/arena-benchmark.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
