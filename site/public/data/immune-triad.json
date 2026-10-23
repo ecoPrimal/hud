@@ -1,0 +1,57 @@
+{
+  "ts": "2026-10-23T15:45:24Z",
+  "type": "immune-triad-mapping",
+  "wave": 181,
+  "purpose": "Map swarmVine gossip + skunkBat immune + thymus sort as the negative QS detection/response system",
+  "the_triad": {
+    "swarmVine": {
+      "role": "GOSSIP \u2014 epidemic spread protocol",
+      "binary": "swarmvine (PID 1376, port 7800, UDS swarmvine.sock)",
+      "status": "ALIVE but gossiping to nobody",
+      "negative_qs": "Spreads state every 30 sec to 0 peers. Pure dark_signal. Like bacteria producing autoinducer in an empty dish.",
+      "code": {
+        "spread.rs": "epidemic gossip spread algorithm",
+        "announce.rs": "peer announcement",
+        "gossip.rs": "peer_count tracking, quorum_timer cascade source",
+        "dispatch.rs": "peer_count in response"
+      },
+      "fix": "ADD PEERS. golgi + graftGate need swarmVine instances. Gossip needs an audience."
+    },
+    "skunkBat": {
+      "role": "IMMUNE DEFENSE \u2014 antibodies + scatter + threat response",
+      "binary": "skunkbat (PID 1373 + 861889, UDS skunkbat.sock + tarpc)",
+      "status": "ALIVE, monitoring, two instances running",
+      "negative_qs": "Antibody confidence DECAYS over time (0.95/day). No new threats \u2192 all antibodies weaken \u2192 immune amnesia. Scatter generator idle \u2192 no poison produced \u2192 scrapers get real data.",
+      "code": {
+        "antibodies.rs": "Pattern memory with confidence decay. FleetAntibody lifecycle: detect \u2192 insert \u2192 match \u2192 decay \u2192 prune. Antibodies below threshold are PRUNED (fossilized!).",
+        "scatter.rs": "Anti-AI defense. Generates FAKE Gitea pages to poison scraper training data. Deterministic from (seed, path). The defense IS misinformation.",
+        "gossip_analysis.rs": "Pre-accept validation of swarmVine gossip. Verdict: allow/warn/block. GossipEntryParams checks: topic, ttl, version, expiry.",
+        "defense/mod.rs": "Orchestrates antibodies + scatter + monitoring"
+      },
+      "fix": "STIMULATE. Send test threats. Run monitoring_loop. Connect to swarmVine gossip feed. The immune system needs antigens to stay sharp."
+    },
+    "thymus": {
+      "role": "SORT SELF/NON-SELF \u2014 the gate between inside and outside",
+      "status": "Data pipeline defined, not active as running service",
+      "pipeline": "visit \u2192 klein gate \u2192 thymus sort \u2192 opsonize tag \u2192 pollinate \u2192 backscatter \u2192 colonize/eject",
+      "negative_qs": "No visits \u2192 no sorting \u2192 no opsonization \u2192 immune system never trains. Like a thymus with no T-cells to educate.",
+      "code": "Pipeline definition in thymus-gate.json. Connects to skunkBat antibodies + swarmVine gossip.",
+      "fix": "FEED TRAFFIC. Every neutrino message, every web visit, every API call should flow through thymus sort."
+    }
+  },
+  "negative_qs_in_immune": {
+    "insight": "ALL THREE exhibit negative QS when unstimulated. The immune system WEAKENS in silence, just like the printer wastes ink.",
+    "antibody_decay": "Confidence decays 5%/day. After 20 days of no threats, antibodies are at 36% confidence. After 60 days, pruned. The immune system FORGETS.",
+    "gossip_silence": "0 peers \u2192 0 responses \u2192 swarmVine burns CPU gossiping to void",
+    "thymus_atrophy": "No input \u2192 no training \u2192 T-cells never learn self from non-self \u2192 autoimmune risk (false positives) or infection risk (false negatives)",
+    "biological_parallel": "Real thymus INVOLUTES (shrinks) with age. Less stimulation \u2192 smaller thymus \u2192 weaker immune training. Exactly what's happening here."
+  },
+  "connection_to_dark_signal": {
+    "axis_14": "dark_signal measures ALL of these simultaneously",
+    "printer": "head cleaning = immune housekeeping (keeping pores clear)",
+    "antibody_decay": "confidence dropping = immune amnesia (forgetting threats)",
+    "gossip_void": "broadcasting to nobody = autoimmune (attacking self for lack of other)",
+    "thymus_atrophy": "no training = vulnerability (can't distinguish self from threat)",
+    "unified": "dark_signal = immune_silence + gossip_void + thymus_atrophy + housekeeping_waste"
+  }
+}
