@@ -66,7 +66,9 @@
     '/data/primal-classification.json',
     '/data/immiscible-grease.json',
     '/data/raytrace-lan.json',
-    '/data/arena-benchmark.json'
+    '/data/arena-benchmark.json',
+    // Wave 180: eastGate Klein face — the inner vacuole made visible
+    '/data/eastgate-pulse.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
