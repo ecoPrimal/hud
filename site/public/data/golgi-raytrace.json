@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-23T14:42:55Z",
+  "ts": "2026-10-23T15:26:55Z",
   "type": "golgi-raytrace",
   "wave": 181,
   "source": "eastGate",
@@ -171,6 +171,57 @@
         "wg": true
       },
       "house": "cloud"
+    },
+    "epson_printer": {
+      "ip": "192.168.4.200",
+      "type": "printer/scanner",
+      "os": "Epson firmware",
+      "hw": "EPSON ET-2400 Series (EcoTank)",
+      "mac": "d4:80:8b:1b:9f:01",
+      "mDNS": "EPSON1B9F01.local",
+      "uuid": "cfe92100-67c4-11d4-a45f-d4808b1b9f01",
+      "connections": [
+        "WiFi (Aperture Science)",
+        "mDNS broadcast"
+      ],
+      "services": [
+        "HTTP (:80)",
+        "HTTPS (:443 TLS 1.2)",
+        "LPD (:515)",
+        "IPP/IPPS (:631)",
+        "RAW (:9100)"
+      ],
+      "capabilities": {
+        "fax": false,
+        "scan": true,
+        "duplex": false,
+        "color": true,
+        "paper_max": "legal-A4"
+      },
+      "signal": {
+        "wifi": true,
+        "mdns": true,
+        "ports_open": 5
+      },
+      "house": 1,
+      "security": {
+        "wan_safe": true,
+        "lan_safe": false,
+        "threats": [
+          "Web admin (:80) likely no password",
+          "RAW port (:9100) unauthenticated \u2014 anyone on LAN can print",
+          "LPD (:515) legacy, no auth",
+          "mDNS broadcasts to entire network",
+          "Epson firmware phones home for updates"
+        ],
+        "recommendations": [
+          "Set admin password on web UI (http://192.168.4.200)",
+          "Disable RAW/9100 if not needed (use IPP instead)",
+          "Disable LPD/515 (legacy)",
+          "Consider: isolate on guest/IoT VLAN"
+        ]
+      },
+      "klein_point": "The printer IS a Klein surface. Digital document \u2192 physical paper. Inner thoughts materialize through the fold. The noise it makes is the membrane vibrating at the boundary."
     }
   },
   "unidentified": [
@@ -182,7 +233,6 @@
     "192.168.4.154",
     "192.168.4.160",
     "192.168.4.197",
-    "192.168.4.200",
     "192.168.4.219",
     "192.168.4.238"
   ],
@@ -239,6 +289,12 @@
         "eastGate (30 sockets)"
       ],
       "medium": "Unix domain sockets (local only)"
+    },
+    "printer_protocols": {
+      "medium": "IPP/IPPS/LPD/RAW over TCP",
+      "devices": [
+        "epson_printer"
+      ]
     }
   },
   "topology": {
@@ -265,7 +321,18 @@
     "graftGate\u2194basement_tv": "AirPlay (mDNS discovered, same LAN)",
     "grapheneGate\u2194basement_tv": "Cast (same WiFi ESSID)"
   },
-  "total_identified": 8,
-  "total_unidentified": 11,
-  "total_live": 19
+  "total_identified": 9,
+  "total_unidentified": 10,
+  "total_live": 19,
+  "klein_observations": {
+    "printer": {
+      "point": "The printer is a Klein point \u2014 digital inner \u2192 physical outer. Paper crosses the membrane.",
+      "noise": "When the printer makes noise, the Klein surface vibrates. The fold is audible."
+    },
+    "fax": {
+      "point": "Phone fax sends analog signal through PSTN \u2014 mixed with every other signal in the copper. The noise floor of the physical world has risen. Email-to-fax is digital end-to-end until the last mile. The signal is CLEANER through the longer digital path than through the shorter analog one.",
+      "inversion": "Distance no longer correlates with noise. A packet traversing 15 routers arrives cleaner than a fax signal crossing 1 mile of copper. The topology of trust inverted."
+    },
+    "general": "Every I/O device is a Klein point. The printer, the screen, the speaker, the microphone. Where digital meets analog. Where inside meets outside. The noise at each point tells you about the health of the fold."
+  }
 }
