@@ -3839,6 +3839,173 @@ function readMirror() {
 setInterval(writeMirror, 3000);
 writeMirror();
 
+// ═══ DATA FEDERATION — the nest atomic at the Klein face ═══
+// Three storage tiers mesh at one point:
+//
+//   HYPERLOCAL (localStorage)     — this device, this browser, this session
+//     easel_braid                 — painting history
+//     easel_spatial               — spatial memory (rotation, depth, earth detail)
+//     membrane_mirror             — real-time state snapshot
+//
+//   REMOTE (JSON feeds)           — the server, CF Pages, the membrane's public state
+//     /now.json                   — real-time classification
+//     /backscatter.json           — visitor crystals + heat + hyperlocal intent
+//     /dashboard.json             — dashboard metrics
+//     /data/thymus-gate.json      — immune gate state
+//     /triad.json                 — self/organic/soap mix
+//     /campfire-flash.json        — campfire stories
+//
+//   FEDERATED (nestgate.io MCP)   — the atomic query point
+//     18 tools: membrane_counts, observe_membrane, read_journal,
+//     chipmunk_status, topology, scan_sweep_sort, etc.
+//     Streamable HTTP. Any agent can query. The Klein face.
+//
+// The TENSE FILTER:
+//   PAST   = localStorage (what this device remembers)
+//   PRESENT = remote feeds (what the server sees NOW)
+//   FUTURE  = sigmoid extrapolation (where the heat curve is going)
+//
+// The VOXEL is the intersection: local × remote × time
+// NestGate IS the Klein face where all three tiers meet.
+
+var federation = {
+  // Hyperlocal tier — what this device knows
+  hyperlocal: {
+    braid: [],        // painting history from localStorage
+    spatial: {},      // spatial memory
+    mirror: {},       // current mirror state
+    deviceId: null,   // anonymous device fingerprint (hash of viewport + dpr)
+    sessionStart: Date.now(),
+  },
+
+  // Remote tier — what the server knows
+  remote: {
+    now: null,        // /now.json
+    backscatter: null,// /backscatter.json
+    thymus: null,     // thymus gate
+    triad: null,      // triad mix
+    lastFetch: 0,
+  },
+
+  // Federated tier — what nestgate.io knows
+  federated: {
+    mcp: 'https://nestgate.io/mcp',
+    tools: 18,
+    transport: 'streamable-http',
+    lastQuery: 0,
+  },
+
+  // Tense filter — past, present, future
+  tense: {
+    past: {},         // aggregated from hyperlocal
+    present: {},      // aggregated from remote
+    future: {},       // extrapolated from sigmoid curves
+  },
+
+  // Mesh — the unified view
+  mesh: {
+    coherent: false,  // true when all three tiers have data
+    voxelCount: 0,    // number of data points in the mesh
+    lastMesh: 0,
+  },
+};
+
+// Generate anonymous device ID from viewport characteristics
+function deviceFingerprint() {
+  var raw = W + '×' + H + '@' + (window.devicePixelRatio || 1) + ':' +
+    navigator.language + ':' + (typeof kleinAperture !== 'undefined' ? kleinAperture.category : 'unknown');
+  var hash = 0;
+  for (var i = 0; i < raw.length; i++) hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+  return 'dev_' + Math.abs(hash).toString(36);
+}
+federation.hyperlocal.deviceId = deviceFingerprint();
+
+// Mesh the three tiers together
+function meshFederation() {
+  var f = federation;
+
+  // HYPERLOCAL: read from localStorage
+  try { f.hyperlocal.braid = JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){}
+  try { f.hyperlocal.spatial = JSON.parse(localStorage.getItem('easel_spatial') || '{}'); } catch(e){}
+  f.hyperlocal.mirror = mirror;
+
+  // REMOTE: use already-fetched data
+  f.remote.now = nowFeed;
+  f.remote.backscatter = backscatterData;
+  f.remote.thymus = typeof thymusGate !== 'undefined' ? thymusGate : null;
+  f.remote.triad = typeof triadData !== 'undefined' ? triadData : null;
+  f.remote.lastFetch = Date.now();
+
+  // TENSE FILTER
+  // Past: how many paintings, total reinforcements, accumulated perspective
+  f.tense.past = {
+    paintings: f.hyperlocal.braid.length,
+    reinforcements: (f.hyperlocal.spatial.humanReinforcements || 0),
+    perspective: learnedTraits.perspective,
+    turtleHistory: {
+      leonardo: turtles.leonardo.skill,
+      donatello: turtles.donatello.skill,
+      raphael: turtles.raphael.skill,
+      michelangelo: turtles.michelangelo.skill,
+    },
+    sessionAge: (Date.now() - f.hyperlocal.sessionStart) / 1000,
+  };
+
+  // Present: current state from remote feeds
+  var classification = (f.remote.now && f.remote.now.classification) ? f.remote.now.classification : {};
+  f.tense.present = {
+    selfPct: classification.self ? (classification.self / Math.max(1, classification.total) * 100) : 0,
+    total: classification.total || 0,
+    nullTemp: typeof heatState !== 'undefined' ? heatState.nullTemp : 0.5,
+    crystals: crystalVisitors ? crystalVisitors.length : 0,
+    generation: generation,
+    phase: phase,
+  };
+
+  // Future: sigmoid extrapolation — where is the heat going?
+  if (typeof heatState !== 'undefined') {
+    var s = heatState.sources;
+    f.tense.future = {
+      heatTrend: heatState.totalHeat > 0.5 ? 'warming' : heatState.totalHeat < 0.3 ? 'cooling' : 'stable',
+      saturation: {
+        new_: s.new_.sigmoid > 0.8 ? 'saturated' : 'absorbing',
+        fleet: s.fleet.sigmoid > 0.8 ? 'saturated' : 'absorbing',
+      },
+      nextGeneration: generation + 1,
+      splinterProjection: metaStable(splinter.wisdom * 1.05), // 5% growth per gen
+    };
+  }
+
+  // MESH COHERENCE
+  f.mesh.coherent = !!(f.hyperlocal.mirror.ts && f.remote.now && f.remote.backscatter);
+  f.mesh.voxelCount = (f.hyperlocal.braid.length || 0) +
+    (crystalVisitors ? crystalVisitors.length : 0) +
+    Object.keys(f.tense.past).length +
+    Object.keys(f.tense.present).length;
+  f.mesh.lastMesh = Date.now();
+
+  // Write the mesh to the mirror so other pages can see it
+  mirror.federation = {
+    coherent: f.mesh.coherent,
+    voxels: f.mesh.voxelCount,
+    tiers: {
+      hyperlocal: !!f.hyperlocal.mirror.ts,
+      remote: !!f.remote.now,
+      federated: true, // MCP is always there
+    },
+    tense: {
+      past: f.tense.past.paintings + ' paintings',
+      present: f.tense.present.crystals + ' crystals',
+      future: f.tense.future ? f.tense.future.heatTrend : '?',
+    },
+    device: f.hyperlocal.deviceId,
+  };
+}
+
+// Mesh every 5 seconds
+setInterval(meshFederation, 5000);
+meshFederation();
+
 // ═══ PAINT THE MIRROR — the self-referential layer ═══
 // The flat mirror from the external perspective.
 // Invertible at every layer. You can always look and touch the internals.
@@ -3887,25 +4054,62 @@ function paintMirror() {
       W - 6, cy + 10);
   }
 
-  // The layer access points — dots along the mirror line
-  // Each dot = a layer you can look INTO and touch
-  var layers = ['easel', 'heat', 'klein', 'crystals'];
-  var layerColors = { easel: '#d2a8ff', heat: '#f0883e', klein: '#58a6ff', crystals: '#3fb950' };
+  // The THREE TIERS — along the mirror line
+  // Hyperlocal · Remote · Federated
+  var tiers = [
+    { name: 'hyperlocal', color: '#f0c674', x: 0.25,
+      label: 'localStorage', active: !!federation.hyperlocal.mirror.ts },
+    { name: 'remote', color: '#58a6ff', x: 0.45,
+      label: 'JSON feeds', active: !!federation.remote.now },
+    { name: 'federated', color: '#3fb950', x: 0.65,
+      label: 'nestgate MCP', active: true },
+  ];
 
-  layers.forEach(function(layer, i) {
-    var lx = W * (0.2 + i * 0.2);
-    ctx.globalAlpha = 0.03;
-    ctx.fillStyle = layerColors[layer];
+  tiers.forEach(function(tier) {
+    var tx = W * tier.x;
+    // Tier dot
+    ctx.globalAlpha = tier.active ? 0.05 : 0.015;
+    ctx.fillStyle = tier.color;
     ctx.beginPath();
-    ctx.arc(lx, cy, 2, 0, Math.PI * 2);
+    ctx.arc(tx, cy, tier.active ? 3 : 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tiny label
-    ctx.globalAlpha = 0.02;
+    // Label
+    ctx.globalAlpha = 0.025;
     ctx.font = '6px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(layer, lx, cy - 5);
+    ctx.fillText(tier.label, tx, cy - 7);
   });
+
+  // Connections between tiers — the mesh
+  if (federation.mesh.coherent) {
+    ctx.globalAlpha = 0.01;
+    ctx.strokeStyle = '#c9d1d9';
+    ctx.lineWidth = 0.3;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.25, cy);
+    ctx.lineTo(W * 0.65, cy);
+    ctx.stroke();
+
+    // Coherence label
+    ctx.globalAlpha = 0.02;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'center';
+    ctx.fillText('coherent · ' + federation.mesh.voxelCount + ' voxels', W * 0.45, cy + 10);
+  }
+
+  // TENSE INDICATORS — past/present/future below the mirror
+  if (mirror.federation) {
+    ctx.globalAlpha = 0.018;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'left';
+    var ty = cy + 20;
+    ctx.fillText('past: ' + (mirror.federation.tense ? mirror.federation.tense.past : '?'), W * 0.2, ty);
+    ctx.fillText('present: ' + (mirror.federation.tense ? mirror.federation.tense.present : '?'), W * 0.4, ty);
+    ctx.fillText('future: ' + (mirror.federation.tense ? mirror.federation.tense.future : '?'), W * 0.6, ty);
+  }
 
   ctx.restore();
 }
@@ -3930,6 +4134,7 @@ window._easel = {
   readMirror: readMirror,
   CONSTANTS: CONSTANTS,
   heat: function() { return typeof heatState !== 'undefined' ? heatState : null; },
+  federation: function() { return federation; },
 };
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
