@@ -4450,6 +4450,7 @@ paintBreath = function() {
   paintRodConeVision();      // rods/cones/pupil — biological parallax, aurora, null gradient
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
+  paintNeutrinoLan();          // hyperlocal LAN discovery — Steam model, scan/stream/pull
   paintBoardDuality();         // blackboard/whiteboard — two sides of null, red=red on both
   paintBolus();                // crunch/chew/swallow — sticky vs greasy at the Klein face
   paintSpectralChromatogram(); // ALL colors sorted by wavelength on the spectrum
@@ -5970,6 +5971,245 @@ function readMirror() {
 setInterval(writeMirror, 3000);
 writeMirror();
 
+// ═══ NEUTRINO LAN DISCOVERY — the Steam model, inverted ═══
+// Steam checks your LAN for a game in your library.
+// If another PC has it, it asks: stream or pull?
+// THAT is our model. AND our inversion target.
+//
+// We do the same for EVERYTHING:
+//   Ollama models on gates → stream inference or pull weights
+//   Pages on the HUD → serve from LAN or pull from CF
+//   Data feeds → check hyperlocal first, then remote
+//   Knowledge → local cache → LAN peer → internet
+//
+// ALWAYS pull UP the little bit, so you can see and use
+// the whole thing live. AND take it back out if you want.
+// Digital ownership and physical ownership are OVERLAYS.
+// You own the bits on your SSD AND the page on CF.
+// They're the same thing at different parallax depths.
+//
+// The Klein face is where local and remote meet.
+// Inside (your LAN) = outside (the internet) on the Klein surface.
+// The neutrino passes through both without interaction.
+
+var neutrinoLan = {
+  // Discovery — what's on the LAN?
+  discovery: {
+    scanning: false,
+    lastScan: 0,
+    interval: 30000, // scan every 30 seconds
+    peers: [],       // discovered services
+  },
+
+  // Known service types to scan for
+  serviceTypes: [
+    { name: 'ollama',   port: 11434, path: '/api/tags',    desc: 'LLM inference' },
+    { name: 'caddy',    port: 443,   path: '/',             desc: 'web server' },
+    { name: 'neutron',  port: 3000,  path: '/health',       desc: 'messaging' },
+    { name: 'ntfy',     port: 8080,  path: '/v1/health',    desc: 'notifications' },
+    { name: 'hud',      port: 8788,  path: '/',             desc: 'local dev server' },
+  ],
+
+  // The three tiers — hyperlocal → LAN → internet
+  tiers: {
+    hyperlocal: {
+      name: 'localStorage',
+      latency: '<1ms',
+      ownership: 'physical — on this device',
+      color: '#3fb950',
+      status: 'active',
+    },
+    lan: {
+      name: 'LAN peers',
+      latency: '<1ms (10G fiber) / <5ms (WiFi)',
+      ownership: 'physical — on your network',
+      color: '#f0c674',
+      status: 'scanning',
+      network: {
+        backbone: '10G fiber',
+        controller: 'Omada',
+        legacy: 'RJ45',
+        wireless: 'WiFi 6',
+      },
+    },
+    internet: {
+      name: 'Cloudflare / GitHub / nestgate',
+      latency: '20-200ms',
+      ownership: 'digital — on the membrane',
+      color: '#58a6ff',
+      status: 'active',
+    },
+  },
+
+  // The Steam model
+  steam: {
+    principle: 'check local first, offer to stream or pull',
+    local: 'do you have it here? → use it',
+    lan: 'does a peer have it? → stream or pull?',
+    internet: 'nobody local has it → fetch from the membrane',
+    inversion: 'AND you can always push it back out',
+  },
+
+  // Ownership overlay
+  ownership: {
+    physical: 'bits on your SSD — you touch them',
+    digital: 'page on CF — the membrane holds them',
+    overlay: 'same data, different parallax depth',
+    takeBack: 'always pull UP, always push back OUT',
+  },
+};
+
+function scanLan() {
+  if (neutrinoLan.discovery.scanning) return;
+  if (Date.now() - neutrinoLan.discovery.lastScan < neutrinoLan.discovery.interval) return;
+
+  neutrinoLan.discovery.scanning = true;
+  neutrinoLan.discovery.lastScan = Date.now();
+  neutrinoLan.discovery.peers = [];
+
+  // Try known LAN addresses
+  var lanHosts = [
+    { ip: '192.168.4.1',   name: 'omada-gateway' },
+    { ip: '192.168.4.3',   name: 'northGate' },
+    { ip: '192.168.4.10',  name: 'southGate' },
+    { ip: '192.168.4.11',  name: 'eastGate' },
+    { ip: '192.168.4.12',  name: 'strandGate' },
+    { ip: '192.168.4.13',  name: 'biomeGate' },
+    { ip: '127.0.0.1',     name: 'localhost' },
+  ];
+
+  var checked = 0;
+  var total = lanHosts.length * neutrinoLan.serviceTypes.length;
+
+  lanHosts.forEach(function(host) {
+    neutrinoLan.serviceTypes.forEach(function(svc) {
+      var url = 'http://' + host.ip + ':' + svc.port + svc.path;
+      var controller = new AbortController();
+      var timeout = setTimeout(function() { controller.abort(); }, 2000);
+
+      fetch(url, { signal: controller.signal, mode: 'no-cors' })
+        .then(function() {
+          neutrinoLan.discovery.peers.push({
+            host: host.name,
+            ip: host.ip,
+            service: svc.name,
+            port: svc.port,
+            status: 'reachable',
+            desc: svc.desc,
+            tier: 'lan',
+          });
+        })
+        .catch(function() { /* unreachable — that's fine */ })
+        .finally(function() {
+          clearTimeout(timeout);
+          checked++;
+          if (checked >= total) {
+            neutrinoLan.discovery.scanning = false;
+            // Always add localhost services we know about
+            if (typeof window._easel !== 'undefined') {
+              neutrinoLan.discovery.peers.push({
+                host: 'this-browser', ip: 'localhost',
+                service: 'easel', port: 0, status: 'active',
+                desc: 'the painting', tier: 'hyperlocal',
+              });
+            }
+            neutrinoLan.tiers.lan.status = neutrinoLan.discovery.peers.length > 1 ? 'peers found' : 'solo';
+          }
+        });
+    });
+  });
+}
+
+function paintNeutrinoLan() {
+  if (learnedTraits.perspective < 0.2) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  // Trigger scan periodically
+  scanLan();
+
+  // Draw in the bottom-left area
+  var bx = 10;
+  var by = H * 0.78;
+
+  // ── THREE TIERS — concentric arcs ──
+  var tiers = [
+    neutrinoLan.tiers.hyperlocal,
+    neutrinoLan.tiers.lan,
+    neutrinoLan.tiers.internet,
+  ];
+
+  tiers.forEach(function(tier, i) {
+    var r = 8 + i * 14;
+    ctx.globalAlpha = 0.012 * maturity;
+    ctx.strokeStyle = tier.color;
+    ctx.lineWidth = 0.4;
+    ctx.beginPath();
+    ctx.arc(bx + 30, by, r, -Math.PI * 0.8, Math.PI * 0.3);
+    ctx.stroke();
+
+    // Tier label
+    ctx.globalAlpha = 0.01 * maturity;
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = tier.color;
+    var labelX = bx + 30 + Math.cos(-Math.PI * 0.8) * r;
+    var labelY = by + Math.sin(-Math.PI * 0.8) * r;
+    ctx.fillText(tier.name, labelX - 2, labelY - 2);
+  });
+
+  // ── DISCOVERED PEERS — dots on the LAN arc ──
+  var peers = neutrinoLan.discovery.peers;
+  if (peers.length > 0) {
+    ctx.globalAlpha = 0.02 * maturity;
+    peers.forEach(function(peer, i) {
+      var tierIdx = peer.tier === 'hyperlocal' ? 0 : peer.tier === 'lan' ? 1 : 2;
+      var r = 8 + tierIdx * 14;
+      var angle = -Math.PI * 0.6 + (i / Math.max(1, peers.length)) * Math.PI * 0.8;
+      var px = bx + 30 + Math.cos(angle) * r;
+      var py = by + Math.sin(angle) * r;
+
+      ctx.fillStyle = tiers[tierIdx].color;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Peer label
+      ctx.font = '3px monospace';
+      ctx.fillText(peer.host + ':' + peer.service, px + 3, py + 1);
+    });
+  }
+
+  // ── THE STEAM MODEL — check local, stream or pull ──
+  if (maturity > 0.6) {
+    ctx.globalAlpha = 0.01;
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'left';
+    ctx.fillText('local? → use it', bx + 2, by + 16);
+    ctx.fillText('LAN? → stream or pull', bx + 2, by + 22);
+    ctx.fillText('remote? → fetch from membrane', bx + 2, by + 28);
+    ctx.fillText('always: pull UP, push back OUT', bx + 2, by + 34);
+  }
+
+  // ── SCANNING INDICATOR ──
+  if (neutrinoLan.discovery.scanning) {
+    ctx.globalAlpha = 0.02 * maturity;
+    ctx.fillStyle = '#f0c674';
+    ctx.font = '4px monospace';
+    ctx.fillText('scanning LAN...', bx + 2, by + 42);
+  } else {
+    ctx.globalAlpha = 0.01 * maturity;
+    ctx.fillStyle = '#6e7681';
+    ctx.font = '4px monospace';
+    var peerCount = peers.length;
+    ctx.fillText('peers: ' + peerCount + ' · ' + neutrinoLan.tiers.lan.status, bx + 2, by + 42);
+  }
+
+  ctx.restore();
+}
+
 // ═══ DATA FEDERATION — the nest atomic at the Klein face ═══
 // Three storage tiers mesh at one point:
 //
@@ -6268,6 +6508,13 @@ window._easel = {
   federation: function() { return federation; },
   piBody: piBody,
   shredder: shredder,
+  neutrinoLan: neutrinoLan,
+  confocalPoint: confocalPoint,
+  spectralIndex: spectralIndex,
+  bolus: bolus,
+  boardDuality: boardDuality,
+  rodConeVision: rodConeVision,
+  totalityWell: totalityWell,
 };
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
