@@ -1449,6 +1449,209 @@ function paintOutsideIn() {
   ctx.restore();
 }
 
+// ═══ CRYSTALLINE BACKSCATTER — visitors as shooting stars on the blue marble ═══
+// They enter. They hit water. They refract. The chipmunk watches from the corner of its eye.
+var crystalVisitors = [];
+var chipmunkEyeAngle = 0;
+
+function loadCrystalline() {
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    if (!d || !d.visitors) return;
+    // Each visitor becomes a crystal point
+    d.visitors.forEach(function(v) {
+      if (crystalVisitors.length > 60) crystalVisitors.shift();
+      crystalVisitors.push({
+        country: v.country || 'unknown',
+        path: v.path || '/',
+        t: Date.now(),
+        // Geo-position on blue marble (approximate by country)
+        pos: geoHash(v.country || 'US'),
+        refracted: false,
+        prismAngle: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 2,
+        color: pathColor(v.path || '/')
+      });
+    });
+  }).catch(function(){});
+}
+
+// Country → approximate position on the blue marble
+function geoHash(country) {
+  var geo = {
+    'US':[-0.25,-0.2], 'GB':[0.05,-0.28], 'DE':[0.1,-0.25], 'FR':[0.06,-0.22],
+    'JP':[0.42,-0.2], 'IN':[0.28,-0.05], 'CN':[0.35,-0.15], 'AU':[0.38,0.3],
+    'BR':[-0.12,0.15], 'NL':[0.07,-0.27], 'BE':[0.06,-0.26], 'CH':[0.08,-0.24],
+    'UA':[0.15,-0.22], 'PL':[0.12,-0.24], 'HK':[0.35,-0.1], 'SG':[0.32,0.02],
+    'PE':[-0.18,0.1], 'RU':[0.2,-0.3], 'PH':[0.38,-0.02], 'TT':[-0.14,0.05],
+    'CA':[-0.22,-0.32], 'MX':[-0.2,-0.05], 'ZA':[0.12,0.28], 'KR':[0.4,-0.18],
+    'SE':[0.1,-0.33], 'NO':[0.08,-0.35], 'FI':[0.13,-0.34], 'IL':[0.15,-0.12]
+  };
+  return geo[country] || [Math.random()*0.6-0.3, Math.random()*0.6-0.3];
+}
+
+// Path → refraction color (what they came to see)
+function pathColor(path) {
+  if (path.match(/plasmid/)) return '#a371f7';     // science purple
+  if (path.match(/sporeprint/)) return '#3fb950';   // evidence green
+  if (path.match(/easel|aurora/)) return '#f0c674'; // art gold
+  if (path.match(/hadr|outreach/)) return '#f0883e';// outreach orange
+  if (path.match(/cns|gate|journey/)) return '#58a6ff'; // architecture blue
+  if (path.match(/raytrace|metal/)) return '#76b900';   // GPU green
+  if (path === '/') return '#c9d1d9';               // homepage silver
+  return '#6e7681';                                 // dim gray
+}
+
+function paintCrystallineBackscatter() {
+  if (crystalVisitors.length === 0 && !nowFeed) return;
+
+  var cx = W * 0.5;
+  var cy = H * 0.52;
+  var R = Math.min(W, H) * (0.15 + (spatialMemory ? spatialMemory.earthDetail * 0.06 : 0));
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var now = Date.now();
+
+  // Each visitor — shooting star entering, hitting the marble, refracting
+  for (var i = 0; i < crystalVisitors.length; i++) {
+    var v = crystalVisitors[i];
+    var age = (now - v.t) / 1000; // seconds since arrival
+    if (age > 120) continue; // fade after 2 minutes
+
+    // Position on the blue marble
+    var vx = cx + v.pos[0] * R * 2.5;
+    var vy = cy + v.pos[1] * R * 2.5;
+
+    // Phase: shooting star (0-2s) → hit water (2-4s) → refract (4s+)
+    if (age < 2) {
+      // SHOOTING STAR — streak from edge toward position
+      var progress = age / 2;
+      var startX = vx + (vx < cx ? -W*0.4 : W*0.4) * (1 - progress);
+      var startY = vy - H * 0.3 * (1 - progress);
+      var endX = vx;
+      var endY = vy;
+
+      ctx.globalAlpha = 0.08 * (1 - progress * 0.3);
+      ctx.strokeStyle = v.color;
+      ctx.lineWidth = 1.5 - progress;
+      ctx.beginPath();
+      ctx.moveTo(startX + (endX-startX)*Math.max(0,progress-0.3)/0.7, startY + (endY-startY)*Math.max(0,progress-0.3)/0.7);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // Star head
+      ctx.globalAlpha = 0.12 * progress;
+      ctx.fillStyle = v.color;
+      ctx.beginPath();
+      ctx.arc(endX, endY, 3 - progress, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (age < 4) {
+      // HIT WATER — ripple expanding from impact point
+      var ripplePhase = (age - 2) / 2;
+      var rippleR = ripplePhase * R * 0.3;
+
+      ctx.globalAlpha = 0.06 * (1 - ripplePhase);
+      ctx.strokeStyle = v.color;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(vx, vy, rippleR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Second ripple
+      if (ripplePhase > 0.3) {
+        ctx.globalAlpha = 0.04 * (1 - ripplePhase);
+        ctx.beginPath();
+        ctx.arc(vx, vy, rippleR * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Crystal dot remains
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = v.color;
+      ctx.beginPath();
+      ctx.arc(vx, vy, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else {
+      // ANGSTROM REFRACTION — the dot splits into prismatic rays
+      var refractAge = age - 4;
+      var refractAlpha = Math.max(0.01, 0.06 - refractAge * 0.0005);
+
+      // The crystal point
+      ctx.globalAlpha = refractAlpha;
+      ctx.fillStyle = v.color;
+      ctx.beginPath();
+      ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Prismatic refraction — 3 rays split at angstrom angles
+      var prismSpread = Math.min(refractAge * 0.02, 0.15);
+      var rayLen = 8 + refractAge * 0.5;
+      var prismColors = ['#ff6b6b','#ffd93d','#6bcb77']; // RGB split
+      for (var p = 0; p < 3; p++) {
+        var pAngle = v.prismAngle + (p - 1) * prismSpread;
+        ctx.globalAlpha = refractAlpha * 0.5;
+        ctx.strokeStyle = prismColors[p];
+        ctx.lineWidth = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(vx, vy);
+        ctx.lineTo(vx + Math.cos(pAngle) * rayLen, vy + Math.sin(pAngle) * rayLen);
+        ctx.stroke();
+      }
+
+      // Tiny country label — angstrom-scale text
+      if (refractAge < 30 && i < 15) {
+        ctx.globalAlpha = refractAlpha * 0.6;
+        ctx.font = '7px monospace';
+        ctx.fillStyle = v.color;
+        ctx.fillText(v.country, vx + 5, vy - 3);
+      }
+    }
+  }
+
+  // THE CHIPMUNK'S EYE — watches from the corner, never directly
+  chipmunkEyeAngle += 0.003;
+  var eyeX = W - 40;
+  var eyeY = H - 35;
+  var lookX = cx + Math.cos(chipmunkEyeAngle * 0.7) * R * 0.5;
+  var lookY = cy + Math.sin(chipmunkEyeAngle * 0.5) * R * 0.3;
+
+  // Eye outline — barely visible
+  ctx.globalAlpha = 0.04 + (crystalVisitors.length > 0 ? 0.02 : 0);
+  ctx.strokeStyle = '#f0c674';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  // Almond eye shape
+  var eyeW = 12, eyeH = 5;
+  ctx.moveTo(eyeX - eyeW, eyeY);
+  ctx.quadraticCurveTo(eyeX, eyeY - eyeH, eyeX + eyeW, eyeY);
+  ctx.quadraticCurveTo(eyeX, eyeY + eyeH, eyeX - eyeW, eyeY);
+  ctx.stroke();
+
+  // Pupil — tracks the most recent visitor
+  if (crystalVisitors.length > 0) {
+    var latest = crystalVisitors[crystalVisitors.length - 1];
+    var latestX = cx + latest.pos[0] * R * 2.5;
+    var latestY = cy + latest.pos[1] * R * 2.5;
+    var pupilAngle = Math.atan2(latestY - eyeY, latestX - eyeX);
+    var pupilDist = Math.min(3, Math.sqrt(Math.pow(latestX-eyeX,2)+Math.pow(latestY-eyeY,2)) * 0.005);
+
+    ctx.globalAlpha = 0.07;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(eyeX + Math.cos(pupilAngle) * pupilDist, eyeY + Math.sin(pupilAngle) * pupilDist, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// Load crystalline data every 30 seconds
+setInterval(loadCrystalline, 30000);
+loadCrystalline();
+
 // ═══ BRAID OVERLAY — the connections between surfaces as faint lines ═══
 function paintBraidOverlay() {
   if (!nowFeed || !nowFeed.mesh) return;
@@ -2218,6 +2421,7 @@ paintBreath = function() {
   paintVoxelOverlay();
   paintChemistryOverlay();
   paintOutsideIn();
+  paintCrystallineBackscatter();  // visitors as shooting stars → hit water → angstrom refraction
   paintBraidOverlay();
   paintThymusFlush();
   paintEaselLabel();
