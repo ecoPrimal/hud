@@ -30,10 +30,10 @@
 
   // Face colors (the 4 reality quadrants)
   var FACES = [
-    { name: 'green-engine', color: [0.133, 0.773, 0.227, 0.6], label: 'Engine (self-sort)', feeds: 33 },
-    { name: 'blue-data', color: [0.345, 0.651, 1.0, 0.6], label: 'Data (memory)', feeds: 45 },
-    { name: 'red-action', color: [0.941, 0.353, 0.306, 0.6], label: 'Action (heartbeat)', feeds: 28 },
-    { name: 'gold-selection', color: [1.0, 0.843, 0.0, 0.6], label: 'Selection (π gate)', feeds: 19 }
+    { name: 'green-engine', color: [0.2, 0.85, 0.35, 0.75], label: 'Engine (self-sort)', feeds: 33 },
+    { name: 'blue-data', color: [0.4, 0.7, 1.0, 0.75], label: 'Data (memory)', feeds: 45 },
+    { name: 'red-action', color: [1.0, 0.4, 0.35, 0.75], label: 'Action (heartbeat)', feeds: 28 },
+    { name: 'gold-selection', color: [1.0, 0.88, 0.1, 0.75], label: 'Selection (π gate)', feeds: 19 }
   ];
 
   // Fog of war layers
@@ -82,7 +82,7 @@
     '  float diffuse = max(dot(normalize(vNormal), light), 0.15);',
     '  float fogMask = smoothstep(0.0, vFog, vDepth);',
     '  vec4 col = vColor;',
-    '  col.rgb *= (0.4 + 0.6 * diffuse);',
+    '  col.rgb *= (0.5 + 0.5 * diffuse);',
     // Fog of war: deeper = more hidden
     '  col.a *= mix(1.0, 0.05, fogMask);',
     // Pulse at the fog boundary (the green engine)
@@ -296,7 +296,18 @@
     gl.uniform1i(gl.getUniformLocation(program, 'uShowInside'), showInside ? 1 : 0);
 
     var geo = window._pyramidGeo;
+    // Draw filled faces
     gl.drawArrays(gl.TRIANGLES, 0, geo.count);
+
+    // Draw wireframe edges on top for visibility
+    gl.depthFunc(gl.LEQUAL);
+    gl.uniform1f(gl.getUniformLocation(program, 'uFog'), 0.0); // no fog on wireframe
+    // Override colors to white edges by drawing LINE_LOOP per triangle
+    for (var i = 0; i < Math.min(geo.count, 24); i += 3) {
+      gl.drawArrays(gl.LINE_LOOP, i, 3);
+    }
+    gl.uniform1f(gl.getUniformLocation(program, 'uFog'), fogLevel);
+    gl.depthFunc(gl.LESS);
 
     requestAnimationFrame(render);
   }
