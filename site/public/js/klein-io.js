@@ -74,7 +74,9 @@
     // University validation matrix — ethics × modality × industry
     '/data/validation-matrix.json',
     // Model phenotype taxonomy — classify models like organisms
-    '/data/model-phenotype.json'
+    '/data/model-phenotype.json',
+    // Agglutinate-backscatter: ingest external, post our results, they validate themselves
+    '/data/agglutinate-backscatter.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
