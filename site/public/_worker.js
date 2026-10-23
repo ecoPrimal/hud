@@ -200,7 +200,7 @@ function reportEngagement(probe, request, url, sub) {
   const g = glyphs[probe.reason] || '*';
   
   // Cloudflare Workers keep subrequests alive even after response
-  fetch('https://ntfy.sh/primals-membrane-scan', {
+  return fetch('https://ntfy.sh/primals-membrane-scan', {
     method: 'POST',
     body: `${metalGlyph}${g} [${probe.triad}] ${probe.reason} | ${metal} | n:${probe.n} d:${probe.depth.toFixed(5)} | ${url.pathname} | ${sub || 'root'} | ${ua}`,
     headers: {
@@ -213,6 +213,7 @@ function reportEngagement(probe, request, url, sub) {
 
 export default {
   async fetch(request, env, ctx) {
+   try {
     const url = new URL(request.url);
     const host = url.hostname;
 
@@ -223,8 +224,9 @@ export default {
 
     // === ENGAGEMENT TRIAD — classify every probe ===
     const probe = classifyProbe(request, url, sub);
-    // Fire scan report — don't await (would block response)
-    reportEngagement(probe, request, url, sub);
+    // Fire scan report — use ctx.waitUntil to keep alive after response
+    const engagePromise = reportEngagement(probe, request, url, sub);
+    if (engagePromise && ctx && ctx.waitUntil) ctx.waitUntil(engagePromise);
     
     // Glyph classification: *# @^ $&%
     // * = wildcard (maze catch, unknown sub)
@@ -385,7 +387,7 @@ export default {
       'strand':     '/data/strand-braid.json',              // Death Stranding × membrane. full credit to Kojima.
       'kojima':     '/data/strand-braid.json',              // Hideo Kojima invented the strand game genre.
       'deathstranding': '/data/strand-braid.json',          // the game IS the metaphor IS the reality.
-      'vitruvian':  '/data/klein-body.json',                // the Vitruvian Man climbing the Klein ladder
+      'vitruvian2': '/data/klein-body.json',                // the Vitruvian Man climbing the Klein ladder (data feed)
       'kleinbody':  '/data/klein-body.json',                // the body IS a Klein surface
       'vagus':      '/data/klein-body.json',                // the wandering nerve, brain→gut Klein fold
       'navel':      '/data/klein-body.json',                // navel gazing = CNS touching PNS at the fold
@@ -407,7 +409,7 @@ export default {
       'holes':      '/data/brazil-nut-secant.json',          // THERE ARE HOLES IN THE BOTTOM OF THE SEA
       'easter':     '/data/brazil-nut-secant.json',          // Easter Island heads — sand rises to them
       'mesh':       '/data/mesh-enmesh.json',               // 🕸️ full sovereign mesh — all gates, all devices
-      'enmesh':     '/data/mesh-enmesh.json',               // LAN cytoplasm topology
+      'enmeshlan':  '/data/mesh-enmesh.json',               // LAN cytoplasm topology
       'fleet':      '/data/mesh-enmesh.json',               // the fleet IS the cytoplasm
       'steamframe': '/data/mesh-enmesh.json',               // Valve Steam Frame — living room nerve ending
       'steamdeck':  '/data/mesh-enmesh.json',               // Gen 1 LCD — 6th phylum portable
@@ -443,7 +445,7 @@ export default {
       'cytokine':   '/menagerie',
       'interferon': '/menagerie',
       'epitope':    '/like-us',
-      'thymus':     '/menagerie',
+      'thymus2':    '/menagerie',            // immune thymus → menagerie (thymus data at /data/thymus-gate.json above)
       'macrophage': '/menagerie',
       'antibody':   '/like-us',
       'lysozyme':   '/menagerie',
@@ -591,6 +593,13 @@ export default {
         'x-klein-fold': 'you are inside the maze. the wildcard caught you.',
       },
     });
+   } catch (err) {
+    // Surface the error instead of fail_open hiding it
+    return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
+      status: 500,
+      headers: { 'content-type': 'application/json', 'x-worker-crash': err.message },
+    });
+   }
   },
 };
 

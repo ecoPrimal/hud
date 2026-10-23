@@ -1782,6 +1782,32 @@ function paintCampfire() {
     ctx.beginPath();
     ctx.arc(cx, cy, fireR * 5, 0, Math.PI * 2);
     ctx.fill();
+
+    // POST ASH TO DISCORD — the burned message becomes a campfire post
+    if (!campfire._discordCooldown) campfire._discordCooldown = 0;
+    if (storyTimer > campfire._discordCooldown) {
+      campfire._discordCooldown = storyTimer + 2400; // max once every ~2 min
+      var discordPayload = JSON.stringify({
+        username: 'chipMunk',
+        embeds: [{
+          title: burnTitle,
+          description: burnBody.substring(0, 200) + (burnBody.length > 200 ? '...' : ''),
+          color: 16744232,
+          footer: { text: 'burned in the campfire | ' + new Date().toLocaleTimeString() },
+          fields: [{
+            name: 'ash',
+            value: burnTitle.split('').sort(function(){return Math.random()-0.5}).join(' '),
+            inline: true
+          }]
+        }]
+      });
+      var bridgeURL = (window._klein && window._klein.bridgeURL) || 'https://border-people-apollo-genres.trycloudflare.com';
+      fetch(bridgeURL + '/discord', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: discordPayload
+      }).catch(function(){});
+    }
   }
 
   // ── RENDER ASH PARTICLES — letters from burned messages floating up ──

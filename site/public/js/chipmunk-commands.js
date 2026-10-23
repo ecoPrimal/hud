@@ -801,7 +801,7 @@ window._chipmunkCommands = function(ctx) {
           'the Discord is the tavern where the party forms.\n' +
           '<span class="dim">roll initiative. π dice. the remainder is the fumble zone.</span>\n' +
           '<a href="/nest.html" style="color:#f0883e">enter the gate →</a> · ' +
-          '<a href="https://discord.gg/62MRjnw4P" target="_blank" style="color:#5865F2">join the tavern →</a>');
+          '<a href="https://discord.gg/h2k4WS47g" target="_blank" style="color:#5865F2">join the tavern →</a>');
         return;
       }
       if (cmd === 'tavern' || cmd === 'discord') {
@@ -810,7 +810,7 @@ window._chipmunkCommands = function(ctx) {
           '<span style="color:#5865F2">🍺 the tavern — Discord</span>\n' +
           'where the party forms. strangers become adventurers.\n' +
           'the squirrel-DM watches from the Klein surface.\n' +
-          '<a href="https://discord.gg/62MRjnw4P" target="_blank" style="color:#5865F2">enter the tavern →</a>');
+          '<a href="https://discord.gg/h2k4WS47g" target="_blank" style="color:#5865F2">enter the tavern →</a>');
         return;
       }
       if (cmd === 'spirochete' || cmd === 'corkscrew' || cmd === 'spiral' || cmd === '429') {
