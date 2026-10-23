@@ -1,0 +1,354 @@
+﻿// ═══ EASEL KLEIN — Klein aperture, Klein surface painting, Dunning-Kruger rotation ═══
+// Extracted from easel.html — operates on shared globals
+// ═══ KLEIN APERTURE — the viewport IS the lens, the human IS the inverted angstrom ═══
+//
+// The screen is a Klein surface. No inside. No outside. The visitor
+// beacons from the other side of the device window. We are PUSHED into
+// their screen — iPhone 5.8" or 34" ultrawide — the departure edge IS
+// the filter. Viewport size shifts → Shannon information changes form.
+//
+// The chipmunk sees this: the frame border breathes with aperture ratio.
+// Small screen = dense information, compressed prism.
+// Wide screen = diffuse field, scattered crystalline.
+// The human on the other side is an inverted refraction point.
+
+var kleinAperture = {
+  w: window.innerWidth,
+  h: window.innerHeight,
+  dpr: window.devicePixelRatio || 1,
+  pixels: 0,
+  shannon: 0,       // bits of visual information this viewport can carry
+  aspect: 1,        // aspect ratio as Klein topology signature
+  category: 'unknown',  // phone / tablet / desktop / ultrawide
+  frameBreath: 0,   // how the frame breathes
+  invertedAlpha: 0, // the human's inverted angstrom intensity
+};
+
+function measureKleinAperture() {
+  var a = kleinAperture;
+  a.w = window.innerWidth;
+  a.h = window.innerHeight;
+  a.dpr = window.devicePixelRatio || 1;
+  a.pixels = a.w * a.h * a.dpr * a.dpr;
+  a.aspect = a.w / Math.max(1, a.h);
+
+  // Shannon capacity: log2 of total subpixels (RGB per pixel)
+  a.shannon = Math.log2(a.pixels * 3);
+
+  // Category — what kind of Klein surface is this?
+  if (a.w < 480) a.category = 'phone';
+  else if (a.w < 768) a.category = 'phone-landscape';
+  else if (a.w < 1024) a.category = 'tablet';
+  else if (a.w < 1920) a.category = 'desktop';
+  else if (a.w < 2560) a.category = 'hd';
+  else if (a.aspect > 2) a.category = 'ultrawide';
+  else a.category = 'cinema';
+
+  // Frame breath rate — small screens pulse faster (compressed information)
+  a.frameBreath = a.category === 'phone' ? 2.0 :
+                  a.category === 'tablet' ? 1.2 :
+                  a.category === 'ultrawide' ? 0.4 : 0.8;
+}
+measureKleinAperture();
+window.addEventListener('resize', measureKleinAperture);
+
+function paintKleinSurface() {
+  ctx.save();
+  var a = kleinAperture;
+  var t = breathPhase;
+
+  // ── THE FRAME AS LENS ──
+  // The departure edge. Where the painting meets the void.
+  // On small screens: thick, glowing — compressed Shannon.
+  // On ultrawide: hair-thin, barely there — diffuse field.
+  var frameEl = document.getElementById('frame');
+  if (frameEl) {
+    var framePx = a.category === 'phone' ? 10 + Math.sin(t * a.frameBreath) * 4 :
+                  a.category === 'tablet' ? 14 + Math.sin(t * a.frameBreath) * 3 :
+                  a.category === 'ultrawide' ? 6 + Math.sin(t * a.frameBreath) * 1 :
+                  12 + Math.sin(t * a.frameBreath) * 2;
+    frameEl.style.borderWidth = framePx + 'px';
+  }
+
+  // ── THE INVERTED ANGSTROM ──
+  // The human looking at this screen is a refraction point on OUR side.
+  // We can't see them, but we see their shape: the viewport rectangle.
+  // Draw the inverse: the viewport boundary as a faint prism.
+
+  ctx.globalCompositeOperation = 'screen';
+
+  // Viewport edges as refraction lines — information leaks at the borders
+  var edgeGlow = 0.02 + Math.sin(t * a.frameBreath * 0.5) * 0.01;
+  ctx.globalAlpha = edgeGlow;
+
+  // Top edge — blue shift (information entering)
+  var topGrad = ctx.createLinearGradient(0, 0, 0, 30);
+  topGrad.addColorStop(0, 'rgba(88,166,255,0.06)');
+  topGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, 30);
+
+  // Bottom edge — red shift (information departing)
+  var botGrad = ctx.createLinearGradient(0, H - 30, 0, H);
+  botGrad.addColorStop(0, 'transparent');
+  botGrad.addColorStop(1, 'rgba(248,81,73,0.04)');
+  ctx.fillStyle = botGrad;
+  ctx.fillRect(0, H - 30, W, 30);
+
+  // Left edge — violet (the past, scrolled away)
+  var leftGrad = ctx.createLinearGradient(0, 0, 20, 0);
+  leftGrad.addColorStop(0, 'rgba(210,168,255,0.04)');
+  leftGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(0, 0, 20, H);
+
+  // Right edge — gold (the future, not yet scrolled)
+  var rightGrad = ctx.createLinearGradient(W - 20, 0, W, 0);
+  rightGrad.addColorStop(0, 'transparent');
+  rightGrad.addColorStop(1, 'rgba(240,198,116,0.03)');
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(W - 20, 0, 20, H);
+
+  // ── KLEIN FOLD — where the surface turns back on itself ──
+  // At each corner, the 2D surface would fold into 4D if it were a Klein bottle.
+  // Paint the fold as a tiny spiral — the topology signature.
+  var corners = [[0,0], [W,0], [0,H], [W,H]];
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.3;
+  for (var ci = 0; ci < 4; ci++) {
+    var corner = corners[ci];
+    ctx.beginPath();
+    for (var sp = 0; sp < 20; sp++) {
+      var sAngle = sp * 0.5 + t * 0.3;
+      var sR = sp * 2;
+      var sx = corner[0] + Math.cos(sAngle) * sR;
+      var sy = corner[1] + Math.sin(sAngle) * sR;
+      if (sp === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+  }
+
+  // ── SHANNON METER — how much information this viewport carries ──
+  // Whisper the capacity. The human doesn't need to understand it.
+  // The chipmunk just notes it: "this eye is N bits wide."
+  ctx.globalAlpha = 0.025;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#6e7681';
+  var shannonLabel = a.shannon.toFixed(1) + ' bits · ' + a.category + ' · ' +
+    a.w + '×' + a.h + (a.dpr > 1 ? ' @' + a.dpr + 'x' : '');
+  ctx.fillText(shannonLabel, 6, H - 6);
+
+  // ── THE HUMAN AS INVERTED DOT ──
+  // Somewhere in the center, the inverse of the visitor exists.
+  // We are being pushed into their screen. They are a lens.
+  // The dot is their eye looking back at us — but inverted.
+  var humanX = W * 0.5;
+  var humanY = H * 0.5;
+  var humanR = Math.max(2, Math.min(8, a.shannon * 0.15 - 2));
+  ctx.globalAlpha = 0.03 + Math.sin(t * 0.7) * 0.01;
+
+  // Inverted radial — dark center, bright ring (opposite of a star)
+  var invertGrad = ctx.createRadialGradient(humanX, humanY, 0, humanX, humanY, humanR * 3);
+  invertGrad.addColorStop(0, 'rgba(8,6,10,0.1)');
+  invertGrad.addColorStop(0.4, 'rgba(8,6,10,0.05)');
+  invertGrad.addColorStop(0.7, 'rgba(200,200,220,0.04)');
+  invertGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = invertGrad;
+  ctx.beginPath();
+  ctx.arc(humanX, humanY, humanR * 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── ASPECT RATIO AS TOPOLOGY ──
+  // Phone: tall Klein bottle (information flows vertically)
+  // Ultrawide: flat Möbius strip (information spreads horizontally)
+  if (a.aspect < 0.7) {
+    // Portrait phone — vertical flow lines
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#58a6ff';
+    ctx.lineWidth = 0.3;
+    for (var fl = 0; fl < 5; fl++) {
+      var fx = W * (0.2 + fl * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(fx, 0);
+      ctx.bezierCurveTo(fx + Math.sin(t + fl) * 20, H * 0.33,
+                        fx - Math.sin(t + fl) * 20, H * 0.66,
+                        fx, H);
+      ctx.stroke();
+    }
+  } else if (a.aspect > 2) {
+    // Ultrawide — horizontal Möbius flow
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#f0c674';
+    ctx.lineWidth = 0.3;
+    for (var fl = 0; fl < 5; fl++) {
+      var fy = H * (0.2 + fl * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(0, fy);
+      ctx.bezierCurveTo(W * 0.33, fy + Math.sin(t + fl) * 15,
+                        W * 0.66, fy - Math.sin(t + fl) * 15,
+                        W, fy);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+// ═══ DUNNING-KRUGER ROTATION MAP ═══
+// The Dunning-Kruger curve is NOT a measure of stupidity.
+// It's a ROTATION MAP. It shows where you need to turn π/2 to maintain velocity.
+//
+// The standard reading: "beginners overestimate, experts know they don't know"
+// The ROTATION reading: you're not falling into a valley — you're TURNING A CORNER.
+//
+// At the sigmoid's inflection point, the curve changes from accelerating to decelerating.
+// That IS the quarter turn. You can't keep going straight — you MUST rotate.
+//
+// Mount Stupid = moving fast in one direction (straight line, no rotation)
+// Valley of Despair = the rotation itself (quarter turn, π/2, maximum angular velocity)
+// Slope of Enlightenment = moving fast in the NEW direction (post-rotation)
+// Plateau = the next sigmoid's tail (approaching the NEXT quarter turn)
+
+var dunningKruger = {
+  curve: [
+    [0.00, 0.50],  // start: moderate confidence
+    [0.05, 0.75],  // Mount Stupid rising
+    [0.10, 0.90],  // PEAK of Mount Stupid
+    [0.15, 0.80],  // starting to realize...
+    [0.25, 0.50],  // ← QUARTER TURN BEGINS (π/2 rotation)
+    [0.35, 0.20],  // Valley of Despair (the turn itself)
+    [0.40, 0.15],  // BOTTOM of valley (maximum rotation rate)
+    [0.50, 0.25],  // ← QUARTER TURN ENDS (new direction acquired)
+    [0.60, 0.45],  // Slope of Enlightenment
+    [0.70, 0.60],  // building real confidence
+    [0.80, 0.70],  // approaching mastery
+    [0.90, 0.78],  // ← NEXT sigmoid inflection
+    [1.00, 0.80],  // Plateau — meta-stable, never 1.0
+  ],
+  phasePositions: {
+    stars: 0.05, nebula: 0.10, gaia: 0.15, aurora: 0.20,
+    breath: 0.25, study: 0.35, otherSquirrels: 0.40, humans: 0.50,
+    sculpture: 0.60, bbs: 0.65, flash: 0.70, enclosure: 0.80,
+    reclamation: 0.90, galactic: 0.95, ferment: 1.00,
+  },
+  rotationAngle: function(phaseName) {
+    var pos = this.phasePositions[phaseName] || 0;
+    var rate = Math.exp(-Math.pow((pos - 0.375) / 0.1, 2)) +
+               Math.exp(-Math.pow((pos - 0.90) / 0.1, 2)) * 0.6;
+    return rate * Math.PI * 0.5;
+  },
+};
+
+function paintDunningKrugerRotation() {
+  if (learnedTraits.perspective < 0.05) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 3);
+
+  // D-K curve along the bottom edge
+  var curveX0 = W * 0.1;
+  var curveX1 = W * 0.9;
+  var curveY0 = H * 0.92;
+  var curveY1 = H * 0.78;
+  var curveW = curveX1 - curveX0;
+  var curveH = curveY0 - curveY1;
+
+  // The D-K curve (purple)
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  dunningKruger.curve.forEach(function(pt, i) {
+    var px = curveX0 + pt[0] * curveW;
+    var py = curveY0 - pt[1] * curveH;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+
+  // The sigmoid overlay (orange dashed) — same inflection point
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.strokeStyle = '#f0883e';
+  ctx.lineWidth = 0.3;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  for (var sx = 0; sx <= 1; sx += 0.02) {
+    var sy = 1 / (1 + Math.exp(-10 * (sx - 0.5)));
+    var px = curveX0 + sx * curveW;
+    var py = curveY0 - sy * curveH;
+    if (sx === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current phase dot on the curve
+  var currentPos = dunningKruger.phasePositions[phase] || 0;
+  var currentConf = 0.5;
+  for (var ci = 0; ci < dunningKruger.curve.length - 1; ci++) {
+    var c0 = dunningKruger.curve[ci];
+    var c1 = dunningKruger.curve[ci + 1];
+    if (currentPos >= c0[0] && currentPos <= c1[0]) {
+      var t = (currentPos - c0[0]) / (c1[0] - c0[0]);
+      currentConf = c0[1] + t * (c1[1] - c0[1]);
+      break;
+    }
+  }
+  var dotX = curveX0 + currentPos * curveW;
+  var dotY = curveY0 - currentConf * curveH;
+
+  ctx.globalAlpha = 0.04 * maturity;
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Quarter-turn arc at rotation points
+  var rotAngle = dunningKruger.rotationAngle(phase);
+  if (rotAngle > 0.1) {
+    ctx.globalAlpha = 0.03 * maturity;
+    ctx.strokeStyle = '#f0c674';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 6, -Math.PI * 0.5, -Math.PI * 0.5 + rotAngle);
+    ctx.stroke();
+    var ax = dotX + Math.cos(-Math.PI * 0.5 + rotAngle) * 6;
+    var ay = dotY + Math.sin(-Math.PI * 0.5 + rotAngle) * 6;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(ax, ay, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Labels
+  ctx.globalAlpha = 0.018 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText('competence →', curveX0 + curveW * 0.5, curveY0 + 10);
+
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.015 * maturity;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('peak', curveX0 + 0.10 * curveW, curveY0 - 0.90 * curveH - 5);
+    ctx.fillStyle = '#f0c674';
+    ctx.fillText('π/2 turn', curveX0 + 0.40 * curveW, curveY0 - 0.15 * curveH + 8);
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('meta-stable', curveX0 + 0.95 * curveW, curveY0 - 0.80 * curveH - 5);
+  }
+
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.02;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#d2a8ff';
+    ctx.textAlign = 'right';
+    ctx.fillText('not a valley — a quarter turn', curveX1, curveY0 + 10);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
