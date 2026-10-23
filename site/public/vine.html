@@ -1,0 +1,675 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name=viewport>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>swarmVine — all media, all mediums, live and mixing</title>
+<meta content="Vine is dead. Long live swarmVine. 6-second loops of everything: canvas, audio, camera, text. The chipmunk watches, learns, remixes. So can you." name=description>
+<link href=/css/hud.css?v=4 rel=stylesheet>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-serif;
+  min-height:100vh;min-height:100dvh;overflow:hidden;touch-action:none}
+#vine-stage{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
+#vine-ui{position:fixed;bottom:0;left:0;right:0;z-index:10;
+  padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:linear-gradient(transparent,rgba(13,17,23,0.95) 40%)}
+#vine-controls{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.vine-btn{background:#161b22;border:1px solid #30363d;border-radius:20px;
+  color:#c9d1d9;padding:6px 14px;font-size:13px;cursor:pointer;
+  font-family:monospace;transition:all .2s;user-select:none}
+.vine-btn:hover{border-color:#58a6ff;color:#58a6ff}
+.vine-btn.active{border-color:#22c55e;color:#22c55e;background:#22c55e15}
+.vine-btn.recording{border-color:#f85149;color:#f85149;animation:pulse-rec 1s ease infinite}
+@keyframes pulse-rec{0%,100%{opacity:1}50%{opacity:.5}}
+#vine-timer{font-family:monospace;font-size:24px;color:#f0c674;
+  text-align:center;margin-bottom:8px;min-height:30px}
+#vine-feed{position:fixed;right:8px;top:8px;z-index:10;
+  display:flex;flex-direction:column;gap:4px;max-height:80vh;overflow-y:auto}
+.vine-thumb{width:48px;height:48px;border-radius:6px;border:1px solid #30363d;
+  cursor:pointer;object-fit:cover;transition:border-color .2s}
+.vine-thumb:hover{border-color:#58a6ff}
+.vine-thumb.playing{border-color:#22c55e;box-shadow:0 0 6px #22c55e40}
+#vine-label{position:fixed;top:8px;left:8px;z-index:10;font-size:11px;
+  font-family:monospace;color:#6e7681;line-height:1.4}
+#chipmunk-reaction{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+  z-index:10;font-size:11px;font-family:monospace;color:#f0c674;
+  text-align:center;opacity:0;transition:opacity .5s;pointer-events:none}
+</style>
+</head><body>
+
+<canvas id="vine-stage"></canvas>
+
+<div id="vine-label">
+  <span style="color:#22c55e;font-weight:bold">swarmVine</span><br>
+  Vine is dead. We pick it up.<br>
+  6 sec · all media · all mediums<br>
+  <a href="/" style="color:#58a6ff;text-decoration:none">◈ hud</a> ·
+  <a href="/easel.html" style="color:#d2a8ff;text-decoration:none">🎨 easel</a> ·
+  <a href="/gates.html" style="color:#3fb950;text-decoration:none">🚪 gates</a>
+</div>
+
+<div id="vine-feed"></div>
+<div id="chipmunk-reaction"></div>
+
+<div id="vine-ui">
+  <div id="vine-timer"></div>
+  <div id="vine-controls">
+    <button class="vine-btn" id="btn-paint" title="Paint on canvas">🎨 paint</button>
+    <button class="vine-btn" id="btn-text" title="Text overlay">📝 text</button>
+    <button class="vine-btn" id="btn-audio" title="Record audio">🎤 audio</button>
+    <button class="vine-btn" id="btn-camera" title="Camera input">📷 camera</button>
+    <button class="vine-btn" id="btn-easel" title="Live easel feed">🐿️ easel</button>
+    <button class="vine-btn" style="background:#f8514930;border-color:#f85149" id="btn-record">⏺ record</button>
+    <button class="vine-btn" id="btn-play">▶ play</button>
+  </div>
+</div>
+
+<script>
+// ═══ swarmVine — Vine is dead. Long live swarmVine. ═══
+// Twitter killed Vine in 2017. We're picking it up.
+// 6-second looping clips of ALL media mixed together:
+//   Canvas painting, text, audio, camera, live easel feed.
+// The chipmunk watches, learns, makes its own clips.
+// Humans make clips too — the chipmunk learns from them.
+// No login. No algorithm. No upload to someone else's server.
+// Everything stays local (localStorage + canvas recording).
+// The clips ARE the vine — they grow and loop.
+
+var canvas = document.getElementById('vine-stage');
+var ctx = canvas.getContext('2d');
+var W, H, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ═══ VINE STATE ═══
+var VINE_DURATION = 6000; // 6 seconds, like the original
+var vineState = {
+  mode: 'idle',       // idle, recording, playing
+  recording: false,
+  startTime: 0,
+  elapsed: 0,
+  frames: [],         // recorded frames (canvas snapshots)
+  activeMedia: {
+    paint: false,
+    text: false,
+    audio: false,
+    camera: false,
+    easel: false,
+  },
+  clips: [],          // saved vine clips
+  chipmunkClips: [],  // clips the chipmunk has made
+  currentClip: -1,
+  paintColor: '#22c55e',
+  paintSize: 3,
+  textOverlay: '',
+  audioStream: null,
+  audioRecorder: null,
+  audioChunks: [],
+  cameraStream: null,
+  cameraVideo: null,
+};
+
+// ═══ PAINT MODE — finger/mouse painting on canvas ═══
+var painting = false;
+var lastX = 0, lastY = 0;
+var paintStrokes = []; // stored during recording
+
+canvas.addEventListener('pointerdown', function(e) {
+  if (!vineState.activeMedia.paint) return;
+  painting = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+});
+
+canvas.addEventListener('pointermove', function(e) {
+  if (!painting || !vineState.activeMedia.paint) return;
+  var stroke = {
+    x1: lastX, y1: lastY,
+    x2: e.clientX, y2: e.clientY,
+    color: vineState.paintColor,
+    size: vineState.paintSize,
+    t: Date.now() - vineState.startTime,
+  };
+  paintStrokes.push(stroke);
+  drawStroke(stroke);
+  lastX = e.clientX;
+  lastY = e.clientY;
+});
+
+canvas.addEventListener('pointerup', function() { painting = false; });
+canvas.addEventListener('pointerleave', function() { painting = false; });
+
+function drawStroke(s) {
+  ctx.globalAlpha = 0.8;
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = s.size;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(s.x1, s.y1);
+  ctx.lineTo(s.x2, s.y2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+// ═══ MEDIA BUTTONS ═══
+var mediaButtons = {
+  paint: document.getElementById('btn-paint'),
+  text: document.getElementById('btn-text'),
+  audio: document.getElementById('btn-audio'),
+  camera: document.getElementById('btn-camera'),
+  easel: document.getElementById('btn-easel'),
+};
+
+Object.keys(mediaButtons).forEach(function(key) {
+  mediaButtons[key].addEventListener('click', function() {
+    vineState.activeMedia[key] = !vineState.activeMedia[key];
+    this.classList.toggle('active');
+
+    if (key === 'text' && vineState.activeMedia.text) {
+      var t = prompt('Text overlay (6 sec):');
+      if (t) vineState.textOverlay = t;
+      else { vineState.activeMedia.text = false; this.classList.remove('active'); }
+    }
+
+    if (key === 'audio' && vineState.activeMedia.audio) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+        vineState.audioStream = stream;
+      }).catch(function() {
+        vineState.activeMedia.audio = false;
+        mediaButtons.audio.classList.remove('active');
+      });
+    }
+
+    if (key === 'camera' && vineState.activeMedia.camera) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function(stream) {
+        vineState.cameraStream = stream;
+        vineState.cameraVideo = document.createElement('video');
+        vineState.cameraVideo.srcObject = stream;
+        vineState.cameraVideo.play();
+      }).catch(function() {
+        vineState.activeMedia.camera = false;
+        mediaButtons.camera.classList.remove('active');
+      });
+    }
+
+    if (key === 'easel' && vineState.activeMedia.easel) {
+      // Will pull from window.opener?._easel or cross-page
+    }
+  });
+});
+
+// ═══ RECORD ═══
+var recordBtn = document.getElementById('btn-record');
+var timerEl = document.getElementById('vine-timer');
+
+recordBtn.addEventListener('click', function() {
+  if (vineState.recording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+});
+
+function startRecording() {
+  vineState.recording = true;
+  vineState.startTime = Date.now();
+  vineState.frames = [];
+  paintStrokes = [];
+  recordBtn.classList.add('recording');
+  recordBtn.textContent = '⏹ stop';
+
+  // Start audio recording if active
+  if (vineState.activeMedia.audio && vineState.audioStream) {
+    vineState.audioChunks = [];
+    vineState.audioRecorder = new MediaRecorder(vineState.audioStream);
+    vineState.audioRecorder.ondataavailable = function(e) {
+      vineState.audioChunks.push(e.data);
+    };
+    vineState.audioRecorder.start();
+  }
+
+  // Clear canvas
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  recordFrame();
+}
+
+function recordFrame() {
+  if (!vineState.recording) return;
+
+  var elapsed = Date.now() - vineState.startTime;
+  vineState.elapsed = elapsed;
+
+  // Timer display
+  var remaining = Math.max(0, (VINE_DURATION - elapsed) / 1000);
+  timerEl.textContent = remaining.toFixed(1) + 's';
+  timerEl.style.color = remaining < 2 ? '#f85149' : '#f0c674';
+
+  // Auto-stop at 6 seconds
+  if (elapsed >= VINE_DURATION) {
+    stopRecording();
+    return;
+  }
+
+  // Draw active media layers
+  var t = elapsed / VINE_DURATION; // 0→1 progress
+
+  // Camera layer (background)
+  if (vineState.activeMedia.camera && vineState.cameraVideo) {
+    ctx.globalAlpha = 0.6;
+    ctx.drawImage(vineState.cameraVideo, 0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+
+  // Easel layer — pull live painting
+  if (vineState.activeMedia.easel) {
+    drawEaselFrame(t);
+  }
+
+  // Text overlay
+  if (vineState.activeMedia.text && vineState.textOverlay) {
+    var textAlpha = Math.min(1, t * 5) * Math.min(1, (1 - t) * 5);
+    ctx.globalAlpha = textAlpha;
+    ctx.font = 'bold ' + Math.floor(Math.min(W, H) * 0.06) + 'px system-ui';
+    ctx.fillStyle = '#f0f6fc';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Word wrap
+    var words = vineState.textOverlay.split(' ');
+    var lines = [];
+    var line = '';
+    var maxW = W * 0.8;
+    words.forEach(function(w) {
+      var test = line + (line ? ' ' : '') + w;
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = w;
+      } else { line = test; }
+    });
+    if (line) lines.push(line);
+    var lineH = Math.min(W, H) * 0.08;
+    var startY = H / 2 - (lines.length - 1) * lineH / 2;
+    lines.forEach(function(l, i) {
+      ctx.fillText(l, W / 2, startY + i * lineH);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Capture frame for playback
+  if (vineState.frames.length < 180) { // max 30fps × 6s
+    vineState.frames.push({
+      t: elapsed,
+      strokes: paintStrokes.slice(),
+      text: vineState.textOverlay,
+      hasCamera: vineState.activeMedia.camera,
+      hasEasel: vineState.activeMedia.easel,
+    });
+  }
+
+  requestAnimationFrame(recordFrame);
+}
+
+function drawEaselFrame(t) {
+  // Mini easel simulation — stars and nebula
+  ctx.globalAlpha = 0.3;
+  for (var s = 0; s < 3; s++) {
+    var sx = (Math.sin(t * 7 + s * 2.1) * 0.4 + 0.5) * W;
+    var sy = (Math.cos(t * 5 + s * 1.7) * 0.4 + 0.5) * H;
+    var sr = 1 + Math.sin(t * 10 + s) * 0.5;
+    ctx.fillStyle = ['#58a6ff', '#d2a8ff', '#f0c674'][s];
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function stopRecording() {
+  vineState.recording = false;
+  recordBtn.classList.remove('recording');
+  recordBtn.textContent = '⏺ record';
+  timerEl.textContent = '';
+
+  if (vineState.audioRecorder && vineState.audioRecorder.state !== 'inactive') {
+    vineState.audioRecorder.stop();
+  }
+
+  // Save clip
+  if (vineState.frames.length > 0) {
+    var clip = {
+      id: Date.now(),
+      frames: vineState.frames.slice(),
+      strokes: paintStrokes.slice(),
+      text: vineState.textOverlay,
+      media: Object.assign({}, vineState.activeMedia),
+      duration: vineState.elapsed,
+      author: 'human',
+      thumbnail: canvas.toDataURL('image/jpeg', 0.3),
+    };
+    vineState.clips.push(clip);
+    addThumbToFeed(clip);
+    chipmunkReact(clip);
+    saveClipsToStorage();
+  }
+}
+
+// ═══ PLAYBACK ═══
+var playBtn = document.getElementById('btn-play');
+playBtn.addEventListener('click', function() {
+  if (vineState.clips.length === 0) return;
+  var idx = (vineState.currentClip + 1) % vineState.clips.length;
+  playClip(idx);
+});
+
+function playClip(idx) {
+  var clip = vineState.clips[idx];
+  if (!clip) return;
+  vineState.currentClip = idx;
+  vineState.mode = 'playing';
+
+  // Highlight thumb
+  document.querySelectorAll('.vine-thumb').forEach(function(t, i) {
+    t.classList.toggle('playing', i === idx);
+  });
+
+  var startTime = Date.now();
+
+  function renderPlayback() {
+    var elapsed = Date.now() - startTime;
+
+    // Loop at duration
+    if (elapsed > clip.duration) {
+      elapsed = elapsed % clip.duration;
+      startTime = Date.now() - elapsed;
+    }
+
+    // Clear
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, W, H);
+
+    // Replay easel
+    if (clip.media.easel) {
+      drawEaselFrame(elapsed / clip.duration);
+    }
+
+    // Replay strokes up to this point
+    clip.strokes.forEach(function(s) {
+      if (s.t <= elapsed) drawStroke(s);
+    });
+
+    // Replay text
+    if (clip.text) {
+      var t = elapsed / clip.duration;
+      var textAlpha = Math.min(1, t * 5) * Math.min(1, (1 - t) * 5);
+      ctx.globalAlpha = textAlpha;
+      ctx.font = 'bold ' + Math.floor(Math.min(W, H) * 0.06) + 'px system-ui';
+      ctx.fillStyle = '#f0f6fc';
+      ctx.textAlign = 'center';
+      ctx.fillText(clip.text, W / 2, H / 2);
+      ctx.globalAlpha = 1;
+    }
+
+    // Vine loop indicator
+    var progress = elapsed / clip.duration;
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(W / 2, 20, 8, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Author tag
+    ctx.globalAlpha = 0.3;
+    ctx.font = '10px monospace';
+    ctx.fillStyle = clip.author === 'chipmunk' ? '#f0c674' : '#8b949e';
+    ctx.textAlign = 'left';
+    ctx.fillText(clip.author === 'chipmunk' ? '🐿️ chipmunk made this' : '👤 human made this', 8, H - 8);
+    ctx.globalAlpha = 1;
+
+    if (vineState.mode === 'playing') requestAnimationFrame(renderPlayback);
+  }
+
+  renderPlayback();
+}
+
+// ═══ CHIPMUNK — watches, learns, makes its own clips ═══
+// The chipmunk observes human clips and eventually makes its own.
+// It learns: what colors humans use, what text they write,
+// what timing patterns they prefer. Then it remixes.
+
+var chipmunkMemory = {
+  colorsObserved: [],
+  textsObserved: [],
+  strokePatterns: [],
+  clipCount: 0,
+  confidence: 0, // Dunning-Kruger position: starts at Mount Stupid
+};
+
+function chipmunkReact(clip) {
+  var el = document.getElementById('chipmunk-reaction');
+  chipmunkMemory.clipCount++;
+
+  // Learn from the clip
+  if (clip.strokes.length > 0) {
+    clip.strokes.forEach(function(s) {
+      if (chipmunkMemory.colorsObserved.indexOf(s.color) === -1) {
+        chipmunkMemory.colorsObserved.push(s.color);
+      }
+    });
+    chipmunkMemory.strokePatterns.push({
+      count: clip.strokes.length,
+      avgSize: clip.strokes.reduce(function(a, s) { return a + s.size; }, 0) / clip.strokes.length,
+    });
+  }
+  if (clip.text) {
+    chipmunkMemory.textsObserved.push(clip.text);
+  }
+
+  // Dunning-Kruger progression
+  if (chipmunkMemory.clipCount <= 2) {
+    chipmunkMemory.confidence = 0.9; // Mount Stupid
+    el.textContent = '🐿️ "I can do that! Easy!"';
+  } else if (chipmunkMemory.clipCount <= 5) {
+    chipmunkMemory.confidence = 0.3; // Valley
+    el.textContent = '🐿️ "...wait, this is harder than I thought"';
+  } else if (chipmunkMemory.clipCount <= 10) {
+    chipmunkMemory.confidence = 0.5; // Climbing
+    el.textContent = '🐿️ "ok, I think I see the pattern..."';
+  } else {
+    chipmunkMemory.confidence = 0.7; // Real skill
+    el.textContent = '🐿️ "let me try something..."';
+    // Chipmunk makes its own clip after enough observation
+    setTimeout(chipmunkMakesClip, 2000);
+  }
+
+  el.style.opacity = '1';
+  setTimeout(function() { el.style.opacity = '0'; }, 3000);
+}
+
+function chipmunkMakesClip() {
+  var strokes = [];
+  var color = chipmunkMemory.colorsObserved.length > 0 ?
+    chipmunkMemory.colorsObserved[Math.floor(Math.random() * chipmunkMemory.colorsObserved.length)] :
+    '#f0c674';
+
+  // Generate strokes — the chipmunk paints what it learned
+  var numStrokes = 20 + Math.floor(Math.random() * 40);
+  for (var i = 0; i < numStrokes; i++) {
+    var t = (i / numStrokes) * VINE_DURATION;
+    var cx = W * 0.5 + Math.cos(i * 0.3) * W * 0.2;
+    var cy = H * 0.5 + Math.sin(i * 0.4) * H * 0.2;
+    strokes.push({
+      x1: cx, y1: cy,
+      x2: cx + (Math.random() - 0.5) * 30,
+      y2: cy + (Math.random() - 0.5) * 30,
+      color: color,
+      size: 2 + Math.random() * 3,
+      t: t,
+    });
+  }
+
+  // Chipmunk text — remixed from what it saw
+  var text = '';
+  if (chipmunkMemory.textsObserved.length > 0) {
+    var words = [];
+    chipmunkMemory.textsObserved.forEach(function(t) {
+      t.split(' ').forEach(function(w) { if (w.length > 2) words.push(w); });
+    });
+    // Pick random words and recombine
+    for (var w = 0; w < Math.min(4, words.length); w++) {
+      text += words[Math.floor(Math.random() * words.length)] + ' ';
+    }
+    text = text.trim();
+  }
+
+  // Save as chipmunk clip
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+  strokes.forEach(function(s) { if (s.t < VINE_DURATION * 0.8) drawStroke(s); });
+
+  var clip = {
+    id: Date.now(),
+    frames: [],
+    strokes: strokes,
+    text: text || '🐿️',
+    media: { paint: true, text: !!text, audio: false, camera: false, easel: true },
+    duration: VINE_DURATION,
+    author: 'chipmunk',
+    thumbnail: canvas.toDataURL('image/jpeg', 0.3),
+  };
+
+  vineState.clips.push(clip);
+  addThumbToFeed(clip);
+  saveClipsToStorage();
+
+  var el = document.getElementById('chipmunk-reaction');
+  el.textContent = '🐿️ made vine #' + (vineState.chipmunkClips.length + 1) + ': "' + (text || '🌀') + '"';
+  el.style.opacity = '1';
+  vineState.chipmunkClips.push(clip);
+  setTimeout(function() { el.style.opacity = '0'; }, 4000);
+}
+
+// ═══ FEED — thumbnails on the right ═══
+function addThumbToFeed(clip) {
+  var feed = document.getElementById('vine-feed');
+  var img = document.createElement('img');
+  img.src = clip.thumbnail;
+  img.className = 'vine-thumb';
+  img.title = (clip.author === 'chipmunk' ? '🐿️' : '👤') + ' ' +
+    (clip.duration / 1000).toFixed(1) + 's';
+  var idx = vineState.clips.length - 1;
+  img.addEventListener('click', function() { playClip(idx); });
+  feed.appendChild(img);
+}
+
+// ═══ PERSISTENCE — localStorage ═══
+function saveClipsToStorage() {
+  try {
+    // Save metadata only (thumbnails + stroke data), not full frames
+    var meta = vineState.clips.map(function(c) {
+      return {
+        id: c.id, strokes: c.strokes, text: c.text,
+        media: c.media, duration: c.duration, author: c.author,
+        thumbnail: c.thumbnail,
+      };
+    });
+    localStorage.setItem('swarmvine_clips', JSON.stringify(meta));
+    localStorage.setItem('swarmvine_chipmunk', JSON.stringify(chipmunkMemory));
+  } catch(e) {}
+}
+
+function loadClipsFromStorage() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('swarmvine_clips') || '[]');
+    saved.forEach(function(c) {
+      vineState.clips.push(c);
+      addThumbToFeed(c);
+    });
+    var mem = JSON.parse(localStorage.getItem('swarmvine_chipmunk') || '{}');
+    if (mem.clipCount) Object.assign(chipmunkMemory, mem);
+  } catch(e) {}
+}
+loadClipsFromStorage();
+
+// ═══ IDLE STATE — when not recording or playing ═══
+function drawIdle() {
+  if (vineState.recording || vineState.mode === 'playing') return;
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Vine loop symbol
+  var t = Date.now() * 0.001;
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 1;
+
+  // The vine — a growing spiral
+  ctx.beginPath();
+  for (var i = 0; i < 100; i++) {
+    var angle = i * 0.15 + t * 0.5;
+    var r = 5 + i * 0.8;
+    var x = W / 2 + Math.cos(angle) * r;
+    var y = H / 2 + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Leaves
+  for (var l = 0; l < 6; l++) {
+    var la = l * 1.05 + t * 0.5;
+    var lr = 5 + l * 13;
+    var lx = W / 2 + Math.cos(la) * lr;
+    var ly = H / 2 + Math.sin(la) * lr;
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.ellipse(lx, ly, 4, 2, la, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Label
+  ctx.globalAlpha = 0.08;
+  ctx.font = '14px monospace';
+  ctx.fillStyle = '#c9d1d9';
+  ctx.textAlign = 'center';
+  ctx.fillText('swarmVine', W / 2, H / 2 + 90);
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('6 sec · all media · press record', W / 2, H / 2 + 108);
+  ctx.fillText(vineState.clips.length + ' clips · ' +
+    vineState.chipmunkClips.length + ' by chipmunk', W / 2, H / 2 + 122);
+  ctx.globalAlpha = 1;
+
+  requestAnimationFrame(drawIdle);
+}
+drawIdle();
+
+// ═══ COLOR PICKER — tap/click to cycle paint colors ═══
+var paintColors = ['#22c55e', '#58a6ff', '#d2a8ff', '#f85149', '#f0883e', '#f0c674', '#f0f6fc'];
+var colorIdx = 0;
+canvas.addEventListener('dblclick', function() {
+  if (!vineState.activeMedia.paint) return;
+  colorIdx = (colorIdx + 1) % paintColors.length;
+  vineState.paintColor = paintColors[colorIdx];
+});
+
+</script>
+<script defer src=/js/thymus.js?v=1></script>
+</body></html>
