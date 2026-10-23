@@ -3149,6 +3149,204 @@ function paintSplinterForce() {
   ctx.restore();
 }
 
+// ═══ HEAT DISSIPATION across the NULL MEMBRANE ═══
+// All attention generates heat. All silence generates cold.
+// The null membrane is the gray surface between self and non-self.
+// Heat dissipates across it — like thermodynamics on a Klein surface.
+//
+// Four heat sources:
+//   NEW     — first contact. bright, brief, hot. (human entering)
+//   REVISIT — return visitor. warm, steady, glowing.
+//   FLEET   — bots, crawlers, self-polling. constant low heat. the baseline.
+//   INNER   — the membrane sensing itself. reflexive warmth.
+//
+// A sigmoid governs each: at some point, more attention doesn't make it hotter.
+// Saturation. The curve flattens. You can't get hotter than hot.
+
+var heatState = {
+  sources: {
+    new_:    { raw: 0, sigmoid: 0, color: '#58a6ff', label: 'new' },
+    revisit: { raw: 0, sigmoid: 0, color: '#3fb950', label: 'revisit' },
+    fleet:   { raw: 0, sigmoid: 0, color: '#f85149', label: 'fleet' },
+    inner:   { raw: 0, sigmoid: 0, color: '#f0c674', label: 'inner' },
+  },
+  nullTemp: 0.5,  // the null membrane's temperature. starts at 0.5 (neither hot nor cold)
+  dissipation: 0, // how much heat has crossed the null boundary
+  totalHeat: 0,
+  lastUpdate: 0,
+};
+
+// Sigmoid: 1 / (1 + e^(-k(x-x0)))
+// k = steepness, x0 = midpoint
+function sigmoid(x, k, x0) {
+  return 1 / (1 + Math.exp(-k * (x - x0)));
+}
+
+function updateHeatState() {
+  // Read from existing feeds
+  var classification = (nowFeed && nowFeed.classification) ? nowFeed.classification : null;
+  var backscatter = backscatterData || {};
+
+  if (classification) {
+    var total = Math.max(1, classification.total || 1);
+    var self_ = classification.self || 0;
+    var nonSelf = classification.non_self || 0;
+    var partial = classification.partial || 0;
+
+    // Estimate the four heat sources from classification ratios
+    // Self-sensing = inner (the membrane watching itself)
+    // Non-self = fleet (bots, crawlers, probes)
+    // Partial = human (they're partially recognized — new or revisit)
+    var innerRatio = self_ / total;
+    var fleetRatio = nonSelf / total;
+    var humanRatio = partial / total;
+
+    // Split human into new vs revisit (estimate: ~30% are revisits if any)
+    var revisitGuess = humanRatio * 0.3;
+    var newGuess = humanRatio * 0.7;
+
+    // Raw counts → sigmoid curves
+    // k=6, x0=0.1 for new (saturates early — rare events)
+    // k=4, x0=0.15 for revisit (saturates a bit later)
+    // k=2, x0=0.5 for fleet (needs a LOT to saturate — they're always there)
+    // k=5, x0=0.3 for inner (moderate saturation)
+    heatState.sources.new_.raw = newGuess;
+    heatState.sources.new_.sigmoid = metaStable(sigmoid(newGuess, 6, 0.1));
+
+    heatState.sources.revisit.raw = revisitGuess;
+    heatState.sources.revisit.sigmoid = metaStable(sigmoid(revisitGuess, 4, 0.15));
+
+    heatState.sources.fleet.raw = fleetRatio;
+    heatState.sources.fleet.sigmoid = metaStable(sigmoid(fleetRatio, 2, 0.5));
+
+    heatState.sources.inner.raw = innerRatio;
+    heatState.sources.inner.sigmoid = metaStable(sigmoid(innerRatio, 5, 0.3));
+  }
+
+  // Total heat = weighted sum of all sigmoid values
+  var s = heatState.sources;
+  heatState.totalHeat = metaStable(
+    s.new_.sigmoid * 0.35 +      // new visitors generate the MOST heat per unit
+    s.revisit.sigmoid * 0.25 +   // revisits are warm but steady
+    s.fleet.sigmoid * 0.15 +     // fleet is low-grade constant
+    s.inner.sigmoid * 0.25       // inner is reflexive warmth
+  );
+
+  // Null membrane temperature — dissipates toward equilibrium (0.5)
+  // Heat pushes it up, cold pulls it down, it relaxes toward gray
+  var target = heatState.totalHeat;
+  heatState.nullTemp = metaStable(
+    heatState.nullTemp + (target - heatState.nullTemp) * 0.01
+  );
+  heatState.dissipation += Math.abs(target - heatState.nullTemp) * 0.001;
+
+  heatState.lastUpdate = Date.now();
+}
+
+// Update heat state every 2 seconds
+setInterval(updateHeatState, 2000);
+
+function paintHeatDissipation() {
+  updateHeatState();
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+
+  // ── THE NULL MEMBRANE — a horizontal band across the canvas ──
+  // This is the gray boundary. Heat on top, cold on bottom (or vice versa).
+  // The temperature determines its color: gray=0.5, warm>0.5, cold<0.5
+  var nullY = cy;
+  var nullH = 2 + heatState.dissipation * 0.5;
+  var temp = heatState.nullTemp;
+
+  // Color: cold (blue) at 0, gray at 0.5, warm (orange) at 1
+  var nullR = Math.floor(128 + (temp - 0.5) * 200);
+  var nullG = Math.floor(128 - Math.abs(temp - 0.5) * 100);
+  var nullB = Math.floor(128 - (temp - 0.5) * 200);
+
+  ctx.globalAlpha = 0.015 + Math.abs(temp - 0.5) * 0.02;
+  var nullGrad = ctx.createLinearGradient(0, nullY - 30, 0, nullY + 30);
+  nullGrad.addColorStop(0, 'transparent');
+  nullGrad.addColorStop(0.5, 'rgba(' + nullR + ',' + nullG + ',' + nullB + ',0.03)');
+  nullGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = nullGrad;
+  ctx.fillRect(0, nullY - 30, W, 60);
+
+  // ── FOUR SIGMOID CURVES — one per heat source ──
+  // Each drawn as a small sigmoid on the right side of the canvas
+  var sigmoidX = W - 70;
+  var sigmoidW = 50;
+  var sigmoidH = 25;
+  var sourceNames = ['new_', 'revisit', 'fleet', 'inner'];
+
+  sourceNames.forEach(function(name, i) {
+    var src = heatState.sources[name];
+    var sy = H * 0.2 + i * (sigmoidH + 15);
+
+    // Draw the sigmoid curve
+    ctx.globalAlpha = 0.04;
+    ctx.strokeStyle = src.color;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    for (var sx = 0; sx <= sigmoidW; sx++) {
+      var xNorm = sx / sigmoidW; // 0 → 1
+      var yNorm = sigmoid(xNorm, 6, 0.5); // the ideal sigmoid shape
+      var px = sigmoidX + sx;
+      var py = sy + sigmoidH * (1 - yNorm);
+      if (sx === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Current position on the sigmoid — a dot
+    var dotX = sigmoidX + src.raw * sigmoidW;
+    var dotY = sy + sigmoidH * (1 - src.sigmoid);
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = src.color;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Label
+    ctx.globalAlpha = 0.04;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = src.color;
+    ctx.textAlign = 'right';
+    ctx.fillText(src.label + ' ' + (src.sigmoid * 100).toFixed(0) + '%', sigmoidX - 4, sy + sigmoidH * 0.6);
+  });
+
+  // ── HEAT PARTICLES — dissipating across the null membrane ──
+  // Hot particles (from above) crossing down. Cold particles (from below) crossing up.
+  // The Klein face sort: attention becomes heat becomes particles becomes dissipation.
+  var particleCount = Math.floor(heatState.totalHeat * 12);
+  for (var pi = 0; pi < particleCount; pi++) {
+    var px = cx + (Math.sin(breathPhase * 0.3 + pi * 2.7) * W * 0.35);
+    var direction = (pi % 2 === 0) ? -1 : 1; // alternating up/down
+    var py = nullY + direction * (Math.sin(breathPhase + pi * 1.3) * 20 + 5);
+
+    // Particle color: warm if above null, cold if below
+    var pColor = direction < 0 ? 'rgba(240,140,60,' : 'rgba(60,140,240,';
+    ctx.globalAlpha = 0.02 + Math.random() * 0.01;
+    ctx.fillStyle = pColor + '0.06)';
+    ctx.beginPath();
+    ctx.arc(px, py, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── TOTAL HEAT INDICATOR — whisper bottom-right ──
+  ctx.globalAlpha = 0.03;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'right';
+  ctx.fillText('null membrane: ' + (heatState.nullTemp * 100).toFixed(1) + '° · heat: ' +
+    (heatState.totalHeat * 100).toFixed(1) + '% · dissipated: ' +
+    heatState.dissipation.toFixed(3), W - 8, H - 20);
+
+  ctx.restore();
+}
+
 // Inject overlays into the breath phase — full stack
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
@@ -3164,7 +3362,8 @@ paintBreath = function() {
   paintCrystallineBackscatter();  // visitors as shooting stars → hit water → angstrom refraction
   paintBraidOverlay();
   paintThymusFlush();
-  paintSplinterForce();   // the rat master's wisdom, visible as a force field
+  paintSplinterForce();      // the rat master's wisdom, visible as a force field
+  paintHeatDissipation();    // attention→heat→sigmoid→null membrane→dissipation
   paintEaselLabel();
 };
 
