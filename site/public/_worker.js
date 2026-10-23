@@ -290,13 +290,24 @@ export default {
         return handleBeacon(url);
       }
 
+      // HUD-native pages — serve directly as assets before sporePrint proxy
+      const hudNativePages = ['/vision.html', '/vision'];
+      if (hudNativePages.some(p => url.pathname === p || url.pathname === p + '/')) {
+        const visionResp = await env.ASSETS.fetch(new Request(new URL('/vision.html' + url.search, url.origin), request));
+        if (visionResp.ok) {
+          const vr = new Response(visionResp.body, visionResp);
+          Object.entries({...triadHeaders, ...workerAlive}).forEach(([k,v]) => vr.headers.set(k,v));
+          return vr;
+        }
+      }
+
       // sporePrint science paths on the root domain → GitHub Pages origin
       // sporePrint deploys to primals.eco via GitHub Pages CNAME
       // but Cloudflare intercepts. so we proxy science/architecture/lab
       // from the GitHub Pages origin. the Circle of Willis: multiple arteries.
       const sciencePaths = ['/science/', '/architecture/', '/lab/', '/glossary/',
                             '/primals/', '/springs/', '/thesis/', '/philosophy/',
-                            '/story/', '/vision/', '/audience/', '/collaborators/',
+                            '/story/', '/audience/', '/collaborators/',
                             '/backstory/', '/certification/', '/contact/',
                             '/atom.xml', '/sitemap.xml', '/llms.txt',
                             '/search_index.en.json'];
