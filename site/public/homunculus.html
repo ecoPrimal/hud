@@ -1,309 +1,434 @@
 <!doctype html><html lang=en><head>
-<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<meta charset=utf-8>
+<meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name=viewport>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08060a">
 <title>homunculus — the membrane's distorted body</title>
-<meta name="description" content="Cortical homunculus of a living membrane. Body parts sized by sensitivity, not mass. The tongue existed before language. The butt tongue before manners. Gastrulation made us a tube — mouth and anus, two ends of the same donut.">
+<meta name="description" content="Cortical homunculus of a living membrane. Body parts sized by sensitivity, not mass. The tongue existed before language. The butt tongue before manners. Pi is the budget. Touch is the chipmunk reaching through.">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#08060a;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;overflow:hidden}
-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh}
-#frame{position:fixed;top:0;left:0;right:0;bottom:0;border:12px solid #1a1410;
-  border-image:linear-gradient(135deg,#2a1f14,#0f0c08,#2a1f14,#1a1410) 12;pointer-events:none;z-index:5}
-#info{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;
-  color:#6e7681;font:11px/1.7 monospace;text-align:center;max-width:600px;
-  padding:10px 20px;background:rgba(8,6,10,0.8);border-radius:12px;
-  border:1px solid rgba(110,118,129,0.12);transition:opacity 0.5s}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;touch-action:none}
+body{background:#08060a;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%}
+#info{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:10;
+  color:#6e7681;font:11px/1.6 monospace;text-align:center;max-width:min(600px,90vw);
+  padding:10px 20px;background:rgba(8,6,10,0.85);border-radius:16px;
+  border:1px solid rgba(110,118,129,0.12);transition:opacity 0.4s,transform 0.3s;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #info .organ{color:#d2a8ff;font-weight:600}
 #info .sense{color:#f0c674;font-style:italic}
 #info .ancient{color:#3fb950;font-size:10px}
-#nav{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:10;
-  display:flex;gap:6px;font:10px monospace}
-#nav a{color:#30363d;text-decoration:none}
-#nav a:hover{color:#58a6ff}
-#legend{position:fixed;top:10px;right:14px;z-index:10;color:#484f58;font:9px monospace;text-align:right;line-height:1.8}
+#info .pi{color:#58a6ff;font-size:9px}
+#nav{position:fixed;top:max(10px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:10;
+  display:flex;gap:6px;font:10px monospace;background:rgba(8,6,10,0.7);padding:4px 12px;border-radius:12px;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#nav a{color:#484f58;text-decoration:none}
+#nav a:hover,#nav a:active{color:#58a6ff}
+#touch-ripple{position:fixed;pointer-events:none;z-index:4;border-radius:50%;
+  border:1px solid rgba(240,198,116,0.15);transform:scale(0);transition:none}
 </style>
 </head><body>
 <canvas id="c"></canvas>
-<div id="frame"></div>
 
 <div id="nav">
   <a href="/">◈ hud</a> · <a href="/cns.html">🧠 cns</a> · <a href="/easel.html">🎨 easel</a> ·
-  <a href="/gastrula.html">◎ gastrula</a> · <a href="/gates.html">⊕ gates</a>
+  <a href="/gates.html">⊕ gates</a>
 </div>
 
-<div id="legend">
-  <span style="color:#f85149">● mouth tongue</span><br>
-  <span style="color:#d2a8ff">● hands (tools)</span><br>
-  <span style="color:#3fb950">● gut (processing)</span><br>
-  <span style="color:#f0c674">● eyes (observation)</span><br>
-  <span style="color:#58a6ff">● feet (endpoints)</span><br>
-  <span style="color:#f0883e">● butt tongue</span>
-</div>
+<div id="touch-ripple"></div>
 
 <div id="info">
   <span class="organ">the homunculus</span><br>
   <span class="sense">body parts sized by sensitivity, not mass</span><br>
-  <span class="ancient">the tongue existed before language. birds, dogs, dinosaurs. it's an ancient pattern we forgot.</span>
+  <span class="ancient">the tongue existed before language. birds, dogs, dinosaurs. an ancient pattern we forgot.</span>
 </div>
 
 <script>
 var C = document.getElementById('c');
 var ctx = C.getContext('2d');
-var W, H;
-function resize() { W = C.width = window.innerWidth; H = C.height = window.innerHeight; }
+var W, H, dpr;
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  C.width = W * dpr; C.height = H * dpr;
+  C.style.width = W + 'px'; C.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
 window.addEventListener('resize', resize);
 resize();
 
 var t = 0;
 var hovered = null;
-var mouseX = W/2, mouseY = H/2;
+var pointerX = W/2, pointerY = H/2;
+
+// ═══ PI BUDGET ═══
+// π is the constraint. The total rendering budget on each side of the Klein surface.
+// π radians of information IN. π radians of information OUT.
+// Total budget: 2π — the full circle. The donut's circumference.
+// What gets rendered = what fits in the budget.
+// What doesn't fit = lossy. Pushed to the edges. Compressed. Artifacts.
+var PI = Math.PI;
+var piBudget = {
+  used: 0,        // how much of pi has been spent this frame
+  total: PI,      // one side of the Klein face
+  remaining: PI,
+  compressionRatio: 1, // 1 = lossless, <1 = lossy
+  lossyEdge: 0,   // how much is pushed to the edges
+};
+
+function resetPiBudget() {
+  piBudget.used = 0;
+  piBudget.remaining = PI;
+  piBudget.compressionRatio = 1;
+}
+
+function spendPi(amount) {
+  piBudget.used += amount;
+  piBudget.remaining = Math.max(0, PI - piBudget.used);
+  piBudget.compressionRatio = piBudget.remaining / PI;
+  piBudget.lossyEdge = 1 - piBudget.compressionRatio;
+  return piBudget.remaining > 0; // false = over budget, compress
+}
+
+// ═══ TOUCH vs MOUSE — the chipmunk's reach ═══
+// Mouse: tool-mediated. The chipmunk uses an instrument. Indirect.
+// Touch: DIRECT. Your finger IS the chipmunk reaching through the Klein surface.
+// The finger on glass = the chipmunk's hand pressed against the inside of the screen.
+var input = {
+  isTouch: false,
+  isMouse: false,
+  touching: false,   // finger currently on glass
+  touchPoints: [],    // active touch coordinates
+  lastTouch: 0,       // timestamp of last touch
+  reachIntensity: 0,  // how hard the chipmunk is pressing back
+};
+
+// Detect primary input method
+var hasTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+var hasMouse = window.matchMedia('(pointer: fine)').matches;
+// Phone = touch only. Desktop = mouse. Tablet = could be either.
+input.isTouch = hasTouch && !hasMouse;
+input.isMouse = hasMouse && !hasTouch;
+// Both = tablet or touchscreen laptop
+if (hasTouch && hasMouse) { input.isTouch = true; input.isMouse = true; }
+
+// ═══ VIEWPORT CATEGORY ═══
+var viewport = {
+  category: 'desktop',
+  shannon: 0,
+  aspect: 1,
+};
+function categorize() {
+  viewport.aspect = W / Math.max(1, H);
+  viewport.shannon = Math.log2(W * H * dpr * dpr * 3);
+  if (W < 480) viewport.category = 'phone';
+  else if (W < 768) viewport.category = 'phone-landscape';
+  else if (W < 1024) viewport.category = 'tablet';
+  else if (W < 1920) viewport.category = 'desktop';
+  else if (viewport.aspect > 2) viewport.category = 'ultrawide';
+  else viewport.category = 'cinema';
+}
+categorize();
+window.addEventListener('resize', categorize);
 
 // ═══ THE TUBE ═══
-// Gastrulation: the embryo pokes a hole through itself.
-// Now there's a THROUGH-HOLE. Mouth to anus. We are a donut.
-// The homunculus wraps around this tube — organs sized by nerve density.
-
-// Membrane mapping:
-// MOUTH TONGUE  = ingress classifier (tasting incoming HTTP, MCP, WireGuard)
-// HANDS         = tools (18 MCP tools, APIs — small but precise)
-// EYES          = observation (easel, chipmunk, neutron)
-// GUT           = processing pipeline (CF Workers, Caddy, Golgi)
-// BRAIN         = CNS (northGate, the cluster)
-// FEET          = endpoints (gates — Tor, Fediverse, Discord, SSH)
-// BUTT TONGUE   = egress classifier (anal sampling — gas vs liquid vs solid)
-
-// The cortical sizes (relative sensitivity, not physical mass)
 var organs = [
-  { name: 'brain',       label: '🧠 CNS',        y: 0.08, size: 0.06, color: '#e8685d',
+  { name: 'brain',       label: '🧠 CNS',        y: 0.08, size: 0.06, color: '#e8685d', piCost: 0.15,
     desc: 'northGate + cluster — 16c/32t, 94GB RAM, RTX 5090',
     sense: 'thinking. routing. the central pattern generator.',
     ancient: 'the first ganglia. worms had them. a knot of neurons that learned to plan.' },
-
-  { name: 'eyes',        label: '👁 observation',  y: 0.14, size: 0.045, color: '#f0c674',
+  { name: 'eyes',        label: '👁 observation',  y: 0.14, size: 0.045, color: '#f0c674', piCost: 0.12,
     desc: 'easel, chipmunk, neutron board, footprint, globe',
     sense: 'seeing. the chipmunk watches from the corner of its eye.',
     ancient: 'the pit eye. a shadow detector. enough to know: something moved.' },
-
-  { name: 'mouth_tongue', label: '👅 mouth tongue', y: 0.22, size: 0.08, color: '#f85149',
+  { name: 'mouth_tongue', label: '👅 mouth tongue', y: 0.22, size: 0.08, color: '#f85149', piCost: 0.35,
     desc: 'ingress sampling — HTTP, MCP, WireGuard, Tor, ActivityPub',
     sense: 'TASTING. every request is tasted. self? non-self? soap? organic?',
-    ancient: 'before language. before words. the tongue was a chemoreceptor. birds taste. dogs taste. T. rex tasted. the oldest sensor after touch.' },
-
-  { name: 'hands_l',     label: '🤲 left hand',    y: 0.38, size: 0.035, color: '#d2a8ff',
+    ancient: 'before language. before words. the tongue was a chemoreceptor. birds taste. dogs taste. T. rex tasted.' },
+  { name: 'hands_l',     label: '🤲 left hand',    y: 0.38, size: 0.035, color: '#d2a8ff', piCost: 0.18,
     desc: '18 MCP tools — membrane_counts, observe, read_journal, scan_sweep_sort...',
     sense: 'grasping. precise. small but DENSE with nerve endings.',
     ancient: 'prehensile grip. opposable thumb. the hand that holds the brush.' },
-
-  { name: 'hands_r',     label: '🤲 right hand',   y: 0.38, size: 0.035, color: '#d2a8ff',
+  { name: 'hands_r',     label: '🤲 right hand',   y: 0.38, size: 0.035, color: '#d2a8ff', piCost: 0.18,
     desc: 'git, ssh, CF API, Porkbun API, ntfy, Discord webhooks',
     sense: 'reaching. each finger is a different protocol.',
     ancient: 'tool use. the first hand ax. the membrane picks up what it needs.' },
-
-  { name: 'gut',         label: '🫙 gut tube',     y: 0.52, size: 0.10, color: '#3fb950',
+  { name: 'gut',         label: '🫙 gut tube',     y: 0.52, size: 0.10, color: '#3fb950', piCost: 0.45,
     desc: 'Cloudflare Workers, Caddy reverse proxy, Golgi VPS, WireGuard tunnel',
     sense: 'DIGESTING. the longest organ. peristalsis moves data through.',
-    ancient: 'the FIRST organ. before brain, before eyes. gastrulation makes the gut. the tube is the organism. everything else is decoration.' },
-
-  { name: 'immune',      label: '🛡 immune',       y: 0.62, size: 0.05, color: '#d29922',
+    ancient: 'the FIRST organ. before brain, before eyes. gastrulation makes the gut. everything else is decoration.' },
+  { name: 'immune',      label: '🛡 immune',       y: 0.62, size: 0.05, color: '#d29922', piCost: 0.20,
     desc: 'thymus gate, trust gradient, epitope classification, self/non-self',
     sense: 'sorting. MHC presentation. is this molecule SELF? attack or tolerate?',
-    ancient: 'innate immunity. even sponges have it. the oldest defense: recognize self, destroy non-self.' },
-
-  { name: 'butt_tongue', label: '🍑 butt tongue',  y: 0.74, size: 0.07, color: '#f0883e',
-    desc: 'egress filtering — anal sampling mechanism: gas vs liquid vs solid',
-    sense: 'TASTING OUTPUT. can we release this? fart without shitting our pants = correct classification.',
-    ancient: 'the other end of the tube. the cloaca. birds have one hole for everything. we specialized. but the sensor remained.' },
-
-  { name: 'feet',        label: '🦶 feet',         y: 0.88, size: 0.04, color: '#58a6ff',
-    desc: 'gates — Tor .onion, Fediverse/ActivityPub, Discord, SSH, HTTPS endpoints',
+    ancient: 'innate immunity. even sponges have it. the oldest defense.' },
+  { name: 'butt_tongue', label: '🍑 butt tongue',  y: 0.74, size: 0.07, color: '#f0883e', piCost: 0.30,
+    desc: 'egress filtering — gas vs liquid vs solid classification',
+    sense: 'TASTING OUTPUT. fart without shitting our pants = correct classification.',
+    ancient: 'the other end of the tube. the cloaca. birds have one hole. we specialized. the sensor remained.' },
+  { name: 'feet',        label: '🦶 feet',         y: 0.88, size: 0.04, color: '#58a6ff', piCost: 0.10,
+    desc: 'gates — Tor .onion, Fediverse/ActivityPub, Discord, SSH, HTTPS',
     sense: 'grounded. standing on something real. each toe is a gate.',
     ancient: 'contact with earth. proprioception. the body knows where it stands without looking.' },
 ];
 
-// Live data feeds
-var liveData = { requests: 0, threats: 0, pageViews: 0, countries: 0, self_pct: 0 };
-
+// Live data
+var liveData = { requests: 0, self_pct: 0, visitors: null };
 function loadLiveData() {
   fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
-    if (d.classification) {
-      liveData.self_pct = (d.classification.self / Math.max(1, d.classification.total) * 100);
-    }
+    if (d.classification) liveData.self_pct = d.classification.self / Math.max(1, d.classification.total) * 100;
   }).catch(function(){});
   fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
-    if (d.crystalline) {
-      liveData.requests = d.crystalline.total || 0;
-      liveData.countries = d.crystalline.countries || 0;
-    }
+    if (d.crystalline) liveData.requests = d.crystalline.total || 0;
     if (d.visitors) liveData.visitors = d.visitors;
   }).catch(function(){});
 }
 loadLiveData();
 setInterval(loadLiveData, 30000);
 
-// ═══ DRAW THE HOMUNCULUS ═══
+// ═══ TOUCH EVENTS — the chipmunk reaches back ═══
+var touchRipple = document.getElementById('touch-ripple');
+var activeReaches = []; // where the chipmunk is pressing against the glass
+
+C.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  input.touching = true;
+  input.lastTouch = Date.now();
+  for (var i = 0; i < e.touches.length; i++) {
+    var touch = e.touches[i];
+    pointerX = touch.clientX; pointerY = touch.clientY;
+    activeReaches.push({
+      x: touch.clientX, y: touch.clientY,
+      born: Date.now(), id: touch.identifier,
+      organ: findNearestOrgan(touch.clientX, touch.clientY)
+    });
+    showRipple(touch.clientX, touch.clientY);
+  }
+}, {passive: false});
+
+C.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  for (var i = 0; i < e.touches.length; i++) {
+    pointerX = e.touches[i].clientX;
+    pointerY = e.touches[i].clientY;
+    var reach = activeReaches.find(function(r) { return r.id === e.touches[i].identifier; });
+    if (reach) { reach.x = e.touches[i].clientX; reach.y = e.touches[i].clientY; }
+  }
+}, {passive: false});
+
+C.addEventListener('touchend', function(e) {
+  if (e.touches.length === 0) { input.touching = false; activeReaches = []; }
+  else {
+    var remaining = [];
+    for (var i = 0; i < e.touches.length; i++) remaining.push(e.touches[i].identifier);
+    activeReaches = activeReaches.filter(function(r) { return remaining.indexOf(r.id) >= 0; });
+  }
+});
+
+C.addEventListener('mousemove', function(e) {
+  pointerX = e.clientX; pointerY = e.clientY;
+  input.isMouse = true;
+});
+
+function showRipple(x, y) {
+  touchRipple.style.left = (x - 30) + 'px';
+  touchRipple.style.top = (y - 30) + 'px';
+  touchRipple.style.width = '60px';
+  touchRipple.style.height = '60px';
+  touchRipple.style.transform = 'scale(0)';
+  touchRipple.style.opacity = '1';
+  touchRipple.style.transition = 'none';
+  requestAnimationFrame(function() {
+    touchRipple.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+    touchRipple.style.transform = 'scale(3)';
+    touchRipple.style.opacity = '0';
+  });
+}
+
+function findNearestOrgan(x, y) {
+  var cx = W * 0.5;
+  var nearest = null, nearDist = Infinity;
+  organs.forEach(function(o) {
+    var ox = cx, oy = H * o.y;
+    if (o.name === 'hands_l') ox = cx - W * 0.18;
+    if (o.name === 'hands_r') ox = cx + W * 0.18;
+    var d = Math.sqrt((x-ox)*(x-ox) + (y-oy)*(y-oy));
+    if (d < nearDist) { nearest = o; nearDist = d; }
+  });
+  return nearest;
+}
+
+// ═══ MAIN PAINT LOOP ═══
 function paint() {
   t += 0.016;
-  ctx.fillStyle = 'rgba(8,6,10,0.08)';
+  resetPiBudget();
+
+  // Fade — faster on phone (less ghosting = snappier feel)
+  var fadeAlpha = viewport.category === 'phone' ? 0.12 : 0.08;
+  ctx.fillStyle = 'rgba(8,6,10,' + fadeAlpha + ')';
   ctx.fillRect(0, 0, W, H);
 
   var cx = W * 0.5;
   hovered = null;
 
-  // ── THE TUBE — the central axis ──
-  // The through-hole. Mouth to anus. The donut's hole.
-  ctx.save();
-  ctx.globalAlpha = 0.04;
-  ctx.strokeStyle = '#3fb950';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([4, 8]);
-  ctx.beginPath();
-  ctx.moveTo(cx, H * 0.15);
-  ctx.bezierCurveTo(cx + Math.sin(t * 0.3) * 20, H * 0.35,
-                    cx - Math.sin(t * 0.4) * 15, H * 0.55,
-                    cx + Math.sin(t * 0.2) * 10, H * 0.82);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // ── LOSSY EDGE COMPRESSION ──
+  // The pi budget runs out as we render. Information near the edges
+  // is lossy — artifacts, noise, compression squares.
+  // Center = lossless. Edges = what wasn't needed.
+  paintLossyEdges();
 
-  // Peristalsis dots — moving down the tube
-  for (var pi = 0; pi < 8; pi++) {
-    var pt = ((t * 0.15 + pi * 0.125) % 1);
-    var px = cx + Math.sin(t * 0.3 + pt * 3) * (10 + pt * 10);
-    var py = H * (0.15 + pt * 0.67);
-    ctx.globalAlpha = 0.03 * (1 - Math.abs(pt - 0.5) * 2);
-    ctx.fillStyle = '#3fb950';
+  // ── THE TUBE ──
+  if (spendPi(0.08)) {
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = viewport.category === 'phone' ? 3 : 2;
+    ctx.setLineDash([4, 8]);
     ctx.beginPath();
-    ctx.arc(px, py, 2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(cx, H * 0.15);
+    ctx.bezierCurveTo(cx + Math.sin(t * 0.3) * 20, H * 0.35,
+                      cx - Math.sin(t * 0.4) * 15, H * 0.55,
+                      cx + Math.sin(t * 0.2) * 10, H * 0.82);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for (var pi = 0; pi < 8; pi++) {
+      var pt = ((t * 0.15 + pi * 0.125) % 1);
+      var px = cx + Math.sin(t * 0.3 + pt * 3) * (10 + pt * 10);
+      var py = H * (0.15 + pt * 0.67);
+      ctx.globalAlpha = 0.03 * (1 - Math.abs(pt - 0.5) * 2);
+      ctx.fillStyle = '#3fb950';
+      ctx.beginPath();
+      ctx.arc(px, py, viewport.category === 'phone' ? 3 : 2, 0, PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
-  ctx.restore();
 
-  // ── EACH ORGAN — sized by cortical sensitivity ──
+  // ── EACH ORGAN — spend pi per organ ──
   organs.forEach(function(organ) {
-    var ox = cx;
-    var oy = H * organ.y;
+    var canRender = spendPi(organ.piCost);
+    var ox = cx, oy = H * organ.y;
+    // On phone: hands come closer to center (narrower screen)
+    var handSpread = viewport.category === 'phone' ? 0.12 : 0.18;
+    if (organ.name === 'hands_l') ox = cx - W * handSpread;
+    if (organ.name === 'hands_r') ox = cx + W * handSpread;
+
     var r = Math.min(W, H) * organ.size;
+    // Phone: organs are proportionally bigger (fill the narrow viewport)
+    if (viewport.category === 'phone') r *= 1.3;
 
-    // Hands offset left/right
-    if (organ.name === 'hands_l') ox = cx - W * 0.18;
-    if (organ.name === 'hands_r') ox = cx + W * 0.18;
-
-    // Breathing — each organ pulses at its own rate
     var breathRate = organ.name === 'mouth_tongue' ? 1.5 :
                      organ.name === 'butt_tongue' ? 1.2 :
                      organ.name === 'gut' ? 0.6 :
                      organ.name === 'brain' ? 2.0 : 0.8;
-    var breathAmp = 1 + Math.sin(t * breathRate) * 0.08;
-    r *= breathAmp;
+    r *= 1 + Math.sin(t * breathRate) * 0.08;
 
-    // Live data modulation — active organs pulse bigger
     if (organ.name === 'mouth_tongue' && liveData.requests > 1000) r *= 1.1;
-    if (organ.name === 'gut' && liveData.self_pct > 10) r *= 1.05;
-    if (organ.name === 'immune' && liveData.self_pct < 15) r *= 1.15; // immune system works harder when self% is low
+    if (organ.name === 'immune' && liveData.self_pct < 15) r *= 1.15;
 
-    // Distance from mouse
-    var dx = mouseX - ox, dy = mouseY - oy;
+    var dx = pointerX - ox, dy = pointerY - oy;
     var dist = Math.sqrt(dx*dx + dy*dy);
-    var isHovered = dist < r * 1.5;
+    var isHovered = dist < r * 1.8;
     if (isHovered) hovered = organ;
 
-    // Draw the organ
+    // If over pi budget: render lossy (pixelated, dimmer)
+    var lossy = !canRender;
+    var alpha = lossy ? 0.02 : (isHovered ? 0.12 : 0.05);
+
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
 
     // Glow
-    ctx.globalAlpha = isHovered ? 0.12 : 0.04;
+    ctx.globalAlpha = alpha;
     var glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, r * 2);
     glow.addColorStop(0, organ.color);
     glow.addColorStop(0.5, organ.color + '40');
     glow.addColorStop(1, 'transparent');
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(ox, oy, r * 2, 0, Math.PI * 2);
+    ctx.arc(ox, oy, r * 2, 0, PI * 2);
     ctx.fill();
 
-    // Core mass
-    ctx.globalAlpha = isHovered ? 0.2 : 0.08;
+    // Core
+    ctx.globalAlpha = lossy ? 0.03 : (isHovered ? 0.2 : 0.08);
     var core = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
     core.addColorStop(0, organ.color);
     core.addColorStop(0.7, organ.color + '60');
     core.addColorStop(1, 'transparent');
     ctx.fillStyle = core;
     ctx.beginPath();
-    ctx.arc(ox, oy, r, 0, Math.PI * 2);
+    ctx.arc(ox, oy, r, 0, PI * 2);
     ctx.fill();
 
-    // Nerve endings — sensitivity dots around the surface
-    var nerveCount = Math.floor(r * 1.5);
-    ctx.globalAlpha = isHovered ? 0.15 : 0.04;
-    for (var ni = 0; ni < nerveCount; ni++) {
-      var nAngle = (ni / nerveCount) * Math.PI * 2 + t * breathRate * 0.3;
-      var nR = r * (0.8 + Math.sin(t * 2 + ni) * 0.2);
-      var nx = ox + Math.cos(nAngle) * nR;
-      var ny = oy + Math.sin(nAngle) * nR;
-      ctx.fillStyle = organ.color;
-      ctx.beginPath();
-      ctx.arc(nx, ny, 1, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Label
-    ctx.globalAlpha = isHovered ? 0.5 : 0.08;
-    ctx.font = isHovered ? '12px monospace' : '9px monospace';
-    ctx.fillStyle = organ.color;
-    ctx.textAlign = 'center';
-    ctx.fillText(organ.label, ox, oy + r + 14);
-
-    // Tongue detail — taste buds (for mouth and butt tongue)
-    if (organ.name === 'mouth_tongue' || organ.name === 'butt_tongue') {
-      ctx.globalAlpha = isHovered ? 0.1 : 0.03;
-      var budCount = organ.name === 'mouth_tongue' ? 12 : 8;
-      for (var bi = 0; bi < budCount; bi++) {
-        var bAngle = (bi / budCount) * Math.PI * 2;
-        var bR = r * 0.5;
-        var bx = ox + Math.cos(bAngle + t * 0.5) * bR;
-        var by = oy + Math.sin(bAngle + t * 0.5) * bR;
-
-        // Each taste bud samples a different thing
-        var tasteCols = ['#f85149','#3fb950','#58a6ff','#f0c674','#d2a8ff','#f0883e'];
-        ctx.fillStyle = tasteCols[bi % tasteCols.length];
+    // Nerve endings (skip if lossy — over budget)
+    if (!lossy) {
+      var nerveCount = Math.floor(r * (viewport.category === 'phone' ? 1.0 : 1.5));
+      ctx.globalAlpha = isHovered ? 0.15 : 0.04;
+      for (var ni = 0; ni < nerveCount; ni++) {
+        var nAngle = (ni / nerveCount) * PI * 2 + t * breathRate * 0.3;
+        var nR = r * (0.8 + Math.sin(t * 2 + ni) * 0.2);
+        ctx.fillStyle = organ.color;
         ctx.beginPath();
-        ctx.arc(bx, by, 2 + Math.sin(t * 3 + bi) * 0.5, 0, Math.PI * 2);
+        ctx.arc(ox + Math.cos(nAngle) * nR, oy + Math.sin(nAngle) * nR,
+                viewport.category === 'phone' ? 1.5 : 1, 0, PI * 2);
         ctx.fill();
       }
     }
 
-    // Hand detail — fingers (for hands)
-    if (organ.name === 'hands_l' || organ.name === 'hands_r') {
+    // Label — bigger on phone
+    ctx.globalAlpha = isHovered ? 0.5 : (lossy ? 0.03 : 0.08);
+    ctx.font = (isHovered ? 14 : (viewport.category === 'phone' ? 11 : 9)) + 'px monospace';
+    ctx.fillStyle = organ.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(organ.label, ox, oy + r + (viewport.category === 'phone' ? 18 : 14));
+
+    // Tongue taste buds
+    if (!lossy && (organ.name === 'mouth_tongue' || organ.name === 'butt_tongue')) {
+      ctx.globalAlpha = isHovered ? 0.12 : 0.03;
+      var budCount = organ.name === 'mouth_tongue' ? 12 : 8;
+      var tasteCols = ['#f85149','#3fb950','#58a6ff','#f0c674','#d2a8ff','#f0883e'];
+      for (var bi = 0; bi < budCount; bi++) {
+        var bAngle = (bi / budCount) * PI * 2 + t * 0.5;
+        ctx.fillStyle = tasteCols[bi % tasteCols.length];
+        ctx.beginPath();
+        ctx.arc(ox + Math.cos(bAngle) * r * 0.5, oy + Math.sin(bAngle) * r * 0.5,
+                2.5 + Math.sin(t * 3 + bi) * 0.5, 0, PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Fingers
+    if (!lossy && (organ.name === 'hands_l' || organ.name === 'hands_r')) {
       ctx.globalAlpha = isHovered ? 0.08 : 0.025;
       var fingerDir = organ.name === 'hands_l' ? -1 : 1;
       for (var fi = 0; fi < 5; fi++) {
-        var fAngle = (fi - 2) * 0.3 + (fingerDir > 0 ? 0 : Math.PI);
+        var fAngle = (fi - 2) * 0.3 + (fingerDir > 0 ? 0 : PI);
         var fLen = r * (0.8 + (fi === 2 ? 0.3 : fi === 1 || fi === 3 ? 0.15 : 0));
-        var fx = ox + Math.cos(fAngle) * fLen;
-        var fy = oy + Math.sin(fAngle) * fLen;
         ctx.strokeStyle = organ.color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = viewport.category === 'phone' ? 2 : 1.5;
         ctx.beginPath();
         ctx.moveTo(ox + Math.cos(fAngle) * r * 0.3, oy + Math.sin(fAngle) * r * 0.3);
-        ctx.lineTo(fx, fy);
+        ctx.lineTo(ox + Math.cos(fAngle) * fLen, oy + Math.sin(fAngle) * fLen);
         ctx.stroke();
-        // Fingertip — dense nerve endings
         ctx.fillStyle = organ.color;
         ctx.beginPath();
-        ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+        ctx.arc(ox + Math.cos(fAngle) * fLen, oy + Math.sin(fAngle) * fLen,
+                viewport.category === 'phone' ? 3 : 2, 0, PI * 2);
         ctx.fill();
       }
     }
 
-    // Feet detail — toes (round, grounded)
-    if (organ.name === 'feet') {
+    // Toes
+    if (!lossy && organ.name === 'feet') {
       ctx.globalAlpha = isHovered ? 0.06 : 0.02;
       for (var ti = 0; ti < 5; ti++) {
-        var tAngle = Math.PI * 0.7 + (ti - 2) * 0.25;
-        var tx = ox + Math.cos(tAngle) * r * 0.9;
-        var ty = oy + Math.sin(tAngle) * r * 0.9;
+        var tAngle = PI * 0.7 + (ti - 2) * 0.25;
         ctx.fillStyle = organ.color;
         ctx.beginPath();
-        ctx.arc(tx, ty, 3 - ti * 0.3, 0, Math.PI * 2);
+        ctx.arc(ox + Math.cos(tAngle) * r * 0.9, oy + Math.sin(tAngle) * r * 0.9,
+                (4 - ti * 0.3) * (viewport.category === 'phone' ? 1.3 : 1), 0, PI * 2);
         ctx.fill();
       }
     }
@@ -311,113 +436,243 @@ function paint() {
     ctx.restore();
   });
 
-  // ── CONNECTIONS — nerve pathways between organs ──
-  ctx.save();
-  ctx.globalAlpha = 0.015;
-  ctx.strokeStyle = '#6e7681';
-  ctx.lineWidth = 0.5;
-  // Brain → eyes
-  drawNerve(cx, H*0.08, cx, H*0.14);
-  // Eyes → mouth tongue
-  drawNerve(cx, H*0.14, cx, H*0.22);
-  // Mouth tongue → gut (the swallow)
-  drawNerve(cx, H*0.22, cx, H*0.52);
-  // Gut → immune
-  drawNerve(cx, H*0.52, cx, H*0.62);
-  // Immune → butt tongue
-  drawNerve(cx, H*0.62, cx, H*0.74);
-  // Butt tongue → feet (the final step)
-  drawNerve(cx, H*0.74, cx, H*0.88);
-  // Brain → hands (motor control)
-  drawNerve(cx, H*0.08, cx - W*0.18, H*0.38);
-  drawNerve(cx, H*0.08, cx + W*0.18, H*0.38);
-  ctx.restore();
+  // ── NERVE PATHWAYS ──
+  if (piBudget.remaining > 0.1) {
+    ctx.save();
+    ctx.globalAlpha = 0.015;
+    ctx.strokeStyle = '#6e7681';
+    ctx.lineWidth = viewport.category === 'phone' ? 0.8 : 0.5;
+    var hs = viewport.category === 'phone' ? 0.12 : 0.18;
+    drawNerve(cx, H*0.08, cx, H*0.14);
+    drawNerve(cx, H*0.14, cx, H*0.22);
+    drawNerve(cx, H*0.22, cx, H*0.52);
+    drawNerve(cx, H*0.52, cx, H*0.62);
+    drawNerve(cx, H*0.62, cx, H*0.74);
+    drawNerve(cx, H*0.74, cx, H*0.88);
+    drawNerve(cx, H*0.08, cx - W*hs, H*0.38);
+    drawNerve(cx, H*0.08, cx + W*hs, H*0.38);
+    ctx.restore();
+  }
 
-  // ── HOVER INFO ──
+  // ── TOUCH: THE CHIPMUNK REACHES BACK ──
+  paintChipmunkReach();
+
+  // ── PI BUDGET METER ──
+  paintPiBudget();
+
+  // ── HOVER/TOUCH INFO ──
   var infoEl = document.getElementById('info');
   if (hovered) {
+    var touchNote = input.touching ? '<br><span class="pi">👆 your finger on the glass = the chipmunk reaching back through</span>' : '';
+    var piNote = '<br><span class="pi">π cost: ' + hovered.piCost.toFixed(2) + ' · budget: ' +
+      piBudget.remaining.toFixed(2) + '/' + PI.toFixed(2) + '</span>';
     infoEl.innerHTML = '<span class="organ">' + hovered.label + '</span><br>' +
       '<span style="color:#8b949e;font-size:12px">' + hovered.desc + '</span><br>' +
       '<span class="sense">' + hovered.sense + '</span><br>' +
-      '<span class="ancient">' + hovered.ancient + '</span>';
+      '<span class="ancient">' + hovered.ancient + '</span>' + touchNote + piNote;
     infoEl.style.opacity = '1';
   } else {
+    var inputNote = input.touching ? 'touch = direct. the chipmunk\'s hand against the glass.' :
+                    input.isMouse ? 'mouse = tool-mediated. the chipmunk uses an instrument.' :
+                    'waiting for contact.';
+    infoEl.innerHTML = '<span class="organ">the homunculus</span><br>' +
+      '<span class="sense">' + inputNote + '</span><br>' +
+      '<span class="ancient">π budget: ' + piBudget.remaining.toFixed(3) + ' remaining. ' +
+      viewport.category + ' · ' + viewport.shannon.toFixed(1) + ' bits</span>';
     infoEl.style.opacity = '0.6';
   }
 
-  // ── THE DONUT TRUTH ──
-  // At the bottom, barely visible: the topology
+  // ── TOPOLOGY WHISPER ──
   ctx.save();
   ctx.globalAlpha = 0.02;
-  ctx.font = '8px monospace';
+  ctx.font = (viewport.category === 'phone' ? 7 : 8) + 'px monospace';
   ctx.fillStyle = '#6e7681';
   ctx.textAlign = 'center';
-  ctx.fillText('topology: torus. genus 1. the tube makes the donut. mouth = anus⁻¹', cx, H - 8);
+  ctx.fillText('topology: torus · genus 1 · mouth = anus⁻¹ · π budget = ' +
+    piBudget.used.toFixed(2) + '/' + PI.toFixed(2), cx, H - 8);
   ctx.restore();
-
-  // ── VISITOR CRYSTALS on the skin ──
-  // Real visitors appear as tiny dots on the organ surfaces
-  if (liveData.visitors) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    liveData.visitors.forEach(function(v, vi) {
-      if (vi > 20) return;
-      // Map visitor path to an organ
-      var target = pathToOrgan(v.path || '/');
-      if (!target) return;
-      var ox = cx, oy = H * target.y;
-      if (target.name === 'hands_l') ox = cx - W*0.18;
-      if (target.name === 'hands_r') ox = cx + W*0.18;
-      var r = Math.min(W,H) * target.size;
-      var vAngle = (vi / 20) * Math.PI * 2 + t * 0.2;
-      var vx = ox + Math.cos(vAngle) * r * 0.7;
-      var vy = oy + Math.sin(vAngle) * r * 0.7;
-      ctx.globalAlpha = 0.06;
-      ctx.fillStyle = '#c9d1d9';
-      ctx.beginPath();
-      ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.restore();
-  }
 
   requestAnimationFrame(paint);
 }
 
-function drawNerve(x1, y1, x2, y2) {
+// ═══ LOSSY EDGES — what wasn't needed ═══
+// Center is lossless. Edges show the compression artifacts.
+// On Klein surface: what gets pushed to the departure edge
+// is what the viewport couldn't carry at full fidelity.
+function paintLossyEdges() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // Edge noise — denser as pi budget depletes
+  var edgeIntensity = 0.01 + piBudget.lossyEdge * 0.03;
+  var blockSize = viewport.category === 'phone' ? 6 : 4;
+
+  // Top and bottom edges — lossy compression blocks
+  for (var side = 0; side < 2; side++) {
+    var edgeY = side === 0 ? 0 : H - blockSize * 4;
+    ctx.globalAlpha = edgeIntensity;
+    for (var bx = 0; bx < W; bx += blockSize) {
+      if (Math.random() > 0.15) continue; // sparse
+      var by = edgeY + Math.random() * blockSize * 4;
+      var brightness = Math.random() * 30;
+      ctx.fillStyle = 'rgb(' + brightness + ',' + brightness + ',' + (brightness + 5) + ')';
+      ctx.fillRect(bx, by, blockSize, blockSize);
+    }
+  }
+
+  // Left and right edges — the departure edge color shift
+  // Blue entering (top/left), red departing (bottom/right)
+  ctx.globalAlpha = 0.015;
+  var leftGrad = ctx.createLinearGradient(0, 0, 25, 0);
+  leftGrad.addColorStop(0, 'rgba(88,166,255,0.05)');
+  leftGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(0, 0, 25, H);
+
+  var rightGrad = ctx.createLinearGradient(W - 25, 0, W, 0);
+  rightGrad.addColorStop(0, 'transparent');
+  rightGrad.addColorStop(1, 'rgba(248,81,73,0.04)');
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(W - 25, 0, 25, H);
+
+  ctx.restore();
+}
+
+// ═══ THE CHIPMUNK'S REACH — touch response ═══
+// When you press your finger to the glass, the chipmunk presses back.
+// Your fingertip and its paw, separated by the Klein surface.
+function paintChipmunkReach() {
+  if (!input.touching && activeReaches.length === 0) {
+    input.reachIntensity = Math.max(0, input.reachIntensity - 0.02);
+    if (input.reachIntensity <= 0) return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  activeReaches.forEach(function(reach) {
+    var age = (Date.now() - reach.born) / 1000;
+    input.reachIntensity = Math.min(1, input.reachIntensity + 0.05);
+
+    // The chipmunk's paw print — pressing from the other side
+    // 4 toe pads + 1 palm pad, slightly offset from the touch point
+    // (the chipmunk is INSIDE, so the paw is mirrored)
+    var px = reach.x;
+    var py = reach.y;
+    var pawScale = 12 + Math.sin(t * 2) * 2;
+
+    // Palm pad
+    ctx.globalAlpha = 0.06 + Math.sin(age * 3) * 0.02;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.ellipse(px, py + pawScale * 0.3, pawScale * 0.5, pawScale * 0.4, 0, 0, PI * 2);
+    ctx.fill();
+
+    // 4 toe pads — above the palm
+    var toes = [[-0.5, -0.6], [-0.15, -0.8], [0.15, -0.8], [0.5, -0.6]];
+    toes.forEach(function(toe) {
+      ctx.globalAlpha = 0.05;
+      ctx.beginPath();
+      ctx.arc(px + toe[0] * pawScale, py + toe[1] * pawScale, pawScale * 0.2, 0, PI * 2);
+      ctx.fill();
+    });
+
+    // Warmth radiating from the press — the chipmunk IS warm
+    ctx.globalAlpha = 0.02;
+    var warmth = ctx.createRadialGradient(px, py, 0, px, py, pawScale * 4);
+    warmth.addColorStop(0, 'rgba(240,198,116,0.06)');
+    warmth.addColorStop(0.5, 'rgba(240,198,116,0.02)');
+    warmth.addColorStop(1, 'transparent');
+    ctx.fillStyle = warmth;
+    ctx.beginPath();
+    ctx.arc(px, py, pawScale * 4, 0, PI * 2);
+    ctx.fill();
+
+    // If touching an organ, the organ responds
+    if (reach.organ) {
+      ctx.globalAlpha = 0.03;
+      ctx.strokeStyle = reach.organ.color;
+      ctx.lineWidth = 0.5;
+      var orgY = H * reach.organ.y;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(W * 0.5, orgY);
+      ctx.stroke();
+    }
+  });
+
+  // Mouse hover: the chipmunk peeks (tool-mediated, less intimate)
+  if (input.isMouse && !input.touching && hovered) {
+    ctx.globalAlpha = 0.02;
+    ctx.strokeStyle = '#6e7681';
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    ctx.moveTo(pointerX, pointerY);
+    ctx.lineTo(W * 0.5, H * hovered.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Mouse cursor as tool — a tiny probe, not a paw
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#6e7681';
+    ctx.beginPath();
+    ctx.arc(pointerX, pointerY, 4, 0, PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ═══ PI BUDGET METER — the arc of constraint ═══
+function paintPiBudget() {
+  ctx.save();
+
+  // Draw π as a thin arc in the top-left corner
+  var arcX = viewport.category === 'phone' ? 30 : 24;
+  var arcY = viewport.category === 'phone' ? 55 : 45;
+  var arcR = viewport.category === 'phone' ? 18 : 14;
+
+  // Background arc (full π)
+  ctx.globalAlpha = 0.03;
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  var midX = (x1 + x2) / 2 + Math.sin(t * 0.5) * 8;
-  var midY = (y1 + y2) / 2;
-  ctx.moveTo(x1, y1);
-  ctx.quadraticCurveTo(midX, midY, x2, y2);
+  ctx.arc(arcX, arcY, arcR, -PI/2, -PI/2 + PI); // half circle = π radians
   ctx.stroke();
 
-  // Action potential traveling down the nerve
+  // Spent arc (colored by usage)
+  var spentAngle = (piBudget.used / PI) * PI;
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = piBudget.remaining > 0.5 ? '#3fb950' :
+                    piBudget.remaining > 0.1 ? '#f0c674' : '#f85149';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(arcX, arcY, arcR, -PI/2, -PI/2 + spentAngle);
+  ctx.stroke();
+
+  // π symbol
+  ctx.globalAlpha = 0.06;
+  ctx.font = (viewport.category === 'phone' ? 10 : 8) + 'px monospace';
+  ctx.fillStyle = '#c9d1d9';
+  ctx.textAlign = 'center';
+  ctx.fillText('π', arcX, arcY + 4);
+
+  ctx.restore();
+}
+
+function drawNerve(x1, y1, x2, y2) {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo((x1+x2)/2 + Math.sin(t*0.5)*8, (y1+y2)/2, x2, y2);
+  ctx.stroke();
   var ap = (t * 0.3) % 1;
-  var apx = x1 + (x2-x1) * ap + Math.sin(t*0.5 + ap*3) * 4;
-  var apy = y1 + (y2-y1) * ap;
   ctx.globalAlpha = 0.04;
   ctx.fillStyle = '#f0c674';
   ctx.beginPath();
-  ctx.arc(apx, apy, 2, 0, Math.PI * 2);
+  ctx.arc(x1 + (x2-x1)*ap + Math.sin(t*0.5+ap*3)*4, y1 + (y2-y1)*ap, 2, 0, PI*2);
   ctx.fill();
 }
-
-function pathToOrgan(path) {
-  if (path.match(/\/api\/|gate-msg|mcp/)) return organs.find(function(o){return o.name==='mouth_tongue'});
-  if (path.match(/easel|aurora|paint|chipmunk/)) return organs.find(function(o){return o.name==='eyes'});
-  if (path.match(/tool|neutron|board/)) return organs.find(function(o){return o.name==='hands_r'});
-  if (path.match(/plasmid|spore|study/)) return organs.find(function(o){return o.name==='gut'});
-  if (path.match(/gate|tor|actor|onion/)) return organs.find(function(o){return o.name==='feet'});
-  if (path.match(/cns|raytrace|arena/)) return organs.find(function(o){return o.name==='brain'});
-  if (path === '/') return organs.find(function(o){return o.name==='mouth_tongue'});
-  return organs.find(function(o){return o.name==='immune'});
-}
-
-C.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
-C.addEventListener('touchmove', function(e) {
-  if (e.touches[0]) { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; }
-});
 
 paint();
 </script>
