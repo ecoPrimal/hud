@@ -1,0 +1,382 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>⟐ Arena — basement AI, live on the membrane</title>
+<meta content="Two local AI models. One RTX 5090. Same prompt. You vote. Every inference runs on northGate metal — no cloud, no API key, no surveillance." name=description>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7}
+.page{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{color:#e6edf3;font-size:1.8em;font-weight:300;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:#6e7681;font-size:13px;margin-bottom:30px}
+a{color:#58a6ff}
+.dim{color:#6e7681}
+.green{color:#3fb950}
+.gold{color:#d29922}
+.red{color:#f85149}
+.cyan{color:#39d2e0}
+.purple{color:#a371f7}
+
+.hw-bar{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px 16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px}
+.hw-bar .chip{background:#1a2332;border:1px solid #30363d;border-radius:4px;padding:2px 8px}
+.hw-bar .live{color:#3fb950;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.prompt-area{margin-bottom:20px}
+.prompt-area label{font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:1px}
+.prompt-input{width:100%;background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:12px;border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px;resize:vertical;min-height:60px}
+.prompt-input:focus{outline:none;border-color:#58a6ff}
+
+.btn-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.btn{padding:10px 24px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#c9d1d9;font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:#58a6ff;color:#58a6ff}
+.btn-go{background:linear-gradient(135deg,#238636,#2ea043);border-color:#238636;color:#fff;font-weight:bold}
+.btn-go:hover{background:#2ea043;border-color:#3fb950}
+.btn-go:disabled{opacity:.5;cursor:wait}
+
+.arena{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:600px){.arena{grid-template-columns:1fr}}
+
+.fighter{background:#161b22;border:1px solid #21262d;border-radius:12px;overflow:hidden;transition:border-color .3s}
+.fighter.winner{border-color:#3fb950;box-shadow:0 0 20px rgba(63,185,80,0.15)}
+.fighter-hdr{padding:12px 16px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}
+.fighter-name{font-weight:bold;font-size:14px}
+.fighter-meta{font-size:11px;color:#6e7681}
+.fighter-body{padding:16px;min-height:120px;font-size:13px;white-space:pre-wrap;word-wrap:break-word}
+.fighter-body .cursor{display:inline-block;width:8px;height:14px;background:#58a6ff;animation:blink .8s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.fighter-foot{padding:8px 16px;border-top:1px solid #21262d;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6e7681}
+
+.vote-row{display:flex;gap:12px;justify-content:center;margin:20px 0}
+.vote-btn{padding:12px 32px;border-radius:8px;border:2px solid #30363d;background:#161b22;color:#c9d1d9;font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
+.vote-btn:hover{transform:scale(1.05)}
+.vote-a:hover{border-color:#58a6ff;color:#58a6ff}
+.vote-b:hover{border-color:#a371f7;color:#a371f7}
+.vote-tie:hover{border-color:#d29922;color:#d29922}
+
+.scoreboard{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px;margin:20px 0}
+.scoreboard h3{font-size:13px;color:#8b949e;text-transform:uppercase;margin-bottom:8px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.score-card{background:#0d1117;border-radius:6px;padding:8px 12px;text-align:center}
+.score-card .name{font-size:11px;color:#8b949e}
+.score-card .elo{font-size:20px;font-weight:bold;color:#e6edf3}
+.score-card .record{font-size:10px;color:#6e7681}
+
+.log{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px;margin:20px 0;max-height:200px;overflow-y:auto;font-size:11px;color:#6e7681}
+
+footer{text-align:center;padding:40px 0 20px;font-size:12px;color:#484f58;border-top:1px solid #21262d;margin-top:40px}
+footer a{color:#58a6ff;margin:0 6px}
+</style></head><body>
+<div class=page>
+
+<h1>⟐ Arena</h1>
+<p class=subtitle>basement AI • live on the RTX 5090 • no cloud • you judge</p>
+
+<div class=hw-bar>
+  <span><span class=live>●</span> northGate</span>
+  <span class=chip>RTX 5090 · 32 GB</span>
+  <span class=chip>Ryzen 9 9950X3D · 16c/32t</span>
+  <span class=chip>96 GB DDR5</span>
+  <span class=chip id=gpu-status>loading…</span>
+</div>
+
+<div class=prompt-area>
+  <label>prompt</label>
+  <textarea class=prompt-input id=prompt placeholder="Ask anything. Both models get the same prompt.">Explain what a membrane is — in biology and in metaphor.</textarea>
+</div>
+
+<div class=btn-row>
+  <button class="btn btn-go" id=btn-fight onclick=fight()>⟐ Fight!</button>
+  <button class=btn onclick="document.getElementById('prompt').value=randomPrompt()">🎲 Random</button>
+  <button class=btn onclick="clearArena()">↻ Clear</button>
+  <select class=btn id=model-a>
+    <option value="gemma3:12b">Gemma 3 (12B)</option>
+    <option value="phi4-mini">Phi-4 Mini (3.8B)</option>
+  </select>
+  <span style="align-self:center;color:#6e7681">vs</span>
+  <select class=btn id=model-b>
+    <option value="phi4-mini">Phi-4 Mini (3.8B)</option>
+    <option value="gemma3:12b">Gemma 3 (12B)</option>
+  </select>
+</div>
+
+<div class=arena>
+  <div class=fighter id=fighter-a>
+    <div class=fighter-hdr>
+      <span class=fighter-name id=name-a>Model A</span>
+      <span class=fighter-meta id=meta-a>—</span>
+    </div>
+    <div class=fighter-body id=body-a><span class=dim>waiting for prompt…</span></div>
+    <div class=fighter-foot>
+      <span id=tokens-a>—</span>
+      <span id=speed-a>—</span>
+    </div>
+  </div>
+  <div class=fighter id=fighter-b>
+    <div class=fighter-hdr>
+      <span class=fighter-name id=name-b>Model B</span>
+      <span class=fighter-meta id=meta-b>—</span>
+    </div>
+    <div class=fighter-body id=body-b><span class=dim>waiting for prompt…</span></div>
+    <div class=fighter-foot>
+      <span id=tokens-b>—</span>
+      <span id=speed-b>—</span>
+    </div>
+  </div>
+</div>
+
+<div class=vote-row id=vote-row style="display:none">
+  <button class="vote-btn vote-a" onclick="vote('a')">👈 A wins</button>
+  <button class="vote-btn vote-tie" onclick="vote('tie')">🤝 Tie</button>
+  <button class="vote-btn vote-b" onclick="vote('b')">👉 B wins</button>
+</div>
+
+<div class=scoreboard>
+  <h3>⟐ Elo Scoreboard (this session)</h3>
+  <div class=score-grid id=scoreboard></div>
+</div>
+
+<div class=log id=log>arena log…</div>
+
+<footer>
+  <p>Every token generated on <span class=green>northGate</span> metal in Lansing, Michigan.</p>
+  <p>No data leaves the basement unless you copy-paste it yourself.</p>
+  <p style="margin-top:12px">
+    <a href="/">⟐ membrane</a>
+    <a href="/raytrace.html">⟐ metal</a>
+    <a href="/gates.html">⟐ gates</a>
+    <a href="/cns.html">⟐ cns</a>
+    <a href="https://discord.gg/EaVxDyNU" target=_blank>⟐ tavern</a>
+  </p>
+  <p class=dim style="margin-top:8px">primals.eco · AGPL-3.0 · cite: Mok, K. (2026). Arena.</p>
+</footer>
+
+</div>
+<script>
+const OLLAMA = 'http://localhost:11434';
+const K = 32;
+
+let elos = {};
+let history = [];
+
+const prompts = [
+  "Explain what a membrane is — in biology and in metaphor.",
+  "Write a haiku about a chipmunk discovering the internet.",
+  "What is the difference between a fold and a fracture?",
+  "Explain backscatter to a 10-year-old.",
+  "If consciousness is computation, what is dreaming?",
+  "Write a short myth about a squirrel who guards a gate between worlds.",
+  "What would AlphaFold look like if it folded ideas instead of proteins?",
+  "Explain DNSSEC like you're a pirate.",
+  "What is the relationship between attention (in transformers) and attention (in meditation)?",
+  "Why do we build things? 3 sentences max.",
+  "Describe the color blue to someone who has never seen it.",
+  "What is sovereign science?",
+  "If a GPU could dream, what would it render?",
+  "Explain the immune system as if it were a computer network.",
+  "What makes a home a home? Not the building — the feeling.",
+];
+
+function randomPrompt() {
+  return prompts[Math.floor(Math.random() * prompts.length)];
+}
+
+function log(msg) {
+  const el = document.getElementById('log');
+  const t = new Date().toLocaleTimeString();
+  el.textContent = `[${t}] ${msg}\n` + el.textContent;
+}
+
+function getElo(name) {
+  if (!elos[name]) elos[name] = { rating: 1200, wins: 0, losses: 0, ties: 0 };
+  return elos[name];
+}
+
+function updateElo(winner, loser, tie = false) {
+  const w = getElo(winner), l = getElo(loser);
+  const eW = 1 / (1 + Math.pow(10, (l.rating - w.rating) / 400));
+  const eL = 1 - eW;
+  if (tie) {
+    w.rating += K * (0.5 - eW); w.ties++;
+    l.rating += K * (0.5 - eL); l.ties++;
+  } else {
+    w.rating += K * (1 - eW); w.wins++;
+    l.rating += K * (0 - eL); l.losses++;
+  }
+  renderScoreboard();
+}
+
+function renderScoreboard() {
+  const el = document.getElementById('scoreboard');
+  const sorted = Object.entries(elos).sort((a, b) => b[1].rating - a[1].rating);
+  el.innerHTML = sorted.map(([name, s]) =>
+    `<div class=score-card>
+      <div class=name>${name}</div>
+      <div class=elo>${Math.round(s.rating)}</div>
+      <div class=record>${s.wins}W ${s.losses}L ${s.ties}T</div>
+    </div>`
+  ).join('');
+}
+
+async function streamModel(model, prompt, bodyEl, tokensEl, speedEl) {
+  bodyEl.textContent = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  bodyEl.appendChild(cursor);
+
+  const start = Date.now();
+  let tokenCount = 0;
+
+  try {
+    const res = await fetch(`${OLLAMA}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, prompt, stream: true })
+    });
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const j = JSON.parse(line);
+          if (j.response) {
+            cursor.before(j.response);
+            tokenCount++;
+            const elapsed = (Date.now() - start) / 1000;
+            tokensEl.textContent = `${tokenCount} tokens`;
+            speedEl.textContent = `${(tokenCount / elapsed).toFixed(1)} tok/s`;
+          }
+          if (j.done) {
+            cursor.remove();
+            if (j.eval_count) {
+              tokenCount = j.eval_count;
+              const elapsed = (Date.now() - start) / 1000;
+              tokensEl.textContent = `${tokenCount} tokens`;
+              speedEl.textContent = `${(tokenCount / elapsed).toFixed(1)} tok/s`;
+            }
+          }
+        } catch(e) {}
+      }
+    }
+  } catch (e) {
+    cursor.remove();
+    bodyEl.textContent = `❌ Error: ${e.message}\n\nIs Ollama running on localhost:11434?\nThe arena connects directly to your local Ollama.`;
+  }
+
+  return tokenCount;
+}
+
+let fighting = false;
+let lastModels = { a: '', b: '' };
+
+async function fight() {
+  if (fighting) return;
+  fighting = true;
+  const btn = document.getElementById('btn-fight');
+  btn.disabled = true;
+  btn.textContent = '⟐ Fighting…';
+  document.getElementById('vote-row').style.display = 'none';
+
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) { fighting = false; btn.disabled = false; btn.textContent = '⟐ Fight!'; return; }
+
+  const mA = document.getElementById('model-a').value;
+  const mB = document.getElementById('model-b').value;
+  lastModels = { a: mA, b: mB };
+
+  document.getElementById('name-a').textContent = mA;
+  document.getElementById('name-b').textContent = mB;
+  document.getElementById('meta-a').textContent = 'generating…';
+  document.getElementById('meta-b').textContent = 'queued…';
+
+  log(`Fight: ${mA} vs ${mB} — "${prompt.substring(0, 50)}…"`);
+
+  const startA = Date.now();
+  await streamModel(mA, prompt,
+    document.getElementById('body-a'),
+    document.getElementById('tokens-a'),
+    document.getElementById('speed-a')
+  );
+  const timeA = ((Date.now() - startA) / 1000).toFixed(1);
+  document.getElementById('meta-a').textContent = `${timeA}s`;
+
+  document.getElementById('meta-b').textContent = 'generating…';
+  const startB = Date.now();
+  await streamModel(mB, prompt,
+    document.getElementById('body-b'),
+    document.getElementById('tokens-b'),
+    document.getElementById('speed-b')
+  );
+  const timeB = ((Date.now() - startB) / 1000).toFixed(1);
+  document.getElementById('meta-b').textContent = `${timeB}s`;
+
+  document.getElementById('vote-row').style.display = 'flex';
+  fighting = false;
+  btn.disabled = false;
+  btn.textContent = '⟐ Fight!';
+
+  log(`Done: ${mA} (${timeA}s) vs ${mB} (${timeB}s)`);
+}
+
+function vote(v) {
+  document.getElementById('vote-row').style.display = 'none';
+  const mA = lastModels.a, mB = lastModels.b;
+  if (v === 'a') {
+    updateElo(mA, mB);
+    document.getElementById('fighter-a').classList.add('winner');
+    document.getElementById('fighter-b').classList.remove('winner');
+    log(`Vote: ${mA} wins over ${mB}`);
+  } else if (v === 'b') {
+    updateElo(mB, mA);
+    document.getElementById('fighter-b').classList.add('winner');
+    document.getElementById('fighter-a').classList.remove('winner');
+    log(`Vote: ${mB} wins over ${mA}`);
+  } else {
+    updateElo(mA, mB, true);
+    document.getElementById('fighter-a').classList.remove('winner');
+    document.getElementById('fighter-b').classList.remove('winner');
+    log(`Vote: tie between ${mA} and ${mB}`);
+  }
+}
+
+function clearArena() {
+  document.getElementById('body-a').innerHTML = '<span class=dim>waiting for prompt…</span>';
+  document.getElementById('body-b').innerHTML = '<span class=dim>waiting for prompt…</span>';
+  document.getElementById('tokens-a').textContent = '—';
+  document.getElementById('tokens-b').textContent = '—';
+  document.getElementById('speed-a').textContent = '—';
+  document.getElementById('speed-b').textContent = '—';
+  document.getElementById('meta-a').textContent = '—';
+  document.getElementById('meta-b').textContent = '—';
+  document.getElementById('name-a').textContent = 'Model A';
+  document.getElementById('name-b').textContent = 'Model B';
+  document.getElementById('vote-row').style.display = 'none';
+  document.getElementById('fighter-a').classList.remove('winner');
+  document.getElementById('fighter-b').classList.remove('winner');
+}
+
+async function checkGPU() {
+  try {
+    const r = await fetch(`${OLLAMA}/api/tags`);
+    const j = await r.json();
+    const models = j.models || [];
+    document.getElementById('gpu-status').innerHTML = `<span class=green>${models.length} models loaded</span>`;
+    log(`Connected to Ollama: ${models.map(m => m.name).join(', ')}`);
+  } catch(e) {
+    document.getElementById('gpu-status').innerHTML = `<span class=red>offline</span>`;
+    log('Ollama not reachable at localhost:11434');
+  }
+}
+
+checkGPU();
+renderScoreboard();
+</script>
+</body></html>
