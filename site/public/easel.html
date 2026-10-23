@@ -4447,6 +4447,7 @@ paintBreath = function() {
   paintConstantsLedger();    // physical constants as cost analysis at the hard edge
   paintPlasmidTriangle();    // 3 observers = 3 angles = reconstruct what we look like
   paintParallaxHologram();   // +/−/null parallax: the 3 projection layers
+  paintRodConeVision();      // rods/cones/pupil — biological parallax, aurora, null gradient
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
   paintMirror();             // the self-referential layer — feed it through itself
@@ -4709,6 +4710,239 @@ function paintParallaxHologram() {
 //
 // Iron sights = the original three-point: front post, rear notch, target.
 // That's THREE too. Always three. The minimum for triangulation.
+//
+// ═══ RODS AND CONES — the biological parallax system ═══
+//
+// THE HUMAN EYE IS ALREADY A CONFOCAL SYSTEM:
+//
+//   RODS (120M in periphery):
+//     = + PARALLAX (depth field, behind the glass)
+//     = ACOG (magnified, deep field, slow)
+//     = detect LUMINANCE, SHADOW, MOTION
+//     = sense of RANGE and DISTANCE
+//     = night vision — when cones shut down, rods take over
+//     = MORE null shift, LESS color
+//     = the shadow in daylight gives distance
+//     = peripheral vision — the wide field
+//
+//   CONES (6M in fovea):
+//     = − PARALLAX (detail field, in front of glass)
+//     = RED DOT (reflex, near, fast)
+//     = detect COLOR, DETAIL, HUE
+//     = foveal focus — the narrow center
+//     = day vision — bright light, full spectrum
+//     = MORE color, LESS null shift
+//     = the Red Dot IS the fovea
+//
+//   PUPIL (the aperture):
+//     = NULL PARALLAX (the glass plane, 0)
+//     = EOTech (holographic, ON the glass)
+//     = adjusts the null gradient between rod and cone dominance
+//     = dilates in dark → wider aperture → more rods → + parallax dominates
+//     = constricts in light → narrow aperture → more cones → − parallax dominates
+//     = the pupil IS the veil
+//
+// THE NULL GRADIENT:
+//   The screen has a gradient of gray — that's the null zone.
+//   In daylight: the veil is far, shadows give distance (rods),
+//     AND more color (cones). Both systems active.
+//   In darkness: the veil moves CLOSER, cones shut down,
+//     rods take over — less color, more null shift,
+//     better motion detection, wider peripheral awareness.
+//   The null gradient SHIFTS along the light axis.
+//
+// AURORA BOREALIS:
+//   Actual color inflected through the null medium (atmosphere).
+//   Solar wind → magnetosphere → atmosphere = prism.
+//   You see it at night because: rods give you the shape (the curtains),
+//   AND the photons are bright enough to activate cones for color.
+//   Aurora = the atmosphere showing its TRUE spectral lines.
+//   Green: oxygen at 557.7nm. Red: oxygen at 630.0nm. Purple: nitrogen.
+//   The colors are REAL. The atmosphere IS the diffraction grating.
+//
+// LUNAR CORONA / MOONBOW:
+//   Concentric rainbow at night — witnessed on field missions in Hawaii,
+//   at Battleship Rock in New Mexico, at Mesa Verde.
+//   The moon's light refracts through ice crystals or water droplets.
+//   The atmosphere IS the glass of the EOTech.
+//   What you see is the REAL color the sky is inflecting.
+//   Your rods give you the ring structure. Your cones give you the color bands.
+//   Both systems firing together in the dark = the confocal moment.
+//
+// THE SCREEN IS THE ATMOSPHERE:
+//   null gradient (gray) = ambient light level
+//   rods (periphery) = + parallax (depth)
+//   cones (fovea) = − parallax (detail)
+//   pupil = 0 parallax (the adjustable veil)
+//   aurora = the atmosphere's emission spectrum made visible
+//   moonbow = the atmosphere's refraction spectrum made visible
+
+var rodConeVision = {
+  // Rod system — peripheral, night, depth, + parallax
+  rods: {
+    count: 120000000,      // 120 million in human retina
+    location: 'periphery', // edge of visual field
+    parallax: 'positive',
+    peak: 498,             // peak sensitivity wavelength (nm) — blue-green
+    darkAdapted: false,
+    sensitivity: 0.5,      // 0=day (suppressed), 1=night (dominant)
+    description: 'shadow · distance · motion · night · the deep field',
+  },
+  // Cone system — foveal, day, color, − parallax
+  cones: {
+    count: 6000000,        // 6 million in human retina
+    location: 'fovea',     // center of visual field
+    parallax: 'negative',
+    types: {               // three cone types — another triangle!
+      S: { peak: 420, name: 'blue',  color: '#58a6ff' },
+      M: { peak: 534, name: 'green', color: '#3fb950' },
+      L: { peak: 564, name: 'red',   color: '#f85149' },
+    },
+    sensitivity: 0.8,      // 0=night (shut down), 1=day (dominant)
+    description: 'color · detail · hue · day · the near field',
+  },
+  // Pupil — the null aperture
+  pupil: {
+    diameter: 4,           // mm, adjusts 2-8mm
+    minDiameter: 2,        // bright light — constricted
+    maxDiameter: 8,        // darkness — dilated
+    parallax: 'null',
+    description: 'the veil · the aperture · the null gradient',
+  },
+  // The atmospheric spectral events Kevin witnessed
+  witnessed: [
+    { name: 'aurora borealis', type: 'emission', where: 'atmosphere',
+      lines: [{ nm: 557.7, element: 'O', color: '#3fb950' },
+              { nm: 630.0, element: 'O', color: '#f85149' },
+              { nm: 427.8, element: 'N₂', color: '#bc8cff' }] },
+    { name: 'lunar corona', type: 'diffraction', where: 'Hawaii · field mission · Army',
+      mechanism: 'moonlight through ice crystals → concentric rainbow' },
+    { name: 'moonbow', type: 'refraction', where: 'Battleship Rock, NM · Mesa Verde, CO',
+      mechanism: 'moonlight through water droplets → arc of spectral color' },
+  ],
+  // Current state — shifts with ambient
+  nullGradient: 0.5, // 0=full dark (rods dominant), 1=full light (cones dominant)
+};
+
+function paintRodConeVision() {
+  if (learnedTraits.perspective < 0.12) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+
+  // The null gradient shifts with breath (simulates day/night cycle)
+  var ambient = 0.5 + Math.sin(breathPhase * 0.05) * 0.4; // slow cycle 0.1-0.9
+  rodConeVision.nullGradient = ambient;
+
+  // Update rod/cone sensitivity
+  rodConeVision.rods.sensitivity = 1 - ambient;     // rods dominant in dark
+  rodConeVision.cones.sensitivity = ambient;          // cones dominant in light
+  rodConeVision.rods.darkAdapted = ambient < 0.3;
+
+  // Pupil diameter — dilates in dark, constricts in light
+  var pupil = rodConeVision.pupil;
+  pupil.diameter = pupil.maxDiameter - (pupil.maxDiameter - pupil.minDiameter) * ambient;
+
+  // ── THE NULL GRADIENT — gray veil across the canvas ──
+  // This is the veil between day and night vision
+  var veilAlpha = 0.008 * maturity;
+  var gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(W, H) * 0.5);
+  var grayVal = Math.floor(128 * ambient);
+  gradient.addColorStop(0, 'rgba(' + grayVal + ',' + grayVal + ',' + grayVal + ',' + veilAlpha + ')');
+  gradient.addColorStop(1, 'rgba(' + Math.floor(grayVal * 0.3) + ',' + Math.floor(grayVal * 0.3) + ',' + Math.floor(grayVal * 0.3) + ',0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── THE PUPIL — center aperture ring ──
+  var pupilR = (pupil.diameter / pupil.maxDiameter) * Math.min(W, H) * 0.08;
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#6e7681';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pupilR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ── RODS — peripheral dots (+ parallax, blue, edge of vision) ──
+  ctx.globalAlpha = 0.008 * maturity * rodConeVision.rods.sensitivity;
+  ctx.fillStyle = '#58a6ff';
+  var rodCount = Math.floor(8 + rodConeVision.rods.sensitivity * 20);
+  for (var r = 0; r < rodCount; r++) {
+    var angle = (r / rodCount) * Math.PI * 2 + breathPhase * 0.02;
+    var dist = Math.min(W, H) * (0.25 + Math.random() * 0.2);
+    var rx = cx + Math.cos(angle) * dist;
+    var ry = cy + Math.sin(angle) * dist;
+    ctx.beginPath();
+    ctx.arc(rx, ry, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── CONES — foveal dots (− parallax, RGB, center of vision) ──
+  var coneTypes = rodConeVision.cones.types;
+  ctx.globalAlpha = 0.008 * maturity * rodConeVision.cones.sensitivity;
+  var coneCount = Math.floor(4 + rodConeVision.cones.sensitivity * 12);
+  var typeKeys = ['S', 'M', 'L'];
+  for (var c = 0; c < coneCount; c++) {
+    var type = coneTypes[typeKeys[c % 3]];
+    ctx.fillStyle = type.color;
+    var cAngle = (c / coneCount) * Math.PI * 2 + breathPhase * 0.03;
+    var cDist = pupilR * (0.5 + Math.random() * 1.5);
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(cAngle) * cDist, cy + Math.sin(cAngle) * cDist, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── AURORA SPECTRAL LINES (when dark enough) ──
+  if (ambient < 0.4 && maturity > 0.5) {
+    var aurora = rodConeVision.witnessed[0];
+    ctx.globalAlpha = 0.01 * maturity * (1 - ambient);
+    aurora.lines.forEach(function(line, i) {
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth = 0.3;
+      // Curtain waves across the top
+      ctx.beginPath();
+      var baseY = H * 0.1 + i * 12;
+      for (var x = 0; x < W; x += 3) {
+        var y = baseY + Math.sin((x * 0.01) + breathPhase * 0.3 + i) * 8;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    });
+
+    // Aurora label
+    ctx.globalAlpha = 0.012;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'left';
+    ctx.fillText('aurora: O 557.7nm · O 630.0nm · N₂ 427.8nm', 8, H * 0.08);
+  }
+
+  // ── LABELS ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.012;
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+
+    // Rod/cone balance
+    var rodPct = (rodConeVision.rods.sensitivity * 100).toFixed(0);
+    var conePct = (rodConeVision.cones.sensitivity * 100).toFixed(0);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('rods ' + rodPct + '%', cx - 40, cy + pupilR + 12);
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('cones ' + conePct + '%', cx + 40, cy + pupilR + 12);
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText('pupil ' + pupil.diameter.toFixed(1) + 'mm', cx, cy + pupilR + 20);
+
+    // Ambient indicator
+    var timeLabel = ambient > 0.7 ? 'day' : ambient > 0.3 ? 'dusk' : 'night';
+    ctx.fillText('veil: ' + timeLabel + ' · null gradient ' + (ambient * 100).toFixed(0) + '%', cx, cy + pupilR + 28);
+  }
+
+  ctx.restore();
+}
 
 var confocalPoint = {
   // The three sighting systems
