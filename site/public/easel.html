@@ -56,18 +56,22 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 </style>
 </head>
 <body>
-<canvas id="easel"></canvas>
-<div id="frame"></div>
+<canvas id="easel" role="img" aria-label="Living canvas — the chipmunk paints through mathematical easels. Campfire burns messages in the center. Use palette button for shared painting."></canvas>
+<div id="frame" aria-hidden="true"></div>
 
-<div id="nav">
-  <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a> · <a href="/easel?monitor" id="monitor-link">📺 monitor</a> · <a href="/easel?totality" id="totality-link">◉ totality</a>
+<!-- Screen reader description for the living canvas -->
+<div id="sr-status" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
+<a href="#controls" class="skip-link" style="position:absolute;top:-100px;left:0;background:#161b22;color:#58a6ff;padding:8px 16px;z-index:100;font:12px monospace;text-decoration:none;border-radius:0 0 8px 0" onfocus="this.style.top='0'" onblur="this.style.top='-100px'">Skip to controls</a>
+
+<div id="nav" role="navigation" aria-label="Main navigation">
+  <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a> · <a href="/welcome.html">🔥 welcome</a> · <a href="/easel?monitor" id="monitor-link">📺 monitor</a> · <a href="/easel?totality" id="totality-link">◉ totality</a>
 </div>
 
-<div id="controls">
-  <button onclick="togglePause()">pause</button>
-  <button onclick="sharePainting()">share</button>
-  <button onclick="cycleEasel()">easel</button>
-  <button onclick="togglePalette()">palette</button>
+<div id="controls" role="toolbar" aria-label="Easel controls">
+  <button onclick="togglePause()" aria-label="Pause or resume painting (Space)" title="Space">pause</button>
+  <button onclick="sharePainting()" aria-label="Share current painting" title="S">share</button>
+  <button onclick="cycleEasel()" aria-label="Cycle to next easel constant (E)" title="E">easel</button>
+  <button onclick="togglePalette()" aria-label="Toggle shared color palette (P)" title="P">palette</button>
 </div>
 
 <!-- TOTALITY PANEL — step back, see EVERYTHING being built -->
@@ -2479,6 +2483,40 @@ var monLink = document.getElementById('monitor-link');
 if (monLink && isMonitorMode) {
   monLink.style.display = 'none'; // already in monitor mode
 }
+</script>
+<script>
+// ═══ KEYBOARD SHORTCUTS ═══
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  switch(e.key.toLowerCase()) {
+    case ' ': e.preventDefault(); togglePause(); break;
+    case 'p': togglePalette(); break;
+    case 'e': cycleEasel(); break;
+    case 's': if (!e.ctrlKey && !e.metaKey) sharePainting(); break;
+    case 'm': window.location.href = '/easel?monitor'; break;
+    case 't': window.location.href = '/easel?totality'; break;
+    case '?':
+      var sr = document.getElementById('sr-status');
+      if (sr) sr.textContent = 'Keyboard shortcuts: Space=pause, P=palette, E=cycle easel, S=share, M=monitor, T=totality, ?=help';
+      break;
+  }
+});
+
+// ═══ REDUCED MOTION ═══
+var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (prefersReducedMotion) {
+  document.body.style.transition = 'none';
+}
+
+// ═══ SCREEN READER STATUS UPDATES ═══
+setInterval(function() {
+  var sr = document.getElementById('sr-status');
+  if (!sr) return;
+  var status = 'Easel: ' + (typeof currentEasel !== 'undefined' ? currentEasel : 'loading');
+  status += '. Perspective: ' + (typeof perspective !== 'undefined' ? Math.round(perspective * 100) + '%' : 'loading');
+  status += '. Generation: ' + (typeof genCounter !== 'undefined' ? genCounter : 'loading');
+  sr.textContent = status;
+}, 30000);
 </script>
 <script src="/js/klein-bridge-client.js"></script>
 </body>
