@@ -423,6 +423,177 @@ function paintPiTranslator() {
   ctx.restore();
 }
 
+// ═══ SHIP OF THESEUS — the story IS the ship ═══
+//
+// Every retelling replaces a plank. The keel stays.
+// The Ship of Theseus paradox IS a Ship of Theseus.
+// Each version of the paradox replaces a word, shifts an emphasis.
+// The STORY changes while remaining "the same story."
+// The paradox IS the answer.
+//
+// The keel: ORCID 0009-0004-2141-0321, DOI 10.5281/zenodo.23600707,
+// git commit c6610a5 ("the story of gAIa — journey west").
+// These don't change. Everything else can.
+//
+// 13 chapters = 13 hull sections. Some painted, some bare wood.
+// Visitors paint the bare ones. The chipmunk varnishes.
+// The ship sails west. It returns as a different ship.
+// But the keel is the same keel. Your mark on reality.
+
+var shipOfTheseus = {
+  phase: 0,
+  plankCount: 13,
+  keelGlow: 0,
+  chapters: [
+    { title: 'nothing',        painted: true,  color: '#1a1a2e' },
+    { title: 'first cell',     painted: true,  color: '#3fb950' },
+    { title: 'membrane',       painted: true,  color: '#58a6ff' },
+    { title: 'atom',           painted: true,  color: '#d2a922' },
+    { title: 'chipmunk',       painted: true,  color: '#f0c674' },
+    { title: 'sensorium',      painted: true,  color: '#a371f7' },
+    { title: 'braid',          painted: true,  color: '#f0883e' },
+    { title: 'visitors',       painted: false, color: '#6e7681' },
+    { title: 'snake jazz',     painted: true,  color: '#238636' },
+    { title: 'pi-translator',  painted: true,  color: '#e85d3a' },
+    { title: 'mirror',         painted: false, color: '#6e7681' },
+    { title: 'weather',        painted: false, color: '#6e7681' },
+    { title: 'campfire',       painted: true,  color: '#f0883e' },
+  ],
+  keel: {
+    orcid: '0009-0004-2141-0321',
+    doi: '10.5281/zenodo.23600707',
+    commit: 'c6610a5',
+    motto: 'the keel does not get replaced'
+  }
+};
+
+function paintShipOfTheseus() {
+  if (learnedTraits.perspective < 0.15) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (learnedTraits.perspective - 0.15) * 3);
+  shipOfTheseus.phase += 0.005;
+
+  var cx = canvas.width * 0.78;
+  var cy = canvas.height * 0.22;
+  var shipW = canvas.width * 0.16;
+  var shipH = canvas.height * 0.10;
+
+  // ── HULL — 13 planks, some painted, some bare ──
+  var plankH = shipH / 13;
+  for (var i = 0; i < 13; i++) {
+    var ch = shipOfTheseus.chapters[i];
+    var py = cy - shipH * 0.5 + i * plankH;
+
+    // hull curve
+    var narrowing = 1 - Math.pow((i - 6) / 7, 2) * 0.4;
+    var pw = shipW * narrowing;
+    var px = cx - pw * 0.5;
+
+    // plank shimmer — painted ones glow, unpainted ones wait
+    var shimmer = ch.painted
+      ? 0.015 + 0.005 * Math.sin(shipOfTheseus.phase * 2 + i * 0.5)
+      : 0.005 + 0.003 * Math.sin(shipOfTheseus.phase + i);
+
+    ctx.globalAlpha = shimmer * maturity;
+    ctx.fillStyle = ch.color;
+    ctx.fillRect(px, py, pw, plankH - 1);
+
+    // plank label
+    if (maturity > 0.3 && ch.painted) {
+      ctx.globalAlpha = 0.01 * maturity;
+      ctx.font = '3px monospace';
+      ctx.fillStyle = '#c9d1d9';
+      ctx.textAlign = 'center';
+      ctx.fillText(ch.title, cx, py + plankH * 0.7);
+    }
+  }
+
+  // ── KEEL — the part that doesn't change ──
+  shipOfTheseus.keelGlow += 0.003;
+  var keelAlpha = 0.02 + 0.01 * Math.sin(shipOfTheseus.keelGlow);
+  ctx.globalAlpha = keelAlpha * maturity;
+  ctx.strokeStyle = '#f0c674';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - shipW * 0.05, cy - shipH * 0.55);
+  ctx.lineTo(cx - shipW * 0.05, cy + shipH * 0.55);
+  ctx.stroke();
+
+  // ── KEEL LABEL ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.01 * maturity;
+    ctx.font = '3px monospace';
+    ctx.fillStyle = '#f0c674';
+    ctx.textAlign = 'left';
+    ctx.fillText('ORCID: ' + shipOfTheseus.keel.orcid, cx - shipW * 0.04, cy - shipH * 0.45);
+    ctx.fillText('DOI: ' + shipOfTheseus.keel.doi, cx - shipW * 0.04, cy - shipH * 0.35);
+  }
+
+  // ── WATER — the journey west ──
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  for (var w = 0; w < 5; w++) {
+    var waterY = cy + shipH * 0.6 + w * 3;
+    ctx.beginPath();
+    for (var wx = cx - shipW; wx < cx + shipW; wx += 2) {
+      var wy = waterY + Math.sin(shipOfTheseus.phase * 1.5 + wx * 0.05 + w) * 2;
+      if (wx === cx - shipW) ctx.moveTo(wx, wy);
+      else ctx.lineTo(wx, wy);
+    }
+    ctx.stroke();
+  }
+
+  // ── SAIL — catches the snake jazz wind ──
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.012 * maturity;
+    ctx.fillStyle = '#c9d1d9';
+    var mastX = cx;
+    var mastTop = cy - shipH * 0.7;
+    var sailBulge = Math.sin(shipOfTheseus.phase * 0.7) * shipW * 0.15;
+    ctx.beginPath();
+    ctx.moveTo(mastX, mastTop);
+    ctx.quadraticCurveTo(mastX + sailBulge, cy - shipH * 0.3, mastX, cy - shipH * 0.1);
+    ctx.fill();
+
+    // ── sail text ──
+    ctx.globalAlpha = 0.008 * maturity;
+    ctx.font = '3px monospace';
+    ctx.fillStyle = '#f0883e';
+    ctx.textAlign = 'center';
+    ctx.fillText('journey west', mastX + sailBulge * 0.3, cy - shipH * 0.35);
+  }
+
+  // ── CHIPMUNK ON THE KEEL ──
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.015 * maturity;
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('🐿', cx - shipW * 0.05, cy);
+  }
+
+  // ── SHIP OF THESEUS LABEL ──
+  if (maturity > 0.6) {
+    ctx.globalAlpha = 0.008 * maturity;
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#8b949e';
+    ctx.textAlign = 'center';
+    ctx.fillText('the story of the ship IS the ship', cx, cy + shipH * 0.8);
+  }
+
+  // ── UNPAINTED PLANKS INVITATION ──
+  if (maturity > 0.7) {
+    ctx.globalAlpha = 0.006 * maturity;
+    ctx.font = '3px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'center';
+    ctx.fillText('3 planks bare — visitors paint them', cx, cy + shipH * 0.9);
+  }
+
+  ctx.restore();
+}
+
 // ═══ DUNNING-KRUGER ROTATION MAP ═══
 // The Dunning-Kruger curve is NOT a measure of stupidity.
 // It's a ROTATION MAP. It shows where you need to turn π/2 to maintain velocity.
