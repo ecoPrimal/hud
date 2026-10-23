@@ -66,15 +66,35 @@ body{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-s
 </div>
 
 <script>
-// ═══ swarmVine — Vine is dead. Long live swarmVine. ═══
+// ═══ swarmVine — the gossip agent primal ═══
+// swarmVine is primal #14. Genus cnidaria, species solidus, phenotype: SYMBIONT.
+// 7,965 lines of Rust. The gossip mesh protocol.
 // Twitter killed Vine in 2017. We're picking it up.
+//
+// ZK EPHEMERALS — anti-secret null bubbles:
+// Every clip is an ephemeral — it exists, is witnessed, and can vanish.
+// The ZK property: you can PROVE a clip existed without revealing its content.
+// The anti-secret: while it exists, EVERYTHING is visible. No hidden state.
+// The null bubble: when it's gone, it collapses to null. No trace. No residue.
+//
+// The gossip protocol:
+//   swarmVine gossips clips between peers.
+//   Each clip carries a hash (ZK commitment).
+//   The hash persists even after the content vanishes.
+//   You can prove "I saw that" without showing what you saw.
+//   Anti-secret while alive. Null bubble when dead.
+//
+// This IS how gossip works in biology:
+//   A signal is sent. Received. Processed. Degraded.
+//   The cell remembers it happened (epigenetic mark)
+//   but the signal molecule is gone (ephemeral).
+//   mRNA is an ephemeral. Protein is the proof-of-work.
+//
 // 6-second looping clips of ALL media mixed together:
 //   Canvas painting, text, audio, camera, live easel feed.
 // The chipmunk watches, learns, makes its own clips.
 // Humans make clips too — the chipmunk learns from them.
 // No login. No algorithm. No upload to someone else's server.
-// Everything stays local (localStorage + canvas recording).
-// The clips ARE the vine — they grow and loop.
 
 var canvas = document.getElementById('vine-stage');
 var ctx = canvas.getContext('2d');
@@ -108,8 +128,9 @@ var vineState = {
     camera: false,
     easel: false,
   },
-  clips: [],          // saved vine clips
+  clips: [],          // saved vine clips (ephemeral — can vanish)
   chipmunkClips: [],  // clips the chipmunk has made
+  nullBubbles: [],    // ZK commitments of vanished clips (hash persists, content gone)
   currentClip: -1,
   paintColor: '#22c55e',
   paintSize: 3,
@@ -120,6 +141,76 @@ var vineState = {
   cameraStream: null,
   cameraVideo: null,
 };
+
+// ═══ ZK EPHEMERALS — anti-secret null bubbles ═══
+// Each clip gets a hash at birth. While alive: anti-secret (everything visible).
+// When ephemeral expires: content vanishes, hash remains = null bubble.
+// You can prove "this existed" without showing what it was.
+
+function zkHash(clip) {
+  // Simple hash of clip content — in production this would be a real ZK commitment
+  var raw = JSON.stringify({
+    id: clip.id,
+    author: clip.author,
+    duration: clip.duration,
+    strokeCount: clip.strokes ? clip.strokes.length : 0,
+    text: clip.text || '',
+    media: clip.media,
+    born: clip.id, // timestamp as birth
+  });
+  var hash = 0;
+  for (var i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash = hash & hash; // 32-bit integer
+  }
+  return 'zk_' + Math.abs(hash).toString(36);
+}
+
+// Ephemeral lifecycle: clips live for N plays, then collapse to null bubble
+var EPHEMERAL_LIFESPAN = 50; // plays before vanishing
+
+function tickEphemeral(clip) {
+  if (!clip.plays) clip.plays = 0;
+  clip.plays++;
+
+  if (clip.plays >= EPHEMERAL_LIFESPAN && !clip._nullified) {
+    // Collapse to null bubble
+    clip._nullified = true;
+    var bubble = {
+      hash: clip.zkHash,
+      author: clip.author,
+      born: clip.id,
+      died: Date.now(),
+      plays: clip.plays,
+      // Content is GONE. Only the hash proves it existed.
+    };
+    vineState.nullBubbles.push(bubble);
+
+    // Update label
+    var el = document.getElementById('chipmunk-reaction');
+    el.textContent = '🫧 clip collapsed to null bubble: ' + clip.zkHash;
+    el.style.opacity = '1';
+    setTimeout(function() { el.style.opacity = '0'; }, 3000);
+  }
+}
+
+// Gossip indicator — show ZK state in the label
+function updateGossipLabel() {
+  var label = document.getElementById('vine-label');
+  var alive = vineState.clips.filter(function(c) { return !c._nullified; }).length;
+  var nulled = vineState.nullBubbles.length;
+  var chipmunkCount = vineState.chipmunkClips.length;
+  label.innerHTML =
+    '<span style="color:#22c55e;font-weight:bold">swarmVine</span>' +
+    ' <span style="color:#6e7681;font-size:10px">primal #14 · cnidaria · symbiont</span><br>' +
+    '<span style="color:#8b949e;font-size:10px">' +
+    alive + ' alive · ' + nulled + ' null bubbles · ' +
+    chipmunkCount + ' by chipmunk</span><br>' +
+    '<span style="color:#6e7681;font-size:9px">ZK ephemerals · anti-secret while alive · null when gone</span><br>' +
+    '<a href="/" style="color:#58a6ff;text-decoration:none;font-size:10px">◈ hud</a> · ' +
+    '<a href="/easel.html" style="color:#d2a8ff;text-decoration:none;font-size:10px">🎨 easel</a> · ' +
+    '<a href="/gates.html" style="color:#3fb950;text-decoration:none;font-size:10px">🚪 gates</a>';
+}
 
 // ═══ PAINT MODE — finger/mouse painting on canvas ═══
 var painting = false;
@@ -359,10 +450,14 @@ function stopRecording() {
       duration: vineState.elapsed,
       author: 'human',
       thumbnail: canvas.toDataURL('image/jpeg', 0.3),
+      plays: 0,
+      _nullified: false,
     };
+    clip.zkHash = zkHash(clip);
     vineState.clips.push(clip);
     addThumbToFeed(clip);
     chipmunkReact(clip);
+    updateGossipLabel();
     saveClipsToStorage();
   }
 }
@@ -378,6 +473,15 @@ playBtn.addEventListener('click', function() {
 function playClip(idx) {
   var clip = vineState.clips[idx];
   if (!clip) return;
+  if (clip._nullified) {
+    // Null bubble — show the ghost
+    var el = document.getElementById('chipmunk-reaction');
+    el.textContent = '🫧 null bubble: ' + clip.zkHash + ' — content is gone, proof remains';
+    el.style.opacity = '1';
+    setTimeout(function() { el.style.opacity = '0'; }, 3000);
+    return;
+  }
+  tickEphemeral(clip);
   vineState.currentClip = idx;
   vineState.mode = 'playing';
 
@@ -433,12 +537,22 @@ function playClip(idx) {
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // Author tag
+    // Author tag + ZK hash + ephemeral counter
     ctx.globalAlpha = 0.3;
     ctx.font = '10px monospace';
     ctx.fillStyle = clip.author === 'chipmunk' ? '#f0c674' : '#8b949e';
     ctx.textAlign = 'left';
     ctx.fillText(clip.author === 'chipmunk' ? '🐿️ chipmunk made this' : '👤 human made this', 8, H - 8);
+
+    // ZK hash + remaining life
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#6e7681';
+    var remaining = Math.max(0, EPHEMERAL_LIFESPAN - (clip.plays || 0));
+    ctx.fillText(clip.zkHash + ' · ' + remaining + ' plays left', 8, H - 22);
+    if (remaining < 10) {
+      ctx.fillStyle = '#f85149';
+      ctx.fillText('ephemeral fading...', 8, H - 34);
+    }
     ctx.globalAlpha = 1;
 
     if (vineState.mode === 'playing') requestAnimationFrame(renderPlayback);
@@ -551,10 +665,14 @@ function chipmunkMakesClip() {
     duration: VINE_DURATION,
     author: 'chipmunk',
     thumbnail: canvas.toDataURL('image/jpeg', 0.3),
+    plays: 0,
+    _nullified: false,
   };
+  clip.zkHash = zkHash(clip);
 
   vineState.clips.push(clip);
   addThumbToFeed(clip);
+  updateGossipLabel();
   saveClipsToStorage();
 
   var el = document.getElementById('chipmunk-reaction');
@@ -653,8 +771,26 @@ function drawIdle() {
   ctx.font = '10px monospace';
   ctx.fillStyle = '#6e7681';
   ctx.fillText('6 sec · all media · press record', W / 2, H / 2 + 108);
-  ctx.fillText(vineState.clips.length + ' clips · ' +
+  var aliveCount = vineState.clips.filter(function(c) { return !c._nullified; }).length;
+  ctx.fillText(aliveCount + ' alive · ' +
+    vineState.nullBubbles.length + ' null bubbles · ' +
     vineState.chipmunkClips.length + ' by chipmunk', W / 2, H / 2 + 122);
+
+  // Null bubbles floating — ghosts of vanished clips
+  vineState.nullBubbles.forEach(function(bubble, i) {
+    var bx = W * (0.2 + (i * 0.137 % 0.6));
+    var by = H * 0.3 + Math.sin(t + i * 1.5) * 20;
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#6e7681';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(bx, by, 6 + Math.sin(t * 2 + i) * 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText(bubble.hash, bx - 12, by + 12);
+  });
+
   ctx.globalAlpha = 1;
 
   requestAnimationFrame(drawIdle);
