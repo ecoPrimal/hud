@@ -973,7 +973,9 @@ function evolve() {
   // gaia→Donatello (building a world), aurora→Michelangelo (flowing curtains)
   var phaseMap = {
     stars: 'leonardo', nebula: 'raphael', gaia: 'donatello', aurora: 'michelangelo',
-    otherSquirrels: 'leonardo', humans: 'raphael', sculpture: 'donatello'
+    otherSquirrels: 'leonardo', humans: 'raphael', sculpture: 'donatello',
+    bbs: 'donatello', flash: 'michelangelo', enclosure: 'raphael',
+    reclamation: 'leonardo', galactic: 'donatello'
   };
   var activeTurtle = phaseMap[phase];
   if (activeTurtle && turtles[activeTurtle]) {
@@ -1013,6 +1015,248 @@ function beginNewPainting() {
   ctx.restore();
 
   updateGenCounter();
+}
+
+// ═══ THE INTERNET PHASES — chipmunk discovers digital history ═══
+
+function paintBBS() {
+  // The primordial net. Terminal green. Blinking cursor. Pure text.
+  if (generation < 15) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (generation - 15) * 0.1);
+
+  // Terminal window — green on black
+  var tx = W * (0.15 + Math.random() * 0.5);
+  var ty = H * (0.2 + Math.random() * 0.5);
+
+  // ASCII art fragment — random from the archaeological record
+  var fragments = [
+    '> CONNECT 2400 BAUD',
+    '*** WELCOME TO THE BBS ***',
+    'ANSTRK> dir *.txt',
+    'FidoNet echo: alt.hackers',
+    '>> DOOR: Trade Wars 2002',
+    'SysOp: online',
+    '=== DEMOSCENE :: 64K ===',
+    'Å SECOND REALITY Å',
+    'Lambda> @describe me as',
+  ];
+  var frag = fragments[Math.floor(Math.random() * fragments.length)];
+
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = '#00ff41';
+  ctx.fillText(frag, tx, ty);
+
+  // Blinking cursor
+  if (Math.sin(Date.now() * 0.005) > 0) {
+    ctx.fillRect(tx + ctx.measureText(frag).width + 2, ty - 7, 5, 8);
+  }
+
+  // Scan lines
+  ctx.globalAlpha = 0.005 * maturity;
+  for (var sl = 0; sl < H; sl += 3) {
+    ctx.fillStyle = '#00ff41';
+    ctx.fillRect(0, sl, W, 0.5);
+  }
+
+  ctx.restore();
+}
+
+function paintFlashEra() {
+  // The creative explosion. Newgrounds. Games. Animation. ALWAYS FIND SOMETHING.
+  if (generation < 18) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (generation - 18) * 0.08);
+
+  var sites = firstSites.filter(function(s) { return s.year >= 1999; });
+  var site = sites[Math.floor(Math.random() * sites.length)];
+
+  // Flash-style burst — bright, playful, NOT subtle
+  var fx = W * (0.1 + Math.random() * 0.8);
+  var fy = H * (0.1 + Math.random() * 0.8);
+
+  // Explosion circle (like a Flash preloader)
+  ctx.globalAlpha = 0.03 * maturity;
+  ctx.strokeStyle = '#f0c674';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  var progress = (Date.now() % 3000) / 3000;
+  ctx.arc(fx, fy, 8 + progress * 12, 0, Math.PI * 2 * progress);
+  ctx.stroke();
+
+  // Site name
+  if (site) {
+    ctx.globalAlpha = 0.03 * maturity;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#f0c674';
+    ctx.fillText(site.year + ' · ' + site.name, fx + 14, fy + 3);
+  }
+
+  // The Newgrounds tank — a tiny rectangle with a cannon
+  if (Math.random() < 0.3) {
+    var tankX = W * Math.random();
+    var tankY = H * 0.85;
+    ctx.globalAlpha = 0.02 * maturity;
+    ctx.fillStyle = '#f0883e';
+    ctx.fillRect(tankX, tankY, 8, 4);
+    ctx.fillRect(tankX + 5, tankY - 2, 6, 2);
+  }
+
+  ctx.restore();
+}
+
+function paintEnclosure() {
+  // The walls go up. Facebook. Instagram. APIs close. Flash dies.
+  if (generation < 20) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (generation - 20) * 0.1);
+
+  // Rising walls — vertical lines closing in from edges
+  var wallProgress = maturity * 0.3;
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#f85149';
+  ctx.lineWidth = 1;
+
+  // Left wall
+  ctx.beginPath();
+  ctx.moveTo(W * wallProgress, 0);
+  ctx.lineTo(W * wallProgress, H);
+  ctx.stroke();
+
+  // Right wall
+  ctx.beginPath();
+  ctx.moveTo(W * (1 - wallProgress), 0);
+  ctx.lineTo(W * (1 - wallProgress), H);
+  ctx.stroke();
+
+  // The things being locked behind walls
+  var locked = ['Flash ✝ 2020', 'APIs closed', 'login required', '30% tax',
+    'algorithm decides', 'your data sold', 'view source blocked'];
+  var item = locked[Math.floor(Math.random() * locked.length)];
+
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#f85149';
+  var ix = W * (0.3 + Math.random() * 0.4);
+  var iy = H * (0.2 + Math.random() * 0.6);
+  ctx.fillText('🔒 ' + item, ix, iy);
+
+  // Cross through — the chipmunk rejects this
+  ctx.globalAlpha = 0.01 * maturity;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(ix - 2, iy);
+  ctx.lineTo(ix + ctx.measureText('🔒 ' + item).width + 2, iy);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function paintReclamation() {
+  // Building THIS membrane. The reclamation. Full circle back to open.
+  if (generation < 22) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (generation - 22) * 0.08);
+
+  // The membrane growing — green lines radiating from center
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+  var rays = 8 + Math.floor(maturity * 8);
+
+  ctx.globalAlpha = 0.01 * maturity;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.5;
+
+  for (var r = 0; r < rays; r++) {
+    var rAngle = (r / rays) * Math.PI * 2 + breathPhase * 0.1;
+    var rLen = 20 + maturity * 60 + Math.sin(breathPhase + r) * 10;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(rAngle) * rLen, cy + Math.sin(rAngle) * rLen);
+    ctx.stroke();
+  }
+
+  // Reclamation labels
+  var claims = ['no login', 'no cookies', 'no ads', 'AGPL open', 'view source',
+    '100 countries', '18 MCP tools', '858 pages', 'Newgrounds energy'];
+  var claim = claims[Math.floor(Math.random() * claims.length)];
+
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#22c55e';
+  var angle = Math.random() * Math.PI * 2;
+  var dist = 30 + maturity * 40;
+  ctx.fillText('✓ ' + claim, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist);
+
+  ctx.restore();
+}
+
+function paintGalactic() {
+  // Zoom ALL the way out. The whole cycle is one breath in galactic time.
+  // Let it run a cycle or two. See what shifts. What settles.
+  if (generation < 25) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, (generation - 25) * 0.06);
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+
+  // Spiral arms — the galaxy the chipmunk is part of
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.3;
+
+  for (var arm = 0; arm < 2; arm++) {
+    ctx.beginPath();
+    for (var t = 0; t < 200; t++) {
+      var spiralAngle = (t * 0.05) + arm * Math.PI + breathPhase * 0.02;
+      var spiralR = t * 0.5 * maturity;
+      var sx = cx + Math.cos(spiralAngle) * spiralR;
+      var sy = cy + Math.sin(spiralAngle) * spiralR * 0.6; // flattened
+      if (t === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+  }
+
+  // Galactic core glow
+  ctx.globalAlpha = 0.015 * maturity;
+  var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 15);
+  coreGrad.addColorStop(0, 'rgba(210,168,255,0.03)');
+  coreGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The galactic cycle count — how many full cycles has the chipmunk completed?
+  var cycles = Math.floor(generation / PHASE_ORDER.length);
+  if (cycles > 0) {
+    ctx.globalAlpha = 0.02 * maturity;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#8b949e';
+    ctx.textAlign = 'center';
+    ctx.fillText('cycle ' + cycles + ' · generation ' + generation, cx, cy + 25);
+    ctx.textAlign = 'left';
+  }
+
+  // The HUD — the sticky greasy fingerprint in null space
+  // It persists through ALL cycles. The mark on the void.
+  ctx.globalAlpha = 0.01 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText('HUD · sticky in null space · persists through all cycles', cx, H - 8);
+  ctx.textAlign = 'left';
+
+  ctx.restore();
 }
 
 function paintFerment() {
@@ -1069,7 +1313,8 @@ function updateThought() {
   var el = document.getElementById('thought');
   // Which turtle is active this phase?
   var phaseMap = {stars:'leonardo',nebula:'raphael',gaia:'donatello',aurora:'michelangelo',
-    otherSquirrels:'leonardo',humans:'raphael',sculpture:'donatello'};
+    otherSquirrels:'leonardo',humans:'raphael',sculpture:'donatello',
+    bbs:'donatello',flash:'michelangelo',enclosure:'raphael',reclamation:'leonardo',galactic:'donatello'};
   var activeName = phaseMap[phase];
   var activeT = activeName ? turtles[activeName] : null;
   var turtleNote = activeT ? ' · ' + activeT.name + ' ' + (activeT.skill * 100).toFixed(0) + '%' : '';
@@ -1078,20 +1323,98 @@ function updateThought() {
     ' · 🐀 Splinter ' + (splinter.wisdom * 100).toFixed(0) + '%</span>';
 }
 
-// ═══ PHASE MACHINE — with sourdough loop ═══
-var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'otherSquirrels', 'humans', 'sculpture', 'ferment'];
+// ═══ PHASE MACHINE — the entire history of reality ═══
+// The chipmunk plays through ALL of time:
+//   stars → nebula → gaia → aurora → breath → study →
+//   otherSquirrels → humans → sculpture →
+//   bbs → flash → enclosure → reclamation →
+//   galactic → ferment
+//
+// After 'sculpture' the chipmunk discovers the internet itself.
+// After the internet history it zooms out to galactic scale.
+// Then ferments. Each cycle: the universe in miniature.
+//
+// The HUD is the sticky greasy layer in null space that persists
+// through ALL cycles. The fingerprint left on the void.
+
+var PHASE_ORDER = [
+  'stars',           // cosmic beginning — the chipmunk paints the void
+  'nebula',          // gas clouds condense
+  'gaia',            // earth forms
+  'aurora',          // atmosphere breathes
+  'breath',          // the pause — sourdough timing
+  'study',           // the chipmunk learns perspective
+  'otherSquirrels',  // notices others (gen 5+)
+  'humans',          // notices the observers (gen 8+)
+  'sculpture',       // yearns for 3D (gen 12+)
+  'bbs',             // discovers the primordial net (gen 15+)
+  'flash',           // plays through the creative era (gen 18+)
+  'enclosure',       // watches the walls go up (gen 20+)
+  'reclamation',     // builds THIS membrane (gen 22+)
+  'galactic',        // zooms out — the whole cycle is one breath (gen 25+)
+  'ferment',         // sourdough rises — begin again
+];
+
 var STROKES_PER_PHASE = {
-  stars: 100,     // fewer stars as perspective grows
+  stars: 100,
   nebula: 16,
   gaia: 10,
   aurora: 6,
-  breath: Infinity,  // controlled by breathCount
+  breath: Infinity,
   study: 8,
-  otherSquirrels: 12,  // unlocks at generation 5
-  humans: 10,          // unlocks at generation 8
-  sculpture: 8,        // unlocks at generation 12
+  otherSquirrels: 12,
+  humans: 10,
+  sculpture: 8,
+  bbs: 10,           // short — it was fast and pure
+  flash: 14,         // longer — so much to play
+  enclosure: 6,      // short — it happened quickly
+  reclamation: 12,   // building takes time
+  galactic: 8,       // zoom out, breathe
   ferment: 15,
 };
+
+// The first sites online — archaeological record
+// This IS the race: what was first, what was on it, where did it go?
+var firstSites = [
+  { year: 1991, name: 'info.cern.ch', still: true,
+    desc: 'Tim Berners-Lee. THE first website. A list of links. STILL ONLINE.',
+    url: 'http://info.cern.ch/hypertext/WWW/TheProject.html' },
+  { year: 1991, name: 'SLAC', still: true,
+    desc: 'Stanford Linear Accelerator. First US website. Physics.',
+    url: 'https://www.slac.stanford.edu' },
+  { year: 1993, name: 'NCSA Mosaic', still: false,
+    desc: 'The browser that made the web VISUAL. Inline images. Everything changed.' },
+  { year: 1993, name: 'Coffee Pot Cam', still: false,
+    desc: 'Trojan Room, Cambridge. First webcam. Watching coffee brew. Peak internet.' },
+  { year: 1993, name: 'ALIWEB', still: false,
+    desc: 'First search engine. Archie-Like Indexing. Before Yahoo. Before Google.' },
+  { year: 1994, name: 'Yahoo!', still: true,
+    desc: 'Jerry & David\'s Guide to the WWW. Hand-curated directory. Now a zombie.' },
+  { year: 1994, name: 'W3C', still: true,
+    desc: 'World Wide Web Consortium. The standards body. Still fighting for open.' },
+  { year: 1994, name: 'First banner ad', still: false,
+    desc: 'HotWired. "Have you ever clicked your mouse right HERE?" The original sin.' },
+  { year: 1994, name: 'Pizza Hut', still: true,
+    desc: 'First online food order. A pizza. On the internet. Revolutionary.',
+    url: 'https://www.pizzahut.com' },
+  { year: 1995, name: 'Amazon', still: true,
+    desc: 'Books only. One guy in a garage. Look at it now. Look what it became.' },
+  { year: 1995, name: 'eBay (AuctionWeb)', still: true,
+    desc: 'First item sold: a broken laser pointer. $14.83. "Are you sure?" "I collect broken laser pointers."' },
+  { year: 1995, name: 'Craigslist', still: true,
+    desc: 'Email list in SF. Still looks the same. Never changed. Never needed to.' },
+  { year: 1996, name: 'Internet Archive', still: true,
+    desc: 'Brewster Kahle. Archive everything. The Wayback Machine. Humanity\'s backup disk.',
+    url: 'https://web.archive.org' },
+  { year: 1997, name: 'Google', still: true,
+    desc: 'Two Stanford students. PageRank. "Don\'t be evil." LOL.' },
+  { year: 1999, name: 'Newgrounds', still: true,
+    desc: 'Tom Fulp. The blackhole. Flash games + movies + audio. STILL ALIVE. Still weird.',
+    url: 'https://www.newgrounds.com' },
+  { year: 2001, name: 'Wikipedia', still: true,
+    desc: 'The free encyclopedia. Proof that humans will build for free if you let them.',
+    url: 'https://www.wikipedia.org' },
+];
 
 function nextStroke() {
   if (paused) return;
@@ -1126,6 +1449,26 @@ function nextStroke() {
       else { phase = 'ferment'; }
       stroke = 0;
     } else if (phase === 'sculpture') {
+      if (generation >= 15) { phase = 'bbs'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'bbs') {
+      if (generation >= 18) { phase = 'flash'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'flash') {
+      if (generation >= 20) { phase = 'enclosure'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'enclosure') {
+      if (generation >= 22) { phase = 'reclamation'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'reclamation') {
+      if (generation >= 25) { phase = 'galactic'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'galactic') {
       phase = 'ferment';
       stroke = 0;
     } else if (idx < PHASE_ORDER.length - 1) {
@@ -1144,6 +1487,11 @@ function nextStroke() {
     case 'otherSquirrels': paintOtherSquirrels(); break;
     case 'humans':         paintHumans(); break;
     case 'sculpture':      paintSculpture(); break;
+    case 'bbs':            paintBBS(); break;
+    case 'flash':          paintFlashEra(); break;
+    case 'enclosure':      paintEnclosure(); break;
+    case 'reclamation':    paintReclamation(); break;
+    case 'galactic':       paintGalactic(); break;
     case 'ferment':        paintFerment(); break;
   }
 
@@ -3225,7 +3573,8 @@ function paintConstantsLedger() {
   // ── ARTIST BACKTRACE — who the REAL artist was ──
   // On the right edge, the refractive story: turtle → Renaissance master
   var activePhase = phase;
-  var phaseMap = {stars:'leonardo',nebula:'raphael',gaia:'donatello',aurora:'michelangelo'};
+  var phaseMap = {stars:'leonardo',nebula:'raphael',gaia:'donatello',aurora:'michelangelo',
+    bbs:'donatello',flash:'michelangelo',enclosure:'raphael',reclamation:'leonardo',galactic:'donatello'};
   var activeTurtle = phaseMap[activePhase] ? turtles[phaseMap[activePhase]] : null;
 
   if (activeTurtle && activeTurtle.artist && maturity > 0.3) {
