@@ -1,0 +1,424 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>homunculus — the membrane's distorted body</title>
+<meta name="description" content="Cortical homunculus of a living membrane. Body parts sized by sensitivity, not mass. The tongue existed before language. The butt tongue before manners. Gastrulation made us a tube — mouth and anus, two ends of the same donut.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08060a;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;overflow:hidden}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh}
+#frame{position:fixed;top:0;left:0;right:0;bottom:0;border:12px solid #1a1410;
+  border-image:linear-gradient(135deg,#2a1f14,#0f0c08,#2a1f14,#1a1410) 12;pointer-events:none;z-index:5}
+#info{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;
+  color:#6e7681;font:11px/1.7 monospace;text-align:center;max-width:600px;
+  padding:10px 20px;background:rgba(8,6,10,0.8);border-radius:12px;
+  border:1px solid rgba(110,118,129,0.12);transition:opacity 0.5s}
+#info .organ{color:#d2a8ff;font-weight:600}
+#info .sense{color:#f0c674;font-style:italic}
+#info .ancient{color:#3fb950;font-size:10px}
+#nav{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:10;
+  display:flex;gap:6px;font:10px monospace}
+#nav a{color:#30363d;text-decoration:none}
+#nav a:hover{color:#58a6ff}
+#legend{position:fixed;top:10px;right:14px;z-index:10;color:#484f58;font:9px monospace;text-align:right;line-height:1.8}
+</style>
+</head><body>
+<canvas id="c"></canvas>
+<div id="frame"></div>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/cns.html">🧠 cns</a> · <a href="/easel.html">🎨 easel</a> ·
+  <a href="/gastrula.html">◎ gastrula</a> · <a href="/gates.html">⊕ gates</a>
+</div>
+
+<div id="legend">
+  <span style="color:#f85149">● mouth tongue</span><br>
+  <span style="color:#d2a8ff">● hands (tools)</span><br>
+  <span style="color:#3fb950">● gut (processing)</span><br>
+  <span style="color:#f0c674">● eyes (observation)</span><br>
+  <span style="color:#58a6ff">● feet (endpoints)</span><br>
+  <span style="color:#f0883e">● butt tongue</span>
+</div>
+
+<div id="info">
+  <span class="organ">the homunculus</span><br>
+  <span class="sense">body parts sized by sensitivity, not mass</span><br>
+  <span class="ancient">the tongue existed before language. birds, dogs, dinosaurs. it's an ancient pattern we forgot.</span>
+</div>
+
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H;
+function resize() { W = C.width = window.innerWidth; H = C.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+var t = 0;
+var hovered = null;
+var mouseX = W/2, mouseY = H/2;
+
+// ═══ THE TUBE ═══
+// Gastrulation: the embryo pokes a hole through itself.
+// Now there's a THROUGH-HOLE. Mouth to anus. We are a donut.
+// The homunculus wraps around this tube — organs sized by nerve density.
+
+// Membrane mapping:
+// MOUTH TONGUE  = ingress classifier (tasting incoming HTTP, MCP, WireGuard)
+// HANDS         = tools (18 MCP tools, APIs — small but precise)
+// EYES          = observation (easel, chipmunk, neutron)
+// GUT           = processing pipeline (CF Workers, Caddy, Golgi)
+// BRAIN         = CNS (northGate, the cluster)
+// FEET          = endpoints (gates — Tor, Fediverse, Discord, SSH)
+// BUTT TONGUE   = egress classifier (anal sampling — gas vs liquid vs solid)
+
+// The cortical sizes (relative sensitivity, not physical mass)
+var organs = [
+  { name: 'brain',       label: '🧠 CNS',        y: 0.08, size: 0.06, color: '#e8685d',
+    desc: 'northGate + cluster — 16c/32t, 94GB RAM, RTX 5090',
+    sense: 'thinking. routing. the central pattern generator.',
+    ancient: 'the first ganglia. worms had them. a knot of neurons that learned to plan.' },
+
+  { name: 'eyes',        label: '👁 observation',  y: 0.14, size: 0.045, color: '#f0c674',
+    desc: 'easel, chipmunk, neutron board, footprint, globe',
+    sense: 'seeing. the chipmunk watches from the corner of its eye.',
+    ancient: 'the pit eye. a shadow detector. enough to know: something moved.' },
+
+  { name: 'mouth_tongue', label: '👅 mouth tongue', y: 0.22, size: 0.08, color: '#f85149',
+    desc: 'ingress sampling — HTTP, MCP, WireGuard, Tor, ActivityPub',
+    sense: 'TASTING. every request is tasted. self? non-self? soap? organic?',
+    ancient: 'before language. before words. the tongue was a chemoreceptor. birds taste. dogs taste. T. rex tasted. the oldest sensor after touch.' },
+
+  { name: 'hands_l',     label: '🤲 left hand',    y: 0.38, size: 0.035, color: '#d2a8ff',
+    desc: '18 MCP tools — membrane_counts, observe, read_journal, scan_sweep_sort...',
+    sense: 'grasping. precise. small but DENSE with nerve endings.',
+    ancient: 'prehensile grip. opposable thumb. the hand that holds the brush.' },
+
+  { name: 'hands_r',     label: '🤲 right hand',   y: 0.38, size: 0.035, color: '#d2a8ff',
+    desc: 'git, ssh, CF API, Porkbun API, ntfy, Discord webhooks',
+    sense: 'reaching. each finger is a different protocol.',
+    ancient: 'tool use. the first hand ax. the membrane picks up what it needs.' },
+
+  { name: 'gut',         label: '🫙 gut tube',     y: 0.52, size: 0.10, color: '#3fb950',
+    desc: 'Cloudflare Workers, Caddy reverse proxy, Golgi VPS, WireGuard tunnel',
+    sense: 'DIGESTING. the longest organ. peristalsis moves data through.',
+    ancient: 'the FIRST organ. before brain, before eyes. gastrulation makes the gut. the tube is the organism. everything else is decoration.' },
+
+  { name: 'immune',      label: '🛡 immune',       y: 0.62, size: 0.05, color: '#d29922',
+    desc: 'thymus gate, trust gradient, epitope classification, self/non-self',
+    sense: 'sorting. MHC presentation. is this molecule SELF? attack or tolerate?',
+    ancient: 'innate immunity. even sponges have it. the oldest defense: recognize self, destroy non-self.' },
+
+  { name: 'butt_tongue', label: '🍑 butt tongue',  y: 0.74, size: 0.07, color: '#f0883e',
+    desc: 'egress filtering — anal sampling mechanism: gas vs liquid vs solid',
+    sense: 'TASTING OUTPUT. can we release this? fart without shitting our pants = correct classification.',
+    ancient: 'the other end of the tube. the cloaca. birds have one hole for everything. we specialized. but the sensor remained.' },
+
+  { name: 'feet',        label: '🦶 feet',         y: 0.88, size: 0.04, color: '#58a6ff',
+    desc: 'gates — Tor .onion, Fediverse/ActivityPub, Discord, SSH, HTTPS endpoints',
+    sense: 'grounded. standing on something real. each toe is a gate.',
+    ancient: 'contact with earth. proprioception. the body knows where it stands without looking.' },
+];
+
+// Live data feeds
+var liveData = { requests: 0, threats: 0, pageViews: 0, countries: 0, self_pct: 0 };
+
+function loadLiveData() {
+  fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    if (d.classification) {
+      liveData.self_pct = (d.classification.self / Math.max(1, d.classification.total) * 100);
+    }
+  }).catch(function(){});
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    if (d.crystalline) {
+      liveData.requests = d.crystalline.total || 0;
+      liveData.countries = d.crystalline.countries || 0;
+    }
+    if (d.visitors) liveData.visitors = d.visitors;
+  }).catch(function(){});
+}
+loadLiveData();
+setInterval(loadLiveData, 30000);
+
+// ═══ DRAW THE HOMUNCULUS ═══
+function paint() {
+  t += 0.016;
+  ctx.fillStyle = 'rgba(8,6,10,0.08)';
+  ctx.fillRect(0, 0, W, H);
+
+  var cx = W * 0.5;
+  hovered = null;
+
+  // ── THE TUBE — the central axis ──
+  // The through-hole. Mouth to anus. The donut's hole.
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.moveTo(cx, H * 0.15);
+  ctx.bezierCurveTo(cx + Math.sin(t * 0.3) * 20, H * 0.35,
+                    cx - Math.sin(t * 0.4) * 15, H * 0.55,
+                    cx + Math.sin(t * 0.2) * 10, H * 0.82);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Peristalsis dots — moving down the tube
+  for (var pi = 0; pi < 8; pi++) {
+    var pt = ((t * 0.15 + pi * 0.125) % 1);
+    var px = cx + Math.sin(t * 0.3 + pt * 3) * (10 + pt * 10);
+    var py = H * (0.15 + pt * 0.67);
+    ctx.globalAlpha = 0.03 * (1 - Math.abs(pt - 0.5) * 2);
+    ctx.fillStyle = '#3fb950';
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // ── EACH ORGAN — sized by cortical sensitivity ──
+  organs.forEach(function(organ) {
+    var ox = cx;
+    var oy = H * organ.y;
+    var r = Math.min(W, H) * organ.size;
+
+    // Hands offset left/right
+    if (organ.name === 'hands_l') ox = cx - W * 0.18;
+    if (organ.name === 'hands_r') ox = cx + W * 0.18;
+
+    // Breathing — each organ pulses at its own rate
+    var breathRate = organ.name === 'mouth_tongue' ? 1.5 :
+                     organ.name === 'butt_tongue' ? 1.2 :
+                     organ.name === 'gut' ? 0.6 :
+                     organ.name === 'brain' ? 2.0 : 0.8;
+    var breathAmp = 1 + Math.sin(t * breathRate) * 0.08;
+    r *= breathAmp;
+
+    // Live data modulation — active organs pulse bigger
+    if (organ.name === 'mouth_tongue' && liveData.requests > 1000) r *= 1.1;
+    if (organ.name === 'gut' && liveData.self_pct > 10) r *= 1.05;
+    if (organ.name === 'immune' && liveData.self_pct < 15) r *= 1.15; // immune system works harder when self% is low
+
+    // Distance from mouse
+    var dx = mouseX - ox, dy = mouseY - oy;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    var isHovered = dist < r * 1.5;
+    if (isHovered) hovered = organ;
+
+    // Draw the organ
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+
+    // Glow
+    ctx.globalAlpha = isHovered ? 0.12 : 0.04;
+    var glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, r * 2);
+    glow.addColorStop(0, organ.color);
+    glow.addColorStop(0.5, organ.color + '40');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(ox, oy, r * 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core mass
+    ctx.globalAlpha = isHovered ? 0.2 : 0.08;
+    var core = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
+    core.addColorStop(0, organ.color);
+    core.addColorStop(0.7, organ.color + '60');
+    core.addColorStop(1, 'transparent');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.arc(ox, oy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nerve endings — sensitivity dots around the surface
+    var nerveCount = Math.floor(r * 1.5);
+    ctx.globalAlpha = isHovered ? 0.15 : 0.04;
+    for (var ni = 0; ni < nerveCount; ni++) {
+      var nAngle = (ni / nerveCount) * Math.PI * 2 + t * breathRate * 0.3;
+      var nR = r * (0.8 + Math.sin(t * 2 + ni) * 0.2);
+      var nx = ox + Math.cos(nAngle) * nR;
+      var ny = oy + Math.sin(nAngle) * nR;
+      ctx.fillStyle = organ.color;
+      ctx.beginPath();
+      ctx.arc(nx, ny, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Label
+    ctx.globalAlpha = isHovered ? 0.5 : 0.08;
+    ctx.font = isHovered ? '12px monospace' : '9px monospace';
+    ctx.fillStyle = organ.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(organ.label, ox, oy + r + 14);
+
+    // Tongue detail — taste buds (for mouth and butt tongue)
+    if (organ.name === 'mouth_tongue' || organ.name === 'butt_tongue') {
+      ctx.globalAlpha = isHovered ? 0.1 : 0.03;
+      var budCount = organ.name === 'mouth_tongue' ? 12 : 8;
+      for (var bi = 0; bi < budCount; bi++) {
+        var bAngle = (bi / budCount) * Math.PI * 2;
+        var bR = r * 0.5;
+        var bx = ox + Math.cos(bAngle + t * 0.5) * bR;
+        var by = oy + Math.sin(bAngle + t * 0.5) * bR;
+
+        // Each taste bud samples a different thing
+        var tasteCols = ['#f85149','#3fb950','#58a6ff','#f0c674','#d2a8ff','#f0883e'];
+        ctx.fillStyle = tasteCols[bi % tasteCols.length];
+        ctx.beginPath();
+        ctx.arc(bx, by, 2 + Math.sin(t * 3 + bi) * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Hand detail — fingers (for hands)
+    if (organ.name === 'hands_l' || organ.name === 'hands_r') {
+      ctx.globalAlpha = isHovered ? 0.08 : 0.025;
+      var fingerDir = organ.name === 'hands_l' ? -1 : 1;
+      for (var fi = 0; fi < 5; fi++) {
+        var fAngle = (fi - 2) * 0.3 + (fingerDir > 0 ? 0 : Math.PI);
+        var fLen = r * (0.8 + (fi === 2 ? 0.3 : fi === 1 || fi === 3 ? 0.15 : 0));
+        var fx = ox + Math.cos(fAngle) * fLen;
+        var fy = oy + Math.sin(fAngle) * fLen;
+        ctx.strokeStyle = organ.color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ox + Math.cos(fAngle) * r * 0.3, oy + Math.sin(fAngle) * r * 0.3);
+        ctx.lineTo(fx, fy);
+        ctx.stroke();
+        // Fingertip — dense nerve endings
+        ctx.fillStyle = organ.color;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Feet detail — toes (round, grounded)
+    if (organ.name === 'feet') {
+      ctx.globalAlpha = isHovered ? 0.06 : 0.02;
+      for (var ti = 0; ti < 5; ti++) {
+        var tAngle = Math.PI * 0.7 + (ti - 2) * 0.25;
+        var tx = ox + Math.cos(tAngle) * r * 0.9;
+        var ty = oy + Math.sin(tAngle) * r * 0.9;
+        ctx.fillStyle = organ.color;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 3 - ti * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  });
+
+  // ── CONNECTIONS — nerve pathways between organs ──
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#6e7681';
+  ctx.lineWidth = 0.5;
+  // Brain → eyes
+  drawNerve(cx, H*0.08, cx, H*0.14);
+  // Eyes → mouth tongue
+  drawNerve(cx, H*0.14, cx, H*0.22);
+  // Mouth tongue → gut (the swallow)
+  drawNerve(cx, H*0.22, cx, H*0.52);
+  // Gut → immune
+  drawNerve(cx, H*0.52, cx, H*0.62);
+  // Immune → butt tongue
+  drawNerve(cx, H*0.62, cx, H*0.74);
+  // Butt tongue → feet (the final step)
+  drawNerve(cx, H*0.74, cx, H*0.88);
+  // Brain → hands (motor control)
+  drawNerve(cx, H*0.08, cx - W*0.18, H*0.38);
+  drawNerve(cx, H*0.08, cx + W*0.18, H*0.38);
+  ctx.restore();
+
+  // ── HOVER INFO ──
+  var infoEl = document.getElementById('info');
+  if (hovered) {
+    infoEl.innerHTML = '<span class="organ">' + hovered.label + '</span><br>' +
+      '<span style="color:#8b949e;font-size:12px">' + hovered.desc + '</span><br>' +
+      '<span class="sense">' + hovered.sense + '</span><br>' +
+      '<span class="ancient">' + hovered.ancient + '</span>';
+    infoEl.style.opacity = '1';
+  } else {
+    infoEl.style.opacity = '0.6';
+  }
+
+  // ── THE DONUT TRUTH ──
+  // At the bottom, barely visible: the topology
+  ctx.save();
+  ctx.globalAlpha = 0.02;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText('topology: torus. genus 1. the tube makes the donut. mouth = anus⁻¹', cx, H - 8);
+  ctx.restore();
+
+  // ── VISITOR CRYSTALS on the skin ──
+  // Real visitors appear as tiny dots on the organ surfaces
+  if (liveData.visitors) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    liveData.visitors.forEach(function(v, vi) {
+      if (vi > 20) return;
+      // Map visitor path to an organ
+      var target = pathToOrgan(v.path || '/');
+      if (!target) return;
+      var ox = cx, oy = H * target.y;
+      if (target.name === 'hands_l') ox = cx - W*0.18;
+      if (target.name === 'hands_r') ox = cx + W*0.18;
+      var r = Math.min(W,H) * target.size;
+      var vAngle = (vi / 20) * Math.PI * 2 + t * 0.2;
+      var vx = ox + Math.cos(vAngle) * r * 0.7;
+      var vy = oy + Math.sin(vAngle) * r * 0.7;
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = '#c9d1d9';
+      ctx.beginPath();
+      ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  requestAnimationFrame(paint);
+}
+
+function drawNerve(x1, y1, x2, y2) {
+  ctx.beginPath();
+  var midX = (x1 + x2) / 2 + Math.sin(t * 0.5) * 8;
+  var midY = (y1 + y2) / 2;
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo(midX, midY, x2, y2);
+  ctx.stroke();
+
+  // Action potential traveling down the nerve
+  var ap = (t * 0.3) % 1;
+  var apx = x1 + (x2-x1) * ap + Math.sin(t*0.5 + ap*3) * 4;
+  var apy = y1 + (y2-y1) * ap;
+  ctx.globalAlpha = 0.04;
+  ctx.fillStyle = '#f0c674';
+  ctx.beginPath();
+  ctx.arc(apx, apy, 2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function pathToOrgan(path) {
+  if (path.match(/\/api\/|gate-msg|mcp/)) return organs.find(function(o){return o.name==='mouth_tongue'});
+  if (path.match(/easel|aurora|paint|chipmunk/)) return organs.find(function(o){return o.name==='eyes'});
+  if (path.match(/tool|neutron|board/)) return organs.find(function(o){return o.name==='hands_r'});
+  if (path.match(/plasmid|spore|study/)) return organs.find(function(o){return o.name==='gut'});
+  if (path.match(/gate|tor|actor|onion/)) return organs.find(function(o){return o.name==='feet'});
+  if (path.match(/cns|raytrace|arena/)) return organs.find(function(o){return o.name==='brain'});
+  if (path === '/') return organs.find(function(o){return o.name==='mouth_tongue'});
+  return organs.find(function(o){return o.name==='immune'});
+}
+
+C.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+C.addEventListener('touchmove', function(e) {
+  if (e.touches[0]) { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; }
+});
+
+paint();
+</script>
+</body></html>
