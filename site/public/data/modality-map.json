@@ -1,0 +1,144 @@
+{
+  "ts": "2026-10-23T20:30:00Z",
+  "type": "modality-map",
+  "wave": 187,
+  "title": "Modality Map — Every Klein Face the Browser Can Open",
+
+  "thesis": "The browser is a window. But a window has SIX faces: screen (light out), speaker (sound out), microphone (sound in), keyboard/mouse (touch in), share (bits to other humans), haptic (vibration out). The HUD only had screen open. Now all faces unlock. Each face is a Klein fold: digital ↔ analog, no inside, no outside.",
+
+  "the_machine": {
+    "note": "House 1 desktop — scanned via WMI",
+    "cpu": "AMD Ryzen 9 9950X3D (16 cores / 32 threads)",
+    "gpu_primary": "NVIDIA GeForce RTX 5090 (4GB reported via WMI, actual 32GB GDDR7)",
+    "gpu_integrated": "AMD Radeon (2GB)",
+    "ram_gb": 93.6,
+    "storage": {
+      "C": {"free_gb": 27.4, "total_gb": 487.4},
+      "M": {"free_gb": 433.5, "total_gb": 3726}
+    },
+    "display": "2560 × 1440 primary",
+    "network": {
+      "ethernet": "Realtek 2.5 Gbps",
+      "wireguard": "northgate-wg0 (to relay, 10.13.37.0/24)"
+    },
+    "bluetooth": "not detected"
+  },
+
+  "audio_topology": {
+    "note": "8 audio devices. Each is a Klein fold point: bits ↔ sound wave.",
+    "devices": [
+      {"name": "USB Audio 2.0", "vendor": "ASUS (0B05:1B9B)", "type": "DAC/headphone amp", "fold": "bits → headphone driver → ear"},
+      {"name": "AMD HD Audio", "type": "GPU HDMI/DP", "fold": "bits → monitor speaker → room"},
+      {"name": "NVIDIA HD Audio", "type": "GPU HDMI/DP", "fold": "bits → monitor/TV speaker → room"},
+      {"name": "USB Audio Device", "vendor": "Corsair (1B1C:2A0F)", "type": "headset", "fold": "bits → headphone driver → ear (+ mic → bits)"},
+      {"name": "Steam Streaming Mic", "type": "virtual", "fold": "remote player mic → local bits"},
+      {"name": "Steam Streaming Speakers", "type": "virtual", "fold": "local bits → remote player speakers"},
+      {"name": "NVIDIA Virtual Audio", "type": "virtual", "fold": "GeForce Experience / broadcast"},
+      {"name": "ASUS Utility", "type": "software mixer", "fold": "motherboard audio enhancement"}
+    ],
+    "routing": {
+      "headset_private": "USB Audio 2.0 OR Corsair USB — for private listening / spatial audio",
+      "monitor_room": "AMD/NVIDIA HD Audio — for room fill / shared listening",
+      "stream_out": "Steam Streaming + NVIDIA Virtual — for broadcasting to remote viewers",
+      "all_at_once": "Web Audio API can route to specific devices via setSinkId()"
+    }
+  },
+
+  "browser_faces": {
+    "SCREEN": {
+      "status": "OPEN since wave 1",
+      "api": "DOM / Canvas / WebGL / WebGPU",
+      "direction": "bits → photons → retina",
+      "color": "blue",
+      "note": "The first and oldest face. Every web page ever made opens this face."
+    },
+    "SPEAKER": {
+      "status": "NOW OPEN — modality-engine.js",
+      "api": "Web Audio API (AudioContext, PannerNode for HRTF spatial, AnalyserNode for viz)",
+      "direction": "bits → DAC → speaker cone → air → ear",
+      "color": "yellow",
+      "capabilities": [
+        "Tone generation (heartbeat, green pulse, sonification)",
+        "Spatial audio (HRTF — sounds from specific 3D positions)",
+        "Audio routing to specific output device (setSinkId)",
+        "Analyser for oscilloscope / frequency visualization",
+        "MIDI input (navigator.requestMIDIAccess)"
+      ]
+    },
+    "MICROPHONE": {
+      "status": "AVAILABLE — needs permission click",
+      "api": "getUserMedia({audio: true})",
+      "direction": "voice → mic → ADC → bits",
+      "color": "green",
+      "capabilities": [
+        "Speech Recognition (webkitSpeechRecognition — talk to chipmunk)",
+        "Audio analysis (listen to room, detect heartbeat, ambient noise level)",
+        "Stream to MediaRecorder (record voice notes)"
+      ]
+    },
+    "HAPTIC": {
+      "status": "AVAILABLE on mobile only",
+      "api": "navigator.vibrate()",
+      "direction": "bits → motor → skin",
+      "color": "red",
+      "note": "Desktop has no vibration motor. Phone does. The mobile version gets this face free."
+    },
+    "SHARE": {
+      "status": "NOW OPEN — modality-engine.js",
+      "api": "navigator.share() + getDisplayMedia() + MediaRecorder",
+      "direction": "bits → other humans",
+      "color": "orange",
+      "capabilities": [
+        "Web Share API (native share sheet on mobile — Twitter, Discord, etc.)",
+        "Screen Capture (getDisplayMedia — like OBS but in-browser)",
+        "MediaRecorder (record screen to WebM blob)",
+        "Clipboard API (copy text/images to clipboard)",
+        "Picture-in-Picture (float the HUD over other windows)"
+      ],
+      "streaming_path": "Screen Capture → MediaRecorder → WebM blob → upload to relay OR use WebRTC to stream live to Twitch/Discord/etc."
+    },
+    "WAKE": {
+      "status": "NOW AVAILABLE — modality-engine.js",
+      "api": "navigator.wakeLock.request('screen')",
+      "direction": "bits → keep display alive",
+      "color": "white",
+      "note": "Prevents screen from sleeping. Essential for ambient display / dashboard mode."
+    }
+  },
+
+  "pwa_install": {
+    "what": "Progressive Web App — the browser becomes the app",
+    "desktop": {
+      "how": "Chrome/Edge: click install icon in address bar, or ⋮ menu → 'Install HUD'",
+      "result": "HUD runs in its own window. No address bar. No tabs. Looks like a native app. Has its own taskbar icon. Can be pinned to Start.",
+      "display_mode": "standalone (with window-controls-overlay for title bar integration)"
+    },
+    "mobile": {
+      "how": "Chrome Android: ⋮ → 'Add to Home screen' / 'Install app'. Safari iOS: Share → 'Add to Home Screen'",
+      "result": "HUD is a card on home screen. Opens fullscreen. No Safari chrome. Push notifications. Works offline via service worker.",
+      "note": "The 'mobile version' IS the browser card. Same code, responsive layout, touch events, haptic feedback."
+    },
+    "already_have": "Service worker ✓ (membrane-sw.js), web manifest ✓ (app.webmanifest), icons ✓, offline fallback ✓"
+  },
+
+  "modality_unlock_sequence": {
+    "step_1": "PWA manifest + icons → installable as app (desktop + phone)",
+    "step_2": "Web Audio API → sound output to any device, spatial audio, sonification",
+    "step_3": "MediaSession API → headset/lock-screen controls (play/pause the membrane)",
+    "step_4": "Screen Capture → stream/record the HUD (Twitch-style)",
+    "step_5": "Web Share → native share to any app (Twitter, Discord, email)",
+    "step_6": "Wake Lock → ambient display mode (dashboard that never sleeps)",
+    "step_7": "Speech Recognition → talk to the chipmunk (voice commands)",
+    "step_8": "Haptic → heartbeat vibration on phone",
+    "step_9": "MIDI → hardware controllers, synthesizers",
+    "step_10": "Gamepad → controller input for navigation",
+    "step_11": "WebGPU → GPU compute for data visualization (RTX 5090)",
+    "step_12": "Web Bluetooth → future: heart rate monitors, environmental sensors"
+  },
+
+  "the_principle": {
+    "browser_as_klein_face": "The browser window IS already a Klein fold. Screen was the only face open. Every new API we wire in opens another face. Sound, touch, share, wake — each is a fold point where digital meets analog. The app.webmanifest makes it installable. The service worker makes it offline. The modality engine makes it multimodal. Same code. Every device. Every face.",
+    "mobile_is_desktop": "There is no 'mobile version' and 'desktop version'. There's ONE membrane. The screen face adjusts (responsive CSS). The haptic face only works on mobile. The GPU face is stronger on desktop. But it's the SAME organism viewed through different folds.",
+    "sound_routing": "Web Audio API can target specific output devices via setSinkId(). Route heartbeat to headset (private). Route campfire stories to monitor speakers (room). Route notification pings to both. The SAME audio engine, different fold points."
+  }
+}
