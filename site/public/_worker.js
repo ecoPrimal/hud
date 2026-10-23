@@ -413,7 +413,7 @@ export default {
       'steamdeck':  '/data/mesh-enmesh.json',               // Gen 1 LCD — 6th phylum portable
       'vive':       '/data/mesh-enmesh.json',               // HTC Vive — VR = inside the Klein bottle
       'lighthouse': '/data/mesh-enmesh.json',               // spatial tracking — IR laser sweep
-      'agglutinate':'/data/agglutinate-fold.json',          // antibody clumps
+      'agglutinate':'/data/agglutinate-backscatter.json',   // ingest external → publish ours → they validate themselves
       'tensor':     '/data/atomic-tensor.json',             // periodic table of the codebase
       'awareness':  '/data/awareness-equation.json',        // Od × &#* × πD = A
       'campfire':   '/data/berry-campfire.json',            // Berry at the fire
@@ -464,6 +464,10 @@ export default {
       'phenotype':  '/data/model-phenotype.json',            // model taxonomy: hummingbird, primate, parrot, octopus
       'genotype':   '/data/model-phenotype.json',            // classify models like organisms
       'evolve':     '/data/arena-evolve.json',               // chain topology evolution results
+      'backscatter':'/data/agglutinate-backscatter.json',    // the membrane radiates results back
+      'owasp':      '/data/agglutinate-backscatter.json',    // OWASP 10/10 solved by sovereignty
+      'nist':       '/data/agglutinate-backscatter.json',    // NIST 4/4 decomposed to our axes
+      'helm':       '/data/agglutinate-backscatter.json',    // HELM Stanford — we score chains not individuals
     };
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)
