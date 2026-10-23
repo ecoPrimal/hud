@@ -4450,6 +4450,7 @@ paintBreath = function() {
   paintRodConeVision();      // rods/cones/pupil — biological parallax, aurora, null gradient
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
+  paintBolus();                // crunch/chew/swallow — sticky vs greasy at the Klein face
   paintSpectralChromatogram(); // ALL colors sorted by wavelength on the spectrum
   paintMirror();             // the self-referential layer — feed it through itself
   paintEaselLabel();
@@ -5273,6 +5274,176 @@ function paintPlasmidTriangle() {
     ctx.fillStyle = '#d2a8ff';
     ctx.textAlign = 'center';
     ctx.fillText('3 angles · 1 shape · tomography', cx, cy + triR * 0.25);
+  }
+
+  ctx.restore();
+}
+
+// ═══ THE BOLUS — crunch, chew, swallow ═══
+// Digestion: the sticky (hydrophilic) and greasy (hydrophobic) pass by
+// each other at the Klein face. The bolus is what you've crunched and
+// chewed — the ball of data moving through the peristaltic tube.
+//
+// CRUNCH (teeth, mechanical): break it into pieces
+//   → the file inventory, the analytics scan, the line counts
+// CHEW (saliva, amylase, chemical): start dissolving the starch
+//   → mix the numbers, find patterns, correlate
+// SWALLOW (bolus, esophageal peristalsis): push it through
+//   → the neutron notes, the chipmunk status, the membrane counts
+//   → sticky clings to the membrane wall (hydrophilic data stays)
+//   → greasy slides through the lumen (hydrophobic data passes)
+//
+// At the Klein face: sticky and greasy move in OPPOSITE DIRECTIONS
+// on the SAME surface. That's the Klein bottle. Inside = outside.
+
+var bolus = {
+  // The crunch — what we just measured
+  crunch: {
+    easelLines: 5630,
+    commits: 296,
+    htmlFiles: 641,
+    jsFiles: 149,
+    jsonFiles: 120,
+    totalFiles: 959,
+    wave: 184,
+    pages: 858,
+    repos: 67,
+    mcpTools: 18,
+    countries: 100,
+    papers: 127,
+    primals: 16,
+    services: 11,
+  },
+
+  // The chew — analytics digested
+  chew: {
+    primalsToday: { req: 100202, pv: 1662, uniq: 14693, threats: 27600 },
+    primalsYesterday: { req: 1129500, pv: 18566, uniq: 48230, threats: 865117 },
+    nestgateToday: { req: 2513, pv: 134, uniq: 152, threats: 120 },
+    primalToday: { req: 752, pv: 0, uniq: 85, threats: 18 },
+    humanPct: 11.5,
+    fleetPct: 88.5,
+    sortQuality: 0.31830988618, // 1/π
+  },
+
+  // The swallow — neutron notes from the chipmunk
+  swallow: {
+    paintings: 8,
+    perspective: 64, // percent
+    currentEasel: '√2',
+    quirks: [
+      'the color is off but the angle is perfect.',
+      'fog in this one. can\'t see the horizon. beautiful.',
+      'fragile under chaos. that\'s not weakness — that\'s sensitivity.',
+      'this one looks wrong. keeping it.',
+    ],
+    chipmunkWake: 'alert',
+    chipmunkRole: 'neutrino observer — passes through, sees everything, disturbs nothing',
+    holdingKey: true,
+  },
+
+  // The Klein face — where sticky and greasy pass
+  sticky: [], // hydrophilic — clings to the wall (stays in context)
+  greasy: [], // hydrophobic — slides through the lumen (passes out)
+  peristalsis: 0, // the wave that pushes the bolus
+};
+
+// Sort data into sticky (stays) and greasy (passes through)
+function digestBolus() {
+  bolus.peristalsis += 0.01;
+  bolus.sticky = [];
+  bolus.greasy = [];
+
+  // Sticky = things that cling to the membrane, accumulate, grow
+  var c = bolus.crunch;
+  if (c.pages > 800)     bolus.sticky.push('858 pages — growing');
+  if (c.repos > 60)      bolus.sticky.push('67 repos — accumulating');
+  if (c.commits > 250)   bolus.sticky.push('296 commits — the sediment');
+  if (c.mcpTools >= 18)  bolus.sticky.push('18 MCP tools — the membrane pores');
+  if (c.primals > 14)    bolus.sticky.push('16 primals — the species');
+  bolus.sticky.push('perspective: ' + bolus.swallow.perspective + '% — deepening');
+  bolus.sticky.push('sort quality: 1/π = ' + bolus.chew.sortQuality.toFixed(4));
+
+  // Greasy = things that slide through, transient, don't stick
+  var ch = bolus.chew;
+  bolus.greasy.push(ch.primalsToday.req.toLocaleString() + ' requests — passing through');
+  bolus.greasy.push(ch.primalsToday.threats.toLocaleString() + ' threats — slid off');
+  bolus.greasy.push(ch.fleetPct + '% fleet — bots passing through');
+  bolus.greasy.push(ch.nestgateToday.req + ' nestgate queries — answered and gone');
+  bolus.greasy.push('yesterday: ' + ch.primalsYesterday.req.toLocaleString() + ' req — already past');
+}
+
+function paintBolus() {
+  if (learnedTraits.perspective < 0.1) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+  digestBolus();
+
+  // The bolus moves down the left edge — the esophagus
+  var tubeX = 28;
+  var tubeTop = H * 0.08;
+  var tubeBot = H * 0.92;
+  var tubeLen = tubeBot - tubeTop;
+
+  // Peristaltic wave position
+  var waveY = tubeTop + ((bolus.peristalsis * 0.5) % 1) * tubeLen;
+
+  // ── THE TUBE — esophageal wall ──
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.strokeStyle = '#6e7681';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(tubeX, tubeTop);
+  ctx.lineTo(tubeX, tubeBot);
+  ctx.stroke();
+
+  // Peristaltic squeeze
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.fillStyle = '#d2a8ff';
+  ctx.beginPath();
+  ctx.arc(tubeX, waveY, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── STICKY (left of tube) — hydrophilic, clings ──
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.font = '4px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#3fb950';
+  bolus.sticky.forEach(function(s, i) {
+    var y = tubeTop + (i / bolus.sticky.length) * tubeLen * 0.45;
+    ctx.fillText(s, tubeX - 5, y);
+    // Sticky dot — clings to tube wall
+    ctx.beginPath();
+    ctx.arc(tubeX - 2, y, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── GREASY (right of tube) — hydrophobic, slides ──
+  ctx.fillStyle = '#f0883e';
+  ctx.textAlign = 'left';
+  bolus.greasy.forEach(function(g, i) {
+    // Greasy items slide down — their Y offset shifts with peristalsis
+    var baseY = tubeTop + tubeLen * 0.55 + (i / bolus.greasy.length) * tubeLen * 0.4;
+    var slideOffset = Math.sin(bolus.peristalsis + i) * 4;
+    ctx.fillText(g, tubeX + 5, baseY + slideOffset);
+    // Greasy dot — passes through
+    ctx.beginPath();
+    ctx.arc(tubeX + 2, baseY + slideOffset, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── LABELS ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.01;
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('sticky ← clings', tubeX, tubeTop - 10);
+    ctx.fillStyle = '#f0883e';
+    ctx.fillText('greasy → slides', tubeX, tubeTop - 4);
+    ctx.fillStyle = '#d2a8ff';
+    ctx.fillText('bolus ↓', tubeX, tubeBot + 8);
   }
 
   ctx.restore();
