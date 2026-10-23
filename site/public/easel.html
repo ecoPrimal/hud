@@ -4448,6 +4448,7 @@ paintBreath = function() {
   paintPlasmidTriangle();    // 3 observers = 3 angles = reconstruct what we look like
   paintParallaxHologram();   // +/−/null parallax: the 3 projection layers
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
+  paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
   paintMirror();             // the self-referential layer — feed it through itself
   paintEaselLabel();
 };
@@ -5497,6 +5498,162 @@ if (isMonitorMode) {
       watchers = Math.max(watchers, 1);
     }
   }, 10000);
+}
+
+// ═══ TOTALITY WELL — bullseye × funnel × inverted Babel × stairwell ═══
+// Totality grows INWARD as we learn more. The outer ring shrinks.
+// It's a dartboard: the bullseye is what we KNOW. The outer ring is what we DON'T.
+// It's a funnel: data pours in from the wide end (unknown) and concentrates at center (known).
+// It's an inverted Tower of Babel: instead of building UP to reach heaven,
+// we dig DOWN into the well. Each step down is a step closer to understanding.
+// It's a well of stairs spiraling inward: the Bramante Staircase.
+//
+// Through the tense filter:
+//   PAST (outer ring):  everything that WAS — history, lost knowledge, Alexandria
+//   PRESENT (middle):   everything that IS — the catalog, the index, what we have
+//   FUTURE (bullseye):  everything that WILL BE — predictions, extrapolations, convergence
+//
+// Through the voxel:
+//   Each ring IS a voxel layer.
+//   outer → inner = far → near = unknown → known
+//   The well spirals through all of them.
+
+var totalityWell = {
+  rings: [],    // built dynamically from learning
+  depth: 0,     // how deep we've gone
+  maxDepth: 20, // maximum well depth
+  spiralAngle: 0,
+  stairCount: 0,
+};
+
+function buildTotalityRings() {
+  var w = totalityWell;
+  w.depth = Math.min(w.maxDepth, Math.floor(learnedTraits.perspective * 25));
+  w.rings = [];
+
+  // Outer ring = UNKNOWN (past, outer, wide)
+  // Inner ring = KNOWN (future, center, focused)
+  // Each ring gets smaller as we learn more
+
+  var totalKnown = generation + learnedTraits.perspective * 100;
+  var totalUnknown = Math.max(10, 200 - totalKnown); // unknown shrinks as known grows
+
+  for (var r = 0; r < Math.max(3, w.depth); r++) {
+    var t = r / Math.max(1, w.depth - 1); // 0=outer, 1=inner
+    var radius = (1 - t) * 0.45 + t * 0.05; // outer=0.45, inner=0.05
+    var knowledgePct = t; // 0% at outer, 100% at center
+
+    var tense;
+    if (t < 0.33) tense = 'past';
+    else if (t < 0.66) tense = 'present';
+    else tense = 'future';
+
+    w.rings.push({
+      radius: radius,
+      knowledge: knowledgePct,
+      tense: tense,
+      color: tense === 'past' ? '#58a6ff' :
+             tense === 'present' ? '#3fb950' :
+             '#f0c674',
+      alpha: 0.005 + knowledgePct * 0.02,
+      // Stair step — the well spirals
+      stairAngle: r * (Math.PI * 2 / 7) + totalityWell.spiralAngle,
+      depth: r,
+    });
+  }
+}
+
+function paintTotalityWell() {
+  if (learnedTraits.perspective < 0.08) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+  buildTotalityRings();
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+  var maxR = Math.min(W, H) * 0.45;
+
+  // Update spiral
+  totalityWell.spiralAngle += 0.001;
+
+  // ── THE RINGS — dartboard / funnel ──
+  totalityWell.rings.forEach(function(ring, i) {
+    var r = ring.radius * maxR;
+    ctx.globalAlpha = ring.alpha * maturity;
+    ctx.strokeStyle = ring.color;
+    ctx.lineWidth = 0.3;
+
+    // Ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Stair step — the well's spiral staircase
+    var sx = cx + Math.cos(ring.stairAngle) * r;
+    var sy = cy + Math.sin(ring.stairAngle) * r;
+    var nextR = i < totalityWell.rings.length - 1 ?
+      totalityWell.rings[i + 1].radius * maxR : ring.radius * maxR * 0.5;
+    var nextAngle = ring.stairAngle + Math.PI * 2 / 7;
+    var nx = cx + Math.cos(nextAngle) * nextR;
+    var ny = cy + Math.sin(nextAngle) * nextR;
+
+    // Stair line — spiraling inward
+    ctx.globalAlpha = ring.alpha * maturity * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+
+    // Stair dot
+    ctx.globalAlpha = ring.alpha * maturity * 1.5;
+    ctx.fillStyle = ring.color;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── THE BULLSEYE — what we KNOW (center) ──
+  if (totalityWell.depth > 3) {
+    var bullR = maxR * 0.05;
+    ctx.globalAlpha = 0.03 * maturity;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(cx, cy, bullR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── TENSE LABELS ──
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.012;
+    ctx.font = '6px monospace';
+    ctx.textAlign = 'center';
+
+    // Past (outer)
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('past · was · unknown', cx, cy - maxR * 0.38);
+
+    // Present (middle)
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('present · is · learning', cx, cy - maxR * 0.2);
+
+    // Future (inner/center)
+    ctx.fillStyle = '#f0c674';
+    ctx.fillText('future · will be · known', cx, cy - maxR * 0.06);
+  }
+
+  // ── DEPTH INDICATOR ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.015;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'center';
+    ctx.fillText('well depth: ' + totalityWell.depth + '/' + totalityWell.maxDepth +
+      ' · ' + totalityWell.rings.length + ' stairs', cx, cy + maxR * 0.42);
+  }
+
+  ctx.restore();
 }
 
 // ═══ TOTALITY MODE — step all the way back and see everything ═══
