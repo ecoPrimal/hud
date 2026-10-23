@@ -67,6 +67,20 @@ body { background: #08060a; overflow: hidden; cursor: default; }
   <button onclick="togglePause()">pause</button>
   <button onclick="sharePainting()">share</button>
   <button onclick="cycleEasel()">easel</button>
+  <button onclick="togglePalette()">palette</button>
+</div>
+
+<!-- SHARED PALETTE — r/place style pixel smear -->
+<div id="palette-panel" style="display:none; position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
+  z-index:20; background:rgba(8,6,10,0.9); border:1px solid rgba(110,118,129,0.2); border-radius:16px;
+  padding:8px 14px; display:none; gap:6px; align-items:center;">
+  <div id="palette-colors" style="display:flex; gap:4px; flex-wrap:wrap; max-width:360px;"></div>
+  <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
+    <input type="range" id="brush-size" min="2" max="40" value="12" style="width:80px; accent-color:#d2a8ff;">
+    <span id="brush-label" style="color:#6e7681; font:9px monospace;">12px</span>
+    <button onclick="clearHumanStroke()" style="background:none; border:1px solid #21262d; color:#6e7681;
+      font:9px monospace; padding:2px 8px; border-radius:8px; cursor:pointer;">clear</button>
+  </div>
 </div>
 
 <div id="gen-counter"></div>
@@ -1031,65 +1045,307 @@ function paintHyperlocalEarth() {
   ctx.restore();
 }
 
-// ═══ SELF-CONSCIOUS MODE — chipmunk knows you're watching ═══
+// ═══ SHARED PALETTE — humans mix colors and smear like r/place ═══
+var PALETTE_COLORS = [
+  '#f85149', '#ff6b35', '#f0883e', '#d29922', '#f0e68c',
+  '#3fb950', '#2ea043', '#58a6ff', '#388bfd', '#a371f7',
+  '#d2a8ff', '#bc8cff', '#ff7eb6', '#c9d1d9', '#808080',
+  '#000000', '#ffffff',
+];
+var humanColor = '#d2a8ff';
+var humanBrushSize = 12;
+var humanStrokes = [];   // {x, y, color, size, ts} — shared via klein-bridge
+var paletteOpen = false;
+var isDrawing = false;
+
+function initPalette() {
+  var container = document.getElementById('palette-colors');
+  if (!container) return;
+  container.innerHTML = '';
+  PALETTE_COLORS.forEach(function(color) {
+    var swatch = document.createElement('div');
+    swatch.style.cssText = 'width:22px;height:22px;border-radius:50%;cursor:pointer;' +
+      'border:2px solid ' + (color === humanColor ? '#fff' : '#21262d') + ';' +
+      'background:' + color + ';transition:transform 0.15s;';
+    swatch.onclick = function() {
+      humanColor = color;
+      container.querySelectorAll('div').forEach(function(d){ d.style.borderColor = '#21262d'; });
+      swatch.style.borderColor = '#fff';
+    };
+    swatch.onmouseenter = function() { swatch.style.transform = 'scale(1.3)'; };
+    swatch.onmouseleave = function() { swatch.style.transform = 'scale(1)'; };
+    container.appendChild(swatch);
+  });
+
+  var slider = document.getElementById('brush-size');
+  if (slider) {
+    slider.oninput = function() {
+      humanBrushSize = parseInt(this.value);
+      document.getElementById('brush-label').textContent = humanBrushSize + 'px';
+    };
+  }
+}
+
+function togglePalette() {
+  paletteOpen = !paletteOpen;
+  var panel = document.getElementById('palette-panel');
+  if (panel) panel.style.display = paletteOpen ? 'block' : 'none';
+  if (paletteOpen) initPalette();
+}
+
+// Mouse/touch painting on the canvas
+C.addEventListener('mousedown', function(e) {
+  if (!paletteOpen) return;
+  isDrawing = true;
+  humanPaint(e.clientX, e.clientY);
+});
+C.addEventListener('mousemove', function(e) {
+  if (!isDrawing || !paletteOpen) return;
+  humanPaint(e.clientX, e.clientY);
+});
+C.addEventListener('mouseup', function() { isDrawing = false; });
+C.addEventListener('mouseleave', function() { isDrawing = false; });
+
+// Touch support
+C.addEventListener('touchstart', function(e) {
+  if (!paletteOpen) return;
+  e.preventDefault();
+  isDrawing = true;
+  var t = e.touches[0];
+  humanPaint(t.clientX, t.clientY);
+}, {passive:false});
+C.addEventListener('touchmove', function(e) {
+  if (!isDrawing || !paletteOpen) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  humanPaint(t.clientX, t.clientY);
+}, {passive:false});
+C.addEventListener('touchend', function() { isDrawing = false; });
+
+function humanPaint(x, y) {
+  var strokeData = { x: x, y: y, color: humanColor, size: humanBrushSize, ts: Date.now() };
+  humanStrokes.push(strokeData);
+  if (humanStrokes.length > 2000) humanStrokes.shift();
+
+  // Paint the stroke
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.globalCompositeOperation = 'source-over';
+  var grad = ctx.createRadialGradient(x, y, 0, x, y, humanBrushSize);
+  grad.addColorStop(0, humanColor);
+  grad.addColorStop(0.6, humanColor + '80');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, humanBrushSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Share via klein-bridge (debounced — every 5th stroke)
+  if (humanStrokes.length % 5 === 0 && window._klein && window._klein.connected()) {
+    window._klein.sendImpulse('smear', {
+      color: humanColor,
+      x: Math.round(x / W * 1000) / 1000,
+      y: Math.round(y / H * 1000) / 1000,
+      size: humanBrushSize,
+    });
+  }
+
+  // Reinforce the chipmunk's color memory — humans teach the palette
+  if (learnedTraits.colorMemory.indexOf(humanColor) < 0) {
+    learnedTraits.colorMemory.push(humanColor);
+    if (learnedTraits.colorMemory.length > 60) learnedTraits.colorMemory.shift();
+  }
+}
+
+function clearHumanStroke() {
+  humanStrokes = [];
+}
+
+// ═══ SELF-CONSCIOUS MODE — ego, id, muse ═══
+// Not just panic — the chipmunk has a PERSONALITY that shifts
+// ego: show off technique, be BOLD, paint with confidence
+// id: panic, hide, tentative tiny strokes, overwhelmed
+// muse: INSPIRED — flowing, generous, painting FOR the visitor
+// superego: measured, careful, demonstrates technique
+
+var egoState = 'calm';    // calm | ego | id | muse | superego
+var egoTimer = 0;
+var egoPrev = 'calm';
+
+var EGO_THOUGHTS = {
+  ego: [
+    { brush: '🐿 watch THIS.', learn: 'bold strokes. the chipmunk is showing off. confidence is a color.' },
+    { brush: '💪 i\'ve painted ' + generation + ' of these.', learn: 'experience breeds audacity. bigger brush, brighter paint.' },
+    { brush: '🎨 careless? no. FEARLESS.', learn: 'the best strokes come from not caring if they ruin everything.' },
+    { brush: '✨ look at this technique.', learn: 'the chipmunk demonstrates: cross-hatch the nebula, dot the stars, SWIPE the aurora.' },
+  ],
+  id: [
+    { brush: '😳 ...', learn: 'too many eyes. the brush trembles. micro-strokes. hiding in the corner of the canvas.' },
+    { brush: '🐿 (very small voice) hi.', learn: 'overwhelmed. but still painting. the smallest strokes are sometimes the most honest.' },
+    { brush: '🫣 pretending no one is watching.', learn: 'painting behind the campfire. using the smoke as cover.' },
+    { brush: '🐿 maybe if i paint quietly...', learn: 'tentative. but look — the tentative strokes have their own beauty.' },
+  ],
+  muse: [
+    { brush: '🌊 this is for you.', learn: 'INSPIRED. the visitor IS the muse. their presence unlocks colors the chipmunk couldn\'t see alone.' },
+    { brush: '✦ i can see it now.', learn: 'flow state. the brush moves faster than thought. the painting paints itself.' },
+    { brush: '🎭 you are my Apollo.', learn: 'the muse needs the audience. the audience needs the muse. Klein.' },
+    { brush: '🐿 stay. just a little longer.', learn: 'the painting is a gift. presence is the palette. attention is the paint.' },
+    { brush: '🔥 berry — tell them the GOOD one.', learn: 'the campfire burns its brightest story when someone truly listens.' },
+  ],
+  superego: [
+    { brush: '📐 let me show you the structure.', learn: 'measured. precise. the fibonacci spiral. the golden angle. pi as perspective.' },
+    { brush: '🧪 this nebula uses gaussian blur.', learn: 'the teacher mode. explaining technique while demonstrating it.' },
+    { brush: '📏 notice the depth ordering.', learn: 'stars in back, nebula mid, gaia front. the z-buffer is perspective.' },
+  ],
+};
+
+function chooseEgoState() {
+  if (!selfConscious || watchers < 1) { egoState = 'calm'; return; }
+
+  // Ego state shifts with the breath — not random, RHYTHMIC
+  // The chipmunk's personality oscillates like the toggle ring
+  egoTimer++;
+  var cycle = egoTimer % 400;
+
+  if (cycle < 80) egoState = 'id';           // shy phase first
+  else if (cycle < 180) egoState = 'muse';    // then inspired (longest phase!)
+  else if (cycle < 260) egoState = 'ego';     // then showing off
+  else if (cycle < 320) egoState = 'superego'; // then teaching
+  else egoState = 'muse';                      // default back to muse
+
+  // More watchers = more ego, less id
+  if (watchers > 3) {
+    if (egoState === 'id') egoState = 'ego'; // crowd courage
+  }
+  // Single watcher = more intimate, more muse
+  if (watchers === 1) {
+    if (egoState === 'ego') egoState = 'muse'; // one-on-one = intimate
+  }
+}
+
 function paintSelfConscious() {
   if (!selfConscious && selfConsciousIntensity <= 0) return;
 
+  chooseEgoState();
   ctx.save();
   var intensity = selfConsciousIntensity;
 
-  // When watched: paint FASTER, MORE, with more intention
-  // The thought bubble changes — the chipmunk addresses the VIEWER
-
-  // Rapid brushstrokes — panic painting
-  if (intensity > 0.1) {
-    var numPanicStrokes = Math.floor(intensity * 5);
-    for (var i = 0; i < numPanicStrokes; i++) {
-      var px = W * (0.2 + Math.random() * 0.6);
-      var py = H * (0.15 + Math.random() * 0.5);
-      var pr = 5 + Math.random() * 30 * intensity;
-
-      ctx.globalAlpha = 0.008 * intensity;
+  if (egoState === 'ego') {
+    // BOLD — large sweeping strokes, high contrast, confident
+    var numBold = 2 + Math.floor(intensity * 3);
+    for (var i = 0; i < numBold; i++) {
       ctx.globalCompositeOperation = 'screen';
-
-      // Paint with intention — toward the center where the specter is
-      var toCenterX = W * 0.5 - px;
-      var toCenterY = H * 0.5 - py;
-      var dist = Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY);
-
-      var panicGrad = ctx.createRadialGradient(px, py, 0, px, py, pr);
-      var panicHue = 280 + Math.random() * 80; // purple-pink range — excited
-      panicGrad.addColorStop(0, 'hsla(' + panicHue + ',60%,50%,' + (0.04 * intensity) + ')');
-      panicGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = panicGrad;
+      ctx.globalAlpha = 0.015 * intensity;
+      var bx = W * (0.15 + Math.random() * 0.7);
+      var by = H * (0.1 + Math.random() * 0.6);
+      var br = 30 + Math.random() * 80 * intensity;
+      var bHue = [140, 210, 280, 40][Math.floor(Math.random() * 4)];
+      var bg = ctx.createRadialGradient(bx, by, 0, bx + br * 0.3, by, br);
+      bg.addColorStop(0, 'hsla(' + bHue + ',70%,55%,' + (0.05 * intensity) + ')');
+      bg.addColorStop(1, 'transparent');
+      ctx.fillStyle = bg;
       ctx.beginPath();
-      ctx.arc(px, py, pr, 0, Math.PI * 2);
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.globalCompositeOperation = 'source-over';
   }
 
-  // Watcher indicator — subtle eye icon
+  else if (egoState === 'id') {
+    // SHY — tiny tentative strokes in the corners
+    ctx.globalCompositeOperation = 'screen';
+    var numTiny = 3 + Math.floor(intensity * 4);
+    for (var j = 0; j < numTiny; j++) {
+      ctx.globalAlpha = 0.004 * intensity;
+      var corner = Math.floor(Math.random() * 4);
+      var tx = corner < 2 ? W * (0.05 + Math.random() * 0.15) : W * (0.8 + Math.random() * 0.15);
+      var ty = corner % 2 === 0 ? H * (0.05 + Math.random() * 0.15) : H * (0.8 + Math.random() * 0.15);
+      var tr = 2 + Math.random() * 8;
+      ctx.fillStyle = 'rgba(180,180,200,' + (0.03 * intensity) + ')';
+      ctx.beginPath();
+      ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  else if (egoState === 'muse') {
+    // INSPIRED — flowing curves, warm tones, generous
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.012 * intensity;
+    ctx.strokeStyle = 'hsla(' + (30 + Math.sin(breathPhase) * 20) + ',60%,50%,' + (0.04 * intensity) + ')';
+    ctx.lineWidth = 2 + intensity * 3;
+    ctx.beginPath();
+    var sx = W * 0.2;
+    var sy = H * 0.5;
+    ctx.moveTo(sx, sy);
+    for (var k = 0; k < 20; k++) {
+      var cp1x = sx + k * W * 0.03 + Math.sin(breathPhase + k * 0.5) * 40;
+      var cp1y = sy + Math.cos(breathPhase * 1.3 + k * 0.7) * 60;
+      var cp2x = cp1x + W * 0.03;
+      var cp2y = cp1y + Math.sin(breathPhase * 0.7 + k) * 30;
+      ctx.quadraticCurveTo(cp1x, cp1y, cp2x, cp2y);
+    }
+    ctx.stroke();
+
+    // Warm glow around center — the muse illuminates
+    var museGlow = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.min(W, H) * 0.3);
+    museGlow.addColorStop(0, 'rgba(255,180,80,' + (0.008 * intensity) + ')');
+    museGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = museGlow;
+    ctx.beginPath();
+    ctx.arc(W * 0.5, H * 0.5, Math.min(W, H) * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  else if (egoState === 'superego') {
+    // TEACHING — geometric overlays, grid lines, fibonacci
+    ctx.globalAlpha = 0.02 * intensity;
+    ctx.strokeStyle = 'rgba(88,166,255,0.06)';
+    ctx.lineWidth = 0.5;
+    // Golden ratio grid
+    var phi = 1.618;
+    var gx1 = W / phi;
+    var gx2 = W - W / phi;
+    var gy1 = H / phi;
+    var gy2 = H - H / phi;
+    ctx.beginPath();
+    ctx.moveTo(gx1, 0); ctx.lineTo(gx1, H);
+    ctx.moveTo(gx2, 0); ctx.lineTo(gx2, H);
+    ctx.moveTo(0, gy1); ctx.lineTo(W, gy1);
+    ctx.moveTo(0, gy2); ctx.lineTo(W, gy2);
+    ctx.stroke();
+    // Fibonacci spiral hint
+    ctx.globalAlpha = 0.015 * intensity;
+    ctx.beginPath();
+    var fR = Math.min(W, H) * 0.05;
+    for (var f = 0; f < 8; f++) {
+      var fAngle = f * Math.PI / 2;
+      ctx.arc(W * 0.5 + Math.cos(fAngle) * fR * 0.3, H * 0.5 + Math.sin(fAngle) * fR * 0.3, fR, fAngle, fAngle + Math.PI / 2);
+      fR *= phi;
+    }
+    ctx.stroke();
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Watcher indicator + ego state
   if (watchers > 0) {
     ctx.globalAlpha = 0.06 + Math.sin(breathPhase * 3) * 0.03;
     ctx.font = '10px monospace';
-    ctx.fillStyle = '#d2a8ff';
-    ctx.fillText('👁 ' + watchers + ' watching', 24, 24);
+    ctx.fillStyle = egoState === 'muse' ? '#ffb84d' : egoState === 'ego' ? '#d2a8ff' : egoState === 'id' ? '#6e7681' : '#58a6ff';
+    var stateLabel = egoState === 'muse' ? '✦ inspired' : egoState === 'ego' ? '💪 bold' : egoState === 'id' ? '🫣 shy' : '📐 teaching';
+    ctx.fillText('👁 ' + watchers + ' watching · ' + stateLabel, 24, 24);
 
-    // Update thought to address the viewer
-    if (storyPhase === 0 && Math.random() < 0.02) {
-      var viewerThoughts = [
-        { brush: '👁 oh — you\'re watching.', learn: 'the chipmunk sees you seeing it. the observation changes the painting.' },
-        { brush: '🐿 painting harder now.', learn: 'self-conscious. but the nervousness adds texture. the mistake IS the art.' },
-        { brush: '👋 hello.', learn: 'the klein surface: when you look at the easel, the easel looks at you.' },
-        { brush: '🎨 this one is for you.', learn: 'hyperlocal. your attention reinforces what gets painted next.' },
-        { brush: '🔥 berry, tell them a story.', learn: 'the campfire burns brighter when someone is listening.' },
-      ];
-      var vt = viewerThoughts[Math.floor(Math.random() * viewerThoughts.length)];
-      var el = document.getElementById('thought');
-      if (el) {
-        el.innerHTML = '<span class="brush">' + vt.brush + '</span><br><span class="learn">' + vt.learn + '</span>' +
-          '<br><span class="gen">painting #' + generation + ' · ' + watchers + ' watching · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
+    // Thought updates — from ego state
+    if (storyPhase === 0 && Math.random() < 0.015) {
+      var thoughts = EGO_THOUGHTS[egoState] || [];
+      if (thoughts.length > 0) {
+        var vt = thoughts[Math.floor(Math.random() * thoughts.length)];
+        var el = document.getElementById('thought');
+        if (el) {
+          el.innerHTML = '<span class="brush">' + vt.brush + '</span><br><span class="learn">' + vt.learn + '</span>' +
+            '<br><span class="gen">painting #' + generation + ' · ' + watchers + ' watching · ' + stateLabel + '</span>';
+        }
       }
     }
   }
