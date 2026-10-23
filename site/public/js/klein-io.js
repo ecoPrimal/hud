@@ -72,7 +72,9 @@
     // Paper 130: The Voice — full-modality sovereign expression
     '/data/modality-voice.json',
     // University validation matrix — ethics × modality × industry
-    '/data/validation-matrix.json'
+    '/data/validation-matrix.json',
+    // Model phenotype taxonomy — classify models like organisms
+    '/data/model-phenotype.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';

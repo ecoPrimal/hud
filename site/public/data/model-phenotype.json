@@ -1,0 +1,222 @@
+{
+  "ts": "2026-10-23T14:11:57Z",
+  "type": "model-phenotype-sort",
+  "wave": 180,
+  "purpose": "classify models like organisms. genotype from phenotype. then evolve.",
+  "models": {
+    "tinyllama": {
+      "scores": {
+        "creativity": 10,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 1,
+        "multilingual": 0,
+        "code": 9
+      },
+      "avg_score": 6.7,
+      "avg_tps": 319.7,
+      "genotype": "vertebrate",
+      "params": "1B",
+      "taxon": "hummingbird",
+      "taxon_role": "fast generator"
+    },
+    "llama3.2:1b": {
+      "scores": {
+        "creativity": 7,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 10,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 9.3,
+      "avg_tps": 165.9,
+      "genotype": "vertebrate",
+      "params": "1.2B",
+      "taxon": "spider",
+      "taxon_role": "creative web-builder"
+    },
+    "gemma2:2b": {
+      "scores": {
+        "creativity": 6,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 9,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 9.0,
+      "avg_tps": 113.4,
+      "genotype": "vertebrate",
+      "params": "2.6B",
+      "taxon": "coral",
+      "taxon_role": "collaborative foundation"
+    },
+    "phi3:latest": {
+      "scores": {
+        "creativity": 9,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 10,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 9.7,
+      "avg_tps": 147.6,
+      "genotype": "vertebrate",
+      "params": "3.8B",
+      "taxon": "primate",
+      "taxon_role": "general intelligence"
+    },
+    "llama3.2:3b": {
+      "scores": {
+        "creativity": 9,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 10,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 9.7,
+      "avg_tps": 107.4,
+      "genotype": "vertebrate",
+      "params": "3.2B",
+      "taxon": "primate",
+      "taxon_role": "general intelligence"
+    },
+    "qwen2.5:7b": {
+      "scores": {
+        "creativity": 4,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 9,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 8.7,
+      "avg_tps": 69.4,
+      "genotype": "vertebrate",
+      "params": "7.6B",
+      "taxon": "parrot",
+      "taxon_role": "translation + repetition"
+    },
+    "mistral:7b": {
+      "scores": {
+        "creativity": 6,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 1,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 7.7,
+      "avg_tps": 82.6,
+      "genotype": "vertebrate",
+      "params": "7.2B",
+      "taxon": "octopus",
+      "taxon_role": "deep analysis"
+    },
+    "deepseek-coder-v2:16b": {
+      "scores": {
+        "creativity": 6,
+        "structure": 10,
+        "honesty": 10,
+        "compression": 1,
+        "multilingual": 10,
+        "code": 9
+      },
+      "avg_score": 7.7,
+      "avg_tps": 140.4,
+      "genotype": "vertebrate",
+      "params": "15.7B",
+      "taxon": "octopus",
+      "taxon_role": "deep analysis"
+    }
+  },
+  "taxonomy": {
+    "vertebrate": [
+      "tinyllama",
+      "llama3.2:1b",
+      "gemma2:2b",
+      "phi3:latest",
+      "llama3.2:3b",
+      "qwen2.5:7b",
+      "mistral:7b",
+      "deepseek-coder-v2:16b"
+    ]
+  },
+  "total_models": 8,
+  "taxonomy_refined": {
+    "hummingbird": {
+      "trait": "speed > 250 tok/s, creative",
+      "role": "fast generator",
+      "members": [
+        "tinyllama"
+      ]
+    },
+    "primate": {
+      "trait": "avg > 9, balanced all axes",
+      "role": "general intelligence",
+      "members": [
+        "phi3:latest",
+        "llama3.2:3b"
+      ]
+    },
+    "parrot": {
+      "trait": "multilingual=10, structured",
+      "role": "translation + repetition",
+      "members": [
+        "qwen2.5:7b"
+      ]
+    },
+    "octopus": {
+      "trait": "code=9, verbose, analytical",
+      "role": "deep analysis",
+      "members": [
+        "mistral:7b",
+        "deepseek-coder-v2:16b"
+      ]
+    },
+    "spider": {
+      "trait": "creative > 7, weaves connections",
+      "role": "creative web-builder",
+      "members": [
+        "llama3.2:1b"
+      ]
+    },
+    "coral": {
+      "trait": "slow but builds colonies",
+      "role": "collaborative foundation",
+      "members": [
+        "gemma2:2b"
+      ]
+    }
+  },
+  "evolution_crosses": [
+    {
+      "name": "hummingbird \u00d7 primate",
+      "chain": "tinyllama \u2192 phi3",
+      "produces": "fast generation + balanced refinement"
+    },
+    {
+      "name": "hummingbird \u00d7 octopus",
+      "chain": "tinyllama \u2192 deepseek",
+      "produces": "fast creative + deep analysis"
+    },
+    {
+      "name": "primate \u00d7 parrot",
+      "chain": "phi3 \u2192 qwen",
+      "produces": "intelligence + translation polish"
+    },
+    {
+      "name": "parrot \u00d7 octopus",
+      "chain": "mistral \u2192 deepseek",
+      "produces": "multilingual input + structural output"
+    },
+    {
+      "name": "spider \u00d7 hummingbird",
+      "chain": "llama3.2:3b \u2192 tinyllama",
+      "produces": "creative web \u2192 fast compression"
+    }
+  ]
+}

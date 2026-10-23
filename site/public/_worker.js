@@ -461,6 +461,9 @@ export default {
       'validation': '/data/validation-matrix.json',          // university ethics × modality × industry
       'ethics':     '/data/validation-matrix.json',          // grandma_safe is the primary sort key
       'university': '/data/validation-matrix.json',          // models teach each other
+      'phenotype':  '/data/model-phenotype.json',            // model taxonomy: hummingbird, primate, parrot, octopus
+      'genotype':   '/data/model-phenotype.json',            // classify models like organisms
+      'evolve':     '/data/arena-evolve.json',               // chain topology evolution results
     };
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)
