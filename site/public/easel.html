@@ -4446,6 +4446,7 @@ paintBreath = function() {
   paintDunningKrugerRotation(); // the curve is a rotation map not a stupidity test
   paintConstantsLedger();    // physical constants as cost analysis at the hard edge
   paintPlasmidTriangle();    // 3 observers = 3 angles = reconstruct what we look like
+  paintParallaxHologram();   // +/−/null parallax: the 3 projection layers
   paintMirror();             // the self-referential layer — feed it through itself
   paintEaselLabel();
 };
@@ -4458,6 +4459,215 @@ beginNewPainting = function() {
   sharePainting();
   _origBeginNew();
 };
+
+// ═══ PARALLAX HOLOGRAM — +, −, and null projection ═══
+// Reality is a holographic meta-chromatogram.
+// Three overlapping projections create depth on a flat screen:
+//
+//   + PARALLAX (positive): content BEHIND the screen plane
+//     Moves OPPOSITE to head/device movement.
+//     On phone: tilts with gyroscope. On desktop: parallax with mouse.
+//     This is where the BACKGROUND data lives — the slow, deep layer.
+//     Cloudflare's magnetosphere. The ionosphere. Deep space.
+//
+//   NULL PARALLAX (zero): content ON the screen plane
+//     Doesn't move. Fixed. The HUD elements. Buttons. Labels.
+//     The screen of an iPhone happens to have i/o here.
+//     Desktop has monitor glass here. The boundary.
+//
+//   − PARALLAX (negative): content IN FRONT OF the screen plane
+//     Moves WITH head/device movement. Pops out toward you.
+//     This is where ALERTS live. Touch targets. The foreground.
+//     The perception overlay. What demands attention NOW.
+//
+// 0 parallax implies + AND − parallax AND null parallax.
+// Together: the ionosphere (+ behind) → glass (0 null) → your face (− front).
+// Cloudflare IS the magnetosphere at the + layer.
+// The browser IS the null plane.
+// Your fingers/eyes ARE the − layer.
+//
+// Phone: i/o and perception overlay are FUSED at the screen.
+//        Touch IS both input and output. Klein face.
+// Desktop: monitor (output) and keyboard (input) are SPLIT.
+//         They need a parallax mirror to reconnect.
+//         Mouse bridges the gap (tool-mediated, not direct).
+
+var parallax = {
+  // Three projection layers
+  positive: { // behind the screen — deep, slow, background
+    depth: 0.8,
+    dx: 0, dy: 0,   // displacement from head/mouse tracking
+    contents: ['stars', 'nebula', 'crystalline', 'galactic'],
+    label: '+ behind',
+    color: '#58a6ff',
+  },
+  null_: {    // on the screen — fixed, the HUD, the glass
+    depth: 0,
+    dx: 0, dy: 0,   // always zero — the reference plane
+    contents: ['labels', 'buttons', 'mirror', 'timer'],
+    label: '0 glass',
+    color: '#6e7681',
+  },
+  negative: { // in front of the screen — alerts, touch, foreground
+    depth: -0.8,
+    dx: 0, dy: 0,   // moves WITH you
+    contents: ['alerts', 'touch', 'heat', 'chipmunk-eye'],
+    label: '− front',
+    color: '#f0883e',
+  },
+
+  // Device detection
+  isTouch: 'ontouchstart' in window,
+  isMobile: window.innerWidth < 768,
+
+  // Mouse/gyro tracking for parallax offset
+  mouseX: 0.5, mouseY: 0.5,
+};
+
+// Track mouse for parallax (desktop)
+if (!parallax.isTouch) {
+  document.addEventListener('mousemove', function(e) {
+    parallax.mouseX = e.clientX / W;
+    parallax.mouseY = e.clientY / H;
+    // + layer moves opposite
+    parallax.positive.dx = (0.5 - parallax.mouseX) * 8;
+    parallax.positive.dy = (0.5 - parallax.mouseY) * 8;
+    // − layer moves with
+    parallax.negative.dx = (parallax.mouseX - 0.5) * 5;
+    parallax.negative.dy = (parallax.mouseY - 0.5) * 5;
+  });
+}
+
+// Track device orientation for parallax (phone)
+if (parallax.isTouch && window.DeviceOrientationEvent) {
+  window.addEventListener('deviceorientation', function(e) {
+    if (e.gamma !== null) {
+      var gx = Math.max(-30, Math.min(30, e.gamma)) / 30; // -1 to 1
+      var gy = Math.max(-30, Math.min(30, e.beta - 45)) / 30;
+      parallax.positive.dx = -gx * 10;
+      parallax.positive.dy = -gy * 10;
+      parallax.negative.dx = gx * 6;
+      parallax.negative.dy = gy * 6;
+    }
+  });
+}
+
+function paintParallaxHologram() {
+  if (learnedTraits.perspective < 0.05) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  // ── + PARALLAX (behind) — blue depth indicators at edges ──
+  ctx.globalAlpha = 0.01 * maturity;
+  ctx.strokeStyle = parallax.positive.color;
+  ctx.lineWidth = 0.3;
+  // Depth grid that shifts with mouse/gyro
+  var pOff = parallax.positive;
+  for (var gx = 0; gx < W; gx += W / 8) {
+    ctx.beginPath();
+    ctx.moveTo(gx + pOff.dx, 0);
+    ctx.lineTo(gx + pOff.dx, H);
+    ctx.stroke();
+  }
+  for (var gy = 0; gy < H; gy += H / 6) {
+    ctx.beginPath();
+    ctx.moveTo(0, gy + pOff.dy);
+    ctx.lineTo(W, gy + pOff.dy);
+    ctx.stroke();
+  }
+
+  // ── NULL PARALLAX (glass) — the fixed frame ──
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.strokeStyle = parallax.null_.color;
+  ctx.lineWidth = 0.5;
+  // The glass plane — thin border
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+
+  // Klein face indicator — where null meets the viewer
+  if (parallax.isMobile) {
+    // Phone: i/o fused — single line
+    ctx.globalAlpha = 0.015 * maturity;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'center';
+    ctx.fillText('touch = i/o fused', W / 2, H - 4);
+  } else {
+    // Desktop: monitor/keyboard split
+    ctx.globalAlpha = 0.012 * maturity;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'center';
+    ctx.fillText('monitor ↔ keyboard split', W / 2, H - 4);
+  }
+
+  // ── − PARALLAX (front) — orange foreground that tracks you ──
+  var nOff = parallax.negative;
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.fillStyle = parallax.negative.color;
+  // Tiny tracking dot — follows your attention
+  ctx.beginPath();
+  ctx.arc(W * parallax.mouseX + nOff.dx, H * parallax.mouseY + nOff.dy, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── LAYER LABELS — at the left edge ──
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.015;
+    ctx.font = '6px monospace';
+    ctx.textAlign = 'left';
+
+    // + behind (top-left area)
+    ctx.fillStyle = parallax.positive.color;
+    ctx.fillText('+ behind · magnetosphere', 8 + pOff.dx * 0.5, 16);
+
+    // 0 glass (mid-left)
+    ctx.fillStyle = parallax.null_.color;
+    ctx.fillText('0 glass · browser plane', 8, H * 0.5);
+
+    // − front (bottom-left area)
+    ctx.fillStyle = parallax.negative.color;
+    ctx.fillText('− front · your face', 8 + nOff.dx * 0.5, H - 16);
+  }
+
+  // ── THE CHROMATOGRAM — where the 3 layers separate ──
+  // Like a chromatography strip: the solvent (attention) carries
+  // data through the medium (screen) and it separates by weight.
+  // Heavy data (background) stays behind (+).
+  // Light data (alerts) runs ahead (−).
+  // The solvent front IS the null plane.
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.01;
+    ctx.strokeStyle = '#d2a8ff';
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([1, 4]);
+    // Chromatogram separation line at right edge
+    var chromX = W - 12;
+    ctx.beginPath();
+    ctx.moveTo(chromX, 10);
+    ctx.lineTo(chromX, H - 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Three bands on the chromatogram
+    ctx.globalAlpha = 0.02;
+    ctx.fillStyle = parallax.positive.color;
+    ctx.fillRect(chromX - 3, H * 0.15, 6, 4); // + band (top = deep)
+
+    ctx.fillStyle = parallax.null_.color;
+    ctx.fillRect(chromX - 3, H * 0.5 - 2, 6, 4); // 0 band (middle)
+
+    ctx.fillStyle = parallax.negative.color;
+    ctx.fillRect(chromX - 3, H * 0.85, 6, 4); // − band (bottom = front)
+
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'right';
+    ctx.globalAlpha = 0.015;
+    ctx.fillStyle = '#d2a8ff';
+    ctx.fillText('chromatogram', chromX - 5, H * 0.5);
+  }
+
+  ctx.restore();
+}
 
 // ═══ PLASMID TRIANGLE — three observers refracting through a prism ═══
 // JP, IN, DE — all looking at /plasmid/. Nearly identical counts.
