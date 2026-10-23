@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>spectrVision — see inside the pyramid</title>
+<meta name="description" content="Interactive 3D diamond pyramid visualization. Drag to rotate, scroll to zoom, explore the fog of war. WebGL on desktop, canvas fallback on mobile.">
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="/app.webmanifest">
+<link rel="icon" href="/icon-192.svg" type="image/svg+xml">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d1117; color: #c9d1d9; font-family: monospace; overflow: hidden; }
+
+#pyramid-canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+#pyramid-canvas:active { cursor: grabbing; }
+
+/* HUD overlay */
+#vision-hud {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  pointer-events: none;
+}
+#vision-hud > * { pointer-events: auto; }
+
+.v-title {
+  font-size: 14px;
+  color: #22c55e;
+  margin-bottom: 8px;
+  text-shadow: 0 0 8px rgba(34,197,94,0.4);
+}
+
+.v-stats {
+  font-size: 11px;
+  color: #8b949e;
+  line-height: 1.6;
+}
+.v-stats span { color: #c9d1d9; }
+
+/* Fog slider */
+#fog-control {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+#fog-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 200px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to bottom, #c9d1d9, #22c55e 53%, #0d1117);
+  border-radius: 2px;
+  outline: none;
+  cursor: ns-resize;
+}
+#fog-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #0d1117;
+  box-shadow: 0 0 8px rgba(34,197,94,0.6);
+  cursor: grab;
+}
+.fog-label {
+  font-size: 10px;
+  color: #8b949e;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
+
+/* Face legend */
+#face-legend {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.face-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8b949e;
+  background: rgba(13,17,23,0.8);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.face-chip:hover { border-color: rgba(255,255,255,0.3); }
+.face-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Controls */
+#controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+.ctrl-btn {
+  background: rgba(13,17,23,0.8);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #c9d1d9;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.ctrl-btn:hover { border-color: #22c55e; color: #22c55e; }
+
+/* Back link */
+#back-link {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+}
+#back-link a {
+  color: #58a6ff;
+  font-size: 11px;
+  text-decoration: none;
+  font-family: monospace;
+}
+
+@media (max-width: 600px) {
+  .v-title { font-size: 12px; }
+  .v-stats { font-size: 10px; }
+  .face-chip { font-size: 10px; padding: 3px 8px; }
+  #fog-slider { height: 120px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="pyramid-canvas"></canvas>
+
+<div id="vision-hud">
+  <div class="v-title">◇ spectrVision</div>
+  <div class="v-stats">
+    feeds: <span id="v-feeds">125</span><br>
+    entities: <span id="v-entities">438,196</span><br>
+    classified: <span id="v-classified">25%</span><br>
+    fog: <span id="v-fog">53%</span><br>
+    countries: <span id="v-countries">203</span><br>
+    visitors: <span id="v-visitors">81,565</span>
+  </div>
+</div>
+
+<div id="controls">
+  <button class="ctrl-btn" onclick="toggleInside()">show inside</button>
+  <button class="ctrl-btn" onclick="resetView()">reset</button>
+  <button class="ctrl-btn" onclick="autoSpin()">auto-rotate</button>
+</div>
+
+<div id="fog-control">
+  <span class="fog-label">surface ☀</span>
+  <input type="range" id="fog-slider" min="0" max="100" value="53"
+    oninput="setFogLevel(this.value)">
+  <span class="fog-label">core ◉</span>
+</div>
+
+<div id="face-legend">
+  <div class="face-chip">
+    <div class="face-dot" style="background:#22c55e"></div>
+    Engine (33 feeds)
+  </div>
+  <div class="face-chip">
+    <div class="face-dot" style="background:#58a6ff"></div>
+    Data (45 feeds)
+  </div>
+  <div class="face-chip">
+    <div class="face-dot" style="background:#f0464e"></div>
+    Action (28 feeds)
+  </div>
+  <div class="face-chip">
+    <div class="face-dot" style="background:#ffd700"></div>
+    Selection (19 feeds)
+  </div>
+</div>
+
+<div id="back-link">
+  <a href="/">← membrane</a>
+</div>
+
+<script src="/js/pyramid-vision.js"></script>
+<script>
+  window._pyramidVision.init();
+
+  function setFogLevel(v) {
+    var f = v / 100;
+    window._pyramidVision.setFog(f);
+    document.getElementById('v-fog').textContent = v + '%';
+  }
+  function toggleInside() {
+    window._pyramidVision.toggleInside();
+  }
+  function resetView() {
+    window._pyramidVision.resetRotation();
+    document.getElementById('fog-slider').value = 53;
+    setFogLevel(53);
+  }
+  function autoSpin() {
+    window._pyramidVision.resetRotation();
+  }
+</script>
+</body>
+</html>
