@@ -147,6 +147,153 @@ var learnedTraits = {      // what the chipmunk has learned across generations
 
 var PI_REMAINDER = 0.14159265358979; // what remains after the integer is removed
 
+// ═══ THE PI BODY — the atomic triangle ═══
+// 3 points. 3 lines. 1 null center.
+// The corners stay fixed. The LINES are pulled toward center.
+// Scale at the lines, not the corners.
+// This creates a shape between triangle and point —
+// each edge bows inward, curving toward the null.
+//
+// The pi body is the fundamental building block.
+// It appears EVERYWHERE:
+//   - The trefoil's three crossings
+//   - The three Splinters
+//   - The plasmid triangle (JP/IN/DE)
+//   - Any three points with tension toward center
+//
+// The inward pull is governed by PI_REMAINDER.
+// At 0: a flat triangle. At 1: collapsed to center.
+// PI_REMAINDER (~0.14) gives a gentle bow — the shape breathes.
+//
+// It self-ingests: the center point IS the triangle's own
+// centroid being pulled back through itself.
+
+function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
+  // Null center = centroid
+  var cx = (x1 + x2 + x3) / 3;
+  var cy = (y1 + y2 + y3) / 3;
+
+  // Pull factor: how much the lines bow toward center
+  // 0 = flat triangle, 1 = collapsed to point
+  var p = typeof pull !== 'undefined' ? pull : PI_REMAINDER;
+
+  ctx.save();
+  ctx.globalAlpha = typeof alpha !== 'undefined' ? alpha : 0.03;
+  ctx.strokeStyle = color || '#c9d1d9';
+  ctx.lineWidth = 0.5;
+
+  // Edge 1: p1 → p2, pulled toward center
+  var mid12x = (x1 + x2) / 2;
+  var mid12y = (y1 + y2) / 2;
+  var cp12x = mid12x + (cx - mid12x) * p;
+  var cp12y = mid12y + (cy - mid12y) * p;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo(cp12x, cp12y, x2, y2);
+  ctx.stroke();
+
+  // Edge 2: p2 → p3, pulled toward center
+  var mid23x = (x2 + x3) / 2;
+  var mid23y = (y2 + y3) / 2;
+  var cp23x = mid23x + (cx - mid23x) * p;
+  var cp23y = mid23y + (cy - mid23y) * p;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.quadraticCurveTo(cp23x, cp23y, x3, y3);
+  ctx.stroke();
+
+  // Edge 3: p3 → p1, pulled toward center
+  var mid31x = (x3 + x1) / 2;
+  var mid31y = (y3 + y1) / 2;
+  var cp31x = mid31x + (cx - mid31x) * p;
+  var cp31y = mid31y + (cy - mid31y) * p;
+  ctx.beginPath();
+  ctx.moveTo(x3, y3);
+  ctx.quadraticCurveTo(cp31x, cp31y, x1, y1);
+  ctx.stroke();
+
+  // The null center point — tiny dot
+  ctx.globalAlpha = (typeof alpha !== 'undefined' ? alpha : 0.03) * 0.5;
+  ctx.fillStyle = color || '#c9d1d9';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 1, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  return { cx: cx, cy: cy, pull: p };
+}
+
+// Paint pi bodies everywhere — the shape that recurs at every scale
+function paintPiBodies() {
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+  if (maturity < 0.05) return;
+
+  var pull = PI_REMAINDER + Math.sin(breathPhase * 0.3) * 0.05; // breathing pull
+
+  // ── LARGE: The trefoil triangle (Splinter/Splinter/Shredder) ──
+  piBody(ctx,
+    W * 0.5, H * 0.08,   // Splinter top
+    W * 0.5, H * 0.92,   // Splinter bottom
+    W * 0.92, H * 0.5,   // Shredder
+    pull, '#8b949e', 0.01 * maturity
+  );
+
+  // ── MEDIUM: The turtle formation ──
+  // Leo(top) / Donnie(left) / Raph(bottom) / Mikey(right)
+  // Two overlapping pi bodies from 4 points:
+  var tR = Math.min(W, H) * 0.25;
+  var tcx = W * 0.5, tcy = H * 0.5;
+  // Triangle 1: Leo, Donnie, Raph
+  piBody(ctx,
+    tcx, tcy - tR,         // Leo top
+    tcx - tR, tcy,         // Donnie left
+    tcx, tcy + tR,         // Raph bottom
+    pull, '#58a6ff', 0.008 * maturity
+  );
+  // Triangle 2: Leo, Mikey, Raph
+  piBody(ctx,
+    tcx, tcy - tR,         // Leo top
+    tcx + tR, tcy,         // Mikey right
+    tcx, tcy + tR,         // Raph bottom
+    pull, '#f0883e', 0.008 * maturity
+  );
+
+  // ── SMALL: Fractal pi bodies at each turtle position ──
+  if (maturity > 0.3) {
+    var smallR = Math.min(W, H) * 0.04;
+    var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0];
+    var tColors = ['#58a6ff', '#d2a8ff', '#f85149', '#f0883e'];
+    tAngles.forEach(function(angle, i) {
+      var sx = tcx + Math.cos(angle) * tR;
+      var sy = tcy + Math.sin(angle) * tR;
+      piBody(ctx,
+        sx, sy - smallR,
+        sx - smallR * 0.866, sy + smallR * 0.5,
+        sx + smallR * 0.866, sy + smallR * 0.5,
+        pull * 1.5, tColors[i], 0.006 * maturity
+      );
+    });
+  }
+
+  // ── TINY: Scattered pi bodies — all the way down ──
+  if (maturity > 0.5 && generation > 3) {
+    var seed = generation * 7;
+    for (var pb = 0; pb < Math.min(generation, 12); pb++) {
+      var px = ((seed + pb * 137) % 100) / 100 * W;
+      var py = ((seed + pb * 251) % 100) / 100 * H;
+      var pr = 3 + ((seed + pb * 43) % 8);
+      var pa = (Math.PI * 2 / 3);
+      piBody(ctx,
+        px + Math.cos(0) * pr, py + Math.sin(0) * pr,
+        px + Math.cos(pa) * pr, py + Math.sin(pa) * pr,
+        px + Math.cos(pa * 2) * pr, py + Math.sin(pa * 2) * pr,
+        pull * (1 + pb * 0.1), '#6e7681', 0.003 * maturity
+      );
+    }
+  }
+}
+
 var turtles = {
   // LEONARDO — discipline, precision, the blade that CUTS
   // The turtle: katana, classification, slicing data, sharp boundaries
@@ -4293,6 +4440,7 @@ paintBreath = function() {
   paintCrystallineBackscatter();  // visitors as shooting stars → hit water → angstrom refraction
   paintBraidOverlay();
   paintThymusFlush();
+  paintPiBodies();           // the atomic triangle — 3 points, 3 lines, null center
   paintSplinterForce();      // the rat master's wisdom, visible as a force field
   paintHeatDissipation();    // attention→heat→sigmoid→null membrane→dissipation
   paintDunningKrugerRotation(); // the curve is a rotation map not a stupidity test
@@ -4850,6 +4998,8 @@ window._easel = {
   CONSTANTS: CONSTANTS,
   heat: function() { return typeof heatState !== 'undefined' ? heatState : null; },
   federation: function() { return federation; },
+  piBody: piBody,
+  shredder: shredder,
 };
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
