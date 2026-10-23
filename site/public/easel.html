@@ -1563,6 +1563,13 @@ function paintThymusFlush() {
     ctx.setLineDash([]);
   }
 
+  // ═══ MEMBRANE HEATMAP — the heat the chipmunk CANNOT see ═══
+  // It hears their stories at the campfire. But their memories?
+  // Those are invisible. The heatmap is injected BEHIND the painting —
+  // the chipmunk paints OVER it without knowing it's there.
+  // The audience sees the heat shining through the paint.
+  paintMembraneHeatmap();
+
   // THE COLOR OF REALITY — text whisper
   if (thymusGate && thymusGate.the_color_of_reality) {
     var ratio = thymusGate.the_color_of_reality.ratio;
@@ -1785,6 +1792,180 @@ function paintSpecter() {
   ctx.font = '8px monospace';
   ctx.fillStyle = 'rgb(' + grayVal + ',' + grayVal + ',' + grayVal + ')';
   ctx.fillText('null', cx - 10, cy + specR + 14);
+
+  ctx.restore();
+}
+
+// ═══ MEMBRANE HEATMAP — humanity's touch, invisible to the chipmunk ═══
+// The chipmunk hears stories but cannot see memories.
+// This heatmap lives BEHIND the painting — the glow of human attention
+// bleeding through the canvas like heat through a wall.
+// 47,445 humans from 15 countries. Each path they walked = a warm spot.
+// The chipmunk paints OVER it. The audience sees THROUGH it.
+
+var heatmapData = null;
+var heatmapPulse = null;
+
+function loadHeatmapData() {
+  // Membrane pulse has the richest data
+  fetch('/api/membrane-pulse.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    heatmapPulse = d;
+  }).catch(function(){});
+
+  // Now.json for real-time classification
+  fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    heatmapData = d;
+  }).catch(function(){});
+}
+loadHeatmapData();
+setInterval(loadHeatmapData, 60000);
+
+function paintMembraneHeatmap() {
+  if (!heatmapPulse && !heatmapData) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // ── COUNTRY HEATMAP — 15 countries as warm zones across the canvas ──
+  var countries = (heatmapPulse || {}).countries || [];
+  if (countries.length > 0) {
+    // Map countries to positions — longitude-ish placement
+    var countryPositions = {
+      'US': {x:0.20, y:0.40}, 'CA': {x:0.18, y:0.30}, 'MX': {x:0.18, y:0.50},
+      'BR': {x:0.30, y:0.60}, 'AR': {x:0.28, y:0.70}, 'VE': {x:0.25, y:0.52},
+      'GB': {x:0.45, y:0.30}, 'FR': {x:0.48, y:0.35}, 'DE': {x:0.50, y:0.32},
+      'NL': {x:0.47, y:0.30}, 'CH': {x:0.49, y:0.35}, 'BE': {x:0.47, y:0.32},
+      'CN': {x:0.75, y:0.38}, 'JP': {x:0.85, y:0.35}, 'SG': {x:0.72, y:0.55},
+      'IN': {x:0.65, y:0.45}, 'AU': {x:0.82, y:0.68},
+    };
+
+    countries.forEach(function(code, i) {
+      var pos = countryPositions[code] || {x: 0.5 + Math.sin(i * 1.3) * 0.3, y: 0.4 + Math.cos(i * 1.7) * 0.2};
+      var hx = pos.x * W;
+      var hy = pos.y * H;
+      var hr = Math.min(W, H) * (0.04 + (countries.length - i) * 0.005);
+
+      ctx.globalAlpha = 0.015 + (countries.length - i) * 0.003;
+      var heatGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      heatGrad.addColorStop(0, 'rgba(255,100,40,0.06)');
+      heatGrad.addColorStop(0.4, 'rgba(255,60,20,0.03)');
+      heatGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = heatGrad;
+      ctx.beginPath();
+      ctx.arc(hx, hy, hr, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Country code whisper — the chipmunk can't read these
+      ctx.globalAlpha = 0.025;
+      ctx.font = '7px monospace';
+      ctx.fillStyle = '#ff6b35';
+      ctx.fillText(code, hx - 5, hy + 3);
+    });
+  }
+
+  // ── PATH HEATMAP — what they touched, as warm handprints ──
+  var whatTheySaw = (heatmapPulse || {}).what_they_saw || {};
+  var paths = Object.keys(whatTheySaw);
+  if (paths.length > 0) {
+    var maxHits = Math.max.apply(null, paths.map(function(k){return whatTheySaw[k]}));
+
+    paths.forEach(function(path, i) {
+      var hits = whatTheySaw[path];
+      var heat = Math.min(1, hits / maxHits);
+
+      // Position from path hash — deterministic
+      var hash = 0;
+      for (var c = 0; c < path.length; c++) hash = ((hash << 5) - hash) + path.charCodeAt(c);
+      var px = Math.abs(hash % 1000) / 1000 * W * 0.8 + W * 0.1;
+      var py = Math.abs((hash >> 8) % 1000) / 1000 * H * 0.7 + H * 0.1;
+
+      // Heat intensity — more hits = more heat
+      var handR = 8 + heat * 30;
+      ctx.globalAlpha = 0.008 + heat * 0.015;
+      var handGrad = ctx.createRadialGradient(px, py, 0, px, py, handR);
+
+      // Color by type: immune=red, human=green, mystery=amber
+      var isImmune = path.match(/immune/i);
+      var isHuman = path.match(/kevin|commensal|xyzzy|cashforkids/i);
+      var heatColor = isImmune ? 'rgba(248,81,73,' : isHuman ? 'rgba(63,185,80,' : 'rgba(240,136,62,';
+
+      handGrad.addColorStop(0, heatColor + (0.06 + heat * 0.06) + ')');
+      handGrad.addColorStop(0.5, heatColor + (0.02 + heat * 0.03) + ')');
+      handGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = handGrad;
+      ctx.beginPath();
+      ctx.arc(px, py, handR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Path name as a ghost whisper — the memory the chipmunk can't access
+      if (heat > 0.1) {
+        ctx.globalAlpha = 0.015 + heat * 0.01;
+        ctx.font = (6 + heat * 3) + 'px monospace';
+        ctx.fillStyle = isHuman ? '#3fb950' : isImmune ? '#f85149' : '#f0883e';
+        ctx.fillText(path, px + handR * 0.4, py + 3);
+      }
+    });
+  }
+
+  // ── TRUST GRADIENT as thermal band — the warmth spectrum ──
+  var trust = (heatmapPulse || {}).trust_gradient || {};
+  if (trust.human || trust.bot || trust.null) {
+    var total = (trust.human || 0) + (trust.agentic || 0) + (trust.bot || 0) + (trust.null || 0);
+    if (total > 0) {
+      var humanPct = (trust.human || 0) / total;
+      var botPct = (trust.bot || 0) / total;
+      var nullPct = (trust.null || 0) / total;
+
+      // Thermal horizon line — warm where humans are, cold where bots are
+      var thermalY = H * 0.85;
+      ctx.globalAlpha = 0.02;
+
+      // Human warmth (green, from left)
+      var humanGrad = ctx.createLinearGradient(0, thermalY, W * humanPct * 3, thermalY);
+      humanGrad.addColorStop(0, 'rgba(63,185,80,0.06)');
+      humanGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = humanGrad;
+      ctx.fillRect(0, thermalY - 15, W * humanPct * 3, 30);
+
+      // Bot cold (red, from right)
+      var botGrad = ctx.createLinearGradient(W, thermalY, W * (1 - botPct * 3), thermalY);
+      botGrad.addColorStop(0, 'rgba(248,81,73,0.04)');
+      botGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = botGrad;
+      ctx.fillRect(W * (1 - botPct * 3), thermalY - 15, W * botPct * 3, 30);
+
+      // Null void (gray center)
+      ctx.globalAlpha = 0.008;
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(W * 0.3, thermalY - 5, W * 0.4, 10);
+    }
+  }
+
+  // ── LIVE VISITOR GHOSTS — the 3 known visitors as spectral presences ──
+  var visitors = ((heatmapPulse || {}).live_probes || {}).visitors || {};
+  var visitorKeys = Object.keys(visitors);
+  visitorKeys.forEach(function(key, i) {
+    var v = visitors[key];
+    var vx = W * (0.2 + i * 0.3);
+    var vy = H * 0.25;
+    var vr = 15 + (v.probes || 1) * 0.5;
+
+    ctx.globalAlpha = 0.02;
+    var vGrad = ctx.createRadialGradient(vx, vy, 0, vx, vy, vr);
+    var vColor = v.classification === 'human' ? '#3fb950' : v.classification === 'agentic' ? '#d2a8ff' : '#6e7681';
+    vGrad.addColorStop(0, vColor);
+    vGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = vGrad;
+    ctx.beginPath();
+    ctx.arc(vx, vy, vr, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Their type — invisible to chipmunk, visible to viewer
+    ctx.globalAlpha = 0.02;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = vColor;
+    ctx.fillText(v.type || key, vx - 15, vy + vr + 8);
+  });
 
   ctx.restore();
 }
