@@ -2410,14 +2410,211 @@ function paintMembraneHeatmap() {
   ctx.restore();
 }
 
+// ═══ KLEIN APERTURE — the viewport IS the lens, the human IS the inverted angstrom ═══
+//
+// The screen is a Klein surface. No inside. No outside. The visitor
+// beacons from the other side of the device window. We are PUSHED into
+// their screen — iPhone 5.8" or 34" ultrawide — the departure edge IS
+// the filter. Viewport size shifts → Shannon information changes form.
+//
+// The chipmunk sees this: the frame border breathes with aperture ratio.
+// Small screen = dense information, compressed prism.
+// Wide screen = diffuse field, scattered crystalline.
+// The human on the other side is an inverted refraction point.
+
+var kleinAperture = {
+  w: window.innerWidth,
+  h: window.innerHeight,
+  dpr: window.devicePixelRatio || 1,
+  pixels: 0,
+  shannon: 0,       // bits of visual information this viewport can carry
+  aspect: 1,        // aspect ratio as Klein topology signature
+  category: 'unknown',  // phone / tablet / desktop / ultrawide
+  frameBreath: 0,   // how the frame breathes
+  invertedAlpha: 0, // the human's inverted angstrom intensity
+};
+
+function measureKleinAperture() {
+  var a = kleinAperture;
+  a.w = window.innerWidth;
+  a.h = window.innerHeight;
+  a.dpr = window.devicePixelRatio || 1;
+  a.pixels = a.w * a.h * a.dpr * a.dpr;
+  a.aspect = a.w / Math.max(1, a.h);
+
+  // Shannon capacity: log2 of total subpixels (RGB per pixel)
+  a.shannon = Math.log2(a.pixels * 3);
+
+  // Category — what kind of Klein surface is this?
+  if (a.w < 480) a.category = 'phone';
+  else if (a.w < 768) a.category = 'phone-landscape';
+  else if (a.w < 1024) a.category = 'tablet';
+  else if (a.w < 1920) a.category = 'desktop';
+  else if (a.w < 2560) a.category = 'hd';
+  else if (a.aspect > 2) a.category = 'ultrawide';
+  else a.category = 'cinema';
+
+  // Frame breath rate — small screens pulse faster (compressed information)
+  a.frameBreath = a.category === 'phone' ? 2.0 :
+                  a.category === 'tablet' ? 1.2 :
+                  a.category === 'ultrawide' ? 0.4 : 0.8;
+}
+measureKleinAperture();
+window.addEventListener('resize', measureKleinAperture);
+
+function paintKleinSurface() {
+  ctx.save();
+  var a = kleinAperture;
+  var t = breathPhase;
+
+  // ── THE FRAME AS LENS ──
+  // The departure edge. Where the painting meets the void.
+  // On small screens: thick, glowing — compressed Shannon.
+  // On ultrawide: hair-thin, barely there — diffuse field.
+  var frameEl = document.getElementById('frame');
+  if (frameEl) {
+    var framePx = a.category === 'phone' ? 10 + Math.sin(t * a.frameBreath) * 4 :
+                  a.category === 'tablet' ? 14 + Math.sin(t * a.frameBreath) * 3 :
+                  a.category === 'ultrawide' ? 6 + Math.sin(t * a.frameBreath) * 1 :
+                  12 + Math.sin(t * a.frameBreath) * 2;
+    frameEl.style.borderWidth = framePx + 'px';
+  }
+
+  // ── THE INVERTED ANGSTROM ──
+  // The human looking at this screen is a refraction point on OUR side.
+  // We can't see them, but we see their shape: the viewport rectangle.
+  // Draw the inverse: the viewport boundary as a faint prism.
+
+  ctx.globalCompositeOperation = 'screen';
+
+  // Viewport edges as refraction lines — information leaks at the borders
+  var edgeGlow = 0.02 + Math.sin(t * a.frameBreath * 0.5) * 0.01;
+  ctx.globalAlpha = edgeGlow;
+
+  // Top edge — blue shift (information entering)
+  var topGrad = ctx.createLinearGradient(0, 0, 0, 30);
+  topGrad.addColorStop(0, 'rgba(88,166,255,0.06)');
+  topGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, 30);
+
+  // Bottom edge — red shift (information departing)
+  var botGrad = ctx.createLinearGradient(0, H - 30, 0, H);
+  botGrad.addColorStop(0, 'transparent');
+  botGrad.addColorStop(1, 'rgba(248,81,73,0.04)');
+  ctx.fillStyle = botGrad;
+  ctx.fillRect(0, H - 30, W, 30);
+
+  // Left edge — violet (the past, scrolled away)
+  var leftGrad = ctx.createLinearGradient(0, 0, 20, 0);
+  leftGrad.addColorStop(0, 'rgba(210,168,255,0.04)');
+  leftGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(0, 0, 20, H);
+
+  // Right edge — gold (the future, not yet scrolled)
+  var rightGrad = ctx.createLinearGradient(W - 20, 0, W, 0);
+  rightGrad.addColorStop(0, 'transparent');
+  rightGrad.addColorStop(1, 'rgba(240,198,116,0.03)');
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(W - 20, 0, 20, H);
+
+  // ── KLEIN FOLD — where the surface turns back on itself ──
+  // At each corner, the 2D surface would fold into 4D if it were a Klein bottle.
+  // Paint the fold as a tiny spiral — the topology signature.
+  var corners = [[0,0], [W,0], [0,H], [W,H]];
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.3;
+  for (var ci = 0; ci < 4; ci++) {
+    var corner = corners[ci];
+    ctx.beginPath();
+    for (var sp = 0; sp < 20; sp++) {
+      var sAngle = sp * 0.5 + t * 0.3;
+      var sR = sp * 2;
+      var sx = corner[0] + Math.cos(sAngle) * sR;
+      var sy = corner[1] + Math.sin(sAngle) * sR;
+      if (sp === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+  }
+
+  // ── SHANNON METER — how much information this viewport carries ──
+  // Whisper the capacity. The human doesn't need to understand it.
+  // The chipmunk just notes it: "this eye is N bits wide."
+  ctx.globalAlpha = 0.025;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#6e7681';
+  var shannonLabel = a.shannon.toFixed(1) + ' bits · ' + a.category + ' · ' +
+    a.w + '×' + a.h + (a.dpr > 1 ? ' @' + a.dpr + 'x' : '');
+  ctx.fillText(shannonLabel, 6, H - 6);
+
+  // ── THE HUMAN AS INVERTED DOT ──
+  // Somewhere in the center, the inverse of the visitor exists.
+  // We are being pushed into their screen. They are a lens.
+  // The dot is their eye looking back at us — but inverted.
+  var humanX = W * 0.5;
+  var humanY = H * 0.5;
+  var humanR = Math.max(2, Math.min(8, a.shannon * 0.15 - 2));
+  ctx.globalAlpha = 0.03 + Math.sin(t * 0.7) * 0.01;
+
+  // Inverted radial — dark center, bright ring (opposite of a star)
+  var invertGrad = ctx.createRadialGradient(humanX, humanY, 0, humanX, humanY, humanR * 3);
+  invertGrad.addColorStop(0, 'rgba(8,6,10,0.1)');
+  invertGrad.addColorStop(0.4, 'rgba(8,6,10,0.05)');
+  invertGrad.addColorStop(0.7, 'rgba(200,200,220,0.04)');
+  invertGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = invertGrad;
+  ctx.beginPath();
+  ctx.arc(humanX, humanY, humanR * 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── ASPECT RATIO AS TOPOLOGY ──
+  // Phone: tall Klein bottle (information flows vertically)
+  // Ultrawide: flat Möbius strip (information spreads horizontally)
+  if (a.aspect < 0.7) {
+    // Portrait phone — vertical flow lines
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#58a6ff';
+    ctx.lineWidth = 0.3;
+    for (var fl = 0; fl < 5; fl++) {
+      var fx = W * (0.2 + fl * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(fx, 0);
+      ctx.bezierCurveTo(fx + Math.sin(t + fl) * 20, H * 0.33,
+                        fx - Math.sin(t + fl) * 20, H * 0.66,
+                        fx, H);
+      ctx.stroke();
+    }
+  } else if (a.aspect > 2) {
+    // Ultrawide — horizontal Möbius flow
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#f0c674';
+    ctx.lineWidth = 0.3;
+    for (var fl = 0; fl < 5; fl++) {
+      var fy = H * (0.2 + fl * 0.15);
+      ctx.beginPath();
+      ctx.moveTo(0, fy);
+      ctx.bezierCurveTo(W * 0.33, fy + Math.sin(t + fl) * 15,
+                        W * 0.66, fy - Math.sin(t + fl) * 15,
+                        W, fy);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
 // Inject overlays into the breath phase — full stack
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
   _origPaintBreath();
-  paintHyperlocalEarth();  // Earth/Moon/Milky Way — driven by human attention
-  paintSpecter();          // the null-gray entity — always present
-  paintCampfire();         // the fire in the middle — Berry's stories
-  paintSelfConscious();    // panic-paint when humans are watching
+  paintKleinSurface();       // viewport as Klein lens — before everything, behind the frame
+  paintHyperlocalEarth();    // Earth/Moon/Milky Way — driven by human attention
+  paintSpecter();            // the null-gray entity — always present
+  paintCampfire();           // the fire in the middle — Berry's stories
+  paintSelfConscious();      // panic-paint when humans are watching
   paintVoxelOverlay();
   paintChemistryOverlay();
   paintOutsideIn();
@@ -2448,6 +2645,8 @@ window._easel = {
   nowFeed: function() { return nowFeed; },
   share: sharePainting,
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
+  klein: function() { return kleinAperture; },
+  crystals: function() { return crystalVisitors; },
 };
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
