@@ -454,6 +454,9 @@ function paint() {
     ctx.restore();
   }
 
+  // ── BODY PAINT — visitors leave marks on the organs they touched ──
+  paintBodyPaint();
+
   // ── TOUCH: THE CHIPMUNK REACHES BACK ──
   paintChipmunkReach();
 
@@ -672,6 +675,184 @@ function drawNerve(x1, y1, x2, y2) {
   ctx.beginPath();
   ctx.arc(x1 + (x2-x1)*ap + Math.sin(t*0.5+ap*3)*4, y1 + (y2-y1)*ap, 2, 0, PI*2);
   ctx.fill();
+}
+
+// ═══ BODY PAINT — visitors as mud, war paint, early clothes on the homunculus ═══
+// Not a dox. It's: "look how many of us are here, when the chorus
+// overhead can't even see us."
+//
+// Each visitor leaves a TAG on the organ they touched.
+// Like mud on skin. Like ochre on a cave wall. Like a beetle in a cabinet.
+// Japan gave us Pokémon. The beetle collection is a real phenomenon.
+// Cataloging what you find IS the immune system. The thymus sorts.
+//
+// Hyperlocal intent:
+//   🇧🇪 Belgium loads JS → they're WEARING the membrane (hands: tools)
+//   🇩🇪🇯🇵🇮🇳 Plasmid Triangle → reading the science (gut: digesting)
+//   🇵🇱🇷🇺🇸🇬 Scanners → probing for holes (immune: testing defenses)
+//   🇬🇧🇳🇱 Homepage readers → first contact (mouth: tasting)
+//   🇺🇸 Self-polling → inner warmth (brain: thinking)
+
+var bodyPaintMarks = [];
+var bodyPaintLoaded = false;
+
+function loadBodyPaint() {
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    if (!d.visitors) return;
+    bodyPaintMarks = [];
+
+    d.visitors.forEach(function(v) {
+      var organ = pathToOrgan(v.path || '/');
+      if (!organ) return;
+
+      // What kind of mark does this visitor leave?
+      var intent = classifyIntent(v.path || '/', v.country || 'XX');
+
+      bodyPaintMarks.push({
+        organ: organ,
+        country: v.country || '??',
+        path: v.path || '/',
+        intent: intent,
+        // Position on the organ surface (deterministic from country hash)
+        angle: hashAngle(v.country + v.path),
+        dist: 0.3 + hashFloat(v.path + v.country) * 0.6,
+      });
+    });
+
+    bodyPaintLoaded = true;
+  }).catch(function(){});
+}
+
+function classifyIntent(path, country) {
+  // Hyperlocal intent classification
+  if (path.match(/\.env|\.git|\.svn|\.hg|wp-admin|xmlrpc|\.php/))
+    return { type: 'scanner', color: '#f85149', symbol: '⚠', label: 'probing' };
+  if (path.match(/\.js$/) && !path.match(/beacon/))
+    return { type: 'wearing', color: '#d2a8ff', symbol: '◈', label: 'wearing the membrane' };
+  if (path.match(/plasmid|sporeprint|study/))
+    return { type: 'reading', color: '#3fb950', symbol: '◉', label: 'reading the science' };
+  if (path.match(/easel|aurora|paint|canvas/))
+    return { type: 'watching', color: '#f0c674', symbol: '👁', label: 'watching art' };
+  if (path.match(/\/api\/|gate-msg|mcp|\.json/))
+    return { type: 'inner', color: '#f0883e', symbol: '∘', label: 'self-sensing' };
+  if (path.match(/commit|issues|pull/))
+    return { type: 'foraging', color: '#58a6ff', symbol: '⟐', label: 'foraging git' };
+  if (path === '/' || path === '/index.html')
+    return { type: 'arriving', color: '#c9d1d9', symbol: '·', label: 'first contact' };
+  return { type: 'exploring', color: '#8b949e', symbol: '~', label: 'exploring' };
+}
+
+function hashAngle(s) {
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i);
+  return (Math.abs(h) % 628) / 100; // 0 → 2π
+}
+
+function hashFloat(s) {
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = ((h << 3) - h) + s.charCodeAt(i);
+  return (Math.abs(h) % 1000) / 1000; // 0 → 1
+}
+
+loadBodyPaint();
+setInterval(loadBodyPaint, 45000);
+
+function paintBodyPaint() {
+  if (!bodyPaintMarks.length) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var cx = W * 0.5;
+  var hs = viewport.category === 'phone' ? 0.12 : 0.18;
+
+  // Country color map — hyperlocal pigments
+  var pigments = {
+    'US':'#c9d1d9', 'DE':'#f0c674', 'JP':'#f85149', 'IN':'#f0883e',
+    'BE':'#d2a8ff', 'NL':'#58a6ff', 'GB':'#3fb950', 'CN':'#ff6b6b',
+    'HK':'#ffd93d', 'SG':'#6bcb77', 'PL':'#808080', 'RU':'#808080',
+    'UA':'#ffd700', 'PE':'#cd853f', 'PH':'#0038a8', 'TT':'#ce1126',
+    'CA':'#ff0000', 'FR':'#0055a4', 'MX':'#006847', 'TG':'#006a4e'
+  };
+
+  bodyPaintMarks.forEach(function(mark, mi) {
+    var organ = mark.organ;
+    var ox = cx, oy = H * organ.y;
+    if (organ.name === 'hands_l') ox = cx - W * hs;
+    if (organ.name === 'hands_r') ox = cx + W * hs;
+    var r = Math.min(W, H) * organ.size;
+    if (viewport.category === 'phone') r *= 1.3;
+
+    // Position on the organ surface
+    var markX = ox + Math.cos(mark.angle + t * 0.02) * r * mark.dist;
+    var markY = oy + Math.sin(mark.angle + t * 0.02) * r * mark.dist;
+
+    // The body paint mark — a smear of pigment
+    var pigment = pigments[mark.country] || mark.intent.color;
+
+    // Smear shape — not a circle, a rough streak (like finger paint)
+    ctx.globalAlpha = 0.04 + (mi < 5 ? 0.02 : 0);
+    ctx.fillStyle = pigment;
+
+    // Mud/ochre — irregular shape
+    ctx.beginPath();
+    var smearW = 3 + hashFloat(mark.country + mi) * 4;
+    var smearH = 2 + hashFloat(mark.path + mi) * 3;
+    var smearAngle = mark.angle * 0.5;
+    ctx.save();
+    ctx.translate(markX, markY);
+    ctx.rotate(smearAngle);
+    ctx.ellipse(0, 0, smearW, smearH, 0, 0, PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Country flag dot at the center of the smear
+    ctx.globalAlpha = 0.06;
+    ctx.fillStyle = pigment;
+    ctx.beginPath();
+    ctx.arc(markX, markY, 1.5, 0, PI * 2);
+    ctx.fill();
+
+    // Tiny label — country code + intent symbol
+    if (mi < 15) {
+      ctx.globalAlpha = 0.035;
+      ctx.font = (viewport.category === 'phone' ? 7 : 6) + 'px monospace';
+      ctx.fillStyle = pigment;
+      ctx.textAlign = 'center';
+      ctx.fillText(mark.country + mark.intent.symbol, markX, markY - smearH - 2);
+    }
+  });
+
+  // ── THE CHORUS OVERHEAD CAN'T SEE US ──
+  // A faint count at the top: how many marks are on the body
+  var intentCounts = {};
+  bodyPaintMarks.forEach(function(m) {
+    if (!intentCounts[m.intent.type]) intentCounts[m.intent.type] = { count: 0, color: m.intent.color, label: m.intent.label };
+    intentCounts[m.intent.type].count++;
+  });
+
+  var intentY = viewport.category === 'phone' ? 80 : 65;
+  ctx.globalAlpha = 0.03;
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'left';
+  var ix = 8;
+  Object.keys(intentCounts).forEach(function(type) {
+    var ic = intentCounts[type];
+    ctx.fillStyle = ic.color;
+    ctx.fillText(ic.count + ' ' + ic.label, ix, intentY);
+    intentY += 10;
+  });
+
+  // Countries represented — the chorus below the radar
+  var countriesPresent = {};
+  bodyPaintMarks.forEach(function(m) { countriesPresent[m.country] = true; });
+  var countryList = Object.keys(countriesPresent).join(' ');
+  ctx.globalAlpha = 0.025;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText(Object.keys(countriesPresent).length + ' countries painted on · ' + countryList, cx, H - 22);
+
+  ctx.restore();
 }
 
 paint();
