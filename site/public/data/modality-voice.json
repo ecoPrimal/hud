@@ -1,0 +1,142 @@
+{
+  "ts": "2026-10-23T13:50:00Z",
+  "paper": 130,
+  "title": "The Voice: Full-Modality Sovereign Expression",
+  "wave": 180,
+  "purpose": "every modality is a target. sing it, rap it, speak it, play it.",
+
+  "gpu_audio_pipeline": {
+    "engine": "barraCuda",
+    "hardware": "RTX 4070 (12GB VRAM)",
+    "precision": "f64",
+    "shaders": [
+      {"name": "stft_f64", "function": "Short-Time Fourier Transform", "domain": "time→frequency"},
+      {"name": "istft_f64", "function": "Inverse STFT", "domain": "frequency→time"},
+      {"name": "mel_scale_f64", "function": "Mel filterbank", "domain": "frequency→pitch"},
+      {"name": "mfcc_f64", "function": "MFCC extraction", "domain": "voice fingerprint"},
+      {"name": "spectrogram_f64", "function": "Power spectrogram", "domain": "visualization"},
+      {"name": "pitch_shift_f64", "function": "Pitch shifting", "domain": "key transposition"},
+      {"name": "time_stretch_f64", "function": "Phase vocoder", "domain": "tempo control"},
+      {"name": "griffin_lim_f64", "function": "Phase reconstruction", "domain": "audio from spectrogram"},
+      {"name": "window_function_f64", "function": "Hann/Hamming/Blackman", "domain": "signal framing"}
+    ],
+    "total_shaders": 9,
+    "round_trip": "time ↔ frequency ↔ mel ↔ cepstral"
+  },
+
+  "modality_compilers": {
+    "engine": "petalTongue",
+    "trait": "ModalityCompiler",
+    "live": [
+      {"name": "AudioCompiler", "output": "frequency, amplitude, pan, duration"},
+      {"name": "SvgCompiler", "output": "vector graphics"},
+      {"name": "TerminalCompiler", "output": "terminal cells"},
+      {"name": "WebGLCompiler", "output": "GPU-rendered scenes"},
+      {"name": "DescriptionCompiler", "output": "natural language"},
+      {"name": "HapticCompiler", "output": "vibration patterns"},
+      {"name": "BrailleCompiler", "output": "refreshable display"}
+    ],
+    "targets": [
+      {"name": "VoiceCompiler", "output": "spoken language with prosody"},
+      {"name": "MusicCompiler", "output": "musical phrases from data"},
+      {"name": "RhythmCompiler", "output": "beat-aligned rhythmic speech"},
+      {"name": "SpatialAudioCompiler", "output": "3D positioned sound"},
+      {"name": "MultilingualCompiler", "output": "same content, any language"},
+      {"name": "StyleTransferCompiler", "output": "any voice, any artist style"}
+    ],
+    "live_count": 7,
+    "target_count": 6,
+    "total": 13
+  },
+
+  "voices": {
+    "source": "ludoSpring RPG engine",
+    "model": "Disco Elysium skill system",
+    "count": 10,
+    "voices": [
+      {"id": "Logic", "musical": "precise mathematical rhythms"},
+      {"id": "Empathy", "musical": "soft melodies, minor keys"},
+      {"id": "Rhetoric", "musical": "rap cadence, persuasive flow"},
+      {"id": "Perception", "musical": "detailed soundscapes, layered"},
+      {"id": "Endurance", "musical": "deep bass, steady beat"},
+      {"id": "Authority", "musical": "brass, power chords"},
+      {"id": "Composure", "musical": "jazz, smooth transitions"},
+      {"id": "Electrochemistry", "musical": "EDM, synth-heavy, chaotic"},
+      {"id": "Encyclopedia", "musical": "classical, structured"},
+      {"id": "InlandEmpire", "musical": "ambient, reverb-heavy, ethereal"}
+    ]
+  },
+
+  "style_targets": {
+    "hip_hop": [
+      {"artist": "Sugarhill Gang", "bpm": "110-120", "element": "party rap, call-and-response", "year": 1979},
+      {"artist": "Grandmaster Flash", "bpm": "100-115", "element": "turntablism, sampling", "year": 1982},
+      {"artist": "Run-DMC", "bpm": "125-135", "element": "rock-rap fusion", "year": 1984},
+      {"artist": "Rakim", "bpm": "85-100", "element": "internal rhyme, complex flow", "year": 1987},
+      {"artist": "Nas", "bpm": "85-95", "element": "storytelling, vivid imagery", "year": 1994},
+      {"artist": "Eminem", "bpm": "100-180", "element": "polyrhythmic, speed, multisyllabic", "year": 1999},
+      {"artist": "MF DOOM", "bpm": "90-110", "element": "off-beat, wordplay", "year": 1999},
+      {"artist": "Missy Elliott", "bpm": "95-130", "element": "experimental, vocal manipulation", "year": 1997},
+      {"artist": "OutKast", "bpm": "70-140", "element": "funk-soul fusion, dual voices", "year": 1994},
+      {"artist": "Kendrick Lamar", "bpm": "80-150", "element": "tempo shifts, character voices", "year": 2012}
+    ],
+    "languages": [
+      {"lang": "Japanese", "tradition": "enka, J-rap, Vocaloid", "challenge": "pitch accent, mora timing"},
+      {"lang": "Spanish", "tradition": "reggaeton, Latin trap", "challenge": "rapid syllables, rolled R"},
+      {"lang": "French", "tradition": "chanson, French rap", "challenge": "nasal vowels, liaison flow"},
+      {"lang": "Korean", "tradition": "K-pop, Korean rap", "challenge": "agglutinative wordplay"},
+      {"lang": "Arabic", "tradition": "maqam, Arabic rap", "challenge": "microtonal scales"},
+      {"lang": "Hindi", "tradition": "Bollywood, Indian rap", "challenge": "raga modes, tabla rhythms"},
+      {"lang": "Portuguese", "tradition": "bossa nova, Brazilian funk", "challenge": "syncopation, saudade"},
+      {"lang": "Mandarin", "tradition": "C-pop, Chinese rap", "challenge": "tonal language + rhythm (HARDEST)"},
+      {"lang": "Yoruba", "tradition": "Afrobeats, talking drum", "challenge": "tonal speech IS music"},
+      {"lang": "German", "tradition": "NDW, German rap", "challenge": "compound words as rhythm"}
+    ],
+    "hardest_target": "Mandarin rap — tonal language where pitch = meaning forced into rhythmic structure where pitch = melody"
+  },
+
+  "local_inference_stack": {
+    "hardware": "RTX 4070, 12GB VRAM",
+    "models_target": [
+      {"model": "F5-TTS", "size_gb": 0.7, "purpose": "zero-shot voice cloning, any language"},
+      {"model": "Kokoro TTS", "size_gb": 0.3, "purpose": "expressive emotional TTS"},
+      {"model": "MusicGen Small", "size_gb": 1.5, "purpose": "text to music generation"},
+      {"model": "RVC v2", "size_gb": 0.1, "purpose": "real-time voice conversion per voice"},
+      {"model": "OpenVoice v2", "size_gb": 0.4, "purpose": "style + emotion transfer"},
+      {"model": "Faster Whisper", "size_gb": 1.5, "purpose": "speech-to-text, 99 languages"}
+    ],
+    "models_live": [
+      {"model": "Ollama (8 models)", "size_gb": 25.7, "purpose": "text generation"},
+      {"model": "barraCuda (9 shaders)", "size_gb": 0, "purpose": "GPU audio DSP"}
+    ],
+    "vram_voice_stack": "4.5GB",
+    "vram_ollama_hot": "5-8GB",
+    "fits": true,
+    "cloud_required": false
+  },
+
+  "accessibility": {
+    "tiers": [
+      {"tier": 1, "name": "AlwaysAvailable", "modalities": ["terminal", "SVG", "JSON"]},
+      {"tier": 2, "name": "DefaultAvailable", "modalities": ["audio", "PNG", "description"]},
+      {"tier": 3, "name": "Enhancement", "modalities": ["GPU rendering", "VR", "spatial audio"]}
+    ],
+    "features": [
+      "screen_reader", "keyboard_only", "high_contrast", "blind_users",
+      "audio_description", "spatial_audio", "aria_labels", "semantic_markup",
+      "wcag_compliant", "gesture_control"
+    ],
+    "principle": "the voice is not a feature. the voice is a right."
+  },
+
+  "intra_layers": {
+    "description": "music, art, and voice are not separate systems. they are intra-layers of the same expression.",
+    "layers": ["audio", "voice", "music", "rhythm", "visual", "haptic", "braille", "description", "terminal", "spatial"],
+    "source": "SceneGraph (universal)",
+    "compile_to_all": true,
+    "insight": "the art IS the data. the music IS the computation. the voice IS the membrane."
+  },
+
+  "fold": "klein",
+  "closed_loop": "listen → understand → compose → perform → record → analyze → improve → listen"
+}

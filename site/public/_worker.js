@@ -452,6 +452,12 @@ export default {
       'vacuole':    '/data/eastgate-pulse.json',            // the vacuole IS the Klein face
       'gpu':        '/data/eastgate-pulse.json',            // RTX 4070 — sovereign compute
       'sockets':    '/data/eastgate-pulse.json',            // 26 alive UDS sockets
+      // === THE VOICE — full-modality expression ===
+      'voice':      '/data/modality-voice.json',            // sing it, rap it, speak it, play it
+      'sing':       '/data/modality-voice.json',            // every modality is a target
+      'rap':        '/data/modality-voice.json',            // hip-hop as sort layer
+      'music':      '/data/modality-voice.json',            // music IS compressed pattern recognition
+      'modality':   '/data/modality-voice.json',            // 7 live + 6 target compilers
     };
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)

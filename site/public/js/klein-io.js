@@ -68,7 +68,9 @@
     '/data/raytrace-lan.json',
     '/data/arena-benchmark.json',
     // Wave 180: eastGate Klein face — the inner vacuole made visible
-    '/data/eastgate-pulse.json'
+    '/data/eastgate-pulse.json',
+    // Paper 130: The Voice — full-modality sovereign expression
+    '/data/modality-voice.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
