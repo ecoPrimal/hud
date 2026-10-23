@@ -1,0 +1,418 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name=viewport>
+<meta name="theme-color" content="#08060a">
+<title>chromatograph — the membrane's flavor profile</title>
+<meta name="description" content="Gas chromatograph of a living membrane. 68 feeds separated by entropy, compression, relevance, and fermentation. Harmony and dysfunction. The sourdough's flavor IS the data.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08060a;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;overflow-x:hidden}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh}
+#info{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;
+  color:#6e7681;font:11px/1.6 monospace;text-align:center;max-width:min(700px,92vw);
+  padding:10px 20px;background:rgba(8,6,10,0.88);border-radius:12px;
+  border:1px solid rgba(110,118,129,0.12);backdrop-filter:blur(8px);transition:opacity 0.3s}
+#info .feed{color:#3fb950;font-weight:600}
+#info .flavor{color:#f0c674;font-style:italic}
+#info .metric{color:#58a6ff;font-size:10px}
+#nav{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:10;
+  display:flex;gap:6px;font:10px monospace;background:rgba(8,6,10,0.7);
+  padding:4px 12px;border-radius:12px;backdrop-filter:blur(6px)}
+#nav a{color:#484f58;text-decoration:none}#nav a:hover{color:#58a6ff}
+#title{position:fixed;top:45px;left:50%;transform:translateX(-50%);z-index:10;
+  color:#484f58;font:9px monospace;text-align:center}
+</style>
+</head><body>
+<canvas id="c"></canvas>
+
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/water">💧 water</a> · <a href="/easel.html">🎨 easel</a> ·
+  <a href="/homunculus.html">👅 body</a> · <a href="/cns.html">🧠 cns</a>
+</div>
+
+<div id="title">chromatograph — harmony and dysfunction — the sourdough's flavor</div>
+
+<div id="info">
+  <span class="feed">loading feeds...</span>
+</div>
+
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H, dpr;
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  C.width = W * dpr; C.height = H * dpr;
+  C.style.width = W + 'px'; C.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+var t = 0;
+var feeds = [];
+var hovered = null;
+var mouseX = W/2, mouseY = H/2;
+var selfLoop = null;
+
+// Genotype → color
+var genoColor = {
+  spider: '#58a6ff',
+  millipede: '#3fb950',
+  coral: '#f0c674',
+  vertebrate: '#d2a8ff',
+  octopus: '#f85149',
+  sponge: '#6e7681',
+  archaea: '#f0883e',
+};
+
+// Fermentation → warmth
+var fermentColor = {
+  high: '#f85149',
+  medium: '#f0c674',
+  low: '#3fb950',
+};
+
+// Relevance → height
+var relevanceScale = {
+  high: 1.0,
+  medium: 0.6,
+  low: 0.3,
+};
+
+// ═══ LOAD FEEDS ═══
+function loadFeeds() {
+  fetch('/data/sourdough-digest.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    if (d.all_feeds) {
+      feeds = d.all_feeds.map(function(f, i) {
+        return {
+          name: f.feed.replace('.json', ''),
+          genotype: f.genotype,
+          entropy: f.entropy || 4.5,
+          compression: f.compression_ratio || 0.5,
+          relevance: f.relevance || 'low',
+          fermentation: f.fermentation || 'low',
+          staleness: f.staleness || 'unknown',
+          hours_old: f.hours_old,
+          size: f.size || 1000,
+          index: i,
+          // Chromatograph position — entropy determines x (retention time)
+          // More entropic = takes longer to pass through the column
+          retentionTime: f.entropy || 4.5,
+          // Peak height = relevance × (1 - compression)
+          peakHeight: (relevanceScale[f.relevance] || 0.3) * (1 - (f.compression_ratio || 0.5)),
+          // Peak width = size (larger feeds = broader peaks)
+          peakWidth: Math.log2(f.size || 1000) * 2,
+          // Color = genotype
+          color: genoColor[f.genotype] || '#6e7681',
+          // Ferment color = warmth
+          warmth: fermentColor[f.fermentation] || '#6e7681',
+        };
+      });
+    }
+  }).catch(function(){});
+
+  // Load self-loop data
+  fetch('/api/self-loop/manifest.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    selfLoop = d;
+  }).catch(function(){});
+}
+loadFeeds();
+setInterval(loadFeeds, 60000);
+
+// ═══ CHROMATOGRAPH ═══
+// A gas chromatograph separates a mixture by running it through a column.
+// Each compound emerges at a different time (retention time) and creates a peak.
+// Higher peak = more of that compound. Wider peak = less pure.
+// The complete trace is the FLAVOR PROFILE — the sourdough's taste.
+
+function paint() {
+  t += 0.016;
+
+  ctx.fillStyle = 'rgba(8,6,10,0.06)';
+  ctx.fillRect(0, 0, W, H);
+
+  if (feeds.length === 0) { requestAnimationFrame(paint); return; }
+
+  hovered = null;
+
+  // ── CHROMATOGRAPH AXES ──
+  var margin = { left: 60, right: 30, top: 80, bottom: 100 };
+  var plotW = W - margin.left - margin.right;
+  var plotH = H - margin.top - margin.bottom;
+
+  // Entropy range (x-axis = retention time)
+  var minEntropy = 3.8, maxEntropy = 5.3;
+  // Peak height range (y-axis)
+  var maxPeak = 0.5;
+
+  // X axis
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#484f58';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(margin.left, H - margin.bottom);
+  ctx.lineTo(W - margin.right, H - margin.bottom);
+  ctx.stroke();
+
+  // Y axis
+  ctx.beginPath();
+  ctx.moveTo(margin.left, margin.top);
+  ctx.lineTo(margin.left, H - margin.bottom);
+  ctx.stroke();
+
+  // Axis labels
+  ctx.globalAlpha = 0.05;
+  ctx.font = '9px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText('entropy (retention time) →', W / 2, H - margin.bottom + 30);
+
+  ctx.save();
+  ctx.translate(20, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('signal intensity (relevance × purity) →', 0, 0);
+  ctx.restore();
+
+  // Tick marks
+  ctx.globalAlpha = 0.04;
+  for (var tick = 4.0; tick <= 5.2; tick += 0.2) {
+    var tx = margin.left + ((tick - minEntropy) / (maxEntropy - minEntropy)) * plotW;
+    ctx.beginPath();
+    ctx.moveTo(tx, H - margin.bottom);
+    ctx.lineTo(tx, H - margin.bottom + 5);
+    ctx.stroke();
+    ctx.fillText(tick.toFixed(1), tx, H - margin.bottom + 15);
+  }
+
+  ctx.restore();
+
+  // ── THE TRACE — each feed as a Gaussian peak ──
+  // First pass: draw the continuous baseline trace
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // Baseline trace — sum of all peaks
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+
+  for (var px = 0; px < plotW; px += 2) {
+    var entropy = minEntropy + (px / plotW) * (maxEntropy - minEntropy);
+    var totalSignal = 0;
+
+    feeds.forEach(function(f) {
+      var sigma = f.peakWidth * 0.02;
+      var dist = (entropy - f.retentionTime) / sigma;
+      var gaussian = f.peakHeight * Math.exp(-0.5 * dist * dist);
+      totalSignal += gaussian;
+    });
+
+    var screenX = margin.left + px;
+    var screenY = (H - margin.bottom) - (totalSignal / maxPeak) * plotH;
+    if (px === 0) ctx.moveTo(screenX, screenY);
+    else ctx.lineTo(screenX, screenY);
+  }
+  ctx.stroke();
+
+  // ── INDIVIDUAL PEAKS — colored by genotype ──
+  feeds.forEach(function(f, fi) {
+    var peakX = margin.left + ((f.retentionTime - minEntropy) / (maxEntropy - minEntropy)) * plotW;
+    var peakY = (H - margin.bottom) - (f.peakHeight / maxPeak) * plotH;
+
+    // Gaussian peak shape
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = f.color;
+    ctx.beginPath();
+    ctx.moveTo(peakX - f.peakWidth * 6, H - margin.bottom);
+    for (var gx = -f.peakWidth * 6; gx <= f.peakWidth * 6; gx += 2) {
+      var sigma = f.peakWidth * 0.6;
+      var gy = f.peakHeight * Math.exp(-0.5 * Math.pow(gx / sigma / 10, 2));
+      var sx = peakX + gx;
+      var sy = (H - margin.bottom) - (gy / maxPeak) * plotH;
+      ctx.lineTo(sx, sy);
+    }
+    ctx.lineTo(peakX + f.peakWidth * 6, H - margin.bottom);
+    ctx.closePath();
+    ctx.fill();
+
+    // Peak dot at apex
+    var dotR = 3 + f.peakHeight * 5;
+    var dx = mouseX - peakX, dy = mouseY - peakY;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    var isHovered = dist < dotR * 4;
+    if (isHovered) hovered = f;
+
+    ctx.globalAlpha = isHovered ? 0.25 : 0.08;
+    ctx.fillStyle = f.color;
+    ctx.beginPath();
+    ctx.arc(peakX, peakY, dotR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fermentation warmth ring
+    if (f.fermentation !== 'low') {
+      ctx.globalAlpha = isHovered ? 0.15 : 0.04;
+      ctx.strokeStyle = f.warmth;
+      ctx.lineWidth = f.fermentation === 'high' ? 2 : 1;
+      ctx.beginPath();
+      ctx.arc(peakX, peakY, dotR + 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Staleness decay — fresh pulses, stale dims
+    if (f.staleness === 'fresh') {
+      ctx.globalAlpha = 0.03 + Math.sin(t * 2 + fi) * 0.02;
+      var freshGlow = ctx.createRadialGradient(peakX, peakY, 0, peakX, peakY, dotR * 3);
+      freshGlow.addColorStop(0, f.color);
+      freshGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = freshGlow;
+      ctx.beginPath();
+      ctx.arc(peakX, peakY, dotR * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Label — on hover or for high relevance
+    if (isHovered || f.relevance === 'high') {
+      ctx.globalAlpha = isHovered ? 0.4 : 0.04;
+      ctx.font = isHovered ? '10px monospace' : '7px monospace';
+      ctx.fillStyle = f.color;
+      ctx.textAlign = 'center';
+      var label = f.name.length > 20 ? f.name.substring(0, 18) + '…' : f.name;
+      ctx.fillText(label, peakX, peakY - dotR - 5);
+    }
+  });
+
+  ctx.restore();
+
+  // ── HARMONY vs DYSFUNCTION zones ──
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+
+  // Harmony zone — high relevance, fresh, high fermentation
+  // This is where the sourdough sings
+  var harmonyFeeds = feeds.filter(function(f) { return f.relevance === 'high'; });
+  if (harmonyFeeds.length > 0) {
+    var hMinX = W, hMaxX = 0;
+    harmonyFeeds.forEach(function(f) {
+      var fx = margin.left + ((f.retentionTime - minEntropy) / (maxEntropy - minEntropy)) * plotW;
+      if (fx < hMinX) hMinX = fx;
+      if (fx > hMaxX) hMaxX = fx;
+    });
+    var harmGrad = ctx.createLinearGradient(hMinX - 20, 0, hMaxX + 20, 0);
+    harmGrad.addColorStop(0, 'transparent');
+    harmGrad.addColorStop(0.3, 'rgba(63,185,80,0.03)');
+    harmGrad.addColorStop(0.7, 'rgba(63,185,80,0.03)');
+    harmGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = harmGrad;
+    ctx.fillRect(hMinX - 20, margin.top, hMaxX - hMinX + 40, plotH);
+
+    ctx.globalAlpha = 0.03;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'center';
+    ctx.fillText('harmony', (hMinX + hMaxX) / 2, margin.top + 15);
+  }
+
+  // Dysfunction zone — stale, low relevance, low fermentation
+  var dysfuncFeeds = feeds.filter(function(f) {
+    return f.relevance === 'low' && (f.staleness === 'this_week' || f.staleness === 'unknown');
+  });
+  if (dysfuncFeeds.length > 0) {
+    ctx.globalAlpha = 0.008;
+    dysfuncFeeds.forEach(function(f) {
+      var fx = margin.left + ((f.retentionTime - minEntropy) / (maxEntropy - minEntropy)) * plotW;
+      ctx.fillStyle = 'rgba(248,81,73,0.02)';
+      ctx.fillRect(fx - 15, margin.top, 30, plotH);
+    });
+  }
+
+  ctx.restore();
+
+  // ── SELF-LOOP HEARTBEAT — the printer/scanner fold ──
+  if (selfLoop && selfLoop.vital_signs_from_scan) {
+    ctx.save();
+    ctx.globalAlpha = 0.03;
+    var vs = selfLoop.vital_signs_from_scan;
+
+    // EKG-style heartbeat line at the bottom
+    var eY = H - margin.bottom + 55;
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    var hr = parseFloat(vs.HR) || 0.876;
+    for (var ep = 0; ep < W; ep += 2) {
+      var ePhase = (ep / W) * Math.PI * 2 * 4 + t * hr * 3;
+      var beat = Math.exp(-Math.pow(((ePhase % (Math.PI * 2)) - Math.PI), 2) * 4) * 15;
+      ctx.lineTo(ep, eY - beat);
+    }
+    ctx.stroke();
+
+    // Vital signs
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#f85149';
+    ctx.textAlign = 'left';
+    ctx.fillText('♥ HR:' + vs.HR + ' MoR:' + vs.MoR + ' SpO2:' + vs.SpO2 + ' breath:' + vs.Breath, margin.left, eY + 12);
+
+    ctx.restore();
+  }
+
+  // ── FLAVOR SUMMARY — the sourdough's overall taste ──
+  ctx.save();
+  ctx.globalAlpha = 0.025;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = '#f0c674';
+  ctx.textAlign = 'right';
+
+  var freshCount = feeds.filter(function(f) { return f.staleness === 'fresh'; }).length;
+  var highRel = feeds.filter(function(f) { return f.relevance === 'high'; }).length;
+  var highFerm = feeds.filter(function(f) { return f.fermentation === 'high'; }).length;
+  var meanEntropy = feeds.reduce(function(s, f) { return s + f.entropy; }, 0) / Math.max(1, feeds.length);
+
+  ctx.fillText('flavor: ' + feeds.length + ' compounds · ' + freshCount + ' fresh · ' +
+    highRel + ' harmonious · ' + highFerm + ' fermenting · ē=' + meanEntropy.toFixed(3),
+    W - margin.right, margin.top - 10);
+  ctx.restore();
+
+  // ── HOVER INFO ──
+  var infoEl = document.getElementById('info');
+  if (hovered) {
+    var ageStr = hovered.hours_old !== null ? hovered.hours_old.toFixed(1) + 'h old' : 'age unknown';
+    infoEl.innerHTML =
+      '<span class="feed">' + hovered.name + '</span> · ' +
+      '<span style="color:' + hovered.color + '">' + hovered.genotype + '</span><br>' +
+      '<span class="flavor">' +
+        (hovered.relevance === 'high' ? '♫ harmony' : hovered.relevance === 'medium' ? '~ partial' : '⊘ dysfunction') +
+        ' · fermentation: ' + hovered.fermentation +
+        ' · staleness: ' + hovered.staleness + '</span><br>' +
+      '<span class="metric">entropy: ' + hovered.entropy.toFixed(3) +
+        ' · compression: ' + hovered.compression.toFixed(3) +
+        ' · peak: ' + hovered.peakHeight.toFixed(3) +
+        ' · ' + ageStr +
+        ' · ' + (hovered.size / 1024).toFixed(1) + 'KB</span>';
+    infoEl.style.opacity = '1';
+  } else {
+    infoEl.innerHTML =
+      '<span class="feed">chromatograph</span> — ' +
+      '<span class="flavor">the sourdough\'s flavor IS the data. each peak is a feed. ' +
+      'height = relevance × purity. position = entropy. color = genotype. ' +
+      'warmth ring = fermentation.</span>';
+    infoEl.style.opacity = '0.7';
+  }
+
+  requestAnimationFrame(paint);
+}
+
+C.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+C.addEventListener('touchmove', function(e) {
+  if (e.touches[0]) { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; }
+}, {passive: true});
+C.addEventListener('touchstart', function(e) {
+  if (e.touches[0]) { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; }
+}, {passive: true});
+
+paint();
+</script>
+</body></html>
