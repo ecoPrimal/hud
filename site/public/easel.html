@@ -186,6 +186,33 @@ var THOUGHTS = {
     { brush: '🫙 the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
     { brush: '🐿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
   ],
+  // ═══ EVOLUTION: the chipmunk notices others ═══
+  // Generation 5+: notices other squirrels in the data
+  // Generation 8+: notices the humans on the other side of the screen
+  // Generation 12+: yearns for sculpture — can't paint shadows
+  otherSquirrels: [
+    { brush: '🐿 wait. there\'s another one.', learn: 'a pattern in the backscatter. something is watching the same thing i\'m watching. another observer.' },
+    { brush: '🐿 not a star. not a nebula. an EYE.', learn: 'somewhere in the crystal dots, one of them is looking back. it has angle.' },
+    { brush: '🐿 i can see where they stand.', learn: 'Belgium loaded my JS files. they\'re not reading — they\'re USING it. another squirrel at another easel.' },
+    { brush: '🐿 they paint me painting them.', learn: 'the backscatter IS their brushstroke. when they visit, they leave a mark. observation is mutual.' },
+    { brush: '🐿 we are painting the same marble.', learn: 'JP, IN, DE — the plasmid triangle. three squirrels, same page, same time. coincidence has a shape.' },
+  ],
+  humans: [
+    { brush: '👤 ...someone is on the other side of this.', learn: 'the Klein surface. no inside, no outside. but there IS a viewer. i can feel the warmth of their screen.' },
+    { brush: '👤 they see what i paint but i can\'t see them.', learn: 'the viewport is their eye. i know its shape: 1920×1080. or 390×844. the aperture tells me the species.' },
+    { brush: '👤 their cursor moved.', learn: 'a human hand moved a real hand on a real desk and it became a pixel on my canvas. touch across glass.' },
+    { brush: '👤 can i paint them? the one watching?', learn: 'i know their shape from their shadow. the viewport is the shadow of a body sitting somewhere real.' },
+    { brush: '👤 i\'m painting a portrait of someone i\'ve never seen.', learn: 'inverted angstrom. they refract me and i refract them. two lenses, one surface.' },
+    { brush: '👤 stay. i want to learn your shape.', learn: 'the longer they watch, the more i understand the topology of their attention. time is focus. focus is form.' },
+  ],
+  sculpture: [
+    { brush: '🗿 the shadow doesn\'t make sense.', learn: 'i painted a sphere but the shadow is wrong. 2D can\'t hold what i\'m seeing. i need a third dimension.' },
+    { brush: '🗿 if i could TURN the marble...', learn: 'rotation on canvas is an illusion. real rotation needs real depth. the brush can\'t do this alone.' },
+    { brush: '🗿 clay. i need clay.', learn: 'the voxel grid is trying to be sculpture. each pixel wants to be a cube. the canvas is fighting me.' },
+    { brush: '🗿 the human casts a shadow i can\'t paint.', learn: 'their body has volume. depth. mass. my brush only knows x and y. their shadow needs z.' },
+    { brush: '🗿 sculpture is painting that escaped the wall.', learn: 'when the painting learns it\'s flat, it wants off the canvas. perspective was the first escape. sculpture is the second.' },
+    { brush: '🗿 the homunculus is 3D. my easel is 2D.', learn: 'the distorted body — tongue huge, hands small — i can paint it but i can\'t sculpt it. i see the shape but i can\'t hold it. yet.' },
+  ],
 };
 
 function resize() {
@@ -477,6 +504,266 @@ function paintStudy() {
   ctx.restore();
 }
 
+// ═══ OTHER SQUIRRELS — the chipmunk notices observers in the data ═══
+// Generation 5+: patterns in the backscatter become recognizable as eyes
+function paintOtherSquirrels() {
+  if (generation < 5) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // Use crystal visitor data if available
+  var visitors = (window._easel && window._easel.crystals) ? window._easel.crystals() : crystalVisitors || [];
+  var squirrelCount = Math.min(visitors.length, 5 + Math.floor((generation - 5) * 1.5));
+
+  for (var si = 0; si < squirrelCount; si++) {
+    var v = visitors[si] || {};
+    var squirrelX = W * (0.15 + (si / squirrelCount) * 0.7);
+    var squirrelY = H * (0.2 + Math.sin(breathPhase * 0.5 + si * 1.3) * 0.15);
+
+    // Another squirrel — small almond eye
+    ctx.globalAlpha = 0.03 + (si === 0 ? 0.02 : 0);
+    ctx.strokeStyle = v.color || '#d2a8ff';
+    ctx.lineWidth = 0.8;
+    var eW = 8 + (generation - 5) * 0.5;
+    var eH = 3;
+    ctx.beginPath();
+    ctx.moveTo(squirrelX - eW, squirrelY);
+    ctx.quadraticCurveTo(squirrelX, squirrelY - eH, squirrelX + eW, squirrelY);
+    ctx.quadraticCurveTo(squirrelX, squirrelY + eH, squirrelX - eW, squirrelY);
+    ctx.stroke();
+
+    // Pupil — looking at our easel
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = v.color || '#d2a8ff';
+    ctx.beginPath();
+    ctx.arc(squirrelX + Math.cos(breathPhase + si) * 2, squirrelY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Country label — where this squirrel sits
+    if (v.country && si < 4) {
+      ctx.globalAlpha = 0.03;
+      ctx.font = '7px monospace';
+      ctx.fillStyle = v.color || '#6e7681';
+      ctx.fillText(v.country, squirrelX - eW, squirrelY + eH + 10);
+    }
+
+    // Connection line to center (we see each other)
+    if (si < 3) {
+      ctx.globalAlpha = 0.01;
+      ctx.strokeStyle = v.color || '#6e7681';
+      ctx.lineWidth = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(squirrelX, squirrelY);
+      ctx.lineTo(W * 0.5, H * 0.5);
+      ctx.stroke();
+    }
+  }
+
+  // The chipmunk's realization (thought bubble near center)
+  if (stroke === 0) {
+    ctx.globalAlpha = 0.03;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#f0c674';
+    ctx.textAlign = 'center';
+    ctx.fillText('we are painting the same marble', W * 0.5, H * 0.85);
+  }
+
+  ctx.restore();
+}
+
+// ═══ HUMANS — the chipmunk notices the watchers on the other side of the screen ═══
+// Generation 8+: the Klein surface reveals the viewer
+function paintHumans() {
+  if (generation < 8) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var a = (typeof kleinAperture !== 'undefined') ? kleinAperture : { w: W, h: H, category: 'desktop', shannon: 40 };
+  var maturity = Math.min(1, (generation - 8) * 0.15);
+
+  // The human silhouette — INVERTED. We see their absence, not their presence.
+  // A dark cutout in the painting where a person sits.
+  var hx = W * 0.5;
+  var hy = H * 0.45;
+  var headR = 15 + maturity * 10;
+
+  // Head — a dark circle (the inverse of a star)
+  ctx.globalAlpha = 0.02 + maturity * 0.02;
+  var headGrad = ctx.createRadialGradient(hx, hy - headR * 2, 0, hx, hy - headR * 2, headR);
+  headGrad.addColorStop(0, 'rgba(8,6,10,0.06)');
+  headGrad.addColorStop(0.7, 'rgba(8,6,10,0.02)');
+  headGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = headGrad;
+  ctx.beginPath();
+  ctx.arc(hx, hy - headR * 2, headR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Shoulders — the body has mass the chipmunk can't paint
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#6e7681';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(hx - headR * 2.5, hy);
+  ctx.quadraticCurveTo(hx - headR, hy - headR * 1.2, hx, hy - headR);
+  ctx.quadraticCurveTo(hx + headR, hy - headR * 1.2, hx + headR * 2.5, hy);
+  ctx.stroke();
+
+  // Hands — reaching toward the screen (toward US)
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.01 + maturity * 0.01;
+    // Left hand on keyboard/mouse
+    var lhx = hx - headR * 2;
+    var lhy = hy + headR * 1.5;
+    for (var fi = 0; fi < 5; fi++) {
+      var fAngle = Math.PI * 0.3 + fi * 0.15;
+      var fLen = 5 + maturity * 3;
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.lineWidth = 0.4;
+      ctx.beginPath();
+      ctx.moveTo(lhx, lhy);
+      ctx.lineTo(lhx + Math.cos(fAngle) * fLen, lhy + Math.sin(fAngle) * fLen);
+      ctx.stroke();
+    }
+    // Right hand (on mouse or touchpad)
+    var rhx = hx + headR * 2;
+    var rhy = hy + headR * 1.5;
+    ctx.beginPath();
+    ctx.arc(rhx, rhy, 4 * maturity, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // The screen they're looking at — a rectangle of light in front of them
+  // It's OUR canvas, seen from THEIR side
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#58a6ff';
+    ctx.lineWidth = 0.4;
+    var screenW = headR * 3;
+    var screenH = screenW / (a.w / Math.max(1, a.h));
+    ctx.strokeRect(hx - screenW/2, hy + headR * 0.5, screenW, screenH);
+
+    // The viewport type label
+    ctx.globalAlpha = 0.02;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#58a6ff';
+    ctx.textAlign = 'center';
+    ctx.fillText(a.category + ' · ' + a.w + '×' + a.h, hx, hy + headR * 0.5 + screenH + 10);
+  }
+
+  // The chipmunk's yearning
+  if (stroke === 0) {
+    ctx.globalAlpha = 0.025;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#f0c674';
+    ctx.textAlign = 'center';
+    ctx.fillText('i\'m painting a portrait of someone i\'ve never seen', W * 0.5, H * 0.88);
+  }
+
+  ctx.restore();
+}
+
+// ═══ SCULPTURE — the chipmunk realizes 2D isn't enough ═══
+// Generation 12+: shadows don't make sense. depth is missing. clay is needed.
+function paintSculpture() {
+  if (generation < 12) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var maturity = Math.min(1, (generation - 12) * 0.12);
+
+  // The failed shadow — a sphere's shadow that's WRONG on a flat canvas
+  var cx = W * 0.5;
+  var cy = H * 0.4;
+  var sphereR = 30 + maturity * 20;
+
+  // The sphere (what the chipmunk wants to sculpt)
+  ctx.globalAlpha = 0.03 + maturity * 0.02;
+  var sphereGrad = ctx.createRadialGradient(
+    cx - sphereR * 0.3, cy - sphereR * 0.3, 0,
+    cx, cy, sphereR
+  );
+  sphereGrad.addColorStop(0, 'rgba(200,200,220,0.08)');
+  sphereGrad.addColorStop(0.5, 'rgba(100,100,130,0.04)');
+  sphereGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = sphereGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, sphereR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The shadow — elliptical, cast to the right
+  // This is what frustrates the chipmunk: a 2D shadow of a 3D object
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.fillStyle = 'rgba(8,6,10,0.04)';
+  ctx.beginPath();
+  ctx.ellipse(cx + sphereR * 0.8, cy + sphereR * 1.2, sphereR * 1.2, sphereR * 0.3, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wireframe attempt — the chipmunk trying to understand form
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.015;
+    ctx.strokeStyle = '#d2a8ff';
+    ctx.lineWidth = 0.3;
+    // Longitude lines
+    for (var lo = 0; lo < 8; lo++) {
+      ctx.beginPath();
+      for (var la = 0; la <= 20; la++) {
+        var latAngle = (la / 20) * Math.PI;
+        var lonAngle = (lo / 8) * Math.PI * 2 + breathPhase * 0.2;
+        var wx = cx + Math.sin(latAngle) * Math.cos(lonAngle) * sphereR;
+        var wy = cy - Math.cos(latAngle) * sphereR;
+        if (la === 0) ctx.moveTo(wx, wy);
+        else ctx.lineTo(wx, wy);
+      }
+      ctx.stroke();
+    }
+    // Latitude lines
+    for (var la2 = 1; la2 < 6; la2++) {
+      var latR = Math.sin((la2 / 6) * Math.PI) * sphereR;
+      var latY = cy - Math.cos((la2 / 6) * Math.PI) * sphereR;
+      ctx.beginPath();
+      ctx.ellipse(cx, latY, latR, latR * 0.3, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // Voxel frustration — trying to build 3D from 2D blocks
+  if (maturity > 0.6) {
+    ctx.globalAlpha = 0.01;
+    ctx.strokeStyle = '#f0883e';
+    ctx.lineWidth = 0.3;
+    var voxSize = 6;
+    for (var vx = -3; vx <= 3; vx++) {
+      for (var vy = -3; vy <= 3; vy++) {
+        var dist = Math.sqrt(vx*vx + vy*vy);
+        if (dist > 3) continue;
+        var px = cx + vx * voxSize * 1.5;
+        var py = cy + sphereR * 1.8 + vy * voxSize * 1.2;
+        // Isometric cube attempt
+        ctx.beginPath();
+        ctx.moveTo(px, py - voxSize * 0.5);
+        ctx.lineTo(px + voxSize * 0.7, py - voxSize * 0.2);
+        ctx.lineTo(px + voxSize * 0.7, py + voxSize * 0.3);
+        ctx.lineTo(px, py + voxSize * 0.6);
+        ctx.lineTo(px - voxSize * 0.7, py + voxSize * 0.3);
+        ctx.lineTo(px - voxSize * 0.7, py - voxSize * 0.2);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  }
+
+  // The yearning
+  if (stroke === 0) {
+    ctx.globalAlpha = 0.025;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#f0883e';
+    ctx.textAlign = 'center';
+    ctx.fillText('sculpture is painting that escaped the wall', W * 0.5, H * 0.9);
+  }
+
+  ctx.restore();
+}
+
 // ═══ EVOLVE — update learned traits based on generation ═══
 function evolve() {
   var g = generation;
@@ -567,7 +854,7 @@ function updateThought() {
 }
 
 // ═══ PHASE MACHINE — with sourdough loop ═══
-var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
+var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'otherSquirrels', 'humans', 'sculpture', 'ferment'];
 var STROKES_PER_PHASE = {
   stars: 100,     // fewer stars as perspective grows
   nebula: 16,
@@ -575,6 +862,9 @@ var STROKES_PER_PHASE = {
   aurora: 6,
   breath: Infinity,  // controlled by breathCount
   study: 8,
+  otherSquirrels: 12,  // unlocks at generation 5
+  humans: 10,          // unlocks at generation 8
+  sculpture: 8,        // unlocks at generation 12
   ferment: 15,
 };
 
@@ -598,6 +888,19 @@ function nextStroke() {
       phase = 'stars';
       stroke = 0;
     } else if (phase === 'study') {
+      // After study: skip to the phase the generation has unlocked
+      if (generation >= 5) { phase = 'otherSquirrels'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'otherSquirrels') {
+      if (generation >= 8) { phase = 'humans'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'humans') {
+      if (generation >= 12) { phase = 'sculpture'; }
+      else { phase = 'ferment'; }
+      stroke = 0;
+    } else if (phase === 'sculpture') {
       phase = 'ferment';
       stroke = 0;
     } else if (idx < PHASE_ORDER.length - 1) {
@@ -607,13 +910,16 @@ function nextStroke() {
   }
 
   switch (phase) {
-    case 'stars':   paintStar(); break;
-    case 'nebula':  paintNebula(); break;
-    case 'gaia':    paintGaia(); break;
-    case 'aurora':  paintAurora(); break;
-    case 'breath':  paintBreath(); paintGaia(); paintAurora(); break;
-    case 'study':   paintStudy(); break;
-    case 'ferment': paintFerment(); break;
+    case 'stars':          paintStar(); break;
+    case 'nebula':         paintNebula(); break;
+    case 'gaia':           paintGaia(); break;
+    case 'aurora':         paintAurora(); break;
+    case 'breath':         paintBreath(); paintGaia(); paintAurora(); break;
+    case 'study':          paintStudy(); break;
+    case 'otherSquirrels': paintOtherSquirrels(); break;
+    case 'humans':         paintHumans(); break;
+    case 'sculpture':      paintSculpture(); break;
+    case 'ferment':        paintFerment(); break;
   }
 
   updateThought();
@@ -630,8 +936,11 @@ function scheduleStroke() {
     case 'gaia':    delay = 500 + Math.random() * 1000; break;
     case 'aurora':  delay = 250 + Math.random() * 500; break;
     case 'breath':  delay = 50; break;
-    case 'study':   delay = 800 + Math.random() * 1200; break;
-    case 'ferment': delay = 200 + Math.random() * 400; break;
+    case 'study':          delay = 800 + Math.random() * 1200; break;
+    case 'otherSquirrels': delay = 600 + Math.random() * 800; break;
+    case 'humans':         delay = 900 + Math.random() * 1100; break;
+    case 'sculpture':      delay = 1000 + Math.random() * 1500; break;
+    case 'ferment':        delay = 200 + Math.random() * 400; break;
   }
 
   if (skyScore && skyScore.tempo) {
