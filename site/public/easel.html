@@ -1673,45 +1673,239 @@ function paintCampfire() {
   }
   ctx.globalCompositeOperation = 'source-over';
 
-  // ── THE STORY CYCLE — Berry speaks, chipmunk listens, then paints ──
+  // ── NTFY MESSAGES → THROWN IN THE FIRE → ASH → STICKY NOTES ──
+  // The messages arrive. They go IN the fire. They BURN.
+  // What comes out: ash bursts, pollen puffs, opsonized sticky notes.
+  // The fire transforms messages into delivery particles.
+
+  // Load ntfy messages as fuel for the fire
+  if (!campfire._ntfyMessages) campfire._ntfyMessages = [];
+  if (!campfire._ntfyLoaded) {
+    campfire._ntfyLoaded = true;
+    campfire._ashParticles = [];
+    campfire._stickyNotes = [];
+    campfire._pollenPuffs = [];
+
+    fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=2h', {cache:'no-store'})
+      .then(function(r){return r.text()})
+      .then(function(text) {
+        var lines = text.trim().split('\n').filter(function(l){return l.trim()});
+        lines.forEach(function(line) {
+          try {
+            var msg = JSON.parse(line);
+            if (msg.message) campfire._ntfyMessages.push(msg);
+          } catch(e){}
+        });
+      }).catch(function(){});
+
+    // Reload every 60s
+    setInterval(function() {
+      fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=30m', {cache:'no-store'})
+        .then(function(r){return r.text()})
+        .then(function(text) {
+          var lines = text.trim().split('\n').filter(function(l){return l.trim()});
+          var newMsgs = [];
+          lines.forEach(function(line) {
+            try { var msg = JSON.parse(line); if (msg.message) newMsgs.push(msg); } catch(e){}
+          });
+          campfire._ntfyMessages = newMsgs;
+        }).catch(function(){});
+    }, 60000);
+  }
+
+  // BURN CYCLE — pick a message, throw it in the fire
   storyTimer++;
+  var burnCycle = storyTimer % 400;  // every ~20 seconds
+
+  if (burnCycle === 0 && campfire._ntfyMessages.length > 0) {
+    // Pick a message to burn
+    var burnIdx = Math.floor(Math.random() * campfire._ntfyMessages.length);
+    var burnMsg = campfire._ntfyMessages[burnIdx];
+    var burnTitle = burnMsg.title || '(untitled)';
+    var burnBody = (burnMsg.message || '').substring(0, 80);
+
+    // THE BURN — message text curls into the fire
+    campfireStory = { path: burnTitle, story: burnBody, type: 'burn' };
+    storyPhase = 1;
+
+    // SPAWN ASH PARTICLES — the message disintegrates
+    for (var ai = 0; ai < 8 + Math.floor(Math.random() * 6); ai++) {
+      campfire._ashParticles.push({
+        x: cx + (Math.random() - 0.5) * fireR,
+        y: cy + (Math.random() - 0.5) * fireR * 0.5,
+        vx: (Math.random() - 0.5) * 2,
+        vy: -1 - Math.random() * 3,
+        life: 1.0,
+        char: burnTitle.charAt(Math.floor(Math.random() * burnTitle.length)),
+        color: '#' + ['ff8c28','ffb84d','f0883e','d29922','808080','555555'][Math.floor(Math.random() * 6)],
+      });
+    }
+
+    // SPAWN STICKY NOTES — the meaning survives the fire
+    if (Math.random() < 0.6) {
+      var noteAngle = Math.random() * Math.PI * 2;
+      var noteDist = fireR * 3 + Math.random() * Math.min(W,H) * 0.3;
+      campfire._stickyNotes.push({
+        x: cx + Math.cos(noteAngle) * noteDist,
+        y: cy + Math.sin(noteAngle) * noteDist,
+        text: burnTitle.substring(0, 25),
+        color: burnMsg.tags && burnMsg.tags.indexOf('chipmunk') >= 0 ? '#f0e68c' : '#ffb84d',
+        alpha: 0.15,
+        life: 1.0,
+        angle: (Math.random() - 0.5) * 0.3,
+        born: storyTimer,
+      });
+    }
+
+    // SPAWN POLLEN PUFFS — seeds that scatter from the burn
+    for (var pi = 0; pi < 3; pi++) {
+      var pAngle = Math.random() * Math.PI * 2;
+      campfire._pollenPuffs.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(pAngle) * (0.5 + Math.random()),
+        vy: Math.sin(pAngle) * (0.5 + Math.random()) - 0.5,
+        r: 3 + Math.random() * 5,
+        alpha: 0.08,
+        life: 1.0,
+        hue: 40 + Math.random() * 30,
+      });
+    }
+
+    // OPSONIZATION EVENT — flash the fire bright, tag for delivery
+    ctx.globalAlpha = 0.06;
+    var opsonGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, fireR * 5);
+    opsonGrad.addColorStop(0, 'rgba(255,200,80,0.12)');
+    opsonGrad.addColorStop(0.3, 'rgba(255,140,40,0.06)');
+    opsonGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = opsonGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, fireR * 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── RENDER ASH PARTICLES — letters from burned messages floating up ──
+  for (var a = campfire._ashParticles.length - 1; a >= 0; a--) {
+    var ash = campfire._ashParticles[a];
+    ash.x += ash.vx;
+    ash.y += ash.vy;
+    ash.vy *= 0.98;  // slow down
+    ash.vx += (Math.random() - 0.5) * 0.3;  // drift
+    ash.life -= 0.008;
+
+    if (ash.life <= 0) { campfire._ashParticles.splice(a, 1); continue; }
+
+    ctx.globalAlpha = ash.life * 0.12;
+    ctx.font = (6 + ash.life * 4) + 'px monospace';
+    ctx.fillStyle = ash.color;
+    ctx.fillText(ash.char, ash.x, ash.y);
+  }
+
+  // ── RENDER STICKY NOTES — meaning that survived the fire ──
+  for (var s = campfire._stickyNotes.length - 1; s >= 0; s--) {
+    var note = campfire._stickyNotes[s];
+    note.life -= 0.0008;  // slow fade
+    note.y += Math.sin(breathPhase + s) * 0.1;  // gentle bob
+
+    if (note.life <= 0) { campfire._stickyNotes.splice(s, 1); continue; }
+
+    ctx.save();
+    ctx.translate(note.x, note.y);
+    ctx.rotate(note.angle);
+    ctx.globalAlpha = note.life * note.alpha;
+
+    // Sticky note background
+    ctx.fillStyle = note.color;
+    var noteW = note.text.length * 5.5 + 10;
+    var noteH = 16;
+    ctx.fillRect(-noteW/2, -noteH/2, noteW, noteH);
+
+    // Sticky note text
+    ctx.globalAlpha = note.life * 0.3;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#0d1117';
+    ctx.fillText(note.text, -noteW/2 + 5, 3);
+
+    // Tiny fold corner
+    ctx.globalAlpha = note.life * 0.1;
+    ctx.fillStyle = '#0d1117';
+    ctx.beginPath();
+    ctx.moveTo(noteW/2, -noteH/2);
+    ctx.lineTo(noteW/2 - 6, -noteH/2);
+    ctx.lineTo(noteW/2, -noteH/2 + 6);
+    ctx.fill();
+
+    ctx.restore();
+  }
+  // Keep max 12 sticky notes
+  while (campfire._stickyNotes.length > 12) campfire._stickyNotes.shift();
+
+  // ── RENDER POLLEN PUFFS — seeds scattering from the burn ──
+  for (var p = campfire._pollenPuffs.length - 1; p >= 0; p--) {
+    var puff = campfire._pollenPuffs[p];
+    puff.x += puff.vx;
+    puff.y += puff.vy;
+    puff.vx *= 0.995;
+    puff.vy *= 0.995;
+    puff.r *= 1.003;  // slowly expand
+    puff.life -= 0.003;
+
+    if (puff.life <= 0) { campfire._pollenPuffs.splice(p, 1); continue; }
+
+    ctx.globalAlpha = puff.life * puff.alpha;
+    ctx.globalCompositeOperation = 'screen';
+    var puffGrad = ctx.createRadialGradient(puff.x, puff.y, 0, puff.x, puff.y, puff.r);
+    puffGrad.addColorStop(0, 'hsla(' + puff.hue + ',60%,60%,0.08)');
+    puffGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = puffGrad;
+    ctx.beginPath();
+    ctx.arc(puff.x, puff.y, puff.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  // Keep max 20 pollen puffs
+  while (campfire._pollenPuffs.length > 20) campfire._pollenPuffs.shift();
+
+  // ── THE STORY CYCLE — Berry speaks, chipmunk listens, then paints ──
   if (campfire._allStories && campfire._allStories.length > 0) {
-    if (storyTimer % 600 === 0) {
-      // Every ~30 seconds: pick a new story
+    if (storyTimer % 600 === 0 && storyPhase === 0) {
       storyIndex = (storyIndex + 1) % campfire._allStories.length;
       campfireStory = campfire._allStories[storyIndex];
-      storyPhase = 1;  // telling
+      storyPhase = 1;
     }
 
     if (campfireStory && storyPhase === 1) {
-      // Berry is telling — show story text around the campfire
+      // Berry is telling — show story text, BUT it's curling into the fire
       ctx.globalAlpha = 0.12;
       ctx.font = '10px monospace';
-      ctx.fillStyle = '#ffb84d';
+      ctx.fillStyle = campfireStory.type === 'burn' ? '#ff8c28' : '#ffb84d';
 
       var words = campfireStory.story.split(' ');
-      var wordsShown = Math.min(words.length, Math.floor((storyTimer % 600) / 15));
+      var wordsShown = Math.min(words.length, Math.floor((storyTimer % 400) / 10));
       var storyText = words.slice(0, wordsShown).join(' ');
 
-      // Wrap text in an arc around the fire
       var lineLen = 40;
       var lines = [];
       for (var w = 0; w < storyText.length; w += lineLen) {
         lines.push(storyText.substring(w, w + lineLen));
       }
+
+      // Text curls toward the fire as it's read — getting sucked in
       for (var li = 0; li < Math.min(lines.length, 4); li++) {
-        ctx.fillText(lines[li], cx - 140, cy + fireR * 2.5 + li * 14);
+        var curl = (wordsShown / words.length) * 0.5;  // 0→0.5 as story completes
+        var lx = cx - 140 + curl * 80;  // text slides toward center
+        var ly = cy + fireR * 2.5 + li * 14 - curl * fireR;  // text rises toward fire
+        ctx.globalAlpha = Math.max(0.02, 0.12 - curl * 0.2);  // text fades as it burns
+        ctx.fillText(lines[li], lx, ly);
       }
 
-      // Path label — what Berry is visiting
       ctx.globalAlpha = 0.08;
       ctx.font = '9px monospace';
-      ctx.fillStyle = campfireStory.type === 'human' ? '#3fb950' : campfireStory.type === 'probe' ? '#f85149' : '#6e7681';
+      ctx.fillStyle = campfireStory.type === 'human' ? '#3fb950' : campfireStory.type === 'probe' ? '#f85149' : campfireStory.type === 'burn' ? '#ff8c28' : '#6e7681';
       ctx.fillText('/' + campfireStory.path, cx - 20, cy - fireR * 2);
 
-      // Switch to painting mode after showing full text
       if (wordsShown >= words.length) {
-        storyPhase = 2; // now the chipmunk paints what Berry said
+        storyPhase = 2;
       }
     }
 
