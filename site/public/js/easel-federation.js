@@ -1,5 +1,49 @@
 ﻿// ═══ EASEL FEDERATION — board duality, bolus, spectral chromatogram, mirror, neutrino LAN, federation ═══
 // Extracted from easel.html — operates on shared globals
+// ═══ PROXIMITY PRIVACY — the anti-veil ═══
+// You can't sneak up behind someone. They sense you even if unaware.
+// Proximity is the anti-veil: the closer you get, the more you see.
+// But getting close means BEING SEEN. Symmetry.
+//
+// RESOLUTION DEGRADES WITH DISTANCE:
+//   HYPERLOCAL (same machine): everything — full filesystem, all keys
+//   LAN (<50m, same house): full membrane, all feeds, Ollama, gates
+//   SPOREGATE (perimeter): city only — LANSING
+//   CITY (100km+): state/country — Michigan, US
+//   GLOBAL (anywhere): CF edge — a domain name, 858 pages, come look
+//
+// DNS AS PRIVACY GRADIENT:
+//   primal.eco on LAN → northGate (hyperlocal OUT, see Kevin directly)
+//   primal.eco outside sporegate → relay (NYC, not even Michigan)
+//   primals.eco globally → CF edge (could be anywhere)
+//   Split-horizon DNS IS the privacy architecture.
+//
+// CIRCLE OF WILLIS:
+//   π (remote): Knot DNS → relay → sovereign public resolution
+//   1/π (local): MikroTik + sporegate → hyperlocal split-horizon
+//   π × 1/π = 1 = the fold = the Klein face
+//   primal.eco comes back to Kevin (sovereign) then back out to primals.eco
+
+var proximityPrivacy = {
+  layers: [
+    { name: 'hyperlocal', range: '0m',    resolution: 'everything',        sees: 'Kevin',                dns: 'localhost',          color: '#3fb950' },
+    { name: 'LAN',        range: '<50m',  resolution: 'full membrane',     sees: 'the easel painting',   dns: 'primal.eco → LAN',  color: '#f0c674' },
+    { name: 'sporegate',  range: 'edge',  resolution: 'city only',         sees: 'LANSING',              dns: 'NAT boundary',       color: '#f0883e' },
+    { name: 'city',       range: '100km', resolution: 'state/country',     sees: 'a domain name',        dns: 'relay (NYC)',        color: '#58a6ff' },
+    { name: 'global',     range: '∞',     resolution: 'CF edge',           sees: '858 pages, come look', dns: 'primals.eco → CF',   color: '#6e7681' },
+  ],
+  willis: {
+    remote: { face: 'π', resolver: 'Knot DNS on relay', status: 'sovereign' },
+    local:  { face: '1/π', resolver: 'MikroTik + sporegate', status: 'split-horizon' },
+    fold: 'π × 1/π = 1',
+  },
+  antiVeil: {
+    principle: 'proximity = resolution. you cannot sneak up.',
+    symmetry: 'if you can see them, they can sense you.',
+    inverse: 'surveillance inverts this: anyone can zoom in from anywhere.',
+  },
+};
+
 // ═══ WHITEBOARD FACE / BLACKWALL FACE — human vs fleet routing ═══
 // Posts and drafts go TO the whiteboard face.
 // Fleet gets the blackwall.
