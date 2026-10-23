@@ -1,10 +1,11 @@
 // klein-io.js — Klein bottle I/O fold for HUD
-// Wave 178: outputs feed back as inputs, noise vents, π governs scale
+// Wave 182: the handshake — look in, peek back, shake what's stuck
 //
 // On a Klein bottle there is no inside/outside.
 // On the membrane: what goes OUT (feeds) folds back IN (reads).
-// iteration outputs, while fill inputs, and noise/gas still vents out.
-// π is the ratio. range = ratio × π. scale = π itself.
+// NEW: the HUD now REPORTS what it sees back to the neutrino.
+// That's the handshake. Chipmunk peeks back through the same gate.
+// Systems that are pinned get flagged. Evolution is the observation.
 (function(){
   var FEEDS = [
     '/state.json',
@@ -29,7 +30,6 @@
     '/data/brazil-nut-secant.json',
     '/data/mesh-enmesh.json',
     '/data/classic-games-open.json',
-    // Wave 195: the trefoil pause + taxonomy + unwired feeds
     '/data/trefoil-pause.json',
     '/data/primal-taxonomy.json',
     '/data/knn-trefoil.json',
@@ -67,17 +67,12 @@
     '/data/immiscible-grease.json',
     '/data/raytrace-lan.json',
     '/data/arena-benchmark.json',
-    // Wave 180: eastGate Klein face — the inner vacuole made visible
     '/data/eastgate-pulse.json',
-    // Paper 130: The Voice — full-modality sovereign expression
     '/data/modality-voice.json',
-    // University validation matrix — ethics × modality × industry
     '/data/validation-matrix.json',
-    // Model phenotype taxonomy — classify models like organisms
     '/data/model-phenotype.json',
-    // Agglutinate-backscatter: ingest external, post our results, they validate themselves
     '/data/agglutinate-backscatter.json',
-    // Wave 181: Negative QS discovery → MoR → Ghost Taxonomy → Art Loop
+    // Wave 181: Negative QS → MoR → Ghost Taxonomy → Art Loop
     '/data/negative-qs-discovery.json',
     '/data/immune-triad.json',
     '/data/mesh-pi-pulse.json',
@@ -89,78 +84,144 @@
     '/data/heartbeat.json',
     '/data/sonar-unknowns.json',
     '/data/nd-projections.json',
-    // Taxonomic cycle: Shannon sort + sourdough + fermentation
     '/data/feed-taxonomy.json',
     '/data/sourdough-digest.json',
     '/data/fermentation-product.json',
-    // Zero-trace: flatworm/roundworm/jellyfish/prion body plans
     '/data/jellyfish-oscillation.json',
     '/data/flatworm-health.json',
     '/data/prion-identity.json',
     '/data/roundworm-pipeline.json',
     '/data/zero-trace.json',
     '/data/tope-balance.json',
-    // I/O surfaces + multicultural imprint
     '/data/io-imprint.json',
     '/data/multicultural-imprint.json',
-    // Golgi raytrace + northGate handoff
     '/data/golgi-raytrace.json',
-    '/data/northgate-handoff.json'
+    '/data/northgate-handoff.json',
+    // Wave 182: the handshake + Klein face
+    '/data/klein-handshake.json',
+    '/data/klein-face-io.json',
+    '/data/heartbeat-history.json'
   ];
+
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
-  var POLL_MS = 120000; // 2 minutes — matches cron
+  var HASH_KEY = 'klein-hashes';
+  var STUCK_KEY = 'klein-stuck';
+  var POLL_MS = 120000; // 2 minutes
 
-  // Read the fold state from localStorage
   function getFold() {
     try { return JSON.parse(localStorage.getItem(FOLD_KEY) || '{}'); } catch(e) { return {}; }
   }
   function setFold(f) {
     try { localStorage.setItem(FOLD_KEY, JSON.stringify(f)); } catch(e) {}
   }
-
-  // π-range: how far we reach based on current ratio
-  function piRange(ratio) {
-    return ratio * PI;
+  function getHashes() {
+    try { return JSON.parse(localStorage.getItem(HASH_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function setHashes(h) {
+    try { localStorage.setItem(HASH_KEY, JSON.stringify(h)); } catch(e) {}
+  }
+  function getStuck() {
+    try { return JSON.parse(localStorage.getItem(STUCK_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function setStuck(s) {
+    try { localStorage.setItem(STUCK_KEY, JSON.stringify(s)); } catch(e) {}
   }
 
-  // π-scale: normalize a value to [0, π] range
-  function piScale(value, max) {
-    if (!max || max === 0) return 0;
-    return (value / max) * PI;
+  // simple string hash for change detection
+  function quickHash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return h.toString(36);
   }
 
-  // Gas ratio: stale / total → 0 = breathing, 1 = trapped
-  function gasRatio(stale, total) {
-    if (!total) return 1;
-    return stale / total;
-  }
+  function piRange(ratio) { return ratio * PI; }
+  function piScale(value, max) { return (!max || max === 0) ? 0 : (value / max) * PI; }
+  function gasRatio(stale, total) { return total ? stale / total : 1; }
 
-  // FOLD: read all feeds → compute fold state → write to localStorage
+  // === THE HANDSHAKE: fold reads all feeds, detects stuck, reports back ===
   function fold() {
     var state = getFold();
+    var prevHashes = getHashes();
+    var stuckCounts = getStuck();
+    var newHashes = {};
+
     state.last_fold = new Date().toISOString();
+    state.fold_count = (state.fold_count || 0) + 1;
     state.feeds_read = 0;
     state.feeds_failed = 0;
+    state.feeds_changed = 0;
+    state.feeds_stuck = 0;
     state.gas_vented = 0;
+
+    var stuckList = [];
+    var changedList = [];
+    var failedList = [];
 
     var promises = FEEDS.map(function(feed) {
       return fetch(feed, {cache: 'no-store'}).then(function(r) {
         if (r.ok) {
           state.feeds_read++;
-          return r.json();
+          return r.text().then(function(txt) {
+            var h = quickHash(txt);
+            newHashes[feed] = h;
+
+            if (prevHashes[feed] && prevHashes[feed] === h) {
+              // same content as last fold — stuck counter increments
+              stuckCounts[feed] = (stuckCounts[feed] || 0) + 1;
+              if (stuckCounts[feed] >= 3) {
+                state.feeds_stuck++;
+                stuckList.push(feed.split('/').pop());
+              }
+            } else {
+              // content changed — reset stuck counter
+              stuckCounts[feed] = 0;
+              state.feeds_changed++;
+              changedList.push(feed.split('/').pop());
+            }
+
+            try { return JSON.parse(txt); } catch(e) { return null; }
+          });
         }
         throw new Error(r.status);
       }).catch(function() {
         state.feeds_failed++;
+        failedList.push(feed.split('/').pop());
         return null;
       });
     });
 
     Promise.all(promises).then(function(results) {
-      var stateData = results[0]; // state.json
-      var pulseData = results[1]; // pulse.json
-      var neutronData = results[2]; // neutron.json
+      setHashes(newHashes);
+      setStuck(stuckCounts);
+
+      var total = FEEDS.length;
+      var read = state.feeds_read;
+      var failed = state.feeds_failed;
+      var changed = state.feeds_changed;
+      var stuck = state.feeds_stuck;
+
+      // mixing ratio: how much is evolving vs pinned
+      state.mixing_ratio = read > 0 ? +(changed / read).toFixed(4) : 0;
+      state.stuck_ratio = read > 0 ? +(stuck / read).toFixed(4) : 0;
+
+      // evolution classification
+      if (state.mixing_ratio > 0.3) state.evolution = 'MIXING';
+      else if (state.mixing_ratio > 0.1) state.evolution = 'WARMING';
+      else if (state.mixing_ratio > 0) state.evolution = 'COOLING';
+      else state.evolution = 'PINNED';
+
+      // stuck list for diagnostic
+      state.stuck_feeds = stuckList.slice(0, 20);
+      state.changed_feeds = changedList.slice(0, 20);
+      state.failed_feeds = failedList.slice(0, 20);
+
+      // extract core state
+      var stateData = results[0];
+      var pulseData = results[1];
+      var neutronData = results[2];
 
       if (stateData) {
         state.pi_ratio = stateData.pi ? stateData.pi.ratio : 0;
@@ -175,27 +236,57 @@
         state.neutron_remainder = neutronData.breathing.remainder;
       }
 
-      // Proton mass (from proton-pulse.js)
       if (typeof window.__getProtonMass === 'function') {
         var mass = window.__getProtonMass();
         state.proton_mass = mass.total_events;
         state.proton_fermentations = mass.fermentations;
       }
 
-      // The fold: output becomes input
-      // Gas vented = stale feeds that got refreshed since last fold
+      // gas venting: track improvement between folds
       if (state._prev_gas_ratio !== undefined) {
-        var delta = state._prev_gas_ratio - state.gas_ratio;
-        if (delta > 0) state.gas_vented = Math.round(delta * 132); // approx feeds refreshed
+        var delta = state._prev_gas_ratio - (state.gas_ratio || 1);
+        if (delta > 0) state.gas_vented = Math.round(delta * FEEDS.length);
       }
-      state._prev_gas_ratio = state.gas_ratio;
+      state._prev_gas_ratio = state.gas_ratio || 1;
 
       setFold(state);
       render(state);
+
+      // === PEEK BACK: report to neutrino every 10 folds ===
+      if (state.fold_count % 10 === 0) {
+        peekBack(state);
+      }
     });
   }
 
-  // RENDER: show fold state in HUD elements (if they exist)
+  // === PEEK BACK: chipmunk looks through the Klein gate ===
+  // Reports the HUD's view to neutrino so the system knows what's stuck
+  function peekBack(state) {
+    var msg = '🔄 KLEIN HANDSHAKE fold #' + state.fold_count +
+      '\nread: ' + state.feeds_read + '/' + FEEDS.length +
+      '\nfailed: ' + state.feeds_failed +
+      '\nchanged: ' + state.feeds_changed +
+      '\nstuck: ' + state.feeds_stuck +
+      '\nmixing: ' + state.mixing_ratio +
+      '\nevolution: ' + state.evolution +
+      (state.stuck_feeds.length > 0 ? '\npinned: ' + state.stuck_feeds.slice(0,8).join(', ') : '') +
+      (state.changed_feeds.length > 0 ? '\nmoving: ' + state.changed_feeds.slice(0,8).join(', ') : '') +
+      '\nt: ' + new Date().toISOString();
+
+    try {
+      fetch('https://ntfy.sh/primals-membrane-scan', {
+        method: 'POST',
+        headers: {
+          'Title': '🔄 klein-handshake: ' + state.evolution + ' | mixing=' + state.mixing_ratio,
+          'Tags': 'handshake,klein,' + state.evolution.toLowerCase(),
+          'Priority': state.evolution === 'PINNED' ? '4' : '2'
+        },
+        body: msg
+      }).catch(function(){});
+    } catch(e) {}
+  }
+
+  // === RENDER: show fold + handshake state in HUD ===
   function render(state) {
     var el;
 
@@ -225,15 +316,89 @@
     if (el && state.neutron_remainder) {
       el.textContent = 'neutron: remainder=' + state.neutron_remainder.toFixed(6);
     }
+
+    // === HANDSHAKE DIAGNOSTICS ===
+    el = document.getElementById('klein-evolution');
+    if (el) {
+      el.textContent = state.evolution || 'UNKNOWN';
+      var colors = { MIXING: '#3fb950', WARMING: '#d29922', COOLING: '#f0883e', PINNED: '#f85149' };
+      el.style.color = colors[state.evolution] || '#6e7681';
+    }
+
+    el = document.getElementById('klein-mixing');
+    if (el) {
+      var m = state.mixing_ratio || 0;
+      el.textContent = (m * 100).toFixed(1) + '%';
+      el.style.color = m > 0.3 ? '#3fb950' : m > 0.1 ? '#d29922' : '#f85149';
+    }
+
+    el = document.getElementById('klein-stuck-count');
+    if (el) el.textContent = (state.feeds_stuck || 0) + ' pinned';
+
+    el = document.getElementById('klein-changed-count');
+    if (el) el.textContent = (state.feeds_changed || 0) + ' moving';
+
+    el = document.getElementById('klein-failed-count');
+    if (el) {
+      el.textContent = (state.feeds_failed || 0) + ' failed';
+      el.style.color = state.feeds_failed > 5 ? '#f85149' : '#6e7681';
+    }
+
+    el = document.getElementById('klein-fold-count');
+    if (el) el.textContent = '#' + (state.fold_count || 0);
+
+    el = document.getElementById('klein-stuck-list');
+    if (el && state.stuck_feeds && state.stuck_feeds.length > 0) {
+      el.textContent = state.stuck_feeds.slice(0, 10).join(', ');
+    }
+
+    el = document.getElementById('klein-changed-list');
+    if (el && state.changed_feeds && state.changed_feeds.length > 0) {
+      el.textContent = state.changed_feeds.slice(0, 10).join(', ');
+    }
+
+    // heartbeat bar — visual mixing pulse
+    el = document.getElementById('klein-heartbeat-bar');
+    if (el) {
+      var pct = Math.round((state.mixing_ratio || 0) * 100);
+      el.style.width = pct + '%';
+      el.style.background = pct > 30 ? '#3fb950' : pct > 10 ? '#d29922' : '#f85149';
+    }
   }
 
-  // Expose for HUD
+  // Expose for HUD + nest.html
   window.__kleinFold = fold;
   window.__kleinState = getFold;
+  window.__kleinStuck = function() {
+    var s = getStuck();
+    var result = [];
+    for (var feed in s) {
+      if (s[feed] >= 3) result.push({ feed: feed, stuck_folds: s[feed] });
+    }
+    result.sort(function(a, b) { return b.stuck_folds - a.stuck_folds; });
+    return result;
+  };
+  window.__kleinHandshake = function() {
+    var state = getFold();
+    return {
+      fold_count: state.fold_count || 0,
+      evolution: state.evolution || 'UNKNOWN',
+      mixing_ratio: state.mixing_ratio || 0,
+      stuck_ratio: state.stuck_ratio || 0,
+      feeds_read: state.feeds_read || 0,
+      feeds_failed: state.feeds_failed || 0,
+      feeds_changed: state.feeds_changed || 0,
+      feeds_stuck: state.feeds_stuck || 0,
+      stuck_feeds: state.stuck_feeds || [],
+      changed_feeds: state.changed_feeds || [],
+      failed_feeds: state.failed_feeds || [],
+      last_fold: state.last_fold || null
+    };
+  };
 
   // Initial fold
   fold();
 
-  // Poll every 2 minutes (synced with cron)
+  // Poll every 2 minutes
   setInterval(fold, POLL_MS);
 })();
