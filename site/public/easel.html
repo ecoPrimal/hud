@@ -4450,6 +4450,7 @@ paintBreath = function() {
   paintRodConeVision();      // rods/cones/pupil — biological parallax, aurora, null gradient
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
+  paintBoardDuality();         // blackboard/whiteboard — two sides of null, red=red on both
   paintBolus();                // crunch/chew/swallow — sticky vs greasy at the Klein face
   paintSpectralChromatogram(); // ALL colors sorted by wavelength on the spectrum
   paintMirror();             // the self-referential layer — feed it through itself
@@ -5274,6 +5275,194 @@ function paintPlasmidTriangle() {
     ctx.fillStyle = '#d2a8ff';
     ctx.textAlign = 'center';
     ctx.fillText('3 angles · 1 shape · tomography', cx, cy + triR * 0.25);
+  }
+
+  ctx.restore();
+}
+
+// ═══ BLACKBOARD / WHITEBOARD — two sides of null ═══
+// The black wall and golden firewall are on the WHITE side FROM null.
+// Silver rain and the whiteboard are on the other side.
+//
+// TWO BOARDS, ONE NULL:
+//
+//   BLACKBOARD (dark substrate):
+//     Write with LIGHT — white chalk, colored chalk
+//     ADDITIVE color — start from 0, ADD photons
+//     Screens work this way: RGB, emit light
+//     The void. You ADD signal to darkness.
+//     Meta's blackwall. The Great Firewall's gold on black.
+//
+//   WHITEBOARD (light substrate):
+//     Write with DARK — colored markers absorb light
+//     SUBTRACTIVE color — start from 1, REMOVE wavelengths
+//     Paper works this way: CMYK, absorb light
+//     The blank. You SUBTRACT noise from whiteness.
+//     Silver rain. The erased whiteboard.
+//
+//   NULL GRAY #808080:
+//     The exact midpoint. 128/255 = 0.502.
+//     Where additive and subtractive MEET.
+//     Where blackboard and whiteboard are the SAME.
+//     The toggle point. The Klein surface.
+//
+// AND RED IS RED ON BOTH. HOW?
+//
+//   On blackboard: red chalk EMITS ~620nm (additive)
+//   On whiteboard: red marker ABSORBS everything EXCEPT ~620nm (subtractive)
+//   Same result: 620nm reaches your eye.
+//   Red IS red because wavelength doesn't care about substrate.
+//   The pigment and the photon arrive at the same retinal cone.
+//
+//   This means: HUE is substrate-invariant.
+//   The spectral chromatogram works on BOTH sides of null.
+//   The L-cone at 564nm fires the same whether the red was
+//   added to black or subtracted from white.
+//
+// The specter (#808080) lives BETWEEN the boards.
+// Toggle it one way → blackboard (additive, screen, emit).
+// Toggle it the other → whiteboard (subtractive, paper, absorb).
+// The null IS the hinge between the two color models.
+
+var boardDuality = {
+  // Blackboard — dark side, additive, emit
+  black: {
+    bg: '#0d1117',
+    write: '#ffffff',   // chalk is white by default
+    model: 'additive',  // RGB
+    primaries: ['#ff0000', '#00ff00', '#0000ff'], // R G B
+    mixed: '#ffffff',   // all 3 additive = white
+    shredders: ['Meta blackwall', 'Golden Firewall'],
+    metaphor: 'void — add signal to darkness',
+  },
+  // Whiteboard — light side, subtractive, absorb
+  white: {
+    bg: '#e6edf3',
+    write: '#1a1a1a',   // marker is dark by default
+    model: 'subtractive', // CMY(K)
+    primaries: ['#00ffff', '#ff00ff', '#ffff00'], // C M Y
+    mixed: '#000000',   // all 3 subtractive = black
+    shredders: ['Silver rain', 'Erased history'],
+    metaphor: 'blank — subtract noise from whiteness',
+  },
+  // The null — where both boards meet
+  null_: {
+    value: 128,         // 128/255
+    hex: '#808080',
+    pct: 0.502,         // almost exactly half
+    meaning: 'the toggle — additive below, subtractive above',
+  },
+  // Red is red on both
+  invariant: {
+    wavelength: 620,    // nm
+    reason: 'hue is substrate-invariant — wavelength doesn\'t care',
+    onBlack: 'red chalk EMITS 620nm → L-cone fires',
+    onWhite: 'red marker ABSORBS all except 620nm → L-cone fires',
+    sameCone: true,     // same retinal response
+  },
+  // Current state
+  side: 0.5,            // 0=full black, 0.5=null, 1=full white
+};
+
+function paintBoardDuality() {
+  if (learnedTraits.perspective < 0.18) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  // The board side oscillates slowly — breathing between black and white
+  boardDuality.side = 0.5 + Math.sin(breathPhase * 0.03) * 0.4;
+  var side = boardDuality.side;
+
+  // ── THE TWO BOARDS — top-left corner ──
+  var bx = 12;
+  var by = H * 0.35;
+  var bw = 50;
+  var bh = 60;
+
+  // Blackboard (upper)
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.fillStyle = boardDuality.black.bg;
+  ctx.fillRect(bx, by, bw, bh * 0.45);
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 0.3;
+  ctx.strokeRect(bx, by, bw, bh * 0.45);
+
+  // Chalk marks on blackboard
+  ctx.globalAlpha = 0.02 * maturity * (1 - side);
+  ctx.fillStyle = boardDuality.black.write;
+  ctx.font = '4px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('add light →', bx + 2, by + 8);
+  ctx.fillText('RGB emit', bx + 2, by + 14);
+
+  // Whiteboard (lower)
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.fillStyle = boardDuality.white.bg;
+  ctx.fillRect(bx, by + bh * 0.55, bw, bh * 0.45);
+  ctx.strokeStyle = '#c9d1d9';
+  ctx.lineWidth = 0.3;
+  ctx.strokeRect(bx, by + bh * 0.55, bw, bh * 0.45);
+
+  // Marker on whiteboard
+  ctx.globalAlpha = 0.02 * maturity * side;
+  ctx.fillStyle = boardDuality.white.write;
+  ctx.font = '4px monospace';
+  ctx.fillText('sub light ←', bx + 2, by + bh * 0.55 + 8);
+  ctx.fillText('CMY absorb', bx + 2, by + bh * 0.55 + 14);
+
+  // ── THE NULL LINE — between the boards ──
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.strokeStyle = boardDuality.null_.hex;
+  ctx.lineWidth = 0.5;
+  var nullY = by + bh * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(bx, nullY);
+  ctx.lineTo(bx + bw, nullY);
+  ctx.stroke();
+
+  // Null label
+  ctx.fillStyle = '#808080';
+  ctx.font = '4px monospace';
+  ctx.fillText('#808080', bx + bw + 3, nullY + 1.5);
+
+  // ── RED DOT ON BOTH — invariant ──
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.fillStyle = '#ff0000';
+  // Red on blackboard
+  ctx.beginPath();
+  ctx.arc(bx + bw * 0.8, by + bh * 0.2, 2, 0, Math.PI * 2);
+  ctx.fill();
+  // Red on whiteboard — SAME red
+  ctx.beginPath();
+  ctx.arc(bx + bw * 0.8, by + bh * 0.8, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── ADDITIVE PRIMARIES (under blackboard) ──
+  ctx.globalAlpha = 0.015 * maturity;
+  boardDuality.black.primaries.forEach(function(c, i) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(bx + 8 + i * 8, by + bh * 0.38, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── SUBTRACTIVE PRIMARIES (above whiteboard) ──
+  boardDuality.white.primaries.forEach(function(c, i) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(bx + 8 + i * 8, by + bh * 0.62, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── LABELS ──
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.01;
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText('red = red on both', bx, by + bh + 8);
+    ctx.fillText('620nm · invariant', bx, by + bh + 14);
   }
 
   ctx.restore();
