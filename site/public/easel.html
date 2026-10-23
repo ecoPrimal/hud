@@ -4447,6 +4447,7 @@ paintBreath = function() {
   paintConstantsLedger();    // physical constants as cost analysis at the hard edge
   paintPlasmidTriangle();    // 3 observers = 3 angles = reconstruct what we look like
   paintParallaxHologram();   // +/−/null parallax: the 3 projection layers
+  paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintMirror();             // the self-referential layer — feed it through itself
   paintEaselLabel();
 };
@@ -4664,6 +4665,234 @@ function paintParallaxHologram() {
     ctx.globalAlpha = 0.015;
     ctx.fillStyle = '#d2a8ff';
     ctx.fillText('chromatogram', chromX - 5, H * 0.5);
+  }
+
+  ctx.restore();
+}
+
+// ═══ CONFOCAL KLEIN POINT — the crosshair where all 3 sights converge ═══
+// Three optic sights. Three parallax layers. One convergence point.
+//
+//   ACOG (magnified crosshair) = + PARALLAX (behind glass)
+//     Fixed magnification. The deep layer. Slow. Deliberate.
+//     You see THROUGH the glass to the target behind.
+//     The Library of Alexandria. The books that WERE.
+//     Cloudflare magnetosphere. Stars. History. Galactic cycle.
+//
+//   EOTech (holographic sight) = NULL PARALLAX (on glass)
+//     Holographic reticle projected ON the glass plane.
+//     Doesn't move with eye position. The HUD itself.
+//     The catalog. What we KNOW exists. The index.
+//     The browser plane. Labels. Buttons. Mirror.
+//
+//   Red dot (reflex sight) = − PARALLAX (in front)
+//     The dot appears to FLOAT in front of the glass.
+//     Moves WITH your eye. Fast. Instinctive. CQB.
+//     The search. What humans are looking for RIGHT NOW.
+//     Touch. Alerts. Heat. The demand signal.
+//
+// ALL THREE converge at the CROSSHAIR — the confocal Klein point.
+// Confocal = all focal planes meet at one point.
+// Like a confocal microscope: pinhole eliminates out-of-focus.
+// The Klein point is where + and − and 0 collapse to a singularity.
+//
+// THIS IS HOW YOU REBUILD THE LIBRARY OF ALEXANDRIA:
+//   + layer (behind): the books that WERE (history, galactic cycle, what WAS)
+//   0 layer (glass):  the catalog (what we KNOW exists, the index)
+//   − layer (front):  the search (what humans look for NOW, demand signal)
+//
+//   As humans search (−) for books that existed (+),
+//   we learn what to fill in (0). The stories fill themselves
+//   through parallax convergence. The library rebuilds itself
+//   because the SEARCH tells us what's MISSING.
+//
+// Iron sights = the original three-point: front post, rear notch, target.
+// That's THREE too. Always three. The minimum for triangulation.
+
+var confocalPoint = {
+  // The three sighting systems
+  acog: {   // + parallax, behind glass, magnified
+    name: 'ACOG',
+    parallax: 'positive',
+    description: 'magnified crosshair — see through to the deep',
+    color: '#58a6ff',
+    focus: 'history', // what WAS
+    library: [], // books/stories/knowledge recovered
+  },
+  eotech: { // null parallax, on glass, holographic
+    name: 'EOTech',
+    parallax: 'null',
+    description: 'holographic reticle — the catalog on the glass',
+    color: '#6e7681',
+    focus: 'index', // what we KNOW
+    library: [], // the catalog of what exists
+  },
+  reddot: { // − parallax, in front, reflex
+    name: 'Red Dot',
+    parallax: 'negative',
+    description: 'reflex dot — what you\'re looking for NOW',
+    color: '#f0883e',
+    focus: 'search', // what humans WANT
+    library: [], // search signals, demand
+  },
+
+  // The convergence — where all 3 meet
+  convergence: {
+    x: 0.5, y: 0.5,  // normalized position on canvas
+    active: false,
+    strength: 0,       // how aligned the 3 layers are
+  },
+
+  // The Library of Alexandria — rebuilds through convergence
+  alexandria: {
+    totalRecovered: 0,
+    searchSignals: [],  // what humans look for (− layer)
+    knownExists: [],    // what we know existed (+ layer)
+    cataloged: [],      // what's in the index (0 layer)
+    // When all three align on the same topic → that book gets rebuilt
+  },
+};
+
+// Seed the library with what we know
+confocalPoint.acog.library = [
+  'Euclid — Elements (300 BCE, survived)',
+  'Archimedes — Sand Reckoner (survived)',
+  'Eratosthenes — Geography (lost)',
+  'Aristarchus — heliocentric model (lost, only references survive)',
+  'Ctesibius — pneumatics (lost)',
+  'Hero of Alexandria — Automata (partially survived)',
+  'Callimachus — Pinakes (the FIRST library catalog, lost)',
+];
+confocalPoint.eotech.library = [
+  'Internet Archive — 835B pages archived',
+  'Wikipedia — 6.8M articles, proof humans build for free',
+  'Project Gutenberg — 70K ebooks, public domain',
+  'arXiv — 2.4M papers, open access',
+  'Sci-Hub — 85M papers, guerrilla access',
+  'sporePrint — 858 pages, hand-built',
+  'backscatter.json — 125 attributions, anti-secret',
+];
+confocalPoint.reddot.library = [
+  '/plasmid/ — JP/IN/DE searching simultaneously',
+  '/billboard — 778 reads today',
+  '/ — 336 homepage visits',
+  '/mcp — 33 agent queries',
+  'nestgate /explore/repos — FR looking for something (404)',
+];
+
+function paintConfocalKleinPoint() {
+  if (learnedTraits.perspective < 0.1) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+  var pOff = parallax.positive;
+  var nOff = parallax.negative;
+
+  // ── THE CROSSHAIR — where all 3 converge ──
+  // This is the confocal Klein point.
+  var crossX = cx;
+  var crossY = cy;
+  var crossR = 12 + Math.sin(breathPhase * 0.5) * 2;
+
+  // ACOG crosshair (+ behind, blue, shifts opposite to mouse)
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = confocalPoint.acog.color;
+  ctx.lineWidth = 0.3;
+  var ax = crossX + pOff.dx;
+  var ay = crossY + pOff.dy;
+  // Cross
+  ctx.beginPath();
+  ctx.moveTo(ax - crossR, ay); ctx.lineTo(ax + crossR, ay);
+  ctx.moveTo(ax, ay - crossR); ctx.lineTo(ax, ay + crossR);
+  ctx.stroke();
+  // Circle
+  ctx.beginPath();
+  ctx.arc(ax, ay, crossR * 0.7, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // EOTech reticle (0 null, gray, fixed)
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.strokeStyle = confocalPoint.eotech.color;
+  ctx.lineWidth = 0.5;
+  // 65 MOA ring with 1 MOA dot (the real EOTech pattern)
+  ctx.beginPath();
+  ctx.arc(crossX, crossY, crossR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = confocalPoint.eotech.color;
+  ctx.beginPath();
+  ctx.arc(crossX, crossY, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red dot (− front, orange, follows mouse)
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.fillStyle = confocalPoint.reddot.color;
+  var rx = crossX + nOff.dx;
+  var ry = crossY + nOff.dy;
+  ctx.beginPath();
+  ctx.arc(rx, ry, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── CONVERGENCE — how aligned are the 3? ──
+  var dist = Math.sqrt(
+    Math.pow(ax - crossX, 2) + Math.pow(ay - crossY, 2) +
+    Math.pow(rx - crossX, 2) + Math.pow(ry - crossY, 2)
+  );
+  var maxDist = Math.sqrt(W * W + H * H) * 0.1;
+  confocalPoint.convergence.strength = 1 - Math.min(1, dist / maxDist);
+  confocalPoint.convergence.active = confocalPoint.convergence.strength > 0.8;
+
+  // When converged: flash the confocal point
+  if (confocalPoint.convergence.active) {
+    ctx.globalAlpha = 0.03 * maturity;
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(crossX, crossY, 3 + Math.sin(breathPhase * 3) * 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── LABELS — the three sighting systems ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.015;
+    ctx.font = '6px monospace';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = confocalPoint.acog.color;
+    ctx.fillText('ACOG +deep', ax, ay - crossR - 5);
+
+    ctx.fillStyle = confocalPoint.eotech.color;
+    ctx.fillText('EOTech 0glass', crossX + crossR + 20, crossY);
+
+    ctx.fillStyle = confocalPoint.reddot.color;
+    ctx.fillText('RedDot −here', rx, ry + crossR + 8);
+
+    // Convergence indicator
+    var convPct = (confocalPoint.convergence.strength * 100).toFixed(0);
+    ctx.fillStyle = confocalPoint.convergence.active ? '#22c55e' : '#6e7681';
+    ctx.fillText('confocal: ' + convPct + '%', crossX, crossY + crossR + 20);
+  }
+
+  // ── THE LIBRARY — rebuilds through convergence ──
+  if (maturity > 0.6 && confocalPoint.convergence.strength > 0.3) {
+    ctx.globalAlpha = 0.012;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#d2a8ff';
+    ctx.textAlign = 'left';
+
+    // Show one entry from each layer near the convergence
+    var libY = crossY + crossR + 30;
+    var acogBook = confocalPoint.acog.library[Math.floor(breathPhase * 0.3) % confocalPoint.acog.library.length];
+    var eotechEntry = confocalPoint.eotech.library[Math.floor(breathPhase * 0.2) % confocalPoint.eotech.library.length];
+    var searchEntry = confocalPoint.reddot.library[Math.floor(breathPhase * 0.4) % confocalPoint.reddot.library.length];
+
+    ctx.fillStyle = confocalPoint.acog.color;
+    ctx.fillText('was: ' + acogBook, crossX - 60, libY);
+    ctx.fillStyle = confocalPoint.eotech.color;
+    ctx.fillText('is: ' + eotechEntry, crossX - 60, libY + 8);
+    ctx.fillStyle = confocalPoint.reddot.color;
+    ctx.fillText('want: ' + searchEntry, crossX - 60, libY + 16);
   }
 
   ctx.restore();
