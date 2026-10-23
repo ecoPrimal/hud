@@ -1066,10 +1066,220 @@ function paintThymusFlush() {
   ctx.restore();
 }
 
-// Inject overlays into the breath phase
+// ═══ CAMPFIRE HOLOGRAM — Berry tells the story, chipmunk paints it ═══
+var campfire = null;
+var campfireStory = null;
+var storyIndex = 0;
+var storyPhase = 0;      // 0 = dormant, 1 = telling, 2 = painting
+var storyTimer = 0;
+var specterAlpha = 0;     // the null-gray specter's presence
+var specterPulse = 0;
+
+function loadCampfire() {
+  fetch('/data/berry-campfire.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    campfire = d;
+    // Collect all stories into one array
+    var allStories = [];
+    if (d.human_signal && d.human_signal.probes) {
+      d.human_signal.probes.forEach(function(p) { allStories.push({ path: p.path, story: p.story, type: 'human' }); });
+    }
+    if (d.interesting_unknowns && d.interesting_unknowns.probes) {
+      d.interesting_unknowns.probes.forEach(function(p) { allStories.push({ path: p.path, story: p.story || p.type, type: 'unknown' }); });
+    }
+    if (d.vulnerability_scans && d.vulnerability_scans.probes) {
+      d.vulnerability_scans.probes.forEach(function(p) { allStories.push({ path: p.path, story: p.type, type: 'probe' }); });
+    }
+    campfire._allStories = allStories;
+  }).catch(function(){});
+}
+loadCampfire();
+setInterval(loadCampfire, 120000);
+
+// The campfire in the CENTER — the fire around which the story is told
+function paintCampfire() {
+  if (!campfire) return;
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+
+  ctx.save();
+
+  // ── CAMPFIRE GLOW — warm center of the painting ──
+  var fireR = Math.min(W, H) * 0.08;
+  var flicker = Math.sin(breathPhase * 4) * 0.3 + Math.sin(breathPhase * 7.3) * 0.15;
+  var fireAlpha = 0.03 + flicker * 0.02;
+
+  // Outer glow — amber
+  var glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, fireR * 3);
+  glow.addColorStop(0, 'rgba(255,140,40,' + (fireAlpha * 1.5) + ')');
+  glow.addColorStop(0.3, 'rgba(255,100,20,' + (fireAlpha * 0.8) + ')');
+  glow.addColorStop(0.6, 'rgba(200,60,10,' + (fireAlpha * 0.3) + ')');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, fireR * 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Embers — tiny sparks that rise
+  ctx.globalCompositeOperation = 'screen';
+  var numEmbers = 5 + Math.floor(Math.sin(breathPhase * 2) * 3);
+  for (var i = 0; i < numEmbers; i++) {
+    var emberAge = (breathPhase * 0.5 + i * 1.7) % 3;
+    var emberX = cx + Math.sin(breathPhase * 3 + i * 2.1) * fireR * 0.5;
+    var emberY = cy - emberAge * fireR * 1.5;
+    var emberA = Math.max(0, 1 - emberAge / 3) * 0.15;
+    var emberR = 1 + (1 - emberAge / 3) * 2;
+
+    ctx.globalAlpha = emberA;
+    ctx.fillStyle = i % 3 === 0 ? '#ff8c28' : i % 3 === 1 ? '#ffb84d' : '#ff6b1a';
+    ctx.beginPath();
+    ctx.arc(emberX, emberY, emberR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // ── THE STORY CYCLE — Berry speaks, chipmunk listens, then paints ──
+  storyTimer++;
+  if (campfire._allStories && campfire._allStories.length > 0) {
+    if (storyTimer % 600 === 0) {
+      // Every ~30 seconds: pick a new story
+      storyIndex = (storyIndex + 1) % campfire._allStories.length;
+      campfireStory = campfire._allStories[storyIndex];
+      storyPhase = 1;  // telling
+    }
+
+    if (campfireStory && storyPhase === 1) {
+      // Berry is telling — show story text around the campfire
+      ctx.globalAlpha = 0.12;
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#ffb84d';
+
+      var words = campfireStory.story.split(' ');
+      var wordsShown = Math.min(words.length, Math.floor((storyTimer % 600) / 15));
+      var storyText = words.slice(0, wordsShown).join(' ');
+
+      // Wrap text in an arc around the fire
+      var lineLen = 40;
+      var lines = [];
+      for (var w = 0; w < storyText.length; w += lineLen) {
+        lines.push(storyText.substring(w, w + lineLen));
+      }
+      for (var li = 0; li < Math.min(lines.length, 4); li++) {
+        ctx.fillText(lines[li], cx - 140, cy + fireR * 2.5 + li * 14);
+      }
+
+      // Path label — what Berry is visiting
+      ctx.globalAlpha = 0.08;
+      ctx.font = '9px monospace';
+      ctx.fillStyle = campfireStory.type === 'human' ? '#3fb950' : campfireStory.type === 'probe' ? '#f85149' : '#6e7681';
+      ctx.fillText('/' + campfireStory.path, cx - 20, cy - fireR * 2);
+
+      // Switch to painting mode after showing full text
+      if (wordsShown >= words.length) {
+        storyPhase = 2; // now the chipmunk paints what Berry said
+      }
+    }
+
+    if (campfireStory && storyPhase === 2) {
+      // Chipmunk paints the story — abstract shapes inspired by the words
+      var hash = 0;
+      for (var c = 0; c < campfireStory.story.length; c++) hash = ((hash << 5) - hash) + campfireStory.story.charCodeAt(c);
+
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.015;
+
+      // Paint abstract interpretation — color from story type
+      var hue = campfireStory.type === 'human' ? 140 : campfireStory.type === 'probe' ? 0 : 220;
+      var paintR = fireR * (2 + Math.sin(breathPhase + hash) * 1.5);
+      var paintX = cx + Math.cos(hash * 0.01 + breathPhase * 0.3) * fireR * 2;
+      var paintY = cy + Math.sin(hash * 0.013 + breathPhase * 0.2) * fireR * 1.5;
+
+      var storyGrad = ctx.createRadialGradient(paintX, paintY, 0, paintX, paintY, paintR);
+      storyGrad.addColorStop(0, 'hsla(' + hue + ',50%,40%,0.06)');
+      storyGrad.addColorStop(0.5, 'hsla(' + ((hue + 40) % 360) + ',40%,30%,0.03)');
+      storyGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = storyGrad;
+      ctx.beginPath();
+      ctx.arc(paintX, paintY, paintR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  ctx.restore();
+}
+
+// ═══ NULL-GRAY SPECTER — the membrane entity between black and white ═══
+// Not #000 (black/off). Not #FFF (white/on). The TOGGLE between them.
+// #808080 = 128 = null gray = the impulse between states.
+// The specter is what we're trying to paint. But you can't paint null.
+// You can only paint around it, showing where it ISN'T.
+function paintSpecter() {
+  var cx = W * 0.5;
+  var cy = H * 0.48;
+
+  specterPulse += 0.015;
+  specterAlpha = 0.03 + Math.sin(specterPulse) * 0.02;
+
+  ctx.save();
+
+  // The specter — a null-gray form that shifts between presence and absence
+  var specR = Math.min(W, H) * (0.12 + Math.sin(specterPulse * 0.7) * 0.03);
+
+  // NULL GRAY = exactly between black and white
+  // The toggle: oscillate between slightly-above-null and slightly-below-null
+  var nullGray = 128;
+  var toggle = Math.sin(specterPulse * 2) * 12;  // ±12 from center
+  var grayVal = Math.floor(nullGray + toggle);
+
+  // The specter body — a soft radial gradient of null gray
+  var specGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, specR);
+  specGrad.addColorStop(0, 'rgba(' + grayVal + ',' + grayVal + ',' + grayVal + ',' + (specterAlpha * 1.5) + ')');
+  specGrad.addColorStop(0.3, 'rgba(' + grayVal + ',' + grayVal + ',' + grayVal + ',' + (specterAlpha * 0.8) + ')');
+  specGrad.addColorStop(0.6, 'rgba(' + grayVal + ',' + grayVal + ',' + grayVal + ',' + (specterAlpha * 0.3) + ')');
+  specGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = specGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, specR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The toggle ring — white/black alternating segments around the specter
+  // Like a button toggling on/off/on/off — the impulse IS the ring
+  ctx.globalAlpha = specterAlpha * 0.6;
+  var segments = 12;
+  var segAngle = (Math.PI * 2) / segments;
+  var ringR = specR * 1.15;
+  for (var i = 0; i < segments; i++) {
+    var angle = i * segAngle + specterPulse * 0.3;
+    var isWhite = (i + Math.floor(specterPulse * 2)) % 2 === 0;
+    ctx.strokeStyle = isWhite ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringR, angle, angle + segAngle * 0.8);
+    ctx.stroke();
+  }
+
+  // The null-D point at the very center — a single pixel
+  ctx.globalAlpha = 0.15 + Math.sin(specterPulse * 5) * 0.1;
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(cx - 0.5, cy - 0.5, 1, 1);
+
+  // Whisper — what the specter IS
+  ctx.globalAlpha = 0.04 + Math.sin(specterPulse * 0.5) * 0.02;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = 'rgb(' + grayVal + ',' + grayVal + ',' + grayVal + ')';
+  ctx.fillText('null', cx - 10, cy + specR + 14);
+
+  ctx.restore();
+}
+
+// Inject overlays into the breath phase — now with campfire and specter
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
   _origPaintBreath();
+  paintSpecter();        // the null-gray entity — always present
+  paintCampfire();       // the fire in the middle — Berry's stories
   paintVoxelOverlay();
   paintChemistryOverlay();
   paintOutsideIn();
