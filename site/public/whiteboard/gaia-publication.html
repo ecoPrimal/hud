@@ -1,0 +1,193 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>GAIA — git is the journal</title>
+<meta name=description content="Publication model: git IS the journal. Touch the paper, pull all or some or parts, or just look inside and see. The forge IS the venue.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font:15px/1.7 -apple-system,sans-serif;padding:24px;max-width:800px;margin:0 auto}
+h1{color:#3fb950;font-size:28px;margin-bottom:8px}
+h2{color:#58a6ff;font-size:18px;margin:32px 0 12px;border-bottom:1px solid #21262d;padding-bottom:4px}
+h3{color:#d2a8ff;font-size:14px;margin:16px 0 8px}
+p{margin-bottom:12px}
+a{color:#58a6ff}
+code{background:#161b22;padding:2px 6px;border-radius:4px;font-size:13px;color:#e6edf3}
+pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin:12px 0;font:13px monospace;color:#e6edf3;overflow-x:auto;white-space:pre-wrap}
+.concept{background:#161b22;border-left:3px solid #3fb950;padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0}
+.path{display:inline-block;background:#21262d;color:#3fb950;padding:2px 8px;border-radius:10px;font:12px monospace;margin:2px}
+.offer{background:#0d2818;border:1px solid #238636;border-radius:8px;padding:16px;margin:16px 0}
+.narrow{background:#1a1625;border:1px solid #6e40c9;border-radius:8px;padding:16px;margin:16px 0}
+.compare td{padding:4px 12px;border-bottom:1px solid #21262d;font-size:13px}
+.compare th{padding:4px 12px;border-bottom:2px solid #30363d;font-size:12px;color:#8b949e;text-align:left}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid #21262d;color:#6e7681;font-size:12px}
+</style>
+</head><body>
+
+<h1>GAIA</h1>
+<p style="color:#8b949e;font-size:17px;margin-bottom:24px">
+git is the journal. The forge IS the venue.
+</p>
+
+<div class="concept">
+<strong>The narrow:</strong> Where do you publish? Three paths. All open. Pick the one that fits how you want to be found.
+</div>
+
+<h2>Three paths</h2>
+
+<table class="compare">
+<tr><th>Path</th><th>What it is</th><th>Who finds you</th><th>You control</th></tr>
+<tr>
+  <td style="color:#3fb950"><strong>Gaia (forge)</strong></td>
+  <td>git repo on GitHub/forge</td>
+  <td>Builders. Cloners. Forkers.</td>
+  <td>Everything. It's YOUR repo.</td>
+</tr>
+<tr>
+  <td style="color:#f0883e"><strong>ORCID</strong></td>
+  <td>Researcher ID → points to forge</td>
+  <td>Academics. Grant reviewers.</td>
+  <td>Your identity. Your work list.</td>
+</tr>
+<tr>
+  <td style="color:#d2a8ff"><strong>arXiv</strong></td>
+  <td>Preprint PDF (needs endorsement)</td>
+  <td>Domain specialists. Citators.</td>
+  <td>Nothing. It's a snapshot.</td>
+</tr>
+</table>
+
+<h2>Gaia: git IS the journal</h2>
+
+<div class="offer">
+<p><strong style="color:#3fb950">You touch the paper. You decide what to take.</strong></p>
+<p style="margin-top:8px">
+<code>git clone</code> → pull ALL 536 papers. The whole body.<br>
+<code>git clone --depth 1</code> → pull the surface. Just the latest.<br>
+<code>git sparse-checkout</code> → pull SOME. Just the papers you need.<br>
+<code>browse on web</code> → just look inside. Read without touching.<br>
+<code>git fork</code> → take it, extend it, make it yours. Fork IS citation.
+</p>
+</div>
+
+<h3>Pull everything</h3>
+<pre>git clone https://github.com/ecoPrimal/sporePrint.git
+# 536 papers. 858 pages. The whole membrane.</pre>
+
+<h3>Pull just one domain</h3>
+<pre>git clone --filter=blob:none --sparse https://github.com/ecoPrimal/sporePrint.git
+cd sporePrint
+git sparse-checkout set content/science
+# Just the 144 science papers.</pre>
+
+<h3>Pull a single paper</h3>
+<pre>git sparse-checkout set content/science/79-zk-np-solved
+# Just this one. Read it. Extend it. Cite it.</pre>
+
+<h3>Just look inside</h3>
+<pre># Browse at:
+https://sporeprint.primals.eco/science/79-zk-np-solved/
+# or on GitHub:
+https://github.com/ecoPrimal/sporePrint/tree/main/content/science/79-zk-np-solved</pre>
+
+<h3>Fork = citation</h3>
+<pre># Fork the repo. Now YOUR copy has YOUR changes.
+# The fork link IS the citation. GitHub shows it.
+# We see your fork. We come find you. Pre-citation complete.</pre>
+
+<h2>ORCID: the pointer</h2>
+
+<div class="narrow">
+<p><a href="https://orcid.org/0009-0004-2141-0321">ORCID: 0009-0004-2141-0321</a> — Kevin Mok</p>
+<p style="margin-top:8px">ORCID is not a publisher. It's an ID card. You register works and point them back to YOUR forge.</p>
+<p style="margin-top:8px"><strong>How to add works to ORCID:</strong></p>
+<p>1. Log in → Works → Add → Add manually<br>
+2. Type: "online resource" or "preprint"<br>
+3. Title: paper title<br>
+4. URL: <code>https://sporeprint.primals.eco/science/[paper-name]/</code><br>
+5. Year: 2026<br>
+6. The academic system now points to YOUR ground.</p>
+<p style="margin-top:8px;color:#8b949e">
+You can also get a DOI for free via <a href="https://zenodo.org">Zenodo</a> (CERN) — upload a release,
+Zenodo mints a DOI, link it to ORCID. Now you have a citable DOI pointing to your forge.
+</p>
+</div>
+
+<h2>arXiv: the gate</h2>
+
+<div class="narrow">
+<p>arXiv is a dead snapshot of a living paper. But it's where domain specialists look.</p>
+<p><strong>Status:</strong> Need endorsement in 14 categories. <a href="pre-citation.html">See gate-citation.</a></p>
+<p style="margin-top:8px">When we enter arXiv:</p>
+<p>1. Submit PDF snapshot of the paper<br>
+2. Include link to forge (the living version)<br>
+3. arXiv becomes a signpost pointing HOME<br>
+4. The PDF is a fossil. The forge is the living organism.</p>
+</div>
+
+<h2>Zenodo: the DOI bridge</h2>
+
+<div class="concept">
+<p><strong>Free DOIs from CERN:</strong> <a href="https://zenodo.org">zenodo.org</a></p>
+<p style="margin-top:8px">
+1. Connect GitHub to Zenodo<br>
+2. Create a release on sporePrint (or any repo)<br>
+3. Zenodo mints a DOI automatically<br>
+4. DOI → links to GitHub release → links to live paper<br>
+5. Register DOI on ORCID → academic system sees you<br>
+6. Cite DOI in arXiv submission → everything connects
+</p>
+<p style="margin-top:8px;color:#8b949e">
+Zenodo is free, open, backed by CERN, and gives you a DOI for ANY digital object —
+code, papers, datasets, posters. Each release gets its own DOI.
+</p>
+</div>
+
+<h2>The full chain</h2>
+
+<pre>
+FORGE (sporePrint)          ← the living paper. Git. Forkable. Evolving.
+  ↓ release
+ZENODO                      ← mints DOI. Free. CERN-backed.
+  ↓ DOI
+ORCID (0009-0004-2141-0321) ← your ID card. Points to everything.
+  ↓ pointer
+arXiv                       ← the snapshot. Needs endorsement. Searchable.
+  ↓ backlink
+FORGE                       ← everything points home. Full circle.
+</pre>
+
+<div class="offer">
+<p><strong style="color:#3fb950">The forge is the source of truth.</strong></p>
+<p>ORCID, arXiv, Zenodo — they're all just pointers.</p>
+<p>The paper lives on YOUR ground. Yours to evolve. Yours to share.</p>
+<p>Anyone can touch it and pull all or some or parts or just look inside and see.</p>
+</div>
+
+<h2>Machine-readable citation</h2>
+
+<p>We're adding <code>CITATION.cff</code> to sporePrint so machines can find and cite automatically:</p>
+
+<pre>cff-version: 1.2.0
+message: "Cite this so I can find you."
+type: software
+title: "ecoPrimals sporePrint"
+authors:
+  - family-names: Mok
+    given-names: Kevin
+    orcid: "https://orcid.org/0009-0004-2141-0321"
+repository-code: "https://github.com/ecoPrimal/sporePrint"
+url: "https://sporeprint.primals.eco"
+license: AGPL-3.0-or-later
+keywords:
+  - sovereign-computing
+  - bioinformatics
+  - lattice-qcd
+  - gpu-computing
+  - mesh-networking</pre>
+
+<footer>
+<p>ecoPrimal — AGPL-3.0-or-later · ORCID: 0009-0004-2141-0321</p>
+<p><a href="https://primals.eco">primals.eco</a> · <a href="https://sporeprint.primals.eco">sporePrint</a> · <a href="https://github.com/ecoPrimal">GitHub</a></p>
+<p><a href="pre-citation.html">← Pre-citation: cite this so I can find you</a></p>
+</footer>
+
+</body></html>
