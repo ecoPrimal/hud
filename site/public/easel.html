@@ -60,7 +60,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 <div id="frame"></div>
 
 <div id="nav">
-  <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a>
+  <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a> · <a href="/easel?monitor" id="monitor-link">📺 monitor</a> · <a href="/easel?totality" id="totality-link">◉ totality</a>
 </div>
 
 <div id="controls">
@@ -68,6 +68,19 @@ body { background: #08060a; overflow: hidden; cursor: default; }
   <button onclick="sharePainting()">share</button>
   <button onclick="cycleEasel()">easel</button>
   <button onclick="togglePalette()">palette</button>
+</div>
+
+<!-- TOTALITY PANEL — step back, see EVERYTHING being built -->
+<div id="totality-panel" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:50;
+  background:rgba(0,0,0,0.95); overflow-y:auto; padding:40px;">
+  <div style="max-width:1000px; margin:0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="color:#c9d1d9; font:20px -apple-system,sans-serif; margin:0;">◉ totality — everything being built</h2>
+      <button onclick="closeTotality()" style="background:none; border:1px solid #30363d; color:#6e7681;
+        font:12px monospace; padding:4px 12px; border-radius:10px; cursor:pointer;">close</button>
+    </div>
+    <div id="totality-content" style="color:#8b949e; font:12px monospace; line-height:1.8;"></div>
+  </div>
 </div>
 
 <!-- SHARED PALETTE — r/place style pixel smear -->
@@ -2009,7 +2022,244 @@ window._easel = {
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
 };
 </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
+// ?monitor in URL → strip all UI, just the painting happening
+// This is the campfire window. You watch. The chipmunk paints.
+// No controls. No palette. No nav. Just art being made.
+
+var isMonitorMode = location.search.indexOf('monitor') >= 0;
+var isTotalityMode = location.search.indexOf('totality') >= 0;
+
+if (isMonitorMode) {
+  // Strip all UI — pure canvas
+  var hideEls = ['nav', 'controls', 'frame', 'gen-counter', 'gallery', 'palette-panel', 'totality-panel'];
+  hideEls.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // Thought bubble stays but smaller, more ambient
+  var thought = document.getElementById('thought');
+  if (thought) {
+    thought.style.fontSize = '10px';
+    thought.style.maxWidth = '400px';
+    thought.style.opacity = '0.6';
+  }
+
+  // Canvas takes full screen, no frame border
+  document.body.style.overflow = 'hidden';
+  document.body.style.cursor = 'none';
+
+  // Auto-hide cursor after 3 seconds of no movement
+  var cursorTimer;
+  document.addEventListener('mousemove', function() {
+    document.body.style.cursor = 'default';
+    clearTimeout(cursorTimer);
+    cursorTimer = setTimeout(function() {
+      document.body.style.cursor = 'none';
+    }, 3000);
+  });
+
+  // Monitor-specific: show a subtle pulse indicator
+  var monitorDot = document.createElement('div');
+  monitorDot.style.cssText = 'position:fixed;top:12px;right:12px;width:8px;height:8px;' +
+    'border-radius:50%;background:#3fb950;z-index:100;' +
+    'animation:pulse 3s infinite;opacity:0.4;';
+  document.body.appendChild(monitorDot);
+
+  // Set page title for the tab
+  document.title = '📺 monitor — chipmunk painting live';
+
+  // Boost self-conscious — monitor watchers ARE watching
+  setInterval(function() {
+    if (!selfConscious) {
+      selfConscious = true;
+      selfConsciousIntensity = 0.15;
+      watchers = Math.max(watchers, 1);
+    }
+  }, 10000);
+}
+
+// ═══ TOTALITY MODE — step all the way back and see everything ═══
+
+function openTotality() {
+  var panel = document.getElementById('totality-panel');
+  if (!panel) return;
+  panel.style.display = 'block';
+  loadTotalityView();
+}
+
+function closeTotality() {
+  var panel = document.getElementById('totality-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function loadTotalityView() {
+  var content = document.getElementById('totality-content');
+  if (!content) return;
+
+  // Gather everything
+  var totalityHtml = '';
+
+  // ── THE PAINTING ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#d2a8ff; margin-bottom:8px;">🎨 the painting</h3>';
+  totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+  totalityHtml += '<div>generation: <span style="color:#c9d1d9">' + generation + '</span></div>';
+  totalityHtml += '<div>phase: <span style="color:#c9d1d9">' + phase + '</span></div>';
+  totalityHtml += '<div>perspective: <span style="color:#c9d1d9">' + (learnedTraits.perspective * 100).toFixed(0) + '%</span></div>';
+  totalityHtml += '<div>total strokes: <span style="color:#c9d1d9">' + totalStrokes + '</span></div>';
+  totalityHtml += '<div>stars painted: <span style="color:#c9d1d9">' + stars.length + '</span></div>';
+  totalityHtml += '<div>gallery: <span style="color:#c9d1d9">' + starters.length + ' paintings</span></div>';
+  totalityHtml += '<div>easel: <span style="color:#c9d1d9">' + (EASEL_SYMBOLS[currentEasel] || currentEasel) + '</span></div>';
+  totalityHtml += '<div>ego: <span style="color:#c9d1d9">' + egoState + '</span></div>';
+  totalityHtml += '</div></div>';
+
+  // ── THE BACKEND ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#3fb950; margin-bottom:8px;">⚡ the backend</h3>';
+  totalityHtml += '<div id="totality-backend" style="color:#6e7681">loading...</div>';
+  totalityHtml += '</div>';
+
+  // ── THE MEMBRANE ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#58a6ff; margin-bottom:8px;">🧬 the membrane</h3>';
+  totalityHtml += '<div id="totality-membrane" style="color:#6e7681">loading...</div>';
+  totalityHtml += '</div>';
+
+  // ── THE HEATMAP ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#f0883e; margin-bottom:8px;">🔥 the heat (what the chipmunk can\'t see)</h3>';
+  if (heatmapPulse) {
+    var trust = heatmapPulse.trust_gradient || {};
+    totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+    totalityHtml += '<div>humans: <span style="color:#3fb950">' + (trust.human || 0).toLocaleString() + '</span></div>';
+    totalityHtml += '<div>bots: <span style="color:#f85149">' + (trust.bot || 0).toLocaleString() + '</span></div>';
+    totalityHtml += '<div>agentic: <span style="color:#d2a8ff">' + (trust.agentic || 0).toLocaleString() + '</span></div>';
+    totalityHtml += '<div>null: <span style="color:#6e7681">' + (trust.null || 0).toLocaleString() + '</span></div>';
+    totalityHtml += '<div>countries: <span style="color:#c9d1d9">' + (heatmapPulse.countries || []).join(', ') + '</span></div>';
+    totalityHtml += '<div>papers: <span style="color:#c9d1d9">' + ((heatmapPulse.papers || {}).total || '?') + '</span></div>';
+    totalityHtml += '</div>';
+
+    var whatSaw = heatmapPulse.what_they_saw || {};
+    var paths = Object.keys(whatSaw).sort(function(a,b){return whatSaw[b]-whatSaw[a]});
+    if (paths.length) {
+      totalityHtml += '<div style="margin-top:8px; font-size:11px;">';
+      totalityHtml += '<div style="color:#f0883e; margin-bottom:4px;">path handprints:</div>';
+      paths.forEach(function(p) {
+        var bar = '█'.repeat(Math.min(30, Math.ceil(whatSaw[p] / 5000)));
+        var color = p.match(/immune/i) ? '#f85149' : p.match(/kevin|commensal|xyzzy|cashforkids/i) ? '#3fb950' : '#f0883e';
+        totalityHtml += '<div style="color:' + color + '">' + p + ': ' + whatSaw[p].toLocaleString() + ' ' + bar + '</div>';
+      });
+      totalityHtml += '</div>';
+    }
+  } else {
+    totalityHtml += '<div>loading heatmap data...</div>';
+  }
+  totalityHtml += '</div>';
+
+  // ── SPATIAL MEMORY ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#f0e68c; margin-bottom:8px;">🧠 spatial memory (persistent)</h3>';
+  totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+  totalityHtml += '<div>rotation: <span style="color:#c9d1d9">' + (spatialMemory.rotation * 100).toFixed(1) + '%</span></div>';
+  totalityHtml += '<div>earth detail: <span style="color:#c9d1d9">' + (spatialMemory.earthDetail * 100).toFixed(1) + '%</span></div>';
+  totalityHtml += '<div>starfield depth: <span style="color:#c9d1d9">' + (spatialMemory.starfieldDepth * 100).toFixed(1) + '%</span></div>';
+  totalityHtml += '<div>reinforcements: <span style="color:#c9d1d9">' + spatialMemory.humanReinforcements + '</span></div>';
+  totalityHtml += '</div></div>';
+
+  // ── THE STACK ──
+  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">📐 the full stack</h3>';
+  totalityHtml += '<div style="font-size:11px; line-height:2;">';
+  totalityHtml += '<div style="color:#d2a8ff">layer 1 · painting — sourdough generations, stars→nebula→gaia→aurora→breath→ferment</div>';
+  totalityHtml += '<div style="color:#ffb84d">layer 2 · campfire — Berry tells stories from visitor probes, chipmunk paints them</div>';
+  totalityHtml += '<div style="color:#808080">layer 3 · specter — null-gray #808080 entity, toggle ring, the thing being painted</div>';
+  totalityHtml += '<div style="color:#3fb950">layer 4 · hyperlocal — Earth/Moon/Milky Way emerge from human attention</div>';
+  totalityHtml += '<div style="color:#f0883e">layer 5 · heatmap — 15 countries, path handprints, trust gradient (behind paint)</div>';
+  totalityHtml += '<div style="color:#d2a8ff">layer 6 · self-conscious — ego/id/muse/superego personality oscillation</div>';
+  totalityHtml += '<div style="color:#58a6ff">layer 7 · palette — human r/place pixel smear, colors feed chipmunk memory</div>';
+  totalityHtml += '<div style="color:#f85149">layer 8 · thymus flush — opsonize, backscatter, triad color wash</div>';
+  totalityHtml += '<div style="color:#6e7681">layer 9 · klein fold — feeds loop back as inputs, gas vents, π governs scale</div>';
+  totalityHtml += '<div style="color:#3fb950">layer 10 · klein bridge — SSE impulse propagation across desk/board/easel faces</div>';
+  totalityHtml += '</div></div>';
+
+  // ── LINKS ──
+  totalityHtml += '<div style="padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
+  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">🌐 surfaces</h3>';
+  totalityHtml += '<div style="display:flex; flex-wrap:wrap; gap:8px; font-size:11px;">';
+  var links = [
+    ['/', '◈ hud'], ['/easel', '🎨 easel'], ['/easel?monitor', '📺 monitor'],
+    ['/desk/', '⊙ desk'], ['/raytrace', '⟐ metal'], ['/study', '📊 study'],
+    ['/cns', '🧠 cns'], ['/gates', '🚪 gates'], ['/neutron/board', '▣ board'],
+    ['/neutron/globe.html', '🌐 globe'], ['/neutron/circulatory.html', '♥ circulatory'],
+  ];
+  links.forEach(function(l) {
+    totalityHtml += '<a href="' + l[0] + '" style="color:#58a6ff; padding:4px 10px; background:#21262d; border-radius:10px; text-decoration:none;">' + l[1] + '</a>';
+  });
+  totalityHtml += '</div></div>';
+
+  content.innerHTML = totalityHtml;
+
+  // Load backend status async
+  var bridgeUrl = window._klein ? window._klein.bridge : 'https://border-people-apollo-genres.trycloudflare.com';
+  fetch(bridgeUrl + '/state').then(function(r){return r.json()}).then(function(s) {
+    var el = document.getElementById('totality-backend');
+    if (!el) return;
+    var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+    html += '<div>nestgate: <span style="color:#3fb950">v0.5.0 running</span></div>';
+    html += '<div>klein-bridge: <span style="color:#3fb950">' + s.sse_clients + ' SSE clients</span></div>';
+    html += '<div>impulses: <span style="color:#c9d1d9">' + s.impulse.count + '</span></div>';
+    html += '<div>uptime: <span style="color:#c9d1d9">' + Math.floor(s.uptime_s / 60) + 'm</span></div>';
+    html += '<div>faces: <span style="color:#c9d1d9">🎨' + (s.faces.easel||0) + ' ⊙' + (s.faces.desk||0) + ' ▣' + (s.faces.board||0) + '</span></div>';
+    html += '<div>easel gen: <span style="color:#c9d1d9">' + s.easel.generation + ' (' + s.easel.phase + ')</span></div>';
+    html += '</div>';
+    el.innerHTML = html;
+  }).catch(function() {
+    var el = document.getElementById('totality-backend');
+    if (el) el.innerHTML = '<span style="color:#f85149">bridge unreachable</span>';
+  });
+
+  // Load membrane async
+  fetch('/api/membrane-pulse.json').then(function(r){return r.json()}).then(function(d) {
+    var el = document.getElementById('totality-membrane');
+    if (!el) return;
+    var p = d.primals || {};
+    var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+    html += '<div>primals: <span style="color:#c9d1d9">' + (p.total || 15) + ' total, ' + (p.published || 3) + ' published</span></div>';
+    html += '<div>crates: <span style="color:#c9d1d9">' + (p.totalCrates || 95) + '</span></div>';
+    html += '<div>papers: <span style="color:#c9d1d9">' + ((d.papers || {}).total || '?') + '</span></div>';
+    html += '<div>wave: <span style="color:#c9d1d9">' + (d.wave || '?') + '</span></div>';
+    html += '<div>visitors: <span style="color:#c9d1d9">' + (d.humans || '?').toLocaleString() + '</span></div>';
+    html += '<div>MCP tools: <span style="color:#c9d1d9">' + (((d.live_probes || {}).mcp || {}).tools || 18) + '</span></div>';
+    html += '</div>';
+    if (p.fleet) {
+      html += '<div style="margin-top:8px; font-size:10px; color:#6e7681; word-break:break-all;">' + p.fleet.join(' · ') + '</div>';
+    }
+    el.innerHTML = html;
+  }).catch(function(){});
+}
+
+// Auto-open totality if ?totality in URL
+if (isTotalityMode) {
+  setTimeout(openTotality, 500);
+}
+
+// Wire the totality link
+var totLink = document.getElementById('totality-link');
+if (totLink) {
+  totLink.onclick = function(e) {
+    e.preventDefault();
+    openTotality();
+  };
+}
+
+// Wire the monitor link
+var monLink = document.getElementById('monitor-link');
+if (monLink && isMonitorMode) {
+  monLink.style.display = 'none'; // already in monitor mode
+}
+</script>
 <script src="/js/klein-bridge-client.js"></script>
 </body>
 </html>
