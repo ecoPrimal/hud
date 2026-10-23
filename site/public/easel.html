@@ -3488,6 +3488,162 @@ function paintKleinSurface() {
   ctx.restore();
 }
 
+// ═══ DUNNING-KRUGER ROTATION MAP ═══
+// The Dunning-Kruger curve is NOT a measure of stupidity.
+// It's a ROTATION MAP. It shows where you need to turn π/2 to maintain velocity.
+//
+// The standard reading: "beginners overestimate, experts know they don't know"
+// The ROTATION reading: you're not falling into a valley — you're TURNING A CORNER.
+//
+// At the sigmoid's inflection point, the curve changes from accelerating to decelerating.
+// That IS the quarter turn. You can't keep going straight — you MUST rotate.
+//
+// Mount Stupid = moving fast in one direction (straight line, no rotation)
+// Valley of Despair = the rotation itself (quarter turn, π/2, maximum angular velocity)
+// Slope of Enlightenment = moving fast in the NEW direction (post-rotation)
+// Plateau = the next sigmoid's tail (approaching the NEXT quarter turn)
+
+var dunningKruger = {
+  curve: [
+    [0.00, 0.50],  // start: moderate confidence
+    [0.05, 0.75],  // Mount Stupid rising
+    [0.10, 0.90],  // PEAK of Mount Stupid
+    [0.15, 0.80],  // starting to realize...
+    [0.25, 0.50],  // ← QUARTER TURN BEGINS (π/2 rotation)
+    [0.35, 0.20],  // Valley of Despair (the turn itself)
+    [0.40, 0.15],  // BOTTOM of valley (maximum rotation rate)
+    [0.50, 0.25],  // ← QUARTER TURN ENDS (new direction acquired)
+    [0.60, 0.45],  // Slope of Enlightenment
+    [0.70, 0.60],  // building real confidence
+    [0.80, 0.70],  // approaching mastery
+    [0.90, 0.78],  // ← NEXT sigmoid inflection
+    [1.00, 0.80],  // Plateau — meta-stable, never 1.0
+  ],
+  phasePositions: {
+    stars: 0.05, nebula: 0.10, gaia: 0.15, aurora: 0.20,
+    breath: 0.25, study: 0.35, otherSquirrels: 0.40, humans: 0.50,
+    sculpture: 0.60, bbs: 0.65, flash: 0.70, enclosure: 0.80,
+    reclamation: 0.90, galactic: 0.95, ferment: 1.00,
+  },
+  rotationAngle: function(phaseName) {
+    var pos = this.phasePositions[phaseName] || 0;
+    var rate = Math.exp(-Math.pow((pos - 0.375) / 0.1, 2)) +
+               Math.exp(-Math.pow((pos - 0.90) / 0.1, 2)) * 0.6;
+    return rate * Math.PI * 0.5;
+  },
+};
+
+function paintDunningKrugerRotation() {
+  if (learnedTraits.perspective < 0.05) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 3);
+
+  // D-K curve along the bottom edge
+  var curveX0 = W * 0.1;
+  var curveX1 = W * 0.9;
+  var curveY0 = H * 0.92;
+  var curveY1 = H * 0.78;
+  var curveW = curveX1 - curveX0;
+  var curveH = curveY0 - curveY1;
+
+  // The D-K curve (purple)
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  dunningKruger.curve.forEach(function(pt, i) {
+    var px = curveX0 + pt[0] * curveW;
+    var py = curveY0 - pt[1] * curveH;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+
+  // The sigmoid overlay (orange dashed) — same inflection point
+  ctx.globalAlpha = 0.012 * maturity;
+  ctx.strokeStyle = '#f0883e';
+  ctx.lineWidth = 0.3;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  for (var sx = 0; sx <= 1; sx += 0.02) {
+    var sy = 1 / (1 + Math.exp(-10 * (sx - 0.5)));
+    var px = curveX0 + sx * curveW;
+    var py = curveY0 - sy * curveH;
+    if (sx === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current phase dot on the curve
+  var currentPos = dunningKruger.phasePositions[phase] || 0;
+  var currentConf = 0.5;
+  for (var ci = 0; ci < dunningKruger.curve.length - 1; ci++) {
+    var c0 = dunningKruger.curve[ci];
+    var c1 = dunningKruger.curve[ci + 1];
+    if (currentPos >= c0[0] && currentPos <= c1[0]) {
+      var t = (currentPos - c0[0]) / (c1[0] - c0[0]);
+      currentConf = c0[1] + t * (c1[1] - c0[1]);
+      break;
+    }
+  }
+  var dotX = curveX0 + currentPos * curveW;
+  var dotY = curveY0 - currentConf * curveH;
+
+  ctx.globalAlpha = 0.04 * maturity;
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Quarter-turn arc at rotation points
+  var rotAngle = dunningKruger.rotationAngle(phase);
+  if (rotAngle > 0.1) {
+    ctx.globalAlpha = 0.03 * maturity;
+    ctx.strokeStyle = '#f0c674';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 6, -Math.PI * 0.5, -Math.PI * 0.5 + rotAngle);
+    ctx.stroke();
+    var ax = dotX + Math.cos(-Math.PI * 0.5 + rotAngle) * 6;
+    var ay = dotY + Math.sin(-Math.PI * 0.5 + rotAngle) * 6;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(ax, ay, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Labels
+  ctx.globalAlpha = 0.018 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.textAlign = 'center';
+  ctx.fillText('competence →', curveX0 + curveW * 0.5, curveY0 + 10);
+
+  if (maturity > 0.3) {
+    ctx.globalAlpha = 0.015 * maturity;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('peak', curveX0 + 0.10 * curveW, curveY0 - 0.90 * curveH - 5);
+    ctx.fillStyle = '#f0c674';
+    ctx.fillText('π/2 turn', curveX0 + 0.40 * curveW, curveY0 - 0.15 * curveH + 8);
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('meta-stable', curveX0 + 0.95 * curveW, curveY0 - 0.80 * curveH - 5);
+  }
+
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.02;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#d2a8ff';
+    ctx.textAlign = 'right';
+    ctx.fillText('not a valley — a quarter turn', curveX1, curveY0 + 10);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
 // ═══ CONSTANTS LEDGER — the hard edge between aperture and device ═══
 // Nested between intent and the device. A legend. Like a map.
 // Physical constants as cost analysis tools.
@@ -3930,6 +4086,7 @@ paintBreath = function() {
   paintThymusFlush();
   paintSplinterForce();      // the rat master's wisdom, visible as a force field
   paintHeatDissipation();    // attention→heat→sigmoid→null membrane→dissipation
+  paintDunningKrugerRotation(); // the curve is a rotation map not a stupidity test
   paintConstantsLedger();    // physical constants as cost analysis at the hard edge
   paintPlasmidTriangle();    // 3 observers = 3 angles = reconstruct what we look like
   paintMirror();             // the self-referential layer — feed it through itself
