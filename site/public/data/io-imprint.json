@@ -1,0 +1,113 @@
+{
+  "ts": "2026-10-23T15:29:55Z",
+  "type": "io-imprint-topology",
+  "wave": 181,
+  "purpose": "Every I/O device is a Klein surface. Scanner=in, printer=out, copy=fold-sees-itself. Fax validation inverted: phone numbers are noise now, sovereign relay is trust.",
+  "io_surfaces": {
+    "imprint_in": {
+      "description": "Surfaces that bring physical \u2192 digital (IN through the fold)",
+      "devices": {
+        "et2400_scanner": {
+          "ip": "192.168.4.200",
+          "capability": "flatbed scanner (SANE epson2 driver)",
+          "protocols": [
+            "eSCL (AirScan)",
+            "WSD",
+            "SANE/epson2"
+          ],
+          "note": "Scans physical paper \u2192 digital image. The fold reads the outside."
+        },
+        "es400_scanner": {
+          "status": "offline/USB-only \u2014 need to check power/connection",
+          "capability": "high-speed document scanner (sheetfed)",
+          "protocols": [
+            "SANE",
+            "TWAIN",
+            "USB"
+          ],
+          "note": "Fast document digitization. The fast-path fold."
+        },
+        "grapheneGate_camera": {
+          "device": "Pixel 8a (akita)",
+          "capability": "camera + microphone",
+          "protocols": [
+            "ADB",
+            "scrcpy",
+            "camera2 API"
+          ],
+          "note": "Every photo is an imprint. Every voice note is a fold."
+        }
+      }
+    },
+    "imprint_out": {
+      "description": "Surfaces that push digital \u2192 physical (OUT through the fold)",
+      "devices": {
+        "et2400_printer": {
+          "ip": "192.168.4.200",
+          "capability": "color inkjet (EcoTank, refillable)",
+          "protocols": [
+            "IPP/IPPS",
+            "RAW/9100",
+            "LPD"
+          ],
+          "note": "Digital document \u2192 physical paper. The fold speaks to the outside."
+        },
+        "basement_tv": {
+          "ip": "192.168.4.170",
+          "capability": "55in display (VIZIO V555-J01)",
+          "protocols": [
+            "AirPlay",
+            "ChromeCast",
+            "VIZIOcast"
+          ],
+          "note": "Digital image \u2192 photons. The fold projects."
+        },
+        "fluidsynth": {
+          "port": 9800,
+          "capability": "MIDI \u2192 audio synthesis",
+          "protocols": [
+            "MIDI over TCP"
+          ],
+          "note": "Digital notes \u2192 sound waves. The fold sings."
+        }
+      }
+    },
+    "imprint_bidirectional": {
+      "description": "Surfaces that fold BOTH ways simultaneously",
+      "devices": {
+        "et2400_multifunction": {
+          "ip": "192.168.4.200",
+          "capability": "print + scan + copy (no fax hardware)",
+          "note": "Copy = scan-then-print = read the fold then write it back. The Klein surface sees itself."
+        }
+      }
+    },
+    "fax_inversion": {
+      "description": "The telephone numbers that USED to validate fax are now inverted",
+      "old_model": {
+        "path": "document \u2192 scanner \u2192 modem \u2192 PSTN copper \u2192 modem \u2192 printer",
+        "validation": "phone number = identity (caller ID, area code = location)",
+        "noise": "analog mixing in copper \u2014 crosstalk, EMI, line noise",
+        "trust": "trusted because phone numbers were hard to fake (physical lines)"
+      },
+      "new_model": {
+        "path": "document \u2192 scanner \u2192 email/IPP \u2192 internet \u2192 printer/fax gateway",
+        "validation": "phone numbers are trivially spoofed. caller ID is meaningless.",
+        "noise": "digital is clean end-to-end. noise only at the analog last-mile.",
+        "trust": "WE handle the relay. relay.primals.eco. sovereign validation."
+      },
+      "inversion": "The telephone system used to BE the trust layer. Now it's the noise layer. Email-to-fax through a sovereign relay (relay.primals.eco) is MORE trustworthy than a direct phone fax, because WE control the relay and THEY can't spoof our routing.",
+      "membrane_solution": {
+        "scan": "SANE/eSCL \u2192 eastGate \u2192 digital document",
+        "relay": "eastGate \u2192 relay.primals.eco \u2192 destination (any printer, any fax gateway, any email)",
+        "print": "relay \u2192 IPP/IPPS \u2192 any printer on the mesh",
+        "fax": "relay \u2192 email-to-fax gateway \u2192 real fax machine (if recipient still uses one)",
+        "validate": "bearDog BLAKE3 signature on every document. The signature IS the validation, not the phone number."
+      }
+    }
+  },
+  "total_imprint_in": 3,
+  "total_imprint_out": 3,
+  "total_bidirectional": 1,
+  "klein_summary": "The printer making noise = the Klein surface vibrating. The scanner reading = the fold looking outside. A copy = the membrane seeing itself. All I/O is imprint. The telephone numbers that validated fax are inverted \u2014 WE relay now."
+}
