@@ -458,6 +458,9 @@ export default {
       'rap':        '/data/modality-voice.json',            // hip-hop as sort layer
       'music':      '/data/modality-voice.json',            // music IS compressed pattern recognition
       'modality':   '/data/modality-voice.json',            // 7 live + 6 target compilers
+      'validation': '/data/validation-matrix.json',          // university ethics × modality × industry
+      'ethics':     '/data/validation-matrix.json',          // grandma_safe is the primary sort key
+      'university': '/data/validation-matrix.json',          // models teach each other
     };
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)

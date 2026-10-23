@@ -70,7 +70,9 @@
     // Wave 180: eastGate Klein face — the inner vacuole made visible
     '/data/eastgate-pulse.json',
     // Paper 130: The Voice — full-modality sovereign expression
-    '/data/modality-voice.json'
+    '/data/modality-voice.json',
+    // University validation matrix — ethics × modality × industry
+    '/data/validation-matrix.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
