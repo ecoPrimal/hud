@@ -5281,6 +5281,78 @@ function paintPlasmidTriangle() {
   ctx.restore();
 }
 
+// ═══ WHITEBOARD FACE / BLACKWALL FACE — human vs fleet routing ═══
+// Posts and drafts go TO the whiteboard face.
+// Fleet gets the blackwall.
+// The bounty board, Reddit, HN, LinkedIn = whiteboard (human-facing).
+// CF magnetosphere, threat filter, bot sort = blackwall (fleet-facing).
+//
+// House 2 gates (eastGate, southGate, strandGate, biomeGate)
+// are injectable mesh nodes. From house 1 we reach them via
+// WireGuard tunnel through membrane-relay (10.13.37.1).
+//
+// WireGuard tunnel: ACTIVE
+//   northGate (10.13.37.8) ↔ membrane-relay (10.13.37.1)
+//   39ms avg, SSH port 22 open, handshake confirmed
+
+var faceRouting = {
+  // Whiteboard face — human-facing, subtractive, outward
+  whiteboard: {
+    color: '#e6edf3',
+    model: 'subtractive',
+    purpose: 'human-facing outputs — where we WRITE to the world',
+    routes: [
+      { name: 'Reddit',     target: 'u/BillHalibut',          status: 'draft-ready' },
+      { name: 'HN',         target: 'news.ycombinator.com',   status: 'draft-ready' },
+      { name: 'LinkedIn',   target: 'Kevin Mok',              status: 'draft-ready' },
+      { name: 'bountyBoard',target: '/bounty',                status: 'live' },
+      { name: 'sporePrint', target: 'sporeprint.primals.eco', status: 'live' },
+      { name: 'outreach',   target: '/sporeprint/outreach/',  status: 'live' },
+      { name: 'welcome',    target: '/welcome.html',          status: 'live' },
+      { name: 'water',      target: '/water',                 status: 'live' },
+      { name: 'springs',    target: '/springs',               status: 'live' },
+    ],
+  },
+
+  // Blackwall face — fleet-facing, additive, inward
+  blackwall: {
+    color: '#0d1117',
+    model: 'additive',
+    purpose: 'fleet-facing defense — where we SORT the noise',
+    routes: [
+      { name: 'CF magnetosphere', target: 'cloudflare edge',      status: 'active' },
+      { name: 'threat filter',    target: 'WAF + rate limiting',   status: 'active' },
+      { name: 'bot sort',         target: 'anderson-sort',         status: 'active' },
+      { name: 'null channel',     target: 'negentropy court',      status: 'active' },
+      { name: 'fog/rain/lightning',target: '403/499/522',          status: 'active' },
+      { name: 'fleet census',     target: 'deep classification',   status: 'active' },
+    ],
+  },
+
+  // The tunnel — WireGuard bridge between houses
+  tunnel: {
+    status: 'active',
+    local: { ip: '10.13.37.8', name: 'northGate', house: 1 },
+    remote: { ip: '10.13.37.1', name: 'membrane-relay', location: 'nyc1' },
+    latency: 39, // ms avg
+    ssh: true,
+    services: { health: 'timeout', neutron: 'timeout', ssh: 'open' },
+    note: 'tunnel live, web services need starting on relay',
+  },
+
+  // Injectable mesh nodes — house 2 gates
+  mesh: {
+    injectable: [
+      { name: 'eastGate',   ip: '192.168.4.11', house: 2, status: 'powered-on' },
+      { name: 'southGate',  ip: '192.168.4.10', house: 2, status: 'powered-on' },
+      { name: 'strandGate', ip: '192.168.4.12', house: 2, status: 'powered-on' },
+      { name: 'biomeGate',  ip: '192.168.4.13', house: 2, status: 'powered-on' },
+    ],
+    path: 'house1 → WG tunnel → relay → (future: relay → house2 WG → gates)',
+    goal: 'inject as mesh peers. stream or pull. the Steam model.',
+  },
+};
+
 // ═══ BLACKBOARD / WHITEBOARD — two sides of null ═══
 // The black wall and golden firewall are on the WHITE side FROM null.
 // Silver rain and the whiteboard are on the other side.
