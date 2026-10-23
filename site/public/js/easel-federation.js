@@ -1,4 +1,4 @@
-﻿// ═══ EASEL FEDERATION — board duality, bolus, spectral chromatogram, mirror, neutrino LAN, federation ═══
+// ═══ EASEL FEDERATION — board duality, bolus, spectral chromatogram, mirror, neutrino LAN, federation ═══
 // Extracted from easel.html — operates on shared globals
 // ═══ PROXIMITY PRIVACY — the anti-veil ═══
 // You can't sneak up behind someone. They sense you even if unaware.
