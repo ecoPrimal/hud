@@ -80,14 +80,14 @@
     'void main() {',
     '  vec3 light = normalize(vec3(0.5, 1.0, 0.3));',
     '  float diffuse = max(dot(normalize(vNormal), light), 0.15);',
-    '  float fogMask = smoothstep(0.0, vFog, vDepth);',
+    '  float fogMask = smoothstep(vFog, vFog + 0.15, 1.0 - vDepth);',
     '  vec4 col = vColor;',
     '  col.rgb *= (0.5 + 0.5 * diffuse);',
-    // Fog of war: deeper = more hidden
-    '  col.a *= mix(1.0, 0.05, fogMask);',
+    // Fog of war: deeper (below fog line) = more hidden, surface = visible
+    '  col.a *= mix(1.0, 0.08, fogMask);',
     // Pulse at the fog boundary (the green engine)
     '  float pulse = 0.5 + 0.5 * sin(uTime * 0.7854 + vDepth * 6.2832);',
-    '  if (abs(vDepth - vFog) < 0.05) {',
+    '  if (abs((1.0 - vDepth) - vFog) < 0.05) {',
     '    col.rgb = mix(col.rgb, vec3(0.133, 0.773, 0.227), pulse * 0.6);',
     '    col.a = max(col.a, 0.5);',
     '  }',
