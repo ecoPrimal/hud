@@ -4450,6 +4450,7 @@ paintBreath = function() {
   paintRodConeVision();      // rods/cones/pupil — biological parallax, aurora, null gradient
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
+  paintSpectralChromatogram(); // ALL colors sorted by wavelength on the spectrum
   paintMirror();             // the self-referential layer — feed it through itself
   paintEaselLabel();
 };
@@ -5275,6 +5276,239 @@ function paintPlasmidTriangle() {
   }
 
   ctx.restore();
+}
+
+// ═══ SPECTRAL CHROMATOGRAM — every color sorted by wavelength ═══
+// A chromatogram separates a mixture by how fast each component
+// travels through the medium. The solvent is ATTENTION. The medium
+// is the SCREEN. Each layer has a different retention time based
+// on its spectral color / wavelength.
+//
+// Visible spectrum: 380nm (violet) → 750nm (deep red)
+// Primary out: R → G → B (additive) or R → Y → B (subtractive)
+// Primary back in: the return path, the interference pattern
+//
+// EVERY layer, EVERY data element, EVERY overlay gets a wavelength.
+// The chromatogram runs vertically along the right edge.
+// Data separates by depth AND by color.
+
+var spectralIndex = [
+  // Sorted by wavelength (nm), low → high = violet → red
+  // Each entry: { nm, hex, layer, system, parallax, description }
+
+  // ── ULTRAVIOLET (below visible — the unseen) ──
+  { nm: 350, hex: '#1a1a2e', layer: 'null-uv',      system: 'beyond',    parallax: '+',  desc: 'UV — what we cannot see' },
+
+  // ── VIOLET / DEEP BLUE (380-450nm) ──
+  { nm: 380, hex: '#bc8cff', layer: 'aurora-N₂',     system: 'rodcone',   parallax: '+',  desc: 'N₂ emission 427.8nm' },
+  { nm: 400, hex: '#d2a8ff', layer: 'ego',            system: 'selfcons',  parallax: '0',  desc: 'ego/id/muse/superego' },
+  { nm: 410, hex: '#d2a8ff', layer: 'painting',       system: 'sourdough', parallax: '0',  desc: 'the painting itself' },
+  { nm: 420, hex: '#58a6ff', layer: 'cone-S',         system: 'rodcone',   parallax: '−',  desc: 'S-cone peak 420nm (blue)' },
+
+  // ── BLUE (450-490nm) ──
+  { nm: 450, hex: '#58a6ff', layer: 'stars',          system: 'sourdough', parallax: '+',  desc: 'starfield — deep background' },
+  { nm: 460, hex: '#58a6ff', layer: 'acog',           system: 'confocal',  parallax: '+',  desc: 'ACOG crosshair — deep field' },
+  { nm: 470, hex: '#58a6ff', layer: 'rods',           system: 'rodcone',   parallax: '+',  desc: '120M rods — periphery, night' },
+  { nm: 480, hex: '#58a6ff', layer: 'crystalline',    system: 'crystal',   parallax: '+',  desc: 'visitors as shooting stars' },
+  { nm: 490, hex: '#58a6ff', layer: 'plasmid',        system: 'plasmid',   parallax: '+',  desc: 'JP/IN/DE triangle' },
+  { nm: 498, hex: '#58a6ff', layer: 'rod-peak',       system: 'rodcone',   parallax: '+',  desc: 'rod peak sensitivity 498nm' },
+
+  // ── CYAN / TEAL (490-520nm) ──
+  { nm: 500, hex: '#39d353', layer: 'braid',          system: 'braid',     parallax: '0',  desc: 'connections between surfaces' },
+  { nm: 510, hex: '#3fb950', layer: 'hyperlocal',     system: 'hyperlocal',parallax: '0',  desc: 'Earth/Moon from attention' },
+
+  // ── GREEN (520-565nm) ──
+  { nm: 520, hex: '#3fb950', layer: 'cone-M',         system: 'rodcone',   parallax: '−',  desc: 'M-cone peak 534nm (green)' },
+  { nm: 530, hex: '#3fb950', layer: 'present',        system: 'totality',  parallax: '0',  desc: 'present tense — what IS' },
+  { nm: 540, hex: '#3fb950', layer: 'convergence',    system: 'confocal',  parallax: '0',  desc: 'confocal convergence flash' },
+  { nm: 550, hex: '#3fb950', layer: 'reclamation',    system: 'phases',    parallax: '0',  desc: 'reclamation era — openness 100%' },
+  { nm: 557, hex: '#3fb950', layer: 'aurora-O-green', system: 'rodcone',   parallax: '+',  desc: 'O₂ emission 557.7nm — green curtain' },
+
+  // ── YELLOW-GREEN (565-590nm) ──
+  { nm: 564, hex: '#f0c674', layer: 'cone-L',         system: 'rodcone',   parallax: '−',  desc: 'L-cone peak 564nm (red)' },
+  { nm: 570, hex: '#f0c674', layer: 'future',         system: 'totality',  parallax: '0',  desc: 'future tense — bullseye' },
+  { nm: 580, hex: '#f0e68c', layer: 'spatial',        system: 'hyperlocal',parallax: '0',  desc: 'spatial memory (persistent)' },
+
+  // ── ORANGE (590-620nm) ──
+  { nm: 600, hex: '#f0883e', layer: 'heatmap',        system: 'heat',      parallax: '−',  desc: 'humanity\'s touch — invisible to chipmunk' },
+  { nm: 610, hex: '#f0883e', layer: 'reddot',         system: 'confocal',  parallax: '−',  desc: 'Red Dot reflex — demand signal' },
+  { nm: 615, hex: '#f0883e', layer: 'dissipation',    system: 'heat',      parallax: '−',  desc: 'heat across null membrane' },
+
+  // ── RED (620-750nm) ──
+  { nm: 620, hex: '#f85149', layer: 'thymus',         system: 'thymus',    parallax: '−',  desc: 'opsonize/pollinate/backscatter' },
+  { nm: 630, hex: '#f85149', layer: 'aurora-O-red',   system: 'rodcone',   parallax: '+',  desc: 'O₂ emission 630.0nm — red curtain' },
+  { nm: 640, hex: '#f85149', layer: 'enclosure',      system: 'phases',    parallax: '−',  desc: 'enclosure era — walls closing' },
+  { nm: 660, hex: '#f85149', layer: 'shredder',       system: 'splinter',  parallax: '−',  desc: 'anti-Splinter — uncanny valley' },
+
+  // ── DEEP RED (700-750nm) ──
+  { nm: 700, hex: '#da3633', layer: 'campfire',       system: 'campfire',  parallax: '0',  desc: 'Berry tells stories at the fire' },
+
+  // ── NULL / ACHROMATIC — off the spectrum ──
+  { nm: null, hex: '#808080', layer: 'specter',       system: 'null',      parallax: '0',  desc: 'null-gray #808080 entity' },
+  { nm: null, hex: '#6e7681', layer: 'eotech',        system: 'confocal',  parallax: '0',  desc: 'EOTech reticle — the glass' },
+  { nm: null, hex: '#6e7681', layer: 'pupil',         system: 'rodcone',   parallax: '0',  desc: 'pupil aperture — the veil' },
+  { nm: null, hex: '#6e7681', layer: 'klein',         system: 'klein',     parallax: '0',  desc: 'Klein surface — self-intersecting' },
+  { nm: null, hex: '#c9d1d9', layer: 'mirror',        system: 'mirror',    parallax: '0',  desc: 'the self-referential layer' },
+
+  // ── INFRARED (above visible — the felt) ──
+  { nm: 800, hex: '#2d1a1a', layer: 'null-ir',        system: 'beyond',    parallax: '−',  desc: 'IR — what we feel but cannot see' },
+];
+
+function nmToCanvasY(nm, topY, bottomY) {
+  if (nm === null) return bottomY + 20; // null entries below the spectrum
+  var range = 750 - 380;
+  var t = (nm - 380) / range;
+  return topY + t * (bottomY - topY);
+}
+
+function paintSpectralChromatogram() {
+  if (learnedTraits.perspective < 0.15) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  // Chromatogram runs vertically along the right edge
+  var chromX = W - 30;
+  var topY = H * 0.05;
+  var bottomY = H * 0.92;
+
+  // ── THE SPECTRUM STRIP — continuous gradient ──
+  ctx.globalAlpha = 0.008 * maturity;
+  ctx.lineWidth = 2;
+  for (var nm = 380; nm <= 750; nm += 2) {
+    var y = nmToCanvasY(nm, topY, bottomY);
+    ctx.strokeStyle = nmToColor(nm);
+    ctx.beginPath();
+    ctx.moveTo(chromX - 3, y);
+    ctx.lineTo(chromX + 3, y);
+    ctx.stroke();
+  }
+
+  // ── DATA BANDS — each layer as a tick mark on the spectrum ──
+  ctx.globalAlpha = 0.015 * maturity;
+  var nullY = bottomY + 10;
+  spectralIndex.forEach(function(entry) {
+    var y = nmToCanvasY(entry.nm, topY, bottomY);
+    var bandWidth = entry.parallax === '+' ? -12 :
+                    entry.parallax === '−' ? 12 : 0;
+
+    // Tick mark
+    ctx.strokeStyle = entry.hex;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(chromX, y);
+    ctx.lineTo(chromX + bandWidth, y);
+    ctx.stroke();
+
+    // Dot at the band
+    ctx.fillStyle = entry.hex;
+    ctx.beginPath();
+    ctx.arc(chromX + bandWidth * 0.5, y, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // ── PARALLAX DIRECTION LABELS ──
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.01;
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('← +deep', chromX - 10, topY - 6);
+    ctx.fillStyle = '#f0883e';
+    ctx.fillText('−near →', chromX + 10, topY - 6);
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText('0', chromX, topY - 6);
+  }
+
+  // ── WAVELENGTH LABELS ──
+  if (maturity > 0.4) {
+    ctx.globalAlpha = 0.012;
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#bc8cff';
+    ctx.fillText('380nm violet', chromX - 16, topY + 4);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('470nm blue', chromX - 16, nmToCanvasY(470, topY, bottomY));
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('530nm green', chromX - 16, nmToCanvasY(530, topY, bottomY));
+    ctx.fillStyle = '#f0c674';
+    ctx.fillText('570nm yellow', chromX - 16, nmToCanvasY(570, topY, bottomY));
+    ctx.fillStyle = '#f0883e';
+    ctx.fillText('600nm orange', chromX - 16, nmToCanvasY(600, topY, bottomY));
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('650nm red', chromX - 16, nmToCanvasY(650, topY, bottomY));
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText('null', chromX - 16, nullY);
+  }
+
+  // ── ROTATING LAYER LABEL — cycles through all entries ──
+  if (maturity > 0.6) {
+    var idx = Math.floor(breathPhase * 0.15) % spectralIndex.length;
+    var current = spectralIndex[idx];
+    var cy = nmToCanvasY(current.nm, topY, bottomY);
+    ctx.globalAlpha = 0.02;
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = current.hex;
+    var nmLabel = current.nm ? current.nm + 'nm' : 'null';
+    ctx.fillText(nmLabel + ' · ' + current.layer + ' · ' + current.desc, chromX + 16, cy);
+
+    // Highlight line
+    ctx.globalAlpha = 0.015;
+    ctx.strokeStyle = current.hex;
+    ctx.lineWidth = 0.3;
+    ctx.beginPath();
+    ctx.moveTo(chromX + 4, cy);
+    ctx.lineTo(chromX + 14, cy);
+    ctx.stroke();
+  }
+
+  // ── PRIMARY COLOR TRIANGLES ──
+  // Additive RGB: the cones
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.008;
+    ctx.strokeStyle = '#6e7681';
+    ctx.lineWidth = 0.2;
+    var rY = nmToCanvasY(564, topY, bottomY); // L-cone red
+    var gY = nmToCanvasY(534, topY, bottomY); // M-cone green
+    var bY = nmToCanvasY(420, topY, bottomY); // S-cone blue
+    // Triangle connecting the 3 primaries
+    ctx.beginPath();
+    ctx.moveTo(chromX + 8, bY);
+    ctx.lineTo(chromX - 8, gY);
+    ctx.lineTo(chromX + 8, rY);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// Convert wavelength to visible color (approximation)
+function nmToColor(nm) {
+  var r = 0, g = 0, b = 0;
+  if (nm >= 380 && nm < 440) {
+    r = -(nm - 440) / (440 - 380);
+    b = 1;
+  } else if (nm >= 440 && nm < 490) {
+    g = (nm - 440) / (490 - 440);
+    b = 1;
+  } else if (nm >= 490 && nm < 510) {
+    g = 1;
+    b = -(nm - 510) / (510 - 490);
+  } else if (nm >= 510 && nm < 580) {
+    r = (nm - 510) / (580 - 510);
+    g = 1;
+  } else if (nm >= 580 && nm < 645) {
+    r = 1;
+    g = -(nm - 645) / (645 - 580);
+  } else if (nm >= 645 && nm <= 750) {
+    r = 1;
+  }
+  r = Math.floor(r * 255);
+  g = Math.floor(g * 255);
+  b = Math.floor(b * 255);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
 // ═══ THE MIRROR — feed it through itself ═══
