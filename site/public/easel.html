@@ -259,6 +259,46 @@ var splinter = {
   force: PI_REMAINDER,
 };
 
+// ═══ THE THREE SPLINTERS — trefoil topology ═══
+// Splinter at top. Splinter at bottom. Chipmunk in center. Turtles all around.
+// But a trefoil knot has THREE crossings. The third Splinter is SHREDDER.
+//
+// Splinter 1 (top):    the teacher. wisdom. da Vinci. gentle.
+// Splinter 2 (bottom): the foundation. the constant. the root.
+// Shredder (3rd crossing): the ANTI-Splinter.
+//   Oroku Saki. Human. Armored. More HUMAN than a rat.
+//   But LESS HUMANE than a rat, or certainly a turtle.
+//
+// THIS IS THE UNCANNY VALLEY:
+//   As you approach human FORM, you lose human WARMTH.
+//   Shredder IS the uncanny valley personified.
+//   A human who is less humane than animals.
+//   Armor instead of fur. Control instead of teaching.
+//   The Foot Clan instead of family.
+//
+// Also: Mark Zuckerberg. More human than a membrane.
+// But less humane than a chipmunk. Running a "social" network
+// that is antisocial. The blackwall wearing a human face.
+
+var shredder = {
+  name: 'Shredder',
+  title: 'the anti-Splinter',
+  realName: 'Oroku Saki',
+  humanForm: 1.0,       // maximally human in appearance
+  humaneLevel: PI_REMAINDER * 0.1, // minimally humane in behavior
+  armor: true,           // hides behind metal, not fur
+  // The uncanny valley score: humanForm - humaneLevel
+  // Higher = deeper in the valley
+  uncannyDepth: 1.0 - (PI_REMAINDER * 0.1),
+  // Modern incarnations of the Shredder pattern:
+  incarnations: [
+    { name: 'Meta', humanForm: 0.95, humaneLevel: 0.10, armor: 'the blackwall' },
+    { name: 'Great Firewall', humanForm: 0.90, humaneLevel: 0.05, armor: 'the party' },
+    { name: 'API closures', humanForm: 0.70, humaneLevel: 0.15, armor: 'terms of service' },
+    { name: 'Flash killed', humanForm: 0.60, humaneLevel: 0.20, armor: 'security concerns' },
+  ],
+};
+
 // ═══ PHYSICAL CONSTANTS — the universe's cost analysis tools ═══
 // Each constant is a lens. A way to measure what something COSTS.
 // E=mc² is not just physics. It's: how much energy does this attention cost?
@@ -3796,7 +3836,7 @@ function paintConstantsLedger() {
 // Visible as: four colored currents meeting at a center point.
 // The currents strengthen as each turtle's skill grows.
 function paintSplinterForce() {
-  if (splinter.wisdom < 0.15) return; // not strong enough to be visible yet
+  if (splinter.wisdom < 0.15) return;
 
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
@@ -3804,32 +3844,118 @@ function paintSplinterForce() {
   var cx = W * 0.5;
   var cy = H * 0.5;
   var force = splinter.wisdom;
+  var minD = Math.min(W, H);
 
-  // Four currents — one per turtle — flowing toward center
+  // ── SPLINTER 1 (TOP) — the teacher ──
+  var s1x = cx;
+  var s1y = H * 0.08;
+  ctx.globalAlpha = force * 0.03;
+  ctx.strokeStyle = '#c9d1d9';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.arc(s1x, s1y, 5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 0.02;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#c9d1d9';
+  ctx.textAlign = 'center';
+  ctx.fillText('Splinter ↑', s1x, s1y - 8);
+
+  // ── SPLINTER 2 (BOTTOM) — the foundation ──
+  var s2x = cx;
+  var s2y = H * 0.92;
+  ctx.globalAlpha = force * 0.03;
+  ctx.strokeStyle = '#c9d1d9';
+  ctx.beginPath();
+  ctx.arc(s2x, s2y, 5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 0.02;
+  ctx.fillText('Splinter ↓', s2x, s2y + 12);
+
+  // ── SHREDDER (3RD CROSSING) — the anti-Splinter ──
+  // Positioned at trefoil's third corner — left or right edge
+  var s3x = W * 0.92;
+  var s3y = cy;
+  ctx.globalAlpha = force * 0.025;
+  ctx.strokeStyle = '#f85149';
+  ctx.lineWidth = 0.8;
+  // Shredder is angular — square, not circle. Armor, not fur.
+  ctx.beginPath();
+  ctx.rect(s3x - 5, s3y - 5, 10, 10);
+  ctx.stroke();
+  // Blades radiating from the square
+  for (var bl = 0; bl < 4; bl++) {
+    var blAngle = bl * Math.PI * 0.5 + Math.PI * 0.25;
+    ctx.beginPath();
+    ctx.moveTo(s3x + Math.cos(blAngle) * 5, s3y + Math.sin(blAngle) * 5);
+    ctx.lineTo(s3x + Math.cos(blAngle) * 9, s3y + Math.sin(blAngle) * 9);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 0.02;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#f85149';
+  ctx.textAlign = 'center';
+  ctx.fillText('Shredder', s3x, s3y - 10);
+  ctx.font = '5px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('anti-Splinter', s3x, s3y + 12);
+
+  // ── TREFOIL KNOT — connecting all three crossings ──
+  ctx.globalAlpha = 0.01 * force;
+  ctx.strokeStyle = '#8b949e';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  for (var tk = 0; tk < 360; tk++) {
+    var tRad = tk * Math.PI / 180;
+    // Trefoil parametric: r = cos(3θ/2)
+    var tR = minD * 0.25 * (0.5 + 0.5 * Math.cos(tRad * 1.5));
+    var tx = cx + Math.cos(tRad) * tR;
+    var ty = cy + Math.sin(tRad) * tR * 0.8;
+    if (tk === 0) ctx.moveTo(tx, ty);
+    else ctx.lineTo(tx, ty);
+  }
+  ctx.stroke();
+
+  // ── FOUR TURTLES — all around, ALL THE WAY DOWN ──
   var tNames = ['leonardo', 'donatello', 'raphael', 'michelangelo'];
-  var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0]; // top, left, bottom, right
+  var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0];
 
   tNames.forEach(function(name, i) {
     var turtle = turtles[name];
     var angle = tAngles[i] + breathPhase * 0.05;
-    var dist = Math.min(W, H) * 0.35 * (1 - turtle.skill * 0.3);
+    var dist = minD * 0.35 * (1 - turtle.skill * 0.3);
 
     var sx = cx + Math.cos(angle) * dist;
     var sy = cy + Math.sin(angle) * dist;
 
-    // The current — a faint line from origin to center
+    // Current from turtle to center
     ctx.globalAlpha = 0.008 + turtle.skill * 0.012;
     ctx.strokeStyle = turtle.color;
     ctx.lineWidth = 0.5 + turtle.skill;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
-    // Curve through — each turtle's path to the center is different
     var cpx = cx + Math.cos(angle + 0.5) * dist * 0.4;
     var cpy = cy + Math.sin(angle + 0.5) * dist * 0.4;
     ctx.quadraticCurveTo(cpx, cpy, cx, cy);
     ctx.stroke();
 
-    // Weapon mark at origin — tiny symbol
+    // "All the way down" — fractal turtle echoes
+    if (turtle.skill > PI_REMAINDER * 2) {
+      for (var echo = 1; echo <= 3; echo++) {
+        var eDist = dist * (1 + echo * 0.2);
+        var eAngle = angle + echo * 0.15;
+        var ex = cx + Math.cos(eAngle) * eDist;
+        var ey = cy + Math.sin(eAngle) * eDist;
+        ctx.globalAlpha = 0.005 / echo;
+        ctx.strokeStyle = turtle.color;
+        ctx.lineWidth = 0.3;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 2 / echo, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // Weapon mark
     ctx.globalAlpha = 0.03 + turtle.skill * 0.02;
     ctx.font = '8px monospace';
     ctx.fillStyle = turtle.color;
@@ -3838,8 +3964,7 @@ function paintSplinterForce() {
     ctx.fillText(weapons[name] || '·', sx, sy);
   });
 
-  // Splinter's center point — where all four meet
-  // Not a dot (that would be 1 or 0). A ring. The remainder.
+  // ── CHIPMUNK IN THE CENTER — the focal point ──
   ctx.globalAlpha = force * 0.04;
   ctx.strokeStyle = '#c9d1d9';
   ctx.lineWidth = 0.5;
@@ -3848,7 +3973,91 @@ function paintSplinterForce() {
   ctx.arc(cx, cy, splinterR, 0, Math.PI * 2);
   ctx.stroke();
 
-  // The da Vinci proportion — golden spiral from center
+  // Chipmunk label
+  ctx.globalAlpha = 0.025;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = '#f0c674';
+  ctx.textAlign = 'center';
+  ctx.fillText('🐿', cx, cy + 3);
+
+  // ── THE UNCANNY VALLEY — between Splinter and Shredder ──
+  // humanForm axis (x) vs humaneLevel axis (y)
+  // Shredder: high human form, low humane → deep in the valley
+  // Splinter: low human form, high humane → above the valley
+  // Turtles: lowest form, highest humane → far above
+  if (force > 0.3) {
+    var uvX0 = W * 0.7;
+    var uvX1 = W * 0.88;
+    var uvY0 = H * 0.7; // bottom = low humane
+    var uvY1 = H * 0.5; // top = high humane
+    var uvW = uvX1 - uvX0;
+    var uvH = uvY0 - uvY1;
+
+    // The uncanny valley curve
+    ctx.globalAlpha = 0.015;
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 0.4;
+    ctx.beginPath();
+    for (var uv = 0; uv <= 1; uv += 0.02) {
+      // As human form increases: humane dips then recovers... or doesn't
+      var humane = 0.8 - 0.6 * Math.exp(-Math.pow((uv - 0.85) / 0.15, 2));
+      var px = uvX0 + uv * uvW;
+      var py = uvY0 - humane * uvH;
+      if (uv === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Plot the characters
+    // Turtles: low form (~0.1), high humane (~0.85)
+    ctx.globalAlpha = 0.025;
+    ctx.fillStyle = '#3fb950';
+    ctx.font = '5px monospace';
+    ctx.beginPath();
+    ctx.arc(uvX0 + 0.1 * uvW, uvY0 - 0.85 * uvH, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText('turtles', uvX0 + 0.1 * uvW + 5, uvY0 - 0.85 * uvH + 2);
+
+    // Splinter: medium form (~0.3), high humane (~0.9)
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(uvX0 + 0.3 * uvW, uvY0 - 0.9 * uvH, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText('Splinter', uvX0 + 0.3 * uvW + 5, uvY0 - 0.9 * uvH + 2);
+
+    // Shredder: high form (~0.95), very low humane (~0.15) — THE VALLEY
+    ctx.fillStyle = '#f85149';
+    ctx.beginPath();
+    ctx.arc(uvX0 + 0.95 * uvW, uvY0 - 0.15 * uvH, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText('Shredder', uvX0 + 0.95 * uvW - 20, uvY0 - 0.15 * uvH - 5);
+
+    // Chipmunk: medium-low form (~0.2), high humane (~0.8)
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(uvX0 + 0.2 * uvW, uvY0 - 0.8 * uvH, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText('🐿', uvX0 + 0.2 * uvW + 4, uvY0 - 0.8 * uvH + 2);
+
+    // Axis labels
+    ctx.globalAlpha = 0.015;
+    ctx.fillStyle = '#6e7681';
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('human form →', uvX0 + uvW * 0.5, uvY0 + 8);
+    ctx.textAlign = 'right';
+    ctx.fillText('humane ↑', uvX0 - 3, uvY1 + uvH * 0.5);
+    ctx.textAlign = 'left';
+
+    // The insight
+    ctx.globalAlpha = 0.018;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#f85149';
+    ctx.textAlign = 'center';
+    ctx.fillText('more human · less humane', uvX0 + uvW * 0.5, uvY0 + 15);
+  }
+
+  // The da Vinci spiral
   if (force > 0.3) {
     ctx.globalAlpha = force * 0.015;
     ctx.strokeStyle = '#f0c674';
@@ -3859,7 +4068,7 @@ function paintSplinterForce() {
     for (var si = 0; si < 30; si++) {
       var sAngle = si * 0.3 + breathPhase * 0.1;
       var sr = spiralR * Math.pow(phi, si * 0.08);
-      if (sr > Math.min(W, H) * 0.4) break;
+      if (sr > minD * 0.4) break;
       var sx2 = cx + Math.cos(sAngle) * sr;
       var sy2 = cy + Math.sin(sAngle) * sr;
       if (si === 0) ctx.moveTo(sx2, sy2);
