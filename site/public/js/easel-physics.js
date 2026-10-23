@@ -620,6 +620,7 @@ paintBreath = function() {
   paintConfocalKleinPoint(); // the crosshair — ACOG/EOTech/RedDot converge
   paintTotalityWell();       // bullseye × funnel × inverted Babel × stairwell
   paintNeutrinoLan();          // hyperlocal LAN discovery — Steam model, scan/stream/pull
+  paintPiTranslator();           // 0OπO — binary→fold→irrational→fold→binary'. The remainder IS the signal.
   paintBoardDuality();         // blackboard/whiteboard — two sides of null, red=red on both
   paintBolus();                // crunch/chew/swallow — sticky vs greasy at the Klein face
   paintSpectralChromatogram(); // ALL colors sorted by wavelength on the spectrum

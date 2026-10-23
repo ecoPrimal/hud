@@ -468,15 +468,6 @@ export default {
       'owasp':      '/data/agglutinate-backscatter.json',    // OWASP 10/10 solved by sovereignty
       'nist':       '/data/agglutinate-backscatter.json',    // NIST 4/4 decomposed to our axes
       'helm':       '/data/agglutinate-backscatter.json',    // HELM Stanford — we score chains not individuals
-      // === Wave 182: the handshake — look in, peek back, shake what's stuck ===
-      'handshake':  '/data/klein-handshake.json',              // what's stuck, what's mixing, chipmunk peeks back
-      'heartbeat':  '/data/heartbeat.json',                    // house heartbeat — printer is the oscilloscope
-      'sonar':      '/data/sonar-unknowns.json',               // echolocation — ping unknowns, classify by pattern
-      'ghosts':     '/data/ghost-taxonomy.json',               // DAEMON, SPECTER, REVENANT, SPIRIT, IMP, POLTERGEIST
-      'kleinface':  '/data/klein-face-io.json',                // Paper 133: localized I/O surface, cross-cultural
-      'mor':        '/data/measure-of-reality.json',           // Measure of Reality — geometric mean of 5 components
-      'negqs':      '/data/negative-qs-discovery.json',        // axis 14: dark_signal — absence IS the signal
-      'immune':     '/data/immune-triad.json',                 // swarmVine + skunkBat + thymus
     };
 
     // nightbox + artisan: serve directly (not redirect — they have their own pages)

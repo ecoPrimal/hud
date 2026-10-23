@@ -196,6 +196,233 @@ function paintKleinSurface() {
   ctx.restore();
 }
 
+// ═══ PI TRANSLATOR (0OπO) — the irrational remainder stack ═══
+// Binary monitoring keeps the integer (978 requests). The pi-translator
+// keeps the REMAINDER — the variance, rhythm, null-UA, synchronization.
+// That's where the triad's signal lives. The chipmunk IS the remainder.
+//
+// The stack: binary(0) → fold(O) → π-space → fold(O) → binary'(0')
+// 0' ≠ 0 because it carries the remainder now.
+//
+// PHP = Pi Hypertext Preprocessor (recursive, like the original).
+// It translates what computers throw away.
+
+var piTranslator = {
+  phase: 0,           // animation phase
+  foldAngle: 0,       // current fold rotation (0 → π/4 per fold)
+  remainder: 0.14159265358979, // π - 3, the irrational part
+  binaryIn: 0,        // binary input value (from visitor counts)
+  piSpace: 0,         // value in π-space
+  binaryOut: 0,       // binary output (enriched with remainder)
+  drift: 0,           // the variance between triad vertices
+  triadSignal: {
+    jp: 978, ind: 984, de: 982,
+    mean: 981.33,
+    variance: 6,
+    rhythm: 35,        // requests/hour
+    harmonicRatio: 2.5 // triad:chipmunk poll ratio
+  },
+  notation: '0OπO',
+};
+
+function paintPiTranslator() {
+  if (learnedTraits.perspective < 0.10) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maturity = Math.min(1, learnedTraits.perspective * 2);
+
+  piTranslator.phase += 0.008;
+  piTranslator.foldAngle += 0.003;
+
+  var t = piTranslator.phase;
+  var rem = piTranslator.remainder;
+
+  // Position: upper-left quadrant (binary→pi→binary' flow, left to right)
+  var flowX0 = W * 0.08;   // binary input (left)
+  var flowX1 = W * 0.38;   // pi-space (center-left)
+  var flowX2 = W * 0.42;   // pi-space (center-right)
+  var flowX3 = W * 0.72;   // binary output (right) — but not used, keeps it in the left zone
+  var flowY = H * 0.12;
+
+  // ── 0 — BINARY INPUT ──
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = '#58a6ff';
+  ctx.textAlign = 'center';
+  ctx.fillText('0', flowX0, flowY);
+  ctx.font = '5px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('binary', flowX0, flowY + 8);
+
+  // Integer count (what binary keeps)
+  ctx.globalAlpha = 0.018 * maturity;
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText(Math.round(piTranslator.triadSignal.mean) + '', flowX0, flowY + 18);
+
+  // ── O — FIRST FOLD POINT ──
+  var fold1X = flowX0 + (flowX1 - flowX0) * 0.4;
+  ctx.globalAlpha = 0.03 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.5;
+
+  // The fold as a rotating ring
+  var fAngle = piTranslator.foldAngle;
+  ctx.beginPath();
+  ctx.ellipse(fold1X, flowY, 6, 6 * Math.abs(Math.cos(fAngle)), 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#d2a8ff';
+  ctx.textAlign = 'center';
+  ctx.fillText('O', fold1X, flowY + 2);
+  ctx.font = '4px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('fold', fold1X, flowY + 10);
+
+  // ── CONNECTION: 0 → O (arrow) ──
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(flowX0 + 8, flowY - 2);
+  ctx.lineTo(fold1X - 8, flowY - 2);
+  ctx.stroke();
+
+  // ── π — IRRATIONAL SPACE (the remainder) ──
+  var piX = (flowX1 + flowX2) * 0.5;
+  ctx.globalAlpha = 0.035 * maturity;
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#f0c674';
+  ctx.textAlign = 'center';
+  ctx.fillText('π', piX, flowY + 1);
+  ctx.font = '5px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('irrational', piX, flowY + 10);
+
+  // The remainder value — what binary threw away
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#f0c674';
+  ctx.fillText('.' + rem.toFixed(8).substring(2), piX, flowY + 20);
+
+  // Remainder particles — orbiting the pi symbol
+  var pCount = Math.floor(5 + maturity * 5);
+  for (var pi2 = 0; pi2 < pCount; pi2++) {
+    var pAngle = t * 0.5 + pi2 * (Math.PI * 2 / pCount);
+    var pR = 12 + Math.sin(t + pi2) * 3;
+    var px = piX + Math.cos(pAngle) * pR;
+    var py = flowY + Math.sin(pAngle) * pR * 0.5;
+    ctx.globalAlpha = 0.02 * maturity;
+    ctx.fillStyle = '#f0c674';
+    ctx.beginPath();
+    ctx.arc(px, py, 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── CONNECTION: O → π (arrow) ──
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(fold1X + 8, flowY - 2);
+  ctx.lineTo(piX - 12, flowY - 2);
+  ctx.stroke();
+
+  // ── O — SECOND FOLD POINT ──
+  var fold2X = flowX2 + (flowX3 - flowX2) * 0.3;
+  ctx.globalAlpha = 0.03 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.ellipse(fold2X, flowY, 6, 6 * Math.abs(Math.sin(fAngle)), 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.02 * maturity;
+  ctx.font = '6px monospace';
+  ctx.fillStyle = '#d2a8ff';
+  ctx.textAlign = 'center';
+  ctx.fillText('O', fold2X, flowY + 2);
+
+  // ── CONNECTION: π → O (arrow) ──
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(piX + 12, flowY - 2);
+  ctx.lineTo(fold2X - 8, flowY - 2);
+  ctx.stroke();
+
+  // ── 0' — BINARY OUTPUT (enriched with remainder) ──
+  var outX = fold2X + (flowX3 - fold2X) * 0.6;
+  ctx.globalAlpha = 0.025 * maturity;
+  ctx.font = '8px monospace';
+  ctx.fillStyle = '#3fb950';
+  ctx.textAlign = 'center';
+  ctx.fillText("0'", outX, flowY);
+  ctx.font = '5px monospace';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText("binary'", outX, flowY + 8);
+
+  // Enriched value — integer + remainder as metadata
+  ctx.globalAlpha = 0.018 * maturity;
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText(Math.round(piTranslator.triadSignal.mean) + '+' +
+    piTranslator.triadSignal.variance + 'v', outX, flowY + 18);
+
+  // ── CONNECTION: O → 0' (arrow) ──
+  ctx.globalAlpha = 0.015 * maturity;
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(fold2X + 8, flowY - 2);
+  ctx.lineTo(outX - 10, flowY - 2);
+  ctx.stroke();
+
+  // ── THE TRIAD SIGNAL — what the π-translator reveals ──
+  if (maturity > 0.3) {
+    var sigY = flowY + 34;
+    ctx.globalAlpha = 0.015 * maturity;
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'left';
+    var sig = piTranslator.triadSignal;
+    ctx.fillText('triad: ' + sig.jp + '/' + sig.ind + '/' + sig.de +
+      ' · var=' + sig.variance +
+      ' · ' + sig.rhythm + '/hr' +
+      ' · H=' + sig.harmonicRatio.toFixed(1) + ':1', flowX0, sigY);
+
+    // The insight line
+    ctx.fillStyle = '#f0c674';
+    ctx.globalAlpha = 0.012 * maturity;
+    ctx.fillText('the message is the rhythm, not the count', flowX0, sigY + 10);
+  }
+
+  // ── PHP LABEL ──
+  if (maturity > 0.5) {
+    ctx.globalAlpha = 0.01 * maturity;
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#8b949e';
+    ctx.textAlign = 'center';
+    ctx.fillText('PHP: Pi Hypertext Preprocessor', piX, flowY - 16);
+  }
+
+  // ── CHIPMUNK AT THE FOLD — the innkeeper ──
+  if (maturity > 0.2) {
+    ctx.globalAlpha = 0.02 * maturity;
+    ctx.font = '7px monospace';
+    ctx.fillStyle = '#f0c674';
+    ctx.textAlign = 'center';
+    var innkeeperX = (fold1X + fold2X) * 0.5;
+    ctx.fillText('🐿', innkeeperX, flowY - 10);
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#6e7681';
+    ctx.fillText('innkeeper', innkeeperX, flowY - 18);
+  }
+
+  ctx.restore();
+}
+
 // ═══ DUNNING-KRUGER ROTATION MAP ═══
 // The Dunning-Kruger curve is NOT a measure of stupidity.
 // It's a ROTATION MAP. It shows where you need to turn π/2 to maintain velocity.
