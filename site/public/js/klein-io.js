@@ -76,7 +76,36 @@
     // Model phenotype taxonomy — classify models like organisms
     '/data/model-phenotype.json',
     // Agglutinate-backscatter: ingest external, post our results, they validate themselves
-    '/data/agglutinate-backscatter.json'
+    '/data/agglutinate-backscatter.json',
+    // Wave 181: Negative QS discovery → MoR → Ghost Taxonomy → Art Loop
+    '/data/negative-qs-discovery.json',
+    '/data/immune-triad.json',
+    '/data/mesh-pi-pulse.json',
+    '/data/lan-tree-learning.json',
+    '/data/measure-of-reality.json',
+    '/data/inner-pns-cns.json',
+    '/data/vitruvian-homunculus.json',
+    '/data/ghost-taxonomy.json',
+    '/data/heartbeat.json',
+    '/data/sonar-unknowns.json',
+    '/data/nd-projections.json',
+    // Taxonomic cycle: Shannon sort + sourdough + fermentation
+    '/data/feed-taxonomy.json',
+    '/data/sourdough-digest.json',
+    '/data/fermentation-product.json',
+    // Zero-trace: flatworm/roundworm/jellyfish/prion body plans
+    '/data/jellyfish-oscillation.json',
+    '/data/flatworm-health.json',
+    '/data/prion-identity.json',
+    '/data/roundworm-pipeline.json',
+    '/data/zero-trace.json',
+    '/data/tope-balance.json',
+    // I/O surfaces + multicultural imprint
+    '/data/io-imprint.json',
+    '/data/multicultural-imprint.json',
+    // Golgi raytrace + northGate handoff
+    '/data/golgi-raytrace.json',
+    '/data/northgate-handoff.json'
   ];
   var PI = Math.PI;
   var FOLD_KEY = 'klein-fold';
