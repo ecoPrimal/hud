@@ -133,52 +133,55 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
 <div id="nucleation" style="font-size:12px;margin:12px 0"></div>
 <div id="live" class="live"></div>
 
-<!-- === THE HANDSHAKE: what's stuck, what's mixing, chipmunk peeks back === -->
-<div style="margin:24px 0;padding:20px;border:1px solid rgba(63,185,80,0.3);border-radius:12px;background:rgba(22,27,34,0.6)">
+<!-- === THE HANDSHAKE: constance, cost, live === -->
+<div style="margin:24px 0;padding:20px;border:1px solid rgba(88,166,255,0.3);border-radius:12px;background:rgba(22,27,34,0.6)">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <span style="color:#3fb950;font-size:14px;font-weight:600">🤝 handshake</span>
+    <span style="color:#58a6ff;font-size:14px;font-weight:600">🤝 handshake</span>
     <span id="klein-evolution" style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:8px;border:1px solid #21262d">—</span>
   </div>
 
-  <!-- mixing bar -->
+  <!-- elasticity bar -->
   <div style="background:#161b22;border-radius:4px;height:8px;margin-bottom:12px;overflow:hidden">
-    <div id="klein-heartbeat-bar" style="height:100%;width:0%;border-radius:4px;transition:width 0.6s ease"></div>
+    <div id="klein-heartbeat-bar" style="height:100%;width:2%;border-radius:4px;transition:width 0.6s ease;background:#58a6ff"></div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:11px;margin-bottom:12px">
     <div>
-      <div style="color:#3fb950;font-size:16px;font-weight:600" id="klein-mixing">—</div>
-      <div style="color:#6e7681">mixing</div>
+      <div style="color:#6e7681;font-size:16px;font-weight:600" id="klein-stuck-count">—</div>
+      <div style="color:#484f58">constance</div>
     </div>
     <div>
-      <div style="color:#f85149;font-size:16px;font-weight:600" id="klein-stuck-count">—</div>
-      <div style="color:#6e7681">pinned</div>
+      <div style="color:#d29922;font-size:16px;font-weight:600" id="klein-failed-count">—</div>
+      <div style="color:#484f58">cost</div>
     </div>
     <div>
-      <div style="color:#58a6ff;font-size:16px;font-weight:600" id="klein-changed-count">—</div>
-      <div style="color:#6e7681">evolving</div>
+      <div style="color:#3fb950;font-size:16px;font-weight:600" id="klein-changed-count">—</div>
+      <div style="color:#484f58">live</div>
     </div>
   </div>
 
-  <div style="font-size:10px;color:#6e7681;line-height:1.8">
-    <span id="klein-failed-count" style="color:#6e7681">—</span> · fold <span id="klein-fold-count" style="color:#58a6ff">—</span> · <span id="klein-fold-ts" style="color:#484f58">—</span>
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:#6e7681;line-height:1.8">
+    <span>elasticity <span id="klein-mixing" style="color:#58a6ff">—</span></span>
+    <span id="klein-spring-k" style="color:#d2a8ff">k=?</span>
+    <span>fold <span id="klein-fold-count" style="color:#58a6ff">—</span></span>
+    <span id="klein-fold-ts" style="color:#484f58">—</span>
   </div>
 
-  <!-- stuck feeds -->
+  <!-- constance feeds (the rest position) -->
   <div id="stuck-panel" style="margin-top:10px;display:none">
-    <div style="color:#f85149;font-size:10px;font-weight:600;margin-bottom:4px">📌 pinned feeds:</div>
-    <div id="klein-stuck-list" style="font-size:9px;color:#f0883e;line-height:1.6;word-break:break-all"></div>
+    <div style="color:#6e7681;font-size:10px;font-weight:600;margin-bottom:4px">⚓ constance (rest position):</div>
+    <div id="klein-stuck-list" style="font-size:9px;color:#484f58;line-height:1.6;word-break:break-all"></div>
   </div>
 
-  <!-- moving feeds -->
+  <!-- live feeds (oscillating) -->
   <div id="changed-panel" style="margin-top:8px;display:none">
-    <div style="color:#3fb950;font-size:10px;font-weight:600;margin-bottom:4px">🌊 evolving feeds:</div>
+    <div style="color:#3fb950;font-size:10px;font-weight:600;margin-bottom:4px">🌊 live (oscillating):</div>
     <div id="klein-changed-list" style="font-size:9px;color:#3fb950;line-height:1.6;word-break:break-all"></div>
   </div>
 
   <div style="margin-top:10px;font-size:9px;color:#484f58;line-height:1.6">
-    the handshake: HUD reads feeds → detects stuck → reports to neutrino → chipmunk peeks back.<br>
-    the observation of what's stuck IS the evolution. the Klein gate sees both sides.
+    constance is not stuck. it's the rest position. the elastic bounces off it.<br>
+    cost needs energy. live oscillates. k = constance / amplitude.
   </div>
 </div>
 
@@ -194,10 +197,10 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
   <span class="dim">the game:</span><br>
   🎲 the squirrel is the DM. the membrane is the dungeon.<br>
   🗡 341 entities. 93 still unclassified. help sort them.<br>
-  🗺 91 feeds to taste. <span id="stuck-game" style="color:#f85149">?</span> are stuck. shake them loose.<br>
+  🗺 91 feeds: <span id="stuck-game" style="color:#58a6ff">loading...</span><br>
   ❤️ gas_ratio <span id="gas" style="color:#3fb950">0.0144</span> — the party's HP.<br>
-  📊 mixing <span id="mixing-game" style="color:#d29922">?%</span> — feeds that changed since last fold.<br>
-  🎯 evolution: the observation IS the handshake. look in, peek back.<br>
+  📊 spring <span id="mixing-game" style="color:#d2a8ff">k=?</span> — stiffer = more constance per bounce.<br>
+  🎯 constance is the anchor. cost is the energy. live is the oscillation.<br>
   <span class="dim">roll initiative. π dice. the remainder is the fumble zone.</span>
 </div>
 
@@ -223,57 +226,47 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
     }
   }).catch(function(){el.textContent='the membrane is breathing. check back.'});
 
-  // === HANDSHAKE: load baseline from JSON, then let klein-io.js take over ===
+  // === HANDSHAKE: constance / cost / live ===
   fetch('/data/klein-handshake.json').then(function(r){return r.json()}).then(function(hs){
     var cv = document.getElementById('chipmunk-view');
     if (!cv) return;
 
-    var live = hs.heartbeat ? hs.heartbeat.live_feeds : [];
-    var stuckFeeds = hs.stuck ? hs.stuck.feeds : [];
+    var counts = hs.counts || {};
     var total = hs.total_feeds || 0;
-    var mr = hs.mixing_ratio || 0;
-    var sr = hs.stuck_ratio || 0;
+    var k = hs.spring_constant || 0;
+    var liveFds = hs.live_feeds ? Object.keys(hs.live_feeds) : [];
+    var costFds = hs.cost_feeds ? Object.keys(hs.cost_feeds) : [];
 
     var lines = [];
     lines.push('🐿️ Berry sees ' + total + ' feeds through the Klein gate.');
     lines.push('');
-
-    if (live.length > 0) {
-      lines.push('💚 LIVE (' + live.length + '): ' + live.join(', '));
-    }
-
-    var counts = hs.freshness_counts || {};
+    lines.push('⚓ <strong style=\"color:#6e7681\">' + (counts.CONSTANCE||0) + ' constance</strong> — the rest position. reference data. stable.');
+    lines.push('💰 <strong style=\"color:#d29922\">' + (counts.COST||0) + ' cost</strong> — needs energy. has a process but costs compute.');
+    lines.push('🌊 <strong style=\"color:#3fb950\">' + (counts.LIVE||0) + ' live</strong> — oscillates. breathes. cron-driven.');
     lines.push('');
-    lines.push('📊 ' + (counts.LIVE||0) + ' live · ' + (counts.FRESH||0) + ' fresh · ' + (counts.WARM||0) + ' warm · ' + (counts.STALE||0) + ' stale');
+    lines.push('🧲 spring constant k = <strong style=\"color:#d2a8ff\">' + k.toFixed(1) + '</strong>');
+    lines.push('  (higher = stiffer = more constance per unit of movement)');
+    lines.push('  rest_mass = ' + ((hs.rest_mass||0)*100).toFixed(0) + '% · amplitude = ' + ((hs.amplitude||0)*100).toFixed(0) + '%');
     lines.push('');
 
-    if (mr > 0.5) {
-      lines.push('🌊 mixing=' + (mr*100).toFixed(1) + '% — more than half is moving. good.');
-    } else if (mr > 0.2) {
-      lines.push('🟡 mixing=' + (mr*100).toFixed(1) + '% — some movement. could be more.');
-    } else {
-      lines.push('🔴 mixing=' + (mr*100).toFixed(1) + '% — mostly pinned. shake something.');
+    if (liveFds.length > 0) {
+      lines.push('💚 live: ' + liveFds.join(', '));
     }
-
-    if (sr > 0.3) {
-      lines.push('📌 stuck=' + (sr*100).toFixed(1) + '% — ' + (hs.pinned||0) + ' feeds haven\'t been touched.');
-      lines.push('');
-      lines.push('pinned feeds: ' + stuckFeeds.slice(0, 12).join(', '));
-      if (stuckFeeds.length > 12) lines.push('  ...and ' + (stuckFeeds.length - 12) + ' more');
+    if (costFds.length > 0) {
+      lines.push('💰 cost: ' + costFds.join(', '));
     }
-
     lines.push('');
-    lines.push('the handshake is the evolution.');
-    lines.push('looking at what\'s stuck makes it move.');
-    lines.push('this observation → neutrino → chipmunk → next session shakes it.');
+    lines.push('constance is not stuck. it\'s the anchor.');
+    lines.push('the elastic bounces between live and constance.');
+    lines.push('cost is the energy to move a feed from constance to live.');
 
     cv.innerHTML = lines.join('<br>');
 
-    // update game stats
+    // game stats
     var sg = document.getElementById('stuck-game');
-    if (sg) sg.textContent = (hs.pinned || 0);
+    if (sg) sg.textContent = (counts.CONSTANCE||0) + ' constance, ' + (counts.COST||0) + ' cost, ' + (counts.LIVE||0) + ' live';
     var mg = document.getElementById('mixing-game');
-    if (mg) mg.textContent = (mr*100).toFixed(0) + '%';
+    if (mg) mg.textContent = 'k=' + k.toFixed(1);
   }).catch(function(){
     var cv = document.getElementById('chipmunk-view');
     if (cv) cv.textContent = '🐿️ Berry can\'t reach the handshake feed yet. first fold loading...';
