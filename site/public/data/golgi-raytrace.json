@@ -1,0 +1,271 @@
+{
+  "ts": "2026-10-23T14:42:55Z",
+  "type": "golgi-raytrace",
+  "wave": 181,
+  "source": "eastGate",
+  "method": "ARP + mDNS/Avahi + ADB + WireGuard + port fingerprint",
+  "purpose": "map inner golgi for proximity testing with grapheneGate and signal types",
+  "discovery": "graftGate (.163) = Mac mini M-series! Was calling it northGate but it's graftGate's Mac mini. .107 is its second interface.",
+  "identified_devices": {
+    "eastGate": {
+      "ip": [
+        "192.168.4.244",
+        "192.168.4.103"
+      ],
+      "type": "workstation",
+      "os": "Linux 6.17",
+      "hw": "AMD Ryzen 7 7840HS + RTX 4070, 64GB RAM",
+      "connections": [
+        "Ethernet (enp5s0)",
+        "WiFi (wlp0s20f3)",
+        "WireGuard (wg0)"
+      ],
+      "services": [
+        "SSH",
+        "nestgate",
+        "toadstool",
+        "coralreef",
+        "swarmvine",
+        "sweetgrass",
+        "fluidsynth",
+        "iperf3",
+        "cloudflared"
+      ],
+      "uds_sockets": 30,
+      "signal": {
+        "wifi_dbm": -60,
+        "eth": true,
+        "wg_latency_ms": 39
+      },
+      "house": 1
+    },
+    "grapheneGate": {
+      "ip": "USB-ADB (WiFi IP TBD)",
+      "type": "phone",
+      "os": "Android",
+      "hw": "Google Pixel 8a (akita)",
+      "connections": [
+        "USB-ADB (transport_id:1)",
+        "WiFi"
+      ],
+      "serial": "44251JEKB04957",
+      "signal": {
+        "adb": true,
+        "usb": true
+      },
+      "house": 1
+    },
+    "graftGate": {
+      "ip": [
+        "192.168.4.163",
+        "192.168.4.107"
+      ],
+      "type": "workstation",
+      "os": "macOS",
+      "hw": "Mac mini (Mac16,10) \u2014 M-series Apple Silicon!",
+      "connections": [
+        "Ethernet (.163?)",
+        "WiFi (.107?)",
+        "AirPlay port 7000",
+        "companion-link port 49152"
+      ],
+      "mDNS": "graftgates-Mac-mini.local",
+      "services": [
+        "AirPlay",
+        "companion-link",
+        "wrangler (_worker.js deployed)"
+      ],
+      "signal": {
+        "airplay": true,
+        "mdns": true
+      },
+      "note": "THIS IS THE Mac mini! .163 AND .107 are BOTH graftGate \u2014 two interfaces. northGate WAS graftGate all along!",
+      "house": 1
+    },
+    "basement_tv": {
+      "ip": "192.168.4.170",
+      "type": "smart-tv",
+      "os": "SmartCast (MediaTek)",
+      "hw": "VIZIO V555-J01 (55 inch)",
+      "connections": [
+        "WiFi",
+        "Ethernet"
+      ],
+      "mDNS": "CastTV.local",
+      "services": [
+        "AirPlay (7000)",
+        "VIZIOcast (7345)",
+        "GoogleCast"
+      ],
+      "serial": "LTC3E72Z4350778",
+      "signal": {
+        "airplay": true,
+        "cast": true,
+        "mdns": true
+      },
+      "note": "Named 'Basement'. AirPlay + ChromeCast + VIZIOcast. Perfect display surface!",
+      "house": 1
+    },
+    "golgi": {
+      "ip": [
+        "10.13.37.1",
+        "157.230.3.183"
+      ],
+      "type": "VPS",
+      "os": "Linux",
+      "hw": "DigitalOcean droplet, 10GB disk",
+      "connections": [
+        "WireGuard",
+        "Public Internet"
+      ],
+      "services": [
+        "Caddy",
+        "cloudflared",
+        "Knot DNS",
+        "fail2ban",
+        "WireGuard"
+      ],
+      "signal": {
+        "wg_latency_ms": 39
+      },
+      "house": "cloud"
+    },
+    "router": {
+      "ip": "192.168.4.1",
+      "type": "router",
+      "hw": "TP-Link",
+      "connections": [
+        "Ethernet",
+        "Fiber uplink?"
+      ],
+      "signal": {
+        "gateway": true
+      },
+      "house": 1
+    },
+    "ap_2": {
+      "ip": "192.168.4.250",
+      "type": "access-point",
+      "hw": "TP-Link",
+      "connections": [
+        "WiFi broadcast",
+        "Ethernet backhaul"
+      ],
+      "signal": {
+        "ap": true
+      },
+      "house": "1 or 2"
+    },
+    "wg_peer_linode": {
+      "ip": [
+        "10.13.37.14",
+        "172.232.85.202"
+      ],
+      "type": "VPS",
+      "os": "Linux",
+      "hw": "Linode?",
+      "connections": [
+        "WireGuard"
+      ],
+      "signal": {
+        "wg": true
+      },
+      "house": "cloud"
+    }
+  },
+  "unidentified": [
+    "192.168.4.2",
+    "192.168.4.109",
+    "192.168.4.111",
+    "192.168.4.147",
+    "192.168.4.148",
+    "192.168.4.154",
+    "192.168.4.160",
+    "192.168.4.197",
+    "192.168.4.200",
+    "192.168.4.219",
+    "192.168.4.238"
+  ],
+  "signal_types": {
+    "ethernet": {
+      "devices": [
+        "eastGate",
+        "graftGate",
+        "router",
+        "basement_tv"
+      ],
+      "medium": "copper/fiber"
+    },
+    "wifi": {
+      "essid": "Aperture Science",
+      "freq": "2.412 GHz",
+      "devices": [
+        "eastGate",
+        "grapheneGate",
+        "graftGate",
+        "basement_tv"
+      ],
+      "medium": "802.11"
+    },
+    "wireguard": {
+      "devices": [
+        "eastGate",
+        "golgi",
+        "wg_peer_linode"
+      ],
+      "medium": "encrypted tunnel"
+    },
+    "usb": {
+      "devices": [
+        "grapheneGate"
+      ],
+      "medium": "USB-C ADB"
+    },
+    "airplay": {
+      "devices": [
+        "graftGate",
+        "basement_tv"
+      ],
+      "medium": "mDNS + TCP"
+    },
+    "chromecast": {
+      "devices": [
+        "basement_tv"
+      ],
+      "medium": "mDNS + TCP"
+    },
+    "uds": {
+      "devices": [
+        "eastGate (30 sockets)"
+      ],
+      "medium": "Unix domain sockets (local only)"
+    }
+  },
+  "topology": {
+    "internet": "fiber? \u2192 router (.1) \u2192 LAN",
+    "house_1": {
+      "router": ".1 (gateway)",
+      "eastGate": ".244 (eth) + .103 (wifi) \u2014 dual-homed",
+      "graftGate": ".163 (eth?) + .107 (wifi?) \u2014 Mac mini M-series",
+      "grapheneGate": "USB-ADB + WiFi \u2014 Pixel 8a",
+      "basement_tv": ".170 \u2014 VIZIO 55in, AirPlay+Cast",
+      "ap_2": ".250 \u2014 second AP"
+    },
+    "house_2": "UNKNOWN \u2014 strandGate/westGate/southGate/biomeGate need physical access",
+    "cloud": {
+      "golgi": "10.13.37.1 (DO) \u2014 39ms via WireGuard",
+      "linode_peer": "10.13.37.14 (172.232.85.202)"
+    }
+  },
+  "proximity_matrix": {
+    "eastGate\u2194grapheneGate": "USB-ADB (0ms, physical) + WiFi (same ESSID)",
+    "eastGate\u2194graftGate": "Ethernet (LAN, <1ms) + WiFi overlay",
+    "eastGate\u2194basement_tv": "Ethernet/WiFi LAN (<1ms) + AirPlay/Cast ready",
+    "eastGate\u2194golgi": "WireGuard (39ms) over Internet",
+    "graftGate\u2194basement_tv": "AirPlay (mDNS discovered, same LAN)",
+    "grapheneGate\u2194basement_tv": "Cast (same WiFi ESSID)"
+  },
+  "total_identified": 8,
+  "total_unidentified": 11,
+  "total_live": 19
+}
