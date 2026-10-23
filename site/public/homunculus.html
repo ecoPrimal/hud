@@ -757,6 +757,20 @@ function hashFloat(s) {
 loadBodyPaint();
 setInterval(loadBodyPaint, 45000);
 
+// ═══ THE MIRROR — read the membrane's self-portrait from the easel ═══
+// The homunculus can look INTO the easel's layers.
+// The easel writes its state to localStorage. We read it.
+// Feed it through itself. The output IS the input.
+var mirrorData = null;
+
+function readMirror() {
+  try {
+    mirrorData = JSON.parse(localStorage.getItem('membrane_mirror') || '{}');
+  } catch(e) { mirrorData = null; }
+}
+readMirror();
+setInterval(readMirror, 5000);
+
 function paintBodyPaint() {
   if (!bodyPaintMarks.length) return;
 
@@ -851,6 +865,62 @@ function paintBodyPaint() {
   ctx.fillStyle = '#6e7681';
   ctx.textAlign = 'center';
   ctx.fillText(Object.keys(countriesPresent).length + ' countries painted on · ' + countryList, cx, H - 22);
+
+  // ── MIRROR DATA — the easel's state visible on the body ──
+  // The homunculus can see INTO the easel. Feed through.
+  if (mirrorData && mirrorData.easel) {
+    var m = mirrorData;
+
+    // The brain shows the easel's generation and perspective
+    ctx.globalAlpha = 0.03;
+    ctx.font = '6px monospace';
+    ctx.fillStyle = '#e8685d';
+    ctx.textAlign = 'center';
+    ctx.fillText('gen ' + (m.easel.generation || '?') + ' · ' +
+      ((m.easel.perspective || 0) * 100).toFixed(0) + '% perspective', cx, H * 0.08 - 20);
+
+    // The gut shows heat state
+    if (m.heat) {
+      ctx.fillStyle = '#3fb950';
+      ctx.fillText('null ' + (m.heat.nullTemp || 0.5).toFixed(2) + '° · heat ' +
+        ((m.heat.totalHeat || 0) * 100).toFixed(0) + '%', cx, H * 0.52 - 20);
+    }
+
+    // Splinter's wisdom as a glow around the brain
+    if (m.easel.splinter > 0.15) {
+      ctx.globalAlpha = m.easel.splinter * 0.02;
+      ctx.strokeStyle = '#f0c674';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(cx, H * 0.08, 30, 0, PI * 2);
+      ctx.stroke();
+    }
+
+    // Turtle skills as colored dots on the hands
+    if (m.easel.turtles) {
+      var tNames = ['leonardo', 'donatello', 'raphael', 'michelangelo'];
+      var tCols = ['#58a6ff', '#d2a8ff', '#f85149', '#f0883e'];
+      var hs = viewport.category === 'phone' ? 0.12 : 0.18;
+      tNames.forEach(function(tn, ti) {
+        var tx = cx + (ti < 2 ? -W * hs : W * hs);
+        var ty = H * 0.38 + (ti % 2) * 10 - 15;
+        var skill = m.easel.turtles[tn] || 0.14;
+        ctx.globalAlpha = 0.04 + skill * 0.03;
+        ctx.fillStyle = tCols[ti];
+        ctx.beginPath();
+        ctx.arc(tx, ty, 2 + skill * 3, 0, PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Mirror inversion count at the very bottom
+    if (m.inversions) {
+      ctx.globalAlpha = 0.015;
+      ctx.font = '6px monospace';
+      ctx.fillStyle = '#484f58';
+      ctx.fillText('⟲ ' + (mirrorData.inversions || 0) + ' inversions', cx, H - 12);
+    }
+  }
 
   ctx.restore();
 }
