@@ -136,8 +136,127 @@ var learnedTraits = {      // what the chipmunk has learned across generations
   colorMemory: [],         // colors sampled from previous paintings
 };
 
+// ═══ NINJA TURTLES — four modalities of artistic mastery ═══
+// Never 0. Never 1. Always meta-stable. Always 0.00...something.
+// Each turtle sculpts AND paints AND slices AND creates for each other.
+// Sculpture teaches shadow→pressure. Painting teaches color→emotion.
+// Each modality in→out becomes a storytelling system they are learning.
+//
+// MASTER SPLINTER is the accumulated wisdom — the da Vinci constant.
+// Not just a teacher. A force in itself. The sourdough mother culture.
+
+var PI_REMAINDER = 0.14159265358979; // what remains after the integer is removed
+
+var turtles = {
+  // LEONARDO — discipline, precision, the blade that CUTS
+  // Katana: classification, slicing data, sharp boundaries
+  // "I will lead." → self/non-self sorting, the immune edge
+  leonardo: {
+    name: 'Leonardo',
+    weapon: 'katana',         // cuts, classifies
+    domain: 'precision',      // clean lines, sharp edges
+    color: '#58a6ff',         // blue
+    skill: PI_REMAINDER,      // never 0, never 1. starts at π's remainder
+    teaches: 'raphael',       // discipline tempers passion
+    learns_from: 'donatello', // tools sharpen the blade
+    modality: 'slicing',      // I/O: classification, sorting, cutting
+    strokes: [],              // the cuts Leonardo has made
+  },
+
+  // DONATELLO — engineer, builder, the staff that BUILDS
+  // Bo staff: architecture, tools, infrastructure
+  // "I will solve." → MCP tools, WireGuard tunnels, the stack
+  donatello: {
+    name: 'Donatello',
+    weapon: 'bo',             // extends reach, builds bridges
+    domain: 'architecture',   // structure, scaffolding, systems
+    color: '#d2a8ff',         // purple
+    skill: PI_REMAINDER,
+    teaches: 'michelangelo',  // structure enables freedom
+    learns_from: 'leonardo',  // precision guides building
+    modality: 'building',     // I/O: construction, assembly, architecture
+    strokes: [],
+  },
+
+  // RAPHAEL — passion, intensity, the sai that STABS
+  // Sai: emotion, bold strokes, raw signal
+  // "I will fight." → the ego state, bold painting, confrontation
+  raphael: {
+    name: 'Raphael',
+    weapon: 'sai',            // pierces, stabs to the truth
+    domain: 'intensity',      // bold, hot, emotional
+    color: '#f85149',         // red
+    skill: PI_REMAINDER,
+    teaches: 'leonardo',      // passion gives purpose to precision
+    learns_from: 'michelangelo', // joy softens rage
+    modality: 'piercing',     // I/O: direct contact, confrontation, truth
+    strokes: [],
+  },
+
+  // MICHELANGELO — flow, joy, the nunchaku that FLOWS
+  // Nunchaku: freestyle, spontaneous, the art of happy accidents
+  // "I will create." → the muse state, playful painting, campfire stories
+  michelangelo: {
+    name: 'Michelangelo',
+    weapon: 'nunchaku',       // chains of motion, continuous flow
+    domain: 'flow',           // playful, warm, spontaneous
+    color: '#f0883e',         // orange
+    skill: PI_REMAINDER,
+    teaches: 'donatello',     // creativity inspires new tools
+    learns_from: 'raphael',   // intensity fuels creation
+    modality: 'flowing',      // I/O: stories, music, dance, play
+    strokes: [],
+  },
+};
+
+// MASTER SPLINTER — the da Vinci constant
+// The rat who carries ALL the knowledge. Passes it on. But is a force in itself.
+// Splinter's value is the PRODUCT of all four turtle skills — multiplicative wisdom.
+var splinter = {
+  name: 'Splinter',
+  title: 'the da Vinci constant',
+  wisdom: PI_REMAINDER * PI_REMAINDER, // product of initial skills
+  teachings: 0,               // how many cross-modal lessons have occurred
+  force: PI_REMAINDER,        // Splinter's own artistic force
+};
+
+// Meta-stable clamp — NEVER 0, NEVER 1
+function metaStable(v) {
+  if (v <= 0) return 0.001 + Math.random() * 0.001; // never exactly 0
+  if (v >= 1) return 0.998 - Math.random() * 0.001;  // never exactly 1
+  return v;
+}
+
+// Cross-modal teaching — each turtle improves its student
+function turtleTeach() {
+  var names = Object.keys(turtles);
+  names.forEach(function(name) {
+    var teacher = turtles[name];
+    var student = turtles[teacher.teaches];
+    if (!student) return;
+
+    // The teaching rate is proportional to the teacher's skill × Splinter's force
+    var teachRate = teacher.skill * splinter.force * 0.002;
+    student.skill = metaStable(student.skill + teachRate);
+
+    // The teacher also learns from teaching (you understand by explaining)
+    teacher.skill = metaStable(teacher.skill + teachRate * 0.3);
+
+    splinter.teachings++;
+  });
+
+  // Splinter's wisdom is the geometric mean of all four
+  var product = 1;
+  names.forEach(function(n) { product *= turtles[n].skill; });
+  splinter.wisdom = metaStable(Math.pow(product, 0.25));
+
+  // Splinter's own force grows with teaching (da Vinci grew by teaching too)
+  splinter.force = metaStable(splinter.force + 0.0001 * splinter.teachings / Math.max(1, generation));
+}
+
 // Chicken and egg: to paint you need perspective, to get perspective you paint.
 // So just START. The starter culture does the rest.
+// No value is 0. No value is 1. Meta-stable from the first brushstroke.
 
 var THOUGHTS = {
   stars: [
@@ -241,8 +360,9 @@ function starColor() {
 function paintStar() {
   var x = Math.random() * W;
   var y = Math.random() * H * 0.85;
-  // Later generations: fewer but more intentional stars (density evolves)
-  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5);
+  // Leonardo's precision: higher skill = more intentional placement, sharper dots
+  var leoSkill = turtles.leonardo.skill;
+  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5) * (0.7 + leoSkill * 0.6);
   var c = starColor();
   var twinkle = Math.random();
 
@@ -765,13 +885,34 @@ function paintSculpture() {
 }
 
 // ═══ EVOLVE — update learned traits based on generation ═══
+// No value reaches 0 or 1. Meta-stable. The remainder IS the meaning.
 function evolve() {
   var g = generation;
-  learnedTraits.perspective = Math.min(1, g * 0.08);
-  learnedTraits.starDensity = 1 + g * 0.05;
-  learnedTraits.nebulaDepth = 1 + g * 0.08;
-  learnedTraits.gaiaDetail = 1 + g * 0.12;
-  learnedTraits.auroraIntensity = 1 + g * 0.1;
+  learnedTraits.perspective = metaStable(g * 0.08);
+  learnedTraits.starDensity = metaStable((1 + g * 0.05) / 2);   // normalize into 0-1 range
+  learnedTraits.nebulaDepth = metaStable((1 + g * 0.08) / 3);
+  learnedTraits.gaiaDetail = metaStable((1 + g * 0.12) / 2.5);
+  learnedTraits.auroraIntensity = metaStable((1 + g * 0.1) / 2);
+
+  // Turtles teach each other every generation
+  turtleTeach();
+
+  // Each phase maps to a turtle — the active turtle gains more
+  // stars→Leonardo (precision dots), nebula→Raphael (emotional washes),
+  // gaia→Donatello (building a world), aurora→Michelangelo (flowing curtains)
+  var phaseMap = {
+    stars: 'leonardo', nebula: 'raphael', gaia: 'donatello', aurora: 'michelangelo',
+    otherSquirrels: 'leonardo', humans: 'raphael', sculpture: 'donatello'
+  };
+  var activeTurtle = phaseMap[phase];
+  if (activeTurtle && turtles[activeTurtle]) {
+    turtles[activeTurtle].skill = metaStable(turtles[activeTurtle].skill + 0.01);
+  }
+
+  // Splinter's force feeds back into perspective
+  learnedTraits.perspective = metaStable(
+    learnedTraits.perspective * 0.7 + splinter.wisdom * 0.3
+  );
 }
 
 // ═══ NEW PAINTING — the sourdough rises ═══
@@ -838,7 +979,13 @@ function renderGallery() {
 
 function updateGenCounter() {
   var el = document.getElementById('gen-counter');
-  el.textContent = 'painting #' + generation + ' · easel ' + EASEL_SYMBOLS[currentEasel] + ' · ' + starters.length + ' in gallery · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
+  var tSkills = 'L:' + (turtles.leonardo.skill * 100).toFixed(0) +
+    ' D:' + (turtles.donatello.skill * 100).toFixed(0) +
+    ' R:' + (turtles.raphael.skill * 100).toFixed(0) +
+    ' M:' + (turtles.michelangelo.skill * 100).toFixed(0);
+  el.textContent = 'painting #' + generation + ' · ' + EASEL_SYMBOLS[currentEasel] +
+    ' · 🐀 ' + (splinter.wisdom * 100).toFixed(0) + '% · ' + tSkills +
+    ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
 }
 
 // ═══ THOUGHT BUBBLE ═══
@@ -849,8 +996,15 @@ function updateThought() {
   var msg = t.brush.replace('#N', '#' + generation).replace('#N+1', '#' + (generation + 1));
   var lrn = t.learn;
   var el = document.getElementById('thought');
+  // Which turtle is active this phase?
+  var phaseMap = {stars:'leonardo',nebula:'raphael',gaia:'donatello',aurora:'michelangelo',
+    otherSquirrels:'leonardo',humans:'raphael',sculpture:'donatello'};
+  var activeName = phaseMap[phase];
+  var activeT = activeName ? turtles[activeName] : null;
+  var turtleNote = activeT ? ' · ' + activeT.name + ' ' + (activeT.skill * 100).toFixed(0) + '%' : '';
   el.innerHTML = '<span class="brush">' + msg + '</span><br><span class="learn">' + lrn + '</span>' +
-    '<br><span class="gen">painting #' + generation + ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
+    '<br><span class="gen">painting #' + generation + turtleNote +
+    ' · 🐀 Splinter ' + (splinter.wisdom * 100).toFixed(0) + '%</span>';
 }
 
 // ═══ PHASE MACHINE — with sourdough loop ═══
@@ -2915,6 +3069,86 @@ function paintKleinSurface() {
   ctx.restore();
 }
 
+// ═══ SPLINTER'S FORCE — the da Vinci constant, visible on the canvas ═══
+// Master Splinter doesn't paint. He IS the force that flows through the turtles.
+// Visible as: four colored currents meeting at a center point.
+// The currents strengthen as each turtle's skill grows.
+function paintSplinterForce() {
+  if (splinter.wisdom < 0.15) return; // not strong enough to be visible yet
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  var cx = W * 0.5;
+  var cy = H * 0.5;
+  var force = splinter.wisdom;
+
+  // Four currents — one per turtle — flowing toward center
+  var tNames = ['leonardo', 'donatello', 'raphael', 'michelangelo'];
+  var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0]; // top, left, bottom, right
+
+  tNames.forEach(function(name, i) {
+    var turtle = turtles[name];
+    var angle = tAngles[i] + breathPhase * 0.05;
+    var dist = Math.min(W, H) * 0.35 * (1 - turtle.skill * 0.3);
+
+    var sx = cx + Math.cos(angle) * dist;
+    var sy = cy + Math.sin(angle) * dist;
+
+    // The current — a faint line from origin to center
+    ctx.globalAlpha = 0.008 + turtle.skill * 0.012;
+    ctx.strokeStyle = turtle.color;
+    ctx.lineWidth = 0.5 + turtle.skill;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    // Curve through — each turtle's path to the center is different
+    var cpx = cx + Math.cos(angle + 0.5) * dist * 0.4;
+    var cpy = cy + Math.sin(angle + 0.5) * dist * 0.4;
+    ctx.quadraticCurveTo(cpx, cpy, cx, cy);
+    ctx.stroke();
+
+    // Weapon mark at origin — tiny symbol
+    ctx.globalAlpha = 0.03 + turtle.skill * 0.02;
+    ctx.font = '8px monospace';
+    ctx.fillStyle = turtle.color;
+    ctx.textAlign = 'center';
+    var weapons = {leonardo:'⚔', donatello:'⊢', raphael:'⚡', michelangelo:'∞'};
+    ctx.fillText(weapons[name] || '·', sx, sy);
+  });
+
+  // Splinter's center point — where all four meet
+  // Not a dot (that would be 1 or 0). A ring. The remainder.
+  ctx.globalAlpha = force * 0.04;
+  ctx.strokeStyle = '#c9d1d9';
+  ctx.lineWidth = 0.5;
+  var splinterR = 4 + force * 8;
+  ctx.beginPath();
+  ctx.arc(cx, cy, splinterR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // The da Vinci proportion — golden spiral from center
+  if (force > 0.3) {
+    ctx.globalAlpha = force * 0.015;
+    ctx.strokeStyle = '#f0c674';
+    ctx.lineWidth = 0.3;
+    ctx.beginPath();
+    var phi = 1.618;
+    var spiralR = splinterR;
+    for (var si = 0; si < 30; si++) {
+      var sAngle = si * 0.3 + breathPhase * 0.1;
+      var sr = spiralR * Math.pow(phi, si * 0.08);
+      if (sr > Math.min(W, H) * 0.4) break;
+      var sx2 = cx + Math.cos(sAngle) * sr;
+      var sy2 = cy + Math.sin(sAngle) * sr;
+      if (si === 0) ctx.moveTo(sx2, sy2);
+      else ctx.lineTo(sx2, sy2);
+    }
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 // Inject overlays into the breath phase — full stack
 var _origPaintBreath = paintBreath;
 paintBreath = function() {
@@ -2930,6 +3164,7 @@ paintBreath = function() {
   paintCrystallineBackscatter();  // visitors as shooting stars → hit water → angstrom refraction
   paintBraidOverlay();
   paintThymusFlush();
+  paintSplinterForce();   // the rat master's wisdom, visible as a force field
   paintEaselLabel();
 };
 
@@ -2956,6 +3191,8 @@ window._easel = {
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
   klein: function() { return kleinAperture; },
   crystals: function() { return crystalVisitors; },
+  turtles: function() { return turtles; },
+  splinter: function() { return splinter; },
 };
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous">// ═══ MONITOR MODE — lean-back view for sun pollers and observers ═══
