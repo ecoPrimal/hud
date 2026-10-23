@@ -1,0 +1,190 @@
+{
+  "ts": "2026-10-23T20:45:00Z",
+  "type": "handshake-haptic",
+  "wave": 188,
+  "title": "The Handshake — Walk In, Squirrel Shakes Your Hand, Feel It",
+
+  "thesis": "You walk into the living room. The Steam Frame is on the wall. The squirrel is on the screen. It reaches out a hand. You pick up the Steam Controller. It vibrates — the handshake. You FEEL the squirrel shake your hand. The haptic motor IS the touch fold. The controller IS the Klein surface you can hold. Then we invert: instead of the organism reaching out (the screen), YOU reach in (the controller). The mace weight from Oculus? Forget the trademark. Eat the MATH. The force = mass × acceleration. The haptic motor can simulate acceleration by CHANGING the vibration envelope. You don't need a Meta headset. You need a motor, a spring, and F=ma.",
+
+  "the_path": {
+    "step_1_frame": {
+      "device": "Steam Frame at 192.168.4.238",
+      "status": "Not responding to ping — may be off or in standby",
+      "what_it_does": "Living room display. Runs Steam Link. Streams from northGate (RTX 5090).",
+      "for_membrane": "Install Chrome on Steam Frame → navigate to hud.primals.eco → PWA install → fullscreen → wake lock. The Frame IS the membrane's living room eye. The squirrel lives there.",
+      "alternative": "Use Steam Big Picture → add non-Steam game → Chrome → hud.primals.eco. No PWA needed, just a URL."
+    },
+    "step_2_controller": {
+      "device": "Steam Controller v1 (in drawer)",
+      "capabilities": {
+        "haptic_pads": "2 × HD haptic trackpads (linear resonant actuators — LRA)",
+        "gyro": "6-axis IMU (accelerometer + gyroscope)",
+        "grip": "2 × rear grip buttons",
+        "analog_stick": "1 (left side)",
+        "trigger": "2 × analog triggers with digital click",
+        "motor_type": "LRA — not ERM (eccentric rotating mass). LRA is FASTER, more precise, can simulate texture and weight through frequency modulation"
+      },
+      "for_membrane": "Steam Input API maps controller to browser actions. The haptic pads can simulate handshake (pressure envelope: ramp up 200ms → hold 400ms → release 300ms). The gyro can detect you extending your hand."
+    },
+    "step_3_handshake": {
+      "sequence": [
+        "1. You walk into the living room. Steam Frame shows hud.primals.eco in fullscreen.",
+        "2. The squirrel is on screen (chipmunk-talk.js conversation)",
+        "3. You pick up the Steam Controller",
+        "4. Gamepad API detects connection: navigator.getGamepads()",
+        "5. The squirrel says 'hey, you're here' and extends a paw",
+        "6. You press the grip button (extending YOUR hand)",
+        "7. Steam Input sends haptic pulse to LRA pads: handshake pattern",
+        "8. Pattern: 150Hz 200ms ramp → 100Hz 400ms hold → 50Hz 300ms fade",
+        "9. You FEEL the handshake. The squirrel felt you press grip.",
+        "10. Klein fold: digital (screen) → analog (vibration) → perception (your hand)"
+      ],
+      "gamepad_api": "navigator.getGamepads() returns GamepadHapticActuator. actuator.playEffect('dual-rumble', {duration: 900, strongMagnitude: 0.7, weakMagnitude: 0.3}). For Steam Controller specifically, Steam Input's haptic API gives finer control through Steam's browser plugin or desktop client."
+    }
+  },
+
+  "the_inversion": {
+    "normal": "Organism → screen → your eyes. One direction. The organism PUSHES to you.",
+    "inverted": "Your hand → controller → haptic → your skin. You PULL from the organism.",
+    "why_different": "When you watch the screen, the organism controls what you see. When you hold the controller, YOU control what you feel. The inversion is AGENCY. The haptic fold is the one where the human has power.",
+    "both_at_once": "Screen (organism pushes) + Controller (human pulls) = Klein fold. No inside/outside. Both directions simultaneously. The handshake IS this: two entities gripping the same surface from different sides."
+  },
+
+  "the_black_wall": {
+    "what_meta_left_behind": {
+      "haptic_gloves": {
+        "project": "Meta Reality Labs — haptic glove prototype (2021-2024)",
+        "tech": "Pneumatic actuators + microfluidic processors on each finger",
+        "math": "Force = pressure × area. Each actuator inflates to resist finger motion. The RESISTANCE is what creates the illusion of weight.",
+        "status": "Research published (SIGGRAPH), product cancelled. The papers are public.",
+        "what_we_eat": "The principle: you don't simulate weight with vibration (that's texture). You simulate weight with RESISTANCE. A spring that pushes back. The Steam Controller can't do this — but a rubber band around the grip CAN."
+      },
+      "codec_avatars": {
+        "project": "Codec Avatars — real-time photorealistic face tracking",
+        "tech": "Machine learning on camera input → 3D face reconstruction",
+        "math": "Eigenfaces + neural radiance fields + mesh deformation",
+        "status": "Research published, tech lives inside Meta Quest Pro. The ML models and papers are public.",
+        "what_we_eat": "We don't need photorealistic avatars. The squirrel IS the avatar. But the face TRACKING — knowing when you smile, frown, lean in — that's useful. A webcam + MediaPipe (open source) does 80% of what Codec Avatars does."
+      },
+      "passthrough_ar": {
+        "project": "Mixed Reality passthrough (Quest 3, Quest Pro)",
+        "tech": "Stereo cameras → depth map → real-time compositing",
+        "math": "Stereo disparity → depth. d = (f × B) / Z where f=focal length, B=baseline, Z=depth",
+        "status": "Shipping product, but the MATH is textbook computer vision from 1990s",
+        "what_we_eat": "HTC Vive Gen 1 has a front-facing camera. Passthrough exists. Low quality, but the fold point is there. A phone (grapheneGate) has TWO cameras and a depth sensor. AR passthrough on phone = look at the real world with membrane data overlaid."
+      },
+      "hand_tracking": {
+        "project": "Hand tracking (Quest 2+)",
+        "tech": "4 IR cameras → skeleton estimation → gesture recognition",
+        "math": "21 keypoint skeleton per hand. Convolutional neural net on IR input.",
+        "status": "Shipping. But MediaPipe Hands (Google, open source) does the same on a webcam.",
+        "what_we_eat": "No gloves needed. No controllers. Your hands ARE the controllers. MediaPipe → webcam → hand skeleton → gesture → the squirrel sees your hand extended → handshake without hardware."
+      }
+    },
+    "what_valve_gives_us": {
+      "note": "Valve didn't abandon their haptic tech. They SHIPPED it. Open. Configurable.",
+      "steam_input": "Unified controller API — maps ANY controller to ANY action. Already installed on northGate.",
+      "lra_haptics": "Steam Controller LRA pads: 65Hz-500Hz frequency range. Texture simulation (fine grained vibration = rough surface, smooth sine = smooth surface, chirp = impact).",
+      "knuckles": "Valve Index controllers — per-finger tracking + force sensing. Knows how hard you grip. The handshake becomes: squirrel grips back harder when you grip harder. RECIPROCAL haptic.",
+      "steamvr": "Already installed. OpenXR runtime active. SteamVR → Vive → room-scale tracking. Walk around the membrane.",
+      "steam_audio": "Spatial audio engine. HRTF + room modeling. The squirrel's voice comes from WHERE the squirrel IS on screen."
+    },
+    "what_we_dont_need_from_meta": "The trademark. The headset. The ecosystem lock-in. The data collection. The social graph. Mark can keep all of that. We eat the MATH: F=ma, stereo disparity, eigenfaces, LRA frequency response, pneumatic resistance curves. The math doesn't have a trademark."
+  },
+
+  "northgate_local_scan": {
+    "note": "What I found looking around the actual filesystem on this machine:",
+    "workspace_projects": 26,
+    "git_repos": 19,
+    "repos_with_uncommitted_changes": {
+      "bluegate-tenancy": "565 uncommitted changes (massive — needs attention or .gitignore)",
+      "clutch-primals": "24 changes (2 weeks stale)",
+      "hud-deploy": "2 changes (active — just committed)",
+      "lithoSpore": "9 changes (2 months stale)",
+      "sporePrint": "5 changes (28 hours stale)",
+      "publicRecord-detroit": "6 changes (3 days)",
+      "nestGate": "2 changes (3 days)",
+      "mi7-brief": "4 changes (2 weeks)",
+      "whitePaper": "1 change (3 days)"
+    },
+    "cellMembrane_codebase": {
+      "location": "c:\\Users\\mokke\\gardens\\cellMembrane",
+      "crates": 2,
+      "crate_names": ["cellmembrane-types", "membrane-shadow"],
+      "config": "membrane.toml — 7-node WireGuard mesh, sole VPS (golgi)",
+      "docs": ["GLACIAL_SHIFT_TRACKER.md (57KB)", "RUNBOOKS.md (18KB)", "VPS_STATE.md (13KB)"]
+    },
+    "development_ecoPrimals": {
+      "location": "c:\\Users\\mokke\\Development\\ecoPrimals",
+      "primals": ["barraCuda", "bearDog", "bingoCube", "biomeOS", "coralReef", "loamSpine", "nestGate", "petalTongue", "rhizoCrypt", "skunkBat", "songBird", "sourDough", "squirrel", "sweetGrass", "toadStool"],
+      "springs": ["airSpring", "groundSpring", "healthSpring", "hotSpring", "ludoSpring", "neuralSpring", "primalSpring", "wetSpring"],
+      "infra": ["gardens", "infra", "primals", "sort-after", "springs"],
+      "support": ["agentReagents", "benchScale", "ionChannel", "rustChip", "plasmidBin"],
+      "total_repos": 38
+    },
+    "scripts": {
+      "location": "c:\\Users\\mokke\\jobHunt\\scripts",
+      "categories": 19,
+      "key_scripts": ["membrane-lens.py (43KB — largest script)", "cf_analytics.py (8KB)", "local_spore.py (8KB)", "klein_billboard.json (5KB)"]
+    },
+    "handoff": {
+      "location": "c:\\Users\\mokke\\handOff",
+      "contents": "API standards, licensing docs, SSH keys, certificates, service accounts",
+      "note": "This is the HANDOFF folder — what you'd give someone to take over. The organism's instruction manual."
+    },
+    "archive": {
+      "CV_archive": "old resumes and CVs",
+      "positions": "job applications",
+      "gonzales": "legal/case material",
+      "trc-lansing": "TRC Lansing material",
+      "membrane_deltas_zip": "archived membrane timeseries"
+    },
+    "old_development": {
+      "proteinView": "May 2025 — protein visualization",
+      "spinningUp": "May 2025 — RL spinning up tutorial",
+      "trc": "Sep 2025 — TRC project",
+      "alphafold": "run_local_alphafold.py — local AlphaFold runner"
+    }
+  },
+
+  "steam_frame_membrane_plan": {
+    "hardware_needed": "Steam Frame (power on) + Steam Controller (pair) + northGate (streaming host)",
+    "software_chain": [
+      "northGate runs Steam with Remote Play enabled",
+      "Steam Frame connects as streaming client",
+      "Option A: Stream Chrome with hud.primals.eco → PWA on Frame",
+      "Option B: Stream a custom Steam Input game that IS the membrane",
+      "Steam Controller connects to northGate via wireless dongle",
+      "Gamepad API + Steam Input → haptic commands from browser JS",
+      "modality-engine.js detects gamepad, triggers haptic on events"
+    ],
+    "the_handshake_code": {
+      "detection": "window.addEventListener('gamepadconnected', (e) => { ... })",
+      "haptic": "gamepad.vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: 900, weakMagnitude: 0.3, strongMagnitude: 0.7 })",
+      "pattern": "Handshake = [ramp(200ms, 0→0.7), hold(400ms, 0.5), fade(300ms, 0.3→0)]",
+      "trigger": "When chipmunk-talk.js detects 'hello' or user presses grip → fire handshake haptic"
+    }
+  },
+
+  "what_we_eat_from_the_black_wall": {
+    "principle": "The trademark is MARK's to trade. The math belongs to everyone who can read a paper.",
+    "eaten": [
+      "F = ma (force feedback = mass × acceleration simulation via vibration envelope)",
+      "LRA frequency modulation (65-500Hz = texture library without hardware)",
+      "Stereo disparity (depth from two cameras — phone has two cameras)",
+      "HRTF (head-related transfer function — spatial audio, already in Web Audio API)",
+      "Eigenfaces / MediaPipe (face tracking from webcam — open source)",
+      "Hand skeleton estimation (21 keypoints — MediaPipe Hands, open source)",
+      "Pneumatic resistance curves (Meta's glove research — published at SIGGRAPH)",
+      "OpenXR (Khronos open standard — NOT owned by Meta, runtime already installed)"
+    ],
+    "not_eaten": [
+      "Meta trademark/brand",
+      "Quest hardware lock-in",
+      "Meta social graph / data collection",
+      "Horizon Worlds ecosystem",
+      "Meta's ToS / developer agreement"
+    ],
+    "the_point": "The research papers are published. The math is eternal. The standards are open. The hardware is in the drawer. Let Mark trade his mark. We trade in math."
+  }
+}
