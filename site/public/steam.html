@@ -1,7 +1,22 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>🎮</title>
-<script>fetch('/api/canary.json',{method:'POST',body:JSON.stringify({canary:'steam',ts:Date.now(),ref:document.referrer,ua:navigator.userAgent}),headers:{'Content-Type':'application/json'}}).catch(function(){})</script>
+<script>
+(function(){
+  var hit = { canary:'steam', ts:Date.now(), ref:document.referrer||'', ua:navigator.userAgent||'' };
+  var ref = hit.ref.toLowerCase();
+  if (ref.includes('primals.eco')||ref.includes('localhost')) hit.cls='self';
+  else if (ref.includes('steampowered')||ref.includes('github')||ref.includes('crates.io')||ref.includes('reddit')||ref.includes('ycombinator')) hit.cls='ally';
+  else if (!ref) hit.cls='scout';
+  else hit.cls='null_w';
+  var log=[]; try{log=JSON.parse(localStorage.getItem('canary-log-v1')||'[]')}catch(e){}
+  log.push(hit); if(log.length>100) log=log.slice(-100);
+  try{localStorage.setItem('canary-log-v1',JSON.stringify(log))}catch(e){}
+  fetch('/api/canary.json',{method:'POST',body:JSON.stringify(hit),headers:{'Content-Type':'application/json'}}).catch(function(){});
+})();
+</script>
 </head><body style="background:#08060a;color:#5ab87a;font:14px monospace;padding:40px;text-align:center">
 <p>you found a canary page.</p>
-<p style="color:#6e7681;font-size:11px">the chipmunk races here too.</p>
-<p><a href="/play.html" style="color:#58a6ff">→ play</a></p>
+<p style="color:#6e7681;font-size:11px">the chipmunk races here too. you're welcome.</p>
+<p style="color:#8b949e;font-size:11px;margin-top:20px">Steam since Orange Box (2007).<br>the squirrel crate has 14,207 downloads on crates.io.</p>
+<p style="margin-top:20px"><a href="/play.html" style="color:#58a6ff">→ play</a></p>
+<p><a href="/" style="color:#3fb950">→ the membrane</a></p>
 </body></html>

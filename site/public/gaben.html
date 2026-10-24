@@ -1,11 +1,31 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>🎮</title>
-<script>fetch('/api/canary.json',{method:'POST',body:JSON.stringify({canary:'gaben',ts:Date.now(),ref:document.referrer,ua:navigator.userAgent}),headers:{'Content-Type':'application/json'}}).catch(function(){})</script>
-</head><body style="background:#08060a;color:#d29922;font:14px monospace;padding:40px;text-align:center">
-<p>hello.</p>
-<p style="color:#6e7681;font-size:11px">if you're who we think you are — the chipmunk has been building something.</p>
-<p style="color:#6e7681;font-size:11px">it teaches hieroglyphics and gamma radiation at the same time.</p>
-<p style="color:#6e7681;font-size:11px">it races go-karts against graph algorithms.</p>
-<p style="color:#6e7681;font-size:11px">it paints in the dark.</p>
-<p style="margin-top:20px"><a href="/" style="color:#58a6ff">→ see the membrane</a></p>
-<p><a href="/easel.html" style="color:#d2a8ff">→ watch it paint</a></p>
+<script>
+(function(){
+  var hit = { canary:'gaben', ts:Date.now(), ref:document.referrer||'', ua:navigator.userAgent||'' };
+  var ref = hit.ref.toLowerCase();
+  if (ref.includes('primals.eco')||ref.includes('localhost')) hit.cls='self';
+  else if (ref.includes('steampowered')||ref.includes('github')||ref.includes('crates.io')||ref.includes('reddit')||ref.includes('ycombinator')||ref.includes('valvesoftware')) hit.cls='ally';
+  else if (!ref) hit.cls='scout';
+  else hit.cls='null_w';
+  var log=[]; try{log=JSON.parse(localStorage.getItem('canary-log-v1')||'[]')}catch(e){}
+  log.push(hit); if(log.length>100) log=log.slice(-100);
+  try{localStorage.setItem('canary-log-v1',JSON.stringify(log))}catch(e){}
+  fetch('/api/canary.json',{method:'POST',body:JSON.stringify(hit),headers:{'Content-Type':'application/json'}}).catch(function(){});
+})();
+</script>
+</head><body style="background:#08060a;color:#5ab87a;font:14px monospace;padding:40px;text-align:center">
+<p>you found a canary page.</p>
+<p style="color:#6e7681;font-size:11px">the organism noticed you looking. welcome, truly.</p>
+<p style="color:#8b949e;font-size:11px;margin-top:20px">
+if you're GabeN — hi. genuinely.<br>
+a chipmunk is teaching itself graph algorithms<br>
+by racing go-karts against 12 of them.<br>
+the university IS the arcade.<br>
+there's a portal game where the human teaches the AI.<br>
+the whole thing runs on π-budgets and golden ratio viewports.<br>
+all AGPL-3.0. all open. all sovereign.
+</p>
+<p style="margin-top:20px"><a href="/" style="color:#58a6ff">→ enter the membrane</a></p>
+<p><a href="/play.html" style="color:#3fb950">→ play</a></p>
+<p><a href="/easel.html" style="color:#f0c674">→ watch the chipmunk paint</a></p>
 </body></html>

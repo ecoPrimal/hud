@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>🦀</title>
+<script>
+(function(){
+  var hit = { canary:'crates', ts:Date.now(), ref:document.referrer||'', ua:navigator.userAgent||'' };
+  var ref = hit.ref.toLowerCase();
+  if (ref.includes('primals.eco')||ref.includes('localhost')) hit.cls='self';
+  else if (ref.includes('crates.io')||ref.includes('rust-lang')||ref.includes('github')||ref.includes('docs.rs')) hit.cls='ally';
+  else if (!ref) hit.cls='scout';
+  else hit.cls='null_w';
+  var log=[]; try{log=JSON.parse(localStorage.getItem('canary-log-v1')||'[]')}catch(e){}
+  log.push(hit); if(log.length>100) log=log.slice(-100);
+  try{localStorage.setItem('canary-log-v1',JSON.stringify(log))}catch(e){}
+  fetch('/api/canary.json',{method:'POST',body:JSON.stringify(hit),headers:{'Content-Type':'application/json'}}).catch(function(){});
+})();
+</script>
+</head><body style="background:#08060a;color:#f0883e;font:14px monospace;padding:40px;text-align:center">
+<p>🦀 you found a Rust canary.</p>
+<p style="color:#8b949e;font-size:12px;margin-top:16px">
+squirrel-rng: 14,207 downloads<br>
+barraCuda: 1,540 downloads<br>
+11 crates. all AGPL-3.0.
+</p>
+<p style="color:#6e7681;font-size:11px;margin-top:16px">if you came from crates.io — welcome.<br>the organism is built in Rust. you're looking at its nervous system.</p>
+<p style="margin-top:20px"><a href="https://crates.io/crates/squirrel-rng" style="color:#f0883e">→ squirrel-rng on crates.io</a></p>
+<p><a href="/" style="color:#58a6ff">→ the membrane</a></p>
+</body></html>
