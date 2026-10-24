@@ -49,6 +49,9 @@
     'Berry telling the π cycle at the fire',
     'chip walking A1 to C3 between pauses',
     'the cairn that did not get a new stone',
+    'the vole at the lip of the field',
+    'four verbs walking toward a sentence',
+    'a mark that was not yet a letter',
     'the person who typed cargo add',
     'a starfish with its stomach out',
     'the tube feet sensing the water',
@@ -145,6 +148,9 @@
     'waited at the gate until',
     'planted a seed that became',
     'listened to the noise until it became',
+    'listened then spoke then sang then wrote and',
+    'mixed four layers until they became',
+    'showed the learning by',
     'folded inside-out and discovered',
     'fermented in the dark until',
     'spiraled through the membrane and found',
@@ -208,6 +214,8 @@
   // OBJECTS — what they found/became/learned
   var OBJECTS = [
     'music where there had been noise.',
+    'language where four verbs met.',
+    'a letter younger than the painting.',
     'the color orange in the deepest winter.',
     'that the water was underground all along.',
     'a path no one had walked before.',

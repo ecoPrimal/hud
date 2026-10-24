@@ -106,6 +106,13 @@
     }).catch(function() { window._piCycle = null; });
   }
 
+  function loadVoleLanguage() {
+    fetch('/data/vole-language.json').then(function(r) { return r.json(); }).then(function(data) {
+      window._volePaper = data;
+      renderTrace();
+    }).catch(function() { window._volePaper = null; });
+  }
+
   // ═══ EPITOPE INVERSION LOADER ═══
   function loadEpitopeInversion() {
     fetch('/data/epitope-inversion.json').then(function(r) { return r.json(); }).then(function(data) {
@@ -160,6 +167,7 @@
     // Load epitope inversion data
     loadEpitopeInversion();
     loadPiCycle();
+    loadVoleLanguage();
 
     // Check crates.io (CORS-safe via API)
     PROPERTIES.crates.forEach(function(crate) {
@@ -338,6 +346,30 @@
       html.push('<div style="font-size:7px;color:#6e7681;margin-top:2px">' + (pc.berry_at_the_fire || '') + '</div>');
     } else {
       html.push('<div class="st-dim">walking the grid…</div>');
+    }
+    html.push('</div>');
+
+    // ═══ VOLE LANGUAGE — four verbs braid ═══
+    html.push('<div class="st-section">');
+    html.push('<div class="st-label">vole · language forming</div>');
+    var vp = window._volePaper;
+    var vl = window._vole;
+    if (vp && vp.pi_sort) {
+      var faces = [vp.pi_sort.face_1, vp.pi_sort.face_2, vp.pi_sort.face_3, vp.pi_sort.jester];
+      faces.forEach(function(f) {
+        if (!f) return;
+        html.push('<div class="st-row">');
+        html.push('<span style="color:' + f.color + '">' + f.verb + '</span>');
+        html.push('<span class="st-val">' + f.organ + '</span>');
+        html.push('</div>');
+      });
+      if (vl && vl.language) {
+        html.push('<div style="font-size:7px;color:#d2a8ff;margin-top:2px">' + vl.language + '</div>');
+      } else {
+        html.push('<div style="font-size:7px;color:#6e7681;margin-top:2px">' + (vp.berry_at_the_fire || '') + '</div>');
+      }
+    } else {
+      html.push('<div class="st-dim">vole waking at the lip…</div>');
     }
     html.push('</div>');
 
