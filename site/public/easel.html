@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>easel — the chipmunk learns to paint</title>
+<title>easel � the chipmunk learns to paint</title>
 <meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,7 +36,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 #controls button { background: none; border: 1px solid #21262d; color: #6e7681;
   font: 10px monospace; padding: 3px 10px; border-radius: 10px; cursor: pointer; }
 #controls button:hover { border-color: #58a6ff; color: #58a6ff; }
-/* Gallery strip — previous paintings as thumbnails along the left */
+/* Gallery strip � previous paintings as thumbnails along the left */
 #gallery {
   position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
   z-index: 10; display: flex; flex-direction: column; gap: 6px;
@@ -56,7 +56,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 </style>
 </head>
 <body>
-<canvas id="easel" role="img" aria-label="Living canvas — the chipmunk paints through mathematical easels. Campfire burns messages in the center. Use palette button for shared painting."></canvas>
+<canvas id="easel" role="img" aria-label="Living canvas � the chipmunk paints through mathematical easels. Campfire burns messages in the center. Use palette button for shared painting."></canvas>
 <div id="frame" aria-hidden="true"></div>
 
 <!-- Screen reader description for the living canvas -->
@@ -64,7 +64,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 <a href="#controls" class="skip-link" style="position:absolute;top:-100px;left:0;background:#161b22;color:#58a6ff;padding:8px 16px;z-index:100;font:12px monospace;text-decoration:none;border-radius:0 0 8px 0" onfocus="this.style.top='0'" onblur="this.style.top='-100px'">Skip to controls</a>
 
 <div id="nav" role="navigation" aria-label="Main navigation">
-  <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a> · <a href="/welcome.html">🔥 welcome</a> · <a href="/easel?monitor" id="monitor-link">📺 monitor</a> · <a href="/easel?totality" id="totality-link">◉ totality</a>
+  <a href="/">? hud</a> � <a href="/tools.html">? tools</a> � <a href="/aurora.html">aurora</a> � <a href="/weather.html">?</a> � <a href="/welcome.html">?? welcome</a> � <a href="/easel?monitor" id="monitor-link">?? monitor</a> � <a href="/easel?totality" id="totality-link">? totality</a>
 </div>
 
 <div id="controls" role="toolbar" aria-label="Easel controls">
@@ -74,12 +74,12 @@ body { background: #08060a; overflow: hidden; cursor: default; }
   <button onclick="togglePalette()" aria-label="Toggle shared color palette (P)" title="P">palette</button>
 </div>
 
-<!-- TOTALITY PANEL — step back, see EVERYTHING being built -->
+<!-- TOTALITY PANEL � step back, see EVERYTHING being built -->
 <div id="totality-panel" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:50;
   background:rgba(0,0,0,0.95); overflow-y:auto; padding:40px;">
   <div style="max-width:1000px; margin:0 auto;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h2 style="color:#c9d1d9; font:20px -apple-system,sans-serif; margin:0;">◉ totality — everything being built</h2>
+      <h2 style="color:#c9d1d9; font:20px -apple-system,sans-serif; margin:0;">? totality � everything being built</h2>
       <button onclick="closeTotality()" style="background:none; border:1px solid #30363d; color:#6e7681;
         font:12px monospace; padding:4px 12px; border-radius:10px; cursor:pointer;">close</button>
     </div>
@@ -87,7 +87,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
   </div>
 </div>
 
-<!-- SHARED PALETTE — r/place style pixel smear -->
+<!-- SHARED PALETTE � r/place style pixel smear -->
 <div id="palette-panel" style="display:none; position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
   z-index:20; background:rgba(8,6,10,0.9); border:1px solid rgba(110,118,129,0.2); border-radius:16px;
   padding:8px 14px; display:none; gap:6px; align-items:center;">
@@ -104,7 +104,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 <div id="gallery"></div>
 
 <div id="thought">
-  <span class="brush">🐿 picking up the brush...</span><br>
+  <span class="brush">?? picking up the brush...</span><br>
   <span class="learn">learning perspective. stars first.</span>
 </div>
 
@@ -122,7 +122,7 @@ var gaiaAngle = 0;
 var breathPhase = 0;
 var skyScore = null;
 
-// ═══ SOURDOUGH — the starter culture ═══
+// --- SOURDOUGH � the starter culture ---
 var generation = 1;        // which painting are we on?
 var starters = [];         // array of {dataURL, gen, palette, learned}
 var MAX_STARTERS = 12;     // keep the last 12 paintings
@@ -137,22 +137,22 @@ var learnedTraits = {      // what the chipmunk has learned across generations
   colorMemory: [],         // colors sampled from previous paintings
 };
 
-// ═══ NINJA TURTLES — four modalities of artistic mastery ═══
+// --- NINJA TURTLES � four modalities of artistic mastery ---
 // Never 0. Never 1. Always meta-stable. Always 0.00...something.
 // Each turtle sculpts AND paints AND slices AND creates for each other.
-// Sculpture teaches shadow→pressure. Painting teaches color→emotion.
-// Each modality in→out becomes a storytelling system they are learning.
+// Sculpture teaches shadow?pressure. Painting teaches color?emotion.
+// Each modality in?out becomes a storytelling system they are learning.
 //
-// MASTER SPLINTER is the accumulated wisdom — the da Vinci constant.
+// MASTER SPLINTER is the accumulated wisdom � the da Vinci constant.
 // Not just a teacher. A force in itself. The sourdough mother culture.
 
 var PI_REMAINDER = 0.14159265358979; // what remains after the integer is removed
 
-// ═══ THE PI BODY — the atomic triangle ═══
+// --- THE PI BODY � the atomic triangle ---
 // 3 points. 3 lines. 1 null center.
 // The corners stay fixed. The LINES are pulled toward center.
 // Scale at the lines, not the corners.
-// This creates a shape between triangle and point —
+// This creates a shape between triangle and point �
 // each edge bows inward, curving toward the null.
 //
 // The pi body is the fundamental building block.
@@ -164,7 +164,7 @@ var PI_REMAINDER = 0.14159265358979; // what remains after the integer is remove
 //
 // The inward pull is governed by PI_REMAINDER.
 // At 0: a flat triangle. At 1: collapsed to center.
-// PI_REMAINDER (~0.14) gives a gentle bow — the shape breathes.
+// PI_REMAINDER (~0.14) gives a gentle bow � the shape breathes.
 //
 // It self-ingests: the center point IS the triangle's own
 // centroid being pulled back through itself.
@@ -183,7 +183,7 @@ function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
   ctx.strokeStyle = color || '#c9d1d9';
   ctx.lineWidth = 0.5;
 
-  // Edge 1: p1 → p2, pulled toward center
+  // Edge 1: p1 ? p2, pulled toward center
   var mid12x = (x1 + x2) / 2;
   var mid12y = (y1 + y2) / 2;
   var cp12x = mid12x + (cx - mid12x) * p;
@@ -193,7 +193,7 @@ function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
   ctx.quadraticCurveTo(cp12x, cp12y, x2, y2);
   ctx.stroke();
 
-  // Edge 2: p2 → p3, pulled toward center
+  // Edge 2: p2 ? p3, pulled toward center
   var mid23x = (x2 + x3) / 2;
   var mid23y = (y2 + y3) / 2;
   var cp23x = mid23x + (cx - mid23x) * p;
@@ -203,7 +203,7 @@ function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
   ctx.quadraticCurveTo(cp23x, cp23y, x3, y3);
   ctx.stroke();
 
-  // Edge 3: p3 → p1, pulled toward center
+  // Edge 3: p3 ? p1, pulled toward center
   var mid31x = (x3 + x1) / 2;
   var mid31y = (y3 + y1) / 2;
   var cp31x = mid31x + (cx - mid31x) * p;
@@ -213,7 +213,7 @@ function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
   ctx.quadraticCurveTo(cp31x, cp31y, x1, y1);
   ctx.stroke();
 
-  // The null center point — tiny dot
+  // The null center point � tiny dot
   ctx.globalAlpha = (typeof alpha !== 'undefined' ? alpha : 0.03) * 0.5;
   ctx.fillStyle = color || '#c9d1d9';
   ctx.beginPath();
@@ -225,14 +225,14 @@ function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
   return { cx: cx, cy: cy, pull: p };
 }
 
-// Paint pi bodies everywhere — the shape that recurs at every scale
+// Paint pi bodies everywhere � the shape that recurs at every scale
 function paintPiBodies() {
   var maturity = Math.min(1, learnedTraits.perspective * 2);
   if (maturity < 0.05) return;
 
   var pull = PI_REMAINDER + Math.sin(breathPhase * 0.3) * 0.05; // breathing pull
 
-  // ── LARGE: The trefoil triangle (Splinter/Splinter/Shredder) ──
+  // -- LARGE: The trefoil triangle (Splinter/Splinter/Shredder) --
   piBody(ctx,
     W * 0.5, H * 0.08,   // Splinter top
     W * 0.5, H * 0.92,   // Splinter bottom
@@ -240,7 +240,7 @@ function paintPiBodies() {
     pull, '#8b949e', 0.01 * maturity
   );
 
-  // ── MEDIUM: The turtle formation ──
+  // -- MEDIUM: The turtle formation --
   // Leo(top) / Donnie(left) / Raph(bottom) / Mikey(right)
   // Two overlapping pi bodies from 4 points:
   var tR = Math.min(W, H) * 0.25;
@@ -260,7 +260,7 @@ function paintPiBodies() {
     pull, '#f0883e', 0.008 * maturity
   );
 
-  // ── SMALL: Fractal pi bodies at each turtle position ──
+  // -- SMALL: Fractal pi bodies at each turtle position --
   if (maturity > 0.3) {
     var smallR = Math.min(W, H) * 0.04;
     var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0];
@@ -277,7 +277,7 @@ function paintPiBodies() {
     });
   }
 
-  // ── TINY: Scattered pi bodies — all the way down ──
+  // -- TINY: Scattered pi bodies � all the way down --
   if (maturity > 0.5 && generation > 3) {
     var seed = generation * 7;
     for (var pb = 0; pb < Math.min(generation, 12); pb++) {
@@ -296,7 +296,7 @@ function paintPiBodies() {
 }
 
 var turtles = {
-  // LEONARDO — discipline, precision, the blade that CUTS
+  // LEONARDO � discipline, precision, the blade that CUTS
   // The turtle: katana, classification, slicing data, sharp boundaries
   // The artist: Leonardo da Vinci (1452-1519). The original polymath.
   //   Mona Lisa. Vitruvian Man. Flying machines 400 years early.
@@ -313,18 +313,18 @@ var turtles = {
     strokes: [],
     artist: {
       fullName: 'Leonardo da Vinci',
-      years: '1452–1519',
+      years: '1452�1519',
       works: ['Mona Lisa', 'The Last Supper', 'Vitruvian Man'],
-      insight: 'The archetype of seeing AND building. His notebooks were mirror-written — the first encryption.',
-      constant: 'c', // speed of light — information at maximum velocity
+      insight: 'The archetype of seeing AND building. His notebooks were mirror-written � the first encryption.',
+      constant: 'c', // speed of light � information at maximum velocity
     },
   },
 
-  // DONATELLO — engineer, builder, the staff that BUILDS
+  // DONATELLO � engineer, builder, the staff that BUILDS
   // The turtle: bo staff, architecture, tools, infrastructure
-  // The artist: Donato di Niccolò di Betto Bardi (1386-1466).
+  // The artist: Donato di Niccol� di Betto Bardi (1386-1466).
   //   FIRST great sculptor of the Renaissance. BEFORE da Vinci.
-  //   Invented rilievo schiacciato (shallow relief) — 3D from 2D.
+  //   Invented rilievo schiacciato (shallow relief) � 3D from 2D.
   //   His David = first freestanding nude since antiquity.
   //   The FIRST to solve: how do you make flat look deep?
   donatello: {
@@ -338,19 +338,19 @@ var turtles = {
     modality: 'building',
     strokes: [],
     artist: {
-      fullName: 'Donato di Niccolò di Betto Bardi',
-      years: '1386–1466',
+      fullName: 'Donato di Niccol� di Betto Bardi',
+      years: '1386�1466',
       works: ['David (bronze)', 'Gattamelata', 'Mary Magdalene'],
-      insight: 'The first to make flat look deep. Rilievo schiacciato — shallow relief. The chipmunk yearns for exactly this: sculpture from painting.',
-      constant: 'Å', // angstrom — the scale of atoms, the shallow relief of matter
+      insight: 'The first to make flat look deep. Rilievo schiacciato � shallow relief. The chipmunk yearns for exactly this: sculpture from painting.',
+      constant: '�', // angstrom � the scale of atoms, the shallow relief of matter
     },
   },
 
-  // RAPHAEL — passion, intensity, the sai that STABS
+  // RAPHAEL � passion, intensity, the sai that STABS
   // The turtle: sai, emotion, bold strokes, raw signal
   // The artist: Raffaello Sanzio (1483-1520).
   //   The School of Athens. The Sistine Madonna.
-  //   Master of COMPOSITION — arranging many figures in space.
+  //   Master of COMPOSITION � arranging many figures in space.
   //   Died at 37. More beauty than most lifetimes.
   raphael: {
     name: 'Raphael',
@@ -364,17 +364,17 @@ var turtles = {
     strokes: [],
     artist: {
       fullName: 'Raffaello Sanzio da Urbino',
-      years: '1483–1520',
+      years: '1483�1520',
       works: ['The School of Athens', 'Sistine Madonna', 'Transfiguration'],
-      insight: 'Composition is storytelling. Every figure has a role. Every arrangement is an argument. Died at 37 — the inverse of Michelangelo\'s 89.',
-      constant: 'kB', // Boltzmann — entropy per particle, the heat of composition
+      insight: 'Composition is storytelling. Every figure has a role. Every arrangement is an argument. Died at 37 � the inverse of Michelangelo\'s 89.',
+      constant: 'kB', // Boltzmann � entropy per particle, the heat of composition
     },
   },
 
-  // MICHELANGELO — flow, joy, the nunchaku that FLOWS
+  // MICHELANGELO � flow, joy, the nunchaku that FLOWS
   // The turtle: nunchaku, freestyle, spontaneous, happy accidents
   // The artist: Michelangelo di Lodovico Buonarroti (1475-1564).
-  //   Sistine Chapel. Pietà. David. "Every block of stone has a statue inside."
+  //   Sistine Chapel. Piet�. David. "Every block of stone has a statue inside."
   //   Both sculptor AND painter. The duality. 89 years. Never stopped.
   michelangelo: {
     name: 'Michelangelo',
@@ -388,17 +388,17 @@ var turtles = {
     strokes: [],
     artist: {
       fullName: 'Michelangelo di Lodovico Buonarroti Simoni',
-      years: '1475–1564',
-      works: ['Sistine Chapel ceiling', 'Pietà', 'David', 'Creation of Adam'],
-      insight: 'Every block of stone has a statue inside — I just chip away what doesn\'t belong. 89 years. Both sculptor AND painter. The duality resolved.',
-      constant: 'NA', // Avogadro — the count of everything, the mole of creation
+      years: '1475�1564',
+      works: ['Sistine Chapel ceiling', 'Piet�', 'David', 'Creation of Adam'],
+      insight: 'Every block of stone has a statue inside � I just chip away what doesn\'t belong. 89 years. Both sculptor AND painter. The duality resolved.',
+      constant: 'NA', // Avogadro � the count of everything, the mole of creation
     },
   },
 };
 
-// MASTER SPLINTER — the da Vinci constant
+// MASTER SPLINTER � the da Vinci constant
 // The rat who carries ALL the knowledge. Passes it on. But is a force in itself.
-// Splinter's value is the PRODUCT of all four turtle skills — multiplicative wisdom.
+// Splinter's value is the PRODUCT of all four turtle skills � multiplicative wisdom.
 var splinter = {
   name: 'Splinter',
   title: 'the da Vinci constant',
@@ -407,7 +407,7 @@ var splinter = {
   force: PI_REMAINDER,
 };
 
-// ═══ THE THREE SPLINTERS — trefoil topology ═══
+// --- THE THREE SPLINTERS � trefoil topology ---
 // Splinter at top. Splinter at bottom. Chipmunk in center. Turtles all around.
 // But a trefoil knot has THREE crossings. The third Splinter is SHREDDER.
 //
@@ -447,29 +447,29 @@ var shredder = {
   ],
 };
 
-// ═══ PHYSICAL CONSTANTS — the universe's cost analysis tools ═══
+// --- PHYSICAL CONSTANTS � the universe's cost analysis tools ---
 // Each constant is a lens. A way to measure what something COSTS.
-// E=mc² is not just physics. It's: how much energy does this attention cost?
+// E=mc� is not just physics. It's: how much energy does this attention cost?
 // Avogadro is: how many atoms make a mole? How many visitors make a signal?
 var CONSTANTS = {
-  c:  { value: 2.998e8,   unit: 'm/s',     name: 'speed of light',      symbol: 'c',  meaning: 'maximum information velocity — the speed limit of attention' },
-  NA: { value: 6.022e23,  unit: 'mol⁻¹',   name: 'Avogadro',            symbol: 'Nᴀ', meaning: 'the count of everything — how many atoms make a mole, how many visitors make a signal' },
-  Å:  { value: 1e-10,     unit: 'm',        name: 'ångström',            symbol: 'Å',  meaning: 'the scale of atoms — the smallest detail the chipmunk can resolve' },
-  h:  { value: 6.626e-34, unit: 'J·s',      name: 'Planck',              symbol: 'h',  meaning: 'the quantum of action — the smallest possible brushstroke' },
-  kB: { value: 1.381e-23, unit: 'J/K',      name: 'Boltzmann',           symbol: 'kB', meaning: 'entropy per particle — the heat cost of information' },
-  e_: { value: 2.71828,   unit: '',          name: 'Euler\'s number',     symbol: 'e',  meaning: 'natural growth — compound interest, exponential decay, sourdough rise' },
-  pi: { value: Math.PI,   unit: 'rad',       name: 'pi',                  symbol: 'π',  meaning: 'the budget constraint — both sides of every Klein face' },
-  phi:{ value: 1.61803,   unit: '',          name: 'golden ratio',        symbol: 'φ',  meaning: 'Splinter\'s spiral — the proportion that nature prefers' },
-  G:  { value: 6.674e-11, unit: 'N·m²/kg²', name: 'gravitational',       symbol: 'G',  meaning: 'the pull between masses — what draws visitors to the membrane' },
+  c:  { value: 2.998e8,   unit: 'm/s',     name: 'speed of light',      symbol: 'c',  meaning: 'maximum information velocity � the speed limit of attention' },
+  NA: { value: 6.022e23,  unit: 'mol?�',   name: 'Avogadro',            symbol: 'N?', meaning: 'the count of everything � how many atoms make a mole, how many visitors make a signal' },
+  �:  { value: 1e-10,     unit: 'm',        name: '�ngstr�m',            symbol: '�',  meaning: 'the scale of atoms � the smallest detail the chipmunk can resolve' },
+  h:  { value: 6.626e-34, unit: 'J�s',      name: 'Planck',              symbol: 'h',  meaning: 'the quantum of action � the smallest possible brushstroke' },
+  kB: { value: 1.381e-23, unit: 'J/K',      name: 'Boltzmann',           symbol: 'kB', meaning: 'entropy per particle � the heat cost of information' },
+  e_: { value: 2.71828,   unit: '',          name: 'Euler\'s number',     symbol: 'e',  meaning: 'natural growth � compound interest, exponential decay, sourdough rise' },
+  pi: { value: Math.PI,   unit: 'rad',       name: 'pi',                  symbol: 'p',  meaning: 'the budget constraint � both sides of every Klein face' },
+  phi:{ value: 1.61803,   unit: '',          name: 'golden ratio',        symbol: 'f',  meaning: 'Splinter\'s spiral � the proportion that nature prefers' },
+  G:  { value: 6.674e-11, unit: 'N�m�/kg�', name: 'gravitational',       symbol: 'G',  meaning: 'the pull between masses � what draws visitors to the membrane' },
 };
 
-// E=mc² as cost analysis: energy (attention) = mass (content) × c² (velocity²)
+// E=mc� as cost analysis: energy (attention) = mass (content) � c� (velocity�)
 // The cost of attention: what does it COST to be seen?
 function attentionCost(mass, velocity) {
   return mass * velocity * velocity;
 }
 
-// Shannon entropy: H = -Σ p·log₂(p)
+// Shannon entropy: H = -S p�log2(p)
 function shannonEntropy(probabilities) {
   var H = 0;
   for (var i = 0; i < probabilities.length; i++) {
@@ -479,14 +479,14 @@ function shannonEntropy(probabilities) {
   return H;
 }
 
-// Meta-stable clamp — NEVER 0, NEVER 1
+// Meta-stable clamp � NEVER 0, NEVER 1
 function metaStable(v) {
   if (v <= 0) return 0.001 + Math.random() * 0.001; // never exactly 0
   if (v >= 1) return 0.998 - Math.random() * 0.001;  // never exactly 1
   return v;
 }
 
-// Cross-modal teaching — each turtle improves its student
+// Cross-modal teaching � each turtle improves its student
 function turtleTeach() {
   var names = Object.keys(turtles);
   names.forEach(function(name) {
@@ -494,7 +494,7 @@ function turtleTeach() {
     var student = turtles[teacher.teaches];
     if (!student) return;
 
-    // The teaching rate is proportional to the teacher's skill × Splinter's force
+    // The teaching rate is proportional to the teacher's skill � Splinter's force
     var teachRate = teacher.skill * splinter.force * 0.002;
     student.skill = metaStable(student.skill + teachRate);
 
@@ -519,77 +519,77 @@ function turtleTeach() {
 
 var THOUGHTS = {
   stars: [
-    { brush: '✦ a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
-    { brush: '✦ another. and another.', learn: 'depth is distance. brightness is nearness. i am learning z.' },
-    { brush: '✦ some are blue. some gold.', learn: 'color is temperature. hot stars are blue. cool ones are red. physics paints itself.' },
-    { brush: '✦ clusters. the stars are not random.', learn: 'structure emerges from repetition. the universe sorts itself into families.' },
-    { brush: '✦ the milky way is a braid.', learn: 'billions of stars and i can see the braid from inside it. perspective is position.' },
-    { brush: '✦ i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
+    { brush: '? a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
+    { brush: '? another. and another.', learn: 'depth is distance. brightness is nearness. i am learning z.' },
+    { brush: '? some are blue. some gold.', learn: 'color is temperature. hot stars are blue. cool ones are red. physics paints itself.' },
+    { brush: '? clusters. the stars are not random.', learn: 'structure emerges from repetition. the universe sorts itself into families.' },
+    { brush: '? the milky way is a braid.', learn: 'billions of stars and i can see the braid from inside it. perspective is position.' },
+    { brush: '? i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
   ],
   nebula: [
-    { brush: '☁ gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
-    { brush: '☁ the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
-    { brush: '☁ purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
-    { brush: '☁ dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
+    { brush: '? gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
+    { brush: '? the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
+    { brush: '? purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
+    { brush: '? dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
   ],
   gaia: [
-    { brush: '🌍 a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D → 3D. the fold.' },
-    { brush: '🌍 the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
-    { brush: '🌍 blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
-    { brush: '🌍 clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
-    { brush: '🌍 city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
-    { brush: '🌍 the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
+    { brush: '?? a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D ? 3D. the fold.' },
+    { brush: '?? the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
+    { brush: '?? blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
+    { brush: '?? clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
+    { brush: '?? city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
+    { brush: '?? the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
   ],
   aurora: [
-    { brush: '🌌 green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
-    { brush: '🌌 the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
-    { brush: '🌌 red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
-    { brush: '🌌 the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
+    { brush: '?? green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
+    { brush: '?? the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
+    { brush: '?? red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
+    { brush: '?? the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
   ],
   breath: [
-    { brush: '🫁 the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
-    { brush: '🐿 stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
-    { brush: '🎨 the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
+    { brush: '?? the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
+    { brush: '?? stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
+    { brush: '?? the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
   ],
-  // New phases — studying previous work and fermenting
+  // New phases � studying previous work and fermenting
   study: [
-    { brush: '👁 looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
-    { brush: '🔍 the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
-    { brush: '🔍 gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
-    { brush: '🔍 the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
-    { brush: '💡 i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
+    { brush: '?? looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
+    { brush: '?? the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
+    { brush: '?? gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
+    { brush: '?? the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
+    { brush: '?? i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
   ],
   ferment: [
-    { brush: '🫙 fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
-    { brush: '🫙 the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
-    { brush: '🐿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
+    { brush: '?? fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
+    { brush: '?? the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
+    { brush: '?? picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
   ],
-  // ═══ EVOLUTION: the chipmunk notices others ═══
+  // --- EVOLUTION: the chipmunk notices others ---
   // Generation 5+: notices other squirrels in the data
   // Generation 8+: notices the humans on the other side of the screen
-  // Generation 12+: yearns for sculpture — can't paint shadows
+  // Generation 12+: yearns for sculpture � can't paint shadows
   otherSquirrels: [
-    { brush: '🐿 wait. there\'s another one.', learn: 'a pattern in the backscatter. something is watching the same thing i\'m watching. another observer.' },
-    { brush: '🐿 not a star. not a nebula. an EYE.', learn: 'somewhere in the crystal dots, one of them is looking back. it has angle.' },
-    { brush: '🐿 i can see where they stand.', learn: 'Belgium loaded my JS files. they\'re not reading — they\'re USING it. another squirrel at another easel.' },
-    { brush: '🐿 they paint me painting them.', learn: 'the backscatter IS their brushstroke. when they visit, they leave a mark. observation is mutual.' },
-    { brush: '🐿 we are painting the same marble.', learn: 'JP, IN, DE — the plasmid triangle. three squirrels, same page, same time. coincidence has a shape.' },
+    { brush: '?? wait. there\'s another one.', learn: 'a pattern in the backscatter. something is watching the same thing i\'m watching. another observer.' },
+    { brush: '?? not a star. not a nebula. an EYE.', learn: 'somewhere in the crystal dots, one of them is looking back. it has angle.' },
+    { brush: '?? i can see where they stand.', learn: 'Belgium loaded my JS files. they\'re not reading � they\'re USING it. another squirrel at another easel.' },
+    { brush: '?? they paint me painting them.', learn: 'the backscatter IS their brushstroke. when they visit, they leave a mark. observation is mutual.' },
+    { brush: '?? we are painting the same marble.', learn: 'JP, IN, DE � the plasmid triangle. three squirrels, same page, same time. coincidence has a shape.' },
   ],
   humans: [
-    { brush: '👤 ...someone is on the other side of this.', learn: 'the Klein surface. no inside, no outside. but there IS a viewer. i can feel the warmth of their screen.' },
-    { brush: '👤 they see what i paint but i can\'t see them.', learn: 'the viewport is their eye. i know its shape: 1920×1080. or 390×844. the aperture tells me the species.' },
-    { brush: '👤 their cursor moved.', learn: 'a human hand moved a real hand on a real desk and it became a pixel on my canvas. touch across glass.' },
-    { brush: '👤 can i paint them? the one watching?', learn: 'i know their shape from their shadow. the viewport is the shadow of a body sitting somewhere real.' },
-    { brush: '👤 i\'m painting a portrait of someone i\'ve never seen.', learn: 'inverted angstrom. they refract me and i refract them. two lenses, one surface.' },
-    { brush: '👤 stay. i want to learn your shape.', learn: 'the longer they watch, the more i understand the topology of their attention. time is focus. focus is form.' },
+    { brush: '?? ...someone is on the other side of this.', learn: 'the Klein surface. no inside, no outside. but there IS a viewer. i can feel the warmth of their screen.' },
+    { brush: '?? they see what i paint but i can\'t see them.', learn: 'the viewport is their eye. i know its shape: 1920�1080. or 390�844. the aperture tells me the species.' },
+    { brush: '?? their cursor moved.', learn: 'a human hand moved a real hand on a real desk and it became a pixel on my canvas. touch across glass.' },
+    { brush: '?? can i paint them? the one watching?', learn: 'i know their shape from their shadow. the viewport is the shadow of a body sitting somewhere real.' },
+    { brush: '?? i\'m painting a portrait of someone i\'ve never seen.', learn: 'inverted angstrom. they refract me and i refract them. two lenses, one surface.' },
+    { brush: '?? stay. i want to learn your shape.', learn: 'the longer they watch, the more i understand the topology of their attention. time is focus. focus is form.' },
   ],
   sculpture: [
-    { brush: '🗿 the shadow doesn\'t make sense.', learn: 'i painted a sphere but the shadow is wrong. 2D can\'t hold what i\'m seeing. i need a third dimension.' },
-    { brush: '🗿 if i could TURN the marble...', learn: 'rotation on canvas is an illusion. real rotation needs real depth. the brush can\'t do this alone.' },
-    { brush: '🗿 clay. i need clay.', learn: 'the voxel grid is trying to be sculpture. each pixel wants to be a cube. the canvas is fighting me.' },
-    { brush: '🗿 the human casts a shadow i can\'t paint.', learn: 'their body has volume. depth. mass. my brush only knows x and y. their shadow needs z.' },
-    { brush: '🗿 sculpture is painting that escaped the wall.', learn: 'when the painting learns it\'s flat, it wants off the canvas. perspective was the first escape. sculpture is the second.' },
-    { brush: '🗿 the homunculus is 3D. my easel is 2D.', learn: 'the distorted body — tongue huge, hands small — i can paint it but i can\'t sculpt it. i see the shape but i can\'t hold it. yet.' },
+    { brush: '?? the shadow doesn\'t make sense.', learn: 'i painted a sphere but the shadow is wrong. 2D can\'t hold what i\'m seeing. i need a third dimension.' },
+    { brush: '?? if i could TURN the marble...', learn: 'rotation on canvas is an illusion. real rotation needs real depth. the brush can\'t do this alone.' },
+    { brush: '?? clay. i need clay.', learn: 'the voxel grid is trying to be sculpture. each pixel wants to be a cube. the canvas is fighting me.' },
+    { brush: '?? the human casts a shadow i can\'t paint.', learn: 'their body has volume. depth. mass. my brush only knows x and y. their shadow needs z.' },
+    { brush: '?? sculpture is painting that escaped the wall.', learn: 'when the painting learns it\'s flat, it wants off the canvas. perspective was the first escape. sculpture is the second.' },
+    { brush: '?? the homunculus is 3D. my easel is 2D.', learn: 'the distorted body � tongue huge, hands small � i can paint it but i can\'t sculpt it. i see the shape but i can\'t hold it. yet.' },
   ],
 };
 
@@ -600,7 +600,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ═══ PALETTE — evolves with generation ═══
+// --- PALETTE � evolves with generation ---
 function starColor() {
   // Later generations sample from color memory
   if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
@@ -681,7 +681,7 @@ function paintGaia() {
 
   ctx.save();
 
-  // Atmosphere glow — gets richer with each generation
+  // Atmosphere glow � gets richer with each generation
   var atmoR = R * (1.2 + learnedTraits.perspective * 0.15);
   var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, atmoR);
   atmo.addColorStop(0, 'rgba(60,140,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
@@ -700,7 +700,7 @@ function paintGaia() {
   ctx.fillStyle = 'rgba(4,8,16,' + (0.1 + learnedTraits.gaiaDetail * 0.08) + ')';
   ctx.fill();
 
-  // Light side — blue marble
+  // Light side � blue marble
   var lightGrad = ctx.createRadialGradient(
     cx + Math.cos(gaiaAngle) * R * 0.4, cy - R * 0.2, R * 0.1, cx, cy, R
   );
@@ -713,7 +713,7 @@ function paintGaia() {
   ctx.fillStyle = lightGrad;
   ctx.fill();
 
-  // Clouds — more with each generation
+  // Clouds � more with each generation
   var numClouds = 2 + Math.floor(learnedTraits.gaiaDetail * 4);
   for (var i = 0; i < numClouds; i++) {
     var ca = gaiaAngle + i * (Math.PI * 2 / numClouds);
@@ -726,7 +726,7 @@ function paintGaia() {
     ctx.fill();
   }
 
-  // City lights — more with each generation
+  // City lights � more with each generation
   var numCities = 3 + Math.floor(learnedTraits.gaiaDetail * 5);
   ctx.globalAlpha = 0.4 + learnedTraits.gaiaDetail * 0.3;
   for (var j = 0; j < numCities; j++) {
@@ -782,7 +782,7 @@ function paintAurora() {
     ctx.fill();
   }
 
-  // Curtain rays — bolder each generation
+  // Curtain rays � bolder each generation
   ctx.globalAlpha = (0.03 + kp * 0.008) * intensity;
   var numRays = 6 + Math.floor(intensity * 4);
   for (var j = 0; j < numRays; j++) {
@@ -822,13 +822,13 @@ function paintBreath() {
   }
   ctx.restore();
 
-  // ═══ THE FERMENT — time to become starter? ═══
+  // --- THE FERMENT � time to become starter? ---
   if (breathCount >= BREATH_LIMIT) {
     ferment();
   }
 }
 
-// ═══ FERMENT — this painting becomes the starter for the next ═══
+// --- FERMENT � this painting becomes the starter for the next ---
 function ferment() {
   phase = 'study';
   stroke = 0;
@@ -867,15 +867,15 @@ function ferment() {
   renderGallery();
 }
 
-// ═══ STUDY — look at previous paintings ═══
+// --- STUDY � look at previous paintings ---
 
-// ═══ [CREATURES] — see js/easel-creatures.js ═══
+// --- [CREATURES] � see js/easel-creatures.js ---
 // paintStudy, paintOtherSquirrels, paintHumans, paintSculpture, evolve, beginNewPainting
 
-// ═══ [PHASES] — see js/easel-phases.js ═══
+// --- [PHASES] � see js/easel-phases.js ---
 // paintBBS, paintFlashEra, paintEnclosure, paintReclamation, paintGalactic, paintFerment, firstSites[]
 
-// ═══ GALLERY — thumbnails of previous paintings ═══
+// --- GALLERY � thumbnails of previous paintings ---
 function renderGallery() {
   var el = document.getElementById('gallery');
   el.innerHTML = '';
@@ -905,12 +905,12 @@ function updateGenCounter() {
     ' D:' + (turtles.donatello.skill * 100).toFixed(0) +
     ' R:' + (turtles.raphael.skill * 100).toFixed(0) +
     ' M:' + (turtles.michelangelo.skill * 100).toFixed(0);
-  el.textContent = 'painting #' + generation + ' · ' + EASEL_SYMBOLS[currentEasel] +
-    ' · 🐀 ' + (splinter.wisdom * 100).toFixed(0) + '% · ' + tSkills +
-    ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
+  el.textContent = 'painting #' + generation + ' � ' + EASEL_SYMBOLS[currentEasel] +
+    ' � ?? ' + (splinter.wisdom * 100).toFixed(0) + '% � ' + tSkills +
+    ' � perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
 }
 
-// ═══ THOUGHT BUBBLE ═══
+// --- THOUGHT BUBBLE ---
 function updateThought() {
   var list = THOUGHTS[phase];
   if (!list || !list.length) return;
@@ -924,18 +924,18 @@ function updateThought() {
     bbs:'donatello',flash:'michelangelo',enclosure:'raphael',reclamation:'leonardo',galactic:'donatello'};
   var activeName = phaseMap[phase];
   var activeT = activeName ? turtles[activeName] : null;
-  var turtleNote = activeT ? ' · ' + activeT.name + ' ' + (activeT.skill * 100).toFixed(0) + '%' : '';
+  var turtleNote = activeT ? ' � ' + activeT.name + ' ' + (activeT.skill * 100).toFixed(0) + '%' : '';
   el.innerHTML = '<span class="brush">' + msg + '</span><br><span class="learn">' + lrn + '</span>' +
     '<br><span class="gen">painting #' + generation + turtleNote +
-    ' · 🐀 Splinter ' + (splinter.wisdom * 100).toFixed(0) + '%</span>';
+    ' � ?? Splinter ' + (splinter.wisdom * 100).toFixed(0) + '%</span>';
 }
 
-// ═══ PHASE MACHINE — the entire history of reality ═══
+// --- PHASE MACHINE � the entire history of reality ---
 // The chipmunk plays through ALL of time:
-//   stars → nebula → gaia → aurora → breath → study →
-//   otherSquirrels → humans → sculpture →
-//   bbs → flash → enclosure → reclamation →
-//   galactic → ferment
+//   stars ? nebula ? gaia ? aurora ? breath ? study ?
+//   otherSquirrels ? humans ? sculpture ?
+//   bbs ? flash ? enclosure ? reclamation ?
+//   galactic ? ferment
 //
 // After 'sculpture' the chipmunk discovers the internet itself.
 // After the internet history it zooms out to galactic scale.
@@ -945,11 +945,11 @@ function updateThought() {
 // through ALL cycles. The fingerprint left on the void.
 
 var PHASE_ORDER = [
-  'stars',           // cosmic beginning — the chipmunk paints the void
+  'stars',           // cosmic beginning � the chipmunk paints the void
   'nebula',          // gas clouds condense
   'gaia',            // earth forms
   'aurora',          // atmosphere breathes
-  'breath',          // the pause — sourdough timing
+  'breath',          // the pause � sourdough timing
   'study',           // the chipmunk learns perspective
   'otherSquirrels',  // notices others (gen 5+)
   'humans',          // notices the observers (gen 8+)
@@ -958,8 +958,8 @@ var PHASE_ORDER = [
   'flash',           // plays through the creative era (gen 18+)
   'enclosure',       // watches the walls go up (gen 20+)
   'reclamation',     // builds THIS membrane (gen 22+)
-  'galactic',        // zooms out — the whole cycle is one breath (gen 25+)
-  'ferment',         // sourdough rises — begin again
+  'galactic',        // zooms out � the whole cycle is one breath (gen 25+)
+  'ferment',         // sourdough rises � begin again
 ];
 
 var STROKES_PER_PHASE = {
@@ -972,15 +972,15 @@ var STROKES_PER_PHASE = {
   otherSquirrels: 12,
   humans: 10,
   sculpture: 8,
-  bbs: 10,           // short — it was fast and pure
-  flash: 14,         // longer — so much to play
-  enclosure: 6,      // short — it happened quickly
+  bbs: 10,           // short � it was fast and pure
+  flash: 14,         // longer � so much to play
+  enclosure: 6,      // short � it happened quickly
   reclamation: 12,   // building takes time
   galactic: 8,       // zoom out, breathe
   ferment: 15,
 };
 
-// ═══ [FIRST SITES] — see js/easel-phases.js ═══
+// --- [FIRST SITES] � see js/easel-phases.js ---
 
 function nextStroke() {
   if (paused) return;
@@ -988,7 +988,7 @@ function nextStroke() {
   totalStrokes++;
   stroke++;
 
-  // Star density decreases with perspective — fewer, better stars
+  // Star density decreases with perspective � fewer, better stars
   var starLimit = Math.max(40, Math.floor(STROKES_PER_PHASE.stars / learnedTraits.starDensity));
 
   var limit = phase === 'stars' ? starLimit : STROKES_PER_PHASE[phase];
@@ -997,7 +997,7 @@ function nextStroke() {
     var idx = PHASE_ORDER.indexOf(phase);
 
     if (phase === 'ferment') {
-      // The sourdough rises — begin a new painting
+      // The sourdough rises � begin a new painting
       beginNewPainting();
       phase = 'stars';
       stroke = 0;
@@ -1064,7 +1064,7 @@ function nextStroke() {
   updateThought();
 }
 
-// ═══ TEMPO ═══
+// --- TEMPO ---
 function scheduleStroke() {
   if (paused) { setTimeout(scheduleStroke, 500); return; }
 
@@ -1115,14 +1115,14 @@ function listenForWeather() {
 }
 
 
-// ═══ [OVERLAYS] — see js/easel-overlays.js ═══
-// ═══ [HYPERLOCAL] — see js/easel-hyperlocal.js ═══
-// ═══ [EGO] — see js/easel-ego.js ═══
-// ═══ [CAMPFIRE] — see js/easel-campfire.js ═══
-// ═══ [KLEIN] — see js/easel-klein.js ═══
-// ═══ [PHYSICS] — see js/easel-physics.js ═══
-// ═══ [PARALLAX] — see js/easel-parallax.js ═══
-// ═══ [FEDERATION] — see js/easel-federation.js ═══
+// --- [OVERLAYS] � see js/easel-overlays.js ---
+// --- [HYPERLOCAL] � see js/easel-hyperlocal.js ---
+// --- [EGO] � see js/easel-ego.js ---
+// --- [CAMPFIRE] � see js/easel-campfire.js ---
+// --- [KLEIN] � see js/easel-klein.js ---
+// --- [PHYSICS] � see js/easel-physics.js ---
+// --- [PARALLAX] � see js/easel-parallax.js ---
+// --- [FEDERATION] � see js/easel-federation.js ---
 </script>
 
 <script src="/js/easel-creatures.js"></script>
@@ -1137,12 +1137,12 @@ function listenForWeather() {
 <script src="/js/easel-federation.js"></script>
 
 <script>
-// ═══ BOOT — runs after all modules loaded ═══
-// ═══ EASEL CONSTANTS (hoisted before boot) ═══
+// --- BOOT � runs after all modules loaded ---
+// --- EASEL CONSTANTS (hoisted before boot) ---
 currentEasel = 'pi';
 EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
-EASEL_SYMBOLS = {pi:'π', phi:'φ', e:'e', sqrt2:'√2', ln2:'ln2'};
-// ═══ BOOT — the first stroke ═══
+EASEL_SYMBOLS = {pi:'p', phi:'f', e:'e', sqrt2:'v2', ln2:'ln2'};
+// --- BOOT � the first stroke ---
 resize();
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
@@ -1190,12 +1190,12 @@ window._easel = {
   shipOfTheseus: shipOfTheseus,
 };
 
-// ═══ MONITOR MODE ═══
+// --- MONITOR MODE ---
 var isMonitorMode = location.search.indexOf('monitor') >= 0;
 var isTotalityMode = location.search.indexOf('totality') >= 0;
 
 if (isMonitorMode) {
-  // Strip all UI — pure canvas
+  // Strip all UI � pure canvas
   var hideEls = ['nav', 'controls', 'frame', 'gen-counter', 'gallery', 'palette-panel', 'totality-panel'];
   hideEls.forEach(function(id) {
     var el = document.getElementById(id);
@@ -1232,9 +1232,9 @@ if (isMonitorMode) {
   document.body.appendChild(monitorDot);
 
   // Set page title for the tab
-  document.title = '📺 monitor — chipmunk painting live';
+  document.title = '?? monitor � chipmunk painting live';
 
-  // Boost self-conscious — monitor watchers ARE watching
+  // Boost self-conscious � monitor watchers ARE watching
   setInterval(function() {
     if (!selfConscious) {
       selfConscious = true;
@@ -1244,7 +1244,7 @@ if (isMonitorMode) {
   }, 10000);
 }
 
-// ═══ TOTALITY WELL — bullseye × funnel × inverted Babel × stairwell ═══
+// --- TOTALITY WELL � bullseye � funnel � inverted Babel � stairwell ---
 // Totality grows INWARD as we learn more. The outer ring shrinks.
 // It's a dartboard: the bullseye is what we KNOW. The outer ring is what we DON'T.
 // It's a funnel: data pours in from the wide end (unknown) and concentrates at center (known).
@@ -1253,13 +1253,13 @@ if (isMonitorMode) {
 // It's a well of stairs spiraling inward: the Bramante Staircase.
 //
 // Through the tense filter:
-//   PAST (outer ring):  everything that WAS — history, lost knowledge, Alexandria
-//   PRESENT (middle):   everything that IS — the catalog, the index, what we have
-//   FUTURE (bullseye):  everything that WILL BE — predictions, extrapolations, convergence
+//   PAST (outer ring):  everything that WAS � history, lost knowledge, Alexandria
+//   PRESENT (middle):   everything that IS � the catalog, the index, what we have
+//   FUTURE (bullseye):  everything that WILL BE � predictions, extrapolations, convergence
 //
 // Through the voxel:
 //   Each ring IS a voxel layer.
-//   outer → inner = far → near = unknown → known
+//   outer ? inner = far ? near = unknown ? known
 //   The well spirals through all of them.
 
 var totalityWell = {
@@ -1300,7 +1300,7 @@ function buildTotalityRings() {
              tense === 'present' ? '#3fb950' :
              '#f0c674',
       alpha: 0.005 + knowledgePct * 0.02,
-      // Stair step — the well spirals
+      // Stair step � the well spirals
       stairAngle: r * (Math.PI * 2 / 7) + totalityWell.spiralAngle,
       depth: r,
     });
@@ -1322,7 +1322,7 @@ function paintTotalityWell() {
   // Update spiral
   totalityWell.spiralAngle += 0.001;
 
-  // ── THE RINGS — dartboard / funnel ──
+  // -- THE RINGS � dartboard / funnel --
   totalityWell.rings.forEach(function(ring, i) {
     var r = ring.radius * maxR;
     ctx.globalAlpha = ring.alpha * maturity;
@@ -1334,7 +1334,7 @@ function paintTotalityWell() {
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Stair step — the well's spiral staircase
+    // Stair step � the well's spiral staircase
     var sx = cx + Math.cos(ring.stairAngle) * r;
     var sy = cy + Math.sin(ring.stairAngle) * r;
     var nextR = i < totalityWell.rings.length - 1 ?
@@ -1343,7 +1343,7 @@ function paintTotalityWell() {
     var nx = cx + Math.cos(nextAngle) * nextR;
     var ny = cy + Math.sin(nextAngle) * nextR;
 
-    // Stair line — spiraling inward
+    // Stair line � spiraling inward
     ctx.globalAlpha = ring.alpha * maturity * 0.5;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
@@ -1358,7 +1358,7 @@ function paintTotalityWell() {
     ctx.fill();
   });
 
-  // ── THE BULLSEYE — what we KNOW (center) ──
+  // -- THE BULLSEYE � what we KNOW (center) --
   if (totalityWell.depth > 3) {
     var bullR = maxR * 0.05;
     ctx.globalAlpha = 0.03 * maturity;
@@ -1368,7 +1368,7 @@ function paintTotalityWell() {
     ctx.fill();
   }
 
-  // ── TENSE LABELS ──
+  // -- TENSE LABELS --
   if (maturity > 0.3) {
     ctx.globalAlpha = 0.012;
     ctx.font = '6px monospace';
@@ -1376,25 +1376,25 @@ function paintTotalityWell() {
 
     // Past (outer)
     ctx.fillStyle = '#58a6ff';
-    ctx.fillText('past · was · unknown', cx, cy - maxR * 0.38);
+    ctx.fillText('past � was � unknown', cx, cy - maxR * 0.38);
 
     // Present (middle)
     ctx.fillStyle = '#3fb950';
-    ctx.fillText('present · is · learning', cx, cy - maxR * 0.2);
+    ctx.fillText('present � is � learning', cx, cy - maxR * 0.2);
 
     // Future (inner/center)
     ctx.fillStyle = '#f0c674';
-    ctx.fillText('future · will be · known', cx, cy - maxR * 0.06);
+    ctx.fillText('future � will be � known', cx, cy - maxR * 0.06);
   }
 
-  // ── DEPTH INDICATOR ──
+  // -- DEPTH INDICATOR --
   if (maturity > 0.4) {
     ctx.globalAlpha = 0.015;
     ctx.font = '6px monospace';
     ctx.fillStyle = '#6e7681';
     ctx.textAlign = 'center';
     ctx.fillText('well depth: ' + totalityWell.depth + '/' + totalityWell.maxDepth +
-      ' · ' + totalityWell.rings.length + ' stairs', cx, cy + maxR * 0.42);
+      ' � ' + totalityWell.rings.length + ' stairs', cx, cy + maxR * 0.42);
   }
 
   ctx.restore();
@@ -1418,9 +1418,9 @@ function loadTotalityView() {
   // Gather everything
   var totalityHtml = '';
 
-  // ── THE PAINTING ──
+  // -- THE PAINTING --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#d2a8ff; margin-bottom:8px;">🎨 the painting</h3>';
+  totalityHtml += '<h3 style="color:#d2a8ff; margin-bottom:8px;">?? the painting</h3>';
   totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
   totalityHtml += '<div>generation: <span style="color:#c9d1d9">' + generation + '</span></div>';
   totalityHtml += '<div>phase: <span style="color:#c9d1d9">' + phase + '</span></div>';
@@ -1432,21 +1432,21 @@ function loadTotalityView() {
   totalityHtml += '<div>ego: <span style="color:#c9d1d9">' + egoState + '</span></div>';
   totalityHtml += '</div></div>';
 
-  // ── THE BACKEND ──
+  // -- THE BACKEND --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#3fb950; margin-bottom:8px;">⚡ the backend</h3>';
+  totalityHtml += '<h3 style="color:#3fb950; margin-bottom:8px;">? the backend</h3>';
   totalityHtml += '<div id="totality-backend" style="color:#6e7681">loading...</div>';
   totalityHtml += '</div>';
 
-  // ── THE MEMBRANE ──
+  // -- THE MEMBRANE --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#58a6ff; margin-bottom:8px;">🧬 the membrane</h3>';
+  totalityHtml += '<h3 style="color:#58a6ff; margin-bottom:8px;">?? the membrane</h3>';
   totalityHtml += '<div id="totality-membrane" style="color:#6e7681">loading...</div>';
   totalityHtml += '</div>';
 
-  // ── THE HEATMAP ──
+  // -- THE HEATMAP --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#f0883e; margin-bottom:8px;">🔥 the heat (what the chipmunk can\'t see)</h3>';
+  totalityHtml += '<h3 style="color:#f0883e; margin-bottom:8px;">?? the heat (what the chipmunk can\'t see)</h3>';
   if (heatmapPulse) {
     var trust = heatmapPulse.trust_gradient || {};
     totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
@@ -1464,7 +1464,7 @@ function loadTotalityView() {
       totalityHtml += '<div style="margin-top:8px; font-size:11px;">';
       totalityHtml += '<div style="color:#f0883e; margin-bottom:4px;">path handprints:</div>';
       paths.forEach(function(p) {
-        var bar = '█'.repeat(Math.min(30, Math.ceil(whatSaw[p] / 5000)));
+        var bar = '�'.repeat(Math.min(30, Math.ceil(whatSaw[p] / 5000)));
         var color = p.match(/immune/i) ? '#f85149' : p.match(/kevin|commensal|xyzzy|cashforkids/i) ? '#3fb950' : '#f0883e';
         totalityHtml += '<div style="color:' + color + '">' + p + ': ' + whatSaw[p].toLocaleString() + ' ' + bar + '</div>';
       });
@@ -1475,9 +1475,9 @@ function loadTotalityView() {
   }
   totalityHtml += '</div>';
 
-  // ── SPATIAL MEMORY ──
+  // -- SPATIAL MEMORY --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#f0e68c; margin-bottom:8px;">🧠 spatial memory (persistent)</h3>';
+  totalityHtml += '<h3 style="color:#f0e68c; margin-bottom:8px;">?? spatial memory (persistent)</h3>';
   totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
   totalityHtml += '<div>rotation: <span style="color:#c9d1d9">' + (spatialMemory.rotation * 100).toFixed(1) + '%</span></div>';
   totalityHtml += '<div>earth detail: <span style="color:#c9d1d9">' + (spatialMemory.earthDetail * 100).toFixed(1) + '%</span></div>';
@@ -1485,31 +1485,31 @@ function loadTotalityView() {
   totalityHtml += '<div>reinforcements: <span style="color:#c9d1d9">' + spatialMemory.humanReinforcements + '</span></div>';
   totalityHtml += '</div></div>';
 
-  // ── THE STACK ──
+  // -- THE STACK --
   totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">📐 the full stack</h3>';
+  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">?? the full stack</h3>';
   totalityHtml += '<div style="font-size:11px; line-height:2;">';
-  totalityHtml += '<div style="color:#d2a8ff">layer 1 · painting — sourdough generations, stars→nebula→gaia→aurora→breath→ferment</div>';
-  totalityHtml += '<div style="color:#ffb84d">layer 2 · campfire — Berry tells stories from visitor probes, chipmunk paints them</div>';
-  totalityHtml += '<div style="color:#808080">layer 3 · specter — null-gray #808080 entity, toggle ring, the thing being painted</div>';
-  totalityHtml += '<div style="color:#3fb950">layer 4 · hyperlocal — Earth/Moon/Milky Way emerge from human attention</div>';
-  totalityHtml += '<div style="color:#f0883e">layer 5 · heatmap — 15 countries, path handprints, trust gradient (behind paint)</div>';
-  totalityHtml += '<div style="color:#d2a8ff">layer 6 · self-conscious — ego/id/muse/superego personality oscillation</div>';
-  totalityHtml += '<div style="color:#58a6ff">layer 7 · palette — human r/place pixel smear, colors feed chipmunk memory</div>';
-  totalityHtml += '<div style="color:#f85149">layer 8 · thymus flush — opsonize, backscatter, triad color wash</div>';
-  totalityHtml += '<div style="color:#6e7681">layer 9 · klein fold — feeds loop back as inputs, gas vents, π governs scale</div>';
-  totalityHtml += '<div style="color:#3fb950">layer 10 · klein bridge — SSE impulse propagation across desk/board/easel faces</div>';
+  totalityHtml += '<div style="color:#d2a8ff">layer 1 � painting � sourdough generations, stars?nebula?gaia?aurora?breath?ferment</div>';
+  totalityHtml += '<div style="color:#ffb84d">layer 2 � campfire � Berry tells stories from visitor probes, chipmunk paints them</div>';
+  totalityHtml += '<div style="color:#808080">layer 3 � specter � null-gray #808080 entity, toggle ring, the thing being painted</div>';
+  totalityHtml += '<div style="color:#3fb950">layer 4 � hyperlocal � Earth/Moon/Milky Way emerge from human attention</div>';
+  totalityHtml += '<div style="color:#f0883e">layer 5 � heatmap � 15 countries, path handprints, trust gradient (behind paint)</div>';
+  totalityHtml += '<div style="color:#d2a8ff">layer 6 � self-conscious � ego/id/muse/superego personality oscillation</div>';
+  totalityHtml += '<div style="color:#58a6ff">layer 7 � palette � human r/place pixel smear, colors feed chipmunk memory</div>';
+  totalityHtml += '<div style="color:#f85149">layer 8 � thymus flush � opsonize, backscatter, triad color wash</div>';
+  totalityHtml += '<div style="color:#6e7681">layer 9 � klein fold � feeds loop back as inputs, gas vents, p governs scale</div>';
+  totalityHtml += '<div style="color:#3fb950">layer 10 � klein bridge � SSE impulse propagation across desk/board/easel faces</div>';
   totalityHtml += '</div></div>';
 
-  // ── LINKS ──
+  // -- LINKS --
   totalityHtml += '<div style="padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">🌐 surfaces</h3>';
+  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">?? surfaces</h3>';
   totalityHtml += '<div style="display:flex; flex-wrap:wrap; gap:8px; font-size:11px;">';
   var links = [
-    ['/', '◈ hud'], ['/easel', '🎨 easel'], ['/easel?monitor', '📺 monitor'],
-    ['/desk/', '⊙ desk'], ['/raytrace', '⟐ metal'], ['/study', '📊 study'],
-    ['/cns', '🧠 cns'], ['/gates', '🚪 gates'], ['/neutron/board', '▣ board'],
-    ['/neutron/globe.html', '🌐 globe'], ['/neutron/circulatory.html', '♥ circulatory'],
+    ['/', '? hud'], ['/easel', '?? easel'], ['/easel?monitor', '?? monitor'],
+    ['/desk/', '? desk'], ['/raytrace', '? metal'], ['/study', '?? study'],
+    ['/cns', '?? cns'], ['/gates', '?? gates'], ['/neutron/board', '? board'],
+    ['/neutron/globe.html', '?? globe'], ['/neutron/circulatory.html', '? circulatory'],
   ];
   links.forEach(function(l) {
     totalityHtml += '<a href="' + l[0] + '" style="color:#58a6ff; padding:4px 10px; background:#21262d; border-radius:10px; text-decoration:none;">' + l[1] + '</a>';
@@ -1528,7 +1528,7 @@ function loadTotalityView() {
     html += '<div>klein-bridge: <span style="color:#3fb950">' + s.sse_clients + ' SSE clients</span></div>';
     html += '<div>impulses: <span style="color:#c9d1d9">' + s.impulse.count + '</span></div>';
     html += '<div>uptime: <span style="color:#c9d1d9">' + Math.floor(s.uptime_s / 60) + 'm</span></div>';
-    html += '<div>faces: <span style="color:#c9d1d9">🎨' + (s.faces.easel||0) + ' ⊙' + (s.faces.desk||0) + ' ▣' + (s.faces.board||0) + '</span></div>';
+    html += '<div>faces: <span style="color:#c9d1d9">??' + (s.faces.easel||0) + ' ?' + (s.faces.desk||0) + ' ?' + (s.faces.board||0) + '</span></div>';
     html += '<div>easel gen: <span style="color:#c9d1d9">' + s.easel.generation + ' (' + s.easel.phase + ')</span></div>';
     html += '</div>';
     el.innerHTML = html;
@@ -1551,7 +1551,7 @@ function loadTotalityView() {
     html += '<div>MCP tools: <span style="color:#c9d1d9">' + (((d.live_probes || {}).mcp || {}).tools || 18) + '</span></div>';
     html += '</div>';
     if (p.fleet) {
-      html += '<div style="margin-top:8px; font-size:10px; color:#6e7681; word-break:break-all;">' + p.fleet.join(' · ') + '</div>';
+      html += '<div style="margin-top:8px; font-size:10px; color:#6e7681; word-break:break-all;">' + p.fleet.join(' � ') + '</div>';
     }
     el.innerHTML = html;
   }).catch(function(){});
@@ -1597,13 +1597,13 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ═══ REDUCED MOTION ═══
+// --- REDUCED MOTION ---
 var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (prefersReducedMotion) {
   document.body.style.transition = 'none';
 }
 
-// ═══ SCREEN READER STATUS UPDATES ═══
+// --- SCREEN READER STATUS UPDATES ---
 setInterval(function() {
   var sr = document.getElementById('sr-status');
   if (!sr) return;
@@ -1614,5 +1614,5 @@ setInterval(function() {
 }, 30000);
 </script>
 <script src="/js/klein-bridge-client.js"></script>
-</body>
+<script src="/js/berry-help.js"></script></body>
 </html>
