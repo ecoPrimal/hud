@@ -73,6 +73,8 @@
     'a roundtable with no head seat',
     'an Order that was only a total',
     'disorder coming out the leak as wetland',
+    'entropy that told a truth and became fish',
+    'chaos that could not sit and went to null',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
