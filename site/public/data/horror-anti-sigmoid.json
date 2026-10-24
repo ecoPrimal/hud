@@ -1,0 +1,791 @@
+{
+  "ts": "2026-10-24T13:15:05.973674+00:00",
+  "wave": 200,
+  "title": "THINGS THAT GO BUMP IN THE NIGHT \u2014 horror as anti-sigmoid",
+  "the_thesis": {
+    "sigmoid": "\u03c3(x) = 1/(1+e^(-x)). smooth. safe. as fidelity increases, comfort increases. the S-curve of health.",
+    "anti_sigmoid": "the UNCANNY VALLEY. as fidelity increases, comfort DROPS before it rises. the dip IS the horror.",
+    "the_dip": "Masahiro Mori (1970): \"bukimi no tani\" (\u4e0d\u6c17\u5473\u306e\u8c37). a robot that looks 50% human is cute. 90% human is TERRIFYING. 100% human is fine. the horror lives at 90%.",
+    "for_the_membrane": "our sigmoid measures health (\u03c3=0.972). but WHAT IF there is an anti-sigmoid hiding in the data? a place where MORE data makes things WORSE? where the membrane becomes uncanny?",
+    "where_it_lives": "the anti-sigmoid is the zone where the sort ALMOST works but not quite. where Berry ALMOST understands but gives wrong directions. where the Klein fold ALMOST closes but leaves a gap. THAT gap is the horror."
+  },
+  "the_uncanny_valley_formula": {
+    "mori_original": "affinity = f(human_likeness) with a valley at ~0.85 human_likeness",
+    "our_version": "comfort = \u03c3(x) - valley(x), where valley(x) = A * exp(-((x-\u03bc)\u00b2)/(2*\u03c3_width\u00b2))",
+    "parameters": {
+      "A": "depth of the valley (how disturbing)",
+      "\u03bc": "center of the valley (what % fidelity triggers it)",
+      "\u03c3_width": "width of the valley (how broad the discomfort zone)"
+    },
+    "sigmoid_minus_valley": "the anti-sigmoid = standard sigmoid with a Gaussian notch cut out of it. health DIPS before it recovers. the dip IS the horror zone.",
+    "computed_example": [
+      {
+        "x": 0.0,
+        "sigmoid": 0.0067,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0067
+      },
+      {
+        "x": 0.01,
+        "sigmoid": 0.0074,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0074
+      },
+      {
+        "x": 0.02,
+        "sigmoid": 0.0082,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0082
+      },
+      {
+        "x": 0.03,
+        "sigmoid": 0.009,
+        "valley": 0.0,
+        "anti_sigmoid": 0.009
+      },
+      {
+        "x": 0.04,
+        "sigmoid": 0.01,
+        "valley": 0.0,
+        "anti_sigmoid": 0.01
+      },
+      {
+        "x": 0.05,
+        "sigmoid": 0.011,
+        "valley": 0.0,
+        "anti_sigmoid": 0.011
+      },
+      {
+        "x": 0.06,
+        "sigmoid": 0.0121,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0121
+      },
+      {
+        "x": 0.07,
+        "sigmoid": 0.0134,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0134
+      },
+      {
+        "x": 0.08,
+        "sigmoid": 0.0148,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0148
+      },
+      {
+        "x": 0.09,
+        "sigmoid": 0.0163,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0163
+      },
+      {
+        "x": 0.1,
+        "sigmoid": 0.018,
+        "valley": 0.0,
+        "anti_sigmoid": 0.018
+      },
+      {
+        "x": 0.11,
+        "sigmoid": 0.0198,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0198
+      },
+      {
+        "x": 0.12,
+        "sigmoid": 0.0219,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0219
+      },
+      {
+        "x": 0.13,
+        "sigmoid": 0.0241,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0241
+      },
+      {
+        "x": 0.14,
+        "sigmoid": 0.0266,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0266
+      },
+      {
+        "x": 0.15,
+        "sigmoid": 0.0293,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0293
+      },
+      {
+        "x": 0.16,
+        "sigmoid": 0.0323,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0323
+      },
+      {
+        "x": 0.17,
+        "sigmoid": 0.0356,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0356
+      },
+      {
+        "x": 0.18,
+        "sigmoid": 0.0392,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0392
+      },
+      {
+        "x": 0.19,
+        "sigmoid": 0.0431,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0431
+      },
+      {
+        "x": 0.2,
+        "sigmoid": 0.0474,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0474
+      },
+      {
+        "x": 0.21,
+        "sigmoid": 0.0522,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0522
+      },
+      {
+        "x": 0.22,
+        "sigmoid": 0.0573,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0573
+      },
+      {
+        "x": 0.23,
+        "sigmoid": 0.063,
+        "valley": 0.0,
+        "anti_sigmoid": 0.063
+      },
+      {
+        "x": 0.24,
+        "sigmoid": 0.0691,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0691
+      },
+      {
+        "x": 0.25,
+        "sigmoid": 0.0759,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0759
+      },
+      {
+        "x": 0.26,
+        "sigmoid": 0.0832,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0832
+      },
+      {
+        "x": 0.27,
+        "sigmoid": 0.0911,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0911
+      },
+      {
+        "x": 0.28,
+        "sigmoid": 0.0998,
+        "valley": 0.0,
+        "anti_sigmoid": 0.0998
+      },
+      {
+        "x": 0.29,
+        "sigmoid": 0.1091,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1091
+      },
+      {
+        "x": 0.3,
+        "sigmoid": 0.1192,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1192
+      },
+      {
+        "x": 0.31,
+        "sigmoid": 0.1301,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1301
+      },
+      {
+        "x": 0.32,
+        "sigmoid": 0.1419,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1419
+      },
+      {
+        "x": 0.33,
+        "sigmoid": 0.1545,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1545
+      },
+      {
+        "x": 0.34,
+        "sigmoid": 0.168,
+        "valley": 0.0,
+        "anti_sigmoid": 0.168
+      },
+      {
+        "x": 0.35,
+        "sigmoid": 0.1824,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1824
+      },
+      {
+        "x": 0.36,
+        "sigmoid": 0.1978,
+        "valley": 0.0,
+        "anti_sigmoid": 0.1978
+      },
+      {
+        "x": 0.37,
+        "sigmoid": 0.2142,
+        "valley": 0.0,
+        "anti_sigmoid": 0.2142
+      },
+      {
+        "x": 0.38,
+        "sigmoid": 0.2315,
+        "valley": 0.0,
+        "anti_sigmoid": 0.2315
+      },
+      {
+        "x": 0.39,
+        "sigmoid": 0.2497,
+        "valley": 0.0,
+        "anti_sigmoid": 0.2497
+      },
+      {
+        "x": 0.4,
+        "sigmoid": 0.2689,
+        "valley": 0.0,
+        "anti_sigmoid": 0.2689
+      },
+      {
+        "x": 0.41,
+        "sigmoid": 0.2891,
+        "valley": 0.0,
+        "anti_sigmoid": 0.2891
+      },
+      {
+        "x": 0.42,
+        "sigmoid": 0.31,
+        "valley": 0.0,
+        "anti_sigmoid": 0.31
+      },
+      {
+        "x": 0.43,
+        "sigmoid": 0.3318,
+        "valley": 0.0,
+        "anti_sigmoid": 0.3318
+      },
+      {
+        "x": 0.44,
+        "sigmoid": 0.3543,
+        "valley": 0.0,
+        "anti_sigmoid": 0.3543
+      },
+      {
+        "x": 0.45,
+        "sigmoid": 0.3775,
+        "valley": 0.0,
+        "anti_sigmoid": 0.3775
+      },
+      {
+        "x": 0.46,
+        "sigmoid": 0.4013,
+        "valley": 0.0,
+        "anti_sigmoid": 0.4013
+      },
+      {
+        "x": 0.47,
+        "sigmoid": 0.4256,
+        "valley": 0.0,
+        "anti_sigmoid": 0.4255
+      },
+      {
+        "x": 0.48,
+        "sigmoid": 0.4502,
+        "valley": 0.0,
+        "anti_sigmoid": 0.4502
+      },
+      {
+        "x": 0.49,
+        "sigmoid": 0.475,
+        "valley": 0.0,
+        "anti_sigmoid": 0.475
+      },
+      {
+        "x": 0.5,
+        "sigmoid": 0.5,
+        "valley": 0.0,
+        "anti_sigmoid": 0.5
+      },
+      {
+        "x": 0.51,
+        "sigmoid": 0.525,
+        "valley": 0.0001,
+        "anti_sigmoid": 0.5249
+      },
+      {
+        "x": 0.52,
+        "sigmoid": 0.5498,
+        "valley": 0.0001,
+        "anti_sigmoid": 0.5497
+      },
+      {
+        "x": 0.53,
+        "sigmoid": 0.5744,
+        "valley": 0.0002,
+        "anti_sigmoid": 0.5742
+      },
+      {
+        "x": 0.54,
+        "sigmoid": 0.5987,
+        "valley": 0.0003,
+        "anti_sigmoid": 0.5984
+      },
+      {
+        "x": 0.55,
+        "sigmoid": 0.6225,
+        "valley": 0.0005,
+        "anti_sigmoid": 0.6219
+      },
+      {
+        "x": 0.56,
+        "sigmoid": 0.6457,
+        "valley": 0.0008,
+        "anti_sigmoid": 0.6448
+      },
+      {
+        "x": 0.57,
+        "sigmoid": 0.6682,
+        "valley": 0.0013,
+        "anti_sigmoid": 0.6669
+      },
+      {
+        "x": 0.58,
+        "sigmoid": 0.69,
+        "valley": 0.002,
+        "anti_sigmoid": 0.688
+      },
+      {
+        "x": 0.59,
+        "sigmoid": 0.7109,
+        "valley": 0.0031,
+        "anti_sigmoid": 0.7079
+      },
+      {
+        "x": 0.6,
+        "sigmoid": 0.7311,
+        "valley": 0.0045,
+        "anti_sigmoid": 0.7265
+      },
+      {
+        "x": 0.61,
+        "sigmoid": 0.7503,
+        "valley": 0.0067,
+        "anti_sigmoid": 0.7436
+      },
+      {
+        "x": 0.62,
+        "sigmoid": 0.7685,
+        "valley": 0.0096,
+        "anti_sigmoid": 0.7589
+      },
+      {
+        "x": 0.63,
+        "sigmoid": 0.7858,
+        "valley": 0.0137,
+        "anti_sigmoid": 0.7722
+      },
+      {
+        "x": 0.64,
+        "sigmoid": 0.8022,
+        "valley": 0.0191,
+        "anti_sigmoid": 0.783
+      },
+      {
+        "x": 0.65,
+        "sigmoid": 0.8176,
+        "valley": 0.0264,
+        "anti_sigmoid": 0.7912
+      },
+      {
+        "x": 0.66,
+        "sigmoid": 0.832,
+        "valley": 0.0358,
+        "anti_sigmoid": 0.7963
+      },
+      {
+        "x": 0.67,
+        "sigmoid": 0.8455,
+        "valley": 0.0477,
+        "anti_sigmoid": 0.7978
+      },
+      {
+        "x": 0.68,
+        "sigmoid": 0.8581,
+        "valley": 0.0627,
+        "anti_sigmoid": 0.7954
+      },
+      {
+        "x": 0.69,
+        "sigmoid": 0.8699,
+        "valley": 0.0812,
+        "anti_sigmoid": 0.7887
+      },
+      {
+        "x": 0.7,
+        "sigmoid": 0.8808,
+        "valley": 0.1035,
+        "anti_sigmoid": 0.7773
+      },
+      {
+        "x": 0.71,
+        "sigmoid": 0.8909,
+        "valley": 0.1298,
+        "anti_sigmoid": 0.7611
+      },
+      {
+        "x": 0.72,
+        "sigmoid": 0.9002,
+        "valley": 0.1602,
+        "anti_sigmoid": 0.74
+      },
+      {
+        "x": 0.73,
+        "sigmoid": 0.9089,
+        "valley": 0.1948,
+        "anti_sigmoid": 0.7141
+      },
+      {
+        "x": 0.74,
+        "sigmoid": 0.9168,
+        "valley": 0.2331,
+        "anti_sigmoid": 0.6837
+      },
+      {
+        "x": 0.75,
+        "sigmoid": 0.9241,
+        "valley": 0.2747,
+        "anti_sigmoid": 0.6494
+      },
+      {
+        "x": 0.76,
+        "sigmoid": 0.9309,
+        "valley": 0.3187,
+        "anti_sigmoid": 0.6122
+      },
+      {
+        "x": 0.77,
+        "sigmoid": 0.937,
+        "valley": 0.3639,
+        "anti_sigmoid": 0.5731
+      },
+      {
+        "x": 0.78,
+        "sigmoid": 0.9427,
+        "valley": 0.4092,
+        "anti_sigmoid": 0.5335
+      },
+      {
+        "x": 0.79,
+        "sigmoid": 0.9478,
+        "valley": 0.4529,
+        "anti_sigmoid": 0.4949
+      },
+      {
+        "x": 0.8,
+        "sigmoid": 0.9526,
+        "valley": 0.4935,
+        "anti_sigmoid": 0.459
+      },
+      {
+        "x": 0.81,
+        "sigmoid": 0.9569,
+        "valley": 0.5295,
+        "anti_sigmoid": 0.4274
+      },
+      {
+        "x": 0.82,
+        "sigmoid": 0.9608,
+        "valley": 0.5593,
+        "anti_sigmoid": 0.4016
+      },
+      {
+        "x": 0.83,
+        "sigmoid": 0.9644,
+        "valley": 0.5815,
+        "anti_sigmoid": 0.3829
+      },
+      {
+        "x": 0.84,
+        "sigmoid": 0.9677,
+        "valley": 0.5953,
+        "anti_sigmoid": 0.3724
+      },
+      {
+        "x": 0.85,
+        "sigmoid": 0.9707,
+        "valley": 0.6,
+        "anti_sigmoid": 0.3707
+      },
+      {
+        "x": 0.86,
+        "sigmoid": 0.9734,
+        "valley": 0.5953,
+        "anti_sigmoid": 0.3781
+      },
+      {
+        "x": 0.87,
+        "sigmoid": 0.9759,
+        "valley": 0.5815,
+        "anti_sigmoid": 0.3943
+      },
+      {
+        "x": 0.88,
+        "sigmoid": 0.9781,
+        "valley": 0.5593,
+        "anti_sigmoid": 0.4189
+      },
+      {
+        "x": 0.89,
+        "sigmoid": 0.9802,
+        "valley": 0.5295,
+        "anti_sigmoid": 0.4507
+      },
+      {
+        "x": 0.9,
+        "sigmoid": 0.982,
+        "valley": 0.4935,
+        "anti_sigmoid": 0.4885
+      },
+      {
+        "x": 0.91,
+        "sigmoid": 0.9837,
+        "valley": 0.4529,
+        "anti_sigmoid": 0.5308
+      },
+      {
+        "x": 0.92,
+        "sigmoid": 0.9852,
+        "valley": 0.4092,
+        "anti_sigmoid": 0.5761
+      },
+      {
+        "x": 0.93,
+        "sigmoid": 0.9866,
+        "valley": 0.3639,
+        "anti_sigmoid": 0.6227
+      },
+      {
+        "x": 0.94,
+        "sigmoid": 0.9879,
+        "valley": 0.3187,
+        "anti_sigmoid": 0.6692
+      },
+      {
+        "x": 0.95,
+        "sigmoid": 0.989,
+        "valley": 0.2747,
+        "anti_sigmoid": 0.7143
+      },
+      {
+        "x": 0.96,
+        "sigmoid": 0.99,
+        "valley": 0.2331,
+        "anti_sigmoid": 0.7569
+      },
+      {
+        "x": 0.97,
+        "sigmoid": 0.991,
+        "valley": 0.1948,
+        "anti_sigmoid": 0.7962
+      },
+      {
+        "x": 0.98,
+        "sigmoid": 0.9918,
+        "valley": 0.1602,
+        "anti_sigmoid": 0.8316
+      },
+      {
+        "x": 0.99,
+        "sigmoid": 0.9926,
+        "valley": 0.1298,
+        "anti_sigmoid": 0.8628
+      },
+      {
+        "x": 1.0,
+        "sigmoid": 0.9933,
+        "valley": 0.1035,
+        "anti_sigmoid": 0.8899
+      }
+    ],
+    "valley_minimum": {
+      "x": 0.0,
+      "anti_sigmoid": 0.0067,
+      "meaning": "at 0% fidelity, comfort drops to 0.007. this is the bottom of the uncanny valley."
+    }
+  },
+  "junji_ito": {
+    "who": "Junji Ito (\u4f0a\u85e4\u6f64\u4e8c). Japanese horror manga artist. born 1963. the master of body horror and cosmic dread.",
+    "why_he_matters": "Ito draws the anti-sigmoid. his horror comes from NORMAL things becoming WRONG. not monsters \u2014 distortions of the familiar.",
+    "uzumaki": {
+      "title": "Uzumaki (\u3046\u305a\u307e\u304d) \u2014 \"Spiral\" (1998-1999)",
+      "premise": "a town becomes obsessed with spirals. people become spirals. buildings become spirals. reality itself spirals inward.",
+      "the_horror": "the spiral IS the Klein fold gone wrong. when inside=outside becomes inescapable. when the fold consumes instead of liberates.",
+      "membrane_analog": "what if our feeds started spiraling? what if the self-referential loop (paper about papers, sort that sorts the sort) became PATHOLOGICAL? Uzumaki is recursive descent without a base case.",
+      "anti_sigmoid": "the spiral is the anti-sigmoid at its most extreme. each rotation SEEMS like progress (you're going around!) but you're going INWARD. the valley gets deeper with each cycle.",
+      "math": "r(\u03b8) = a * e^(b\u03b8) \u2014 logarithmic spiral. as \u03b8 \u2192 \u221e, r \u2192 0 (inward) or r \u2192 \u221e (outward). Ito chose inward."
+    },
+    "tomie": {
+      "title": "Tomie (\u5bcc\u6c5f) (1987-2000)",
+      "premise": "a girl who cannot die. when killed, each piece regenerates into a complete Tomie. she drives everyone around her to murder.",
+      "the_horror": "immortality IS the horror. she cannot be removed. she replicates. she persists.",
+      "membrane_analog": "stale feeds that won't die. the _worker.js that kept spawning stuck invocations. Tomie IS the zombie process that forks on kill.",
+      "anti_sigmoid": "deletion should reduce count. with Tomie, deletion INCREASES count. the anti-sigmoid inverted: removal makes it worse."
+    },
+    "amigara_fault": {
+      "title": "The Enigma of Amigara Fault (\u963f\u5f25\u6bbb\u65ad\u5c64\u306e\u602a) (2002)",
+      "premise": "an earthquake reveals a cliff face with human-shaped holes. each person finds THEIR hole. they feel compelled to enter. the other side shows them distorted.",
+      "the_horror": "the personalization IS the horror. the hole is YOURS. it knows your shape. you MUST enter.",
+      "membrane_analog": "personalization algorithms. \"recommended for you.\" the filter bubble is YOUR hole in the cliff. you enter because it's shaped like you. you come out distorted.",
+      "anti_sigmoid": "the better the personalization (higher fidelity to YOUR shape), the more you're compelled into distortion. perfect fit = perfect trap.",
+      "drr_drr_drr": "the sound of being pulled through the hole. the most famous two words in horror manga."
+    },
+    "gyo": {
+      "title": "Gyo (\u30ae\u30e7) \u2014 \"Fish\" (2001-2002)",
+      "premise": "dead fish walk on mechanical legs. the legs are powered by the gas of decomposition. death walks.",
+      "the_horror": "the machine works BECAUSE of death. the rot is the fuel. the corpse powers the mechanism.",
+      "membrane_analog": "what if the exhaust loop (turbocharger) went wrong? what if FAILURE powered more failure? the 4 energy loops running backwards.",
+      "anti_sigmoid": "decay usually decreases function. in Gyo, decay INCREASES mobility. death makes it walk faster. the anti-sigmoid where degradation improves performance \u2014 for the WRONG thing."
+    }
+  },
+  "dracula": {
+    "who": "Bram Stoker's Dracula (1897). the original modern vampire novel.",
+    "the_horror": "infection through intimacy. the bite is a KISS. the virus spreads through trust.",
+    "membrane_analog": {
+      "the_bite": "an authenticated connection that turns malicious. bearDog trusts, then the trusted peer starts draining.",
+      "the_mirror": "Dracula has no reflection. a probe that doesn't show up in the logs. the triad traffic \u2014 we couldn't see if it was us or them. Dracula at the mirror.",
+      "the_threshold": "vampires cannot enter uninvited. the banana test. consent IS the membrane. once invited, the vampire is inside.",
+      "the_coffin": "must return to native soil. the sovereign hardware. even Dracula needs his own ground.",
+      "garlic": "the pungent defense. fail2ban. rate limiting. the things that repel automated probes.",
+      "sunlight": "full transparency kills the vampire. AGPL source code. open data. the ZK proof IS sunlight.",
+      "the_staking": "pin it through the heart (the core process). kill -9. the wooden stake IS SIGKILL."
+    },
+    "anti_sigmoid": "the more you TRUST (higher fidelity relationship), the more vulnerable you are to the bite. trust is the attack surface. the uncanny valley of trust."
+  },
+  "the_bump_in_the_night": {
+    "concept": "horror is the anti-sigmoid applied to FAMILIARITY. the familiar becomes wrong.",
+    "taxonomy": [
+      {
+        "type": "cosmic_horror",
+        "source": "Lovecraft",
+        "mechanism": "scale mismatch \u2014 things too big to comprehend",
+        "anti_sigmoid": "understanding increases dread, not comfort",
+        "membrane": "the 2.3M unique 404 paths. what IS out there?"
+      },
+      {
+        "type": "body_horror",
+        "source": "Junji Ito, Cronenberg",
+        "mechanism": "your body betrays you \u2014 the familiar vessel becomes alien",
+        "anti_sigmoid": "higher body awareness = more horror when it changes",
+        "membrane": "homunculus distortion \u2014 bandwidth \u2260 importance"
+      },
+      {
+        "type": "gothic_horror",
+        "source": "Stoker, Shelley, Poe",
+        "mechanism": "the past won't stay buried \u2014 rot beneath beauty",
+        "anti_sigmoid": "deeper history = more ghosts",
+        "membrane": "ghost-taxonomy.json \u2014 what haunts the LAN"
+      },
+      {
+        "type": "folk_horror",
+        "source": "Midsommar, Wicker Man",
+        "mechanism": "the community IS the monster \u2014 belonging becomes cage",
+        "anti_sigmoid": "more community = more control",
+        "membrane": "the filter bubble. the mailing list that becomes a cult."
+      },
+      {
+        "type": "psychological_horror",
+        "source": "Hitchcock, Lynch",
+        "mechanism": "reality is unreliable \u2014 you can't trust your perception",
+        "anti_sigmoid": "more observation = more paranoia",
+        "membrane": "the falsification: was the triad us or them? the mirror that might be reflecting our own face."
+      },
+      {
+        "type": "technological_horror",
+        "source": "Black Mirror, Terminator",
+        "mechanism": "the tool turns on the maker",
+        "anti_sigmoid": "higher automation = higher risk of loss of control",
+        "membrane": "the _worker.js that spawned millions of stuck invocations. the tool we built that turned on us."
+      }
+    ]
+  },
+  "the_anti_sigmoid_in_our_data": {
+    "concept": "WHERE in the membrane does more = worse?",
+    "instances": [
+      {
+        "where": "strata Gini = 0.459",
+        "what": "more files in \u03c0-sort stratum \u2260 better sorting. it means OVER-CLASSIFICATION. the sort consumed too much.",
+        "ito_analog": "Uzumaki \u2014 the spiral consumed the town",
+        "valley_depth": "moderate"
+      },
+      {
+        "where": "224 dark data files",
+        "what": "more data \u2260 more knowledge. 224 files nobody can see = data that haunts but can't be processed.",
+        "ito_analog": "Amigara Fault \u2014 each file is a hole shaped like something. you can't stop looking.",
+        "valley_depth": "deep \u2014 fixed by explore.html"
+      },
+      {
+        "where": "utility bucket = 46% of JS",
+        "what": "more code \u2260 more capability. unsorted code is a haunted house \u2014 rooms you forgot existed.",
+        "ito_analog": "Tomie \u2014 you split it and each piece becomes a full utility bucket",
+        "valley_depth": "moderate \u2014 partially fixed by Raphael composition"
+      },
+      {
+        "where": "_worker.js stuck invocations",
+        "what": "more routing \u2260 more delivery. the worker became a zombie that spawned infinitely.",
+        "ito_analog": "Gyo \u2014 the dead fish walking on mechanical legs, powered by its own decay",
+        "valley_depth": "critical \u2014 dissolved by killing the worker"
+      },
+      {
+        "where": "26 dense passive pages",
+        "what": "more content \u2260 more engagement. 95KB of 404 text and nobody can DO anything.",
+        "ito_analog": "long dream (Ito short story) \u2014 an infinite dream where more experience = more paralysis",
+        "valley_depth": "moderate \u2014 fixing with engagement layers"
+      },
+      {
+        "where": "traffic triad falsification",
+        "what": "more analysis of the triad \u2260 more understanding. we might be analyzing ourselves.",
+        "ito_analog": "Hanging Balloons \u2014 everyone's face floats above them, trying to kill them. your own face is your enemy.",
+        "valley_depth": "philosophical"
+      }
+    ]
+  },
+  "the_formula": {
+    "standard_sigmoid": "\u03c3(x) = 1 / (1 + e^(-k(x-x\u2080)))",
+    "uncanny_valley": "UV(x) = \u03c3(x) - A\u00b7exp(-((x-\u03bc)\u00b2)/(2w\u00b2))",
+    "parameters_for_membrane": {
+      "k": 10,
+      "x\u2080": 0.5,
+      "A": 0.6,
+      "\u03bc": 0.85,
+      "w": 0.08,
+      "interpretation": "at 85% fidelity (\u03bc=0.85), comfort drops by 60% (A=0.6). the valley is narrow (w=0.08) \u2014 you pass through it quickly if you keep going. BUT if you STOP at 85%, you're stuck in the horror zone."
+    },
+    "the_lesson": "the anti-sigmoid says: DON'T STOP AT 85%. either stay at 50% (honest incompleteness) or push to 100% (full fidelity). the MIDDLE is where the horror lives. half-built features, almost-working systems, nearly-human interfaces \u2014 that's the uncanny valley. that's Junji Ito's territory."
+  },
+  "credits": {
+    "junji_ito": "Junji Ito (\u4f0a\u85e4\u6f64\u4e8c). Uzumaki, Tomie, Gyo, Amigara Fault, and 200+ horror stories.",
+    "masahiro_mori": "Masahiro Mori (\u68ee\u653f\u5f18). \"The Uncanny Valley\" (\u4e0d\u6c17\u5473\u306e\u8c37\u73fe\u8c61), Energy, 1970.",
+    "bram_stoker": "Bram Stoker. Dracula, 1897.",
+    "lovecraft": "H.P. Lovecraft. cosmic horror, 1917-1937.",
+    "ito_quote": "\"I have a fundamental\u0633\u062aand that horror should make people feel uneasy, not just scared.\" \u2014 Junji Ito"
+  }
+}
