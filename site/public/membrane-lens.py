@@ -46,10 +46,10 @@ FEEDS = {
     "totality": f"{MEMBRANE}/totality.json",
     "subgraphs": f"{MEMBRANE}/subgraphs.json",
     "seo": f"{MEMBRANE}/seo.json",
-    "stories": f"{MEMBRANE}/stories.json",
-    "page_stories": f"{MEMBRANE}/page-stories.json",
-    "visitor_stories": f"{MEMBRANE}/visitor-stories.json",
-    "campfire": f"{MEMBRANE}/campfire.json",
+    "stories": f"{MEMBRANE}/api/stories.json",
+    "page_stories": f"{MEMBRANE}/api/stories.json",
+    "visitor_stories": f"{MEMBRANE}/api/stories.json",
+    "campfire": f"{MEMBRANE}/campfire-flash.json",
     "dialogue": f"{MEMBRANE}/dialogue.json",
     "dialogue_depth": f"{MEMBRANE}/dialogue-depth.json",
     "falsification": f"{MEMBRANE}/falsification.json",
@@ -68,8 +68,8 @@ FEEDS = {
     "outreach": f"{MEMBRANE}/outreach.json",
     "pollen": f"{MEMBRANE}/pollen.json",
     "now": f"{MEMBRANE}/now.json",
-    "journal": f"{MEMBRANE}/journal-today.json",
-    "human_notes": f"{MEMBRANE}/human-notes-today.json",
+    "journal": f"{MEMBRANE}/api/gaia-story.json",
+    "human_notes": f"{MEMBRANE}/api/membrane-pulse.json",
 }
 
 FEED_ENUM = sorted(FEEDS.keys())
