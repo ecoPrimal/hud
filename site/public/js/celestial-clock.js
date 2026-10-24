@@ -159,10 +159,10 @@
     if (!clockEl) {
       clockEl = document.createElement('div');
       clockEl.id = 'celestial-clock';
-      clockEl.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:12;' +
-        'font:10px "SF Mono",monospace;color:#6e7681;text-align:center;pointer-events:none;' +
-        'background:rgba(8,6,10,0.6);padding:4px 14px;border-radius:12px;' +
-        'border:1px solid rgba(110,118,129,0.1);transition:opacity 0.6s;';
+      clockEl.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);z-index:12;' +
+        'font:10px "SF Mono",monospace;color:#8b949e;text-align:center;pointer-events:none;' +
+        'background:rgba(8,6,10,0.75);padding:6px 16px;border-radius:14px;' +
+        'border:1px solid rgba(110,118,129,0.15);transition:opacity 0.6s;';
       document.body.appendChild(clockEl);
     }
 
