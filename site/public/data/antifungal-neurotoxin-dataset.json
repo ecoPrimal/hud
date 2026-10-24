@@ -1,0 +1,132 @@
+{
+  "ts": "2026-10-24T15:05:00Z",
+  "title": "Antifungal ↔ Neurotoxin Coupled Dataset",
+  "paper": 139,
+  "hypothesis": "Compounds/events that are both antifungal and neurotoxic reveal shared membrane targets between Kingdom Fungi and nervous tissue. The intersection is a natural experiment — and a new membrane dataset.",
+  "why_new": "We named fungi from fruit (visible feeds/papers). Taxonomy may be WAY OFF. Shared antifungal–neurotoxin pharmacology is independent evidence that fungal and neural membranes couple — so membrane 'fungi' and CNS/PNS share measurable toxicity space.",
+  "schema": {
+    "id": "string",
+    "compound_or_event": "string",
+    "fungal_target": "sterol | cell_wall | nucleic_acid | membrane_pore | mito | other",
+    "neural_target": "cyp | ion_channel | mito | myelin | bbb_cross | circadian | other",
+    "shared_pathway": "string",
+    "membrane_analog": "string",
+    "clinical_or_ops": "clinical | membrane_ops",
+    "hormetic_zone": "train | therapeutic | toxic | lethal",
+    "sigma_before": "0-1 optional",
+    "sigma_after": "0-1 optional",
+    "notes": "string"
+  },
+  "seed_rows": [
+    {
+      "id": "azole-voriconazole",
+      "compound_or_event": "voriconazole",
+      "fungal_target": "sterol",
+      "neural_target": "cyp",
+      "shared_pathway": "CYP450 / sterol adjacent; visual hallucinations, neuropathy",
+      "membrane_analog": "aggressive data-layer antifungal that also jams cortex (hallucination = uncanny spike)",
+      "clinical_or_ops": "clinical",
+      "hormetic_zone": "toxic",
+      "notes": "classic antifungal–CNS coupling"
+    },
+    {
+      "id": "azole-fluconazole",
+      "compound_or_event": "fluconazole",
+      "fungal_target": "sterol",
+      "neural_target": "cyp",
+      "shared_pathway": "CYP2C9/3A4 interactions; CNS penetration in meningitis protocols",
+      "membrane_analog": "systemic azole — treats Datamycelium but shifts drug interactions across services",
+      "clinical_or_ops": "clinical",
+      "hormetic_zone": "therapeutic",
+      "notes": "selectivity gradient, not wall"
+    },
+    {
+      "id": "amphotericin-b",
+      "compound_or_event": "amphotericin B",
+      "fungal_target": "membrane_pore",
+      "neural_target": "other",
+      "shared_pathway": "pore-forming polyene; host membranes collateral; nephro + systemic",
+      "membrane_analog": "1.1TB syslog truncate — kill infection by punching membrane; nearly filled disk (nephron)",
+      "clinical_or_ops": "both",
+      "hormetic_zone": "toxic",
+      "sigma_before": 0.1,
+      "sigma_after": 0.6,
+      "notes": "ops row maps clinical mechanism"
+    },
+    {
+      "id": "flucytosine",
+      "compound_or_event": "flucytosine",
+      "fungal_target": "nucleic_acid",
+      "neural_target": "bbb_cross",
+      "shared_pathway": "crosses into CNS; neurotoxicity at high levels",
+      "membrane_analog": "agent that clears CSF infection and also poisons CSF pressure (beacon/homunculus)",
+      "clinical_or_ops": "clinical",
+      "hormetic_zone": "therapeutic",
+      "notes": "BBB Paper 138 window"
+    },
+    {
+      "id": "echinocandin",
+      "compound_or_event": "caspofungin / micafungin class",
+      "fungal_target": "cell_wall",
+      "neural_target": "other",
+      "shared_pathway": "glucan synthesis — more fungus-selective; still not zero host effect",
+      "membrane_analog": "wall-targeted antifungal (Caddy/fail2ban) — lower CNS hit than azoles",
+      "clinical_or_ops": "clinical",
+      "hormetic_zone": "therapeutic",
+      "notes": "control class — less neuro coupling expected"
+    },
+    {
+      "id": "ops-worker-storm",
+      "compound_or_event": "_worker.js CF Pages storm",
+      "fungal_target": "other",
+      "neural_target": "other",
+      "shared_pathway": "systemic cytokine storm — scrapes (infection) + CPU (CNS load)",
+      "membrane_analog": "dissolved worker = antifungal that also was a neurotoxin; dual clearance",
+      "clinical_or_ops": "membrane_ops",
+      "hormetic_zone": "lethal",
+      "sigma_before": 0.2,
+      "sigma_after": 0.7,
+      "notes": "historical membrane event"
+    },
+    {
+      "id": "ops-gnome-suspend",
+      "compound_or_event": "GNOME auto-suspend false night",
+      "fungal_target": "other",
+      "neural_target": "circadian",
+      "shared_pathway": "circadian metabolism poison — not antifungal; neurotoxin to feast/famine clock",
+      "membrane_analog": "removed; was toxin not hormesis",
+      "clinical_or_ops": "membrane_ops",
+      "hormetic_zone": "toxic",
+      "notes": "negative control: neurotoxin without antifungal claim"
+    },
+    {
+      "id": "ops-uncanny-polish",
+      "compound_or_event": "over-polish plantae/HTML → UV 85%",
+      "fungal_target": "other",
+      "neural_target": "other",
+      "shared_pathway": "fidelity drug that sickens comfort — anti-sigmoid",
+      "membrane_analog": "cosmetic antifungal (clean surfaces) that neurotoxins the visitor (uncanny)",
+      "clinical_or_ops": "membrane_ops",
+      "hormetic_zone": "toxic",
+      "sigma_before": 0.55,
+      "sigma_after": 0.4,
+      "notes": "DK + UV instruments"
+    }
+  ],
+  "shared_physics": [
+    "sterols: ergosterol (fungi) ↔ cholesterol / neurosteroids (host)",
+    "mitochondria: ROS / ATP failure in high-demand tissue reads as neurotoxicity",
+    "ion gradients: hyphal tip growth ↔ action potentials",
+    "BBB windows: lipophilic antifungals enter CSF (Paper 138)"
+  ],
+  "ingest": {
+    "append_row": "POST-equivalent: add to seed_rows via PR or neutrino write",
+    "score": "run instrumented-bounce.py after antifungal ops; record σ/UV/DK",
+    "thymus_rule": "if MOR/breath/HRV proxies drop below threshold → reclassify dose as neurotoxin, fail closed"
+  },
+  "urls": {
+    "paper": "https://primals.eco/science/139_fruit_mycelium_antifungal_neurotoxin/",
+    "self": "https://hud.primals.eco/data/antifungal-neurotoxin-dataset.json",
+    "mycelium": "https://hud.primals.eco/data/fungi-fruit-vs-mycelium.json"
+  }
+}
