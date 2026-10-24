@@ -20,23 +20,24 @@
   // ═══ TOOL PINS — every tool on the globe ═══
   var TOOLS = [
     { name: 'membrane',    lat: 42.7, lon: -84.5, icon: '🫧', color: '#5ab87a', face: 'both',    link: '/' },
-    { name: 'bingo',       lat: 51.2, lon: -1.8,  icon: '🎲', color: '#FFE135', face: 'inside',  link: '#bingo' },
-    { name: 'go-kart',     lat: 29.9, lon: 31.1,  icon: '🏎️', color: '#f0883e', face: 'inside',  link: '#gokart' },
-    { name: 'classroom',   lat: 22.5, lon: 30.7,  icon: '📚', color: '#d29922', face: 'inside',  link: '#classroom' },
-    { name: 'arena',       lat: 20.7, lon: -88.6,  icon: '⚔️', color: '#f85149', face: 'inside',  link: '#arena' },
-    { name: 'self-trace',  lat: 13.4, lon: 103.9,  icon: '📡', color: '#3fb950', face: 'outside', link: '#trace' },
+    { name: 'bingo',       lat: 51.2, lon: -1.8,  icon: '🎲', color: '#FFE135', face: 'inside',  link: '#bingo', toggle: 'bingo-toggle' },
+    { name: 'go-kart',     lat: 29.9, lon: 31.1,  icon: '🏎️', color: '#f0883e', face: 'inside',  link: '#gokart', toggle: 'gokart-btn' },
+    { name: 'classroom',   lat: 22.5, lon: 30.7,  icon: '📚', color: '#d29922', face: 'inside',  link: '#classroom', toggle: 'classroom-btn' },
+    { name: 'arena',       lat: 20.7, lon: -88.6,  icon: '⚔️', color: '#f85149', face: 'inside',  link: '#arena', toggle: 'arena-btn' },
+    { name: 'self-trace',  lat: 13.4, lon: 103.9,  icon: '📡', color: '#3fb950', face: 'outside', link: '#trace', toggle: 'self-trace-toggle' },
     { name: 'canary:valve',lat: 47.6, lon: -122.3, icon: '🐤', color: '#d29922', face: 'outside', link: '/valve.html' },
     { name: 'canary:steam',lat: 37.8, lon: -122.4, icon: '🐤', color: '#d29922', face: 'outside', link: '/steam.html' },
     { name: 'crates.io',   lat: 52.5, lon: 13.4,   icon: '🦀', color: '#f0883e', face: 'outside', link: '/crates.html' },
-    { name: 'moon-loc',    lat: 58.2, lon: -6.7,   icon: '🌙', color: '#58a6ff', face: 'both',    link: '#moon' },
-    { name: 'gyro',        lat: -27.1,lon: -109.3,  icon: '🧭', color: '#d2a8ff', face: 'inside',  link: '#gyro' },
-    { name: 'campfire',    lat: -13.2,lon: -72.5,   icon: '🔥', color: '#f0883e', face: 'inside',  link: '#campfire' },
-    { name: 'pi-budget',   lat: 53.7, lon: -6.5,    icon: 'π',  color: '#d2a8ff', face: 'both',    link: '#pi' },
-    { name: 'bell',        lat: 30.0, lon: 31.1,    icon: '🔔', color: '#3fb950', face: 'outside', link: '#bell' },
+    { name: 'moon-loc',    lat: 58.2, lon: -6.7,   icon: '🌙', color: '#58a6ff', face: 'both',    link: '#moon', toggle: 'moon-loc-toggle' },
+    { name: 'gyro',        lat: -27.1,lon: -109.3,  icon: '🧭', color: '#d2a8ff', face: 'inside',  link: '#gyro', toggle: 'gear-indicator' },
+    { name: 'campfire',    lat: -13.2,lon: -72.5,   icon: '🔥', color: '#f0883e', face: 'inside',  link: '#campfire', toggle: 'campfire' },
+    { name: 'pi-budget',   lat: 53.7, lon: -6.5,    icon: 'π',  color: '#d2a8ff', face: 'both',    link: '#pi', toggle: 'pi-budget' },
+    { name: 'bell',        lat: 30.0, lon: 31.1,    icon: '🔔', color: '#3fb950', face: 'outside', link: '#bell', toggle: 'self-trace-toggle' },
     { name: 'neutron',     lat: 0,    lon: 0,        icon: '◉',  color: '#58a6ff', face: 'inside',  link: '/neutron/core.html' },
     { name: 'globe',       lat: -33.9,lon: 18.4,    icon: '🌍', color: '#3fb950', face: 'outside', link: '/neutron/globe.html' },
     { name: 'easel',       lat: 35.7, lon: 139.7,   icon: '🎨', color: '#f0c674', face: 'inside',  link: '/easel.html' },
     { name: 'weather',     lat: 64.1, lon: -21.9,   icon: '☀',  color: '#ffe135', face: 'both',    link: '/weather.html' },
+    { name: 'pi-sort',     lat: 48.9, lon: 2.4,     icon: 'π',  color: '#d2a8ff', face: 'outside', link: '/pi-sort.html' },
   ];
 
   // ═══ ECLIPSE DETECTION ═══
@@ -238,7 +239,8 @@
       if (dx * dx + dy * dy < 200) {
         if (tool.link.startsWith('#')) {
           // Toggle internal tool
-          var btn = document.getElementById(tool.link.slice(1) + '-toggle');
+          var toggleId = tool.toggle || (tool.link.slice(1) + '-toggle');
+          var btn = document.getElementById(toggleId);
           if (btn) btn.click();
         } else {
           window.location.href = tool.link;
