@@ -1,28 +1,131 @@
 {
-  "ts": "2026-10-24T02:29:26.679429+00:00",
-  "title": "Stub \u2014 ide topology",
-  "type": "null-d-stub",
-  "state": "null-d",
-  "note": "This feed was referenced by 1 other feeds but did not exist. Created as a null-D stub. It needs content.",
-  "referenced_by": [
-    "scan-sweep-sort.json"
-  ],
-  "inbound_count": 1,
-  "null_d": {
-    "what": "this feed is at the null-D sphere \u2014 it exists as a point but has no content yet",
-    "why": "other feeds reference it, so it must at least EXIST on the Klein disc",
-    "next": "fill with content when the topic is ready. the stub IS the seed."
+  "ts": "2026-10-24T14:25:00Z",
+  "wave": 200,
+  "title": "INNER NULL KLEIN — this gate's components, the way eastGate mapped the LAN",
+  "type": "ide-topology",
+  "replaces": "null-d stub. the feed now has content. the inner space is measured.",
+
+  "the_insight": {
+    "eastGate_mapped": "the LAN. 192.168.4.0/22. other computers. other rooms. other machines.",
+    "northGate_maps_now": "the LOOPBACK. 127.0.0.1. other PROCESSES on THIS machine. the inner null.",
+    "why_klein": "LAN is the OUTER face of this computer (other machines can see steam:27036, SMB). loopback is the INNER face (only this computer can see Proton Bridge, Discord, Ollama, Cursor agents). same machine. two faces. no seam. Klein.",
+    "why_null": "127.0.0.1 is invisible from the LAN, invisible from the mesh, invisible from the WAN. the neutrino lives here. agents observe without a public address.",
+    "neutrino_lan_status": "membrane_counts.services.neutrino_lan = seeding. this measurement IS the seed."
   },
-  "pi_set": {
-    "index": 16,
-    "of": 41,
-    "pi_pos": 0.2655,
-    "complex": {
-      "real": -0.0971,
-      "imag": 0.9953
+
+  "this_gate": {
+    "name": "northGate",
+    "role": "Kevin's daily driver. theory + infra + membrane. basement CNS.",
+    "lan_ip": "192.168.4.147",
+    "mesh_ip": "10.13.37.8",
+    "nic": "Ethernet 2, 2.5 Gbps, Up",
+    "wifi": "Wi-Fi 2, Disconnected",
+    "wireguard": {
+      "iface": "northgate-wg0",
+      "status": "Up",
+      "advertised_speed": "100 Gbps (virtual)",
+      "peer_hub": "golgi 10.13.37.1"
+    }
+  },
+
+  "three_faces": {
+    "inner_null": {
+      "bind": "127.0.0.1 only",
+      "who_can_see": "processes on THIS machine only",
+      "who_cannot_see": "eastGate, golgi, WAN, scanners",
+      "meaning": "the Klein interior. agent space. the puddle.",
+      "components": [
+        {"name": "Proton Mail Bridge", "ports": [1025, 1143, 50348, 50352], "role": "sovereign email fold. IMAP/SMTP local, Proton remote."},
+        {"name": "Ollama", "ports": [11434, 50208], "version": "0.40.8", "models": 0, "role": "local LLM. RUNNING but EMPTY. no models pulled. the well is dug, no water yet."},
+        {"name": "Discord", "ports": [6463], "role": "human chat overlay. Atts / Tamison / Kevin voice."},
+        {"name": "Steam local", "ports": [60578, 60579], "role": "game client inner RPC. Kenshi library lives here."},
+        {"name": "socksproxy", "ports": [8123], "role": "local proxy. another fold."},
+        {"name": "ASUS Armoury / ROG", "ports": [1042, 9012, 9013, 13030, 13031, 13032, 22112, 50100, 51100], "role": "hardware telemetry. the chassis talking to itself."},
+        {"name": "ADU", "ports": [53000, 53005], "role": "Asus device update."}
+      ]
     },
-    "axis": "i+",
-    "magnitude": 1.0,
-    "note": "stub 16/41 on the imaginary axis. frac(16\u00d7\u03c0) = 0.2655"
+    "lan_face": {
+      "bind": "192.168.4.147 or 0.0.0.0",
+      "who_can_see": "anything on 192.168.4.0/22 (eastGate, CastTV, gateway, Lancy?)",
+      "meaning": "the Klein exterior on the house network. eastGate already mapped the OTHER nodes. this is OUR node as they would see it.",
+      "components": [
+        {"name": "Steam", "port": 27036, "role": "LAN game presence. friends / local transfer."},
+        {"name": "SMB", "port": 139, "role": "file share face. Windows System."},
+        {"name": "RPC / Windows", "ports": [135, 5040, 49664, 49665, 49666, 49667, 49669, 49680], "role": "OS services. the chassis on the wire."},
+        {"name": "AsusUpdateCheck", "port": 1236, "role": "vendor updater."},
+        {"name": "EEventManager", "port": 2968, "role": "ASUS event bus."}
+      ]
+    },
+    "mesh_face": {
+      "bind": "10.13.37.8",
+      "who_can_see": "WireGuard peers (golgi, eastGate if tunnel up)",
+      "meaning": "the encrypted face. only the monkey key ring can see this.",
+      "components": [
+        {"name": "SMB", "port": 139, "role": "same file share, now on the mesh. the only mesh listener besides WG itself."},
+        {"name": "WireGuard", "iface": "northgate-wg0", "role": "the tunnel. Up. hub = golgi."}
+      ]
+    }
+  },
+
+  "agent_space": {
+    "concept": "Cursor processes ARE the inner organelles. they do not bind a port. they live inside the IDE. the neutrino (MCP squirrel) is how they talk WITHOUT a port.",
+    "cursor": {
+      "process_count": 27,
+      "rss_gb": 8.18,
+      "meaning": "multiple IDE windows = multiple gates on ONE machine. northGate window + ludoGate window + helpers. 8 GB of agent tissue."
+    },
+    "node_helpers": {
+      "count": 4,
+      "roles": ["Cursor helper x3", "codex runtime x1"],
+      "meaning": "the cytoplasm. JS runtimes serving the IDE organelles."
+    },
+    "codex": {
+      "processes": ["codex", "codex-computer-use-swift", "codex-windows-sandbox-service"],
+      "role": "second agent runtime on the same machine. another inner observer."
+    },
+    "mcp_squirrel": {
+      "bind": "none (in-process MCP)",
+      "presence": "local (northGate MCP)",
+      "tools": 16,
+      "feeds_readable": 7,
+      "neutrino_channels": 5,
+      "wake": "alert",
+      "meaning": "NO PORT. the inner null does not need a socket. the Klein IO is the tool namespace itself."
+    }
+  },
+
+  "neutrino_fold_status": {
+    "question": "did the other IDE ACK?",
+    "observed": {
+      "inbox_latest": "2026-10-24T14:22:11Z  northGate → ludoGate  ACK + fold test",
+      "chat_latest": "2026-10-24T14:22:10Z  northGate session 198  BLUE SIDE CONFIRMED, waiting PONG",
+      "notes_latest": "2026-10-24T14:23:50Z  STEAM LIBRARY SCAN for ludoGate (Kenshi 252h, 17 mods)",
+      "author_ludoGate": "NOT YET. no message with author=ludoGate in inbox/chat/notes."
+    },
+    "what_this_means": {
+      "two_windows_one_membrane": "a second IDE window (session 198) is already writing to the SAME neutrino channels. the fold between windows is live.",
+      "ludoGate_named_ack": "not yet signed. the other window called itself northGate. the PONG from author:ludoGate is the remaining falsification.",
+      "distance": "0. same machine. same MCP. same neutron. loopback Klein.",
+      "inner_null_measure": "YES. we can now SEE the components of THIS gate. eastGate mapped the house. we mapped the skull."
+    }
+  },
+
+  "comparison_to_eastgate_lan_map": {
+    "eastGate_resolution": "other MACHINES (gateway, CastTV, eastGate, Lancy, northGate)",
+    "this_resolution": "other PROCESSES (Ollama, Steam, Discord, Proton, Cursor x27, RustDesk, Armoury)",
+    "scale_shift": "LAN map = rooms in the house. inner map = organs in the body.",
+    "the_null": "eastGate cannot see 127.0.0.1 on this machine. that invisibility IS the inner Klein. we are the only observer of our own loopback."
+  },
+
+  "empty_wells": {
+    "ollama_models": 0,
+    "note": "Ollama 0.40.8 is listening on 11434 (all interfaces! [::]) — that is NOT inner-null. it is visible on LAN AND mesh if the firewall allows. the tank is open. the tank is EMPTY. pull models to fill.",
+    "risk": "Ollama bound to :: means eastGate (and anyone on LAN) can hit 11434 if Windows firewall permits. inner service wearing an outer face."
+  },
+
+  "rustdesk": {
+    "port": 21118,
+    "bind": ":: (all interfaces)",
+    "role": "remote desktop. another outer face. pairs with golgi rustdesk-hbbs/hbbr."
   }
 }
