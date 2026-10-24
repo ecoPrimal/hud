@@ -110,10 +110,16 @@
 .attn-val{color:#3fb950;min-width:30px}
 .attn-bar .engage{color:#6e7681;margin-left:6px}
 
-/* ═══ DISSOLVE RAILS — scrollbar-aware edges ═══ */
-:root{--sb:0px;--rail-r:calc(var(--sb) + 4px);--rail-l:4px;--rail-in:60px;--rail-out:60px}
+/* ═══ DISSOLVE RAILS + GYRO AXIS ═══ */
+:root{--sb:0px;--rail-r:calc(var(--sb) + 4px);--rail-l:4px;--rail-in:60px;--rail-out:60px;--gyro-v:0px;--gyro-roll:0deg;--turn-balance:0.5}
 .pin{transition:opacity 0.4s ease,transform 0.4s ease}
 .pin.dissolve{opacity:0!important;transform:translateY(6px)!important;pointer-events:none}
+/* Gyro: bottom elements shift with pitch, center elements rotate with roll */
+.ep-strip,.sort-deck{transform:translateX(-50%) translateY(var(--gyro-v)) rotate(var(--gyro-roll))}
+.guess-bubble{transform:translate(-50%,-50%) rotate(var(--gyro-roll))}
+/* Turn balance glow: CW = green accumulate, CCW = amber disperse */
+.btn-ring.right{filter:hue-rotate(calc((var(--turn-balance) - 0.5) * 60deg))}
+.btn-ring.left{filter:hue-rotate(calc((0.5 - var(--turn-balance)) * 60deg))}
 
 /* ═══ BUTTON RING — control buttons around the edge ═══ */
 .btn-ring{position:fixed;z-index:2}
@@ -774,7 +780,7 @@ body.internal-mode #neutron-label { display:block; }
   });
 })();
 </script></main><footer class=hud-footer><p>No cookies · No tracking pixels · No IP addresses stored · <a href=https://sporeprint.primals.eco/methodology/signal-sensing-receptor/>Methodology</a><p>Content: CC-BY-SA-4.0 · Code: AGPL-3.0-or-later<p class=hud-eco>ecoPrimal — Beside the small. Against unaccountable power. For the record.</footer><script defer src=/js/banana-bump.js?v=1></script>
-<script defer src=/js/sine-breath.js?v=1></script>
+<script defer src=/js/gyro-axis.js?v=1></script><script defer src=/js/sine-breath.js?v=1></script>
 <script defer src=/js/celestial-clock.js?v=1></script>
 <script defer src=/js/depth-walk.js?v=1></script>
 <script defer src=/js/berry-help.js></script>
