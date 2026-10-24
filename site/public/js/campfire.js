@@ -184,6 +184,8 @@
     'coming out the fold on the right',
     'WAS the fossil, IS the sit, NOW the scan',
     'a hole you can point at is a representation',
+    'leftover 48 pinching onto Klein-null as distance',
+    'the catalog sorted into three faces and a walk from O',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
