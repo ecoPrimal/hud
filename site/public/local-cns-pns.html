@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local CNS/PNS — ecoPrimals</title>
+<meta name="description" content="Sense SELF: local computer CNS and PNS — this keyboard, that mouse. Presence only.">
+<link rel="alternate" type="application/json" href="/local-cns-pns.json">
+<style>
+  :root { --ink:#1a1814; --paper:#f2efe8; --cns:#2a4a6b; --pns:#6b3a2a; --mute:#6a6560; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e4dc; --paper:#12141a; --cns:#8ab4d4; --pns:#d4a08a; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; background:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(42,74,107,.15), transparent),
+    radial-gradient(ellipse 50% 40% at 90% 100%, rgba(107,58,42,.12), transparent),
+    var(--paper); color:var(--ink); line-height:1.45; }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(2rem,7vw,3rem); letter-spacing:-.03em; margin:0 0 .4rem; }
+  .tag { color:var(--pns); font-weight:600; margin-bottom:1.2rem; }
+  .grid { display:grid; gap:.6rem; margin:1.25rem 0; }
+  .card { padding:.85rem 1rem; border-left:3px solid var(--cns); background:rgba(255,255,255,.35); }
+  .card.pns { border-color:var(--pns); }
+  .card strong { display:block; font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
+  a { color:var(--cns); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); border-top:1px solid rgba(0,0,0,.12); padding-top:1rem; }
+  #live { font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Local CNS / PNS</h1>
+  <p class="tag">sense SELF · AC/DC stable · presence only</p>
+  <p>This machine has a cortex and extremities. We feel them without reading what you type.</p>
+  <div class="grid">
+    <div class="card pns"><strong>THIS keyboard</strong>Logitech Wireless Keyboard PID:4023<br><span id="kbbat">battery: 55%</span></div>
+    <div class="card pns"><strong>THAT mouse</strong>Logitech Wireless Mouse</div>
+    <div class="card"><strong>CNS cortex</strong><span id="cpu">…</span></div>
+  </div>
+  <p id="live"></p>
+  <p><a href="/local-cns-pns.json">JSON</a> · <a href="/homunculus.html">code homunculus</a> · <a href="/pi-rate-set.html">π-rate</a></p>
+  <footer>ecoPrimals · no keylogging · PNS = extremities · CNS = board/CPU/ACPI</footer>
+</main>
+<script>
+fetch('/local-cns-pns.json').then(r=>r.json()).then(d=>{
+  const c=d.host&&d.host.cpu||{};
+  document.getElementById('cpu').textContent=(c.model||'?')+' · '+(c.cpus||'?')+' threads';
+  const p=d.power_ac_dc||{};
+  document.getElementById('kbbat').textContent='battery: '+(p.keyboard_battery_pct??'?')+'% · '+(p.keyboard_battery_state||'');
+  document.getElementById('live').textContent=
+    `CNS ${d.counts.cns} · PNS ${d.counts.pns} · load ${d.host.loadavg['1m']} · ${d.host.hostname}`;
+}).catch(e=>{ document.getElementById('live').textContent=String(e); });
+</script>
+</body>
+</html>
