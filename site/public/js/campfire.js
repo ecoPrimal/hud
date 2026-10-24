@@ -132,6 +132,8 @@
     'a living Alexandria of layered pages',
     'editions contrasting for clarity',
     'binders holding books open at the fire',
+    'time climbing the Y while steps walk the X',
+    'a pi point where impulse meets the clock',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
