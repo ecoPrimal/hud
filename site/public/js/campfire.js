@@ -196,6 +196,7 @@
     'bingo voxel, diamond lens, spinning kaleidoscope pale',
     'moon white, sun yellow, Earth the caster',
     'black is just the shadow trace',
+    'other doors up, the pale still not on the glass',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
