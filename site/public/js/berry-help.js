@@ -105,35 +105,37 @@
     btn.innerHTML = '🐿️';
     btn.title = "can't see what you see? Berry helps.";
     btn.setAttribute('aria-label', "Help — can't see what you see");
+    // Detect scrollbar width for alignment
+    var scrollbarW = window.innerWidth - document.documentElement.clientWidth;
+    var edgeOffset = Math.max(4, scrollbarW + 2) + 'px';
+
     Object.assign(btn.style, {
       position: 'fixed',
-      bottom: '20px',
-      right: '20px',
+      bottom: '12px',
+      right: edgeOffset,
       zIndex: '9999',
-      width: '48px',
-      height: '48px',
+      width: '40px',
+      height: '40px',
       borderRadius: '50%',
-      border: '2px solid rgba(210,153,34,0.4)',
-      background: 'rgba(1,4,9,0.9)',
+      border: '1px solid rgba(210,153,34,0.3)',
+      background: 'rgba(1,4,9,0.92)',
       color: '#d29922',
-      fontSize: '24px',
+      fontSize: '20px',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.4)'
+      transition: 'transform 0.2s ease, opacity 0.2s ease',
+      boxShadow: 'none'
     });
 
     btn.addEventListener('mouseenter', function() {
-      btn.style.borderColor = 'rgba(210,153,34,0.8)';
-      btn.style.transform = 'scale(1.1)';
-      btn.style.boxShadow = '0 4px 20px rgba(210,153,34,0.3)';
+      btn.style.borderColor = 'rgba(210,153,34,0.6)';
+      btn.style.transform = 'scale(1.08)';
     });
     btn.addEventListener('mouseleave', function() {
-      btn.style.borderColor = 'rgba(210,153,34,0.4)';
+      btn.style.borderColor = 'rgba(210,153,34,0.3)';
       btn.style.transform = 'scale(1)';
-      btn.style.boxShadow = '0 2px 12px rgba(0,0,0,0.4)';
     });
 
     btn.addEventListener('click', togglePanel);
@@ -143,20 +145,26 @@
   function createPanel() {
     var panel = document.createElement('div');
     panel.id = 'berry-help-panel';
+    var scrollbarW = window.innerWidth - document.documentElement.clientWidth;
+    var edgeOffset = Math.max(4, scrollbarW + 2) + 'px';
+
     Object.assign(panel.style, {
       position: 'fixed',
-      bottom: '80px',
-      right: '20px',
+      bottom: '58px',
+      right: edgeOffset,
       zIndex: '9998',
-      width: '340px',
-      maxWidth: 'calc(100vw - 40px)',
-      maxHeight: '70vh',
+      width: '360px',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: '65vh',
       overflowY: 'auto',
-      background: '#0d1117',
-      border: '1px solid rgba(210,153,34,0.3)',
-      borderRadius: '12px',
+      background: 'rgba(13,17,23,0.97)',
+      border: '1px solid rgba(210,153,34,0.2)',
+      borderRadius: '10px',
       padding: '0',
       display: 'none',
+      transform: 'translateY(8px)',
+      opacity: '0',
+      transition: 'transform 0.2s ease, opacity 0.2s ease',
       fontFamily: "'SF Mono', ui-monospace, monospace",
       fontSize: '12px',
       color: '#c9d1d9',
@@ -255,17 +263,25 @@
       panelEl = createPanel();
     }
     var showing = panelEl.style.display !== 'none';
-    panelEl.style.display = showing ? 'none' : 'block';
-
     var btn = document.getElementById('berry-help-btn');
+
     if (!showing) {
+      // Open: show, then animate in
+      panelEl.style.display = 'block';
+      panelEl.offsetHeight; // force reflow
+      panelEl.style.transform = 'translateY(0)';
+      panelEl.style.opacity = '1';
       btn.innerHTML = '✕';
-      btn.style.background = 'rgba(210,153,34,0.2)';
+      btn.style.background = 'rgba(210,153,34,0.15)';
       btn.style.borderColor = '#d29922';
     } else {
+      // Close: animate out, then hide
+      panelEl.style.transform = 'translateY(8px)';
+      panelEl.style.opacity = '0';
+      setTimeout(function() { panelEl.style.display = 'none'; }, 200);
       btn.innerHTML = '🐿️';
-      btn.style.background = 'rgba(1,4,9,0.9)';
-      btn.style.borderColor = 'rgba(210,153,34,0.4)';
+      btn.style.background = 'rgba(1,4,9,0.92)';
+      btn.style.borderColor = 'rgba(210,153,34,0.3)';
     }
   }
 
