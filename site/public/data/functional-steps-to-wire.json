@@ -1,0 +1,42 @@
+{
+  "ts": "2026-10-24T18:08:00Z",
+  "title": "FUNCTIONAL STEPS TO DATE — what is live, what a human does to wire the rest.",
+
+  "already_live": [
+    {"step": "A1", "what": "Git push → Cloudflare Pages. HUD and feed go public.", "who": "agent + git", "proof": "hud.primals.eco"},
+    {"step": "A2", "what": "Proton Mail Bridge. Local SMTP 1025, IMAP 1143.", "who": "you, already running", "proof": "banner 220 ESMTP"},
+    {"step": "A3", "what": "RustDesk on this machine + mesh relay.", "who": "already answering", "proof": "port 21118"},
+    {"step": "A4", "what": "WireGuard northGate. Hub pinged earlier.", "who": "already up", "proof": "10.13.37.8"},
+    {"step": "A5", "what": "Two works on ORCID, public.", "who": "you typed the DOIs", "proof": "orcid.org/0009-0004-2141-0321"},
+    {"step": "A6", "what": "ecoPrimals GitHub profile has a face.", "who": "agent wrote README", "proof": "github.com/ecoPrimals"},
+    {"step": "A7", "what": "/abc/ yellow page + feed plaques.", "who": "agent", "proof": "hud.primals.eco/abc"}
+  ],
+
+  "wire_when_you_want_mail_to_land": [
+    {"step": "M1", "do": "Cloudflare → primals.eco → Email → Email Routing. Create addresses. Catch-all to the inbox Proton already shows you.", "who": "you", "dock": "hard"},
+    {"step": "M2", "do": "MX already points at Cloudflare. Leave it until Stalwart is actually running.", "who": "no one tonight", "dock": "hard"},
+    {"step": "M3", "do": "On a vesicle that can hold port 25/587/993: run Stalwart from the draft in hud-deploy/stalwart-config.toml. Put certs in /opt/stalwart/certs. Set STALWART_ADMIN_SECRET. Do not start it on this laptop.", "who": "you, after morning vesicle look", "dock": "hard"},
+    {"step": "M4", "do": "When Stalwart answers: change MX from Cloudflare to that host. Then Proton can leave.", "who": "you", "dock": "hard"},
+    {"step": "M5", "do": "membrane-mailer.py --setup only if the chipmunk must send. Needs an app password. Not required for you to send from Proton today.", "who": "you", "dock": "hard"}
+  ],
+
+  "wire_giscus_later": [
+    {"step": "G1", "do": "github.com/apps/giscus → install on ecoPrimals (or ecoPrimal/hud). Enable Discussions on that repo.", "who": "you"},
+    {"step": "G2", "do": "giscus.app → pick repo, category. Copy the script tag.", "who": "you"},
+    {"step": "G3", "do": "Paste that tag on /abc/ and one paper page. Agent can paste if you hand the snippet.", "who": "you then agent"}
+  ],
+
+  "wire_datacite_later": [
+    {"step": "D1", "do": "ORCID → Works → Add → Import from other services → DataCite → authorize.", "who": "you"},
+    {"step": "D2", "do": "Enable auto-update if you want the NEXT DOI to land itself.", "who": "you", "not": "do not need it for the two works already public"}
+  ],
+
+  "do_not_wire_tonight": [
+    "BearDog one-seed mix (lists keys; does not fuse them)",
+    "Stalwart on northGate",
+    "Vesicle SSH (morning)",
+    "Kanidm / Conduit / Iroh as new cores"
+  ],
+
+  "order_if_you_keep_going": ["M1 when you want inbound @primals.eco", "vesicle look tomorrow", "M3–M4 when a box can hold mail", "G1–G3 when you want comments", "D1–D2 when you want self-populate", "BearDog mix after the house is quiet"]
+}
