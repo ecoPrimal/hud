@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Falsifiability RUN — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/falsifiability-run-results.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --ok:#2ea043; --fail:#c45c26; --vivo:#2ea043; --vitro:#6b3fa0; --mute:#5c5854; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --ok:#56d364; --fail:#e08a5c; --vivo:#56d364; --vitro:#b794f6; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.45;
+    background: radial-gradient(ellipse 50% 40% at 15% 0%, rgba(46,160,67,.14), transparent 50%),
+      radial-gradient(ellipse 45% 35% at 90% 90%, rgba(107,63,160,.12), transparent 50%), var(--paper); }
+  main { max-width:42rem; margin:0 auto; padding:2.75rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.8rem,6vw,2.6rem); letter-spacing:-.03em; margin:0 0 .35rem; }
+  .tag { color:var(--vitro); font-weight:600; }
+  .frame { margin:1rem 0 1.5rem; padding:.85rem 1rem; border-left:3px solid var(--vivo); background:rgba(255,255,255,.35); font-size:.95rem; }
+  .row { border-top:1px solid rgba(20,22,28,.12); padding:.85rem 0; }
+  .pass { color:var(--ok); font-weight:700; }
+  .fail { color:var(--fail); font-weight:700; }
+  a { color:var(--vivo); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>RUN — vivo ↔ vitro</h1>
+  <p class="tag">cis / trans faces · experiments begun</p>
+  <div class="frame" id="frame"></div>
+  <div id="rows"></div>
+  <p id="sum"></p>
+  <p><a href="/falsifiability-run-results.json">JSON</a> ·
+     <a href="/hypothesis-falsifiability-experiments.html">claims board</a></p>
+  <footer>ecoPrimals · in_vivo(A) = in_vitro(B) on the fold</footer>
+</main>
+<script>
+fetch('/falsifiability-run-results.json').then(r=>r.json()).then(d=>{
+  document.getElementById('frame').textContent = d.frame.thesis;
+  const tests = d.tests;
+  document.getElementById('rows').innerHTML = Object.keys(tests).map(k=>{
+    const t = tests[k];
+    const st = t.status || '';
+    const cls = st === 'pass' ? 'pass' : (st === 'fail' ? 'fail' : '');
+    return `<div class="row"><strong>${k}</strong> <span class="${cls}">${st}</span><br>
+      <small>cis: ${t.vivo_vitro?.cis||''} · trans: ${t.vivo_vitro?.trans||''}</small></div>`;
+  }).join('');
+  const s = d.summary;
+  document.getElementById('sum').textContent = `pass ${s.pass} · fail ${s.fail} · deferred ${(s.deferred||[]).join(', ')}`;
+});
+</script>
+</body>
+</html>
