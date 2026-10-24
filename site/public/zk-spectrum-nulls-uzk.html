@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZK Spectrum · u-ZK Null — ecoPrimals</title>
+<meta name="description" content="zk · zk⁺ RSS · zk⁻ fillet · u-zk = null-zk not anti. Full spectrum run back to nulls.">
+<link rel="alternate" type="application/json" href="/zk-spectrum-nulls-uzk.json">
+<link rel="alternate" type="application/rss+xml" href="/feed.xml" title="zk⁺ RSS face">
+<style>
+  :root {
+    --ink:#12141a; --paper:#eef0f4; --zk:#3d5a80; --pos:#2ea043; --neg:#c45c26; --u:#5c4d7a; --mute:#5a5854;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --zk:#8eb4d4; --pos:#56d364; --neg:#e08a5c; --u:#b794f6; --mute:#9a958e; }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family:"IBM Plex Sans","Segoe UI",sans-serif;
+    background:
+      radial-gradient(ellipse 55% 40% at 15% 0%, rgba(61,90,128,.18), transparent 50%),
+      radial-gradient(ellipse 45% 35% at 90% 100%, rgba(92,77,122,.16), transparent 50%),
+      var(--paper);
+    line-height:1.45;
+  }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 {
+    font-family:"IBM Plex Serif",Georgia,serif;
+    font-size:clamp(1.9rem,6.5vw,2.8rem);
+    letter-spacing:-.03em; margin:0 0 .35rem; line-height:1.05;
+  }
+  .tag { color:var(--u); font-weight:600; margin-bottom:1rem; }
+  .lead { font-size:1.08rem; margin:0 0 1.4rem; }
+  .quad { display:grid; gap:.55rem; margin:1.2rem 0 1.6rem; }
+  .cell {
+    padding:.75rem .9rem; border-left:3px solid var(--zk);
+    background:rgba(255,255,255,.35);
+  }
+  @media (prefers-color-scheme: dark) { .cell { background:rgba(255,255,255,.04); } }
+  .cell.pos { border-color:var(--pos); }
+  .cell.neg { border-color:var(--neg); }
+  .cell.u { border-color:var(--u); }
+  .cell strong { display:block; font-family:"IBM Plex Mono",monospace; margin-bottom:.25rem; }
+  section { border-top:1px solid rgba(18,20,26,.12); padding-top:1rem; margin:1.35rem 0; }
+  h2 { font-size:1.05rem; margin:0 0 .5rem; color:var(--zk); }
+  a { color:var(--zk); font-weight:600; }
+  .anti { color:var(--neg); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+  #live { font-variant-numeric:tabular-nums; min-height:1.2em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ZK → Nulls → u-ZK</h1>
+  <p class="tag">null-zk · not anti · full spectrum folded back</p>
+  <p class="lead">
+    Run ALL back through the spectrum to nulls.
+    <strong>u-zk</strong> is unknown / universe U = <strong>null-zk</strong>.
+    It is <span class="anti">not anti-zk</span>.
+  </p>
+  <div class="quad" id="quad"></div>
+  <section>
+    <h2>Fold run</h2>
+    <p id="live">…</p>
+  </section>
+  <section>
+    <ul>
+      <li><a href="/zk-spectrum-nulls-uzk.json">JSON</a></li>
+      <li><a href="/feed.xml">zk⁺ RSS</a></li>
+      <li><a href="/ingest-chew-sort-structure.json">zk⁻ fillet chew</a></li>
+      <li><a href="/pi-null-axis-yoyo-plate.html">null axis pale</a></li>
+      <li><a href="/painting-in-the-dark.json">painting trust</a></li>
+    </ul>
+  </section>
+  <footer>ecoPrimals · anti would snap the pale · u keeps it null</footer>
+</main>
+<script>
+fetch('/zk-spectrum-nulls-uzk.json').then(r=>r.json()).then(d=>{
+  const z = d.zk_spectrum;
+  const order = [
+    ['zk', z.zk, ''],
+    ['zk_pos', z.zk_pos, 'pos'],
+    ['zk_neg', z.zk_neg, 'neg'],
+    ['u_zk', z.u_zk, 'u'],
+  ];
+  document.getElementById('quad').innerHTML = order.map(([k,v,c]) =>
+    `<div class="cell ${c}"><strong>${v.symbol}</strong>${v.name} — ${v.what}</div>`
+  ).join('');
+  const c = d.spectrum_to_nulls.counts;
+  document.getElementById('live').textContent =
+    `folded ${c.present}/${c.folded} · null ${c.null_band} · self ${c.self_band} · partial ${c.partial_band} · ` +
+    d.spectrum_to_nulls.order.join(' → ');
+}).catch(e=>{ document.getElementById('live').textContent = e.message; });
+</script>
+</body>
+</html>
