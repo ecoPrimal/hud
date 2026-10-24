@@ -315,9 +315,69 @@
     }
     html.push('</div>');
 
-    // Null welcome — NO BOOBYTRAPS
+    // ═══ YOUR PIECE OF THE PIE — every visitor gets classified ═══
+    html.push('<div class="st-section">');
+    html.push('<div class="st-label">your piece · π immunity</div>');
+
+    // Classify THIS visitor
+    var visitorClass = classifyHit({ref: document.referrer, ua: navigator.userAgent});
+    var immunityMode = 'π remainder';
+    var immunityColor = '#d2a8ff';
+    var immunityPos = (PI - 3).toFixed(5);
+    var immunityNote = 'you passed all checks. your path adds to the graph.';
+
+    if (visitorClass === 'self') {
+      immunityMode = 'self';
+      immunityColor = '#3fb950';
+      immunityPos = 'π';
+      immunityNote = 'you are the membrane looking at itself.';
+    } else if (visitorClass === 'ally') {
+      immunityMode = 'passive';
+      immunityColor = '#58a6ff';
+      immunityPos = (PI * 0.318).toFixed(3);
+      immunityNote = 'you came from a known source. cached in trust.';
+    } else if (visitorClass === 'scout') {
+      immunityMode = 'null';
+      immunityColor = '#d29922';
+      immunityPos = (PI * 0.5).toFixed(3);
+      immunityNote = 'direct access. welcome. no traps in null. ever.';
+    } else if (visitorClass === 'threat') {
+      immunityMode = 'active';
+      immunityColor = '#f0883e';
+      immunityPos = '0';
+      immunityNote = 'noted, not blocked. your scan IS data. thank you.';
+    }
+
+    html.push('<div class="st-row">');
+    html.push('<span style="color:' + immunityColor + '">● ' + immunityMode + '</span>');
+    html.push('<span class="st-val">π pos: ' + immunityPos + '</span>');
+    html.push('</div>');
+    html.push('<div style="font-size:7px;color:#6e7681;margin-top:2px">' + immunityNote + '</div>');
+
+    // The π axis visualization — where they sit
+    var piPct = 0;
+    if (visitorClass === 'threat') piPct = 5;
+    else if (visitorClass === 'ally') piPct = 32;
+    else if (visitorClass === 'scout') piPct = 50;
+    else if (visitorClass === 'self') piPct = 95;
+    else piPct = 85;
+
+    html.push('<div style="height:3px;background:#161b22;border-radius:1px;margin-top:4px;position:relative">');
+    html.push('<div style="position:absolute;left:0;width:33%;height:100%;background:rgba(248,81,73,0.3);border-radius:1px 0 0 1px" title="active"></div>');
+    html.push('<div style="position:absolute;left:33%;width:33%;height:100%;background:rgba(88,166,255,0.3)" title="passive+null"></div>');
+    html.push('<div style="position:absolute;left:66%;width:34%;height:100%;background:rgba(210,168,255,0.3);border-radius:0 1px 1px 0" title="remainder"></div>');
+    html.push('<div style="position:absolute;left:' + piPct + '%;top:-2px;width:3px;height:7px;background:' + immunityColor + ';border-radius:1px" title="you"></div>');
+    html.push('</div>');
+    html.push('<div style="display:flex;justify-content:space-between;font-size:6px;color:#484f58;margin-top:1px">');
+    html.push('<span>active</span><span>passive</span><span>null</span><span>π rem</span>');
+    html.push('</div>');
+
+    html.push('</div>');
+
+    // Everyone welcome
     html.push('<div style="text-align:center;margin-top:4px;font-size:7px;color:#6e7681">');
-    html.push('null = welcome · no traps in null · ever');
+    html.push('everyone adds to the graph · the good the bad the ugly');
+    html.push('<br>lies truths and ideas · all welcome · all data');
     html.push('</div>');
 
     panel.innerHTML = html.join('');
