@@ -60,6 +60,8 @@
     'a fly holding the horizon with two gyroscopes',
     'a mole that put the camera down',
     'a sloth hanging the navel on a branch',
+    'eastGate smelling its own farts',
+    'a missing panel that later grew a nose',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
