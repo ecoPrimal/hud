@@ -94,7 +94,7 @@
     { label: "I don't know what to DO", fix: "explore. click things. read. the 100 unclassified entities need human help — you might see something the machines missed." },
     { label: "something looks broken", fix: "leave a note in the nightbox (/nightbox.html). Berry reads everything. include what you saw and where." },
     { label: "I want to use this code", fix: "it's AGPL-3.0. take it. build. if you serve it, share your source too. github.com/ecoPrimals and github.com/ecoPrimal." },
-    { label: "I want to talk to a human", fix: "hello@clutchjustice.com — Kevin reads it. or leave a nightbox message. or clone the repo and open an issue." }
+    { label: "I want to talk to a human", fix: "eco.primal@pm.me — Kevin reads it. or leave a nightbox message. or clone the repo and open an issue." }
   ];
 
   // --- Build the UI ---
