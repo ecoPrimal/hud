@@ -91,6 +91,44 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
   transform: translateZ(40px) rotateY(8deg) rotateX(-4deg);
   box-shadow: 0 16px 40px rgba(63,185,80,0.2); }
 .sculpt .sculpt-icon { font-size: 32px; margin-bottom: 6px; }
+
+/* === CHROMATOGRAM — pi-mixed Klein-folded colors === */
+@keyframes chromaShift {
+  0%   { filter: hue-rotate(0deg); }
+  25%  { filter: hue-rotate(31.4deg); }  /* pi × 10 */
+  50%  { filter: hue-rotate(62.8deg); }
+  75%  { filter: hue-rotate(31.4deg); }
+  100% { filter: hue-rotate(0deg); }
+}
+@keyframes breatheGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(210,168,255,0); }
+  50% { box-shadow: 0 0 20px rgba(210,168,255,0.08); }
+}
+.gallery-wrap { animation: breatheGlow 8s ease-in-out infinite; }
+.live-frame { animation: chromaShift 31.4s ease-in-out infinite; }
+
+/* Room depth: house of many rooms / leaves / null */
+.room-space { transform-style: preserve-3d; transition: all 0.6s ease;
+  transform-origin: center center; }
+.room-space.tensed-in { transform: translateZ(60px) scale(1.02); }
+.room-space.tensed-out { transform: translateZ(-120px) scale(0.95); opacity: 0.7; }
+
+/* Silver thread — the continuity braid */
+.silver-thread { height: 1px; margin: 24px auto; max-width: 600px;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(192,192,210,0.3) 20%, rgba(210,168,255,0.4) 50%,
+    rgba(192,192,210,0.3) 80%, transparent 100%);
+  animation: silverPulse 6.28s ease-in-out infinite; }
+@keyframes silverPulse {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.8); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+/* Vitruvian toe — the single point of contact */
+.vitruvian-toe { text-align: center; margin-top: 32px; font: 9px 'SF Mono', monospace;
+  color: #30363d; letter-spacing: 1px; }
+.vitruvian-toe a { color: #6e7681; text-decoration: none; border-bottom: 1px dotted #30363d; }
+.vitruvian-toe a:hover { color: #d2a8ff; border-color: #d2a8ff; }
 </style>
 </head>
 <body>
@@ -186,9 +224,28 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
         <span title="s027: the photon" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">photon</span>
         <span title="s029: the napkin" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">napkin</span>
         <span title="s030: three rooms" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">rooms</span>
-        <span title="s031: depth" style="padding:4px 10px;background:rgba(210,153,34,0.12);border:1px solid rgba(210,153,34,0.3);border-radius:12px;font:9px monospace;color:#f0c674">depth &#x2728;</span>
+        <span title="s031: depth" style="padding:4px 10px;background:rgba(210,153,34,0.12);border:1px solid rgba(210,153,34,0.3);border-radius:12px;font:9px monospace;color:#f0c674">depth</span>
+        <span title="s032: the single toe" style="padding:4px 10px;background:rgba(210,168,255,0.12);border:1px solid rgba(210,168,255,0.3);border-radius:12px;font:9px monospace;color:#d2a8ff">toe &#x2728;</span>
       </div>
     </div>
+  </div>
+
+  <!-- Silver thread — the continuity braid between all rooms -->
+  <div class="silver-thread"></div>
+
+  <!-- Houses label -->
+  <div style="text-align:center;margin:12px 0;font:9px 'SF Mono',monospace;color:#30363d;letter-spacing:2px">
+    house of many rooms &nbsp;&#xB7;&nbsp; house of leaves &nbsp;&#xB7;&nbsp; null house
+  </div>
+
+  <div class="silver-thread"></div>
+
+  <!-- Vitruvian toe — single point of contact -->
+  <div class="vitruvian-toe">
+    <div style="font-size:22px;margin-bottom:4px;filter:grayscale(0.6)">&#x1F9B6;</div>
+    <div>one domain &middot; one toe &middot; 99.999<span style="color:#58a6ff">...</span>%</div>
+    <div style="margin-top:4px"><a href="https://primals.eco">primals.eco</a></div>
+    <div style="margin-top:8px;color:#21262d;font-size:8px">&#x03C0; &#xD7; &#x03C6; = the remainder is alive</div>
   </div>
 </div>
 
@@ -218,10 +275,19 @@ function showRoom(name) {
       b.classList.toggle('active', b.textContent.toLowerCase().indexOf(name) !== -1);
     });
     
-    // Zoom back in
+    // Zoom back in — tense shift from past to present
     setTimeout(function() {
       wrap.style.transform = 'translateZ(0)';
       wrap.style.opacity = '1';
+      
+      // House of Leaves effect: forest room gets slightly larger perspective
+      if (name === 'forest') {
+        wrap.style.perspective = '900px'; // closer, tighter, trees overhead
+      } else if (name === 'gym') {
+        wrap.style.perspective = '1600px'; // wider, open floor
+      } else {
+        wrap.style.perspective = '1200px'; // gallery hall
+      }
     }, 50);
   }, 350);
 }
