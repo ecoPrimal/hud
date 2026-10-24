@@ -7,7 +7,7 @@
 <meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #08060a; overflow: hidden; cursor: default; }
+body { background: #08060a; overflow-x: hidden; cursor: default; }
 #easel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
 #frame {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -53,11 +53,138 @@ body { background: #08060a; overflow: hidden; cursor: default; }
   position: fixed; top: 10px; left: 24px; z-index: 10;
   color: #30363d; font: 9px monospace;
 }
+
+/* === GALLERY LAYOUT � three rooms === */
+.gallery-wrap { max-width: 1100px; margin: 0 auto; padding: 56px 16px 40px; }
+.gallery-head { text-align: center; margin-bottom: 20px; }
+.gallery-head h1 { font-size: 18px; font-weight: 200; color: #e6edf3; font-family: 'SF Mono', monospace; }
+.gallery-head p { font-size: 11px; color: #6e7681; font-family: 'SF Mono', monospace; }
+
+.rooms-bar { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
+.rooms-bar button { background: none; border: 1px solid #21262d; color: #6e7681;
+  font: 11px 'SF Mono', monospace; padding: 5px 14px; border-radius: 14px; cursor: pointer; transition: all .2s; }
+.rooms-bar button:hover { border-color: #58a6ff; color: #58a6ff; }
+.rooms-bar button.active { border-color: #d2a8ff; color: #d2a8ff; background: rgba(210,168,255,0.08); }
+
+.live-row { display: flex; gap: 16px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin-bottom: 24px; }
+.live-frame { border: 10px solid #1a1410; border-image: linear-gradient(135deg,#2a1f14,#0f0c08,#2a1f14,#1a1410) 10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5); flex-shrink: 0; }
+.live-info { max-width: 300px; font: 11px/1.7 'SF Mono', monospace; color: #8b949e; }
+.live-info h2 { font-size: 13px; font-weight: 400; color: #d2a8ff; margin-bottom: 6px; }
+
+.past-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+.past-piece { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; overflow: hidden;
+  cursor: pointer; transition: all .2s; }
+.past-piece:hover { border-color: #d2a8ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(210,168,255,0.1); }
+.past-piece canvas, .past-piece img { width: 100%; height: 100px; object-fit: cover; display: block; background: #08060a; }
+.past-piece .plac { padding: 6px 8px; font: 10px 'SF Mono', monospace; color: #6e7681; }
+.past-piece .plac b { color: #c9d1d9; font-weight: 400; }
+
+.sculpture-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+.sculpt { width: 180px; height: 180px; background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: 10px 'SF Mono', monospace; color: #30363d; text-align: center; transition: all .2s; cursor: pointer; }
+.sculpt:hover { border-color: #3fb950; color: #3fb950; }
+.sculpt .sculpt-icon { font-size: 32px; margin-bottom: 6px; }
 </style>
 </head>
 <body>
-<canvas id="easel"></canvas>
-<div id="frame"></div>
+
+<!-- Gallery Layout -->
+<div class="gallery-wrap">
+  <div class="gallery-head">
+    <h1>??? the gallery</h1>
+    <p>the chipmunk makes art. the gallery grows. come in.</p>
+  </div>
+
+  <div class="rooms-bar">
+    <button class="active" onclick="showRoom('gallery')">??? gallery</button>
+    <button onclick="showRoom('gym')">?? gym</button>
+    <button onclick="showRoom('forest')">?? forest</button>
+  </div>
+
+  <!-- Live easel + info -->
+  <div class="live-row" id="room-gallery">
+    <div class="live-frame">
+      <canvas id="easel" width="400" height="400"></canvas>
+    </div>
+    <div class="live-info">
+      <h2>??? painting now</h2>
+      <div id="thought">
+        <span class="brush">??? picking up the brush...</span><br>
+        <span class="learn">learning perspective. stars first.</span>
+      </div>
+      <div id="gen-counter" style="margin-top:8px;color:#30363d;font-size:9px"></div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="controls">
+        <button onclick="togglePause()">pause</button>
+        <button onclick="sharePainting()">share</button>
+        <button onclick="cycleEasel()">easel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Previous paintings grid -->
+  <div id="past-paintings">
+    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">previous paintings:</div>
+    <div class="past-grid" id="gallery"></div>
+  </div>
+
+  <!-- Sculptures -->
+  <div style="margin-top:24px">
+    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">sculptures (petalTongue WASM ? WebGL):</div>
+    <div class="sculpture-grid">
+      <div class="sculpt" onclick="location='/nest.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span></div>
+      <div class="sculpt" onclick="location='/data/bingo-voxel.json'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span></div>
+      <div class="sculpt" onclick="location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span></div>
+      <div class="sculpt" onclick="location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span></div>
+    </div>
+  </div>
+
+  <!-- Gym room (hidden by default) -->
+  <div id="room-gym" style="display:none">
+    <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">?? the gym</h2>
+    <p style="font:11px 'SF Mono',monospace;color:#6e7681">where models train. benchmarks run. personal bests on the wall.</p></div>
+    <div class="past-grid">
+      <a href="/neutron/board.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">?</div><div class="plac"><b>backend board</b><br>all metrics</div></a>
+      <a href="/data/arena-benchmark.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>arena</b><br>8 models, 24 questions</div></a>
+      <a href="/data/arena-evolve.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>evolution</b><br>chain topology</div></a>
+      <a href="/data/arena-taxonomy.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>taxonomy</b><br>Kingdom Silica</div></a>
+      <a href="/tools.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>86 tools</b><br>the IDE is a HUD</div></a>
+      <a href="/data/feed-validation.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">?</div><div class="plac"><b>validation</b><br>5,057 tests</div></a>
+    </div>
+  </div>
+
+  <!-- Forest room (hidden by default) -->
+  <div id="room-forest" style="display:none">
+    <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">?? the forest</h2>
+    <p style="font:11px 'SF Mono',monospace;color:#6e7681">539 trees. each one a paper. hike the trail. find mushrooms.</p></div>
+    <div class="past-grid">
+      <a href="/trail.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>the trail</b><br>539 papers in order</div></a>
+      <a href="/water.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>the river</b><br>the gentle route</div></a>
+      <a href="https://sporeprint.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>spore prints</b><br>the full collection</div></a>
+      <a href="/nightbox.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>campfire</b><br>leave a message</div></a>
+      <a href="/data/feed-taxonomy.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>undergrowth</b><br>142 data feeds</div></a>
+      <a href="https://detroit.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>the clearing</b><br>341 entities. the investigation.</div></a>
+    </div>
+  </div>
+</div>
+
+<!-- Room switcher script -->
+<script>
+function showRoom(name) {
+  ['gallery','gym','forest'].forEach(function(r) {
+    var el = document.getElementById('room-' + r);
+    if (el) el.style.display = r === name ? '' : 'none';
+  });
+  document.getElementById('past-paintings').style.display = name === 'gallery' ? '' : 'none';
+  document.querySelectorAll('.sculpture-grid')[0].parentElement.style.display = name === 'gallery' ? '' : 'none';
+  document.querySelectorAll('.rooms-bar button').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.toLowerCase().indexOf(name) !== -1);
+  });
+}
+</script>
+
+<div id="frame" style="display:none"></div>
 
 <div id="nav">
   <a href="/">◈ hud</a> · <a href="/tools.html">⚙ tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">☀</a>
@@ -73,7 +200,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 <div id="gallery"></div>
 
 <div id="thought">
-  <span class="brush">🐿 picking up the brush...</span><br>
+  <span class="brush">🝿 picking up the brush...</span><br>
   <span class="learn">learning perspective. stars first.</span>
 </div>
 
@@ -90,7 +217,7 @@ var gaiaAngle = 0;
 var breathPhase = 0;
 var skyScore = null;
 
-// ═══ SOURDOUGH — the starter culture ═══
+// ╝╝╝ SOURDOUGH — the starter culture ╝╝╝
 var generation = 1;        // which painting are we on?
 var starters = [];         // array of {dataURL, gen, palette, learned}
 var MAX_STARTERS = 12;     // keep the last 12 paintings
@@ -118,18 +245,18 @@ var THOUGHTS = {
     { brush: '✦ i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
   ],
   nebula: [
-    { brush: '☁ gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
-    { brush: '☁ the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
-    { brush: '☁ purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
-    { brush: '☁ dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
+    { brush: '☝ gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
+    { brush: '☝ the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
+    { brush: '☝ purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
+    { brush: '☝ dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
   ],
   gaia: [
-    { brush: '🌍 a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D → 3D. the fold.' },
-    { brush: '🌍 the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
-    { brush: '🌍 blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
-    { brush: '🌍 clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
-    { brush: '🌍 city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
-    { brush: '🌍 the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
+    { brush: '🌝 a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D → 3D. the fold.' },
+    { brush: '🌝 the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
+    { brush: '🌝 blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
+    { brush: '🌝 clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
+    { brush: '🌝 city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
+    { brush: '🌝 the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
   ],
   aurora: [
     { brush: '🌌 green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
@@ -138,33 +265,32 @@ var THOUGHTS = {
     { brush: '🌌 the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
   ],
   breath: [
-    { brush: '🫁 the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
-    { brush: '🐿 stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
+    { brush: '🫝 the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
+    { brush: '🝿 stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
     { brush: '🎨 the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
   ],
   // New phases — studying previous work and fermenting
   study: [
-    { brush: '👁 looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
-    { brush: '🔍 the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
-    { brush: '🔍 gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
-    { brush: '🔍 the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
+    { brush: '👝 looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
+    { brush: '🔝 the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
+    { brush: '🔝 gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
+    { brush: '🔝 the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
     { brush: '💡 i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
   ],
   ferment: [
     { brush: '🫙 fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
     { brush: '🫙 the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
-    { brush: '🐿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
+    { brush: '🝿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
   ],
 };
 
 function resize() {
-  W = C.width = window.innerWidth;
-  H = C.height = window.innerHeight;
+  W = C.width = 400;
+  H = C.height = 400;
 }
-window.addEventListener('resize', resize);
 resize();
 
-// ═══ PALETTE — evolves with generation ═══
+// ╝╝╝ PALETTE — evolves with generation ╝╝╝
 function starColor() {
   // Later generations sample from color memory
   if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
@@ -191,7 +317,7 @@ function paintStar() {
   stars.push({ x: x, y: y, r: r, c: c, twinkle: twinkle, born: totalStrokes });
 
   ctx.save();
-  ctx.globalAlpha = (0.6 + Math.random() * 0.4) * (0.8 + learnedTraits.perspective * 0.4);
+  ctx.globalAlpha = (0.7 + Math.random() * 0.3) * (1.0 + learnedTraits.perspective * 0.4);
   ctx.fillStyle = c;
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -222,8 +348,8 @@ function paintNebula() {
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  grad.addColorStop(0, 'hsla(' + hue + ',' + sat + '%,' + Math.min(light, 25) + '%,0.08)');
-  grad.addColorStop(0.5, 'hsla(' + ((hue + 30) % 360) + ',' + (sat - 10) + '%,' + Math.min(light - 3, 20) + '%,0.04)');
+  grad.addColorStop(0, 'hsla(' + hue + ',' + sat + '%,' + Math.min(light, 25) + '%,0.18)');
+  grad.addColorStop(0.5, 'hsla(' + ((hue + 30) % 360) + ',' + (sat - 10) + '%,' + Math.min(light - 3, 20) + '%,0.10)');
   grad.addColorStop(1, 'transparent');
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -385,13 +511,13 @@ function paintBreath() {
   }
   ctx.restore();
 
-  // ═══ THE FERMENT — time to become starter? ═══
+  // ╝╝╝ THE FERMENT — time to become starter? ╝╝╝
   if (breathCount >= BREATH_LIMIT) {
     ferment();
   }
 }
 
-// ═══ FERMENT — this painting becomes the starter for the next ═══
+// ╝╝╝ FERMENT — this painting becomes the starter for the next ╝╝╝
 function ferment() {
   phase = 'study';
   stroke = 0;
@@ -430,7 +556,7 @@ function ferment() {
   renderGallery();
 }
 
-// ═══ STUDY — look at previous paintings ═══
+// ╝╝╝ STUDY — look at previous paintings ╝╝╝
 function paintStudy() {
   // Highlight which painting we're studying in the gallery
   var thumbs = document.querySelectorAll('#gallery .thumb');
@@ -446,7 +572,7 @@ function paintStudy() {
   ctx.restore();
 }
 
-// ═══ EVOLVE — update learned traits based on generation ═══
+// ╝╝╝ EVOLVE — update learned traits based on generation ╝╝╝
 function evolve() {
   var g = generation;
   learnedTraits.perspective = Math.min(1, g * 0.08);
@@ -456,7 +582,7 @@ function evolve() {
   learnedTraits.auroraIntensity = 1 + g * 0.1;
 }
 
-// ═══ NEW PAINTING — the sourdough rises ═══
+// ╝╝╝ NEW PAINTING — the sourdough rises ╝╝╝
 function beginNewPainting() {
   generation++;
   evolve();
@@ -494,7 +620,7 @@ function paintFerment() {
   ctx.restore();
 }
 
-// ═══ GALLERY — thumbnails of previous paintings ═══
+// ╝╝╝ GALLERY — thumbnails of previous paintings ╝╝╝
 function renderGallery() {
   var el = document.getElementById('gallery');
   el.innerHTML = '';
@@ -523,7 +649,7 @@ function updateGenCounter() {
   el.textContent = 'painting #' + generation + ' · easel ' + EASEL_SYMBOLS[currentEasel] + ' · ' + starters.length + ' in gallery · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
 }
 
-// ═══ THOUGHT BUBBLE ═══
+// ╝╝╝ THOUGHT BUBBLE ╝╝╝
 function updateThought() {
   var list = THOUGHTS[phase];
   if (!list || !list.length) return;
@@ -535,7 +661,7 @@ function updateThought() {
     '<br><span class="gen">painting #' + generation + ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
 }
 
-// ═══ PHASE MACHINE — with sourdough loop ═══
+// ╝╝╝ PHASE MACHINE — with sourdough loop ╝╝╝
 var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
 var STROKES_PER_PHASE = {
   stars: 100,     // fewer stars as perspective grows
@@ -588,7 +714,7 @@ function nextStroke() {
   updateThought();
 }
 
-// ═══ TEMPO ═══
+// ╝╝╝ TEMPO ╝╝╝
 function scheduleStroke() {
   if (paused) { setTimeout(scheduleStroke, 500); return; }
 
@@ -635,7 +761,7 @@ function listenForWeather() {
   }
 }
 
-// ═══ BOOT — the first stroke ═══
+// ╝╝╝ BOOT — the first stroke ╝╝╝
 resize();
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
@@ -649,7 +775,7 @@ ws.defer = true;
 ws.onload = listenForWeather;
 document.body.appendChild(ws);
 
-// ═══ SELF-CHEW FEED — the easel eats its own curd ═══
+// ╝╝╝ SELF-CHEW FEED — the easel eats its own curd ╝╝╝
 var selfChew = null;
 var poorTope = null;
 var kleinCards = null;
@@ -669,7 +795,7 @@ function loadMembraneData() {
 loadMembraneData();
 setInterval(loadMembraneData, 60000);
 
-// ═══ VOXEL OVERLAY — the bingo board as a ghost grid ═══
+// ╝╝╝ VOXEL OVERLAY — the bingo board as a ghost grid ╝╝╝
 function paintVoxelOverlay() {
   if (!selfChew || !selfChew.voxel) return;
   var vox = selfChew.voxel;
@@ -709,7 +835,7 @@ function paintVoxelOverlay() {
   ctx.restore();
 }
 
-// ═══ CHEMISTRY OVERLAY — poor tope molecules as floating symbols ═══
+// ╝╝╝ CHEMISTRY OVERLAY — poor tope molecules as floating symbols ╝╝╝
 function paintChemistryOverlay() {
   if (!eonShape || !eonShape.pool) return;
   ctx.save();
@@ -739,7 +865,7 @@ function paintChemistryOverlay() {
   ctx.restore();
 }
 
-// ═══ EASEL PERSPECTIVE LABEL — which constant are we painting from? ═══
+// ╝╝╝ EASEL PERSPECTIVE LABEL — which constant are we painting from? ╝╝╝
 var currentEasel = 'pi';
 var EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
 var EASEL_SYMBOLS = {pi:'π', phi:'φ', e:'e', sqrt2:'√2', ln2:'ln2'};
@@ -757,14 +883,14 @@ function paintEaselLabel() {
   ctx.restore();
 }
 
-// ═══ SOURDOUGH DIGEST — flavor as paint temperature ═══
+// ╝╝╝ SOURDOUGH DIGEST — flavor as paint temperature ╝╝╝
 function flavorToTemperature() {
   if (!selfChew || !selfChew.stomachs || !selfChew.stomachs.sourdough) return 1.0;
   var flavor = selfChew.stomachs.sourdough.flavor || 0;
   return Math.max(0.5, Math.min(2.0, flavor / 15.0));
 }
 
-// ═══ SHARE — save painting as prove braid entry ═══
+// ╝╝╝ SHARE — save painting as prove braid entry ╝╝╝
 function sharePainting() {
   var thumb = C.toDataURL('image/jpeg', 0.6);
   var entry = {
@@ -800,7 +926,7 @@ function sharePainting() {
   return entry;
 }
 
-// ═══ HYPERLOCAL PULL — visitors paint US from THEIR perspective ═══
+// ╝╝╝ HYPERLOCAL PULL — visitors paint US from THEIR perspective ╝╝╝
 // The Klein inversion: we paint outward (the easel). They paint us inward (their visit).
 // A visitor's journey through the membrane IS a painting of us from their angle.
 // Squirrel sees us. Chipmunk sees us. Artisans see us. Humans see us.
@@ -912,7 +1038,7 @@ function paintOutsideIn() {
   ctx.restore();
 }
 
-// ═══ BRAID OVERLAY — the connections between surfaces as faint lines ═══
+// ╝╝╝ BRAID OVERLAY — the connections between surfaces as faint lines ╝╝╝
 function paintBraidOverlay() {
   if (!nowFeed || !nowFeed.mesh) return;
   
@@ -945,7 +1071,7 @@ function paintBraidOverlay() {
   ctx.restore();
 }
 
-// ═══ THYMUS FLUSH — opsonize, pollinate, backscatter the color of reality ═══
+// ╝╝╝ THYMUS FLUSH — opsonize, pollinate, backscatter the color of reality ╝╝╝
 var thymusGate = null;
 var backscatterData = null;
 var triadData = null;
