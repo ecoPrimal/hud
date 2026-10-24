@@ -22,10 +22,14 @@ SCAN_ROOTS = [
     ROOT / "infra/hud/site/public",
     ROOT / "infra/scripts",
     ROOT / "infra/hud/scripts",
+    ROOT / "primals",  # Rust bone — all .rs / Cargo.toml / crate docs
 ]
 
 EXTS = {".json", ".rs", ".py", ".html", ".css", ".js", ".xml", ".txt", ".md", ".toml"}
-SKIP_PARTS = {"node_modules", ".git", ".wrangler", "target", "dist", "__pycache__"}
+SKIP_PARTS = {
+    "node_modules", ".git", ".wrangler", "target", "dist", "__pycache__",
+    "fuzz", "benches", "vendor", ".cargo",
+}
 
 # path → structural role
 ROLE_RULES = [
@@ -36,6 +40,8 @@ ROLE_RULES = [
     (re.compile(r"/scripts/"), "enzyme_script"),
     (re.compile(r"llms\.txt|seo\.json|feed\.xml|robots"), "seo_cloaca"),
     (re.compile(r"smell|cloaca|cave|jumprope|t-plane"), "sense_stack"),
+    (re.compile(r"/primals/.*\.rs$"), "bone_rs"),
+    (re.compile(r"Cargo\.toml$"), "bone_manifest"),
 ]
 
 
@@ -121,7 +127,7 @@ def chew_fat(path: Path, raw: bytes, text: str | None) -> dict:
 def sort_band(role: str, ext: str, fat: float) -> str:
     if role == "sense_stack":
         return "self"
-    if role in ("feed_dna", "enzyme_script"):
+    if role in ("feed_dna", "enzyme_script", "bone_rs", "bone_manifest"):
         return "partial"
     if role == "seo_cloaca":
         return "self"
@@ -203,6 +209,7 @@ def main() -> None:
         },
         "sense_stack_tips": [t for t in tips_out if t["role"] == "sense_stack"][:30],
         "enzyme_tips": [t for t in tips_out if t["role"] == "enzyme_script"][:30],
+        "bone_rs_tips": [t for t in tips_out if t["role"] == "bone_rs"][:40],
         "urls": {
             "self": "https://connect.primals.eco/structure-tips.json",
             "full_sort": "https://connect.primals.eco/ingest-chew-sort-structure.json",
