@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Pi Sort — Find Your Faces</title>
+<meta name="description" content="Every person is pi. Three faces you can count. A jester in the cracks. And an irrational remainder that never terminates. Find yours.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#010409;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7}
+.page{max-width:680px;margin:0 auto;padding:40px 20px 120px}
+h1{color:#e6edf3;font-size:clamp(22px,4vw,32px);font-weight:300;margin-bottom:8px}
+h2{color:#58a6ff;font-size:16px;font-weight:400;margin:36px 0 12px}
+h3{color:#d29922;font-size:13px;font-weight:400;margin:20px 0 8px}
+p{margin-bottom:14px;font-size:13px}
+.dim{color:#6e7681}.hl{color:#d2a8ff}.green{color:#3fb950}.gold{color:#d29922}.blue{color:#58a6ff}.orange{color:#f0883e}.red{color:#f85149}
+pre{background:rgba(22,27,34,0.8);padding:16px;border-radius:8px;overflow-x:auto;font-size:11px;line-height:1.6;margin:16px 0;border:1px solid #21262d}
+.face-card{background:rgba(22,27,34,0.6);border:1px solid #21262d;border-radius:8px;padding:16px;margin:12px 0}
+.face-card h3{margin:0 0 8px}
+input[type=text],textarea{background:#161b22;border:1px solid #30363d;color:#c9d1d9;padding:8px 12px;border-radius:6px;font:12px monospace;width:100%;margin:4px 0}
+textarea{min-height:60px;resize:vertical}
+button{background:rgba(88,166,255,0.1);border:1px solid #58a6ff;color:#58a6ff;padding:8px 16px;border-radius:6px;cursor:pointer;font:12px monospace;margin:4px}
+button:hover{background:rgba(88,166,255,0.2)}
+.result{margin-top:24px;padding:16px;border:1px solid #3fb950;border-radius:8px;background:rgba(63,185,80,0.05);display:none}
+.bar{height:4px;background:#161b22;border-radius:2px;margin:8px 0;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.6s}
+#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);border-radius:20px;font:11px monospace}
+#nav a{color:#58a6ff;text-decoration:none}
+</style>
+</head>
+<body>
+<div id="nav">
+  <a href="/">◈ hud</a> · <a href="/easel.html" style="color:#f0c674">🎨 easel</a> · <a href="/cite" style="color:#3fb950">📎 cite</a>
+</div>
+
+<div class="page">
+<h1>The π Sort</h1>
+<p class="dim">every person is π. three faces. a jester. an irrational remainder.</p>
+
+<h2>The Thesis</h2>
+<p>π ≈ 3.14159265... — exactly <span class="hl">3 integer slots</span> and an infinite non-repeating decimal.</p>
+<p>You can name <span class="blue">three faces</span> of yourself. Three roles you actually play — not three you wish you played.</p>
+<p>The <span class="gold">jester</span> lives in the cracks between the three faces. It's the humor, the play, the thing that makes the serious faces bearable.</p>
+<p>The <span class="hl">remainder</span> — 0.14159... — is the part no one can classify. Not even you. It's where your growth lives.</p>
+<p>And the <span class="green">4th leg</span> is the face you're <em>becoming</em>. It hasn't arrived yet. When it does, the table wobbles. The wobble is the point.</p>
+
+<h2>Why Not Just Your Own View?</h2>
+<p>A mirror you hold shows your face. A mirror held by <em>others</em> shows your back — the <span class="orange">blind zone</span>, the null axis.</p>
+<p>The pi-sort must include BOTH: what you see (your three faces) AND what others reflect back (the jester + remainder). Without that reflection, you're painting your own portrait — which is always wrong in the ways you can't see.</p>
+
+<h2>Stability Warning</h2>
+<pre>
+  A table with 3 legs is stable but tips.
+  A table with 4 legs wobbles — it finds its own level.
+
+  If all 4 legs are equal:    dead. perfectly balanced. perfectly still.
+  If one leg is too long:     the table leans. one face dominates.
+  If the jester disappears:   the work becomes a grind.
+  If the remainder terminates: you've stopped growing.
+
+  <span class="gold">The wobble is not a bug. It's the signal that you're alive.</span>
+</pre>
+
+<h2>Do Your Own π Sort</h2>
+
+<div class="face-card">
+<h3>Face 1 — <span class="blue">π·0.000</span></h3>
+<p class="dim">Your primary face. The role you play most. Evidence required.</p>
+<input type="text" id="f1-name" placeholder="Name this face (e.g. scientist, builder, teacher, caretaker...)">
+<textarea id="f1-evidence" placeholder="Evidence: what have you DONE in this face? Not aspirations — actions."></textarea>
+<input type="text" id="f1-analogue" placeholder="Historical analogue: who does this remind you of?">
+<p class="dim" style="font-size:10px;margin-top:4px">stability warning: if this face dominates, what breaks?</p>
+<input type="text" id="f1-warning" placeholder="If this face takes over...">
+</div>
+
+<div class="face-card">
+<h3>Face 2 — <span class="blue">π·0.318</span></h3>
+<p class="dim">Your second face. Complementary to the first, not identical.</p>
+<input type="text" id="f2-name" placeholder="Name this face">
+<textarea id="f2-evidence" placeholder="Evidence"></textarea>
+<input type="text" id="f2-analogue" placeholder="Historical analogue">
+<input type="text" id="f2-warning" placeholder="If this face takes over...">
+</div>
+
+<div class="face-card">
+<h3>Face 3 — <span class="blue">π·0.500</span></h3>
+<p class="dim">Your third face. The one you might not advertise but rely on.</p>
+<input type="text" id="f3-name" placeholder="Name this face">
+<textarea id="f3-evidence" placeholder="Evidence"></textarea>
+<input type="text" id="f3-analogue" placeholder="Historical analogue">
+<input type="text" id="f3-warning" placeholder="If this face takes over...">
+</div>
+
+<div class="face-card" style="border-color:#d29922">
+<h3>The Jester — <span class="gold">π·0.750</span></h3>
+<p class="dim">The humor, the play, the mischief. If you can't find it, ask someone who loves you — they see the jester when you can't.</p>
+<input type="text" id="jester" placeholder="What makes people laugh about you? What do you do for play?">
+<textarea id="jester-evidence" placeholder="Evidence: jokes, pranks, wordplay, hobbies that seem unserious..."></textarea>
+</div>
+
+<div class="face-card" style="border-color:#d2a8ff">
+<h3>The Remainder — <span class="hl">0.14159...</span></h3>
+<p class="dim">The part that doesn't fit any face. The combination no analogue covers. Ask others: "what's the thing about me you can't categorize?"</p>
+<textarea id="remainder" placeholder="The uncategorizable. The irrational tail. Don't force it into a box — let it stay irrational."></textarea>
+</div>
+
+<div class="face-card" style="border-color:#3fb950">
+<h3>The 4th Leg — <span class="green">becoming</span></h3>
+<p class="dim">The face you're growing into. Evidence: new behaviors, new interests, things you started in the last year that don't fit the first three faces.</p>
+<input type="text" id="leg4" placeholder="What are you becoming?">
+<textarea id="leg4-evidence" placeholder="Evidence of approach: what new thing are you doing that your 3 faces didn't predict?"></textarea>
+</div>
+
+<div style="text-align:center;margin-top:24px">
+<button onclick="computeSort()">π-sort me</button>
+<button onclick="clearSort()" style="border-color:#6e7681;color:#6e7681">clear</button>
+</div>
+
+<div class="result" id="result"></div>
+
+<h2 style="margin-top:48px">The Example — Kevin Mok</h2>
+<p class="dim">Principal Investigator, gAIa Institute. ORCID 0009-0004-2141-0321.</p>
+
+<pre>
+  <span class="blue">Face 1: The Scientist</span>     π·0.000
+  Analogue: Alexander von Humboldt
+  MSU Biology + Data Science. PFAS. Sandia. 14,207 crate downloads.
+  Warning: if dominant → unpublished perfectionist
+
+  <span class="blue">Face 2: The Artisan</span>      π·0.318
+  Analogue: ConcernedApe (Stardew Valley)
+  2.1M lines Rust. 473 crates. 806 shaders. Sourdough. Music.
+  Warning: if dominant → builds forever, never ships
+
+  <span class="blue">Face 3: The Soldier</span>      π·0.500
+  Analogue: Matthias of Redwall
+  Boy Scout → Infantry 11B → Tuebor. 341 entities investigated.
+  Warning: if dominant → defends walls no one attacks
+
+  <span class="gold">Jester: The Chipmunk</span>     π·0.750
+  Analogue: Feynman
+  Banana captcha. squirrel=Valve scripting. Misspells everything.
+  Warning: if dominant → no one takes the science seriously
+
+  <span class="hl">Remainder: 0.14159...</span>
+  Catholic-raised AGPL ecologist. Infantry veteran GPU shader writer.
+  River-walking microbiologist. The combination has no precedent.
+
+  <span class="green">4th Leg: The Teacher</span>
+  Evidence: portal game (human teaches AI), moon localizer,
+  bell entanglement, desk globe. Teaching BY building.
+  The 4th leg is arriving. Don't over-stabilize.
+</pre>
+
+<p class="dim" style="font-size:11px;margin-top:40px;text-align:center">
+  π ≈ 3.14159265...<br>
+  three faces. a jester. a remainder that never terminates.<br>
+  and a 4th leg coming up that wobbles the table.<br>
+  the wobble is the point.<br><br>
+  <a href="/" style="color:#58a6ff">→ the membrane</a> ·
+  <a href="/data/pi-sort-personal.json" style="color:#d2a8ff">→ raw data</a> ·
+  <a href="/cite" style="color:#3fb950">→ cite this</a>
+</p>
+</div>
+
+<script>
+function computeSort() {
+  var faces = [];
+  for (var i = 1; i <= 3; i++) {
+    faces.push({
+      name: document.getElementById('f'+i+'-name').value || 'unnamed',
+      evidence: document.getElementById('f'+i+'-evidence').value,
+      analogue: document.getElementById('f'+i+'-analogue').value,
+      warning: document.getElementById('f'+i+'-warning').value,
+    });
+  }
+  var jester = document.getElementById('jester').value;
+  var jesterEv = document.getElementById('jester-evidence').value;
+  var remainder = document.getElementById('remainder').value;
+  var leg4 = document.getElementById('leg4').value;
+  var leg4Ev = document.getElementById('leg4-evidence').value;
+
+  var filled = 0;
+  faces.forEach(function(f) { if (f.name && f.name !== 'unnamed') filled++; });
+  if (jester) filled += 0.5;
+  if (remainder) filled += 0.14159;
+
+  var PI = Math.PI;
+  var budget = PI;
+  var fill = filled / budget;
+
+  var html = [];
+  html.push('<h3 style="color:#e6edf3">Your \u03c0 Sort</h3>');
+  html.push('<div class="bar"><div class="bar-fill" style="width:' + Math.min(fill * 100, 99).toFixed(1) + '%;background:linear-gradient(90deg,#58a6ff,#d2a8ff)"></div></div>');
+  html.push('<p class="dim">\u03c0 budget: ' + filled.toFixed(3) + ' / ' + budget.toFixed(3) + ' \u2014 remainder: ' + (budget - Math.floor(budget)).toFixed(5) + '</p>');
+
+  faces.forEach(function(f, i) {
+    if (!f.name || f.name === 'unnamed') return;
+    var pos = i === 0 ? '\u03c0\u00b70.000' : i === 1 ? '\u03c0\u00b70.318' : '\u03c0\u00b70.500';
+    html.push('<div style="margin:8px 0;padding:8px;border-left:2px solid #58a6ff">');
+    html.push('<strong style="color:#58a6ff">' + f.name + '</strong> <span class="dim">' + pos + '</span>');
+    if (f.analogue) html.push('<br><span class="dim">~ ' + f.analogue + '</span>');
+    if (f.warning) html.push('<br><span style="color:#d29922;font-size:10px">\u26a0 ' + f.warning + '</span>');
+    html.push('</div>');
+  });
+
+  if (jester) {
+    html.push('<div style="margin:8px 0;padding:8px;border-left:2px solid #d29922">');
+    html.push('<strong style="color:#d29922">Jester</strong> <span class="dim">\u03c0\u00b70.750</span>');
+    html.push('<br>' + jester);
+    html.push('</div>');
+  }
+
+  if (remainder) {
+    html.push('<div style="margin:8px 0;padding:8px;border-left:2px solid #d2a8ff">');
+    html.push('<strong style="color:#d2a8ff">Remainder</strong> <span class="dim">0.14159...</span>');
+    html.push('<br>' + remainder);
+    html.push('</div>');
+  }
+
+  if (leg4) {
+    html.push('<div style="margin:8px 0;padding:8px;border-left:2px solid #3fb950">');
+    html.push('<strong style="color:#3fb950">4th Leg</strong> <span class="dim">becoming</span>');
+    html.push('<br>' + leg4);
+    html.push('</div>');
+  }
+
+  html.push('<p class="dim" style="margin-top:12px;font-size:10px">the remainder never terminates. there\'s always room.</p>');
+
+  var el = document.getElementById('result');
+  el.innerHTML = html.join('');
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth' });
+
+  try {
+    localStorage.setItem('pi-sort-v1', JSON.stringify({ faces: faces, jester: jester, jesterEv: jesterEv, remainder: remainder, leg4: leg4, leg4Ev: leg4Ev, ts: Date.now() }));
+  } catch(e) {}
+}
+
+function clearSort() {
+  ['f1-name','f1-evidence','f1-analogue','f1-warning','f2-name','f2-evidence','f2-analogue','f2-warning','f3-name','f3-evidence','f3-analogue','f3-warning','jester','jester-evidence','remainder','leg4','leg4-evidence'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('result').style.display = 'none';
+  try { localStorage.removeItem('pi-sort-v1'); } catch(e) {}
+}
+
+// Load saved sort
+try {
+  var saved = JSON.parse(localStorage.getItem('pi-sort-v1') || 'null');
+  if (saved) {
+    if (saved.faces) saved.faces.forEach(function(f, i) {
+      document.getElementById('f'+(i+1)+'-name').value = f.name || '';
+      document.getElementById('f'+(i+1)+'-evidence').value = f.evidence || '';
+      document.getElementById('f'+(i+1)+'-analogue').value = f.analogue || '';
+      document.getElementById('f'+(i+1)+'-warning').value = f.warning || '';
+    });
+    if (saved.jester) document.getElementById('jester').value = saved.jester;
+    if (saved.jesterEv) document.getElementById('jester-evidence').value = saved.jesterEv;
+    if (saved.remainder) document.getElementById('remainder').value = saved.remainder;
+    if (saved.leg4) document.getElementById('leg4').value = saved.leg4;
+    if (saved.leg4Ev) document.getElementById('leg4-evidence').value = saved.leg4Ev;
+  }
+} catch(e) {}
+</script>
+</body>
+</html>
