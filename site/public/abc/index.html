@@ -79,6 +79,15 @@
       var title = s.story || s.path || '';
       if (title) out.push(item('campfire', title.slice(0, 140), '/data/berry-campfire.json'));
     });
+    return fetch('/data/helix-catalog.json');
+  }).then(function(r){ return r.json(); }).then(function(h){
+    var pairs = (h && h.pairs) || [];
+    pairs.forEach(function(p){
+      var n = p.n != null ? p.n : 0;
+      if (p.js_live) n = n + ' + ' + p.js_live + ' js';
+      if (p.js_fossil) n = n + ' + ' + p.js_fossil + ' fossil';
+      out.push(item('helix bp' + p.bp, n + ' · ' + (p.A || ''), '/data/helix-catalog.json'));
+    });
     paint(out);
   }).catch(function(){ paint(out.length ? out : [item('pore', 'could not inhale. the page is still here.', null)]); });
 })();
