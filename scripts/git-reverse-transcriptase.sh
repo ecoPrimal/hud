@@ -134,6 +134,12 @@ transcarnate() {
   if ((${#paths[@]})); then
     scp -o ConnectTimeout=10 "${paths[@]}" golgi:/opt/connect/ || log "  scp warn"
     log "  transcarnated ${#paths[@]} files → /opt/connect/"
+  # pull fountain inside — keep /opt/hud/public fresh (wrangler bypass artery)
+  if command -v rsync >/dev/null; then
+    rsync -az --delete --exclude ".wrangler" "$HUD/site/public/" golgi:/opt/hud/public/ 2>/dev/null \
+      && log "  transcarnated full hud public → /opt/hud/public (inside fountain)" \
+      || log "  hud rsync soft-fail"
+  fi
   fi
 }
 
