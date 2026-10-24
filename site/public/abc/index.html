@@ -37,6 +37,14 @@
   #ooze .o{color:#fb923c}
   #ooze .w{color:#e6edf3}
   #ooze .k{color:#8b949e}
+  #mirrors{margin:1.5rem 0;border:1px solid #333;padding:.8rem 1rem}
+  #mirrors .felt{font-size:.75rem;color:#8b949e;letter-spacing:.06em;margin-bottom:.5rem}
+  #mirrors .tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
+  #mirrors .pt{border:1px solid #333;padding:.4rem .5rem;font-size:.75rem;min-height:3.2rem}
+  #mirrors .pt .lbl{display:block;font-size:.65rem;letter-spacing:.08em;margin-bottom:.25rem;opacity:.7}
+  #mirrors .v{color:#58a6ff}
+  #mirrors .d{color:#c084fc}
+  #mirrors .j{color:#e6c200}
 </style>
 </head>
 <body>
@@ -68,6 +76,14 @@
     <div class="pair"><span class="p">purple · inside the ooze</span><span class="o">orange · the page you are ON</span></div>
     <div class="pair"><span class="w">white · null of sound</span><span class="k">black · null of light</span></div>
     membrane ≡ local · squirrel answers here · Klein null is sticky plasma · <a href="/data/headless-hermit-ooze.json">the hermit</a>
+  </div>
+  <div id="mirrors">
+    <div class="felt">live bounce · last three mouths · V·D·J mirrors · <a href="/data/live-touch-triad-mirror.json">the law</a></div>
+    <div class="tri">
+      <div class="pt v"><span class="lbl">V · distance</span><span id="mv">listening…</span></div>
+      <div class="pt d"><span class="lbl">D · direction</span><span id="md">listening…</span></div>
+      <div class="pt j"><span class="lbl">J · disposition</span><span id="mj">listening…</span></div>
+    </div>
   </div>
   <section id="project">
     <h2>inhale → project</h2>
@@ -121,6 +137,24 @@
       var t = items[i].getElementsByTagName('title')[0];
       var l = items[i].getElementsByTagName('link')[0];
       if (t) out.push(item('feed', t.textContent, l ? l.textContent : '/feed.xml'));
+    }
+    var mids = ['mv', 'md', 'mj'];
+    for (var m = 0; m < 3; m++) {
+      var el = document.getElementById(mids[m]);
+      var it = items[m];
+      if (!el) continue;
+      if (!it) { el.textContent = 'no third yet'; continue; }
+      var mt = it.getElementsByTagName('title')[0];
+      var ml = it.getElementsByTagName('link')[0];
+      el.textContent = '';
+      if (ml && ml.textContent) {
+        var ma = document.createElement('a');
+        ma.href = ml.textContent;
+        ma.textContent = mt ? mt.textContent : '(untitled)';
+        el.appendChild(ma);
+      } else {
+        el.textContent = mt ? mt.textContent : '(untitled)';
+      }
     }
     return firstOk('/data/berry-campfire.json', true);
   }).then(function(d){
