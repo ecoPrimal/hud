@@ -15,6 +15,7 @@
     // CORE (always visible — the spine)
     {glyph:'◈', name:'hud',        href:'/',                hot:1.0,  tier:'core'},
     {glyph:'🌊', name:'water',      href:'/water.html',      hot:0.9,  tier:'core'},
+    {glyph:'👂', name:'ears',       href:'/#ear-organ',      hot:0.88, tier:'core'},
     {glyph:'π',  name:'pi-sort',    href:'/pi-sort.html',    hot:0.85, tier:'core'},
     {glyph:'📎', name:'cite',       href:'/cite',            hot:0.8,  tier:'core'},
     {glyph:'🥾', name:'trail',      href:'/trail.html',      hot:0.75, tier:'core'},
