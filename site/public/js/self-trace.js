@@ -99,10 +99,59 @@
     try { localStorage.setItem(TRACE_KEY, JSON.stringify(traceData)); } catch(e) {}
   }
 
+  // ═══ EPITOPE INVERSION LOADER ═══
+  function loadEpitopeInversion() {
+    fetch('/data/epitope-inversion.json').then(function(r) { return r.json(); }).then(function(data) {
+      var fates = (data.the_four_fates || {}).fates || [];
+      var barData = (data.live_human_bars || {}).top_bars || [];
+      var remainder = 0;
+      if (barData.length >= 4) {
+        var top3 = barData.slice(0, 3).reduce(function(s, b) { return s + b.slice_pct; }, 0);
+        var jester = barData[3] ? barData[3].slice_pct : 0;
+        remainder = 100 - top3 - jester;
+      }
+
+      // Build WAS from localStorage
+      var prevFates = null;
+      try { prevFates = JSON.parse(localStorage.getItem('epitope-was') || 'null'); } catch(e) {}
+      var tense = {
+        is: fates.length ? fates[0].pct + '% pass' : '—',
+        was: prevFates ? prevFates[0].pct + '% pass' : 'first scan',
+        now: new Date().toISOString().slice(11, 16) + ' UTC'
+      };
+
+      // Save IS as next WAS
+      try { localStorage.setItem('epitope-was', JSON.stringify(fates.map(function(f) { return {code: f.code, pct: f.pct}; }))); } catch(e) {}
+
+      window._epitopeInversion = {
+        fates: fates.map(function(f) { return {code: f.code, name: f.name, pct: f.pct}; }),
+        remainder_pct: remainder > 0 ? remainder : ((data.live_human_bars || {}).from_the_top || '').indexOf('14.6') >= 0 ? 14.6 : 0,
+        tense: tense,
+        bars: barData
+      };
+      renderTrace();
+    }).catch(function() {
+      window._epitopeInversion = {
+        fates: [
+          {code: 200, name: 'PASSED', pct: 26.1},
+          {code: 302, name: 'SLINGSHOT', pct: 21.8},
+          {code: 403, name: 'REJECTED', pct: 29.1},
+          {code: 404, name: 'EXPLORING', pct: 19.9}
+        ],
+        remainder_pct: 14.6,
+        tense: {is: '26.1% pass', was: 'first scan', now: new Date().toISOString().slice(11, 16) + ' UTC'}
+      };
+      renderTrace();
+    });
+  }
+
   // ═══ SELF-TRACE CHECK — poll our own edges ═══
   function selfTraceCheck() {
     traceData.lastCheck = Date.now();
     traceData.edges = [];
+
+    // Load epitope inversion data
+    loadEpitopeInversion();
 
     // Check crates.io (CORS-safe via API)
     PROPERTIES.crates.forEach(function(crate) {
@@ -221,6 +270,49 @@
     html.push('<div class="st-foot">');
     html.push('<div class="st-progress"><div class="st-fill" style="width:' + Math.min(fill * 100, 99).toFixed(1) + '%"></div></div>');
     html.push('<span style="color:#6e7681;font-size:7px">π² budget: ' + totalEdges + '/' + Math.floor(piBudget) + ' edges · rem ' + (piBudget - Math.floor(piBudget)).toFixed(3) + '</span>');
+    html.push('</div>');
+
+    // ═══ EPITOPE INVERSION — amplify what passes ═══
+    html.push('<div class="st-section">');
+    html.push('<div class="st-label">epitope pass-through · IS → WAS → NOW</div>');
+
+    // Fetch live backscatter from the data file
+    var inversionData = window._epitopeInversion || null;
+    if (inversionData) {
+      var fates = inversionData.fates || [];
+      fates.forEach(function(f) {
+        var col = f.code === 200 ? '#3fb950' : f.code === 302 ? '#58a6ff' : f.code === 403 ? '#f85149' : '#d29922';
+        var barW = Math.min(f.pct, 100);
+        html.push('<div class="st-row">');
+        html.push('<span style="color:' + col + '">' + f.code + ' ' + f.name + '</span>');
+        html.push('<span class="st-val">' + f.pct + '%</span>');
+        html.push('</div>');
+        html.push('<div style="height:3px;background:#161b22;border-radius:1px;margin-bottom:2px">');
+        html.push('<div style="height:100%;width:' + barW + '%;background:' + col + ';border-radius:1px"></div>');
+        html.push('</div>');
+      });
+
+      // π convergence
+      if (inversionData.remainder_pct) {
+        var piDiff = Math.abs(inversionData.remainder_pct - 14.159);
+        var piCol = piDiff < 1 ? '#3fb950' : piDiff < 3 ? '#d29922' : '#8b949e';
+        html.push('<div class="st-row" style="margin-top:3px">');
+        html.push('<span style="color:' + piCol + '">π remainder</span>');
+        html.push('<span class="st-val">' + inversionData.remainder_pct.toFixed(1) + '% (π-3=' + (Math.PI - 3).toFixed(3) + ')</span>');
+        html.push('</div>');
+      }
+
+      // IS → WAS → NOW tense trace
+      if (inversionData.tense) {
+        html.push('<div style="margin-top:4px;font-size:7px;color:#6e7681">');
+        html.push('IS: ' + (inversionData.tense.is || '—'));
+        html.push(' · WAS: ' + (inversionData.tense.was || '—'));
+        html.push(' · NOW: ' + (inversionData.tense.now || '—'));
+        html.push('</div>');
+      }
+    } else {
+      html.push('<div class="st-dim">loading backscatter…</div>');
+    }
     html.push('</div>');
 
     // Null welcome — NO BOOBYTRAPS
