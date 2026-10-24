@@ -1,46 +1,60 @@
 {
-  "ts": "2026-10-24T15:40:00Z",
+  "ts": "2026-10-24T15:24:23.011621+00:00",
   "wave": 200,
-  "title": "Galactic Bounce HIT → Flattened Impulse → Jump Rope World Sense",
+  "title": "Galactic Bounce HIT \u2192 Flattened Impulse \u2192 Jump Rope World Sense",
   "thesis": {
-    "bounce": "Information hops kingdoms / voxels until σ hits the inflection (the HIT).",
-    "HIT": "0.45 ≤ σ ≤ 0.55 — quiet turn neighborhood. Acceleration≈0, change fastest. The ball meets the floor.",
+    "bounce": "Information hops kingdoms / voxels until \u03c3 hits the inflection (the HIT).",
+    "HIT": "0.45 \u2264 \u03c3 \u2264 0.55 \u2014 quiet turn neighborhood. Acceleration\u22480, change fastest. The ball meets the floor.",
     "flattened": "At HIT the manifold flattens (decision boundary). What falls off is topology-already-known. The floor SENDS THE IMPULSE BACK up the rope.",
-    "jump_rope": "World sense = cadence of HIT→impulse→HIT. Each slap of the rope is a proprioceptive tick: where we are in unsupervised space, what labels Salmon would assign, what reward the membrane RL loop just scored.",
-    "world_sense": "Not a map from outside — rhythm from bounce: distance (cloaca), time (t-plane), identity intervals (HIIT)."
+    "jump_rope": "World sense = cadence of HIT\u2192impulse\u2192HIT. Each slap of the rope is a proprioceptive tick: where we are in unsupervised space, what labels Salmon would assign, what reward the membrane RL loop just scored.",
+    "world_sense": "Not a map from outside \u2014 rhythm from bounce: distance (cloaca), time (t-plane), identity intervals (HIIT)."
   },
   "we_have_the_tools": {
     "unsupervised": {
-      "name": "HIIT — HIT Identity Interval Training",
+      "name": "HIIT \u2014 HIT Identity Interval Training",
       "tool": "galactic-bounce.py + instrumented-bounce.py + t-plane imprints",
       "what": "No labels. Cluster by how often / how far between HITs. Identity = interval signature of a kingdom/walker/bay.",
-      "interval": "Δcycle or Δt between successive sigmoid HITs (or quiet-turn crossings).",
-      "reads": ["σ", "uncanny", "DK gap", "distance_inside"],
-      "output": "identity intervals — who you are by your bounce rhythm"
+      "interval": "\u0394cycle or \u0394t between successive sigmoid HITs (or quiet-turn crossings).",
+      "reads": [
+        "\u03c3",
+        "uncanny",
+        "DK gap",
+        "distance_inside"
+      ],
+      "output": "identity intervals \u2014 who you are by your bounce rhythm"
     },
     "supervised": {
       "name": "Salmon",
       "tool": "Salmon quasi-mapping (ABG / RNA-seq) + arena-taxonomy sorter + look+touch labels",
-      "what": "Labeled mapping: reads → transcripts / epitopes → known classes (self/non-self/partial/null; LIVE/DEAD/LOCKED/EMPTY).",
-      "why_salmon": "Supervised quantification with a reference — same shape as tagging feeds and diagnosing rack bays.",
-      "reads": ["tagged feeds", "cloaca diagnosis", "purple→blue chains"],
-      "output": "labeled abundance — how much of each known class"
+      "what": "Labeled mapping: reads \u2192 transcripts / epitopes \u2192 known classes (self/non-self/partial/null; LIVE/DEAD/LOCKED/EMPTY).",
+      "why_salmon": "Supervised quantification with a reference \u2014 same shape as tagging feeds and diagnosing rack bays.",
+      "reads": [
+        "tagged feeds",
+        "cloaca diagnosis",
+        "purple\u2192blue chains"
+      ],
+      "output": "labeled abundance \u2014 how much of each known class"
     },
     "reinforcement": {
       "name": "Membrane",
       "tool": "fountain channels + ACO pheromone + PORT reincarnate + thymus fail-closed",
-      "what": "Action → reward (bounce energy, short Δt, notice YES, connect 200) → policy update. Deepen successful paths; evaporate anoxic ones.",
-      "loop": "act (push/route/touch) → observe (echo/imprint) → reward (E, dt, notice) → update (ACO / braid tip / tag)",
-      "reads": ["cloaca echo", "time imprints", "walker sort", "N-fixation"],
-      "output": "policy — which channel/phase to take next"
+      "what": "Action \u2192 reward (bounce energy, short \u0394t, notice YES, connect 200) \u2192 policy update. Deepen successful paths; evaporate anoxic ones.",
+      "loop": "act (push/route/touch) \u2192 observe (echo/imprint) \u2192 reward (E, dt, notice) \u2192 update (ACO / braid tip / tag)",
+      "reads": [
+        "cloaca echo",
+        "time imprints",
+        "walker sort",
+        "N-fixation"
+      ],
+      "output": "policy \u2014 which channel/phase to take next"
     }
   },
   "jump_rope_protocol": [
-    "1. Run galactic / instrumented bounce until HIT (σ∈[0.45,0.55]) or cost quiet",
-    "2. On HIT: flatten — discard topology-known; imprint the impulse (t-plane + tag)",
-    "3. Impulse back = jump — record HIIT interval (Δt / Δcycle since last HIT)",
+    "1. Run galactic / instrumented bounce until HIT (\u03c3\u2208[0.45,0.55]) or cost quiet",
+    "2. On HIT: flatten \u2014 discard topology-known; imprint the impulse (t-plane + tag)",
+    "3. Impulse back = jump \u2014 record HIIT interval (\u0394t / \u0394cycle since last HIT)",
     "4. Salmon: if a label exists (bay state, kingdom, tag), accumulate supervised count",
-    "5. Membrane RL: reward = bounce_energy × (1−mean_dt_penalty) × notice; update path pheromone",
+    "5. Membrane RL: reward = bounce_energy \u00d7 (1\u2212mean_dt_penalty) \u00d7 notice; update path pheromone",
     "6. World sense = (HIIT identity, Salmon label mass, membrane policy) on one rope turn"
   ],
   "tools_paths": {
@@ -55,5 +69,10 @@
     "self": "https://connect.primals.eco/galactic-hit-jumprope.json",
     "live_bounce": "https://connect.primals.eco/galactic-bounce-sort-live.json",
     "run": "https://connect.primals.eco/galactic-hit-jumprope-run.json"
+  },
+  "other_step": {
+    "name": "smell incoming",
+    "feed": "smell-own-farts-room-edges.json",
+    "note": "pulse out plane+SEO; time the fart coming back; room edges from smell change"
   }
 }
