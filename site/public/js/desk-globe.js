@@ -38,6 +38,11 @@
     { name: 'easel',       lat: 35.7, lon: 139.7,   icon: '🎨', color: '#f0c674', face: 'inside',  link: '/easel.html' },
     { name: 'weather',     lat: 64.1, lon: -21.9,   icon: '☀',  color: '#ffe135', face: 'both',    link: '/weather.html' },
     { name: 'pi-sort',     lat: 48.9, lon: 2.4,     icon: 'π',  color: '#d2a8ff', face: 'outside', link: '/pi-sort.html' },
+    { name: 'grid-A1',     lat: 42.7, lon: -84.5,   icon: 'A1', color: '#3fb950', face: 'outside', link: '/data/grid-walk.json' },
+    { name: 'grid-B1',     lat: 52.5, lon: 13.4,    icon: 'B1', color: '#f0883e', face: 'outside', link: 'https://crates.io/users/ecoPrimal' },
+    { name: 'grid-B2',     lat: 46.2, lon: 6.1,     icon: 'B2', color: '#58a6ff', face: 'outside', link: 'https://zenodo.org/records/23600720' },
+    { name: 'grid-B3',     lat: 37.8, lon: -122.4,  icon: 'B3', color: '#8b949e', face: 'outside', link: 'https://github.com/ecoPrimals/songBird' },
+    { name: 'grid-A2',     lat: 52.4, lon: 4.9,     icon: 'A2', color: '#d29922', face: 'inside',  link: '/nest.html' },
   ];
 
   // ═══ ECLIPSE DETECTION ═══
