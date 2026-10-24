@@ -195,6 +195,7 @@
   // === SORT GAME ENGINE ===
   function startSortGame(arch) {
     score = 0; lives = 3; gameActive = true;
+    gameArea._sortLog = []; // track player's classifications for taxonomy
     var items = arch.items.slice().sort(function() { return Math.random() - 0.5; });
     var itemIdx = 0;
 
@@ -210,6 +211,9 @@
       var choice = map[e.key.toLowerCase()];
       if (!choice) return;
       e.preventDefault();
+
+      // Log the player's classification into the taxonomy
+      gameArea._sortLog.push(choice);
 
       if (choice === items[itemIdx].answer) {
         score += 5;
@@ -567,5 +571,128 @@
     addBtn();
   }
 
-  window._arena = { toggle: toggle, archetypes: ARCHETYPES };
+  // === FEED BACK INTO THE ORGANISM ===
+  // Arena results → taxonomy tree → campfire heat → gyro state
+  var arenaLog = [];
+  try { arenaLog = JSON.parse(localStorage.getItem('arena-log') || '[]'); } catch(e) {}
+
+  function feedBack(arch, finalScore) {
+    var entry = {
+      ts: Date.now(),
+      archetype: arch.id,
+      genre: arch.genre,
+      score: finalScore,
+      sortCounts: { self: 0, 'non-self': 0, partial: 0, null: 0 }
+    };
+
+    // If sorter game, count the player's actual classifications
+    if (arch.id === 'sorter' && gameArea._sortLog) {
+      gameArea._sortLog.forEach(function(s) { entry.sortCounts[s]++; });
+    }
+
+    arenaLog.push(entry);
+    if (arenaLog.length > 200) arenaLog = arenaLog.slice(-200);
+    try { localStorage.setItem('arena-log', JSON.stringify(arenaLog)); } catch(e) {}
+
+    // 1. Feed sort counts into the membrane's unified_sort
+    if (window._chipmunkCore && window._chipmunkCore.injectSort) {
+      window._chipmunkCore.injectSort(entry.sortCounts);
+    }
+
+    // 2. Generate campfire heat from gameplay
+    var heat = Math.min(1.0, finalScore / 50);
+    var storyId = 's038';
+    if (window._campfire && window._campfire.addHeat) {
+      window._campfire.addHeat(storyId, heat);
+    }
+
+    // 3. Shift gyro state based on genre (the game MOVES the organism)
+    if (window._gyroState) {
+      var gs = window._gyroState;
+      // Educational games push toward surface (close examination)
+      // Horror pushes toward depth (darkness)
+      // Speed pushes RPM up
+      // Arguments push toward cosmic (big picture)
+      if (arch.genre === 'educational' || arch.genre === 'typing') {
+        if (typeof window._gearFlash === 'function') window._gearFlash();
+      }
+    }
+
+    // 4. Write to readout if available
+    var readout = document.querySelector('.readout');
+    if (readout) {
+      var div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = '<div class="who chipmunk">ARENA</div>' +
+        '<div class="msg">' + arch.icon + ' ' + arch.name + ' · ' +
+        '<span class="num">' + finalScore + '</span> pts · ' +
+        '<span class="dim">' + arch.genre + '</span></div>';
+      readout.insertBefore(div, readout.firstChild);
+    }
+  }
+
+  // Patch endGame to call feedBack
+  var _origEndGame = endGame;
+  endGame = function(arch) {
+    feedBack(arch, score);
+    _origEndGame(arch);
+  };
+
+  // === TAXONOMY TREE — the self-sort series ===
+  // Builds a visual tree from arena history showing classification patterns
+  function buildTaxonomyTree() {
+    var totals = { self: 0, 'non-self': 0, partial: 0, null: 0 };
+    var genreTotals = {};
+    var seriesData = [];
+
+    arenaLog.forEach(function(entry) {
+      Object.keys(entry.sortCounts).forEach(function(k) {
+        totals[k] = (totals[k] || 0) + entry.sortCounts[k];
+      });
+      if (!genreTotals[entry.genre]) genreTotals[entry.genre] = { plays: 0, totalScore: 0 };
+      genreTotals[entry.genre].plays++;
+      genreTotals[entry.genre].totalScore += entry.score;
+      seriesData.push({ ts: entry.ts, score: entry.score, genre: entry.genre });
+    });
+
+    return {
+      sort_taxonomy: totals,
+      genre_tree: genreTotals,
+      series: seriesData,
+      total_games: arenaLog.length,
+      total_score: arenaLog.reduce(function(a, b) { return a + b.score; }, 0)
+    };
+  }
+
+  // Expose the taxonomy tree
+  window._arena = {
+    toggle: toggle,
+    archetypes: ARCHETYPES,
+    taxonomy: buildTaxonomyTree,
+    log: function() { return arenaLog; }
+  };
+
+  // === FIRE: campfire story for the arena ===
+  // The arena generates story s038: "the archetypes fight"
+  var ARENA_STORY = {
+    id: 's038',
+    title: 'the archetypes fight',
+    body: 'the organism opened an arena inside itself. not to destroy — to learn. ' +
+      'the scribe dictated glyphs and the human typed. the viper hissed radiation words from the dark. ' +
+      'the cartographer argued topology. the hare leaped past. the pathfinder found the cheapest way. ' +
+      'the sorter classified: self, non-self, partial, null. every game fed the taxonomy tree. ' +
+      'every score became heat. every classification trained the membrane. ' +
+      'the archetypes fought not because they were enemies — but because THAT is how immune systems learn. ' +
+      'challenge is the input. learning is the output. the fire between them is the game.',
+    heat: 0.9
+  };
+
+  // Inject story into campfire data if accessible
+  try {
+    var stories = JSON.parse(localStorage.getItem('campfire-stories') || '[]');
+    if (!stories.find(function(s) { return s.id === 's038'; })) {
+      stories.push(ARENA_STORY);
+      localStorage.setItem('campfire-stories', JSON.stringify(stories));
+    }
+  } catch(e) {}
 })();
