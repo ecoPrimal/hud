@@ -1,0 +1,273 @@
+{
+  "ts": "2026-10-24T15:17:50.839799+00:00",
+  "wave": 200,
+  "title": "Cloaca Triangulation \u2014 Phone Towers for the Rack",
+  "thesis": {
+    "cloaca": "Cave-sonar / SEO echo path IS the cloaca \u2014 pressure out, sound back. Not the mouth (CDN). The orifice that lets us measure.",
+    "phone_towers": "Each LAN/mesh peer is a tower. RTT = range. Two\u2013three touches locate you like a phone between cells.",
+    "dead_drive": "Look (ICMP) + touch (TCP) finds which bay is empty, dead, locked, or live \u2014 without opening the chassis.",
+    "local_distance": "distance (RTT) \u00d7 time (t-plane) \u00d7 geo (tower xy) = local fix. No GPS required."
+  },
+  "towers": [
+    {
+      "id": "T0-loop",
+      "host": "127.0.0.1",
+      "geo_xy": [
+        0.0,
+        0.0
+      ],
+      "face": "skull / origin",
+      "rtt_ms": 0.031,
+      "alive": true,
+      "pseudo_range": 0.0031
+    },
+    {
+      "id": "T1-gw",
+      "host": "192.168.4.1",
+      "geo_xy": [
+        1.0,
+        0.0
+      ],
+      "face": "house router",
+      "rtt_ms": 0.335,
+      "alive": true,
+      "pseudo_range": 0.0335
+    },
+    {
+      "id": "T2-north",
+      "host": "192.168.4.163",
+      "geo_xy": [
+        2.0,
+        1.0
+      ],
+      "face": "northGate bay",
+      "rtt_ms": 69.8,
+      "alive": true,
+      "pseudo_range": 6.9799999999999995
+    },
+    {
+      "id": "T3-iron",
+      "host": "192.168.4.237",
+      "geo_xy": [
+        3.0,
+        0.5
+      ],
+      "face": "irongate bay",
+      "rtt_ms": 0.377,
+      "alive": true,
+      "pseudo_range": 0.0377
+    },
+    {
+      "id": "T4-graft",
+      "host": "192.168.4.107",
+      "geo_xy": [
+        2.5,
+        -1.0
+      ],
+      "face": "graftGate bay",
+      "rtt_ms": 0.308,
+      "alive": true,
+      "pseudo_range": 0.0308
+    },
+    {
+      "id": "T5-golgi",
+      "host": "10.13.37.1",
+      "geo_xy": [
+        10.0,
+        0.0
+      ],
+      "face": "golgi mesh (far)",
+      "rtt_ms": 40.3,
+      "alive": true,
+      "pseudo_range": 4.029999999999999
+    },
+    {
+      "id": "T6-east",
+      "host": "192.168.4.244",
+      "geo_xy": [
+        0.5,
+        0.5
+      ],
+      "face": "eastGate / this skull",
+      "rtt_ms": 0.025,
+      "alive": true,
+      "pseudo_range": 0.0025
+    }
+  ],
+  "trilateration_fix_xy": [
+    3.4215,
+    -10.9298
+  ],
+  "proximity_sorted": [
+    {
+      "tower": "T6-east",
+      "face": "eastGate / this skull",
+      "rtt_ms": 0.025,
+      "near": true,
+      "far": false
+    },
+    {
+      "tower": "T0-loop",
+      "face": "skull / origin",
+      "rtt_ms": 0.031,
+      "near": true,
+      "far": false
+    },
+    {
+      "tower": "T4-graft",
+      "face": "graftGate bay",
+      "rtt_ms": 0.308,
+      "near": true,
+      "far": false
+    },
+    {
+      "tower": "T1-gw",
+      "face": "house router",
+      "rtt_ms": 0.335,
+      "near": true,
+      "far": false
+    },
+    {
+      "tower": "T3-iron",
+      "face": "irongate bay",
+      "rtt_ms": 0.377,
+      "near": true,
+      "far": false
+    },
+    {
+      "tower": "T5-golgi",
+      "face": "golgi mesh (far)",
+      "rtt_ms": 40.3,
+      "near": false,
+      "far": true
+    },
+    {
+      "tower": "T2-north",
+      "face": "northGate bay",
+      "rtt_ms": 69.8,
+      "near": false,
+      "far": true
+    }
+  ],
+  "rack_diagnosis": [
+    {
+      "bay": "B0-socksproxy",
+      "host": "127.0.0.1",
+      "port": 8123,
+      "look": "local organ",
+      "icmp_ms": 0.021,
+      "tcp": {
+        "echo": false,
+        "ms": 0.07
+      },
+      "diagnosis": {
+        "state": "DEAD_DRIVE",
+        "meaning": "body answers (ICMP) but organ silent (TCP) \u2014 drive spun, service dead",
+        "action": "restart service / check port \u2014 found by two touches"
+      }
+    },
+    {
+      "bay": "B1-north-ssh",
+      "host": "192.168.4.163",
+      "port": 22,
+      "look": "northGate SSH",
+      "icmp_ms": 2.51,
+      "tcp": {
+        "echo": true,
+        "ms": 2.85
+      },
+      "diagnosis": {
+        "state": "LOCKED_DRIVE",
+        "meaning": "northGate body+sshd alive; key exchange missing \u2014 drive found, bay known, lock is the fault",
+        "action": "Kevin: authorized_keys (one physical touch)",
+        "icmp_ms": 2.51,
+        "touch_ms": 2.85
+      }
+    },
+    {
+      "bay": "B2-iron-ssh",
+      "host": "192.168.4.237",
+      "port": 22,
+      "look": "irongate SSH",
+      "icmp_ms": 0.337,
+      "tcp": {
+        "echo": true,
+        "ms": 0.47
+      },
+      "diagnosis": {
+        "state": "LIVE_OR_LOCKED",
+        "meaning": "body+port echo \u2014 if SSH still denies, bay is LOCKED (key missing), not dead",
+        "action": "look: process up. touch: authorized_keys. proximity known.",
+        "touch_ms": 0.47,
+        "icmp_ms": 0.337
+      }
+    },
+    {
+      "bay": "B3-graft-ssh",
+      "host": "192.168.4.107",
+      "port": 22,
+      "look": "graftGate SSH",
+      "icmp_ms": 0.257,
+      "tcp": {
+        "echo": true,
+        "ms": 0.7
+      },
+      "diagnosis": {
+        "state": "LIVE_OR_LOCKED",
+        "meaning": "body+port echo \u2014 if SSH still denies, bay is LOCKED (key missing), not dead",
+        "action": "look: process up. touch: authorized_keys. proximity known.",
+        "touch_ms": 0.7,
+        "icmp_ms": 0.257
+      }
+    },
+    {
+      "bay": "B4-north-icmp",
+      "host": "192.168.4.163",
+      "port": null,
+      "look": "northGate body",
+      "icmp_ms": 2.34,
+      "tcp": null,
+      "diagnosis": {
+        "state": "BODY_ONLY",
+        "meaning": "looked: ICMP alive \u2014 body in bay, no organ touched yet",
+        "action": "one more touch (TCP) to finish diagnosis",
+        "icmp_ms": 2.34
+      }
+    },
+    {
+      "bay": "B5-golgi-ssh",
+      "host": "golgi",
+      "port": 22,
+      "look": "golgi via alias",
+      "icmp_ms": 39.1,
+      "tcp": {
+        "echo": true,
+        "ms": 40.4
+      },
+      "diagnosis": {
+        "state": "LIVE_OR_LOCKED",
+        "meaning": "body+port echo \u2014 if SSH still denies, bay is LOCKED (key missing), not dead",
+        "action": "look: process up. touch: authorized_keys. proximity known.",
+        "touch_ms": 40.4,
+        "icmp_ms": 37.3
+      }
+    }
+  ],
+  "how_to_find_dead_drive": [
+    "1. LOOK \u2014 ping the bay (body present?)",
+    "2. TOUCH \u2014 TCP the organ port (service alive?)",
+    "3. If body+port but auth fails \u2192 LOCKED not dead",
+    "4. If body no port \u2192 DEAD_DRIVE (restart organ)",
+    "5. If neither \u2192 EMPTY_SLOT (power/cable)"
+  ],
+  "collated": {
+    "cave_sonar": true,
+    "walker_d_in": 0.1491,
+    "mean_depth_water_m": 67.059
+  },
+  "urls": {
+    "self": "https://connect.primals.eco/cloaca-triangulation.json",
+    "cave": "https://connect.primals.eco/cave-sonar-totality.json",
+    "seo": "https://connect.primals.eco/seo.json"
+  }
+}
