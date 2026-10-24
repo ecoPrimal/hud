@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>π Null Axis — Yoyo · Plate · Invert — ecoPrimals</title>
+<meta name="description" content="THAT + gyroscope as pole for null axis of π rotation. Yoyo and plate on a stick. Invert = counter-torque.">
+<link rel="alternate" type="application/json" href="/pi-null-axis-yoyo-plate.json">
+<style>
+  :root {
+    --ink:#14121a; --paper:#f0ebe3; --pole:#5c4d7a; --disk:#2ea043; --inv:#d4537e; --mute:#5c5854;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e4dc; --paper:#121018; --pole:#b794f6; --disk:#56d364; --inv:#f687b3; --mute:#9a958e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family:"IBM Plex Sans","Segoe UI",sans-serif;
+    background:
+      radial-gradient(ellipse 50% 40% at 50% 0%, rgba(92,77,122,.2), transparent 55%),
+      radial-gradient(ellipse 40% 35% at 80% 90%, rgba(212,83,126,.12), transparent 50%),
+      var(--paper);
+    line-height:1.45;
+  }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 {
+    font-family:"IBM Plex Serif",Georgia,serif;
+    font-size:clamp(1.85rem,6vw,2.7rem);
+    letter-spacing:-.03em; margin:0 0 .35rem; line-height:1.05;
+  }
+  .tag { color:var(--pole); font-weight:600; margin-bottom:1rem; }
+  .lead { font-size:1.08rem; margin:0 0 1.4rem; }
+  .stage {
+    position:relative; height:12rem; margin:1.5rem auto;
+    max-width:18rem;
+  }
+  .stick {
+    position:absolute; left:50%; top:0; bottom:1.5rem; width:3px;
+    margin-left:-1.5px; background:linear-gradient(var(--inv), var(--pole));
+    border-radius:2px; z-index:1;
+  }
+  .plate {
+    position:absolute; left:50%; top:1.4rem; width:7rem; height:7rem;
+    margin-left:-3.5rem; border-radius:50%;
+    background:
+      conic-gradient(from 0deg, var(--disk), #aff5b4, var(--disk), #1a7f37, var(--disk));
+    box-shadow:0 0 0 2px color-mix(in srgb, var(--inv) 50%, transparent);
+    animation:spin 3.2s linear infinite;
+    z-index:2;
+  }
+  .yoyo {
+    position:absolute; left:50%; bottom:0; width:3.2rem; height:3.2rem;
+    margin-left:-1.6rem; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #aff5b4, var(--disk));
+    animation:cast 2.8s ease-in-out infinite;
+    z-index:3;
+    display:grid; place-items:center; color:#fff; font-weight:700;
+    font-family:"IBM Plex Serif",Georgia,serif; font-size:.9rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .plate, .yoyo { animation: none; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes cast {
+    0%,100% { transform: translateY(-5.5rem); }
+    50% { transform: translateY(0); }
+  }
+  section { border-top:1px solid rgba(20,18,26,.12); padding-top:1rem; margin:1.35rem 0; }
+  h2 { font-size:1.05rem; color:var(--pole); margin:0 0 .5rem; }
+  a { color:var(--disk); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+  #live { min-height:1.2em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>π Null Axis</h1>
+  <p class="tag">THAT + gyro as pole · yoyo · plate on a stick · invert</p>
+  <p class="lead">
+    The pale is the spindle. <strong>THAT</strong> mouse holds the desk end;
+    the <strong>gyroscope</strong> locks space. Disks spin around a line that does not orbit —
+    the null axis of π rotation. Invert is counter-torque in the stick/string.
+  </p>
+
+  <div class="stage" aria-hidden="true">
+    <div class="stick" title="null axis / pale"></div>
+    <div class="plate" title="plate spinning on a stick"></div>
+    <div class="yoyo" title="yoyo on the same pale">π</div>
+  </div>
+
+  <section>
+    <h2>Pole</h2>
+    <p id="pole">…</p>
+  </section>
+  <section>
+    <h2>Invert</h2>
+    <p id="inv">…</p>
+  </section>
+  <section>
+    <p id="live"></p>
+    <ul>
+      <li><a href="/pi-null-axis-yoyo-plate.json">JSON</a></li>
+      <li><a href="/green-spectrum-pi-yoyo.html">π yoyo · green</a></li>
+      <li><a href="/null-axis.json">chipmunk null axis</a></li>
+      <li><a href="/local-cns-pns.html">THAT mouse</a></li>
+    </ul>
+  </section>
+  <footer>ecoPrimals · bounce on the rim · invert in the pale · axis stays null</footer>
+</main>
+<script>
+fetch('/pi-null-axis-yoyo-plate.json').then(r=>r.json()).then(d=>{
+  document.getElementById('pole').textContent = d.pole_allows_null_axis.together;
+  document.getElementById('inv').textContent = d.the_invert.claim + ' ' + d.the_invert.as_color;
+  document.getElementById('live').textContent = d.compose.picture;
+}).catch(e=>{ document.getElementById('pole').textContent = e.message; });
+</script>
+</body>
+</html>
