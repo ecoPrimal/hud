@@ -258,6 +258,52 @@ Auth: None — the membrane is open
 
 <p><a href="/maze" style="color:var(--purple);font-weight:bold;">→ enter the maze</a></p>
 
+<div style="margin:2rem 0;padding:1.5rem;background:rgba(163,113,247,0.06);border:1px solid rgba(163,113,247,0.25);border-radius:8px;text-align:center">
+<div style="color:#a371f7;font-weight:bold;margin-bottom:0.5rem">∞ Feel the Fold</div>
+<canvas id="klein-canvas" width="300" height="300" style="border:1px solid #21262d;border-radius:8px;cursor:grab;max-width:100%"></canvas>
+<div style="color:#6e7681;font-size:10px;margin-top:0.5rem">drag to rotate · the inside IS the outside</div>
+<script>
+(function(){
+  var c=document.getElementById('klein-canvas'),ctx=c.getContext('2d');
+  var ax=0,ay=0,dragging=false,lx=0,ly=0;
+  c.addEventListener('mousedown',function(e){dragging=true;lx=e.clientX;ly=e.clientY;c.style.cursor='grabbing'});
+  c.addEventListener('touchstart',function(e){dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY});
+  window.addEventListener('mouseup',function(){dragging=false;c.style.cursor='grab'});
+  window.addEventListener('touchend',function(){dragging=false});
+  window.addEventListener('mousemove',function(e){if(!dragging)return;ax+=(e.clientX-lx)*0.01;ay+=(e.clientY-ly)*0.01;lx=e.clientX;ly=e.clientY});
+  window.addEventListener('touchmove',function(e){if(!dragging)return;ax+=(e.touches[0].clientX-lx)*0.01;ay+=(e.touches[0].clientY-ly)*0.01;lx=e.touches[0].clientX;ly=e.touches[0].clientY});
+  function draw(){
+    ctx.clearRect(0,0,300,300);
+    var cx=150,cy=150,t=Date.now()*0.001;
+    for(var i=0;i<200;i++){
+      var u=i/200*Math.PI*2;
+      for(var j=0;j<60;j++){
+        var v=j/60*Math.PI*2;
+        var r=4+2*Math.cos(v);
+        var x3=(r*Math.cos(u))*40;
+        var y3=(r*Math.sin(u))*40;
+        var z3=(2*Math.sin(v)+u*0.5-Math.PI)*20;
+        var ca=Math.cos(ay+t*0.3),sa=Math.sin(ay+t*0.3);
+        var cb=Math.cos(ax),sb=Math.sin(ax);
+        var rx=x3*ca-z3*sa;
+        var ry=y3*cb-(x3*sa+z3*ca)*sb;
+        var rz=y3*sb+(x3*sa+z3*ca)*cb;
+        var s=200/(200+rz);
+        var px=cx+rx*s;
+        var py=cy+ry*s;
+        var bright=Math.max(0.15,Math.min(1,(rz+80)/160));
+        var hue=(u/Math.PI/2*360+v/Math.PI/2*120)%360;
+        ctx.fillStyle='hsla('+hue+',60%,60%,'+bright*0.6+')';
+        ctx.fillRect(px,py,1.5,1.5);
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</div>
+
 <div class="footer">
   nestgate.io — the Klein gate · free · open · no auth<br>
   <a href="https://primals.eco">primals.eco</a> ·

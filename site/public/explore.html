@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>explore — browse the membrane's data feeds</title>
+<meta name="description" content="Browse 300+ data feeds from the membrane. Every JSON file, rendered and searchable. The dark data surfaced.">
+<style>
+:root{--bg:#010409;--fg:#c9d1d9;--dim:#6e7681;--a:#3fb950;--b:#21262d;--purple:#a371f7;--cyan:#06b6d4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:12px/1.6 'SF Mono',ui-monospace,monospace;min-height:100vh}
+a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:900px;margin:0 auto;padding:52px 16px 100px}
+h1{color:var(--purple);font-size:16px;margin-bottom:4px}
+.sub{color:var(--dim);font-size:11px;margin-bottom:16px}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;background:#0d1117;color:var(--fg);border:1px solid var(--b);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px}
+.search-bar input:focus{outline:none;border-color:var(--purple)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.card{background:#0d1117;border:1px solid var(--b);border-radius:6px;padding:10px;cursor:pointer;transition:border-color 0.2s}
+.card:hover{border-color:var(--purple)}
+.card .name{color:var(--cyan);font-size:11px;font-weight:bold;word-break:break-all}
+.card .size{color:var(--dim);font-size:10px}
+.card .preview{color:var(--dim);font-size:10px;margin-top:4px;max-height:40px;overflow:hidden}
+#viewer{display:none;margin-top:16px;background:#0d1117;border:1px solid var(--purple);border-radius:8px;padding:16px;max-height:70vh;overflow-y:auto}
+#viewer pre{white-space:pre-wrap;word-break:break-all;font-size:11px;line-height:1.5}
+.back{color:var(--purple);cursor:pointer;font-size:11px;margin-bottom:8px;display:inline-block}
+.count{color:var(--dim);font-size:11px}
+#nav{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.88);border:1px solid rgba(88,166,255,0.15);border-radius:20px;font-size:10px}
+#nav a{color:#58a6ff}#nav span{color:#30363d}
+</style>
+</head>
+<body>
+<div id="nav"><a href="/">◈ hud</a> <span>·</span> <a href="/water.html">🌊</a> <span>·</span> <a href="/explore.html" style="color:#a371f7">📂 explore</a></div>
+<div class="wrap">
+<h1>📂 Data Explorer</h1>
+<p class="sub">browse the membrane's data feeds — <span id="total-count">...</span> files, <span id="total-size">...</span></p>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="🔍 search feeds... (genotype, traffic, Klein, turtle, biology...)" oninput="filter(this.value)">
+  <span class="count" id="match-count"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+<div id="viewer"><span class="back" onclick="closeViewer()">← back to list</span><h3 id="v-title" style="color:var(--cyan);margin:8px 0"></h3><pre id="v-content"></pre></div>
+</div>
+
+<script>
+var FILES = [];
+var allCards = [];
+
+fetch('/api/strata.json').then(function(r){return r.json()}).then(function(strata){
+  var allFiles = [];
+  strata.strata.forEach(function(s){
+    s.files.forEach(function(f){ allFiles.push({name:f,stratum:s.stratum,glyph:s.glyph}) });
+  });
+  return allFiles;
+}).then(function(files){
+  FILES = files;
+  document.getElementById('total-count').textContent = files.length;
+  
+  var grid = document.getElementById('grid');
+  var totalSize = 0;
+  
+  files.forEach(function(f,i){
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = f.name.toLowerCase();
+    card.dataset.stratum = f.stratum;
+    card.innerHTML = '<div class="name">' + f.glyph + ' ' + f.name.replace('.json','') + '</div>' +
+      '<div class="size">' + f.stratum + '</div>';
+    card.onclick = function(){ openFile(f.name) };
+    grid.appendChild(card);
+    allCards.push(card);
+  });
+  
+  document.getElementById('total-size').textContent = files.length + ' feeds across ' + 
+    new Set(files.map(function(f){return f.stratum})).size + ' strata';
+    
+  var param = new URLSearchParams(location.search).get('file');
+  if (param) openFile(param.endsWith('.json') ? param : param + '.json');
+});
+
+function filter(q) {
+  q = q.toLowerCase().trim();
+  var shown = 0;
+  allCards.forEach(function(c){
+    var match = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.stratum.indexOf(q) !== -1;
+    c.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  document.getElementById('match-count').textContent = q ? shown + ' matches' : '';
+}
+
+function openFile(name) {
+  document.getElementById('grid').style.display = 'none';
+  document.getElementById('viewer').style.display = 'block';
+  document.getElementById('v-title').textContent = name;
+  document.getElementById('v-content').textContent = 'loading...';
+  fetch('/data/' + name).then(function(r){return r.json()}).then(function(data){
+    document.getElementById('v-content').textContent = JSON.stringify(data, null, 2);
+  }).catch(function(e){
+    document.getElementById('v-content').textContent = 'error loading: ' + e.message;
+  });
+  history.replaceState(null, '', '?file=' + name);
+}
+
+function closeViewer() {
+  document.getElementById('grid').style.display = '';
+  document.getElementById('viewer').style.display = 'none';
+  history.replaceState(null, '', location.pathname);
+}
+</script>
+<script defer src="/js/berry-help.js"></script>
+</body>
+</html>

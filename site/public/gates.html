@@ -768,5 +768,52 @@ ZK is anti-secret. The proof is public. The template is the weapon. CC-BY-SA 4.0
 </div>
 
 </div>
+<div id="ping-panel" style="margin:2rem 0;padding:1rem;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px">
+<div style="color:#3fb950;font-weight:bold;margin-bottom:0.8rem">🏓 Ping the Mesh — test it yourself</div>
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.8rem" id="ping-buttons"></div>
+<div id="ping-results" style="font-family:monospace;font-size:11px;color:#8b949e;line-height:1.8"></div>
+</div>
+<script>
+(function(){
+  var endpoints = [
+    {name:'HUD',url:'https://hud.primals.eco/api/heartbeat.json'},
+    {name:'sporePrint',url:'https://sporeprint.primals.eco/'},
+    {name:'detroit',url:'https://detroit.primals.eco/'},
+    {name:'nestgate',url:'https://nestgate.io/mcp'},
+    {name:'connect',url:'https://connect.primals.eco/'},
+    {name:'signal',url:'https://signal.primals.eco/'},
+    {name:'lab',url:'https://lab.primals.eco/'}
+  ];
+  var btns=document.getElementById('ping-buttons');
+  var res=document.getElementById('ping-results');
+  endpoints.forEach(function(ep){
+    var b=document.createElement('button');
+    b.textContent='🏓 '+ep.name;
+    b.style.cssText='background:#161b22;color:#3fb950;border:1px solid #30363d;padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px';
+    b.onclick=function(){
+      var t0=performance.now();
+      b.textContent='⏳ '+ep.name;
+      b.style.borderColor='#f59e0b';
+      fetch(ep.url,{mode:'no-cors',cache:'no-store'}).then(function(){
+        var ms=Math.round(performance.now()-t0);
+        b.textContent='✅ '+ep.name+' '+ms+'ms';
+        b.style.borderColor='#3fb950';
+        res.innerHTML+='<div>'+ep.name+' → <span style="color:#3fb950">'+ms+'ms</span> ✅</div>';
+      }).catch(function(){
+        var ms=Math.round(performance.now()-t0);
+        b.textContent='⚠️ '+ep.name+' '+ms+'ms';
+        b.style.borderColor='#f85149';
+        res.innerHTML+='<div>'+ep.name+' → <span style="color:#f85149">'+ms+'ms</span> (opaque/blocked)</div>';
+      });
+    };
+    btns.appendChild(b);
+  });
+  var all=document.createElement('button');
+  all.textContent='🏓 PING ALL';
+  all.style.cssText='background:#3fb950;color:#000;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:bold';
+  all.onclick=function(){res.innerHTML='';btns.querySelectorAll('button:not(:last-child)').forEach(function(b){b.click()})};
+  btns.appendChild(all);
+})();
+</script>
 <script defer src=/js/thymus.js?v=1></script>
 <script defer src=/js/hologram-manifest.js></script></body></html>

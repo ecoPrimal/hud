@@ -59,8 +59,34 @@ a:hover{text-decoration:underline}
 
 <div id="smart-routes" class="routes"></div>
 
-<a href="/nightbox.html" class="nightbox-link">
-  📮 leave a message in the nightbox — tell us what you were looking for
+<div class="nightbox-inline" style="margin:1rem 0;padding:1rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px">
+  <div style="font-size:11px;color:#f59e0b;margin-bottom:0.5rem">📮 tell Berry what you were looking for</div>
+  <div style="display:flex;gap:0.5rem;align-items:center">
+    <input type="text" id="nb-quick" placeholder="type here... what did you want to find?" 
+      style="flex:1;background:#0d1117;color:#c9d1d9;border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px"
+      onkeydown="if(event.key==='Enter')document.getElementById('nb-send').click()">
+    <button id="nb-send" onclick="(function(){
+      var m=document.getElementById('nb-quick').value.trim();
+      if(!m)return;
+      var path=location.pathname;
+      fetch('https://ntfy.sh/primals-membrane-notes',{
+        method:'POST',
+        headers:{'Title':'📮 NIGHTBOX from 404: '+path,'Tags':'nightbox,chipmunk','Priority':'3'},
+        body:'Message: '+m+'\nFrom: 404 page\nPath: '+path+'\nTime: '+new Date().toISOString()+'\nRef: '+(document.referrer||'direct')
+      }).then(function(){
+        document.getElementById('nb-quick').value='';
+        document.getElementById('nb-quick').placeholder='✅ sent! Berry will read this at the campfire.';
+        document.getElementById('nb-quick').style.borderColor='#3fb950';
+      }).catch(function(){
+        document.getElementById('nb-quick').placeholder='sent (offline mode — cached for later)';
+      });
+    })()" style="background:#f59e0b;color:#000;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:12px;white-space:nowrap">📮 send</button>
+  </div>
+  <div style="font-size:9px;color:#6e7681;margin-top:0.4rem">no account needed. no tracking. Berry reads every message at the campfire.</div>
+</div>
+
+<a href="/nightbox.html" class="nightbox-link" style="font-size:11px">
+  📮 or visit the full nightbox for longer messages
 </a>
 
 <a href="/beacon" class="nightbox-link" style="background:rgba(88,166,255,0.08);border-color:rgba(88,166,255,0.25);color:#58a6ff;font-size:11px">

@@ -91,6 +91,15 @@ h1 { font-size: 18px; color: #d2a8ff; text-align: center; margin: 52px 0 4px; }
   <span><i class="swatch" style="background:#a371f7"></i> demonstration era</span>
 </div>
 
+<div style="max-width:900px;margin:0 auto 1rem;padding:0 16px">
+<div style="display:flex;gap:8px;align-items:center">
+  <input type="text" id="trail-search" placeholder="🔍 search the trail... (protein, Rust, PFAS, membrane, AlphaFold...)"
+    style="flex:1;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px"
+    oninput="filterTrail(this.value)">
+  <span id="trail-count" style="color:#6e7681;font-size:11px;white-space:nowrap"></span>
+</div>
+</div>
+
 <div class="trail" id="trail"></div>
 
 <script>
@@ -224,6 +233,25 @@ function render() {
 }
 
 render();
+function filterTrail(q) {
+  q = q.toLowerCase().trim();
+  var days = document.querySelectorAll('.day');
+  var epochs = document.querySelectorAll('.epoch');
+  var shown = 0;
+  days.forEach(function(d) {
+    var text = d.textContent.toLowerCase();
+    var match = !q || text.indexOf(q) !== -1;
+    d.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  epochs.forEach(function(e) {
+    var visibleDays = e.querySelectorAll('.day:not([style*="display: none"])');
+    e.style.display = visibleDays.length > 0 ? '' : 'none';
+  });
+  var counter = document.getElementById('trail-count');
+  if (q) { counter.textContent = shown + ' matches'; counter.style.color = shown > 0 ? '#3fb950' : '#f85149'; }
+  else { counter.textContent = ''; }
+}
 </script>
 <script src="/js/berry-help.js"></script></body>
 </html>
