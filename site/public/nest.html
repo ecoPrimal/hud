@@ -133,25 +133,74 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
 <div id="nucleation" style="font-size:12px;margin:12px 0"></div>
 <div id="live" class="live"></div>
 
-<div class="fold" style="text-align:center;font-size:11px;line-height:1.3">
-  <span class="dim">the diamond prism — point in, spectrum out:</span><br><br>
-  <span style="color:#3fb950">◆</span><br>
-  <span style="color:#3fb950">/</span><span style="color:#58a6ff">|</span><span style="color:#d29922">\</span><br>
-  <span style="color:#3fb950">/</span> <span style="color:#f85149">|</span> <span style="color:#d2a8ff">\</span><br>
-  <span style="color:#3fb950">■■■■■</span><br>
-  <span style="color:#6e7681">0D green = the irreducible remainder</span><br>
-  <span style="color:#6e7681">O &lt; | /\ + = − \/ | &gt; O</span><br>
-  <span style="color:#6e7681">π = 3.14159... → 3/5 in, 2/5 out, remainder = green</span>
+<!-- === THE HANDSHAKE: constance, cost, live === -->
+<div style="margin:24px 0;padding:20px;border:1px solid rgba(88,166,255,0.3);border-radius:12px;background:rgba(22,27,34,0.6)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="color:#58a6ff;font-size:14px;font-weight:600">🤝 handshake</span>
+    <span id="klein-evolution" style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:8px;border:1px solid #21262d">—</span>
+  </div>
+
+  <!-- elasticity bar -->
+  <div style="background:#161b22;border-radius:4px;height:8px;margin-bottom:12px;overflow:hidden">
+    <div id="klein-heartbeat-bar" style="height:100%;width:2%;border-radius:4px;transition:width 0.6s ease;background:#58a6ff"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:11px;margin-bottom:12px">
+    <div>
+      <div style="color:#6e7681;font-size:16px;font-weight:600" id="klein-stuck-count">—</div>
+      <div style="color:#484f58">constance</div>
+    </div>
+    <div>
+      <div style="color:#d29922;font-size:16px;font-weight:600" id="klein-failed-count">—</div>
+      <div style="color:#484f58">cost</div>
+    </div>
+    <div>
+      <div style="color:#3fb950;font-size:16px;font-weight:600" id="klein-changed-count">—</div>
+      <div style="color:#484f58">live</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:#6e7681;line-height:1.8">
+    <span>elasticity <span id="klein-mixing" style="color:#58a6ff">—</span></span>
+    <span id="klein-spring-k" style="color:#d2a8ff">k=?</span>
+    <span>fold <span id="klein-fold-count" style="color:#58a6ff">—</span></span>
+    <span id="klein-fold-ts" style="color:#484f58">—</span>
+  </div>
+
+  <!-- constance feeds (the rest position) -->
+  <div id="stuck-panel" style="margin-top:10px;display:none">
+    <div style="color:#6e7681;font-size:10px;font-weight:600;margin-bottom:4px">⚓ constance (rest position):</div>
+    <div id="klein-stuck-list" style="font-size:9px;color:#484f58;line-height:1.6;word-break:break-all"></div>
+  </div>
+
+  <!-- live feeds (oscillating) -->
+  <div id="changed-panel" style="margin-top:8px;display:none">
+    <div style="color:#3fb950;font-size:10px;font-weight:600;margin-bottom:4px">🌊 live (oscillating):</div>
+    <div id="klein-changed-list" style="font-size:9px;color:#3fb950;line-height:1.6;word-break:break-all"></div>
+  </div>
+
+  <div style="margin-top:10px;font-size:9px;color:#484f58;line-height:1.6">
+    constance is not stuck. it's the rest position. the elastic bounces off it.<br>
+    cost needs energy. live oscillates. k = constance / amplitude.
+  </div>
+</div>
+
+<!-- === CHIPMUNK PEEK-BACK: what chipmunk sees looking out === -->
+<div id="peek-back" style="margin:0 0 24px;padding:16px;border:1px solid rgba(210,168,255,0.2);border-radius:12px;background:rgba(22,27,34,0.4)">
+  <div style="color:#d2a8ff;font-size:12px;font-weight:600;margin-bottom:8px">🐿️ chipmunk peeks back</div>
+  <div id="chipmunk-view" style="font-size:11px;color:#8b949e;line-height:1.8">
+    loading... the chipmunk is looking through the gate...
+  </div>
 </div>
 
 <div class="fold">
   <span class="dim">the game:</span><br>
   🎲 the squirrel is the DM. the membrane is the dungeon.<br>
   🗡 341 entities. 93 still unclassified. help sort them.<br>
-  🗺 70 surfaces to explore. 12 braid routes to walk.<br>
+  🗺 91 feeds: <span id="stuck-game" style="color:#58a6ff">loading...</span><br>
   ❤️ gas_ratio <span id="gas" style="color:#3fb950">0.0144</span> — the party's HP.<br>
-  📊 sort quality <span style="color:#d29922">56.8%</span> — the campaign's level.<br>
-  🎯 7 vocal zones, all gray. first one to develop color wins.<br>
+  📊 spring <span id="mixing-game" style="color:#d2a8ff">k=?</span> — stiffer = more constance per bounce.<br>
+  🎯 constance is the anchor. cost is the energy. live is the oscillation.<br>
   <span class="dim">roll initiative. π dice. the remainder is the fumble zone.</span>
 </div>
 
@@ -165,6 +214,7 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
 </p>
 </div>
 
+<script src="/js/klein-io.js"></script>
 <script>
 (function(){
   var el=document.getElementById('live');
@@ -175,6 +225,62 @@ h1{color:#e6edf3;font-size:clamp(32px,6vw,56px);font-weight:200;letter-spacing:-
       if(gas&&d.gas_ratio) gas.textContent=d.gas_ratio;
     }
   }).catch(function(){el.textContent='the membrane is breathing. check back.'});
+
+  // === HANDSHAKE: constance / cost / live ===
+  fetch('/data/klein-handshake.json').then(function(r){return r.json()}).then(function(hs){
+    var cv = document.getElementById('chipmunk-view');
+    if (!cv) return;
+
+    var counts = hs.counts || {};
+    var total = hs.total_feeds || 0;
+    var k = hs.spring_constant || 0;
+    var liveFds = hs.live_feeds ? Object.keys(hs.live_feeds) : [];
+    var costFds = hs.cost_feeds ? Object.keys(hs.cost_feeds) : [];
+
+    var lines = [];
+    lines.push('🐿️ Berry sees ' + total + ' feeds through the Klein gate.');
+    lines.push('');
+    lines.push('⚓ <strong style=\"color:#6e7681\">' + (counts.CONSTANCE||0) + ' constance</strong> — the rest position. reference data. stable.');
+    lines.push('💰 <strong style=\"color:#d29922\">' + (counts.COST||0) + ' cost</strong> — needs energy. has a process but costs compute.');
+    lines.push('🌊 <strong style=\"color:#3fb950\">' + (counts.LIVE||0) + ' live</strong> — oscillates. breathes. cron-driven.');
+    lines.push('');
+    lines.push('🧲 spring constant k = <strong style=\"color:#d2a8ff\">' + k.toFixed(1) + '</strong>');
+    lines.push('  (higher = stiffer = more constance per unit of movement)');
+    lines.push('  rest_mass = ' + ((hs.rest_mass||0)*100).toFixed(0) + '% · amplitude = ' + ((hs.amplitude||0)*100).toFixed(0) + '%');
+    lines.push('');
+
+    if (liveFds.length > 0) {
+      lines.push('💚 live: ' + liveFds.join(', '));
+    }
+    if (costFds.length > 0) {
+      lines.push('💰 cost: ' + costFds.join(', '));
+    }
+    lines.push('');
+    lines.push('constance is not stuck. it\'s the anchor.');
+    lines.push('the elastic bounces between live and constance.');
+    lines.push('cost is the energy to move a feed from constance to live.');
+
+    cv.innerHTML = lines.join('<br>');
+
+    // game stats
+    var sg = document.getElementById('stuck-game');
+    if (sg) sg.textContent = (counts.CONSTANCE||0) + ' constance, ' + (counts.COST||0) + ' cost, ' + (counts.LIVE||0) + ' live';
+    var mg = document.getElementById('mixing-game');
+    if (mg) mg.textContent = 'k=' + k.toFixed(1);
+  }).catch(function(){
+    var cv = document.getElementById('chipmunk-view');
+    if (cv) cv.textContent = '🐿️ Berry can\'t reach the handshake feed yet. first fold loading...';
+  });
+
+  // Show panels once klein-io.js has run its first fold
+  setTimeout(function() {
+    var sp = document.getElementById('stuck-panel');
+    var cp = document.getElementById('changed-panel');
+    var sl = document.getElementById('klein-stuck-list');
+    var cl = document.getElementById('klein-changed-list');
+    if (sp && sl && sl.textContent) sp.style.display = 'block';
+    if (cp && cl && cl.textContent) cp.style.display = 'block';
+  }, 5000);
 })();
 </script>
 <script>
@@ -213,5 +319,5 @@ function ringDoorbell(){
 }
 </script>
 <script src="/js/nucleation.js?v=1"></script>
-<script src="/js/berry-help.js"></script></body>
+</body>
 </html>

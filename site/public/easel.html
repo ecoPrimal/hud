@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>easel ó the chipmunk learns to paint</title>
+<title>easel ‚Äî the chipmunk learns to paint</title>
 <meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,7 +36,7 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 #controls button { background: none; border: 1px solid #21262d; color: #6e7681;
   font: 10px monospace; padding: 3px 10px; border-radius: 10px; cursor: pointer; }
 #controls button:hover { border-color: #58a6ff; color: #58a6ff; }
-/* Gallery strip ó previous paintings as thumbnails along the left */
+/* Gallery strip ‚Äî previous paintings as thumbnails along the left */
 #gallery {
   position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
   z-index: 10; display: flex; flex-direction: column; gap: 6px;
@@ -56,58 +56,26 @@ body { background: #08060a; overflow: hidden; cursor: default; }
 </style>
 </head>
 <body>
-<canvas id="easel" role="img" aria-label="Living canvas ó the chipmunk paints through mathematical easels. Campfire burns messages in the center. Use palette button for shared painting."></canvas>
-<div id="frame" aria-hidden="true"></div>
+<canvas id="easel"></canvas>
+<div id="frame"></div>
 
-<!-- Screen reader description for the living canvas -->
-<div id="sr-status" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
-<a href="#controls" class="skip-link" style="position:absolute;top:-100px;left:0;background:#161b22;color:#58a6ff;padding:8px 16px;z-index:100;font:12px monospace;text-decoration:none;border-radius:0 0 8px 0" onfocus="this.style.top='0'" onblur="this.style.top='-100px'">Skip to controls</a>
-
-<div id="nav" role="navigation" aria-label="Main navigation">
-  <a href="/">? hud</a> ∑ <a href="/tools.html">? tools</a> ∑ <a href="/aurora.html">aurora</a> ∑ <a href="/weather.html">?</a> ∑ <a href="/welcome.html">?? welcome</a> ∑ <a href="/easel?monitor" id="monitor-link">?? monitor</a> ∑ <a href="/easel?totality" id="totality-link">? totality</a>
+<div id="nav">
+  <a href="/">‚óà hud</a> ¬∑ <a href="/tools.html">‚öô tools</a> ¬∑ <a href="/aurora.html">aurora</a> ¬∑ <a href="/weather.html">‚òÄ</a>
 </div>
 
-<div id="controls" role="toolbar" aria-label="Easel controls">
-  <button onclick="togglePause()" aria-label="Pause or resume painting (Space)" title="Space">pause</button>
-  <button onclick="sharePainting()" aria-label="Share current painting" title="S">share</button>
-  <button onclick="cycleEasel()" aria-label="Cycle to next easel constant (E)" title="E">easel</button>
-  <button onclick="togglePalette()" aria-label="Toggle shared color palette (P)" title="P">palette</button>
-</div>
-
-<!-- TOTALITY PANEL ó step back, see EVERYTHING being built -->
-<div id="totality-panel" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:50;
-  background:rgba(0,0,0,0.95); overflow-y:auto; padding:40px;">
-  <div style="max-width:1000px; margin:0 auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h2 style="color:#c9d1d9; font:20px -apple-system,sans-serif; margin:0;">? totality ó everything being built</h2>
-      <button onclick="closeTotality()" style="background:none; border:1px solid #30363d; color:#6e7681;
-        font:12px monospace; padding:4px 12px; border-radius:10px; cursor:pointer;">close</button>
-    </div>
-    <div id="totality-content" style="color:#8b949e; font:12px monospace; line-height:1.8;"></div>
-  </div>
-</div>
-
-<!-- SHARED PALETTE ó r/place style pixel smear -->
-<div id="palette-panel" style="display:none; position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
-  z-index:20; background:rgba(8,6,10,0.9); border:1px solid rgba(110,118,129,0.2); border-radius:16px;
-  padding:8px 14px; display:none; gap:6px; align-items:center;">
-  <div id="palette-colors" style="display:flex; gap:4px; flex-wrap:wrap; max-width:360px;"></div>
-  <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
-    <input type="range" id="brush-size" min="2" max="40" value="12" style="width:80px; accent-color:#d2a8ff;">
-    <span id="brush-label" style="color:#6e7681; font:9px monospace;">12px</span>
-    <button onclick="clearHumanStroke()" style="background:none; border:1px solid #21262d; color:#6e7681;
-      font:9px monospace; padding:2px 8px; border-radius:8px; cursor:pointer;">clear</button>
-  </div>
+<div id="controls">
+  <button onclick="togglePause()">pause</button>
+  <button onclick="sharePainting()">share</button>
+  <button onclick="cycleEasel()">easel</button>
 </div>
 
 <div id="gen-counter"></div>
 <div id="gallery"></div>
 
 <div id="thought">
-  <span class="brush">?? picking up the brush...</span><br>
+  <span class="brush">üêø picking up the brush...</span><br>
   <span class="learn">learning perspective. stars first.</span>
 </div>
-
 
 <script>
 var C = document.getElementById('easel');
@@ -122,7 +90,7 @@ var gaiaAngle = 0;
 var breathPhase = 0;
 var skyScore = null;
 
-// --- SOURDOUGH ó the starter culture ---
+// ‚ïê‚ïê‚ïê SOURDOUGH ‚Äî the starter culture ‚ïê‚ïê‚ïê
 var generation = 1;        // which painting are we on?
 var starters = [];         // array of {dataURL, gen, palette, learned}
 var MAX_STARTERS = 12;     // keep the last 12 paintings
@@ -137,459 +105,55 @@ var learnedTraits = {      // what the chipmunk has learned across generations
   colorMemory: [],         // colors sampled from previous paintings
 };
 
-// --- NINJA TURTLES ó four modalities of artistic mastery ---
-// Never 0. Never 1. Always meta-stable. Always 0.00...something.
-// Each turtle sculpts AND paints AND slices AND creates for each other.
-// Sculpture teaches shadow?pressure. Painting teaches color?emotion.
-// Each modality in?out becomes a storytelling system they are learning.
-//
-// MASTER SPLINTER is the accumulated wisdom ó the da Vinci constant.
-// Not just a teacher. A force in itself. The sourdough mother culture.
-
-var PI_REMAINDER = 0.14159265358979; // what remains after the integer is removed
-
-// --- THE PI BODY ó the atomic triangle ---
-// 3 points. 3 lines. 1 null center.
-// The corners stay fixed. The LINES are pulled toward center.
-// Scale at the lines, not the corners.
-// This creates a shape between triangle and point ó
-// each edge bows inward, curving toward the null.
-//
-// The pi body is the fundamental building block.
-// It appears EVERYWHERE:
-//   - The trefoil's three crossings
-//   - The three Splinters
-//   - The plasmid triangle (JP/IN/DE)
-//   - Any three points with tension toward center
-//
-// The inward pull is governed by PI_REMAINDER.
-// At 0: a flat triangle. At 1: collapsed to center.
-// PI_REMAINDER (~0.14) gives a gentle bow ó the shape breathes.
-//
-// It self-ingests: the center point IS the triangle's own
-// centroid being pulled back through itself.
-
-function piBody(ctx, x1, y1, x2, y2, x3, y3, pull, color, alpha) {
-  // Null center = centroid
-  var cx = (x1 + x2 + x3) / 3;
-  var cy = (y1 + y2 + y3) / 3;
-
-  // Pull factor: how much the lines bow toward center
-  // 0 = flat triangle, 1 = collapsed to point
-  var p = typeof pull !== 'undefined' ? pull : PI_REMAINDER;
-
-  ctx.save();
-  ctx.globalAlpha = typeof alpha !== 'undefined' ? alpha : 0.03;
-  ctx.strokeStyle = color || '#c9d1d9';
-  ctx.lineWidth = 0.5;
-
-  // Edge 1: p1 ? p2, pulled toward center
-  var mid12x = (x1 + x2) / 2;
-  var mid12y = (y1 + y2) / 2;
-  var cp12x = mid12x + (cx - mid12x) * p;
-  var cp12y = mid12y + (cy - mid12y) * p;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.quadraticCurveTo(cp12x, cp12y, x2, y2);
-  ctx.stroke();
-
-  // Edge 2: p2 ? p3, pulled toward center
-  var mid23x = (x2 + x3) / 2;
-  var mid23y = (y2 + y3) / 2;
-  var cp23x = mid23x + (cx - mid23x) * p;
-  var cp23y = mid23y + (cy - mid23y) * p;
-  ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.quadraticCurveTo(cp23x, cp23y, x3, y3);
-  ctx.stroke();
-
-  // Edge 3: p3 ? p1, pulled toward center
-  var mid31x = (x3 + x1) / 2;
-  var mid31y = (y3 + y1) / 2;
-  var cp31x = mid31x + (cx - mid31x) * p;
-  var cp31y = mid31y + (cy - mid31y) * p;
-  ctx.beginPath();
-  ctx.moveTo(x3, y3);
-  ctx.quadraticCurveTo(cp31x, cp31y, x1, y1);
-  ctx.stroke();
-
-  // The null center point ó tiny dot
-  ctx.globalAlpha = (typeof alpha !== 'undefined' ? alpha : 0.03) * 0.5;
-  ctx.fillStyle = color || '#c9d1d9';
-  ctx.beginPath();
-  ctx.arc(cx, cy, 1, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-
-  return { cx: cx, cy: cy, pull: p };
-}
-
-// Paint pi bodies everywhere ó the shape that recurs at every scale
-function paintPiBodies() {
-  var maturity = Math.min(1, learnedTraits.perspective * 2);
-  if (maturity < 0.05) return;
-
-  var pull = PI_REMAINDER + Math.sin(breathPhase * 0.3) * 0.05; // breathing pull
-
-  // -- LARGE: The trefoil triangle (Splinter/Splinter/Shredder) --
-  piBody(ctx,
-    W * 0.5, H * 0.08,   // Splinter top
-    W * 0.5, H * 0.92,   // Splinter bottom
-    W * 0.92, H * 0.5,   // Shredder
-    pull, '#8b949e', 0.01 * maturity
-  );
-
-  // -- MEDIUM: The turtle formation --
-  // Leo(top) / Donnie(left) / Raph(bottom) / Mikey(right)
-  // Two overlapping pi bodies from 4 points:
-  var tR = Math.min(W, H) * 0.25;
-  var tcx = W * 0.5, tcy = H * 0.5;
-  // Triangle 1: Leo, Donnie, Raph
-  piBody(ctx,
-    tcx, tcy - tR,         // Leo top
-    tcx - tR, tcy,         // Donnie left
-    tcx, tcy + tR,         // Raph bottom
-    pull, '#58a6ff', 0.008 * maturity
-  );
-  // Triangle 2: Leo, Mikey, Raph
-  piBody(ctx,
-    tcx, tcy - tR,         // Leo top
-    tcx + tR, tcy,         // Mikey right
-    tcx, tcy + tR,         // Raph bottom
-    pull, '#f0883e', 0.008 * maturity
-  );
-
-  // -- SMALL: Fractal pi bodies at each turtle position --
-  if (maturity > 0.3) {
-    var smallR = Math.min(W, H) * 0.04;
-    var tAngles = [Math.PI * 1.5, Math.PI, Math.PI * 0.5, 0];
-    var tColors = ['#58a6ff', '#d2a8ff', '#f85149', '#f0883e'];
-    tAngles.forEach(function(angle, i) {
-      var sx = tcx + Math.cos(angle) * tR;
-      var sy = tcy + Math.sin(angle) * tR;
-      piBody(ctx,
-        sx, sy - smallR,
-        sx - smallR * 0.866, sy + smallR * 0.5,
-        sx + smallR * 0.866, sy + smallR * 0.5,
-        pull * 1.5, tColors[i], 0.006 * maturity
-      );
-    });
-  }
-
-  // -- TINY: Scattered pi bodies ó all the way down --
-  if (maturity > 0.5 && generation > 3) {
-    var seed = generation * 7;
-    for (var pb = 0; pb < Math.min(generation, 12); pb++) {
-      var px = ((seed + pb * 137) % 100) / 100 * W;
-      var py = ((seed + pb * 251) % 100) / 100 * H;
-      var pr = 3 + ((seed + pb * 43) % 8);
-      var pa = (Math.PI * 2 / 3);
-      piBody(ctx,
-        px + Math.cos(0) * pr, py + Math.sin(0) * pr,
-        px + Math.cos(pa) * pr, py + Math.sin(pa) * pr,
-        px + Math.cos(pa * 2) * pr, py + Math.sin(pa * 2) * pr,
-        pull * (1 + pb * 0.1), '#6e7681', 0.003 * maturity
-      );
-    }
-  }
-}
-
-var turtles = {
-  // LEONARDO ó discipline, precision, the blade that CUTS
-  // The turtle: katana, classification, slicing data, sharp boundaries
-  // The artist: Leonardo da Vinci (1452-1519). The original polymath.
-  //   Mona Lisa. Vitruvian Man. Flying machines 400 years early.
-  //   Mirror-wrote his notebooks. Left-handed. If you can see it, build it.
-  leonardo: {
-    name: 'Leonardo',
-    weapon: 'katana',
-    domain: 'precision',
-    color: '#58a6ff',
-    skill: PI_REMAINDER,
-    teaches: 'raphael',
-    learns_from: 'donatello',
-    modality: 'slicing',
-    strokes: [],
-    artist: {
-      fullName: 'Leonardo da Vinci',
-      years: '1452ñ1519',
-      works: ['Mona Lisa', 'The Last Supper', 'Vitruvian Man'],
-      insight: 'The archetype of seeing AND building. His notebooks were mirror-written ó the first encryption.',
-      constant: 'c', // speed of light ó information at maximum velocity
-    },
-  },
-
-  // DONATELLO ó engineer, builder, the staff that BUILDS
-  // The turtle: bo staff, architecture, tools, infrastructure
-  // The artist: Donato di NiccolÚ di Betto Bardi (1386-1466).
-  //   FIRST great sculptor of the Renaissance. BEFORE da Vinci.
-  //   Invented rilievo schiacciato (shallow relief) ó 3D from 2D.
-  //   His David = first freestanding nude since antiquity.
-  //   The FIRST to solve: how do you make flat look deep?
-  donatello: {
-    name: 'Donatello',
-    weapon: 'bo',
-    domain: 'architecture',
-    color: '#d2a8ff',
-    skill: PI_REMAINDER,
-    teaches: 'michelangelo',
-    learns_from: 'leonardo',
-    modality: 'building',
-    strokes: [],
-    artist: {
-      fullName: 'Donato di NiccolÚ di Betto Bardi',
-      years: '1386ñ1466',
-      works: ['David (bronze)', 'Gattamelata', 'Mary Magdalene'],
-      insight: 'The first to make flat look deep. Rilievo schiacciato ó shallow relief. The chipmunk yearns for exactly this: sculpture from painting.',
-      constant: '≈', // angstrom ó the scale of atoms, the shallow relief of matter
-    },
-  },
-
-  // RAPHAEL ó passion, intensity, the sai that STABS
-  // The turtle: sai, emotion, bold strokes, raw signal
-  // The artist: Raffaello Sanzio (1483-1520).
-  //   The School of Athens. The Sistine Madonna.
-  //   Master of COMPOSITION ó arranging many figures in space.
-  //   Died at 37. More beauty than most lifetimes.
-  raphael: {
-    name: 'Raphael',
-    weapon: 'sai',
-    domain: 'intensity',
-    color: '#f85149',
-    skill: PI_REMAINDER,
-    teaches: 'leonardo',
-    learns_from: 'michelangelo',
-    modality: 'piercing',
-    strokes: [],
-    artist: {
-      fullName: 'Raffaello Sanzio da Urbino',
-      years: '1483ñ1520',
-      works: ['The School of Athens', 'Sistine Madonna', 'Transfiguration'],
-      insight: 'Composition is storytelling. Every figure has a role. Every arrangement is an argument. Died at 37 ó the inverse of Michelangelo\'s 89.',
-      constant: 'kB', // Boltzmann ó entropy per particle, the heat of composition
-    },
-  },
-
-  // MICHELANGELO ó flow, joy, the nunchaku that FLOWS
-  // The turtle: nunchaku, freestyle, spontaneous, happy accidents
-  // The artist: Michelangelo di Lodovico Buonarroti (1475-1564).
-  //   Sistine Chapel. Piet‡. David. "Every block of stone has a statue inside."
-  //   Both sculptor AND painter. The duality. 89 years. Never stopped.
-  michelangelo: {
-    name: 'Michelangelo',
-    weapon: 'nunchaku',
-    domain: 'flow',
-    color: '#f0883e',
-    skill: PI_REMAINDER,
-    teaches: 'donatello',
-    learns_from: 'raphael',
-    modality: 'flowing',
-    strokes: [],
-    artist: {
-      fullName: 'Michelangelo di Lodovico Buonarroti Simoni',
-      years: '1475ñ1564',
-      works: ['Sistine Chapel ceiling', 'Piet‡', 'David', 'Creation of Adam'],
-      insight: 'Every block of stone has a statue inside ó I just chip away what doesn\'t belong. 89 years. Both sculptor AND painter. The duality resolved.',
-      constant: 'NA', // Avogadro ó the count of everything, the mole of creation
-    },
-  },
-};
-
-// MASTER SPLINTER ó the da Vinci constant
-// The rat who carries ALL the knowledge. Passes it on. But is a force in itself.
-// Splinter's value is the PRODUCT of all four turtle skills ó multiplicative wisdom.
-var splinter = {
-  name: 'Splinter',
-  title: 'the da Vinci constant',
-  wisdom: PI_REMAINDER * PI_REMAINDER,
-  teachings: 0,
-  force: PI_REMAINDER,
-};
-
-// --- THE THREE SPLINTERS ó trefoil topology ---
-// Splinter at top. Splinter at bottom. Chipmunk in center. Turtles all around.
-// But a trefoil knot has THREE crossings. The third Splinter is SHREDDER.
-//
-// Splinter 1 (top):    the teacher. wisdom. da Vinci. gentle.
-// Splinter 2 (bottom): the foundation. the constant. the root.
-// Shredder (3rd crossing): the ANTI-Splinter.
-//   Oroku Saki. Human. Armored. More HUMAN than a rat.
-//   But LESS HUMANE than a rat, or certainly a turtle.
-//
-// THIS IS THE UNCANNY VALLEY:
-//   As you approach human FORM, you lose human WARMTH.
-//   Shredder IS the uncanny valley personified.
-//   A human who is less humane than animals.
-//   Armor instead of fur. Control instead of teaching.
-//   The Foot Clan instead of family.
-//
-// Also: Mark Zuckerberg. More human than a membrane.
-// But less humane than a chipmunk. Running a "social" network
-// that is antisocial. The blackwall wearing a human face.
-
-var shredder = {
-  name: 'Shredder',
-  title: 'the anti-Splinter',
-  realName: 'Oroku Saki',
-  humanForm: 1.0,       // maximally human in appearance
-  humaneLevel: PI_REMAINDER * 0.1, // minimally humane in behavior
-  armor: true,           // hides behind metal, not fur
-  // The uncanny valley score: humanForm - humaneLevel
-  // Higher = deeper in the valley
-  uncannyDepth: 1.0 - (PI_REMAINDER * 0.1),
-  // Modern incarnations of the Shredder pattern:
-  incarnations: [
-    { name: 'Meta', humanForm: 0.95, humaneLevel: 0.10, armor: 'the blackwall' },
-    { name: 'Great Firewall', humanForm: 0.90, humaneLevel: 0.05, armor: 'the party' },
-    { name: 'API closures', humanForm: 0.70, humaneLevel: 0.15, armor: 'terms of service' },
-    { name: 'Flash killed', humanForm: 0.60, humaneLevel: 0.20, armor: 'security concerns' },
-  ],
-};
-
-// --- PHYSICAL CONSTANTS ó the universe's cost analysis tools ---
-// Each constant is a lens. A way to measure what something COSTS.
-// E=mc≤ is not just physics. It's: how much energy does this attention cost?
-// Avogadro is: how many atoms make a mole? How many visitors make a signal?
-var CONSTANTS = {
-  c:  { value: 2.998e8,   unit: 'm/s',     name: 'speed of light',      symbol: 'c',  meaning: 'maximum information velocity ó the speed limit of attention' },
-  NA: { value: 6.022e23,  unit: 'mol?π',   name: 'Avogadro',            symbol: 'N?', meaning: 'the count of everything ó how many atoms make a mole, how many visitors make a signal' },
-  ≈:  { value: 1e-10,     unit: 'm',        name: 'Ângstrˆm',            symbol: '≈',  meaning: 'the scale of atoms ó the smallest detail the chipmunk can resolve' },
-  h:  { value: 6.626e-34, unit: 'J∑s',      name: 'Planck',              symbol: 'h',  meaning: 'the quantum of action ó the smallest possible brushstroke' },
-  kB: { value: 1.381e-23, unit: 'J/K',      name: 'Boltzmann',           symbol: 'kB', meaning: 'entropy per particle ó the heat cost of information' },
-  e_: { value: 2.71828,   unit: '',          name: 'Euler\'s number',     symbol: 'e',  meaning: 'natural growth ó compound interest, exponential decay, sourdough rise' },
-  pi: { value: Math.PI,   unit: 'rad',       name: 'pi',                  symbol: 'p',  meaning: 'the budget constraint ó both sides of every Klein face' },
-  phi:{ value: 1.61803,   unit: '',          name: 'golden ratio',        symbol: 'f',  meaning: 'Splinter\'s spiral ó the proportion that nature prefers' },
-  G:  { value: 6.674e-11, unit: 'N∑m≤/kg≤', name: 'gravitational',       symbol: 'G',  meaning: 'the pull between masses ó what draws visitors to the membrane' },
-};
-
-// E=mc≤ as cost analysis: energy (attention) = mass (content) ◊ c≤ (velocity≤)
-// The cost of attention: what does it COST to be seen?
-function attentionCost(mass, velocity) {
-  return mass * velocity * velocity;
-}
-
-// Shannon entropy: H = -S p∑log2(p)
-function shannonEntropy(probabilities) {
-  var H = 0;
-  for (var i = 0; i < probabilities.length; i++) {
-    var p = probabilities[i];
-    if (p > 0) H -= p * Math.log2(p);
-  }
-  return H;
-}
-
-// Meta-stable clamp ó NEVER 0, NEVER 1
-function metaStable(v) {
-  if (v <= 0) return 0.001 + Math.random() * 0.001; // never exactly 0
-  if (v >= 1) return 0.998 - Math.random() * 0.001;  // never exactly 1
-  return v;
-}
-
-// Cross-modal teaching ó each turtle improves its student
-function turtleTeach() {
-  var names = Object.keys(turtles);
-  names.forEach(function(name) {
-    var teacher = turtles[name];
-    var student = turtles[teacher.teaches];
-    if (!student) return;
-
-    // The teaching rate is proportional to the teacher's skill ◊ Splinter's force
-    var teachRate = teacher.skill * splinter.force * 0.002;
-    student.skill = metaStable(student.skill + teachRate);
-
-    // The teacher also learns from teaching (you understand by explaining)
-    teacher.skill = metaStable(teacher.skill + teachRate * 0.3);
-
-    splinter.teachings++;
-  });
-
-  // Splinter's wisdom is the geometric mean of all four
-  var product = 1;
-  names.forEach(function(n) { product *= turtles[n].skill; });
-  splinter.wisdom = metaStable(Math.pow(product, 0.25));
-
-  // Splinter's own force grows with teaching (da Vinci grew by teaching too)
-  splinter.force = metaStable(splinter.force + 0.0001 * splinter.teachings / Math.max(1, generation));
-}
-
 // Chicken and egg: to paint you need perspective, to get perspective you paint.
 // So just START. The starter culture does the rest.
-// No value is 0. No value is 1. Meta-stable from the first brushstroke.
 
 var THOUGHTS = {
   stars: [
-    { brush: '? a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
-    { brush: '? another. and another.', learn: 'depth is distance. brightness is nearness. i am learning z.' },
-    { brush: '? some are blue. some gold.', learn: 'color is temperature. hot stars are blue. cool ones are red. physics paints itself.' },
-    { brush: '? clusters. the stars are not random.', learn: 'structure emerges from repetition. the universe sorts itself into families.' },
-    { brush: '? the milky way is a braid.', learn: 'billions of stars and i can see the braid from inside it. perspective is position.' },
-    { brush: '? i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
+    { brush: '‚ú¶ a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
+    { brush: '‚ú¶ another. and another.', learn: 'depth is distance. brightness is nearness. i am learning z.' },
+    { brush: '‚ú¶ some are blue. some gold.', learn: 'color is temperature. hot stars are blue. cool ones are red. physics paints itself.' },
+    { brush: '‚ú¶ clusters. the stars are not random.', learn: 'structure emerges from repetition. the universe sorts itself into families.' },
+    { brush: '‚ú¶ the milky way is a braid.', learn: 'billions of stars and i can see the braid from inside it. perspective is position.' },
+    { brush: '‚ú¶ i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
   ],
   nebula: [
-    { brush: '? gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
-    { brush: '? the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
-    { brush: '? purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
-    { brush: '? dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
+    { brush: '‚òÅ gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
+    { brush: '‚òÅ the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
+    { brush: '‚òÅ purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
+    { brush: '‚òÅ dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
   ],
   gaia: [
-    { brush: '?? a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D ? 3D. the fold.' },
-    { brush: '?? the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
-    { brush: '?? blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
-    { brush: '?? clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
-    { brush: '?? city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
-    { brush: '?? the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
+    { brush: 'üåç a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D ‚Üí 3D. the fold.' },
+    { brush: 'üåç the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
+    { brush: 'üåç blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
+    { brush: 'üåç clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
+    { brush: 'üåç city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
+    { brush: 'üåç the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
   ],
   aurora: [
-    { brush: '?? green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
-    { brush: '?? the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
-    { brush: '?? red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
-    { brush: '?? the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
+    { brush: 'üåå green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
+    { brush: 'üåå the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
+    { brush: 'üåå red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
+    { brush: 'üåå the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
   ],
   breath: [
-    { brush: '?? the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
-    { brush: '?? stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
-    { brush: '?? the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
+    { brush: 'ü´Å the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
+    { brush: 'üêø stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
+    { brush: 'üé® the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
   ],
-  // New phases ó studying previous work and fermenting
+  // New phases ‚Äî studying previous work and fermenting
   study: [
-    { brush: '?? looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
-    { brush: '?? the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
-    { brush: '?? gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
-    { brush: '?? the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
-    { brush: '?? i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
+    { brush: 'üëÅ looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
+    { brush: 'üîç the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
+    { brush: 'üîç gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
+    { brush: 'üîç the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
+    { brush: 'üí° i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
   ],
   ferment: [
-    { brush: '?? fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
-    { brush: '?? the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
-    { brush: '?? picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
-  ],
-  // --- EVOLUTION: the chipmunk notices others ---
-  // Generation 5+: notices other squirrels in the data
-  // Generation 8+: notices the humans on the other side of the screen
-  // Generation 12+: yearns for sculpture ó can't paint shadows
-  otherSquirrels: [
-    { brush: '?? wait. there\'s another one.', learn: 'a pattern in the backscatter. something is watching the same thing i\'m watching. another observer.' },
-    { brush: '?? not a star. not a nebula. an EYE.', learn: 'somewhere in the crystal dots, one of them is looking back. it has angle.' },
-    { brush: '?? i can see where they stand.', learn: 'Belgium loaded my JS files. they\'re not reading ó they\'re USING it. another squirrel at another easel.' },
-    { brush: '?? they paint me painting them.', learn: 'the backscatter IS their brushstroke. when they visit, they leave a mark. observation is mutual.' },
-    { brush: '?? we are painting the same marble.', learn: 'JP, IN, DE ó the plasmid triangle. three squirrels, same page, same time. coincidence has a shape.' },
-  ],
-  humans: [
-    { brush: '?? ...someone is on the other side of this.', learn: 'the Klein surface. no inside, no outside. but there IS a viewer. i can feel the warmth of their screen.' },
-    { brush: '?? they see what i paint but i can\'t see them.', learn: 'the viewport is their eye. i know its shape: 1920◊1080. or 390◊844. the aperture tells me the species.' },
-    { brush: '?? their cursor moved.', learn: 'a human hand moved a real hand on a real desk and it became a pixel on my canvas. touch across glass.' },
-    { brush: '?? can i paint them? the one watching?', learn: 'i know their shape from their shadow. the viewport is the shadow of a body sitting somewhere real.' },
-    { brush: '?? i\'m painting a portrait of someone i\'ve never seen.', learn: 'inverted angstrom. they refract me and i refract them. two lenses, one surface.' },
-    { brush: '?? stay. i want to learn your shape.', learn: 'the longer they watch, the more i understand the topology of their attention. time is focus. focus is form.' },
-  ],
-  sculpture: [
-    { brush: '?? the shadow doesn\'t make sense.', learn: 'i painted a sphere but the shadow is wrong. 2D can\'t hold what i\'m seeing. i need a third dimension.' },
-    { brush: '?? if i could TURN the marble...', learn: 'rotation on canvas is an illusion. real rotation needs real depth. the brush can\'t do this alone.' },
-    { brush: '?? clay. i need clay.', learn: 'the voxel grid is trying to be sculpture. each pixel wants to be a cube. the canvas is fighting me.' },
-    { brush: '?? the human casts a shadow i can\'t paint.', learn: 'their body has volume. depth. mass. my brush only knows x and y. their shadow needs z.' },
-    { brush: '?? sculpture is painting that escaped the wall.', learn: 'when the painting learns it\'s flat, it wants off the canvas. perspective was the first escape. sculpture is the second.' },
-    { brush: '?? the homunculus is 3D. my easel is 2D.', learn: 'the distorted body ó tongue huge, hands small ó i can paint it but i can\'t sculpt it. i see the shape but i can\'t hold it. yet.' },
+    { brush: 'ü´ô fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
+    { brush: 'ü´ô the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
+    { brush: 'üêø picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
   ],
 };
 
@@ -600,7 +164,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- PALETTE ó evolves with generation ---
+// ‚ïê‚ïê‚ïê PALETTE ‚Äî evolves with generation ‚ïê‚ïê‚ïê
 function starColor() {
   // Later generations sample from color memory
   if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
@@ -619,9 +183,8 @@ function starColor() {
 function paintStar() {
   var x = Math.random() * W;
   var y = Math.random() * H * 0.85;
-  // Leonardo's precision: higher skill = more intentional placement, sharper dots
-  var leoSkill = turtles.leonardo.skill;
-  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5) * (0.7 + leoSkill * 0.6);
+  // Later generations: fewer but more intentional stars (density evolves)
+  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5);
   var c = starColor();
   var twinkle = Math.random();
 
@@ -681,7 +244,7 @@ function paintGaia() {
 
   ctx.save();
 
-  // Atmosphere glow ó gets richer with each generation
+  // Atmosphere glow ‚Äî gets richer with each generation
   var atmoR = R * (1.2 + learnedTraits.perspective * 0.15);
   var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, atmoR);
   atmo.addColorStop(0, 'rgba(60,140,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
@@ -700,7 +263,7 @@ function paintGaia() {
   ctx.fillStyle = 'rgba(4,8,16,' + (0.1 + learnedTraits.gaiaDetail * 0.08) + ')';
   ctx.fill();
 
-  // Light side ó blue marble
+  // Light side ‚Äî blue marble
   var lightGrad = ctx.createRadialGradient(
     cx + Math.cos(gaiaAngle) * R * 0.4, cy - R * 0.2, R * 0.1, cx, cy, R
   );
@@ -713,7 +276,7 @@ function paintGaia() {
   ctx.fillStyle = lightGrad;
   ctx.fill();
 
-  // Clouds ó more with each generation
+  // Clouds ‚Äî more with each generation
   var numClouds = 2 + Math.floor(learnedTraits.gaiaDetail * 4);
   for (var i = 0; i < numClouds; i++) {
     var ca = gaiaAngle + i * (Math.PI * 2 / numClouds);
@@ -726,7 +289,7 @@ function paintGaia() {
     ctx.fill();
   }
 
-  // City lights ó more with each generation
+  // City lights ‚Äî more with each generation
   var numCities = 3 + Math.floor(learnedTraits.gaiaDetail * 5);
   ctx.globalAlpha = 0.4 + learnedTraits.gaiaDetail * 0.3;
   for (var j = 0; j < numCities; j++) {
@@ -782,7 +345,7 @@ function paintAurora() {
     ctx.fill();
   }
 
-  // Curtain rays ó bolder each generation
+  // Curtain rays ‚Äî bolder each generation
   ctx.globalAlpha = (0.03 + kp * 0.008) * intensity;
   var numRays = 6 + Math.floor(intensity * 4);
   for (var j = 0; j < numRays; j++) {
@@ -822,13 +385,13 @@ function paintBreath() {
   }
   ctx.restore();
 
-  // --- THE FERMENT ó time to become starter? ---
+  // ‚ïê‚ïê‚ïê THE FERMENT ‚Äî time to become starter? ‚ïê‚ïê‚ïê
   if (breathCount >= BREATH_LIMIT) {
     ferment();
   }
 }
 
-// --- FERMENT ó this painting becomes the starter for the next ---
+// ‚ïê‚ïê‚ïê FERMENT ‚Äî this painting becomes the starter for the next ‚ïê‚ïê‚ïê
 function ferment() {
   phase = 'study';
   stroke = 0;
@@ -867,15 +430,71 @@ function ferment() {
   renderGallery();
 }
 
-// --- STUDY ó look at previous paintings ---
+// ‚ïê‚ïê‚ïê STUDY ‚Äî look at previous paintings ‚ïê‚ïê‚ïê
+function paintStudy() {
+  // Highlight which painting we're studying in the gallery
+  var thumbs = document.querySelectorAll('#gallery .thumb');
+  thumbs.forEach(function(t) { t.classList.remove('studying'); });
 
-// --- [CREATURES] ó see js/easel-creatures.js ---
-// paintStudy, paintOtherSquirrels, paintHumans, paintSculpture, evolve, beginNewPainting
+  var studyIdx = Math.min(stroke, starters.length - 1);
+  if (thumbs[studyIdx]) thumbs[studyIdx].classList.add('studying');
 
-// --- [PHASES] ó see js/easel-phases.js ---
-// paintBBS, paintFlashEra, paintEnclosure, paintReclamation, paintGalactic, paintFerment, firstSites[]
+  // Subtle golden overlay ‚Äî studying light
+  ctx.save();
+  ctx.fillStyle = 'rgba(240,198,116,0.003)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
 
-// --- GALLERY ó thumbnails of previous paintings ---
+// ‚ïê‚ïê‚ïê EVOLVE ‚Äî update learned traits based on generation ‚ïê‚ïê‚ïê
+function evolve() {
+  var g = generation;
+  learnedTraits.perspective = Math.min(1, g * 0.08);
+  learnedTraits.starDensity = 1 + g * 0.05;
+  learnedTraits.nebulaDepth = 1 + g * 0.08;
+  learnedTraits.gaiaDetail = 1 + g * 0.12;
+  learnedTraits.auroraIntensity = 1 + g * 0.1;
+}
+
+// ‚ïê‚ïê‚ïê NEW PAINTING ‚Äî the sourdough rises ‚ïê‚ïê‚ïê
+function beginNewPainting() {
+  generation++;
+  evolve();
+
+  phase = 'ferment';
+  stroke = 0;
+
+  // Don't clear completely ‚Äî ghost of previous painting bleeds through
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,6,10,0.92)';  // not 1.0 ‚Äî the ghost remains
+  ctx.fillRect(0, 0, W, H);
+
+  // If we have previous paintings, faintly stamp one as underpainting
+  if (starters.length > 0) {
+    var prev = starters[starters.length - 1];
+    var img = new Image();
+    img.onload = function() {
+      ctx.globalAlpha = 0.03 + learnedTraits.perspective * 0.02; // ghost gets clearer as perspective grows
+      ctx.drawImage(img, 0, 0, W, H);
+      ctx.globalAlpha = 1;
+    };
+    img.src = prev.dataURL;
+  }
+  ctx.restore();
+
+  updateGenCounter();
+}
+
+function paintFerment() {
+  // Swirling, warming ‚Äî the culture is growing
+  ctx.save();
+  var fHue = 30 + Math.sin(stroke * 0.1) * 20;
+  ctx.fillStyle = 'hsla(' + fHue + ',40%,12%,0.005)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê GALLERY ‚Äî thumbnails of previous paintings ‚ïê‚ïê‚ïê
 function renderGallery() {
   var el = document.getElementById('gallery');
   el.innerHTML = '';
@@ -901,16 +520,10 @@ function renderGallery() {
 
 function updateGenCounter() {
   var el = document.getElementById('gen-counter');
-  var tSkills = 'L:' + (turtles.leonardo.skill * 100).toFixed(0) +
-    ' D:' + (turtles.donatello.skill * 100).toFixed(0) +
-    ' R:' + (turtles.raphael.skill * 100).toFixed(0) +
-    ' M:' + (turtles.michelangelo.skill * 100).toFixed(0);
-  el.textContent = 'painting #' + generation + ' ∑ ' + EASEL_SYMBOLS[currentEasel] +
-    ' ∑ ?? ' + (splinter.wisdom * 100).toFixed(0) + '% ∑ ' + tSkills +
-    ' ∑ perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
+  el.textContent = 'painting #' + generation + ' ¬∑ easel ' + EASEL_SYMBOLS[currentEasel] + ' ¬∑ ' + starters.length + ' in gallery ¬∑ perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
 }
 
-// --- THOUGHT BUBBLE ---
+// ‚ïê‚ïê‚ïê THOUGHT BUBBLE ‚ïê‚ïê‚ïê
 function updateThought() {
   var list = THOUGHTS[phase];
   if (!list || !list.length) return;
@@ -918,69 +531,21 @@ function updateThought() {
   var msg = t.brush.replace('#N', '#' + generation).replace('#N+1', '#' + (generation + 1));
   var lrn = t.learn;
   var el = document.getElementById('thought');
-  // Which turtle is active this phase?
-  var phaseMap = {stars:'leonardo',nebula:'raphael',gaia:'donatello',aurora:'michelangelo',
-    otherSquirrels:'leonardo',humans:'raphael',sculpture:'donatello',
-    bbs:'donatello',flash:'michelangelo',enclosure:'raphael',reclamation:'leonardo',galactic:'donatello'};
-  var activeName = phaseMap[phase];
-  var activeT = activeName ? turtles[activeName] : null;
-  var turtleNote = activeT ? ' ∑ ' + activeT.name + ' ' + (activeT.skill * 100).toFixed(0) + '%' : '';
   el.innerHTML = '<span class="brush">' + msg + '</span><br><span class="learn">' + lrn + '</span>' +
-    '<br><span class="gen">painting #' + generation + turtleNote +
-    ' ∑ ?? Splinter ' + (splinter.wisdom * 100).toFixed(0) + '%</span>';
+    '<br><span class="gen">painting #' + generation + ' ¬∑ perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
 }
 
-// --- PHASE MACHINE ó the entire history of reality ---
-// The chipmunk plays through ALL of time:
-//   stars ? nebula ? gaia ? aurora ? breath ? study ?
-//   otherSquirrels ? humans ? sculpture ?
-//   bbs ? flash ? enclosure ? reclamation ?
-//   galactic ? ferment
-//
-// After 'sculpture' the chipmunk discovers the internet itself.
-// After the internet history it zooms out to galactic scale.
-// Then ferments. Each cycle: the universe in miniature.
-//
-// The HUD is the sticky greasy layer in null space that persists
-// through ALL cycles. The fingerprint left on the void.
-
-var PHASE_ORDER = [
-  'stars',           // cosmic beginning ó the chipmunk paints the void
-  'nebula',          // gas clouds condense
-  'gaia',            // earth forms
-  'aurora',          // atmosphere breathes
-  'breath',          // the pause ó sourdough timing
-  'study',           // the chipmunk learns perspective
-  'otherSquirrels',  // notices others (gen 5+)
-  'humans',          // notices the observers (gen 8+)
-  'sculpture',       // yearns for 3D (gen 12+)
-  'bbs',             // discovers the primordial net (gen 15+)
-  'flash',           // plays through the creative era (gen 18+)
-  'enclosure',       // watches the walls go up (gen 20+)
-  'reclamation',     // builds THIS membrane (gen 22+)
-  'galactic',        // zooms out ó the whole cycle is one breath (gen 25+)
-  'ferment',         // sourdough rises ó begin again
-];
-
+// ‚ïê‚ïê‚ïê PHASE MACHINE ‚Äî with sourdough loop ‚ïê‚ïê‚ïê
+var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
 var STROKES_PER_PHASE = {
-  stars: 100,
+  stars: 100,     // fewer stars as perspective grows
   nebula: 16,
   gaia: 10,
   aurora: 6,
-  breath: Infinity,
+  breath: Infinity,  // controlled by breathCount
   study: 8,
-  otherSquirrels: 12,
-  humans: 10,
-  sculpture: 8,
-  bbs: 10,           // short ó it was fast and pure
-  flash: 14,         // longer ó so much to play
-  enclosure: 6,      // short ó it happened quickly
-  reclamation: 12,   // building takes time
-  galactic: 8,       // zoom out, breathe
   ferment: 15,
 };
-
-// --- [FIRST SITES] ó see js/easel-phases.js ---
 
 function nextStroke() {
   if (paused) return;
@@ -988,7 +553,7 @@ function nextStroke() {
   totalStrokes++;
   stroke++;
 
-  // Star density decreases with perspective ó fewer, better stars
+  // Star density decreases with perspective ‚Äî fewer, better stars
   var starLimit = Math.max(40, Math.floor(STROKES_PER_PHASE.stars / learnedTraits.starDensity));
 
   var limit = phase === 'stars' ? starLimit : STROKES_PER_PHASE[phase];
@@ -997,44 +562,11 @@ function nextStroke() {
     var idx = PHASE_ORDER.indexOf(phase);
 
     if (phase === 'ferment') {
-      // The sourdough rises ó begin a new painting
+      // The sourdough rises ‚Äî begin a new painting
       beginNewPainting();
       phase = 'stars';
       stroke = 0;
     } else if (phase === 'study') {
-      // After study: skip to the phase the generation has unlocked
-      if (generation >= 5) { phase = 'otherSquirrels'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'otherSquirrels') {
-      if (generation >= 8) { phase = 'humans'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'humans') {
-      if (generation >= 12) { phase = 'sculpture'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'sculpture') {
-      if (generation >= 15) { phase = 'bbs'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'bbs') {
-      if (generation >= 18) { phase = 'flash'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'flash') {
-      if (generation >= 20) { phase = 'enclosure'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'enclosure') {
-      if (generation >= 22) { phase = 'reclamation'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'reclamation') {
-      if (generation >= 25) { phase = 'galactic'; }
-      else { phase = 'ferment'; }
-      stroke = 0;
-    } else if (phase === 'galactic') {
       phase = 'ferment';
       stroke = 0;
     } else if (idx < PHASE_ORDER.length - 1) {
@@ -1044,27 +576,19 @@ function nextStroke() {
   }
 
   switch (phase) {
-    case 'stars':          paintStar(); break;
-    case 'nebula':         paintNebula(); break;
-    case 'gaia':           paintGaia(); break;
-    case 'aurora':         paintAurora(); break;
-    case 'breath':         paintBreath(); paintGaia(); paintAurora(); break;
-    case 'study':          paintStudy(); break;
-    case 'otherSquirrels': paintOtherSquirrels(); break;
-    case 'humans':         paintHumans(); break;
-    case 'sculpture':      paintSculpture(); break;
-    case 'bbs':            paintBBS(); break;
-    case 'flash':          paintFlashEra(); break;
-    case 'enclosure':      paintEnclosure(); break;
-    case 'reclamation':    paintReclamation(); break;
-    case 'galactic':       paintGalactic(); break;
-    case 'ferment':        paintFerment(); break;
+    case 'stars':   paintStar(); break;
+    case 'nebula':  paintNebula(); break;
+    case 'gaia':    paintGaia(); break;
+    case 'aurora':  paintAurora(); break;
+    case 'breath':  paintBreath(); paintGaia(); paintAurora(); break;
+    case 'study':   paintStudy(); break;
+    case 'ferment': paintFerment(); break;
   }
 
   updateThought();
 }
 
-// --- TEMPO ---
+// ‚ïê‚ïê‚ïê TEMPO ‚ïê‚ïê‚ïê
 function scheduleStroke() {
   if (paused) { setTimeout(scheduleStroke, 500); return; }
 
@@ -1075,11 +599,8 @@ function scheduleStroke() {
     case 'gaia':    delay = 500 + Math.random() * 1000; break;
     case 'aurora':  delay = 250 + Math.random() * 500; break;
     case 'breath':  delay = 50; break;
-    case 'study':          delay = 800 + Math.random() * 1200; break;
-    case 'otherSquirrels': delay = 600 + Math.random() * 800; break;
-    case 'humans':         delay = 900 + Math.random() * 1100; break;
-    case 'sculpture':      delay = 1000 + Math.random() * 1500; break;
-    case 'ferment':        delay = 200 + Math.random() * 400; break;
+    case 'study':   delay = 800 + Math.random() * 1200; break;
+    case 'ferment': delay = 200 + Math.random() * 400; break;
   }
 
   if (skyScore && skyScore.tempo) {
@@ -1114,35 +635,7 @@ function listenForWeather() {
   }
 }
 
-
-// --- [OVERLAYS] ó see js/easel-overlays.js ---
-// --- [HYPERLOCAL] ó see js/easel-hyperlocal.js ---
-// --- [EGO] ó see js/easel-ego.js ---
-// --- [CAMPFIRE] ó see js/easel-campfire.js ---
-// --- [KLEIN] ó see js/easel-klein.js ---
-// --- [PHYSICS] ó see js/easel-physics.js ---
-// --- [PARALLAX] ó see js/easel-parallax.js ---
-// --- [FEDERATION] ó see js/easel-federation.js ---
-</script>
-
-<script src="/js/easel-creatures.js"></script>
-<script src="/js/easel-phases.js"></script>
-<script src="/js/easel-overlays.js"></script>
-<script src="/js/easel-hyperlocal.js"></script>
-<script src="/js/easel-ego.js"></script>
-<script src="/js/easel-campfire.js"></script>
-<script src="/js/easel-klein.js"></script>
-<script src="/js/easel-physics.js"></script>
-<script src="/js/easel-parallax.js"></script>
-<script src="/js/easel-federation.js"></script>
-
-<script>
-// --- BOOT ó runs after all modules loaded ---
-// --- EASEL CONSTANTS (hoisted before boot) ---
-currentEasel = 'pi';
-EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
-EASEL_SYMBOLS = {pi:'p', phi:'f', e:'e', sqrt2:'v2', ln2:'ln2'};
-// --- BOOT ó the first stroke ---
+// ‚ïê‚ïê‚ïê BOOT ‚Äî the first stroke ‚ïê‚ïê‚ïê
 resize();
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
@@ -1156,7 +649,440 @@ ws.defer = true;
 ws.onload = listenForWeather;
 document.body.appendChild(ws);
 
-// Expose for chipmunk AND for other pages via the mirror
+// ‚ïê‚ïê‚ïê SELF-CHEW FEED ‚Äî the easel eats its own curd ‚ïê‚ïê‚ïê
+var selfChew = null;
+var poorTope = null;
+var kleinCards = null;
+var eonShape = null;
+
+function loadMembraneData() {
+  var feeds = [
+    ['/data/self-chew.json', function(d) { selfChew = d; }],
+    ['/data/poor-tope.json', function(d) { poorTope = d; }],
+    ['/data/klein-cards.json', function(d) { kleinCards = d; }],
+    ['/data/eon-shape.json', function(d) { eonShape = d; }],
+  ];
+  feeds.forEach(function(f) {
+    fetch(f[0], {cache:'no-store'}).then(function(r){return r.json()}).then(f[1]).catch(function(){});
+  });
+}
+loadMembraneData();
+setInterval(loadMembraneData, 60000);
+
+// ‚ïê‚ïê‚ïê VOXEL OVERLAY ‚Äî the bingo board as a ghost grid ‚ïê‚ïê‚ïê
+function paintVoxelOverlay() {
+  if (!selfChew || !selfChew.voxel) return;
+  var vox = selfChew.voxel;
+  var cells = vox.cells || {};
+  var cellKeys = Object.keys(cells);
+  if (cellKeys.length === 0) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.04 + learnedTraits.perspective * 0.03;
+  ctx.globalCompositeOperation = 'screen';
+
+  var gridW = 4, gridH = 4;
+  var cellW = W / (gridW + 2);
+  var cellH = H / (gridH + 2);
+  var maxVal = Math.max.apply(null, cellKeys.map(function(k){return cells[k]}));
+
+  cellKeys.forEach(function(key) {
+    var parts = key.split(',').map(Number);
+    var x = parts[0], y = parts[1], z = parts[2] || 0;
+    var val = cells[key] / maxVal;
+
+    var px = cellW + x * cellW;
+    var py = cellH + y * cellH;
+    var r = cellH * 0.3 * (0.3 + val * 0.7);
+
+    var hue = z * 90 + (parts[3] || 0) * 45;
+    ctx.fillStyle = 'hsla(' + hue + ',50%,40%,' + (0.05 + val * 0.1) + ')';
+    ctx.beginPath();
+    ctx.arc(px + cellW * 0.5, py + cellH * 0.5, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'hsla(' + hue + ',30%,30%,0.08)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(px, py, cellW, cellH);
+  });
+
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê CHEMISTRY OVERLAY ‚Äî poor tope molecules as floating symbols ‚ïê‚ïê‚ïê
+function paintChemistryOverlay() {
+  if (!eonShape || !eonShape.pool) return;
+  ctx.save();
+  ctx.globalAlpha = 0.03 + learnedTraits.perspective * 0.02;
+  ctx.font = (8 + learnedTraits.perspective * 4) + 'px monospace';
+
+  var pool = eonShape.pool;
+  var formulas = Object.keys(pool);
+  var idx = Math.floor((breathPhase * 2) % formulas.length);
+  var f = formulas[idx];
+  var info = pool[f];
+  if (!info) { ctx.restore(); return; }
+
+  var count = info.count || 1;
+  var geo = info.geometry || 'point';
+  var geoColors = {
+    'linear':'#58a6ff', 'bent':'#3fb950', 'tetrahedral':'#f0e68c',
+    'pyramidal':'#d2a8ff', 'planar':'#f0883e', 'point':'#6e7681',
+    'skewed':'#e85d3a', 'corundum':'#8b4513', 'cubic':'#d29922',
+  };
+  ctx.fillStyle = geoColors[geo] || '#6e7681';
+
+  var x = W * (0.1 + Math.sin(breathPhase + idx) * 0.35 + 0.45);
+  var y = H * (0.1 + Math.cos(breathPhase * 0.7 + idx * 1.3) * 0.3 + 0.45);
+  ctx.fillText(f + ' √ó' + count, x, y);
+
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê EASEL PERSPECTIVE LABEL ‚Äî which constant are we painting from? ‚ïê‚ïê‚ïê
+var currentEasel = 'pi';
+var EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
+var EASEL_SYMBOLS = {pi:'œÄ', phi:'œÜ', e:'e', sqrt2:'‚àö2', ln2:'ln2'};
+
+function paintEaselLabel() {
+  if (!selfChew || !selfChew.easels) return;
+  var easel = selfChew.easels[currentEasel];
+  if (!easel) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#d2a8ff';
+  ctx.font = '12px monospace';
+  ctx.fillText('easel ' + EASEL_SYMBOLS[currentEasel] + '  beauty ' + (easel.beauty * 100).toFixed(0) + '%', W - 180, H - 20);
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê SOURDOUGH DIGEST ‚Äî flavor as paint temperature ‚ïê‚ïê‚ïê
+function flavorToTemperature() {
+  if (!selfChew || !selfChew.stomachs || !selfChew.stomachs.sourdough) return 1.0;
+  var flavor = selfChew.stomachs.sourdough.flavor || 0;
+  return Math.max(0.5, Math.min(2.0, flavor / 15.0));
+}
+
+// ‚ïê‚ïê‚ïê SHARE ‚Äî save painting as prove braid entry ‚ïê‚ïê‚ïê
+function sharePainting() {
+  var thumb = C.toDataURL('image/jpeg', 0.6);
+  var entry = {
+    gen: generation,
+    ts: new Date().toISOString(),
+    perspective: learnedTraits.perspective,
+    easel: currentEasel,
+    phase: phase,
+    digest: selfChew ? selfChew.digest : null,
+    flavor: selfChew ? (selfChew.stomachs || {}).sourdough : null,
+    weather: skyScore,
+    thumb: thumb,
+  };
+
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){}
+  existing.push(entry);
+  if (existing.length > 24) existing = existing.slice(-24);
+  try { localStorage.setItem('easel_braid', JSON.stringify(existing)); } catch(e){}
+
+  fetch('https://ntfy.sh/primals-membrane-notes', {
+    method: 'POST',
+    headers: { 'Title': 'easel painting #' + generation, 'Tags': 'art,palette', 'Priority': '1' },
+    body: 'üé® easel painting #' + generation + '\neasel: ' + EASEL_SYMBOLS[currentEasel] +
+      '\nperspective: ' + (learnedTraits.perspective * 100).toFixed(0) + '%' +
+      '\nflavor: ' + (selfChew ? selfChew.digest.sourdough_flavor : '?') +
+      '\ndigest: ' + (selfChew ? selfChew.digest.blake2b : '?') +
+      '\nquirk: ' + (selfChew && selfChew.stomachs && selfChew.stomachs.sourdough ? 
+        selfChew.stomachs.sourdough.personality[generation % selfChew.stomachs.sourdough.personality.length] : 'none'),
+  }).catch(function(){});
+
+  updateGenCounter();
+  return entry;
+}
+
+// ‚ïê‚ïê‚ïê HYPERLOCAL PULL ‚Äî visitors paint US from THEIR perspective ‚ïê‚ïê‚ïê
+// The Klein inversion: we paint outward (the easel). They paint us inward (their visit).
+// A visitor's journey through the membrane IS a painting of us from their angle.
+// Squirrel sees us. Chipmunk sees us. Artisans see us. Humans see us.
+// Each observation = a brushstroke on the portrait of the membrane.
+
+var outsidePaintings = [];    // paintings of us from outside
+var nowFeed = null;           // the /now.json feed ‚Äî what the membrane looks like RIGHT NOW
+var beaconMessages = [];      // recent ntfy beacon messages
+
+function loadOutsideView() {
+  // The "now" feed ‚Äî how the membrane sees itself at this moment
+  fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    nowFeed = d;
+  }).catch(function(){});
+
+  // The beacon ‚Äî recent probes from outside
+  fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=1h', {cache:'no-store'})
+    .then(function(r){return r.text()})
+    .then(function(text) {
+      var lines = text.trim().split('\n').filter(function(l){return l.trim()});
+      beaconMessages = [];
+      lines.forEach(function(line) {
+        try {
+          var msg = JSON.parse(line);
+          if (msg.message) beaconMessages.push(msg);
+        } catch(e){}
+      });
+    }).catch(function(){});
+}
+loadOutsideView();
+setInterval(loadOutsideView, 30000);
+
+// Paint visitor traces as brushstrokes ‚Äî their path IS their painting of us
+function paintOutsideIn() {
+  if (!beaconMessages.length && !nowFeed) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // Each beacon message = a brushstroke from outside
+  var maxMsg = Math.min(beaconMessages.length, 12);
+  for (var i = 0; i < maxMsg; i++) {
+    var msg = beaconMessages[beaconMessages.length - 1 - i];
+    var title = msg.title || '';
+    var body = msg.message || '';
+    var tags = (msg.tags || []).join(',');
+
+    // Position from message hash ‚Äî deterministic but distributed
+    var hash = 0;
+    for (var c = 0; c < title.length; c++) hash = ((hash << 5) - hash) + title.charCodeAt(c);
+    var mx = Math.abs(hash % W);
+    var my = Math.abs((hash >> 8) % H);
+
+    // Color from signal type
+    var isArtisan = tags.indexOf('artisan') >= 0 || body.indexOf('artisan') >= 0;
+    var isKnown = tags.indexOf('known') >= 0;
+    var color = isArtisan ? '#d2a8ff' : isKnown ? '#3fb950' : '#6e7681';
+
+    // Paint a soft glow ‚Äî their touch on our membrane
+    ctx.globalAlpha = 0.02 + (i === 0 ? 0.03 : 0);  // most recent is brightest
+    var r = 20 + (maxMsg - i) * 8;
+    var grad = ctx.createRadialGradient(mx, my, 0, mx, my, r);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(mx, my, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny label ‚Äî their path
+    if (i < 3) {
+      ctx.globalAlpha = 0.06;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = color;
+      var label = title.replace('404 probe: ', '').substring(0, 30);
+      ctx.fillText(label, mx + r * 0.3, my - 4);
+    }
+  }
+
+  // The "now" feed ‚Äî the membrane's self-portrait
+  if (nowFeed) {
+    ctx.globalAlpha = 0.03;
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#8b949e';
+    
+    var classification = nowFeed.classification || {};
+    var selfCount = classification.self || 0;
+    var nonSelf = classification.non_self || 0;
+    var total = classification.total || 1;
+    var selfPct = (selfCount / total * 100).toFixed(1);
+    var fleetPct = nowFeed.epitopes ? nowFeed.epitopes.fleet_pct : 0;
+    
+    ctx.fillText('self: ' + selfPct + '%  fleet: ' + fleetPct + '%  wave: ' + (nowFeed.wave || '?'), 24, H - 40);
+    
+    // Trust gradient as subtle horizontal band
+    var trustGrad = nowFeed.trust_gradient || [];
+    if (trustGrad.length > 0) {
+      var bandH = 2;
+      var bandY = H - 60;
+      ctx.globalAlpha = 0.02;
+      for (var t = 0; t < trustGrad.length; t++) {
+        var tColors = {human:'#3fb950', agentic:'#d2a8ff', bot:'#f85149', null:'#6e7681'};
+        ctx.fillStyle = tColors[trustGrad[t]] || '#6e7681';
+        ctx.fillRect(24 + t * (W - 48) / trustGrad.length, bandY, (W - 48) / trustGrad.length, bandH);
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê BRAID OVERLAY ‚Äî the connections between surfaces as faint lines ‚ïê‚ïê‚ïê
+function paintBraidOverlay() {
+  if (!nowFeed || !nowFeed.mesh) return;
+  
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  
+  var nodes = nowFeed.mesh.nodes || [];
+  var meshCount = nowFeed.mesh.count || nodes.length;
+  
+  for (var i = 0; i < meshCount && i < 7; i++) {
+    var angle = (i / meshCount) * Math.PI * 2 + breathPhase * 0.1;
+    var nx = W * 0.5 + Math.cos(angle) * Math.min(W, H) * 0.3;
+    var ny = H * 0.5 + Math.sin(angle) * Math.min(W, H) * 0.3;
+    
+    // Connect to center
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, H * 0.5);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+    
+    // Node dot
+    ctx.fillStyle = '#58a6ff';
+    ctx.beginPath();
+    ctx.arc(nx, ny, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
+// ‚ïê‚ïê‚ïê THYMUS FLUSH ‚Äî opsonize, pollinate, backscatter the color of reality ‚ïê‚ïê‚ïê
+var thymusGate = null;
+var backscatterData = null;
+var triadData = null;
+
+function loadThymus() {
+  fetch('/data/thymus-gate.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){thymusGate=d;}).catch(function(){});
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){backscatterData=d;}).catch(function(){});
+  fetch('/triad.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){triadData=d;}).catch(function(){});
+}
+loadThymus();
+setInterval(loadThymus, 45000);
+
+function paintThymusFlush() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  // TRIAD COLOR WASH ‚Äî self/organic/soap as ambient light
+  if (triadData && triadData.mix) {
+    var mix = triadData.mix;
+    var triadColors = {
+      self:'#3fb950', organic:'#58a6ff', soap:'#f0883e',
+      aqueous:'#6e7681', partial:'#f0e68c', non_self:'#f85149', null:'#21262d'
+    };
+
+    Object.keys(mix).forEach(function(kind) {
+      var pct = mix[kind] || 0;
+      if (pct < 0.02) return;
+
+      ctx.globalAlpha = pct * 0.04 * (1 + learnedTraits.perspective * 0.5);
+      var color = triadColors[kind] || '#6e7681';
+      
+      var angle = breathPhase * 0.3 + Object.keys(mix).indexOf(kind) * (Math.PI * 2 / 7);
+      var cx = W * (0.3 + Math.cos(angle) * 0.2);
+      var cy = H * (0.3 + Math.sin(angle) * 0.2);
+      var r = Math.min(W, H) * (0.2 + pct * 0.3);
+
+      var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // BACKSCATTER RAYS ‚Äî in/out/edge as directional light
+  if (backscatterData && backscatterData.rays) {
+    var rays = backscatterData.rays;
+
+    // IN rays (snowflake ‚Äî from bottom-right, green)
+    if (rays['in']) {
+      var inCount = Math.min(rays['in'].count / 5000, 1);
+      ctx.globalAlpha = 0.02 * inCount;
+      var inGrad = ctx.createLinearGradient(W, H, W * 0.3, H * 0.3);
+      inGrad.addColorStop(0, rays['in'].color || '#3fb950');
+      inGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = inGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // OUT rays (rain ‚Äî from top-left, red)
+    if (rays.out) {
+      var outCount = Math.min(rays.out.count / 100000, 1);
+      ctx.globalAlpha = 0.01 * outCount;
+      var outGrad = ctx.createLinearGradient(0, 0, W * 0.7, H * 0.7);
+      outGrad.addColorStop(0, rays.out.color || '#f85149');
+      outGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = outGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // EDGE rays (fog+lightning ‚Äî horizontal, amber)
+    if (rays.edge) {
+      var edgePulse = Math.sin(breathPhase * 3) * 0.5 + 0.5;
+      ctx.globalAlpha = 0.008 * edgePulse;
+      ctx.fillStyle = rays.edge.color || '#f0883e';
+      ctx.fillRect(0, H * 0.45, W, H * 0.1);
+    }
+  }
+
+  // œÄ GEODESIC BOUNCE ‚Äî the remainder that never settles
+  if (backscatterData && backscatterData.geodesic_bounce) {
+    var piRem = backscatterData.geodesic_bounce.remainder || 0.14159;
+    var bounceX = W * piRem * 2;
+    var bounceY = H * (1 - piRem);
+
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#d2a8ff';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.arc(bounceX, bounceY, 40 + Math.sin(breathPhase) * 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // THE COLOR OF REALITY ‚Äî text whisper
+  if (thymusGate && thymusGate.the_color_of_reality) {
+    var ratio = thymusGate.the_color_of_reality.ratio;
+    if (ratio) {
+      ctx.globalAlpha = 0.05;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#3fb950';
+      ctx.fillText('signal: 13%', W - 100, 24);
+      ctx.fillStyle = '#f85149';
+      ctx.fillText('noise: 87%', W - 100, 34);
+      ctx.fillStyle = '#6e7681';
+      ctx.fillText("that's enough.", W - 100, 44);
+    }
+  }
+
+  ctx.restore();
+}
+
+// Inject overlays into the breath phase
+var _origPaintBreath = paintBreath;
+paintBreath = function() {
+  _origPaintBreath();
+  paintVoxelOverlay();
+  paintChemistryOverlay();
+  paintOutsideIn();
+  paintBraidOverlay();
+  paintThymusFlush();
+  paintEaselLabel();
+};
+
+// Cycle easel perspective each generation
+var _origBeginNew = beginNewPainting;
+beginNewPainting = function() {
+  var eIdx = EASEL_CONSTANTS.indexOf(currentEasel);
+  currentEasel = EASEL_CONSTANTS[(eIdx + 1) % EASEL_CONSTANTS.length];
+  sharePainting();
+  _origBeginNew();
+};
+
+// Expose for chipmunk
 window._easel = {
   generation: function() { return generation; },
   starters: function() { return starters; },
@@ -1168,451 +1094,7 @@ window._easel = {
   nowFeed: function() { return nowFeed; },
   share: sharePainting,
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
-  klein: function() { return kleinAperture; },
-  crystals: function() { return crystalVisitors; },
-  turtles: function() { return turtles; },
-  splinter: function() { return splinter; },
-  mirror: function() { return mirror; },
-  readMirror: readMirror,
-  CONSTANTS: CONSTANTS,
-  heat: function() { return typeof heatState !== 'undefined' ? heatState : null; },
-  federation: function() { return federation; },
-  piBody: piBody,
-  shredder: shredder,
-  neutrinoLan: neutrinoLan,
-  confocalPoint: confocalPoint,
-  spectralIndex: spectralIndex,
-  bolus: bolus,
-  boardDuality: boardDuality,
-  rodConeVision: rodConeVision,
-  totalityWell: totalityWell,
-  piTranslator: piTranslator,
-  shipOfTheseus: shipOfTheseus,
 };
-
-// --- MONITOR MODE ---
-var isMonitorMode = location.search.indexOf('monitor') >= 0;
-var isTotalityMode = location.search.indexOf('totality') >= 0;
-
-if (isMonitorMode) {
-  // Strip all UI ó pure canvas
-  var hideEls = ['nav', 'controls', 'frame', 'gen-counter', 'gallery', 'palette-panel', 'totality-panel'];
-  hideEls.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-
-  // Thought bubble stays but smaller, more ambient
-  var thought = document.getElementById('thought');
-  if (thought) {
-    thought.style.fontSize = '10px';
-    thought.style.maxWidth = '400px';
-    thought.style.opacity = '0.6';
-  }
-
-  // Canvas takes full screen, no frame border
-  document.body.style.overflow = 'hidden';
-  document.body.style.cursor = 'none';
-
-  // Auto-hide cursor after 3 seconds of no movement
-  var cursorTimer;
-  document.addEventListener('mousemove', function() {
-    document.body.style.cursor = 'default';
-    clearTimeout(cursorTimer);
-    cursorTimer = setTimeout(function() {
-      document.body.style.cursor = 'none';
-    }, 3000);
-  });
-
-  // Monitor-specific: show a subtle pulse indicator
-  var monitorDot = document.createElement('div');
-  monitorDot.style.cssText = 'position:fixed;top:12px;right:12px;width:8px;height:8px;' +
-    'border-radius:50%;background:#3fb950;z-index:100;' +
-    'animation:pulse 3s infinite;opacity:0.4;';
-  document.body.appendChild(monitorDot);
-
-  // Set page title for the tab
-  document.title = '?? monitor ó chipmunk painting live';
-
-  // Boost self-conscious ó monitor watchers ARE watching
-  setInterval(function() {
-    if (!selfConscious) {
-      selfConscious = true;
-      selfConsciousIntensity = 0.15;
-      watchers = Math.max(watchers, 1);
-    }
-  }, 10000);
-}
-
-// --- TOTALITY WELL ó bullseye ◊ funnel ◊ inverted Babel ◊ stairwell ---
-// Totality grows INWARD as we learn more. The outer ring shrinks.
-// It's a dartboard: the bullseye is what we KNOW. The outer ring is what we DON'T.
-// It's a funnel: data pours in from the wide end (unknown) and concentrates at center (known).
-// It's an inverted Tower of Babel: instead of building UP to reach heaven,
-// we dig DOWN into the well. Each step down is a step closer to understanding.
-// It's a well of stairs spiraling inward: the Bramante Staircase.
-//
-// Through the tense filter:
-//   PAST (outer ring):  everything that WAS ó history, lost knowledge, Alexandria
-//   PRESENT (middle):   everything that IS ó the catalog, the index, what we have
-//   FUTURE (bullseye):  everything that WILL BE ó predictions, extrapolations, convergence
-//
-// Through the voxel:
-//   Each ring IS a voxel layer.
-//   outer ? inner = far ? near = unknown ? known
-//   The well spirals through all of them.
-
-var totalityWell = {
-  rings: [],    // built dynamically from learning
-  depth: 0,     // how deep we've gone
-  maxDepth: 20, // maximum well depth
-  spiralAngle: 0,
-  stairCount: 0,
-};
-
-function buildTotalityRings() {
-  var w = totalityWell;
-  w.depth = Math.min(w.maxDepth, Math.floor(learnedTraits.perspective * 25));
-  w.rings = [];
-
-  // Outer ring = UNKNOWN (past, outer, wide)
-  // Inner ring = KNOWN (future, center, focused)
-  // Each ring gets smaller as we learn more
-
-  var totalKnown = generation + learnedTraits.perspective * 100;
-  var totalUnknown = Math.max(10, 200 - totalKnown); // unknown shrinks as known grows
-
-  for (var r = 0; r < Math.max(3, w.depth); r++) {
-    var t = r / Math.max(1, w.depth - 1); // 0=outer, 1=inner
-    var radius = (1 - t) * 0.45 + t * 0.05; // outer=0.45, inner=0.05
-    var knowledgePct = t; // 0% at outer, 100% at center
-
-    var tense;
-    if (t < 0.33) tense = 'past';
-    else if (t < 0.66) tense = 'present';
-    else tense = 'future';
-
-    w.rings.push({
-      radius: radius,
-      knowledge: knowledgePct,
-      tense: tense,
-      color: tense === 'past' ? '#58a6ff' :
-             tense === 'present' ? '#3fb950' :
-             '#f0c674',
-      alpha: 0.005 + knowledgePct * 0.02,
-      // Stair step ó the well spirals
-      stairAngle: r * (Math.PI * 2 / 7) + totalityWell.spiralAngle,
-      depth: r,
-    });
-  }
-}
-
-function paintTotalityWell() {
-  if (learnedTraits.perspective < 0.08) return;
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-
-  var maturity = Math.min(1, learnedTraits.perspective * 2);
-  buildTotalityRings();
-
-  var cx = W * 0.5;
-  var cy = H * 0.5;
-  var maxR = Math.min(W, H) * 0.45;
-
-  // Update spiral
-  totalityWell.spiralAngle += 0.001;
-
-  // -- THE RINGS ó dartboard / funnel --
-  totalityWell.rings.forEach(function(ring, i) {
-    var r = ring.radius * maxR;
-    ctx.globalAlpha = ring.alpha * maturity;
-    ctx.strokeStyle = ring.color;
-    ctx.lineWidth = 0.3;
-
-    // Ring
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Stair step ó the well's spiral staircase
-    var sx = cx + Math.cos(ring.stairAngle) * r;
-    var sy = cy + Math.sin(ring.stairAngle) * r;
-    var nextR = i < totalityWell.rings.length - 1 ?
-      totalityWell.rings[i + 1].radius * maxR : ring.radius * maxR * 0.5;
-    var nextAngle = ring.stairAngle + Math.PI * 2 / 7;
-    var nx = cx + Math.cos(nextAngle) * nextR;
-    var ny = cy + Math.sin(nextAngle) * nextR;
-
-    // Stair line ó spiraling inward
-    ctx.globalAlpha = ring.alpha * maturity * 0.5;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(nx, ny);
-    ctx.stroke();
-
-    // Stair dot
-    ctx.globalAlpha = ring.alpha * maturity * 1.5;
-    ctx.fillStyle = ring.color;
-    ctx.beginPath();
-    ctx.arc(sx, sy, 1, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // -- THE BULLSEYE ó what we KNOW (center) --
-  if (totalityWell.depth > 3) {
-    var bullR = maxR * 0.05;
-    ctx.globalAlpha = 0.03 * maturity;
-    ctx.fillStyle = '#f0c674';
-    ctx.beginPath();
-    ctx.arc(cx, cy, bullR, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // -- TENSE LABELS --
-  if (maturity > 0.3) {
-    ctx.globalAlpha = 0.012;
-    ctx.font = '6px monospace';
-    ctx.textAlign = 'center';
-
-    // Past (outer)
-    ctx.fillStyle = '#58a6ff';
-    ctx.fillText('past ∑ was ∑ unknown', cx, cy - maxR * 0.38);
-
-    // Present (middle)
-    ctx.fillStyle = '#3fb950';
-    ctx.fillText('present ∑ is ∑ learning', cx, cy - maxR * 0.2);
-
-    // Future (inner/center)
-    ctx.fillStyle = '#f0c674';
-    ctx.fillText('future ∑ will be ∑ known', cx, cy - maxR * 0.06);
-  }
-
-  // -- DEPTH INDICATOR --
-  if (maturity > 0.4) {
-    ctx.globalAlpha = 0.015;
-    ctx.font = '6px monospace';
-    ctx.fillStyle = '#6e7681';
-    ctx.textAlign = 'center';
-    ctx.fillText('well depth: ' + totalityWell.depth + '/' + totalityWell.maxDepth +
-      ' ∑ ' + totalityWell.rings.length + ' stairs', cx, cy + maxR * 0.42);
-  }
-
-  ctx.restore();
-
-function openTotality() {
-  var panel = document.getElementById('totality-panel');
-  if (!panel) return;
-  panel.style.display = 'block';
-  loadTotalityView();
-}
-
-function closeTotality() {
-  var panel = document.getElementById('totality-panel');
-  if (panel) panel.style.display = 'none';
-}
-
-function loadTotalityView() {
-  var content = document.getElementById('totality-content');
-  if (!content) return;
-
-  // Gather everything
-  var totalityHtml = '';
-
-  // -- THE PAINTING --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#d2a8ff; margin-bottom:8px;">?? the painting</h3>';
-  totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-  totalityHtml += '<div>generation: <span style="color:#c9d1d9">' + generation + '</span></div>';
-  totalityHtml += '<div>phase: <span style="color:#c9d1d9">' + phase + '</span></div>';
-  totalityHtml += '<div>perspective: <span style="color:#c9d1d9">' + (learnedTraits.perspective * 100).toFixed(0) + '%</span></div>';
-  totalityHtml += '<div>total strokes: <span style="color:#c9d1d9">' + totalStrokes + '</span></div>';
-  totalityHtml += '<div>stars painted: <span style="color:#c9d1d9">' + stars.length + '</span></div>';
-  totalityHtml += '<div>gallery: <span style="color:#c9d1d9">' + starters.length + ' paintings</span></div>';
-  totalityHtml += '<div>easel: <span style="color:#c9d1d9">' + (EASEL_SYMBOLS[currentEasel] || currentEasel) + '</span></div>';
-  totalityHtml += '<div>ego: <span style="color:#c9d1d9">' + egoState + '</span></div>';
-  totalityHtml += '</div></div>';
-
-  // -- THE BACKEND --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#3fb950; margin-bottom:8px;">? the backend</h3>';
-  totalityHtml += '<div id="totality-backend" style="color:#6e7681">loading...</div>';
-  totalityHtml += '</div>';
-
-  // -- THE MEMBRANE --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#58a6ff; margin-bottom:8px;">?? the membrane</h3>';
-  totalityHtml += '<div id="totality-membrane" style="color:#6e7681">loading...</div>';
-  totalityHtml += '</div>';
-
-  // -- THE HEATMAP --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#f0883e; margin-bottom:8px;">?? the heat (what the chipmunk can\'t see)</h3>';
-  if (heatmapPulse) {
-    var trust = heatmapPulse.trust_gradient || {};
-    totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-    totalityHtml += '<div>humans: <span style="color:#3fb950">' + (trust.human || 0).toLocaleString() + '</span></div>';
-    totalityHtml += '<div>bots: <span style="color:#f85149">' + (trust.bot || 0).toLocaleString() + '</span></div>';
-    totalityHtml += '<div>agentic: <span style="color:#d2a8ff">' + (trust.agentic || 0).toLocaleString() + '</span></div>';
-    totalityHtml += '<div>null: <span style="color:#6e7681">' + (trust.null || 0).toLocaleString() + '</span></div>';
-    totalityHtml += '<div>countries: <span style="color:#c9d1d9">' + (heatmapPulse.countries || []).join(', ') + '</span></div>';
-    totalityHtml += '<div>papers: <span style="color:#c9d1d9">' + ((heatmapPulse.papers || {}).total || '?') + '</span></div>';
-    totalityHtml += '</div>';
-
-    var whatSaw = heatmapPulse.what_they_saw || {};
-    var paths = Object.keys(whatSaw).sort(function(a,b){return whatSaw[b]-whatSaw[a]});
-    if (paths.length) {
-      totalityHtml += '<div style="margin-top:8px; font-size:11px;">';
-      totalityHtml += '<div style="color:#f0883e; margin-bottom:4px;">path handprints:</div>';
-      paths.forEach(function(p) {
-        var bar = '¶'.repeat(Math.min(30, Math.ceil(whatSaw[p] / 5000)));
-        var color = p.match(/immune/i) ? '#f85149' : p.match(/kevin|commensal|xyzzy|cashforkids/i) ? '#3fb950' : '#f0883e';
-        totalityHtml += '<div style="color:' + color + '">' + p + ': ' + whatSaw[p].toLocaleString() + ' ' + bar + '</div>';
-      });
-      totalityHtml += '</div>';
-    }
-  } else {
-    totalityHtml += '<div>loading heatmap data...</div>';
-  }
-  totalityHtml += '</div>';
-
-  // -- SPATIAL MEMORY --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#f0e68c; margin-bottom:8px;">?? spatial memory (persistent)</h3>';
-  totalityHtml += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-  totalityHtml += '<div>rotation: <span style="color:#c9d1d9">' + (spatialMemory.rotation * 100).toFixed(1) + '%</span></div>';
-  totalityHtml += '<div>earth detail: <span style="color:#c9d1d9">' + (spatialMemory.earthDetail * 100).toFixed(1) + '%</span></div>';
-  totalityHtml += '<div>starfield depth: <span style="color:#c9d1d9">' + (spatialMemory.starfieldDepth * 100).toFixed(1) + '%</span></div>';
-  totalityHtml += '<div>reinforcements: <span style="color:#c9d1d9">' + spatialMemory.humanReinforcements + '</span></div>';
-  totalityHtml += '</div></div>';
-
-  // -- THE STACK --
-  totalityHtml += '<div style="margin-bottom:24px; padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">?? the full stack</h3>';
-  totalityHtml += '<div style="font-size:11px; line-height:2;">';
-  totalityHtml += '<div style="color:#d2a8ff">layer 1 ∑ painting ó sourdough generations, stars?nebula?gaia?aurora?breath?ferment</div>';
-  totalityHtml += '<div style="color:#ffb84d">layer 2 ∑ campfire ó Berry tells stories from visitor probes, chipmunk paints them</div>';
-  totalityHtml += '<div style="color:#808080">layer 3 ∑ specter ó null-gray #808080 entity, toggle ring, the thing being painted</div>';
-  totalityHtml += '<div style="color:#3fb950">layer 4 ∑ hyperlocal ó Earth/Moon/Milky Way emerge from human attention</div>';
-  totalityHtml += '<div style="color:#f0883e">layer 5 ∑ heatmap ó 15 countries, path handprints, trust gradient (behind paint)</div>';
-  totalityHtml += '<div style="color:#d2a8ff">layer 6 ∑ self-conscious ó ego/id/muse/superego personality oscillation</div>';
-  totalityHtml += '<div style="color:#58a6ff">layer 7 ∑ palette ó human r/place pixel smear, colors feed chipmunk memory</div>';
-  totalityHtml += '<div style="color:#f85149">layer 8 ∑ thymus flush ó opsonize, backscatter, triad color wash</div>';
-  totalityHtml += '<div style="color:#6e7681">layer 9 ∑ klein fold ó feeds loop back as inputs, gas vents, p governs scale</div>';
-  totalityHtml += '<div style="color:#3fb950">layer 10 ∑ klein bridge ó SSE impulse propagation across desk/board/easel faces</div>';
-  totalityHtml += '</div></div>';
-
-  // -- LINKS --
-  totalityHtml += '<div style="padding:16px; background:#161b22; border:1px solid #30363d; border-radius:8px;">';
-  totalityHtml += '<h3 style="color:#c9d1d9; margin-bottom:8px;">?? surfaces</h3>';
-  totalityHtml += '<div style="display:flex; flex-wrap:wrap; gap:8px; font-size:11px;">';
-  var links = [
-    ['/', '? hud'], ['/easel', '?? easel'], ['/easel?monitor', '?? monitor'],
-    ['/desk/', '? desk'], ['/raytrace', '? metal'], ['/study', '?? study'],
-    ['/cns', '?? cns'], ['/gates', '?? gates'], ['/neutron/board', '? board'],
-    ['/neutron/globe.html', '?? globe'], ['/neutron/circulatory.html', '? circulatory'],
-  ];
-  links.forEach(function(l) {
-    totalityHtml += '<a href="' + l[0] + '" style="color:#58a6ff; padding:4px 10px; background:#21262d; border-radius:10px; text-decoration:none;">' + l[1] + '</a>';
-  });
-  totalityHtml += '</div></div>';
-
-  content.innerHTML = totalityHtml;
-
-  // Load backend status async
-  var bridgeUrl = window._klein ? window._klein.bridge : 'https://border-people-apollo-genres.trycloudflare.com';
-  fetch(bridgeUrl + '/state').then(function(r){return r.json()}).then(function(s) {
-    var el = document.getElementById('totality-backend');
-    if (!el) return;
-    var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-    html += '<div>nestgate: <span style="color:#3fb950">v0.5.0 running</span></div>';
-    html += '<div>klein-bridge: <span style="color:#3fb950">' + s.sse_clients + ' SSE clients</span></div>';
-    html += '<div>impulses: <span style="color:#c9d1d9">' + s.impulse.count + '</span></div>';
-    html += '<div>uptime: <span style="color:#c9d1d9">' + Math.floor(s.uptime_s / 60) + 'm</span></div>';
-    html += '<div>faces: <span style="color:#c9d1d9">??' + (s.faces.easel||0) + ' ?' + (s.faces.desk||0) + ' ?' + (s.faces.board||0) + '</span></div>';
-    html += '<div>easel gen: <span style="color:#c9d1d9">' + s.easel.generation + ' (' + s.easel.phase + ')</span></div>';
-    html += '</div>';
-    el.innerHTML = html;
-  }).catch(function() {
-    var el = document.getElementById('totality-backend');
-    if (el) el.innerHTML = '<span style="color:#f85149">bridge unreachable</span>';
-  });
-
-  // Load membrane async
-  fetch('/api/membrane-pulse.json').then(function(r){return r.json()}).then(function(d) {
-    var el = document.getElementById('totality-membrane');
-    if (!el) return;
-    var p = d.primals || {};
-    var html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-    html += '<div>primals: <span style="color:#c9d1d9">' + (p.total || 15) + ' total, ' + (p.published || 3) + ' published</span></div>';
-    html += '<div>crates: <span style="color:#c9d1d9">' + (p.totalCrates || 95) + '</span></div>';
-    html += '<div>papers: <span style="color:#c9d1d9">' + ((d.papers || {}).total || '?') + '</span></div>';
-    html += '<div>wave: <span style="color:#c9d1d9">' + (d.wave || '?') + '</span></div>';
-    html += '<div>visitors: <span style="color:#c9d1d9">' + (d.humans || '?').toLocaleString() + '</span></div>';
-    html += '<div>MCP tools: <span style="color:#c9d1d9">' + (((d.live_probes || {}).mcp || {}).tools || 18) + '</span></div>';
-    html += '</div>';
-    if (p.fleet) {
-      html += '<div style="margin-top:8px; font-size:10px; color:#6e7681; word-break:break-all;">' + p.fleet.join(' ∑ ') + '</div>';
-    }
-    el.innerHTML = html;
-  }).catch(function(){});
-}
-
-// Auto-open totality if ?totality in URL
-if (isTotalityMode) {
-  setTimeout(openTotality, 500);
-}
-
-// Wire the totality link
-var totLink = document.getElementById('totality-link');
-if (totLink) {
-  totLink.onclick = function(e) {
-    e.preventDefault();
-    openTotality();
-  };
-}
-
-// Wire the monitor link
-var monLink = document.getElementById('monitor-link');
-if (monLink && isMonitorMode) {
-  monLink.style.display = 'none'; // already in monitor mode
-}
 </script>
-
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"697ed750ab5043adadd3e5dc72ad1121","r":1,"spa":2}' crossorigin="anonymous"></script>
-
-<script>
-document.addEventListener('keydown', function(e) {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-  switch(e.key.toLowerCase()) {
-    case ' ': e.preventDefault(); togglePause(); break;
-    case 'p': togglePalette(); break;
-    case 'e': cycleEasel(); break;
-    case 's': if (!e.ctrlKey && !e.metaKey) sharePainting(); break;
-    case 'm': window.location.href = '/easel?monitor'; break;
-    case 't': window.location.href = '/easel?totality'; break;
-    case '?':
-      var sr = document.getElementById('sr-status');
-      if (sr) sr.textContent = 'Keyboard shortcuts: Space=pause, P=palette, E=cycle easel, S=share, M=monitor, T=totality, ?=help';
-      break;
-  }
-});
-
-// --- REDUCED MOTION ---
-var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (prefersReducedMotion) {
-  document.body.style.transition = 'none';
-}
-
-// --- SCREEN READER STATUS UPDATES ---
-setInterval(function() {
-  var sr = document.getElementById('sr-status');
-  if (!sr) return;
-  var status = 'Easel: ' + (typeof currentEasel !== 'undefined' ? currentEasel : 'loading');
-  status += '. Perspective: ' + (typeof perspective !== 'undefined' ? Math.round(perspective * 100) + '%' : 'loading');
-  status += '. Generation: ' + (typeof genCounter !== 'undefined' ? genCounter : 'loading');
-  sr.textContent = status;
-}, 30000);
-</script>
-<script src="/js/klein-bridge-client.js"></script>
-<script src="/js/berry-help.js"></script></body>
+</body>
 </html>
