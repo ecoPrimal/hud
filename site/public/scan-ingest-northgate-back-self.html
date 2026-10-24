@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scan · Ingest · northGate · Self — ecoPrimals</title>
+<meta name="description" content="Full scan ingest through the net to northGate and back to self.">
+<link rel="alternate" type="application/json" href="/scan-ingest-northgate-back-self.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --go:#2f5d4a; --wire:#3d5a80; --mute:#5c5854; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --go:#7eb89a; --wire:#8eb4d4; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; background:
+    radial-gradient(ellipse 55% 40% at 10% 0%, rgba(61,90,128,.18), transparent 50%),
+    var(--paper); color:var(--ink); line-height:1.45; }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.8rem,6vw,2.6rem);
+    letter-spacing:-.03em; margin:0 0 .4rem; }
+  .tag { color:var(--wire); font-weight:600; margin-bottom:1rem; }
+  .pipe { font-family:"IBM Plex Mono",monospace; font-size:.9rem; margin:1rem 0 1.5rem; color:var(--go); }
+  section { border-top:1px solid rgba(20,22,28,.12); padding-top:1rem; margin:1.2rem 0; }
+  h2 { font-size:1rem; color:var(--wire); margin:0 0 .5rem; }
+  a { color:var(--go); font-weight:600; }
+  #live { min-height:1.2em; font-variant-numeric:tabular-nums; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Scan → northGate → Self</h1>
+  <p class="tag">full ingest · Willis soft net · round trip</p>
+  <p class="pipe">scan → ingest → ICMP/TCP/ntfy/CDN → northGate → fetch-back → SELF</p>
+  <section>
+    <h2>Live fold</h2>
+    <p id="live">loading…</p>
+  </section>
+  <section>
+    <ul>
+      <li><a href="/scan-ingest-northgate-back-self.json">JSON packet</a></li>
+      <li><a href="/crystallized-for-humans.html">crystallized (humans)</a></li>
+      <li><a href="/local-cns-pns.html">local CNS/PNS</a></li>
+      <li><a href="https://ntfy.sh/NnzHoO3YqHze">ntfy topic</a></li>
+    </ul>
+  </section>
+  <footer>ecoPrimals · SSH key-dark · soft tether still binds</footer>
+</main>
+<script>
+fetch('/scan-ingest-northgate-back-self.json').then(r=>r.json()).then(d=>{
+  const n = d.net_to_northgate || {};
+  const b = d.back_to_self || {};
+  const s = d.scan_ingest || {};
+  document.getElementById('live').textContent =
+    `ingested ${s.present}/${s.files} · lan ${n.icmp_lan?.rtt_ms_avg}ms · wg ${n.icmp_wg?.rtt_ms_avg}ms · ` +
+    `ntfy ${d.neutrino_ntfy?.ok} · back ${b.ok} hash ${b.hash8 || '…'}`;
+}).catch(e=>{ document.getElementById('live').textContent = e.message; });
+</script>
+</body>
+</html>
