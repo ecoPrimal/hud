@@ -1,0 +1,110 @@
+{
+  "ts": "2026-10-24T05:20:00Z",
+  "wave": 197,
+  "type": "routing-table",
+  "title": "Fastest Route Wins — Browser First, Intermediaries as Backscatter",
+
+  "principle": "The browser IS the fastest computer. It already has TLS, DNS cache, and render engine hot. Serve FROM the browser cache when possible, FROM the CF edge when not, FROM golgi tunnel for dynamic, FROM intermediaries for external. The intermediary's CDN is YOUR free distribution layer.",
+
+  "routes_by_speed": {
+    "tier_0_browser_cache": {
+      "latency": "0ms",
+      "what": "Everything the browser already has from previous visit",
+      "how": "Aggressive cache headers. CF edge cache. Service worker (future).",
+      "serves": "all static assets, data/*.json, HTML, CSS, JS"
+    },
+    "tier_1_cf_edge": {
+      "latency": "87-120ms",
+      "what": "CF serves from nearest edge POP",
+      "how": "Static files on CF Pages. Free. Unlimited. 300+ edge cities.",
+      "measured": {
+        "primals.eco": "104ms",
+        "heartbeat.json": "118ms",
+        "beacon.xml": "87ms (golgi → CF → edge)",
+        "orcid.org": "87ms (their CDN is fast)"
+      }
+    },
+    "tier_2_golgi_tunnel": {
+      "latency": "140-170ms",
+      "what": "Dynamic content through cloudflared tunnel",
+      "how": "CF → cloudflared → golgi → Caddy → content",
+      "measured": {
+        "detroit/": "144ms",
+        "connect/mcp": "168ms"
+      }
+    },
+    "tier_3_fast_intermediaries": {
+      "latency": "87-375ms",
+      "what": "External services with good CDNs",
+      "how": "Direct link. THEIR CDN serves our visitors. Backscatter: they see referrer=primals.eco in their analytics.",
+      "measured": {
+        "orcid.org": "87ms (excellent — use this!)",
+        "github-pages": "120ms (broken CNAME, but fast when working)",
+        "github.com": "375ms"
+      }
+    },
+    "tier_4_slow_intermediaries": {
+      "latency": "1.8-2.7s",
+      "what": "Slow resolvers. SKIP these. Link direct.",
+      "measured": {
+        "zenodo.org direct": "1.8s",
+        "doi.org resolver": "2.7s — DON'T use doi.org links in UI, link to zenodo.org/records/ directly"
+      },
+      "fix": "Replace all doi.org links with direct zenodo.org links in the UI. Keep DOIs for academic citation only."
+    }
+  },
+
+  "backscatter_strategy": {
+    "what": "When 88,787 visitors click outbound links, the TARGET site sees referrer=primals.eco. This is signal. This is backscatter. We PLANT our signal on their infrastructure.",
+    "intermediaries_as_mirrors": [
+      {
+        "target": "orcid.org",
+        "backscatter": "ORCID analytics see primals.eco as referrer. 88K visitors → ORCID notices a new traffic source.",
+        "speed": "87ms — KEEP as primary ORCID link"
+      },
+      {
+        "target": "zenodo.org",
+        "backscatter": "Zenodo sees primals.eco → sporePrint DOI clicks. Citation signal.",
+        "speed": "1.8s direct (skip doi.org's 2.7s resolver)",
+        "fix": "Link to zenodo.org/records/23600707 not doi.org/10.5281/zenodo.23600707"
+      },
+      {
+        "target": "github.com",
+        "backscatter": "GitHub referrer analytics. 124 repos. Traffic from primals.eco → GitHub trending signal.",
+        "speed": "375ms"
+      },
+      {
+        "target": "cf analytics",
+        "backscatter": "CF sees all traffic. We query it back (stadium.json). The intermediary's data IS our data.",
+        "speed": "self-referential"
+      }
+    ],
+    "the_bounce": "We don't own the intermediary's infrastructure. But when visitors bounce OFF them, the referer header carries our URL. The more visitors we send, the more visible we become in THEIR analytics. The backscatter IS the outbound signal."
+  },
+
+  "clots_found": {
+    "sporeprint_gh_pages": {
+      "issue": "CNAME primals.eco → infinite redirect loop",
+      "status": "CNAME removed via API. Zola build failing (paper 129 taxonomy). Redirects disabled.",
+      "fix_needed": "Fix config.toml + clear CNAME cache → re-enable"
+    },
+    "detroit_tunnel": {
+      "issue": "Self-redirect on /science/ paths (trailing-slash Caddy/Zola issue)",
+      "status": "Redirects disabled. Berry catches visitors.",
+      "fix_needed": "eastGate fix Caddy trailing-slash handling"
+    },
+    "doi_org": {
+      "issue": "2.7s resolver — adds 900ms vs direct zenodo.org link",
+      "fix": "Use zenodo.org/records/ URLs in UI links. Keep DOI for citations."
+    }
+  },
+
+  "browser_first_actions": [
+    "Set cache-control: public, max-age=3600 on all data/*.json files",
+    "Preload critical outbound links with <link rel=prefetch>",
+    "Replace doi.org links with zenodo.org direct links in UI",
+    "Fix sporePrint arteries (both blocked currently)",
+    "Add referrer-policy: origin on outbound links (backscatter signal)",
+    "Service worker (future): offline-first, cache-first for return visitors"
+  ]
+}
