@@ -1,0 +1,29 @@
+# === DYNAMIC ROUTES → GOLGI (our server, through CF tunnel) ===
+# CF Pages serves static files for free (unlimited, no quota).
+# Dynamic routes redirect to subdomains that go through the tunnel.
+# This is the ZK path: cloud is skin, brain is ours.
+
+# MCP endpoint → golgi MCP server (already running on port 8314)
+/mcp    https://connect.primals.eco/mcp    302
+/mcp/   https://connect.primals.eco/mcp    302
+
+# Beacon/RSS → golgi signal endpoint
+/beacon      https://signal.primals.eco/beacon     302
+/beacon.xml  https://signal.primals.eco/beacon.xml  302
+
+# sporePrint science paths → GitHub Pages (the backup artery)
+/science/*      https://ecoprimals.github.io/sporePrint/science/:splat     200
+/architecture/* https://ecoprimals.github.io/sporePrint/architecture/:splat 200
+/lab/*          https://ecoprimals.github.io/sporePrint/lab/:splat          200
+/glossary/*     https://ecoprimals.github.io/sporePrint/glossary/:splat     200
+/thesis/*       https://ecoprimals.github.io/sporePrint/thesis/:splat       200
+/philosophy/*   https://ecoprimals.github.io/sporePrint/philosophy/:splat   200
+/story/*        https://ecoprimals.github.io/sporePrint/story/:splat        200
+/vision/*       https://ecoprimals.github.io/sporePrint/vision/:splat       200
+/outreach/*     https://ecoprimals.github.io/sporePrint/outreach/:splat     200
+/trails/*       https://ecoprimals.github.io/sporePrint/trails/:splat       200
+/audience/*     https://ecoprimals.github.io/sporePrint/audience/:splat     200
+/collaborators/* https://ecoprimals.github.io/sporePrint/collaborators/:splat 200
+/backstory/*    https://ecoprimals.github.io/sporePrint/backstory/:splat    200
+/certification/* https://ecoprimals.github.io/sporePrint/certification/:splat 200
+/contact/*      https://ecoprimals.github.io/sporePrint/contact/:splat      200
