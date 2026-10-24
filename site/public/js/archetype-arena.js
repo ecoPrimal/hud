@@ -1,0 +1,571 @@
+// archetype-arena.js — archetypes with input AND output
+// Each archetype challenges you. Different genres. Different games.
+// Educational gaming IS an axis. So is horror. So is argument.
+// The archetypes fight, teach, scare, and compete.
+(function() {
+  'use strict';
+
+  // The archetypes — each has a game genre, input type, and personality
+  var ARCHETYPES = [
+    {
+      id: 'scribe', name: 'The Scribe', icon: '𓏞',
+      genre: 'typing', color: '#d29922',
+      challenge: 'TYPE THE GLYPHS',
+      desc: 'old-school typing game. the scribe dictates hieroglyphics. you type the transliteration.',
+      words: ['reed','water','bread','lion','falcon','scarab','eye','sky','cloth','viper',
+              'ankh','djed','was','shen','cartouche','obelisk','papyrus','sphinx','pharaoh','pyramid'],
+      taunt: ['too slow, mortal.','the papyrus rots before you finish.','even the scarab types faster.',
+              'acceptable.','the scribe nods.','faster than expected.'],
+      inputType: 'keyboard'
+    },
+    {
+      id: 'pathfinder', name: 'The Pathfinder', icon: '🐢',
+      genre: 'puzzle', color: '#58a6ff',
+      challenge: 'FIND THE SHORTEST PATH',
+      desc: 'Dijkstra as a game. click nodes in order. find the cheapest route. no backtracking.',
+      gridSize: 5,
+      taunt: ['that path costs too much.','Dijkstra weeps.','optimal!','not bad for a mammal.',
+              'there was a cheaper way.','the cautious walker approves.'],
+      inputType: 'click'
+    },
+    {
+      id: 'sorter', name: 'The Sorter', icon: '👃',
+      genre: 'educational', color: '#f0883e',
+      challenge: 'CLASSIFY: SELF OR NON-SELF?',
+      desc: 'KNN as a game. items appear. sort them: self, non-self, partial, null. speed matters.',
+      items: [
+        { text: 'sourdough starter', answer: 'self' },
+        { text: 'spam email', answer: 'non-self' },
+        { text: 'forked repository', answer: 'partial' },
+        { text: 'empty 404 page', answer: 'null' },
+        { text: 'git commit', answer: 'self' },
+        { text: 'DDOS traffic', answer: 'non-self' },
+        { text: 'pull request from stranger', answer: 'partial' },
+        { text: 'unclassified entity', answer: 'null' },
+        { text: 'campfire story', answer: 'self' },
+        { text: 'surveillance beacon', answer: 'non-self' },
+        { text: 'academic citation', answer: 'partial' },
+        { text: 'neutrino passing through', answer: 'null' },
+        { text: 'heartbeat signal', answer: 'self' },
+        { text: 'phishing link', answer: 'non-self' },
+        { text: 'AI-generated text', answer: 'partial' },
+        { text: 'cosmic background noise', answer: 'null' },
+        { text: 'mushroom spore', answer: 'self' },
+        { text: 'ransomware payload', answer: 'non-self' },
+        { text: 'Wikipedia edit', answer: 'partial' },
+        { text: 'dark matter', answer: 'null' }
+      ],
+      taunt: ['wrong class!','the membrane rejects that.','correct sort!','the epitope matches.',
+              'too slow — it mutated.','KNN approves: K=3 confirms.'],
+      inputType: 'keyboard'
+    },
+    {
+      id: 'horror', name: 'The Viper', icon: '𓆑',
+      genre: 'horror', color: '#f85149',
+      challenge: 'SURVIVE THE COSMIC RAY',
+      desc: 'horror typing. words appear in darkness. type them before they reach you. miss three and you die.',
+      words: ['gamma','decay','half-life','isotope','neutron','fission','chain','critical','meltdown',
+              'fallout','radiation','mutation','exposure','sievert','becquerel','curie','thorium',
+              'plutonium','uranium','cesium','strontium','cobalt','radium','radon','tritium'],
+      taunt: ['it approaches.','the viper strikes.','you survived... this time.','the geiger counter screams.',
+              'too late.','the radiation burns through.','☠️','you feel warmth where there should be none.'],
+      inputType: 'keyboard'
+    },
+    {
+      id: 'debater', name: 'The Cartographer', icon: '🗺️',
+      genre: 'argument', color: '#8b949e',
+      challenge: 'DEFEND YOUR POSITION',
+      desc: 'Floyd-Warshall argues. it states a claim about the graph. you agree or counter. logic matters.',
+      claims: [
+        { statement: 'The shortest path is always the best path.', counter: 'No — the cheapest path may miss the scenic route. Bellman-Ford walks through negative edges.', agree: 'For packets, yes. For poems, never.' },
+        { statement: 'All nodes are equal.', counter: 'PageRank proves otherwise. Some nodes are hubs. Some are leaves.', agree: 'In dignity, yes. In degree, no.' },
+        { statement: 'The organism should optimize for speed.', counter: 'Speed kills. The cautious walker (Dijkstra) outlasts the leaper (A*).', agree: 'Only if the race has a finish line.' },
+        { statement: 'Random exploration is wasteful.', counter: 'PageRank was built on random walks. Stumbling reveals structure.', agree: 'Sometimes the wanderer finds what the planner misses.' },
+        { statement: 'You cannot trust what you cannot verify.', counter: 'Painting trust: process visible, result emergent. You watch the painting happen.', agree: 'Verification is just trust with receipts.' },
+        { statement: 'AI will replace human creativity.', counter: 'The chipmunk paints in the dark. It doesn\'t replace — it adds a new glyph to the oldest language.', agree: 'Replace is the wrong word. Compost is closer.' },
+        { statement: 'Privacy and transparency are opposites.', counter: 'The organism is transparent about process, private about identity. Both at once.', agree: 'Only if you think walls and windows serve the same purpose.' },
+        { statement: 'Complexity is the enemy of understanding.', counter: 'The CMB is 2.725K everywhere — simple. But it encodes the entire history of the universe.', agree: 'Compression is understanding. But you have to decompress to live.' }
+      ],
+      taunt: ['interesting position.','the cartographer has mapped your argument.','weak topology.',
+              'strong connection.','your logic has cycles — Tarjan found them.','the map agrees.'],
+      inputType: 'click'
+    },
+    {
+      id: 'racer', name: 'The Hare', icon: '🐇',
+      genre: 'speed', color: '#d2a8ff',
+      challenge: 'SPEED ROUND — A* LEAPS',
+      desc: 'A* challenges you to react. symbols flash. hit the matching key. heuristic speed.',
+      keys: 'ASDFGHJKL'.split(''),
+      taunt: ['too slow for the heuristic.','the hare leaps past.','lightning reflexes!',
+              'A* approves the shortcut.','your reaction time: human.','faster than Dijkstra at least.'],
+      inputType: 'keyboard'
+    }
+  ];
+
+  var currentArch = 0;
+  var gameState = null;
+  var visible = false;
+  var container = null;
+  var gameArea = null;
+  var scoreEl = null;
+  var score = 0;
+  var lives = 3;
+  var gameTimer = null;
+  var gameActive = false;
+
+  // === TYPING GAME ENGINE ===
+  function startTypingGame(arch) {
+    score = 0; lives = 3; gameActive = true;
+    var words = arch.words.slice();
+    var wordIdx = 0;
+    var currentWord = '';
+    var typed = '';
+    var startTime = Date.now();
+
+    function nextWord() {
+      if (wordIdx >= words.length || lives <= 0) { endGame(arch); return; }
+      currentWord = words[wordIdx++];
+      typed = '';
+      renderTyping(currentWord, typed, arch);
+    }
+
+    function onKey(e) {
+      if (!gameActive) return;
+      if (e.key === 'Escape') { endGame(arch); return; }
+      if (e.key.length !== 1) return;
+      e.preventDefault();
+
+      typed += e.key.toLowerCase();
+      if (currentWord.startsWith(typed)) {
+        if (typed === currentWord) {
+          score += Math.max(1, 10 - Math.floor((Date.now() - startTime) / 1000));
+          startTime = Date.now();
+          renderTaunt(arch, true);
+          nextWord();
+        } else {
+          renderTyping(currentWord, typed, arch);
+        }
+      } else {
+        typed = '';
+        lives--;
+        renderTyping(currentWord, typed, arch);
+        renderTaunt(arch, false);
+        if (lives <= 0) endGame(arch);
+      }
+    }
+
+    gameArea._keyHandler = onKey;
+    document.addEventListener('keydown', onKey);
+    nextWord();
+  }
+
+  function renderTyping(word, typed, arch) {
+    if (!gameArea) return;
+    var isHorror = arch.genre === 'horror';
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:12px">' + arch.challenge + '</div>';
+
+    // The word with typed chars highlighted
+    html += '<div style="font:' + (isHorror ? '28' : '24') + 'px monospace;letter-spacing:4px;margin:16px 0;' +
+      'color:' + (isHorror ? '#f85149' : '#e6edf3') + '">';
+    for (var i = 0; i < word.length; i++) {
+      if (i < typed.length) {
+        html += '<span style="color:#3fb950">' + word[i] + '</span>';
+      } else {
+        html += '<span style="opacity:' + (isHorror ? 0.3 + Math.random() * 0.3 : 0.5) + '">' + word[i] + '</span>';
+      }
+    }
+    html += '</div>';
+
+    // Lives + score
+    html += '<div style="font:10px monospace;color:#6e7681;margin-top:12px">';
+    html += '<span style="color:#f85149">' + '♥'.repeat(lives) + '♡'.repeat(3 - lives) + '</span>';
+    html += ' · score: <span style="color:#d29922">' + score + '</span>';
+    html += '</div>';
+
+    if (isHorror) {
+      html += '<div style="font:8px monospace;color:#f85149;opacity:0.4;margin-top:8px;animation:pulse 0.5s infinite">' +
+        '░'.repeat(Math.floor(Math.random() * 20 + 5)) + '</div>';
+    }
+
+    html += '</div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === SORT GAME ENGINE ===
+  function startSortGame(arch) {
+    score = 0; lives = 3; gameActive = true;
+    var items = arch.items.slice().sort(function() { return Math.random() - 0.5; });
+    var itemIdx = 0;
+
+    function nextItem() {
+      if (itemIdx >= items.length || lives <= 0) { endGame(arch); return; }
+      renderSort(items[itemIdx], arch);
+    }
+
+    function onKey(e) {
+      if (!gameActive) return;
+      if (e.key === 'Escape') { endGame(arch); return; }
+      var map = { s: 'self', n: 'non-self', p: 'partial', u: 'null' };
+      var choice = map[e.key.toLowerCase()];
+      if (!choice) return;
+      e.preventDefault();
+
+      if (choice === items[itemIdx].answer) {
+        score += 5;
+        renderTaunt(arch, true);
+      } else {
+        lives--;
+        renderTaunt(arch, false);
+      }
+      itemIdx++;
+      nextItem();
+    }
+
+    gameArea._keyHandler = onKey;
+    document.addEventListener('keydown', onKey);
+    nextItem();
+  }
+
+  function renderSort(item, arch) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:12px">' + arch.challenge + '</div>';
+    html += '<div style="font:18px monospace;color:#e6edf3;margin:20px 0">' + item.text + '</div>';
+    html += '<div style="display:flex;gap:8px;justify-content:center;margin:16px 0">';
+    html += '<span style="font:11px monospace;padding:6px 14px;border:1px solid rgba(63,185,80,0.4);border-radius:8px;color:#3fb950">[S]elf</span>';
+    html += '<span style="font:11px monospace;padding:6px 14px;border:1px solid rgba(232,93,58,0.4);border-radius:8px;color:#e85d3a">[N]on-self</span>';
+    html += '<span style="font:11px monospace;padding:6px 14px;border:1px solid rgba(240,136,62,0.4);border-radius:8px;color:#f0883e">[P]artial</span>';
+    html += '<span style="font:11px monospace;padding:6px 14px;border:1px solid rgba(72,79,88,0.4);border-radius:8px;color:#484f58">[U]null</span>';
+    html += '</div>';
+    html += '<div style="font:10px monospace;color:#6e7681">';
+    html += '<span style="color:#f85149">' + '♥'.repeat(lives) + '♡'.repeat(3 - lives) + '</span>';
+    html += ' · score: <span style="color:#d29922">' + score + '</span>';
+    html += '</div></div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === DEBATE GAME ENGINE ===
+  function startDebateGame(arch) {
+    score = 0; gameActive = true;
+    var claims = arch.claims.slice().sort(function() { return Math.random() - 0.5; });
+    var claimIdx = 0;
+
+    function nextClaim() {
+      if (claimIdx >= claims.length) { endGame(arch); return; }
+      renderDebate(claims[claimIdx], arch);
+    }
+
+    window._debateChoice = function(choice) {
+      if (!gameActive) return;
+      var claim = claims[claimIdx];
+      var html = '<div style="text-align:center;padding:20px">';
+      html += '<div style="font:9px monospace;color:#484f58;margin-bottom:8px">THE CARTOGRAPHER RESPONDS</div>';
+      html += '<div style="font:12px/1.6 monospace;color:#c9d1d9;max-width:400px;margin:12px auto;' +
+        'padding:12px;border-left:2px solid ' + arch.color + '">';
+      html += choice === 'counter' ? claim.counter : claim.agree;
+      html += '</div>';
+      score += 5;
+      html += '<div style="font:10px monospace;color:#6e7681;margin-top:12px">score: <span style="color:#d29922">' + score + '</span></div>';
+      html += '<button onclick="window._debateNext()" style="margin-top:12px;background:rgba(13,17,23,0.8);' +
+        'border:1px solid rgba(48,54,61,0.5);color:#8b949e;font:10px monospace;padding:6px 16px;' +
+        'border-radius:8px;cursor:pointer">next claim →</button>';
+      html += '</div>';
+      gameArea.innerHTML = html;
+    };
+    window._debateNext = function() { claimIdx++; nextClaim(); };
+
+    nextClaim();
+  }
+
+  function renderDebate(claim, arch) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:12px">' + arch.challenge + '</div>';
+    html += '<div style="font:14px/1.6 serif;color:#e6edf3;max-width:400px;margin:16px auto;' +
+      'font-style:italic">"' + claim.statement + '"</div>';
+    html += '<div style="font:9px monospace;color:#8b949e;margin-bottom:16px">— The Cartographer</div>';
+    html += '<div style="display:flex;gap:12px;justify-content:center">';
+    html += '<button onclick="window._debateChoice(\'counter\')" style="background:rgba(248,81,73,0.15);' +
+      'border:1px solid rgba(248,81,73,0.3);color:#f85149;font:11px monospace;padding:8px 20px;' +
+      'border-radius:8px;cursor:pointer">⚔️ counter</button>';
+    html += '<button onclick="window._debateChoice(\'agree\')" style="background:rgba(63,185,80,0.15);' +
+      'border:1px solid rgba(63,185,80,0.3);color:#3fb950;font:11px monospace;padding:8px 20px;' +
+      'border-radius:8px;cursor:pointer">🤝 agree</button>';
+    html += '</div>';
+    html += '<div style="font:10px monospace;color:#6e7681;margin-top:12px">score: <span style="color:#d29922">' + score + '</span></div>';
+    html += '</div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === SPEED GAME ENGINE ===
+  function startSpeedGame(arch) {
+    score = 0; lives = 3; gameActive = true;
+    var targetKey = '';
+    var round = 0;
+    var maxRounds = 20;
+
+    function nextRound() {
+      if (round >= maxRounds || lives <= 0) { endGame(arch); return; }
+      round++;
+      targetKey = arch.keys[Math.floor(Math.random() * arch.keys.length)];
+      renderSpeed(targetKey, arch);
+    }
+
+    function onKey(e) {
+      if (!gameActive) return;
+      if (e.key === 'Escape') { endGame(arch); return; }
+      var k = e.key.toUpperCase();
+      if (arch.keys.indexOf(k) === -1) return;
+      e.preventDefault();
+
+      if (k === targetKey) {
+        score += 3;
+        renderTaunt(arch, true);
+      } else {
+        lives--;
+        renderTaunt(arch, false);
+      }
+      nextRound();
+    }
+
+    gameArea._keyHandler = onKey;
+    document.addEventListener('keydown', onKey);
+    nextRound();
+  }
+
+  function renderSpeed(key, arch) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:12px">' + arch.challenge + '</div>';
+    html += '<div style="display:flex;gap:6px;justify-content:center;margin:20px 0">';
+    for (var i = 0; i < arch.keys.length; i++) {
+      var isTarget = arch.keys[i] === key;
+      html += '<span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;' +
+        'font:14px monospace;border:1px solid ' + (isTarget ? arch.color : 'rgba(48,54,61,0.4)') + ';' +
+        'border-radius:6px;color:' + (isTarget ? '#fff' : '#484f58') + ';' +
+        'background:' + (isTarget ? arch.color : 'transparent') + '">' + arch.keys[i] + '</span>';
+    }
+    html += '</div>';
+    html += '<div style="font:10px monospace;color:#6e7681">';
+    html += '<span style="color:#f85149">' + '♥'.repeat(lives) + '♡'.repeat(3 - lives) + '</span>';
+    html += ' · score: <span style="color:#d29922">' + score + '</span>';
+    html += '</div></div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === COMMON ===
+  function renderTaunt(arch, success) {
+    var tauntEl = document.getElementById('arena-taunt');
+    if (!tauntEl) return;
+    var taunts = arch.taunt;
+    var pool = success ? taunts.filter(function(t,i) { return i >= 3; }) : taunts.filter(function(t,i) { return i < 3; });
+    if (!pool.length) pool = taunts;
+    tauntEl.textContent = pool[Math.floor(Math.random() * pool.length)];
+    tauntEl.style.color = success ? '#3fb950' : '#f85149';
+    tauntEl.style.opacity = '1';
+    setTimeout(function() { tauntEl.style.opacity = '0.4'; }, 1500);
+  }
+
+  function endGame(arch) {
+    gameActive = false;
+    if (gameArea._keyHandler) {
+      document.removeEventListener('keydown', gameArea._keyHandler);
+      gameArea._keyHandler = null;
+    }
+    var html = '<div style="text-align:center;padding:24px">';
+    html += '<div style="font:28px serif">' + arch.icon + '</div>';
+    html += '<div style="font:14px monospace;color:#e6edf3;margin:8px 0">' + arch.name + '</div>';
+    html += '<div style="font:9px monospace;color:#6e7681;margin-bottom:12px">' + arch.genre + ' complete</div>';
+    html += '<div style="font:24px monospace;color:#d29922;margin:12px 0">' + score + ' pts</div>';
+    html += '<button onclick="window._arenaReplay()" style="background:rgba(90,184,122,0.15);' +
+      'border:1px solid rgba(90,184,122,0.3);color:#5ab87a;font:11px monospace;padding:8px 20px;' +
+      'border-radius:8px;cursor:pointer;margin:4px">↻ replay</button> ';
+    html += '<button onclick="window._arenaMenu()" style="background:rgba(48,54,61,0.3);' +
+      'border:1px solid rgba(48,54,61,0.5);color:#8b949e;font:11px monospace;padding:8px 20px;' +
+      'border-radius:8px;cursor:pointer;margin:4px">← menu</button>';
+    html += '</div>';
+    gameArea.innerHTML = html;
+  }
+
+  function startGame(idx) {
+    currentArch = idx;
+    var arch = ARCHETYPES[idx];
+    renderArena(arch);
+    switch (arch.genre) {
+      case 'typing': case 'horror': startTypingGame(arch); break;
+      case 'educational': startSortGame(arch); break;
+      case 'argument': startDebateGame(arch); break;
+      case 'speed': startSpeedGame(arch); break;
+      case 'puzzle': startPuzzleGame(arch); break;
+    }
+  }
+
+  // === PATHFINDER PUZZLE ===
+  function startPuzzleGame(arch) {
+    score = 0; gameActive = true;
+    var size = arch.gridSize;
+    var grid = [];
+    for (var r = 0; r < size; r++) {
+      grid[r] = [];
+      for (var c = 0; c < size; c++) {
+        grid[r][c] = { cost: 1 + Math.floor(Math.random() * 9), visited: false };
+      }
+    }
+    grid[0][0].visited = true;
+    var pathCost = 0;
+    var pos = { r: 0, c: 0 };
+
+    window._puzzleClick = function(r, c) {
+      if (!gameActive) return;
+      if (Math.abs(r - pos.r) + Math.abs(c - pos.c) !== 1) return; // adjacent only
+      if (grid[r][c].visited) return;
+      grid[r][c].visited = true;
+      pathCost += grid[r][c].cost;
+      pos = { r: r, c: c };
+      if (r === size - 1 && c === size - 1) {
+        var optimal = size * 2 * 3; // rough estimate
+        score = Math.max(1, 50 - pathCost + optimal);
+        endGame(arch);
+      } else {
+        renderPuzzle(grid, pos, pathCost, arch);
+      }
+    };
+
+    renderPuzzle(grid, pos, pathCost, arch);
+  }
+
+  function renderPuzzle(grid, pos, cost, arch) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:16px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:8px">' + arch.challenge + '</div>';
+    html += '<div style="font:9px monospace;color:#6e7681;margin-bottom:8px">get from top-left to bottom-right. minimize cost.</div>';
+    html += '<div style="display:inline-grid;grid-template-columns:repeat(' + grid.length + ',36px);gap:3px">';
+    for (var r = 0; r < grid.length; r++) {
+      for (var c = 0; c < grid[r].length; c++) {
+        var cell = grid[r][c];
+        var isCurrent = r === pos.r && c === pos.c;
+        var isGoal = r === grid.length - 1 && c === grid[r].length - 1;
+        var bg = cell.visited ? 'rgba(90,184,122,0.2)' : 'rgba(22,27,34,0.8)';
+        if (isCurrent) bg = 'rgba(90,184,122,0.5)';
+        if (isGoal && !cell.visited) bg = 'rgba(210,153,34,0.3)';
+        html += '<span onclick="window._puzzleClick(' + r + ',' + c + ')" style="width:36px;height:36px;' +
+          'display:flex;align-items:center;justify-content:center;font:12px monospace;' +
+          'border:1px solid rgba(48,54,61,0.5);border-radius:4px;cursor:pointer;' +
+          'color:' + (cell.visited ? '#3fb950' : '#8b949e') + ';background:' + bg + '">' +
+          (isCurrent ? '●' : cell.cost) + '</span>';
+      }
+    }
+    html += '</div>';
+    html += '<div style="font:10px monospace;color:#6e7681;margin-top:8px">path cost: <span style="color:#d29922">' + cost + '</span></div>';
+    html += '</div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === ARENA UI ===
+  function renderArena(arch) {
+    gameArea.innerHTML = '';
+    var taunt = document.getElementById('arena-taunt');
+    if (!taunt) {
+      taunt = document.createElement('div');
+      taunt.id = 'arena-taunt';
+      taunt.style.cssText = 'text-align:center;font:9px monospace;color:#484f58;padding:4px;' +
+        'min-height:16px;transition:opacity 0.3s ease,color 0.3s ease;opacity:0.4';
+      container.insertBefore(taunt, gameArea);
+    }
+    taunt.textContent = '';
+  }
+
+  function renderMenu() {
+    if (!gameArea) return;
+    var html = '<div style="padding:12px">';
+    html += '<div style="text-align:center;margin-bottom:12px">';
+    html += '<div style="font:18px serif;color:#d29922">⚔️ Archetype Arena</div>';
+    html += '<div style="font:9px monospace;color:#6e7681">choose your challenger. input AND output.</div>';
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">';
+
+    ARCHETYPES.forEach(function(arch, i) {
+      html += '<div onclick="window._arenaStart(' + i + ')" style="background:rgba(13,17,23,0.7);' +
+        'border:1px solid rgba(48,54,61,0.5);border-radius:8px;padding:10px;cursor:pointer;' +
+        'transition:border-color 0.2s ease" onmouseenter="this.style.borderColor=\'' + arch.color + '\'" ' +
+        'onmouseleave="this.style.borderColor=\'rgba(48,54,61,0.5)\'">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+        '<span style="font-size:20px">' + arch.icon + '</span>' +
+        '<span style="font:12px monospace;color:' + arch.color + '">' + arch.name + '</span>' +
+        '<span style="font:8px monospace;color:#484f58;margin-left:auto">' + arch.genre + '</span>' +
+        '</div>' +
+        '<div style="font:9px monospace;color:#6e7681">' + arch.desc + '</div>' +
+        '</div>';
+    });
+
+    html += '</div></div>';
+    gameArea.innerHTML = html;
+  }
+
+  window._arenaStart = function(i) { startGame(i); };
+  window._arenaReplay = function() { startGame(currentArch); };
+  window._arenaMenu = renderMenu;
+
+  function toggle() {
+    visible = !visible;
+    if (!container) build();
+    if (visible) {
+      container.style.display = 'block';
+      container.offsetHeight;
+      container.style.opacity = '1';
+      renderMenu();
+    } else {
+      container.style.opacity = '0';
+      gameActive = false;
+      if (gameArea && gameArea._keyHandler) {
+        document.removeEventListener('keydown', gameArea._keyHandler);
+      }
+      setTimeout(function() { container.style.display = 'none'; }, 300);
+    }
+  }
+
+  function build() {
+    container = document.createElement('div');
+    container.id = 'archetype-arena';
+    container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:25;' +
+      'background:rgba(8,6,10,0.97);display:none;overflow-y:auto;opacity:0;transition:opacity 0.3s ease';
+
+    gameArea = document.createElement('div');
+    gameArea.id = 'arena-game';
+    gameArea.style.cssText = 'max-width:720px;margin:0 auto;padding:8px';
+    container.appendChild(gameArea);
+
+    // Close
+    var close = document.createElement('button');
+    close.innerHTML = '✕';
+    close.style.cssText = 'position:fixed;top:12px;right:16px;z-index:26;background:none;' +
+      'border:none;color:#484f58;font:16px monospace;cursor:pointer';
+    close.addEventListener('click', toggle);
+    container.appendChild(close);
+
+    document.body.appendChild(container);
+  }
+
+  // Button
+  function addBtn() {
+    var btn = document.createElement('button');
+    btn.id = 'arena-btn';
+    btn.innerHTML = '⚔️';
+    btn.title = 'archetype arena — fight, learn, type, argue';
+    btn.style.cssText = 'position:fixed;bottom:12px;left:128px;z-index:16;width:32px;height:32px;' +
+      'background:rgba(13,17,23,0.88);border:1px solid rgba(210,153,34,0.2);border-radius:50%;' +
+      'cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;' +
+      'transition:border-color 0.2s ease';
+    btn.addEventListener('click', toggle);
+    document.body.appendChild(btn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addBtn);
+  } else {
+    addBtn();
+  }
+
+  window._arena = { toggle: toggle, archetypes: ARCHETYPES };
+})();
