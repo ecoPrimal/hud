@@ -186,6 +186,8 @@
     'a hole you can point at is a representation',
     'leftover 48 pinching onto Klein-null as distance',
     'the catalog sorted into three faces and a walk from O',
+    'missorts still chewing on the rail',
+    'the plate held by pi legs, one universe',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
