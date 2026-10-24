@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireless Tether · Hypotenuse — ecoPrimals</title>
+<meta name="description" content="Wireless is a soft tether. Gum/grease to self. Hypotenuse bounds irreducible 2D circle × 3D sphere overlay.">
+<link rel="alternate" type="application/json" href="/wireless-tether-hypotenuse.json">
+<style>
+  :root {
+    --ink: #16141c; --paper: #efece4; --tether: #3d5a80; --hyp: #c45c26; --mute: #5e5a56;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#121018; --tether:#8eb4d4; --hyp:#e08a5c; --mute:#9a958e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(61,90,128,.2), transparent 42%),
+      radial-gradient(circle at 82% 70%, rgba(196,92,38,.14), transparent 45%),
+      var(--paper);
+    line-height: 1.45;
+  }
+  main { max-width: 40rem; margin: 0 auto; padding: 3rem 1.2rem 4rem; }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(1.9rem, 6.5vw, 2.8rem);
+    letter-spacing: -.03em; margin: 0 0 .35rem; line-height: 1.05;
+  }
+  .tag { color: var(--hyp); font-weight: 600; margin-bottom: 1.2rem; }
+  .lead { font-size: 1.08rem; margin: 0 0 1.4rem; }
+  .tri {
+    margin: 1.5rem auto; width: min(100%, 16rem); aspect-ratio: 1;
+    position: relative;
+  }
+  .tri svg { width: 100%; height: 100%; }
+  section { border-top: 1px solid rgba(22,20,28,.14); padding-top: 1rem; margin: 1.4rem 0; }
+  h2 { font-size: 1.05rem; color: var(--tether); margin: 0 0 .5rem; }
+  a { color: var(--tether); font-weight: 600; }
+  .row { display: grid; gap: .45rem; font-size: .92rem; }
+  .row div { padding: .45rem 0; border-bottom: 1px solid rgba(22,20,28,.1); }
+  footer { margin-top: 2rem; font-size: .8rem; color: var(--mute); }
+  #live { min-height: 1.2em; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Wireless · Tether · Hypotenuse</h1>
+  <p class="tag">soft axon · gum/grease to self · irreducible overlay</p>
+  <p class="lead">
+    Wireless is still a tether. We <strong>grease</strong> presence into SELF (gum the name only).
+    Circle (2D) and sphere (3D) meet on the <strong>hypotenuse</strong> — the bound you cannot reduce away.
+  </p>
+
+  <div class="tri" aria-hidden="true">
+    <svg viewBox="0 0 100 100" role="img">
+      <circle cx="28" cy="72" r="18" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+      <ellipse cx="72" cy="38" rx="20" ry="14" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+      <path d="M18 82 L82 82 L82 22 Z" fill="none" stroke="var(--hyp)" stroke-width="2"/>
+      <text x="48" y="94" font-size="6" fill="var(--mute)">a circle</text>
+      <text x="84" y="55" font-size="6" fill="var(--mute)" transform="rotate(90 84 55)">b sphere</text>
+      <text x="42" y="48" font-size="7" fill="var(--hyp)" transform="rotate(-45 50 52)">c hyp</text>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Tether now</h2>
+    <div class="row" id="tether">loading…</div>
+  </section>
+  <section>
+    <h2>Gum / grease</h2>
+    <p id="gum">…</p>
+  </section>
+  <section>
+    <h2>Faces</h2>
+    <p id="live"></p>
+    <ul>
+      <li><a href="/wireless-tether-hypotenuse.json">JSON</a></li>
+      <li><a href="/local-cns-pns.html">local CNS/PNS</a></li>
+      <li><a href="/immiscible-grease.json">immiscible grease</a></li>
+      <li><a href="/klein-ladder.json">Klein ladder</a> · <a href="/pi-rate-set.html">π-rate</a></li>
+    </ul>
+  </section>
+  <footer>ecoPrimals · RF soft-wire · c² = a² + b² keeps the overlay</footer>
+</main>
+<script>
+async function boot() {
+  const [w, loc] = await Promise.all([
+    fetch('/wireless-tether-hypotenuse.json').then(r => r.json()),
+    fetch('/local-cns-pns.json').then(r => r.json()).catch(() => null),
+  ]);
+  const eg = w.wireless_is_tether.eastGate_now;
+  document.getElementById('tether').innerHTML = [
+    `<div><strong>receiver</strong> ${eg.receiver}</div>`,
+    `<div><strong>path</strong> ${eg.path}</div>`,
+    loc ? `<div><strong>THIS</strong> ${(loc.THIS_keyboard||[])[0]?.name||'?'} · <strong>THAT</strong> ${(loc.THAT_mouse||[])[0]?.name||'?'}</div>` : '',
+  ].join('');
+  document.getElementById('gum').textContent = w.gum_or_grease_to_self.rule + ' — ' + w.gum_or_grease_to_self.now;
+  document.getElementById('live').textContent = w.hypotenuse_irreducibility.claim;
+}
+boot().catch(e => { document.getElementById('tether').textContent = e.message; });
+</script>
+</body>
+</html>
