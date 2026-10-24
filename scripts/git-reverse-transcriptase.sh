@@ -197,6 +197,7 @@ PY
 
 spectrum() {
   log "PORT SPECTRUM — un/de/pre/in/re/trans/con/dis -carnate"
+  python3 "$ROOT/infra/scripts/imprint-time.py" --channel membrane --phase reincarnate --note "PORT spectrum start" >/dev/null 2>&1 || true
   unincarnate
   deincarnate
   precarnate
