@@ -1,0 +1,126 @@
+{
+  "ts": "2026-10-24T04:40:00Z",
+  "wave": 197,
+  "type": "mesh-topology",
+  "title": "The Monkey Key Ring — Sovereign Mesh Topology",
+
+  "wireguard_mesh": {
+    "subnet": "10.13.37.0/24",
+    "hub": "golgi (10.13.37.1)",
+    "topology": "hub-and-spoke via golgi, forwarding enabled",
+    "crypto": "Curve25519 (X25519) + ChaCha20-Poly1305",
+    "peers": [
+      {
+        "name": "golgi",
+        "role": "membrane-relay (hub)",
+        "mesh_ip": "10.13.37.1",
+        "wan_ip": "157.230.3.183",
+        "location": "DigitalOcean NYC",
+        "wg_port": 51820,
+        "services": ["caddy", "tor", "fail2ban", "knot-dns", "rustdesk-hbbs", "rustdesk-hbbr", "wireguard", "ntfy"],
+        "ssh": "LIVE (id_ed25519_vps)"
+      },
+      {
+        "name": "eastGate",
+        "role": "home lab, primary dev node",
+        "mesh_ip": "10.13.37.5",
+        "lan_ip": "192.168.4.244",
+        "lan_dns": "eastgate.primals.local (also xbox-h2.primals.local)",
+        "location": "basement, 10G switch",
+        "services": ["ssh (port 22 open)", "wireguard"],
+        "ssh": "BLOCKED (key not authorized)",
+        "fix_needed": "add northgate + golgi pubkeys to authorized_keys, change WG AllowedIPs to 10.13.37.0/24"
+      },
+      {
+        "name": "northGate",
+        "role": "Kevin's brain, basement CNS",
+        "mesh_ip": "10.13.37.8",
+        "lan_ip": "192.168.4.147",
+        "lan_dns": "northgate.primals.local",
+        "location": "basement, RJ45 (2.5Gbps step-down from 10G)",
+        "nic": "Realtek PCI(e) Ethernet, 2.5 Gbps link",
+        "services": ["wireguard", "cargo/rust", "node/npm", "cursor"],
+        "ssh": "outbound only (keys for golgi + github)"
+      }
+    ]
+  },
+
+  "local_network": {
+    "wan_ip": "162.226.225.148",
+    "subnet": "192.168.4.0/22",
+    "gateway": "192.168.4.1",
+    "switch": "10G (all systems cabled)",
+    "devices": [
+      {"ip": "192.168.4.1", "mac": "94-83-C4-E0-63-5A", "role": "gateway/router"},
+      {"ip": "192.168.4.3", "mac": "84-47-09-38-97-55", "role": "unknown (Lancy?)"},
+      {"ip": "192.168.4.147", "dns": "northgate.primals.local", "role": "northGate (Kevin, 2.5Gbps)"},
+      {"ip": "192.168.4.170", "dns": "CastTV.local", "mac": "E8-38-A0-53-EA-D8", "role": "Chromecast/media"},
+      {"ip": "192.168.4.244", "dns": "eastgate.primals.local / xbox-h2.primals.local", "role": "eastGate (dev lab)"}
+    ]
+  },
+
+  "key_ring": {
+    "principle": "One Ed25519 curve, many derivations. The monkey key ring.",
+    "keys": {
+      "ssh_github": {
+        "file": "~/.ssh/id_ed25519_github",
+        "purpose": "GitHub (ecoPrimal)",
+        "reaches": ["github.com"]
+      },
+      "ssh_vps": {
+        "file": "~/.ssh/id_ed25519_vps",
+        "fingerprint": "SHA256:yoGGdSaWn6OpamilztR/CCDecEshmlTbr31ciumy2V0",
+        "label": "northgate-to-golgiBody",
+        "purpose": "golgi SSH + mesh",
+        "reaches": ["golgi (157.230.3.183)", "ns2 (137.184.197.151)", "relay (10.13.37.1)"]
+      },
+      "golgi_relay": {
+        "fingerprint": "SHA256:x/WP+kL/8C4S+9U/RAmiqn+vpP8ohFZBOIuyka7663E",
+        "label": "golgi-membrane-relay",
+        "purpose": "golgi→eastGate inter-server auth",
+        "reaches": ["pending: eastGate"]
+      },
+      "beardog_v1": {
+        "fingerprint": "SHA256:U/6jD5emLCkrPPWTQyOBZLCd5Xu31mFI596amJBY3ek",
+        "label": "beardog-v1.0.0-release",
+        "purpose": "BearDog identity key (on golgi)",
+        "reaches": ["golgi (authorized)"]
+      },
+      "wg_northgate": {
+        "public": "+9ig8YNeNgZ6EflJbeOVV93wYvdTWU7JzHvwcDQrJiM=",
+        "purpose": "WireGuard mesh peer",
+        "curve": "Curve25519 (X25519)"
+      },
+      "wg_golgi": {
+        "public": "axc31dmQCy7EecX8/caNxa2XZ3hqRFEHFezj26xvtFE=",
+        "purpose": "WireGuard hub/relay",
+        "curve": "Curve25519 (X25519)"
+      },
+      "wg_eastgate": {
+        "public": "V8Xy1uRFArEz8DseZhdAQmNdOr2TJ3Q/OhfilK3mDlA=",
+        "purpose": "WireGuard mesh peer",
+        "curve": "Curve25519 (X25519)"
+      },
+      "tor_onion": {
+        "type": "Ed25519 v3 onion",
+        "address": "tcdbuxnvnh4gbca74tdk4pijnttgpuxdsgu4c2vih5e7dltowrjzahqd.onion",
+        "purpose": "anonymous access to membrane"
+      }
+    },
+    "the_vision": "All Ed25519/X25519/Curve25519. Same algebraic curve. BearDog genetic lineage should derive ALL keys from ONE seed. Currently 4+ separate key pairs. The monkey key ring unifies them.",
+    "gaps": [
+      "No BIP-39/BIP-44 style derivation path yet",
+      "SSH keys are independent (not derived from master)",
+      "WG keys are independent (not derived from master)",
+      "ETH wallet key will add secp256k1 (different curve) — needs bridge",
+      "No hardware key (YubiKey, SoloKey) for physical factor"
+    ]
+  },
+
+  "trace_backscatter": {
+    "what": "All analytics route back to self. No third-party analytics. Self-hosted telemetry only.",
+    "current": "GoAccess on golgi (Caddy logs), ntfy for pulse, campfire_credits for reputation",
+    "needed": "Unified dashboard: mesh latency, service health, visitor analytics, key usage audit",
+    "wan_proximity": "All gates share WAN IP 162.226.225.148. golgi at NYC DO. Tor hidden service for external anonymity."
+  }
+}
