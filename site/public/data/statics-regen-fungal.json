@@ -1,0 +1,25 @@
+{
+  "ts": "2026-10-24T15:10:00Z",
+  "title": "Statics Regen = Fungal Fruit Flush",
+  "verdict": "YES — every content/DNA update must regenerate statics. That IS the fungal fruiting. Skipping regen leaves mycelium dark and canopy showing last season's mushrooms.",
+  "why": "Markdown/JSON in git is genotype. Static HTML/JSON on the edge is phenotype. Fungi fruit when the mesh has surplus — regenerate statics when the mesh has new carbon.",
+  "updated_this_wave": [
+    {"path": "sporePrint/content/science/139_*.md", "regen": "zola build → public/science/139-*/", "status": "golgi rebuilt; CF sporeprint still stale"},
+    {"path": "hud/site/public/data/antifungal-neurotoxin-dataset.json", "regen": "CF Pages ASSETS + connect mirror", "status": "connect live; hud CF pending wrangler"},
+    {"path": "hud/site/public/data/fungi-fruit-vs-mycelium.json", "regen": "same", "status": "connect live"},
+    {"path": "hud/site/public/data/gaia-publication.json", "regen": "same", "status": "connect live"},
+    {"path": "hud/site/public/feed.xml", "regen": "beacon mirror", "status": "connect live"},
+    {"path": "hud/site/public/llms.txt", "regen": "edge + sporeprint static copy", "status": "local+hud committed; CF pending"},
+    {"path": "ribocipher.json classifiers", "regen": "no build — live JSON; must rehydrate to connect", "status": "pending this turn"}
+  ],
+  "regen_matrix": {
+    "content_md_change": ["zola build", "rehydrate public/", "ribocipher science route"],
+    "data_json_change": ["connect scp", "wrangler pages deploy when authed", "feed.xml item"],
+    "llms_change": ["mirror sporePrint/static + hud/sporeprint", "connect optional"],
+    "git_remote_change": ["PORT reinject", "do NOT wait on forgejo"]
+  },
+  "fungal_rule": "fruit without regen = false mushroom (nomina nuda on the CDN)",
+  "urls": {
+    "self": "https://connect.primals.eco/statics-regen-fungal.json"
+  }
+}
