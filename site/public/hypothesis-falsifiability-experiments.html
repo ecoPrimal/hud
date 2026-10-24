@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hypothesis · Falsifiability · Experiments — ecoPrimals</title>
+<meta name="description" content="Scanned data → parent hypothesis → F1–F12 falsifiable claims with experiments we are about to run.">
+<link rel="alternate" type="application/json" href="/hypothesis-falsifiability-experiments.json">
+<style>
+  :root {
+    --ink:#14161c; --paper:#eef1f4; --ok:#2ea043; --fail:#c45c26; --test:#3d5a80; --mute:#5c5854;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --ok:#56d364; --fail:#e08a5c; --test:#8eb4d4; --mute:#9a958e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(ellipse 55% 40% at 10% 0%, rgba(61,90,128,.16), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 95% 90%, rgba(46,160,67,.1), transparent 45%),
+      var(--paper);
+    line-height: 1.45;
+  }
+  main { max-width: 44rem; margin: 0 auto; padding: 2.75rem 1.2rem 4rem; }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(1.85rem, 6vw, 2.7rem);
+    letter-spacing: -.03em; margin: 0 0 .35rem; line-height: 1.05;
+  }
+  .tag { color: var(--test); font-weight: 600; margin-bottom: 1rem; }
+  .h0 {
+    padding: .9rem 1rem; border-left: 3px solid var(--ok);
+    background: rgba(255,255,255,.35); margin: 1rem 0 1.5rem; font-size: .98rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    .h0 { background: rgba(255,255,255,.04); }
+  }
+  .claim {
+    border-top: 1px solid rgba(20,22,28,.12);
+    padding: 1rem 0;
+  }
+  .claim h2 {
+    font-size: 1rem; margin: 0 0 .4rem; color: var(--test);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  .badge {
+    display: inline-block; font-size: .72rem; font-weight: 700;
+    padding: .15rem .45rem; margin-left: .35rem; vertical-align: 2px;
+    background: var(--test); color: #fff;
+  }
+  .badge.partial { background: var(--fail); }
+  .meta { font-size: .88rem; color: var(--mute); }
+  .fail { color: var(--fail); font-size: .9rem; }
+  .pass { color: var(--ok); font-size: .90rem; }
+  a { color: var(--test); font-weight: 600; }
+  #queue { font-size: .92rem; }
+  footer { margin-top: 2rem; font-size: .8rem; color: var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hypothesis · Falsify · Experiment</h1>
+  <p class="tag">scanned our data · claims open for test</p>
+  <div class="h0" id="h0">loading H0…</div>
+  <section>
+    <h2 style="font-size:1.05rem;color:var(--test)">Experiment queue</h2>
+    <ol id="queue"></ol>
+  </section>
+  <div id="claims"></div>
+  <p style="margin-top:1.5rem">
+    <a href="/hypothesis-falsifiability-experiments.json">JSON</a> ·
+    <a href="/crystallized-for-humans.html">crystallized</a> ·
+    <a href="/stomach-no-eyes-meta-csuite.html">stomach / META</a>
+  </p>
+  <footer>ecoPrimals · fail_if kills the claim · no immunizing tactics</footer>
+</main>
+<script>
+fetch('/hypothesis-falsifiability-experiments.json').then(r=>r.json()).then(d=>{
+  document.getElementById('h0').textContent = 'H0 — ' + d.parent_hypothesis.H0;
+  document.getElementById('queue').innerHTML = d.experiment_queue.map(q =>
+    `<li><strong>${q.run}</strong> — ${q.when}${q.script ? ' · ' + q.script : ''}${q.face ? ' · ' + q.face : ''}${q.note ? ' · ' + q.note : ''}</li>`
+  ).join('');
+  document.getElementById('claims').innerHTML = d.falsifiable_claims.map(c => {
+    const badge = c.status.includes('partial') ? 'partial' : '';
+    return `<article class="claim">
+      <h2>${c.id} <span class="badge ${badge}">${c.status}</span></h2>
+      <p>${c.claim}</p>
+      <p class="meta">grounds: ${(c.grounds||[]).join(', ')}</p>
+      <p><strong>experiment:</strong> ${c.experiment}</p>
+      <p class="pass">pass if: ${c.pass_if}</p>
+      <p class="fail">fail if: ${c.fail_if}</p>
+    </article>`;
+  }).join('');
+}).catch(e=>{ document.getElementById('h0').textContent = e.message; });
+</script>
+</body>
+</html>
