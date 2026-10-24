@@ -450,7 +450,8 @@
       var x = cx + b.r * Math.cos(b.angle);
       var y = cy + b.r * Math.sin(b.angle);
       if (!b.el) {
-        b.el = el('circle', { fill: b.color, r: b.size.toFixed(1) }, bubbleGroup);
+        b.el = el('circle', { fill: b.color, r: b.size.toFixed(1), style: 'cursor:pointer;pointer-events:all' }, bubbleGroup);
+        if (b.entity) b.el.setAttribute('data-entity', b.entity);
       }
       b.el.setAttribute('cx', x.toFixed(1));
       b.el.setAttribute('cy', y.toFixed(1));
