@@ -11,8 +11,8 @@
   // ═══ OUR PROPERTIES — the edges we self-point at ═══
   var PROPERTIES = {
     crates: [
-      { id: 'squirrel-rng', url: 'https://crates.io/crates/squirrel-rng', type: 'crate' },
-      { id: 'barraCuda',    url: 'https://crates.io/crates/barraCuda',    type: 'crate' },
+      { id: 'primal-bingocube-core', url: 'https://crates.io/crates/primal-bingocube-core', type: 'crate' },
+      { id: 'primal-barracuda',      url: 'https://crates.io/crates/primal-barracuda',      type: 'crate' },
     ],
     github: [
       { id: 'ecoPrimal/hud',       url: 'https://github.com/ecoPrimal/hud',       type: 'repo' },
@@ -99,6 +99,13 @@
     try { localStorage.setItem(TRACE_KEY, JSON.stringify(traceData)); } catch(e) {}
   }
 
+  function loadPiCycle() {
+    fetch('/data/pi-cycle-1.json').then(function(r) { return r.json(); }).then(function(data) {
+      window._piCycle = data;
+      renderTrace();
+    }).catch(function() { window._piCycle = null; });
+  }
+
   // ═══ EPITOPE INVERSION LOADER ═══
   function loadEpitopeInversion() {
     fetch('/data/epitope-inversion.json').then(function(r) { return r.json(); }).then(function(data) {
@@ -152,6 +159,7 @@
 
     // Load epitope inversion data
     loadEpitopeInversion();
+    loadPiCycle();
 
     // Check crates.io (CORS-safe via API)
     PROPERTIES.crates.forEach(function(crate) {
@@ -247,8 +255,8 @@
     html.push('<div class="st-section">');
     html.push('<div class="st-label">self edges</div>');
     var allyEdges = [
-      { name: 'crates.io → squirrel', status: '14,207 dl', color: '#3fb950', live: true },
-      { name: 'crates.io → barraCuda', status: '1,540 dl', color: '#58a6ff', live: true },
+      { name: 'crates.io → bingocube-core', status: '41 dl (ours)', color: '#3fb950', live: true },
+      { name: 'crates.io → primal-barracuda', status: '18 dl (ours)', color: '#58a6ff', live: true },
       { name: 'zenodo → barraCuda', status: '10 unique views', color: '#58a6ff', live: true },
       { name: 'zenodo → sporePrint', status: '0 views', color: '#6e7681', live: false },
       { name: 'github → stars', status: '0 (ring 3 dead)', color: '#f85149', live: false },
@@ -312,6 +320,24 @@
       }
     } else {
       html.push('<div class="st-dim">loading backscatter…</div>');
+    }
+    html.push('</div>');
+
+    // ═══ π CYCLE — chip + berry walk ═══
+    html.push('<div class="st-section">');
+    html.push('<div class="st-label">π cycle · chip + berry</div>');
+    var pc = window._piCycle;
+    if (pc && pc.faces) {
+      pc.faces.forEach(function(f) {
+        var col = f.confirm === 'HOLD' ? '#3fb950' : f.confirm === 'MOVED' ? '#d29922' : '#8b949e';
+        html.push('<div class="st-row">');
+        html.push('<span style="color:' + col + '">' + f.face + ' ' + f.cell + '</span>');
+        html.push('<span class="st-val">' + f.found + ' · ' + f.confirm + '</span>');
+        html.push('</div>');
+      });
+      html.push('<div style="font-size:7px;color:#6e7681;margin-top:2px">' + (pc.berry_at_the_fire || '') + '</div>');
+    } else {
+      html.push('<div class="st-dim">walking the grid…</div>');
     }
     html.push('</div>');
 
