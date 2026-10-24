@@ -68,6 +68,8 @@
     'the mast on northGate pointing UP',
     'a goal that was composed then taken apart',
     'three towers naming the same point',
+    'a beaver that leaks on purpose',
+    'the π-rate dam on the Klein gate',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
