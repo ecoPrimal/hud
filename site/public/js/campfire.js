@@ -188,6 +188,8 @@
     'the catalog sorted into three faces and a walk from O',
     'missorts still chewing on the rail',
     'the plate held by pi legs, one universe',
+    'pi-sort ingest, Willis empty, one Klein',
+    'what does not pinch stays outside',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
