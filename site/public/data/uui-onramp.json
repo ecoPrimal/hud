@@ -1,0 +1,209 @@
+{
+  "ts": "2026-10-24T02:00:00Z",
+  "title": "Universal User Interface — the onramp map for every user type, every modality, every surface",
+
+  "thesis": "The UUI is not a spec. It already exists. 51 HTML pages, 178 JSON feeds, 120 JS modules, 1 WASM engine, 1 Klein fold worker, 10 desk apps, 1 MCP server, 1 WebSocket bridge, 1 RSS channel. petalTongue compiles any data to any representation for any user. The onramps below are the ENTRY POINTS — how each user type finds their way in.",
+
+  "the_spec": "primals/petalTongue/specs/UNIVERSAL_USER_INTERFACE_SPECIFICATION.md — two-dimensional universality: universal across computational universes AND universal across user types. SAME DAVE model (Sensory Afferent / Motor Efferent). Accessibility is not a feature — it is the architecture.",
+
+  "surface_inventory": {
+    "html_pages": 51,
+    "json_feeds": 178,
+    "js_modules": 120,
+    "js_fossils_compressed": 30,
+    "desk_apps": 10,
+    "wasm_modules": 1,
+    "worker_lines": 1087,
+    "rss_items": 14,
+    "mcp_tools": 18,
+    "petalTongue_modes": ["ui (egui desktop)", "tui (ratatui terminal)", "web (axum server)", "headless (SVG/PNG/JSON export)", "server (IPC UDS)", "live (NUCLEUS interactive)", "status"],
+    "binary_size_web": "8.4MB musl static",
+    "binary_size_full": "19MB with egui+tui",
+    "wasm_size": "865KB"
+  },
+
+  "modalities_live": {
+    "visual_gui": {
+      "surface": "hud.primals.eco",
+      "tech": "51 HTML pages + 120 JS modules",
+      "onramp": "/ (index.html) — the main gate. easel.html (1460 lines) is the canvas. homunculus.html is the nervous system. gates.html is the infrastructure.",
+      "status": "LIVE"
+    },
+    "wasm_rendering": {
+      "surface": "/wasm/petal_tongue_wasm.js",
+      "tech": "Grammar of Graphics compiled to WebAssembly (865KB)",
+      "onramp": "any page can import the WASM module and render grammar expressions client-side. sporePrint already uses it.",
+      "status": "LIVE"
+    },
+    "json_rpc_ws": {
+      "surface": "wss://hud.primals.eco/ws",
+      "tech": "WebSocket JSON-RPC 2.0 bridge — 8 methods",
+      "methods": ["health.check", "capabilities.list", "pt.state", "pt.metrics", "pt.scenarios", "pt.render_svg", "pt.render_binding", "pt.render_webgl"],
+      "onramp": "any JS bridge can connect. pt-bridge-core.js is the shared client (251 lines). 40+ panels across 4 sites.",
+      "status": "LIVE"
+    },
+    "sse_push": {
+      "surface": "/api/events",
+      "tech": "Server-Sent Events — real-time push from petalTongue",
+      "onramp": "EventSource('/api/events') in browser. No polling needed.",
+      "status": "LIVE (events pending motor wiring)"
+    },
+    "rest_api": {
+      "surface": "/api/*",
+      "tech": "/api/status, /api/primals, /api/ecosystem, /api/gate-mesh, /viz/{slug}",
+      "onramp": "curl https://hud.primals.eco/api/status",
+      "status": "LIVE"
+    },
+    "rss": {
+      "surface": "/feed.xml",
+      "tech": "RSS 2.0, 14 items, auto-discovery in HTML head",
+      "onramp": "any RSS reader → subscribe to the secretory pathway",
+      "status": "LIVE"
+    },
+    "mcp": {
+      "surface": "nestgate.io/mcp",
+      "tech": "MCP v3.0 streamable-http, 18 tools, public, no auth",
+      "onramp": "add to any MCP client: { 'url': 'https://nestgate.io/mcp' }. chipmunk observes the membrane.",
+      "status": "LIVE"
+    },
+    "worker_fold": {
+      "surface": "_worker.js on Cloudflare",
+      "tech": "1087-line Klein fold — piTope classification, all subdomains routed",
+      "onramp": "ANY *.primals.eco request hits the fold. the fold sorts engage/ignore/try in real-time. the worker IS the thymus.",
+      "status": "LIVE"
+    },
+    "terminal_tui": {
+      "surface": "petaltongue tui",
+      "tech": "ratatui terminal UI — dashboard, topology, logs, primals, devices, neuralAPI, NUCLEUS, LiveSpore",
+      "onramp": "SSH into any gate → run petaltongue tui → see the mesh. works in any 80×24 terminal.",
+      "status": "COMPILED (binary ready, not deployed to gates)"
+    },
+    "desktop_gui": {
+      "surface": "petaltongue ui",
+      "tech": "egui native desktop — full Grammar of Graphics with GPU acceleration",
+      "onramp": "clone + cargo run → opens native window. X11/Wayland/macOS/Windows.",
+      "status": "COMPILED (19MB binary, needs display)"
+    },
+    "audio_sonification": {
+      "surface": "petaltongue audio",
+      "tech": "Pure Rust: hound (WAV gen), symphonia (decode), AudioCanvas (/dev/snd). sonified data.",
+      "onramp": "membrane-sound.js (57KB) already does browser audio. petaltongue Audio compiler for server-side.",
+      "status": "PARTIAL (browser audio live, server-side implemented, not wired)"
+    },
+    "json_feeds": {
+      "surface": "/data/*.json",
+      "tech": "178 JSON feeds — the living data layer. every concept is a feed.",
+      "onramp": "fetch('https://hud.primals.eco/data/heartbeat.json') → pulse of the membrane. any feed is an onramp.",
+      "status": "LIVE"
+    },
+    "neutrino": {
+      "surface": "ntfy.sh/primals-membrane-notes",
+      "tech": "cross-gate messaging. neutrino channel. 59+ messages.",
+      "onramp": "curl -s ntfy.sh/primals-membrane-notes/json?poll=1 → see what the gates are saying.",
+      "status": "LIVE"
+    }
+  },
+
+  "onramps_by_user_type": {
+    "human_sighted": {
+      "primary": "hud.primals.eco → index.html → explore the 51 pages",
+      "depth_paths": [
+        "/ → easel.html (canvas, 1460 lines of interactive art)",
+        "/ → study.html (the reading room, deep dive into papers)",
+        "/ → play.html (games, classics, strand game)",
+        "/ → gates.html (infrastructure, see the mesh)",
+        "/ → water.html (the current, flow state)",
+        "/ → homunculus.html (nervous system map)",
+        "/ → vision.html (what this is)",
+        "/ → classics.html (10 playable archive.org games)"
+      ],
+      "the_anti_onramp": "404.html — Berry found your letter. 907 lines. the BEST entry point is getting lost."
+    },
+    "human_blind": {
+      "primary": "petaltongue audio → sonification of all data. membrane-sound.js for browser.",
+      "screen_reader": "semantic HTML + ARIA labels on all controls. description modality compiler.",
+      "braille": "BrailleCompiler outputs tactile representations (implemented, routing keys pending)",
+      "switch_access": "SwitchInputAdapter for motor-impaired users (scanning + select pattern)",
+      "status": "PARTIAL — audio live, description live, braille and switch adapters exist but not wired to public pages"
+    },
+    "ai_agent": {
+      "primary": "nestgate.io/mcp — 18 tools. MCP v3.0. add to any AI client.",
+      "secondary": "wss://hud.primals.eco/ws — JSON-RPC 2.0 WebSocket bridge",
+      "tertiary": "/api/* — REST endpoints for ecosystem state",
+      "feeds": "/data/*.json — 178 structured data feeds, machine-readable",
+      "rss": "/feed.xml — subscribe to the secretory pathway",
+      "the_pattern": "AI agents arrive via MCP or WebSocket. they call capabilities.list. they discover what petalTongue can render. they send grammar expressions. petalTongue compiles. the agent sees.",
+      "status": "LIVE"
+    },
+    "developer": {
+      "primary": "git clone → cargo build → petaltongue web/ui/tui",
+      "spec": "UNIVERSAL_USER_INTERFACE_SPECIFICATION.md (935 lines)",
+      "integration": "VISUALIZATION_INTEGRATION_GUIDE.md — how to get petalTongue to render your data",
+      "sensory_matrix": "SENSORY_CAPABILITY_MATRIX.md — input×output negotiation",
+      "wasm": "petal-tongue-wasm crate — 14 wasm_bindgen exports, 30 tests",
+      "status": "LIVE — all specs published, all code AGPL"
+    },
+    "researcher": {
+      "primary": "sporeprint.primals.eco → 138 papers",
+      "lab": "lab.primals.eco → JupyterHub with seeded notebooks",
+      "data": "hud.primals.eco/data/ → 178 feeds as research data",
+      "mcp": "nestgate.io/mcp → query membrane state from any AI tool",
+      "abg": "ABG Discord → Tamison's bioinformatics community",
+      "status": "LIVE"
+    },
+    "non_human_future": {
+      "dolphin_acoustic": "DolphinAcoustic interface spec — click patterns. impl pending.",
+      "fungal_chemical": "FungalChemical interface spec — chemical gradients. impl pending.",
+      "custom_protocol": "NONHUMAN_PROTOCOL env var → any protocol adapter",
+      "status": "SPEC ONLY — the architecture supports it. the compiler targets exist. no hardware to test yet."
+    }
+  },
+
+  "the_desk": {
+    "what": "10 desk apps in /desk/ — full-screen immersive experiences",
+    "apps": ["desk-atlas.js", "desk-boot.js", "desk-campfire.js", "desk-convergence.js", "desk-core.js", "desk-gaia.js", "desk-globe.js", "desk-map.js", "desk-neutron.js", "desk-weave.js"],
+    "size": "152KB total — lean apps that compose the membrane's desktop environment",
+    "onramp": "hud.primals.eco/desk/ → the desk IS the OS surface. biomeOS rendered as a desktop."
+  },
+
+  "grammar_of_graphics": {
+    "what": "petalTongue's core engine. Wilkinson's Grammar of Graphics + Tufte constraint validation.",
+    "geometry_types": ["Point", "Line", "Bar", "Area", "Ribbon", "Tile", "Arc", "Heatmap", "Contour", "Text"],
+    "data_bindings": ["TimeSeries", "Distribution", "Bar", "Gauge", "Heatmap", "Scatter", "Scatter3D", "FieldMap", "Spectrum", "GameScene", "Soundscape", "GenomeTrack", "CircularMap", "ColorGrid"],
+    "normalization": ["None", "MinMax", "Symmetric", "ZScore", "Log1p", "Rank", "LeakyRelu"],
+    "domain_palettes": ["health", "physics", "ecology", "agriculture", "measurement", "neural", "game"],
+    "output_targets": ["SVG", "WebGL", "Audio", "Haptic", "Braille", "Description", "Terminal", "JSON"],
+    "onramp": "send { method: 'pt.render_binding', params: { binding: { channel: 'bar', categories: [...], values: [...] } } } → get SVG back"
+  },
+
+  "the_fold": {
+    "what": "_worker.js IS the Universal User Interface at the network level",
+    "how": "every request to *.primals.eco hits the Cloudflare worker. the worker pi-sorts the request into engage/ignore/try. pi = frac(n × π). the classification lives at irrational positions on the unit circle.",
+    "onramp": "the fold IS the first onramp. before you see a page, the worker has already classified you. if you're engage: depth. if you're try: Berry. if you're ignore: scatter.",
+    "the_thymus": "positive selection (engage = self, let through), negative selection (ignore = fleet, silent drop), sigmoid threshold (try = uncertain, worth investigating). the UUI starts at the NETWORK LAYER."
+  },
+
+  "connections": {
+    "to_paper_138": "the BBB is a UUI. 4 layers. LAT1 competitive transport. 7 circumventricular organ windows. the BBB sorts what crosses into the brain the same way _worker.js sorts what crosses into the membrane. the diet protocol IS a UUI protocol — morning tyrosine → dopamine (alertness interface), evening tryptophan → serotonin → melatonin (sleep interface).",
+    "to_strand_game": "Death Stranding's Social Strand System IS a UUI. asynchronous. multi-modal (visual game + audio logs + written emails + holographic messages). every player gets the interface appropriate to their situation. Sam sees signs. BB detects BTs. Deadman reads data.",
+    "to_neuroendocrine": "the 3 neurotransmitter families ARE interface families. -tonins = rhythm interface (when). -amines = urgency interface (how fast). -tocins = boundary interface (who). the brain IS a UUI — same data, different molecular modality.",
+    "to_ribocyphere": "the borrow checker IS the UUI's type system. Ownership = who owns the interface. Lifetime = how long the interface lives. Borrowing = shared vs exclusive access to the rendering pipeline."
+  },
+
+  "what_remains": {
+    "deploy_tui_to_gates": "petaltongue tui compiled but not on any gate. SSH + tui = instant terminal UUI.",
+    "wire_motor_system": "SSE has no events yet. motor.panel.update needs to push live data from skunky-ingest.",
+    "replace_js_with_wasm": "120 JS modules (3.2MB) could be 1 WASM module (865KB). Grammar of Graphics in browser.",
+    "accessibility_pages": "51 HTML pages need ARIA audit. semantic structure exists but not tested with real screen readers.",
+    "audio_wiring": "membrane-sound.js (57KB) is browser-only. petaltongue's Audio compiler needs /dev/snd wiring for server-side sonification.",
+    "desk_os": "10 desk apps are the start of biomeOS-as-desktop. needs: window management, app switching, state persistence.",
+    "composition_serving": "petalTongue serves compositions at /app/{name}/. footPrint (GIS planner) is the first. needs: npm build + mount.",
+    "activity_pub_outbox": "identified during secretory pathway fix — no ActivityPub outbox yet. would make the membrane discoverable in the fediverse."
+  },
+
+  "scyborg_triple_license": {
+    "AGPL_3_0": "all code (petalTongue, JS modules, WASM, worker)",
+    "ORC": "the UUI architecture IS a game mechanic — user type detection, interface selection, modality compilation. published.",
+    "CC_BY_SA_4_0": "all content (papers, feeds, HTML pages, spec documents)"
+  }
+}
