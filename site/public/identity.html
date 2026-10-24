@@ -56,7 +56,7 @@ code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size:
 <div class="card">
   <p style="color:var(--text);font-size:0.9em">This is not a sign-up form.</p>
   <p>No email. No password. No phone number. No OAuth. No third party.</p>
-  <p>Your identity is a <strong style="color:var(--green)">keypair</strong> generated in your browser. The private key never leaves your device. The public key is your membrane address — how the chipmunk recognizes you when you return.</p>
+  <p>Your identity is a <strong style="color:var(--green)">keypair</strong> generated in your browser. Think of it like a coat check ticket &mdash; pointless outside this context, useful within. The public key is your membrane address. The private key is your ticket stub. <strong style="color:var(--green)">Lose it? Generate a new one. It&rsquo;s disposable.</strong></p>
 </div>
 
 <h2>How it works</h2>
@@ -73,7 +73,7 @@ code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size:
   <div class="step-num">2</div>
   <div class="step-body">
     <div class="title">🔑 Generate keypair</div>
-    <div class="desc">Ed25519 keypair generated in your browser. Private key stays with you. Public key becomes your membrane address.</div>
+    <div class="desc">Ed25519 keypair generated in your browser. The private key is a disposable pointer &mdash; not a vault key. If you lose it, make a new one. The membrane doesn&rsquo;t store it, doesn&rsquo;t need it, and neither do you after this session.</div>
   </div>
 </div>
 
@@ -93,8 +93,10 @@ code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size:
   </div>
 </div>
 
-<div class="warning">
-  ⚠️ <strong>Your private key is YOUR responsibility.</strong> We cannot recover it. We never see it. If you lose it, generate a new one — the membrane lets you start fresh. There is no "forgot password" because there is no password.
+<div class="card" style="border-color:var(--green);background:rgba(63,185,80,0.05)">
+  <p style="color:var(--green);font-size:0.9em;margin-bottom:4px"><strong>🌿 This key is a leaf, not a root.</strong></p>
+  <p>Your private key is a <strong style="color:var(--text)">disposable session pointer</strong>. It proves you&rsquo;re the same visitor across a session &mdash; like a coat check ticket. Not a bank password. Not a crypto wallet. Not a secret.</p>
+  <p style="margin-top:6px">Lost it? Close this tab, come back, forge a new one. The membrane treats every arrival as a fresh identity at trust zero. There is no account. There is no recovery. There is no need for recovery. <span style="color:var(--green)">You are sovereign because nothing here can trap you.</span></p>
 </div>
 
 <div style="text-align:center;margin:30px 0">
@@ -114,24 +116,25 @@ code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size:
   <p style="color:var(--text)">Your public key (membrane address):</p>
   <div class="key-display" id="pubKeyDisplay">generating...</div>
 
-  <p style="color:var(--text);margin-top:16px">Your private key (save this!):</p>
-  <div class="key-display" id="privKeyDisplay" style="color:var(--banana)">generating...</div>
+  <p style="color:var(--text);margin-top:16px">Your session pointer (disposable):</p>
+  <div class="key-display" id="privKeyDisplay" style="color:var(--dim)">generating...</div>
 
-  <div class="warning" style="margin-top:16px">
-    📋 Copy your private key NOW and store it somewhere safe. This is the only time you'll see it. The membrane never stores your private key.
+  <div class="card" style="border-color:var(--green);background:rgba(63,185,80,0.04);margin-top:16px">
+    <p style="color:var(--green);font-size:0.85em">🌿 This is a <strong>coat check ticket</strong>, not a vault key.</p>
+    <p style="font-size:0.8em;color:var(--dim);margin-top:4px">Copy it if you want to return as the same visitor later. Or don&rsquo;t &mdash; forge a fresh one anytime. Nothing is locked behind this key. Nothing is lost without it.</p>
   </div>
 
   <div style="text-align:center;margin:20px 0">
-    <button class="btn btn-banana" onclick="copyPrivKey()">📋 copy private key</button>
+    <button class="btn btn-banana" onclick="copyPrivKey()">📋 copy session pointer</button>
   </div>
-  <p id="copyConfirm" style="text-align:center;color:var(--green);display:none">✓ copied to clipboard</p>
+  <p id="copyConfirm" style="text-align:center;color:var(--green);display:none">&check; copied &mdash; or skip it, it&rsquo;s disposable</p>
 </div>
 
 <div style="text-align:center;margin:30px 0">
-  <button class="btn btn-primary" id="handshakeBtn" onclick="startHandshake()" disabled style="opacity:0.5">
+  <button class="btn btn-primary" id="handshakeBtn" onclick="startHandshake()">
     handshake with chipmunk 🐿️
   </button>
-  <p style="color:var(--dim);font-size:0.75em;margin-top:6px" id="handshakeHint">copy your private key first</p>
+  <p style="color:var(--dim);font-size:0.75em;margin-top:6px" id="handshakeHint">the chipmunk is waiting</p>
 </div>
 </div>
 
@@ -261,10 +264,7 @@ function copyPrivKey() {
   navigator.clipboard.writeText(key).then(function() {
     document.getElementById('copyConfirm').style.display = 'block';
     privKeyCopied = true;
-    var btn = document.getElementById('handshakeBtn');
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    document.getElementById('handshakeHint').textContent = 'ready — your key is saved';
+    document.getElementById('handshakeHint').textContent = 'pointer copied — or just skip it';
     document.getElementById('handshakeHint').style.color = '#3fb950';
   });
 }
