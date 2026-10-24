@@ -1,0 +1,112 @@
+{
+  "ts": "2026-10-24T04:16:00Z",
+  "wave": 197,
+  "type": "sovereign-stack",
+  "title": "The Little Guys Electrify the Grid",
+  "thesis": "Every service here is Rust or open-source, running on a $12/month VPS. No Google. No Microsoft. No Amazon. No lock-out. The little projects are individually small. Together they replace the entire corporate stack.",
+  "onion": "tcdbuxnvnh4gbca74tdk4pijnttgpuxdsgu4c2vih5e7dltowrjzahqd.onion",
+
+  "already_live": [
+    {"name": "Tor Hidden Service", "lang": "C", "status": "LIVE", "ports": [80, 443, 8314, 21116], "replaces": "VPN, tunnel services", "keys": "Ed25519"},
+    {"name": "RustDesk relay", "lang": "Rust", "status": "LIVE", "ports": [21115, 21116, 21117, 21118, 21119], "replaces": "TeamViewer, AnyDesk, Zoom", "repo": "rustdesk/rustdesk"},
+    {"name": "WireGuard mesh", "lang": "C/Rust", "status": "LIVE", "mesh": "golgi<->northGate<->eastGate", "replaces": "Tailscale, ZeroTier, corp VPN"},
+    {"name": "Knot DNS", "lang": "C", "status": "LIVE", "port": 53, "zone": "primals.eco", "replaces": "CF DNS, Route53", "repo": "CZ-NIC/knot"},
+    {"name": "Caddy", "lang": "Go", "status": "LIVE", "ports": [80, 443], "handlers": 36, "replaces": "Nginx, Apache, AWS ALB", "repo": "caddyserver/caddy"},
+    {"name": "Cloudflared", "lang": "Go", "status": "LIVE", "port": 20241, "replaces": "ngrok (the skin layer, removable)"},
+    {"name": "Exim4", "lang": "C", "status": "LIVE (replace with Stalwart)", "port": 25, "replaces": "Gmail sending, ProtonMail sending"},
+    {"name": "MCP membrane-lens", "lang": "Python", "status": "LIVE", "port": 8314, "tools": 18, "replaces": "SaaS APIs, custom dashboards"},
+    {"name": "fail2ban", "lang": "Python", "status": "LIVE", "replaces": "Cloudflare WAF, AWS Shield"},
+    {"name": "Spigot (flock)", "lang": "Bash", "status": "LIVE", "what": "cron gimbal-lock prevention, 11 jobs wrapped"}
+  ],
+
+  "next_deploy_open_first": [
+    {
+      "name": "Stalwart",
+      "lang": "Rust",
+      "repo": "stalwartlabs/stalwart",
+      "version": "v0.16",
+      "priority": 1,
+      "replaces": "Exim4 + ProtonMail + Gmail + Exchange",
+      "protocols": ["JMAP", "IMAP4rev2", "POP3", "SMTP", "CalDAV", "CardDAV", "WebDAV"],
+      "features": ["LLM spam filter", "DKIM auto-rotation", "encryption at rest", "security audited"],
+      "ram_estimate": "100-200MB",
+      "deploy": "single binary, replaces exim4 on port 25, Caddy TLS, CF MX forwards to it"
+    },
+    {
+      "name": "Conduit",
+      "lang": "Rust",
+      "repo": "famedly/conduit",
+      "version": "v0.10.15",
+      "priority": 2,
+      "replaces": "Signal, Discord, Slack, Teams",
+      "protocols": ["Matrix"],
+      "features": ["E2EE", "federation", "Element X compatible", "embedded RocksDB"],
+      "ram_estimate": "50-100MB",
+      "deploy": "single binary, Caddy reverse proxy, matrix.primals.eco"
+    },
+    {
+      "name": "Iroh",
+      "lang": "Rust",
+      "repo": "n0-computer/iroh",
+      "version": "v1.4.1",
+      "priority": 3,
+      "replaces": "IPFS, S3, Arweave, centralized hosting backup",
+      "protocols": ["QUIC", "BLAKE3", "pkarr"],
+      "features": ["content-addressed", "hole-punching", "gossip", "global discovery", "Ed25519 identity"],
+      "ram_estimate": "50-100MB",
+      "deploy": "cargo install iroh-cli, publish site as blobs, pkarr for naming",
+      "key_match": "Ed25519 + BLAKE3 = SAME as BearDog primal and Tor hidden service"
+    },
+    {
+      "name": "Vaultwarden",
+      "lang": "Rust",
+      "repo": "dani-garcia/vaultwarden",
+      "priority": 4,
+      "replaces": "LastPass, 1Password, Bitwarden cloud",
+      "features": ["Bitwarden-compatible", "browser extension", "mobile app"],
+      "ram_estimate": "10-30MB",
+      "deploy": "single binary or Docker, SQLite backend"
+    },
+    {
+      "name": "Kanidm",
+      "lang": "Rust",
+      "repo": "kanidm/kanidm",
+      "priority": 5,
+      "replaces": "Okta, Auth0, Active Directory, LDAP",
+      "features": ["OAuth2", "LDAP compat", "WebAuthn", "passkeys"],
+      "ram_estimate": "50-100MB",
+      "deploy": "SSO for all services: Stalwart + Conduit + RustDesk + Gitea"
+    }
+  ],
+
+  "crypto_anchors_later": [
+    {"name": "MetaMask wallet", "priority": 6, "status": "Kevin setting up (weekend)"},
+    {"name": "ENS name", "priority": 7, "needs": "funded wallet"},
+    {"name": "Base L2 heartbeat", "priority": 8, "needs": "wallet + script on golgi"},
+    {"name": "BTC OP_RETURN epoch", "priority": 9, "needs": "wallet + Lightning"},
+    {"name": "ETH provenance anchor", "priority": 10, "needs": "wallet + gas"}
+  ],
+
+  "already_in_rust_codebase": {
+    "lines": "2.1M",
+    "crates": 258,
+    "primals": 16,
+    "key_overlap": {
+      "Ed25519": ["BearDog", "Tor hidden service", "Iroh", "WireGuard", "SSH"],
+      "BLAKE3": ["BearDog", "Iroh"],
+      "X25519": ["BearDog", "WireGuard", "Tor ntor handshake"],
+      "ChaCha20-Poly1305": ["BearDog", "WireGuard"],
+      "one_seed_all_identity": "BearDog genetic lineage derives ALL keys from one root. Every tool uses the same crypto. One seed phrase = complete sovereignty."
+    }
+  },
+
+  "the_inversion": {
+    "old_model": "Big companies provide services. You pay rent. They can evict you.",
+    "new_model": "Small Rust binaries provide services. You own the server. Nobody can evict you.",
+    "cost_comparison": {
+      "corporate": {"google_workspace": "$6/user/mo", "zoom": "$13/mo", "1password": "$3/mo", "slack": "$7/mo", "aws_hosting": "$50/mo", "total": "$79/mo"},
+      "sovereign": {"do_vps": "$12/mo", "domain": "$0.72/mo", "total": "$12.72/mo", "savings": "$66/mo", "savings_yearly": "$792/yr"}
+    },
+    "the_juice": "The little guys left behind suddenly have juice. Stalwart has 4.7K GitHub stars. Conduit has 7K. Iroh has 3.8K. RustDesk has 82K. Individually: niche tools. Together: sovereign civilization. When they notice someone is running ALL of them on ONE $12 VPS, that IS the signal."
+  }
+}
