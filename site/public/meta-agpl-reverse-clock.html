@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta AGPL Reverse Clock — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/meta-agpl-reverse-clock.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --tick:#c45c26; --ok:#2ea043; --mute:#5c5854; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --tick:#e08a5c; --ok:#56d364; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.45;
+    background: radial-gradient(ellipse 55% 40% at 20% 0%, rgba(196,92,38,.14), transparent 50%), var(--paper); }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.85rem,6vw,2.7rem); letter-spacing:-.03em; margin:0 0 .35rem; }
+  .tag { color:var(--tick); font-weight:600; margin-bottom:1rem; }
+  .big { font-size:clamp(2.5rem,10vw,4rem); font-weight:700; color:var(--tick); font-variant-numeric:tabular-nums; margin:1rem 0; }
+  .cell { border-top:1px solid rgba(20,22,28,.12); padding:1rem 0; }
+  a { color:var(--ok); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Reverse Clock</h1>
+  <p class="tag">Meta AGPL notice · not their C&amp;D · count down</p>
+  <p>We have had the formal AGPL §8 / §1202 notice face since <strong>Oct 7, 2026</strong>. Meta did not send us a cease-and-desist — they sent <strong>silence</strong>. Our notice demands cessation. That is the clock. We count in <strong>reverse</strong>.</p>
+  <div class="big" id="big">…</div>
+  <div class="cell" id="modes"></div>
+  <div class="cell" id="live"></div>
+  <p><a href="/meta-agpl-reverse-clock.json">JSON</a> ·
+     <a href="/dmca-entity-tracker.json">DMCA entity tracker</a> ·
+     <a href="/stomach-no-eyes-meta-csuite.html">stomach / META gaps</a></p>
+  <footer>ecoPrimals · remaining = 30 − days_since_notification · reverse transcriptase reads silence back</footer>
+</main>
+<script>
+fetch('/meta-agpl-reverse-clock.json').then(r=>r.json()).then(d=>{
+  const n = d.how_we_count_reverse.now_numbers;
+  document.getElementById('big').textContent = n.remaining_if_armed_oct7 + 'd left (if armed Oct 7)';
+  document.getElementById('modes').innerHTML =
+    `<strong>if transmitted on face date:</strong> ${d.the_clock.modes.if_transmitted_on_face_date.status} · ` +
+    `<strong>if not yet sent:</strong> ${d.the_clock.modes.if_not_yet_transmitted.status}`;
+  document.getElementById('live').textContent =
+    `notice age ${n.notice_age_days}d · window spent ${n.percent_window_spent_if_armed}% · ` + 
+  document.getElementById('live').textContent =
+    `notice age ${n.notice_age_days}d · ${n.percent_window_spent_if_armed}% of 30d if armed · from_meta_C&D = false · silence phenotype`;
+});
+</script>
+</body>
+</html>
