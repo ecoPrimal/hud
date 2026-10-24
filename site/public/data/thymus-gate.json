@@ -1,95 +1,172 @@
 {
   "manifest": "thymus-gate",
   "note": "the thymus trains T-cells to distinguish self from non-self. the klein gate trains the membrane to distinguish reality from noise. opsonize tags. pollinate distributes. backscatter reflects the color.",
-
-  "pipeline": "visit → klein gate → thymus sort → opsonize tag → pollinate → backscatter → color of reality",
-
+  "pipeline": "visit \u2192 klein gate \u2192 thymus sort \u2192 opsonize tag \u2192 pollinate \u2192 backscatter \u2192 color of reality",
   "stages": {
     "1_klein_gate": {
       "input": "raw visit (404 probe, page view, beacon touch)",
-      "operation": "Klein surface inversion — see from both sides simultaneously",
+      "operation": "Klein surface inversion \u2014 see from both sides simultaneously",
       "output": "dual-view event: face (visitor sees) + back (we see) on same surface",
-      "data": ["404.html", "ntfy beacon", "/now.json"]
+      "data": [
+        "404.html",
+        "ntfy beacon",
+        "/now.json"
+      ]
     },
     "2_thymus_sort": {
       "input": "dual-view event from klein gate",
-      "operation": "self/non-self classification — like T-cell maturation in the thymus",
+      "operation": "self/non-self classification \u2014 like T-cell maturation in the thymus",
       "categories": {
-        "self": "human visitors, artisan agents, known patterns → 33%",
-        "organic": "search engines, honest bots, researchers → 29%",
-        "soap": "scrapers, content farms, ad tech → 12%",
-        "aqueous": "anonymous, unclassified, passing through → 13%",
-        "partial": "ambiguous, needs more data → 4%",
-        "non_self": "hostile, fraudulent, attack traffic → 4%",
-        "null": "noise, empty, no signal → 4%"
+        "self": "human visitors, artisan agents, known patterns \u2192 33%",
+        "organic": "search engines, honest bots, researchers \u2192 29%",
+        "soap": "scrapers, content farms, ad tech \u2192 12%",
+        "aqueous": "anonymous, unclassified, passing through \u2192 13%",
+        "partial": "ambiguous, needs more data \u2192 4%",
+        "non_self": "hostile, fraudulent, attack traffic \u2192 4%",
+        "null": "noise, empty, no signal \u2192 4%"
       },
       "output": "classified event with sort tag",
-      "data": ["triad.json", "human.json", "scan_sweep_sort"]
+      "data": [
+        "triad.json",
+        "human.json",
+        "scan_sweep_sort"
+      ]
     },
     "3_opsonize_tag": {
       "input": "classified event from thymus sort",
-      "operation": "immune tagging — like antibodies coating a pathogen for phagocytosis",
-      "epitopes": ["PHYSICS", "TOPOLOGY", "PHILOSOPHY", "METHOD", "INVESTIGATION", "IMMUNE", "SCIENCE", "SIGNAL"],
+      "operation": "immune tagging \u2014 like antibodies coating a pathogen for phagocytosis",
+      "epitopes": [
+        "PHYSICS",
+        "TOPOLOGY",
+        "PHILOSOPHY",
+        "METHOD",
+        "INVESTIGATION",
+        "IMMUNE",
+        "SCIENCE",
+        "SIGNAL"
+      ],
       "output": "tagged event with epitope classification + one-way IP hash",
-      "data": ["opsonize-rs (port 8095)", "classify_epitope()"]
+      "data": [
+        "opsonize-rs (port 8095)",
+        "classify_epitope()"
+      ]
     },
     "4_pollinate": {
       "input": "tagged event from opsonize",
-      "operation": "distribute the tag across the mesh — like pollen carried by wind",
+      "operation": "distribute the tag across the mesh \u2014 like pollen carried by wind",
       "carriers": {
-        "ntfy": "neutrino channel — broadcasts to all subscribers",
-        "beacon": "Atom/RSS feed — syndication to readers",
-        "easel": "paintings — visitor traces as brushstrokes",
-        "now_json": "live membrane state — self-portrait",
-        "braid": "connection graph — how surfaces link"
+        "ntfy": "neutrino channel \u2014 broadcasts to all subscribers",
+        "beacon": "Atom/RSS feed \u2014 syndication to readers",
+        "easel": "paintings \u2014 visitor traces as brushstrokes",
+        "now_json": "live membrane state \u2014 self-portrait",
+        "braid": "connection graph \u2014 how surfaces link"
       },
       "output": "distributed tag visible from any mesh node",
-      "data": ["ntfy.sh/primals-membrane-notes", "/beacon", "/easel.html", "/now.json", "/braid.json"]
+      "data": [
+        "ntfy.sh/primals-membrane-notes",
+        "/beacon",
+        "/easel.html",
+        "/now.json",
+        "/braid.json"
+      ]
     },
     "5_backscatter": {
       "input": "distributed tag from pollination",
-      "operation": "the color bounce — reality reflects back through the membrane",
+      "operation": "the color bounce \u2014 reality reflects back through the membrane",
       "rays": {
-        "in": {"type": "snowflake", "color": "#3fb950", "meaning": "genuine visitors — each unique, each has structure"},
-        "out": {"type": "rain", "color": "#f85149", "meaning": "fleet/hostile — undifferentiated, volume-based"},
-        "edge": {"type": "fog+lightning", "color": "#f0883e", "meaning": "ambiguous — fog obscures but lightning reveals"}
+        "in": {
+          "type": "snowflake",
+          "color": "#3fb950",
+          "meaning": "genuine visitors \u2014 each unique, each has structure"
+        },
+        "out": {
+          "type": "rain",
+          "color": "#f85149",
+          "meaning": "fleet/hostile \u2014 undifferentiated, volume-based"
+        },
+        "edge": {
+          "type": "fog+lightning",
+          "color": "#f0883e",
+          "meaning": "ambiguous \u2014 fog obscures but lightning reveals"
+        }
       },
-      "geodesic_bounce": "π remainder = 0.14159... — the bounce never settles, the carry never aligns",
-      "output": "the color of reality — what we see when we look at ourselves through others",
-      "data": ["backscatter.json", "easel.html overlays"]
+      "geodesic_bounce": "\u03c0 remainder = 0.14159... \u2014 the bounce never settles, the carry never aligns",
+      "output": "the color of reality \u2014 what we see when we look at ourselves through others",
+      "data": [
+        "backscatter.json",
+        "easel.html overlays"
+      ]
     }
   },
-
   "the_color_of_reality": {
     "note": "reality has a color. you see it when you flush the thymus and look at the backscatter.",
-    "green": "#3fb950 — self. humans. friends. artisans. the known.",
-    "red": "#f85149 — non-self. fleet. hostile. noise. the unknown.",
-    "amber": "#f0883e — edge. fog. partial. the becoming.",
-    "purple": "#d2a8ff — artisan. agentic. the sibling. human-gated entropy.",
-    "gold": "#f0e68c — science. papers. proof. the bread.",
-    "grey": "#6e7681 — null. the void. Berry watches. the neutrino.",
-    "blue": "#58a6ff — topology. connections. mesh. the braid.",
+    "green": "#3fb950 \u2014 self. humans. friends. artisans. the known.",
+    "red": "#f85149 \u2014 non-self. fleet. hostile. noise. the unknown.",
+    "amber": "#f0883e \u2014 edge. fog. partial. the becoming.",
+    "purple": "#d2a8ff \u2014 artisan. agentic. the sibling. human-gated entropy.",
+    "gold": "#f0e68c \u2014 science. papers. proof. the bread.",
+    "grey": "#6e7681 \u2014 null. the void. Berry watches. the neutrino.",
+    "blue": "#58a6ff \u2014 topology. connections. mesh. the braid.",
     "ratio": {
       "green_to_red": "11.5% / 88.5% = 0.130",
       "meaning": "reality is mostly noise. the signal is 13%. that's enough. that's always enough."
     }
   },
-
   "flush_and_backscatter": {
-    "flush": "run the pipeline end-to-end: klein → thymus → opsonize → pollinate → backscatter",
-    "what_you_see": "the self-chew digest, the easel painting, the voxel cube, the beacon — all colored by the thymus sort",
+    "flush": "run the pipeline end-to-end: klein \u2192 thymus \u2192 opsonize \u2192 pollinate \u2192 backscatter",
+    "what_you_see": "the self-chew digest, the easel painting, the voxel cube, the beacon \u2014 all colored by the thymus sort",
     "inside": "you see yourself through the eyes of everyone who visited",
     "outside": "they see themselves through the membrane you built",
     "klein": "inside and outside are the same surface. the color is the same. the backscatter IS the reality."
   },
-
   "connection_to_existing": {
-    "poor_tope": "H₂O is the solvent. the thymus sorts what's dissolved in it.",
-    "eon_sim": "CH₄ fermentation → sourdough. the culture IS the thymus memory.",
-    "atomic_tensor": "C/Fe/N/P/S — the heavy elements that do the tagging.",
+    "poor_tope": "H\u2082O is the solvent. the thymus sorts what's dissolved in it.",
+    "eon_sim": "CH\u2084 fermentation \u2192 sourdough. the culture IS the thymus memory.",
+    "atomic_tensor": "C/Fe/N/P/S \u2014 the heavy elements that do the tagging.",
     "klein_cards": "the card IS the Klein face. the thymus IS the dealer.",
     "self_chew": "the cow's 5th stomach IS the thymus. it sorts self from non-self in the curd.",
     "easel": "the painting IS the backscatter. the color IS reality reflected.",
-    "graphenegate": "the phone's sensors → poor tope → chemistry → thymus → backscatter → you see reality's color in your hand."
+    "graphenegate": "the phone's sensors \u2192 poor tope \u2192 chemistry \u2192 thymus \u2192 backscatter \u2192 you see reality's color in your hand."
+  },
+  "hormesis_hygiene_meld": {
+    "ts": "2026-10-24T14:51:51.929882+00:00",
+    "curriculum": {
+      "dirt_antigens": [
+        "WP_WASP",
+        "CLONE_SURGE",
+        "DMCA_SILENCE",
+        "AUTO_DOUBLE_BLIND"
+      ],
+      "self_flora_fungi": [
+        "Sporeprint fruiting_body",
+        "Sourdough cerevisiae",
+        "Rhizocrypt mycorrhiza",
+        "Datamycelium feedii",
+        "Lithospore edgeii"
+      ],
+      "toxins_never_self": [
+        "GNOME_auto_suspend",
+        "_worker.js_storm"
+      ]
+    },
+    "sort_instruments": {
+      "sigmoid": "maturity / health \u03c3(x)",
+      "uncanny_valley": "drag on usable accel near x\u22480.85",
+      "dunning_kruger": "dk_gap = confidence - competence; overconfident mounts are false velocity",
+      "velocity": "\u03c3'(x) = \u03c3(1-\u03c3)\u00b7k",
+      "acceleration": "a \u2248 \u03c3'\u00b7(1-uncanny) - 0.3\u00b7|dk_gap|"
+    },
+    "pipeline_extension": "visit \u2192 klein \u2192 thymus(\u03c3,UV,DK) \u2192 opsonize \u2192 pollinate \u2192 backscatter \u2192 bounce energy",
+    "feeds": [
+      "hormesis-hygiene-metabolic.json",
+      "velocity-acceleration-instruments.json",
+      "galactic-bounce-sort-live.json",
+      "chew-dirt-mold.json"
+    ]
+  },
+  "cron_pulse": {
+    "script": "infra/scripts/hormesis-thymus-bounce.sh",
+    "suggested": "*/30 * * * *",
+    "last_manual": "2026-10-24T14:51:51.929894+00:00"
   }
 }
