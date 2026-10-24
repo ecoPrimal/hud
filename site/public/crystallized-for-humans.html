@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crystallized — for humans — ecoPrimals</title>
+<meta name="description" content="Full pass over the crystallized membrane truths in plain language so humans get the info.">
+<link rel="alternate" type="application/json" href="/crystallized-for-humans.json">
+<style>
+  :root {
+    --ink:#1a1814; --paper:#f4f1ea; --moss:#2f5d4a; --clay:#a85a2e; --mute:#5c5854; --line:rgba(26,24,20,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8e4dc; --paper:#12140f; --moss:#7eb89a; --clay:#e0a070; --mute:#9a958e; --line:rgba(232,228,220,.12); }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; color:var(--ink); font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+    background:
+      linear-gradient(165deg, rgba(47,93,74,.1), transparent 40%),
+      var(--paper);
+    line-height:1.5;
+  }
+  main { max-width:42rem; margin:0 auto; padding:3rem 1.25rem 4rem; }
+  h1 {
+    font-size:clamp(2rem,7vw,3rem); letter-spacing:-.03em; margin:0 0 .4rem; line-height:1.05;
+  }
+  .tag { font-family:"IBM Plex Sans",sans-serif; color:var(--clay); font-weight:600; margin-bottom:1.2rem; }
+  .lead { font-size:1.12rem; margin:0 0 1.75rem; }
+  article {
+    border-top:1px solid var(--line); padding:1.1rem 0;
+  }
+  article h2 {
+    font-family:"IBM Plex Sans",sans-serif; font-size:1rem; margin:0 0 .45rem; color:var(--moss);
+  }
+  article p { margin:0 0 .55rem; font-size:1.05rem; }
+  .links { font-family:"IBM Plex Sans",sans-serif; font-size:.88rem; }
+  a { color:var(--moss); font-weight:600; }
+  footer {
+    margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line);
+    font-family:"IBM Plex Sans",sans-serif; font-size:.82rem; color:var(--mute);
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Crystallized</h1>
+  <p class="tag">full pass · plain language · humans get the info</p>
+  <p class="lead">
+    Same truths as the JSON faces — said so a person can walk them.
+    Eyes take HTML. Structure takes JSON. Ears take the evolving song.
+  </p>
+  <div id="cards">loading…</div>
+  <p class="links" style="margin-top:1.5rem">
+    <a href="/chipmunk-song-live.html">chipmunk song live</a> ·
+    <a href="/crystallized-for-humans.json">JSON</a> ·
+    <a href="/feed.xml">RSS (zk⁺)</a>
+  </p>
+  <footer>ecoPrimals · no secret layer for machines — humans welcome on every face</footer>
+</main>
+<script>
+fetch('/crystallized-for-humans.json').then(r=>r.json()).then(d=>{
+  document.getElementById('cards').innerHTML = d.cards.map(c => `
+    <article>
+      <h2>${c.id}</h2>
+      <p>${c.plain}</p>
+      <p class="links">
+        ${c.html ? `<a href="${c.html.replace('https://connect.primals.eco','')}">read</a> · ` : ''}
+        <a href="${c.json.replace('https://connect.primals.eco','')}">json</a>
+      </p>
+    </article>`).join('');
+}).catch(e=>{ document.getElementById('cards').textContent = e.message; });
+</script>
+</body>
+</html>
