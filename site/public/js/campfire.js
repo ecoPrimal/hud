@@ -194,6 +194,8 @@
     'evaporate — waves and water, same body',
     'NOW feeling real in the HUD, through not on',
     'bingo voxel, diamond lens, spinning kaleidoscope pale',
+    'moon white, sun yellow, Earth the caster',
+    'black is just the shadow trace',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
