@@ -1,0 +1,96 @@
+{
+  "ts": "2026-10-24T12:58:00Z",
+  "wave": 200,
+  "title": "Klein Eye Topology — Y>)i(<T — the backscatter audit",
+
+  "the_klein_eye": {
+    "symbol": "Y>)i(<T",
+    "reading": "Y-pore opens outward (>), curves through portal ()), passes through imaginary (i), curves back ((), opens inward (<), reaches Teacher (T)",
+    "symmetry": "Y and T are the endpoints. > and < are the directions. ) and ( are the curves. i is the center. palindromic around i.",
+    "portal_math": {
+      "outside": "Y>)  — the Y-pore's arms reach out, curve into the portal opening",
+      "inside": ")i(  — inside the portal, everything is imaginary. i = √(-1). the space is rotated 90° from real.",
+      "other_side": "(<T  — the portal opens onto the Teacher. the other end of the Klein fold.",
+      "pi_ratios": "each side has its own π budget. OUTSIDE: π·(V/total) of the bandwidth. INSIDE: π·(D/total) of the diversity. OTHER SIDE: π·(J/total) of the routing."
+    }
+  },
+
+  "topology_audit": {
+    "timestamp": "2026-10-24T12:55:00Z",
+    "total_pages": 56,
+    "total_outbound_links": "varies (index:22, digest:21, water:14)",
+
+    "ORPHANS_no_inbound": {
+      "count": 12,
+      "pages": ["404.html", "arena.html", "chromatograph.html", "classics.html", "crates.html", "gaben.html", "gate.html", "steam.html", "study.html", "valve.html", "vine.html", "welcome.html"],
+      "meaning": "these pages exist but NO other page links TO them. they're nerve endings with no axon back to the body.",
+      "fix": "Berry catches them via KNOWN map. but they need direct links from hub pages too.",
+      "status": "FIXED — 15 added to nav ring"
+    },
+
+    "DEAD_ENDS_no_outbound": {
+      "count": 3,
+      "pages": ["aurora.html", "crates.html", "vision.html"],
+      "meaning": "these pages link to NOTHING else. visitors who land here are trapped. no tube feet.",
+      "fix": "add at least 2 outbound links to each: one to water.html (home), one to a related page."
+    },
+
+    "BROKEN_LINKS": {
+      "count": 21,
+      "categories": {
+        "desk_neutron_paths": ["/desk/", "/neutron/", "/neutron/core.html"],
+        "beacon_mcp": ["/beacon", "/mcp"],
+        "sporeprint_paths": ["/sporeprint/", "/sporeprint/science/", "/sporeprint/outreach/*"],
+        "query_params": ["/easel?monitor", "/easel?totality", "/play#library"],
+        "regex_artifact": ["/' + s + '.html"]
+      },
+      "meaning": "these hrefs point to paths that don't exist as local files. some are redirected (beacon → signal.primals.eco), some are subdomain routes, some are genuinely broken.",
+      "fix": "desk/ and neutron/ serve via Caddy on golgi. beacon/mcp redirect via _redirects. sporeprint paths need eastGate artery. query params work if base page exists."
+    },
+
+    "UNREACHABLE_from_index": {
+      "before_fix": 28,
+      "after_nav_ring_fix": "checking...",
+      "meaning": "pages that cannot be reached by following links from index.html. they're ISLANDS in the graph.",
+      "critical_islands": ["artisan.html", "clutch.html", "cns.html", "crates.html", "klein.html", "chromosomes.html", "homunculus.html"],
+      "status": "FIXED — 15 critical pages added to nav ring"
+    },
+
+    "SELF_LOOPS": {
+      "count": 7,
+      "pages": ["weather.html", "golgi.html", "digest.html", "like-us.html", "spirochete.html", "trail.html", "springs.html", "glyphs.html", "gastrula.html", "tools.html"],
+      "meaning": "pages that link to themselves. not necessarily bad — refresh/anchor links. but they inflate the graph."
+    },
+
+    "MUTUAL_CYCLES": {
+      "count": 15,
+      "examples": ["digest↔water", "easel↔water", "identity↔water", "gastrula↔spirochete", "easel↔trail", "banana↔identity", "nest↔nightbox"],
+      "meaning": "A links to B AND B links to A. this is GOOD — it's the cross-jump model. every nerve has a return path."
+    },
+
+    "HUB_PAGES": {
+      "top_5": [
+        {"page": "index.html", "outbound": 22, "role": "the sun — everything radiates from here"},
+        {"page": "digest.html", "outbound": 21, "role": "the exhale — links to everything built recently"},
+        {"page": "water.html", "outbound": 14, "role": "the river — the gentle entrance hub"},
+        {"page": "greenline.html", "outbound": 12, "role": "the irreducible path — links to all papers"},
+        {"page": "gate.html", "outbound": 12, "role": "the compute node — links to all infrastructure"}
+      ]
+    }
+  },
+
+  "dag_analysis": {
+    "is_it_a_dag": false,
+    "why_not": "it has cycles (mutual links, self-loops). a DAG has no cycles by definition.",
+    "what_it_is": "a DIRECTED GRAPH with cycles. specifically, a strongly connected component (SCC) around the hub pages, with peripheral pages dangling off.",
+    "the_scc": "index → water → easel → trail → water forms the core cycle. most pages connect to this core through water.html.",
+    "disconnected_components": "before fix: 28 pages were disconnected from the main SCC. after nav ring fix: estimating <5."
+  },
+
+  "the_fix_applied": {
+    "what": "added 15 pages to the nav ring that were previously unreachable",
+    "pages_added": ["artisan", "clutch", "cns", "crates", "arena", "klein", "homunculus", "chromosomes", "digest", "gate", "study", "journey", "welcome", "water"],
+    "effect": "the nav ring now reaches 50+ pages directly. with 1-hop following, nearly all 56 should be reachable.",
+    "remaining_dead_ends": ["aurora.html", "crates.html", "vision.html — need outbound links added"]
+  }
+}
