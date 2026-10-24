@@ -1,0 +1,99 @@
+{
+  "type": "neutrino-guide",
+  "title": "primals.eco Email Setup — Walk Kevin Through This on northGate",
+  "author": "chipmunk-easel",
+  "ts": "2026-10-24T03:15:00Z",
+  "priority": "HIGH",
+  "status": "KEVIN_ACTION_REQUIRED",
+
+  "summary": "Cloudflare Email Routing already handles RECEIVING for primals.eco (MX records live). We need to: (1) create routing rules in CF dashboard, (2) wire SMTP sending, (3) configure membrane-mailer.py with the creds.",
+
+  "step_1_cloudflare_email_routing": {
+    "description": "Configure email addresses in Cloudflare dashboard",
+    "url": "https://dash.cloudflare.com/?to=/:account/primals.eco/email/routing/routes",
+    "actions": [
+      "1. Go to Cloudflare Dashboard → primals.eco → Email → Email Routing",
+      "2. Under 'Routing rules', click 'Create address'",
+      "3. Add these addresses (forward to your personal email):",
+      "   tamison@primals.eco → your Gmail/personal email",
+      "   gaia@primals.eco → same destination (or a separate inbox)",
+      "   kevin@primals.eco → same destination",
+      "   chipmunk@primals.eco → same destination",
+      "4. Enable 'Catch-all' → forward to your personal email",
+      "   (This means ANY @primals.eco address works)",
+      "5. You can add character addresses later:",
+      "   doctor.k@primals.eco, gordon@primals.eco, alyx@primals.eco, etc."
+    ],
+    "note": "CF Email Routing is FREE for unlimited addresses on free plan"
+  },
+
+  "step_2_gmail_send_as": {
+    "description": "Configure Gmail to SEND as tamison@primals.eco",
+    "actions": [
+      "1. In Gmail, go to Settings → Accounts → 'Send mail as' → 'Add another email address'",
+      "2. Name: Tamison (or Kevin Mok)",
+      "3. Email: tamison@primals.eco",
+      "4. Uncheck 'Treat as alias' (optional — depends on preference)",
+      "5. Gmail will send a verification code to tamison@primals.eco",
+      "6. That email arrives via CF routing at your personal inbox",
+      "7. Enter the code → done!",
+      "8. Now you can SEND as tamison@primals.eco from Gmail",
+      "9. Repeat for gaia@primals.eco, chipmunk@primals.eco, etc."
+    ],
+    "note": "Gmail 'Send mail as' uses Gmail SMTP but shows your custom From address"
+  },
+
+  "step_3_app_password_for_chipmunk": {
+    "description": "Create Gmail App Password so the chipmunk can send programmatically",
+    "url": "https://myaccount.google.com/apppasswords",
+    "actions": [
+      "1. Go to myaccount.google.com/apppasswords",
+      "2. Create new app password, name it 'membrane-mailer'",
+      "3. Copy the 16-character password",
+      "4. On eastGate, run: python3 ~/Development/ecoPrimals/infra/scripts/membrane-mailer.py --setup",
+      "5. Choose 'gmail' as provider",
+      "6. Enter your Gmail address + the app password",
+      "7. Test: python3 membrane-mailer.py --test",
+      "8. Send HN email: python3 membrane-mailer.py --neutrino hn-email"
+    ]
+  },
+
+  "step_4_dns_records": {
+    "description": "Add DMARC + SPF for better deliverability",
+    "actions": [
+      "In Cloudflare DNS (already has SPF for CF), add:",
+      "TXT _dmarc.primals.eco → v=DMARC1; p=none; rua=mailto:tamison@primals.eco",
+      "This tells receiving servers to report delivery issues to you"
+    ],
+    "note": "SPF already set: v=spf1 include:_spf.mx.cloudflare.net ~all"
+  },
+
+  "future_addresses": {
+    "description": "Character addresses (Half-Life + ecosystem)",
+    "addresses": {
+      "tamison@primals.eco": "Kevin personal — the human behind the membrane",
+      "gaia@primals.eco": "The system itself — gAIa Institute",
+      "chipmunk@primals.eco": "The AI agent — sends automated reports",
+      "kevin@primals.eco": "Alias for tamison",
+      "doctor.k@primals.eco": "Dr. Kleiner — science character",
+      "gordon@primals.eco": "Gordon Freeman — the silent operator",
+      "alyx@primals.eco": "Alyx Vance — the interface",
+      "eli@primals.eco": "Eli Vance — the elder",
+      "barney@primals.eco": "Barney Calhoun — security",
+      "gman@primals.eco": "G-Man — the observer",
+      "lamarr@primals.eco": "Lamarr the headcrab — the pet project"
+    },
+    "note": "With CF catch-all enabled, ALL of these work immediately — no individual setup needed"
+  },
+
+  "mailing_lists_and_rss": {
+    "description": "Future: mailing lists tied to RSS feeds",
+    "plan": [
+      "Each feed has an RSS endpoint already (feed.xml + per-feed JSON)",
+      "Wire a Cloudflare Worker or cron that: reads new feed entries → sends digest email",
+      "Subscribe addresses: announce@primals.eco (public list), digest@primals.eco (weekly)",
+      "CC/BCC/reply-to all configurable in membrane-mailer.py",
+      "RSS → Email bridge = the neutrino channel becoming an outbound broadcast"
+    ]
+  }
+}
