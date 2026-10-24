@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Green Spectrum · π Yoyo — ecoPrimals</title>
+<meta name="description" content="Green spectrum inherits π truths. Green = π bounce. Violet/pink = invert tension. π table is a yoyo.">
+<link rel="alternate" type="application/json" href="/green-spectrum-pi-yoyo.json">
+<style>
+  :root {
+    --ink: #0e1410; --paper: #eef5ef; --green: #2ea043; --violet: #6b3fa0; --pink: #d4537e; --mute: #5a635c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e4eee6; --paper:#0c120e; --green:#56d364; --violet:#b794f6; --pink:#f687b3; --mute:#8a948c; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background:
+      linear-gradient(180deg,
+        #4c1d95 0%, #7c3aed 8%, #2ea043 42%, #56d364 55%, #2ea043 68%, #db2777 92%, #4c1d95 100%),
+      var(--paper);
+    background-size: 100% 100%;
+    line-height: 1.45;
+  }
+  main {
+    max-width: 40rem; margin: 0 auto; padding: 3rem 1.2rem 4rem;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(1.85rem, 6vw, 2.7rem);
+    letter-spacing: -.03em; margin: 0 0 .35rem; line-height: 1.05;
+  }
+  .tag { color: var(--green); font-weight: 600; margin-bottom: 1rem; }
+  .lead { font-size: 1.08rem; margin: 0 0 1.4rem; }
+  .yoyo {
+    width: 7rem; height: 11rem; margin: 1.25rem auto 1.75rem; position: relative;
+  }
+  .string {
+    position: absolute; left: 50%; top: 0; width: 2px; height: 2.2rem;
+    background: var(--violet); transform: translateX(-50%);
+  }
+  .disk {
+    position: absolute; left: 50%; top: 2rem; width: 5.5rem; height: 5.5rem;
+    margin-left: -2.75rem; border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, #aff5b4, var(--green) 45%, #1a7f37 78%),
+      var(--green);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pink) 55%, transparent);
+    animation: yo 2.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .disk { animation: none; }
+  }
+  @keyframes yo {
+    0%, 100% { transform: translateY(0); }
+    45% { transform: translateY(3.2rem); }
+    55% { transform: translateY(3.2rem); }
+  }
+  .disk span {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: "IBM Plex Serif", Georgia, serif; font-weight: 700; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+  section { border-top: 1px solid rgba(14,20,16,.14); padding-top: 1rem; margin: 1.35rem 0; }
+  h2 { font-size: 1.05rem; color: var(--green); margin: 0 0 .5rem; }
+  h2.inv { color: var(--pink); }
+  .layers { display: grid; gap: .35rem; font-size: .9rem; }
+  .layers div {
+    display: grid; grid-template-columns: 6.5rem 1fr; gap: .5rem;
+    padding: .35rem .2rem; border-bottom: 1px solid rgba(14,20,16,.08);
+  }
+  .swatch { width: .85rem; height: .85rem; border-radius: 50%; display: inline-block; margin-right: .35rem; vertical-align: -1px; }
+  a { color: var(--green); font-weight: 600; }
+  footer { margin-top: 2rem; font-size: .8rem; color: var(--mute); }
+  #live { font-variant-numeric: tabular-nums; min-height: 1.2em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Green Spectrum · π Yoyo</h1>
+  <p class="tag">bounce in green · invert tension at violet/pink</p>
+  <p class="lead">
+    Truths travel the whole greenline. <strong>Green</strong> is the π bounce.
+    <strong style="color:var(--violet)">Violet</strong> / <strong style="color:var(--pink)">pink</strong> is invert tension.
+    The π table is a <strong>yoyo</strong>.
+  </p>
+
+  <div class="yoyo" aria-hidden="true">
+    <div class="string"></div>
+    <div class="disk"><span>π</span></div>
+  </div>
+
+  <section>
+    <h2>Greenline inherits</h2>
+    <div class="layers" id="layers">loading…</div>
+  </section>
+  <section>
+    <h2 class="inv">Invert tension</h2>
+    <p id="invert">…</p>
+  </section>
+  <section>
+    <h2>Yoyo cycle</h2>
+    <p id="live"></p>
+    <ul>
+      <li><a href="/green-spectrum-pi-yoyo.json">JSON</a></li>
+      <li><a href="/green-specter.json">green specter</a> · <a href="/greenline.html">greenline</a></li>
+      <li><a href="/pi-rate-set.html">π-rate set</a> · <a href="/wireless-tether-hypotenuse.html">tether · hyp</a></li>
+    </ul>
+  </section>
+  <footer>ecoPrimals · magenta is green's complement — the string the yoyo rides</footer>
+</main>
+<script>
+fetch('/green-spectrum-pi-yoyo.json').then(r=>r.json()).then(d=>{
+  const box = document.getElementById('layers');
+  box.innerHTML = d.make_true_of_all_green_spectrum.greenline_layers.map(L =>
+    `<div><span><i class="swatch" style="background:${L.green}"></i>${L.layer}</span><span>${L.inherits}</span></div>`
+  ).join('');
+  document.getElementById('invert').textContent =
+    d.violet_pink_invert_tension.pink_magenta.role + ' · ' + d.violet_pink_invert_tension.pair.sum;
+  document.getElementById('live').textContent =
+    d.pi_table_is_yoyo.yoyo_cycle.map(p => p.phase).join(' → ');
+}).catch(e=>{ document.getElementById('layers').textContent = e.message; });
+</script>
+</body>
+</html>
