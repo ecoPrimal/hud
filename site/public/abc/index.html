@@ -93,14 +93,18 @@
       var title = s.story || s.path || '';
       if (title) out.push(item('campfire', title.slice(0, 140), '/data/berry-campfire.json'));
     });
-    return firstOk('/data/helix-catalog.json', true);
+    return firstOk('/data/helix-tight.json', true);
   }).then(function(h){
     var pairs = (h && h.pairs) || [];
     pairs.forEach(function(p){
       var n = p.n != null ? p.n : 0;
       if (p.js_live) n = n + ' + ' + p.js_live + ' js';
       if (p.js_fossil) n = n + ' + ' + p.js_fossil + ' fossil';
-      out.push(item('helix bp' + p.bp, n + ' · ' + (p.A || ''), '/data/helix-catalog.json'));
+      out.push(item('helix bp' + p.bp, n + ' · ' + (p.A || ''), '/data/helix-tight.json'));
+    });
+    var subs = (h.subcatalog_bp2 && h.subcatalog_bp2.now) || {};
+    Object.keys(subs).sort(function(a,b){ return subs[b] - subs[a]; }).forEach(function(k){
+      out.push(item('bp2 ' + k, String(subs[k]), '/data/helix-tight.json'));
     });
     paint(out);
   }).catch(function(){ paint(out.length ? out : [item('pore', 'could not inhale. the page is still here.', null)]); });
