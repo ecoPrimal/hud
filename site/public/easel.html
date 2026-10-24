@@ -129,6 +129,22 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
   color: #30363d; letter-spacing: 1px; }
 .vitruvian-toe a { color: #6e7681; text-decoration: none; border-bottom: 1px dotted #30363d; }
 .vitruvian-toe a:hover { color: #d2a8ff; border-color: #d2a8ff; }
+
+/* === SQUIRREL WIRE — nav between nodes === */
+.squirrel-wire { margin: 12px 0 8px; }
+.squirrel-wire svg { display: block; }
+.wire-node circle { transition: all .3s ease; }
+.wire-node:hover circle { r: 16; filter: drop-shadow(0 0 8px currentColor); }
+.wire-node:hover text { font-size: 12px; }
+@keyframes squirrelRun {
+  0%, 100% { transform: translate(80px, 30px) scaleX(1); }
+  20% { transform: translate(220px, 26px) scaleX(-1); }
+  40% { transform: translate(360px, 30px) scaleX(1); }
+  60% { transform: translate(500px, 26px) scaleX(-1); }
+  80% { transform: translate(640px, 30px) scaleX(1); }
+}
+#gym-squirrel { animation: squirrelRun 12s ease-in-out infinite; }
+#forest-squirrel { animation: squirrelRun 16s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -187,13 +203,50 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
   <div id="room-gym" style="display:none">
     <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">&#x1F4AA; the gym</h2>
     <p style="font:11px 'SF Mono',monospace;color:#6e7681">where models train. benchmarks run. personal bests on the wall.</p></div>
+    <!-- SQUIRREL WIRE — nav between gym nodes -->
+    <div class="squirrel-wire" id="gym-wire">
+      <svg viewBox="0 0 800 60" style="width:100%;height:60px;overflow:visible">
+        <line x1="40" y1="30" x2="760" y2="30" stroke="#21262d" stroke-width="2"/>
+        <g class="wire-node" data-href="/neutron/board.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="80" cy="30" r="12" fill="#0d1117" stroke="#3fb950" stroke-width="1.5"/>
+          <text x="80" y="34" text-anchor="middle" fill="#3fb950" font-size="10" font-family="monospace">&#x25A3;</text>
+          <text x="80" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">board</text>
+        </g>
+        <g class="wire-node" data-href="/play.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="220" cy="30" r="12" fill="#0d1117" stroke="#d2a8ff" stroke-width="1.5"/>
+          <text x="220" y="34" text-anchor="middle" fill="#d2a8ff" font-size="10">&#x2694;</text>
+          <text x="220" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">arena</text>
+        </g>
+        <g class="wire-node" data-href="/nest.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="360" cy="30" r="12" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5"/>
+          <text x="360" y="34" text-anchor="middle" fill="#58a6ff" font-size="10">&#x1F9EC;</text>
+          <text x="360" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">evolve</text>
+        </g>
+        <g class="wire-node" data-href="/menagerie.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="500" cy="30" r="12" fill="#0d1117" stroke="#f1c40f" stroke-width="1.5"/>
+          <text x="500" y="34" text-anchor="middle" fill="#f1c40f" font-size="10">&#x1F333;</text>
+          <text x="500" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">taxonomy</text>
+        </g>
+        <g class="wire-node" data-href="/tools.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="640" cy="30" r="12" fill="#0d1117" stroke="#e85d75" stroke-width="1.5"/>
+          <text x="640" y="34" text-anchor="middle" fill="#e85d75" font-size="10">&#x2699;</text>
+          <text x="640" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">86 tools</text>
+        </g>
+        <!-- the squirrel runs along the wire -->
+        <g id="gym-squirrel" transform="translate(80,30)">
+          <circle r="8" fill="#1a1410" stroke="#d29922" stroke-width="1"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10">&#x1F43F;</text>
+        </g>
+      </svg>
+    </div>
+
     <div class="past-grid">
       <a href="/neutron/board.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x25A3;</div><div class="plac"><b>backend board</b><br>all metrics</div></a>
-      <a href="/data/arena-benchmark.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2694;&#xFE0F;</div><div class="plac"><b>arena</b><br>8 models, 24 questions</div></a>
-      <a href="/data/arena-evolve.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F9EC;</div><div class="plac"><b>evolution</b><br>chain topology</div></a>
-      <a href="/data/arena-taxonomy.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F333;</div><div class="plac"><b>taxonomy</b><br>Kingdom Silica</div></a>
+      <a href="/play.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2694;&#xFE0F;</div><div class="plac"><b>arena</b><br>8 models, 24 questions</div></a>
+      <a href="/nest.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F9EC;</div><div class="plac"><b>evolution</b><br>chain topology</div></a>
+      <a href="/menagerie.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F333;</div><div class="plac"><b>taxonomy</b><br>Kingdom Silica</div></a>
       <a href="/tools.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2699;&#xFE0F;</div><div class="plac"><b>86 tools</b><br>the IDE is a HUD</div></a>
-      <a href="/data/feed-validation.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2705;</div><div class="plac"><b>validation</b><br>5,057 tests</div></a>
+      <a href="/vision.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2705;</div><div class="plac"><b>validation</b><br>5,057 tests</div></a>
     </div>
   </div>
 
@@ -201,12 +254,50 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
   <div id="room-forest" style="display:none">
     <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">&#x1F332; the forest</h2>
     <p style="font:11px 'SF Mono',monospace;color:#6e7681">539 trees. each one a paper. hike the trail. find mushrooms.</p></div>
+
+    <!-- SQUIRREL WIRE — trail between forest nodes -->
+    <div class="squirrel-wire">
+      <svg viewBox="0 0 800 60" style="width:100%;height:60px;overflow:visible">
+        <path d="M40,30 Q140,15 220,30 Q300,45 380,30 Q460,15 540,30 Q620,45 700,30 L760,30" fill="none" stroke="#21262d" stroke-width="2" stroke-dasharray="4,4"/>
+        <g class="wire-node" data-href="/trail.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="100" cy="23" r="10" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+          <text x="100" y="27" text-anchor="middle" fill="#3fb950" font-size="9">&#x1F97E;</text>
+          <text x="100" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">trail</text>
+        </g>
+        <g class="wire-node" data-href="/water.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="260" cy="37" r="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1"/>
+          <text x="260" y="41" text-anchor="middle" fill="#58a6ff" font-size="9">&#x1F30A;</text>
+          <text x="260" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">river</text>
+        </g>
+        <g class="wire-node" data-href="https://sporeprint.primals.eco" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="420" cy="23" r="10" fill="#0d1117" stroke="#d29922" stroke-width="1"/>
+          <text x="420" y="27" text-anchor="middle" fill="#d29922" font-size="9">&#x1F344;</text>
+          <text x="420" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">spores</text>
+        </g>
+        <g class="wire-node" data-href="/nightbox.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="580" cy="37" r="10" fill="#0d1117" stroke="#e85d75" stroke-width="1"/>
+          <text x="580" y="41" text-anchor="middle" fill="#e85d75" font-size="9">&#x1F525;</text>
+          <text x="580" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">campfire</text>
+        </g>
+        <g class="wire-node" data-href="https://detroit.primals.eco" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="720" cy="23" r="10" fill="#0d1117" stroke="#d2a8ff" stroke-width="1"/>
+          <text x="720" y="27" text-anchor="middle" fill="#d2a8ff" font-size="9">&#x2696;</text>
+          <text x="720" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">clearing</text>
+        </g>
+        <!-- squirrel on the trail -->
+        <g id="forest-squirrel" transform="translate(100,23)">
+          <circle r="7" fill="#1a1410" stroke="#3fb950" stroke-width="1"/>
+          <text x="0" y="3" text-anchor="middle" font-size="9">&#x1F43F;</text>
+        </g>
+      </svg>
+    </div>
+
     <div class="past-grid">
       <a href="/trail.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F97E;</div><div class="plac"><b>the trail</b><br>539 papers in order</div></a>
       <a href="/water.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F30A;</div><div class="plac"><b>the river</b><br>the gentle route</div></a>
       <a href="https://sporeprint.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F344;</div><div class="plac"><b>spore prints</b><br>the full collection</div></a>
       <a href="/nightbox.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F525;</div><div class="plac"><b>campfire</b><br>leave a message</div></a>
-      <a href="/data/feed-taxonomy.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F33F;</div><div class="plac"><b>undergrowth</b><br>142 data feeds</div></a>
+      <a href="/menagerie.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F33F;</div><div class="plac"><b>undergrowth</b><br>142 data feeds</div></a>
       <a href="https://detroit.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2696;</div><div class="plac"><b>the clearing</b><br>341 entities. the investigation.</div></a>
     </div>
     <div style="margin-top:20px">
