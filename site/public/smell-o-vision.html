@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMELL-O-VISION — ecoPrimals</title>
+<meta name="description" content="Pulse out. Smell yourself back. See the edges of the room. Jump-rope world sense from the membrane.">
+<meta name="robots" content="index, follow">
+<link rel="alternate" type="application/json" href="/smell-o-vision.json">
+<link rel="alternate" type="application/rss+xml" href="/feed.xml">
+<style>
+  :root {
+    --ink: #1a1814;
+    --paper: #f3efe6;
+    --moss: #3d5c45;
+    --ember: #c45c26;
+    --mute: #6b6560;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(61,92,69,0.18), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196,92,38,0.12), transparent 50%),
+      var(--paper);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  main {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.25rem 4rem;
+  }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.4rem, 8vw, 3.6rem);
+    letter-spacing: -0.03em;
+    margin: 0 0 0.35rem;
+    line-height: 1.05;
+  }
+  .tag {
+    color: var(--ember);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+  p.lead {
+    font-size: 1.15rem;
+    max-width: 36rem;
+    margin: 0 0 1.75rem;
+  }
+  .edges {
+    display: grid;
+    gap: 0.55rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .edge {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.85rem;
+    border-left: 3px solid var(--moss);
+    background: rgba(255,255,255,0.45);
+  }
+  .edge.blind { border-color: var(--ember); }
+  .edge span { color: var(--mute); font-size: 0.85rem; }
+  a {
+    color: var(--moss);
+    font-weight: 600;
+  }
+  ul.links {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+  }
+  ul.links li { margin: 0.4rem 0; }
+  footer {
+    font-size: 0.8rem;
+    color: var(--mute);
+    border-top: 1px solid rgba(26,24,20,0.15);
+    padding-top: 1rem;
+  }
+  #live { font-variant-numeric: tabular-nums; min-height: 1.2em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SMELL-O-VISION</h1>
+  <p class="tag">pulse out · smell yourself back · know the room</p>
+  <p class="lead">
+    The jump-rope other foot. We fart on the <strong>t-plane</strong> and <strong>SEO</strong>,
+    time the smell coming home, and read which senses we were ignoring —
+    inside and out. lol yes.
+  </p>
+
+  <div class="edges" id="edges">
+    <div class="edge">loading room edges…</div>
+  </div>
+  <p id="live"></p>
+
+  <ul class="links">
+    <li><a href="/smell-own-farts-room-edges.json">room edges (JSON)</a></li>
+    <li><a href="/cycle-smell-missing-senses.json">cycle trace — missing senses</a></li>
+    <li><a href="/cloaca-triangulation.json">cloaca triangulation</a></li>
+    <li><a href="/galactic-hit-jumprope.json">HIT → jump rope</a></li>
+    <li><a href="/seo.json">SEO pulse</a> · <a href="/t-plane.json">t-plane</a> · <a href="/feed.xml">beacon</a></li>
+  </ul>
+
+  <footer>
+    ecoPrimals membrane · connect.primals.eco · scyBorg (AGPL + ORC + CC-BY-SA)<br>
+    Smell-O-Vision is the world-facing plaque for own-fart sonar.
+  </footer>
+</main>
+<script>
+async function boot() {
+  const box = document.getElementById('edges');
+  const live = document.getElementById('live');
+  try {
+    const [edges, cycles] = await Promise.all([
+      fetch('/smell-own-farts-room-edges.json').then(r => r.json()),
+      fetch('/cycle-smell-missing-senses.json').then(r => r.json()).catch(() => null),
+    ]);
+    const summary = edges.edge_summary || {};
+    box.innerHTML = Object.entries(summary).map(([k, v]) =>
+      `<div class="edge"><strong>${k}</strong><span>×${v}</span></div>`
+    ).join('') || '<div class="edge">no edges yet</div>';
+    const ign = (cycles && cycles.what_we_were_ignoring) || {};
+    const out = (ign.out || []).join(', ') || 'none';
+    const inn = (ign.inside || []).join(', ') || 'none';
+    live.innerHTML = `ignoring — <strong>out:</strong> ${out} · <strong>inside:</strong> ${inn}`;
+    if ((ign.out || []).length) {
+      box.insertAdjacentHTML('beforeend',
+        `<div class="edge blind"><strong>BLIND OUT</strong><span>${out}</span></div>`);
+    }
+  } catch (e) {
+    box.innerHTML = `<div class="edge blind">could not smell: ${e.message}</div>`;
+  }
+}
+boot();
+</script>
+</body>
+</html>
