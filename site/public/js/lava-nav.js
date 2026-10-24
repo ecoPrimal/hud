@@ -63,7 +63,7 @@
     {glyph:'🐤', name:'valve',      href:'/valve.html',      hot:0.1,  tier:'cool'},
     {glyph:'🐤', name:'gaben',      href:'/gaben.html',      hot:0.1,  tier:'cool'},
     {glyph:'🕹️', name:'classics',   href:'/classics.html',   hot:0.1,  tier:'cool'},
-    {glyph:'🌈', name:'chromatograph',href:'/chromatograph.html',hot:0.1, tier:'cool'},
+    {glyph:'🌈', name:'chromatograph',href:'/chromatograph.html',hot:0.86, tier:'hot'},
     {glyph:'🔦', name:'raytrace',   href:'/raytrace.html',   hot:0.05, tier:'cool'},
     {glyph:'👋', name:'hello',      href:'/hello.html',      hot:0.05, tier:'cool'},
     {glyph:'❄',  name:'weather-m',  href:'/weather-membrane',hot:0.05, tier:'cool'},
