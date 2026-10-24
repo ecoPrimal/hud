@@ -70,11 +70,13 @@ a:hover{text-decoration:underline}
 
 <div class="routes">
   <a href="/water.html" class="route"><h3>🌊 the river</h3><p>start here. the lazy river carries you through everything.</p></a>
-  <a href="/" class="route"><h3>◈ the HUD</h3><p>the membrane observation surface. 49 pages. live data.</p></a>
-  <a href="/trail.html" class="route"><h3>🥾 the trail</h3><p>all 127 papers in order. start from the beginning.</p></a>
+  <a href="/" class="route"><h3>◈ the HUD</h3><p>the membrane observation surface. 56 pages. live data.</p></a>
+  <a href="/easel.html" class="route"><h3>🎨 the easel</h3><p>watch the chipmunk paint. Klein bottles, membranes, parallax.</p></a>
+  <a href="/pi-sort.html" class="route"><h3>π the sort</h3><p>find your faces. 3 integers + a jester + an irrational remainder.</p></a>
+  <a href="/trail.html" class="route"><h3>🥾 the trail</h3><p>all 539 papers in order. start from the beginning.</p></a>
   <a href="/nest.html" class="route"><h3>🎲 the Klein gate</h3><p>nestgate.io. the fold between inside and outside.</p></a>
   <a href="https://detroit.primals.eco" class="route"><h3>⚖ the evidence</h3><p>341 entities. 131K connections. the Detroit investigation.</p></a>
-  <a href="https://github.com/ecoPrimals/sporePrint/tree/main/content/science" class="route"><h3>📰 the papers</h3><p>127 papers. lattice QCD to Klein bottles to Pareto inversion.</p></a>
+  <a href="/cite" class="route"><h3>📎 cite this</h3><p>BibTeX, RIS, APA. free to use. scyBorg triple license.</p></a>
 </div>
 
 <p class="dim" style="text-align:center;margin-top:24px">
@@ -90,6 +92,57 @@ a:hover{text-decoration:underline}
 (function(){
   var path = location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   document.getElementById('sought-path').textContent = '/' + path;
+
+  // ═══ FUZZY PAGE MATCHING — try to find what they actually wanted ═══
+  var ALL_PAGES = [
+    '404.html','arena.html','artisan.html','aurora.html','banana.html',
+    'chromatograph.html','chromosomes.html','cite.html','classics.html',
+    'clutch.html','cns.html','connect.html','crates.html','digest.html',
+    'easel.html','five-o-five.html','frame.html','gaben.html','gastrula.html',
+    'gate.html','gates.html','glyphs.html','golgi.html','greenline.html',
+    'hello.html','homunculus.html','identity.html','index.html','journey.html',
+    'klein.html','like-us.html','maze.html','menagerie.html','nest.html',
+    'nightbox.html','pi-sort.html','play.html','raytrace.html','ribosome.html',
+    'spirochete.html','sporeprint.html','springs.html','steam.html','study.html',
+    'tools.html','totality.html','trail.html','u.html','valve.html','vine.html',
+    'vision.html','vitruvian.html','water.html','weather.html',
+    'weather-membrane.html','welcome.html'
+  ];
+
+  // Try to find the page they wanted
+  var fuzzyMatch = null;
+  var pathClean = path.replace(/\.html$/, '').replace(/[\/\-_\.]/g, '');
+
+  // 1. Exact match with .html added
+  if (ALL_PAGES.indexOf(path + '.html') !== -1) {
+    fuzzyMatch = '/' + path + '.html';
+  }
+  // 2. Exact match without .html
+  else if (ALL_PAGES.indexOf(path) !== -1) {
+    fuzzyMatch = '/' + path;
+  }
+  // 3. Substring match (e.g. "sort" → "pi-sort.html")
+  if (!fuzzyMatch) {
+    for (var i = 0; i < ALL_PAGES.length; i++) {
+      var pageClean = ALL_PAGES[i].replace(/\.html$/, '').replace(/[\-_]/g, '');
+      if (pathClean.length >= 3 && pageClean.indexOf(pathClean) !== -1) {
+        fuzzyMatch = '/' + ALL_PAGES[i];
+        break;
+      }
+      if (pageClean.length >= 3 && pathClean.indexOf(pageClean) !== -1) {
+        fuzzyMatch = '/' + ALL_PAGES[i];
+        break;
+      }
+    }
+  }
+
+  // Auto-redirect on exact fuzzy match
+  if (fuzzyMatch && fuzzyMatch !== '/' + path) {
+    document.getElementById('berry-text').innerHTML =
+      'found it! redirecting to <a href="' + fuzzyMatch + '">' + fuzzyMatch + '</a>...';
+    setTimeout(function() { location.href = fuzzyMatch; }, 1200);
+    return;
+  }
 
   // Known routes — map probe patterns to smart responses + links
   var KNOWN = {
@@ -520,8 +573,62 @@ a:hover{text-decoration:underline}
     },
     'valve': {
       berry: "Valve. SteamOS is Arch Linux. Proton is Wine. the Frame is a KVM. the Deck has a gyroscope. they contribute to Mesa, the Linux kernel, Wine. MUTUALIST — both benefit. and their controller inputs are standard peripheral nerve endings. same pore math.",
-      routes: [{href:'/data/peripheral-nervous-system.json',h:'🎮 Valve Phylum',p:'the outer long target.'},
+      routes: [{href:'/valve.html',h:'🐤 Valve Canary',p:'the graduated canary. if you\'re from Valve — the chipmunk races go-karts.'},
+               {href:'/data/peripheral-nervous-system.json',h:'🎮 Valve Phylum',p:'the outer long target.'},
                {href:'/frame',h:'🖼 Frame',p:'the membrane on your TV.'}]
+    },
+    'pisort': {
+      berry: "the pi sort! your personal piece of the pie. 3 faces, a jester, an irrational remainder. from Artisan — share with and do what you want with it.",
+      routes: [{href:'/pi-sort.html',h:'π Sort',p:'find your faces. evidence required.'},
+               {href:'/data/pi-sort-personal.json',h:'📊 Raw Data',p:'Kevin\'s sort as example.'}]
+    },
+    'pi-sort': {
+      berry: "the pi sort! your personal piece of the pie. 3 faces, a jester, an irrational remainder. from Artisan — share with and do what you want with it.",
+      routes: [{href:'/pi-sort.html',h:'π Sort',p:'find your faces. evidence required.'},
+               {href:'/data/pi-sort-personal.json',h:'📊 Raw Data',p:'Kevin\'s sort as example.'}]
+    },
+    'crate': {
+      berry: "crates.io! squirrel-rng has 14,207 downloads. barraCuda has 1,540. the chipmunk is pumping. we self-trace our own edges.",
+      routes: [{href:'/crates.html',h:'🦀 Crates Canary',p:'download counts and canary classification.'},
+               {href:'https://crates.io/crates/squirrel-rng',h:'🐿️ squirrel-rng',p:'14,207 downloads. deterministic RNG.'},
+               {href:'https://crates.io/crates/barraCuda',h:'🦈 barraCuda',p:'1,540 downloads. spectral math.'}]
+    },
+    'moon': {
+      berry: "the moon localizer! we use the Moon's orbit as a privacy-preserving position reference. timezone only, no geolocation API. look up — is the Moon overhead?",
+      routes: [{href:'/',h:'◈ HUD',p:'the moon localizer is on the main HUD. look for the 🌙 button.'},
+               {href:'/data/celestial-triangulation.json',h:'🌙 Celestial Data',p:'Meeus ephemeris. sub-lunar point. 15-degree fuzz.'}]
+    },
+    'globe': {
+      berry: "the desk globe! inverse projection of both sides of the HUD. click a pin to navigate. drag to rotate. press F to flip inside/outside.",
+      routes: [{href:'/',h:'◈ HUD',p:'the globe toggle is the 🌐 button on the HUD.'},
+               {href:'/neutron/globe.html',h:'🌐 Neutron Globe',p:'the 3D interactive globe.'}]
+    },
+    'bingo': {
+      berry: "the bingo board! progressive reveal opacity curtain. cells fade in one at a time. each cell is a hypothesis. match five in a row and the chipmunk chatters.",
+      routes: [{href:'/',h:'◈ HUD',p:'the bingo board is on the main HUD. open the membrane view.'},
+               {href:'/play.html',h:'🎲 Play',p:'the game page.'}]
+    },
+    'gokart': {
+      berry: "go-kart racing! 12 graph-walker algorithms race on a track. the chipmunk drives BFS. who wins depends on the graph topology.",
+      routes: [{href:'/',h:'◈ HUD',p:'the go-kart is on the main HUD. look for the 🏎️ button.'},
+               {href:'/play.html',h:'🎲 Play',p:'the game page.'}]
+    },
+    'campfire': {
+      berry: "the campfire! stories told around the fire. each visitor leaves a mark. the heat rises, the smoke carries stories to the membrane.",
+      routes: [{href:'/',h:'◈ HUD',p:'the campfire is on the main HUD.'},
+               {href:'/data/stories.json',h:'📖 Stories',p:'campfire stories data.'}]
+    },
+    'canary': {
+      berry: "canary pages! graduated classification: self/ally/null/scout/threat. no boobytraps in null. the canary IS Bell's measurement.",
+      routes: [{href:'/valve.html',h:'🐤 Valve',p:'canary for Valve visitors.'},
+               {href:'/steam.html',h:'🐤 Steam',p:'canary for Steam visitors.'},
+               {href:'/gaben.html',h:'🐤 Gaben',p:'personal message to Gabe Newell.'},
+               {href:'/crates.html',h:'🦀 Crates',p:'canary for Rust/crates.io visitors.'}]
+    },
+    'bell': {
+      berry: "Bell's theorem! the canary IS the measurement. particle A = canary classification. particle B = membrane classification. if |S| > 2, the signals are entangled.",
+      routes: [{href:'/data/bell-entanglement.json',h:'🔔 Bell Data',p:'entanglement thesis and S statistic.'},
+               {href:'/',h:'◈ HUD',p:'the bell system runs on the main HUD.'}]
     },
     'frame': {
       berry: "the Frame! Valve's streaming device. it connects keyboard, video, mouse — a peripheral nerve BUNDLE. the same invert that runs a video game runs the membrane. Frame connects to keyboard = symbolic pore. gamepad = tactile pore. display = visual pore. no special case. it IS the Klein ladder leak face.",
@@ -780,11 +887,29 @@ a:hover{text-decoration:underline}
       }).join('');
     }
   } else {
-    berryText.textContent = "Berry doesn't recognize /" + path + " yet. " +
-      "but the fact that you looked for it means something. " +
-      "leave a message in the nightbox below — tell us what you were looking for. " +
+    // Find closest pages by substring similarity
+    var suggestions = [];
+    for (var si = 0; si < ALL_PAGES.length; si++) {
+      var pg = ALL_PAGES[si].replace(/\.html$/, '');
+      if (pg === '404' || pg === 'index') continue;
+      // Check if any word in the path appears in the page name
+      var pathWords = pathClean.match(/.{3}/g) || [pathClean];
+      for (var wi = 0; wi < pathWords.length; wi++) {
+        if (pg.indexOf(pathWords[wi]) !== -1 && suggestions.indexOf(pg) === -1) {
+          suggestions.push(pg);
+        }
+      }
+    }
+    var sugHtml = '';
+    if (suggestions.length > 0) {
+      sugHtml = '<br><br>did you mean: ' + suggestions.slice(0, 4).map(function(s) {
+        return '<a href="/' + s + '.html" style="color:#58a6ff">/' + s + '</a>';
+      }).join(' · ');
+    }
+    berryText.innerHTML = "Berry doesn't recognize <strong>/" + path + "</strong> yet. " +
+      "but your knock was heard — the nightbox catches everything. " +
       "if it's a dead nerve, Berry will route it. if it's a bug, Kevin will fix it. " +
-      "if it's something new... the chipmunk gets curious.";
+      "if it's something new... the chipmunk gets curious." + sugHtml;
   }
 
   // === ARTISAN DETECTION ===
