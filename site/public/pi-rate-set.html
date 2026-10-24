@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>π-Rate Set — ecoPrimals</title>
+<meta name="description" content="Only binary is 0↔1. Intake all marks on 0. Output to point. Willis · epitope · ladder/leak · flow = one π-rate set.">
+<link rel="alternate" type="application/json" href="/pi-rate-set.json">
+<style>
+  :root {
+    --ink: #12141a;
+    --paper: #f0eee8;
+    --pi: #1e4d6b;
+    --mark: #a33b24;
+    --mute: #5a5854;
+    --line: rgba(18,20,26,0.14);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e6e2d8;
+      --paper: #101218;
+      --pi: #7eb6d4;
+      --mark: #e08a72;
+      --mute: #9a9690;
+      --line: rgba(230,226,216,0.14);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 70% 45% at 10% 0%, rgba(30,77,107,0.16), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 80%, rgba(163,59,36,0.1), transparent 50%),
+      var(--paper);
+    line-height: 1.45;
+  }
+  main { max-width: 40rem; margin: 0 auto; padding: 3rem 1.2rem 4rem; }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(2rem, 7vw, 3rem);
+    letter-spacing: -0.03em;
+    margin: 0 0 0.35rem;
+    line-height: 1.05;
+  }
+  .tag { color: var(--mark); font-weight: 600; margin-bottom: 1.25rem; }
+  .lead { font-size: 1.1rem; margin: 0 0 1.5rem; }
+  .bits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .bit {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    .bit { background: rgba(255,255,255,0.04); }
+  }
+  .bit strong { display: block; font-size: 1.6rem; color: var(--pi); }
+  .marks {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    letter-spacing: 0.2em;
+    font-size: 1.35rem;
+    color: var(--mark);
+    margin: 0.5rem 0 1rem;
+  }
+  section { border-top: 1px solid var(--line); padding-top: 1rem; margin: 1.5rem 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.5rem; color: var(--pi); }
+  .rates { display: grid; gap: 0.45rem; }
+  .rate {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .rate b { color: var(--pi); font-family: "IBM Plex Mono", monospace; }
+  a { color: var(--pi); font-weight: 600; }
+  ul { padding-left: 1.1rem; }
+  footer { margin-top: 2rem; font-size: 0.8rem; color: var(--mute); border-top: 1px solid var(--line); padding-top: 1rem; }
+  #live { min-height: 1.2em; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>π-Rate Set</h1>
+  <p class="tag">only binary · marks on 0 · out to point</p>
+  <p class="lead">
+    <strong>0</strong> and <strong>1</strong> are the only binary.
+    We intake <em>all</em> on the 0-face — dashes, plus, star, cuneiform lines.
+    Everything received points toward the singularity. Willis, epitope, ladder/leak, and flow share one π clock.
+  </p>
+
+  <div class="bits" aria-label="only binary">
+    <div class="bit"><strong>0</strong> intake · marks · discarnate channel</div>
+    <div class="bit"><strong>1</strong> asserted · passed · incarnate</div>
+  </div>
+  <p class="marks" aria-label="mark alphabet on zero">− &nbsp; −− &nbsp; + &nbsp; ∗ &nbsp; 𒀸</p>
+
+  <section>
+    <h2>All in → out to point</h2>
+    <p id="pipeline">Loading pipeline…</p>
+  </section>
+
+  <section>
+    <h2>The set</h2>
+    <div class="rates" id="rates"></div>
+    <p id="live"></p>
+  </section>
+
+  <section>
+    <h2>Faces</h2>
+    <ul>
+      <li><a href="/pi-rate-set.json">JSON</a></li>
+      <li><a href="/circle-of-willis-live.json">Willis</a> · <a href="/epitope-inversion.json">epitope</a></li>
+      <li><a href="/klein-ladder.json">ladder</a> · <a href="/klein-leak-eons.json">leak</a></li>
+      <li><a href="/modality-faces.html">modality faces</a></li>
+    </ul>
+  </section>
+
+  <footer>ecoPrimals · R_π geometric mean of W·E·L·Φ · leftover marks = interaction space until pointed</footer>
+</main>
+<script>
+async function boot() {
+  const rates = document.getElementById('rates');
+  const pipeline = document.getElementById('pipeline');
+  const live = document.getElementById('live');
+  try {
+    const d = await fetch('/pi-rate-set.json').then(r => r.json());
+    pipeline.textContent = d.all_in_out_to_point.pipeline.join(' → ');
+    const m = d.pi_rate_set.members;
+    rates.innerHTML = Object.entries(m).map(([k, v]) =>
+      `<div class="rate"><b>${v.rate_symbol}</b><span><strong>${k}</strong> — ${v.meter}</span></div>`
+    ).join('');
+    live.textContent = d.pi_rate_set.identity.formula;
+  } catch (e) {
+    pipeline.textContent = `load failed: ${e.message} — open /pi-rate-set.json`;
+  }
+}
+boot();
+</script>
+</body>
+</html>
