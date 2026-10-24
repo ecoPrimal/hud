@@ -229,6 +229,9 @@
     html.push('</div>');
 
     panel.innerHTML = html.join('');
+
+    // Render Bell state after main panel
+    renderBellState();
   }
 
   // ═══ UPGRADED CANARY PAGES — graduate from binary to pi-sort ═══
@@ -312,10 +315,218 @@
     }
   }
 
+  // ═══ BELL → ENTANGLEMENT POINT → NEUTRINO RAY ═══
+  // The canary IS Bell's measurement. When it trips, the wave function
+  // collapses and a neutrino fires through the nervous system.
+  // Bell's inequality: if correlation between canary trips and neutron
+  // responses exceeds the classical bound (2), something real is happening.
+
+  var BELL_KEY = 'bell-entangle-v1';
+  var bellState = { pairs: [], S: 0, violations: 0 };
+  try { bellState = JSON.parse(localStorage.getItem(BELL_KEY) || '{}'); bellState.pairs = bellState.pairs || []; } catch(e) { bellState = { pairs: [], S: 0, violations: 0 }; }
+
+  function bellMeasure(canaryHit) {
+    // Each canary trip creates an entangled pair:
+    //   particle A = the canary event (classification, referrer, time)
+    //   particle B = the neutron response (what the membrane sees)
+    // Correlation: do they agree on the classification?
+
+    var pairA = {
+      canary: canaryHit.canary,
+      cls: canaryHit.classification || classifyHit(canaryHit),
+      ts: canaryHit.ts,
+      angle: classAngle(canaryHit.classification || 'null_w'),
+    };
+
+    // Particle B: query the membrane for its independent classification
+    var pairB = {
+      membrane_cls: 'null_w',
+      ts: Date.now(),
+      angle: PI / 2, // default: orthogonal (no correlation)
+    };
+
+    // Check if membrane has seen this referrer before
+    if (canaryHit.ref) {
+      var refDomain = extractDomain(canaryHit.ref);
+      // The membrane classifies by its own epitope system
+      if (refDomain.includes('crates') || refDomain.includes('rust')) pairB.membrane_cls = 'ally';
+      else if (refDomain.includes('steam') || refDomain.includes('valve')) pairB.membrane_cls = 'ally';
+      else if (refDomain.includes('primals') || refDomain.includes('eco')) pairB.membrane_cls = 'self';
+      else if (refDomain.includes('bot') || refDomain.includes('scan')) pairB.membrane_cls = 'threat';
+      else pairB.membrane_cls = 'null_w';
+      pairB.angle = classAngle(pairB.membrane_cls);
+    }
+
+    // Correlation: cos(angle_A - angle_B)
+    var correlation = Math.cos(pairA.angle - pairB.angle);
+
+    var pair = {
+      a: pairA, b: pairB,
+      correlation: correlation,
+      agreement: pairA.cls === pairB.membrane_cls,
+      ts: Date.now(),
+    };
+
+    bellState.pairs.push(pair);
+    if (bellState.pairs.length > 50) bellState.pairs.shift();
+
+    // Compute S (CHSH inequality): |S| <= 2 classically. |S| > 2 = entanglement
+    var sumCorr = 0, n = bellState.pairs.length;
+    bellState.pairs.forEach(function(p) { sumCorr += p.correlation; });
+    bellState.S = n > 0 ? (sumCorr / n) * 2 * Math.sqrt(2) : 0; // scale to Bell range
+    bellState.violations = bellState.pairs.filter(function(p) { return p.agreement; }).length;
+
+    try { localStorage.setItem(BELL_KEY, JSON.stringify(bellState)); } catch(e) {}
+
+    // FIRE THE NEUTRINO — propagate through the nervous system
+    fireNeutrino(canaryHit, pair);
+
+    return pair;
+  }
+
+  function classAngle(cls) {
+    if (cls === 'self') return 0;
+    if (cls === 'ally') return PI * 0.318;
+    if (cls === 'null_w') return PI * 0.5;
+    if (cls === 'scout') return PI * 0.75;
+    if (cls === 'threat') return PI;
+    return PI * 0.5;
+  }
+
+  function extractDomain(url) {
+    try { return new URL(url).hostname.toLowerCase(); } catch(e) { return url.toLowerCase(); }
+  }
+
+  // ═══ FIRE NEUTRINO — the canary bell propagates through the system ═══
+  function fireNeutrino(canaryHit, bellPair) {
+    var cc = CANARY_CLASSES[canaryHit.classification || 'null_w'] || CANARY_CLASSES.null_w;
+
+    // 1. Log to neutrino feed (localStorage, picked up by neutron core)
+    var neutrino = {
+      type: 'canary-bell',
+      canary: canaryHit.canary,
+      cls: canaryHit.classification,
+      ref: canaryHit.ref || 'direct',
+      correlation: bellPair.correlation.toFixed(3),
+      S: bellState.S.toFixed(3),
+      bell_violation: Math.abs(bellState.S) > 2,
+      ts: Date.now(),
+    };
+
+    var feed = [];
+    try { feed = JSON.parse(localStorage.getItem('neutrino-feed-v1') || '[]'); } catch(e) {}
+    feed.push(neutrino);
+    if (feed.length > 100) feed = feed.slice(-100);
+    try { localStorage.setItem('neutrino-feed-v1', JSON.stringify(feed)); } catch(e) {}
+
+    // 2. Fire to readout if available
+    if (window._readout) {
+      window._readout.log(
+        'bell:' + canaryHit.canary,
+        cc.label + ' · S=' + bellState.S.toFixed(2) + (Math.abs(bellState.S) > 2 ? ' ⚡ENTANGLED' : ''),
+        cc.color
+      );
+    }
+
+    // 3. Fire to campfire if available (the bell rings across the fire)
+    if (window._campfire && window._campfire.inject) {
+      window._campfire.inject({
+        id: 's040-bell-' + Date.now(),
+        title: 'the bell rang: ' + canaryHit.canary,
+        body: cc.label + ' canary from ' + (canaryHit.ref || 'direct') +
+              '. Bell S=' + bellState.S.toFixed(2) +
+              (Math.abs(bellState.S) > 2 ? '. ENTANGLED — correlation exceeds classical bound.' : '.'),
+        heat: Math.abs(bellState.S) > 2 ? 1.0 : 0.3,
+      });
+    }
+
+    // 4. Try to POST to relay (neutrino to the server)
+    fetch('/api/canary.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(neutrino),
+    }).catch(function() {});
+  }
+
+  // ═══ BELL STATE DISPLAY — add to trace panel ═══
+  function renderBellState() {
+    var panel = document.getElementById('self-trace-panel');
+    if (!panel) return;
+
+    var existing = panel.querySelector('.st-bell');
+    if (existing) existing.remove();
+
+    var div = document.createElement('div');
+    div.className = 'st-bell st-section';
+
+    var violation = Math.abs(bellState.S) > 2;
+    var sColor = violation ? '#3fb950' : '#8b949e';
+    var pairs = bellState.pairs || [];
+
+    var html = [];
+    html.push('<div class="st-label">Bell entanglement</div>');
+    html.push('<div class="st-row">');
+    html.push('<span>S (CHSH)</span>');
+    html.push('<span style="color:' + sColor + ';font-weight:bold">' + (bellState.S || 0).toFixed(3) + '</span>');
+    html.push('</div>');
+    html.push('<div class="st-row">');
+    html.push('<span>classical bound</span><span>|S| ≤ 2</span>');
+    html.push('</div>');
+    html.push('<div class="st-row">');
+    html.push('<span>pairs measured</span><span>' + pairs.length + '</span>');
+    html.push('</div>');
+    html.push('<div class="st-row">');
+    html.push('<span>agreements</span><span>' + (bellState.violations || 0) + '/' + pairs.length + '</span>');
+    html.push('</div>');
+    if (violation) {
+      html.push('<div style="color:#3fb950;font-size:8px;text-align:center;margin-top:3px">');
+      html.push('⚡ |S| > 2 — entanglement detected');
+      html.push('<br>canary and membrane agree beyond chance');
+      html.push('</div>');
+    } else {
+      html.push('<div style="color:#6e7681;font-size:8px;text-align:center;margin-top:3px">');
+      html.push('classical — need more canary trips to test');
+      html.push('</div>');
+    }
+
+    // Recent neutrinos
+    var feed = [];
+    try { feed = JSON.parse(localStorage.getItem('neutrino-feed-v1') || '[]'); } catch(e) {}
+    if (feed.length > 0) {
+      html.push('<div class="st-label" style="margin-top:4px">recent neutrinos</div>');
+      feed.slice(-5).reverse().forEach(function(n) {
+        var cc = CANARY_CLASSES[n.cls] || CANARY_CLASSES.null_w;
+        var ago = Math.round((Date.now() - n.ts) / 60000);
+        html.push('<div class="st-row">');
+        html.push('<span style="color:' + cc.color + '">● ' + (n.canary || '?') + '</span>');
+        html.push('<span class="st-val">' + ago + 'm ago</span>');
+        html.push('</div>');
+      });
+    }
+
+    div.innerHTML = html.join('');
+    panel.appendChild(div);
+  }
+
+  // Hook bellMeasure into canaryTrip
+  var _origCanaryTrip = window._canaryTrip;
+  window._canaryTrip = function(canaryId, extraData) {
+    var hit = _origCanaryTrip ? _origCanaryTrip(canaryId, extraData) : {
+      canary: canaryId, ts: Date.now(),
+      ref: document.referrer || '', ua: navigator.userAgent || '',
+      classification: 'null_w',
+    };
+    bellMeasure(hit);
+    // Update bell display if panel open
+    renderBellState();
+    return hit;
+  };
+
   // ═══ EXPOSE ═══
   window._selfTrace = {
     check: selfTraceCheck,
     classify: classifyHit,
+    bell: function() { return bellState; },
     CLASSES: CANARY_CLASSES,
     PROPERTIES: PROPERTIES,
     data: function() { return traceData; },
