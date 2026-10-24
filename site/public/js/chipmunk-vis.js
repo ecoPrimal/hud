@@ -280,7 +280,13 @@
       } else if (sortClass === 'null') {
         targetR = bodyRadius(PI2 * 0.5);
       }
-      angle = Math.random() * 2 * PI;
+      // Chromatographic angular sorting — each sort class gets its own band
+      // self = top quadrant (boundary), non-self = right (output), partial = bottom (feeds), null = left (void)
+      var bandCenter = sortClass === 'self' ? 0 :
+                       sortClass === 'non-self' ? PI * 0.5 :
+                       sortClass === 'partial' ? PI :
+                       PI * 1.5;
+      angle = bandCenter + (Math.random() - 0.5) * PI * 0.45; // spread within band
     } else {
       var cont = CONTINENTS[Math.floor(Math.random() * CONTINENTS.length)];
       angle = cont.angle + (Math.random() - 0.5) * 0.4;
@@ -429,6 +435,16 @@
         remove.push(i);
         if (b.el && b.el.parentNode) b.el.parentNode.removeChild(b.el);
         return;
+      }
+
+      // Chromatographic drift — bubbles slowly sort into their angular band
+      if (b.sortClass && b.sortClass !== 'unknown') {
+        var bandTarget = b.sortClass === 'self' ? 0 :
+                         b.sortClass === 'non-self' ? PI * 0.5 :
+                         b.sortClass === 'partial' ? PI :
+                         PI * 1.5;
+        var angleDiff = ((bandTarget - b.angle + 3 * PI) % (2 * PI)) - PI;
+        b.angle += angleDiff * 0.002; // gentle drift toward band
       }
 
       var x = cx + b.r * Math.cos(b.angle);
