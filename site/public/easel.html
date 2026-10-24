@@ -54,8 +54,9 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
   color: #30363d; font: 9px monospace;
 }
 
-/* === GALLERY LAYOUT — three rooms === */
-.gallery-wrap { max-width: 1100px; margin: 0 auto; padding: 56px 16px 40px; }
+/* === GALLERY LAYOUT — three voxel rooms === */
+.gallery-wrap { max-width: 1100px; margin: 0 auto; padding: 56px 16px 40px;
+  perspective: 1200px; perspective-origin: 50% 40%; }
 .gallery-head { text-align: center; margin-bottom: 20px; }
 .gallery-head h1 { font-size: 18px; font-weight: 200; color: #e6edf3; font-family: 'SF Mono', monospace; }
 .gallery-head p { font-size: 11px; color: #6e7681; font-family: 'SF Mono', monospace; }
@@ -74,8 +75,9 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 
 .past-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
 .past-piece { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; overflow: hidden;
-  cursor: pointer; transition: all .2s; }
-.past-piece:hover { border-color: #d2a8ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(210,168,255,0.1); }
+  cursor: pointer; transition: all .4s ease; transform-style: preserve-3d; }
+.past-piece:hover { border-color: #d2a8ff; transform: translateZ(30px) translateY(-4px) rotateX(-2deg);
+  box-shadow: 0 12px 32px rgba(210,168,255,0.15); }
 .past-piece canvas, .past-piece img { width: 100%; height: 100px; object-fit: cover; display: block; background: #08060a; }
 .past-piece .plac { padding: 6px 8px; font: 10px 'SF Mono', monospace; color: #6e7681; }
 .past-piece .plac b { color: #c9d1d9; font-weight: 400; }
@@ -83,8 +85,11 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 .sculpture-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
 .sculpt { width: 180px; height: 180px; background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font: 10px 'SF Mono', monospace; color: #30363d; text-align: center; transition: all .2s; cursor: pointer; }
-.sculpt:hover { border-color: #3fb950; color: #3fb950; }
+  font: 10px 'SF Mono', monospace; color: #30363d; text-align: center; transition: all .5s ease;
+  cursor: pointer; transform-style: preserve-3d; }
+.sculpt:hover { border-color: #3fb950; color: #3fb950;
+  transform: translateZ(40px) rotateY(8deg) rotateX(-4deg);
+  box-shadow: 0 16px 40px rgba(63,185,80,0.2); }
 .sculpt .sculpt-icon { font-size: 32px; margin-bottom: 6px; }
 </style>
 </head>
@@ -164,24 +169,94 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
       <a href="https://sporeprint.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>spore prints</b><br>the full collection</div></a>
       <a href="/nightbox.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>campfire</b><br>leave a message</div></a>
       <a href="/data/feed-taxonomy.json" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>undergrowth</b><br>142 data feeds</div></a>
-      <a href="https://detroit.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">??</div><div class="plac"><b>the clearing</b><br>341 entities. the investigation.</div></a>
+      <a href="https://detroit.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2696;</div><div class="plac"><b>the clearing</b><br>341 entities. the investigation.</div></a>
+    </div>
+    <div style="margin-top:20px">
+      <div style="font:11px 'SF Mono',monospace;color:#d29922;margin-bottom:8px">&#x1F525; campfire stories along the trail:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span title="s001: the first spark" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922;transition:all .3s">spark</span>
+        <span title="s006: first cave painting" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">cave</span>
+        <span title="s017: kidney net" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">sieve</span>
+        <span title="s021: the stale hook" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">hook</span>
+        <span title="s022: the antibody laughs" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">antibody</span>
+        <span title="s023: the langar" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">langar</span>
+        <span title="s024: the hundred-year object" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">100yr</span>
+        <span title="s025: the character sheet" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">D&amp;D</span>
+        <span title="s026: the room" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">room</span>
+        <span title="s027: the photon" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">photon</span>
+        <span title="s029: the napkin" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">napkin</span>
+        <span title="s030: three rooms" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">rooms</span>
+        <span title="s031: depth" style="padding:4px 10px;background:rgba(210,153,34,0.12);border:1px solid rgba(210,153,34,0.3);border-radius:12px;font:9px monospace;color:#f0c674">depth &#x2728;</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Room switcher script -->
+<!-- Room switcher + voxel depth script -->
 <script>
+var currentRoom = 'gallery';
+var roomDepth = 0; // 0 = overview, 1 = zoomed in
+
 function showRoom(name) {
-  ['gallery','gym','forest'].forEach(function(r) {
-    var el = document.getElementById('room-' + r);
-    if (el) el.style.display = r === name ? '' : 'none';
-  });
-  document.getElementById('past-paintings').style.display = name === 'gallery' ? '' : 'none';
-  document.querySelectorAll('.sculpture-grid')[0].parentElement.style.display = name === 'gallery' ? '' : 'none';
-  document.querySelectorAll('.rooms-bar button').forEach(function(b) {
-    b.classList.toggle('active', b.textContent.toLowerCase().indexOf(name) !== -1);
-  });
+  currentRoom = name;
+  var wrap = document.querySelector('.gallery-wrap');
+  
+  // Zoom out first, then switch, then zoom in
+  wrap.style.transition = 'transform 0.5s ease-in-out, opacity 0.3s';
+  wrap.style.transform = 'translateZ(-200px)';
+  wrap.style.opacity = '0.7';
+  
+  setTimeout(function() {
+    ['gallery','gym','forest'].forEach(function(r) {
+      var el = document.getElementById('room-' + r);
+      if (el) el.style.display = r === name ? '' : 'none';
+    });
+    document.getElementById('past-paintings').style.display = name === 'gallery' ? '' : 'none';
+    var sculpEl = document.querySelectorAll('.sculpture-grid');
+    if (sculpEl.length) sculpEl[0].parentElement.style.display = name === 'gallery' ? '' : 'none';
+    document.querySelectorAll('.rooms-bar button').forEach(function(b) {
+      b.classList.toggle('active', b.textContent.toLowerCase().indexOf(name) !== -1);
+    });
+    
+    // Zoom back in
+    setTimeout(function() {
+      wrap.style.transform = 'translateZ(0)';
+      wrap.style.opacity = '1';
+    }, 50);
+  }, 350);
 }
+
+// Parallax depth on scroll
+var lastScrollY = 0;
+window.addEventListener('scroll', function() {
+  var scrollY = window.pageYOffset;
+  var delta = scrollY - lastScrollY;
+  lastScrollY = scrollY;
+  
+  // Subtle parallax on gallery pieces based on scroll depth
+  var pieces = document.querySelectorAll('.past-piece, .sculpt');
+  for (var i = 0; i < pieces.length; i++) {
+    var depth = (i % 5) * 8; // stagger depth by position
+    var z = Math.max(-40, -scrollY * 0.03 + depth);
+    pieces[i].style.transform = 'translateZ(' + z + 'px)';
+  }
+}, { passive: true });
+
+// Stagger the initial appearance
+document.addEventListener('DOMContentLoaded', function() {
+  var pieces = document.querySelectorAll('.past-piece, .sculpt');
+  for (var i = 0; i < pieces.length; i++) {
+    (function(el, delay) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateZ(-60px) translateY(20px)';
+      setTimeout(function() {
+        el.style.transition = 'all 0.6s ease';
+        el.style.opacity = '1';
+        el.style.transform = 'translateZ(0)';
+      }, delay);
+    })(pieces[i], 100 + i * 80);
+  }
+});
 </script>
 
 <div id="frame" style="display:none"></div>
