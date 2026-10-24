@@ -134,6 +134,8 @@
     'binders holding books open at the fire',
     'time climbing the Y while steps walk the X',
     'a pi point where impulse meets the clock',
+    'enmeshing the human search with the seat',
+    'data only as good as trail memory story',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
