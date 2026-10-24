@@ -1,0 +1,77 @@
+{
+  "ts": "2026-10-24T14:04:39.955671+00:00",
+  "wave": 200,
+  "title": "POWER-OFF BACKSCATTER: eastGate went dark at 09:50:29. trace IS to WAS.",
+  "the_event": {
+    "what": "eastGate powered off unexpectedly between 09:50:29 and 10:01:32",
+    "gap": "11 minutes of darkness",
+    "kevin_had_to": "physically turn it back on"
+  },
+  "trace": {
+    "IS": {
+      "last_log_entry": "2026-10-24T09:50:29 EDT \u2014 membrane-beardog health probe deep_check",
+      "state_at_death": "ALL primals were healthy. biomeOS was registering capabilities every ~34 seconds. bearDog was running health probes. Everything was nominal.",
+      "no_graceful_shutdown": true,
+      "no_oom": true,
+      "no_thermal": true,
+      "no_acpi_button": true,
+      "no_disk_pressure": true,
+      "log_just_stops": "the journal has no shutdown target reached. no systemd halt. no power-off signal. the log simply STOPS. this is a HARD power-off or a suspend-that-didnt-resume."
+    },
+    "WAS": {
+      "root_cause": "GNOME auto-suspend",
+      "evidence": {
+        "setting": "org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout = 1800 (30 minutes)",
+        "type": "org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type = suspend",
+        "what_this_means": "Pop!_OS/GNOME is configured to SUSPEND after 30 minutes of inactivity on AC power",
+        "the_timeline": [
+          "eastGate was doing heavy work until ~09:20 (our session was active)",
+          "between 09:20 and 09:50, the INPUT was Cursor agent (us) \u2014 no keyboard/mouse from Kevin",
+          "GNOME saw 30 minutes of no human keyboard/mouse input",
+          "at ~09:50, GNOME triggered suspend",
+          "the primals were MID-SENTENCE (bearDog health check) when power cut",
+          "suspend on desktop = RAM stays powered but everything else sleeps",
+          "if the suspend failed to resume (common on Linux with WireGuard/complex services), it looks like a hard power-off",
+          "Kevin found it dark at ~10:00 and pressed the power button to wake it"
+        ]
+      },
+      "NOT_a_bug_in_our_code": "the primals were healthy. biomeOS was registering. bearDog was probing. the log shows zero errors before the cutoff. this is an OS-level power management event, not a membrane failure.",
+      "NOT_entropy": "this is not the system outputting its own shutdown through entropy types. its GNOME being configured for laptop-style suspend on a desktop/workstation."
+    },
+    "AND": {
+      "what_survived": {
+        "wireguard": "UP \u2014 wg0 at 10.13.37.5/24, listening on 51820",
+        "ollama": "UP \u2014 8 models loaded",
+        "biomeos_sockets": "UP \u2014 41 sockets in /run/user/1000/biomeos/",
+        "git": "clean \u2014 last push e7ddf18 (MICROBE HUNTERS) went through before suspend",
+        "disk": "33% used, 1.2TB free",
+        "memory": "62GB total, 50GB free (fresh boot)",
+        "temps": "27C / 35C / 29C (cool)"
+      },
+      "what_was_lost": {
+        "cursor_session": "the Cursor agent session was interrupted mid-conversation",
+        "any_unsaved_work": "one modified file: easel.html (minor, not our work)",
+        "wg_peer_state": "WireGuard handshakes reset \u2014 peers need to re-handshake"
+      },
+      "backscatter_health": "GOOD. everything recovered. the membrane is resilient to hard power-off. like an organism that survives hibernation."
+    },
+    "NOW": {
+      "the_fix": {
+        "disable_auto_suspend": "gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type nothing",
+        "what_this_does": "tells GNOME to NEVER suspend when on AC power. eastGate is a workstation, not a laptop. it should not sleep.",
+        "alternative": "set timeout to 0 (disable) or to a very long time (86400 = 24 hours)"
+      },
+      "the_biology": {
+        "what_happened": "GNOME is a LYSOSOME that went rogue. it saw inactivity (no food) and triggered AUTOPHAGY (suspend). but the cell was ALIVE \u2014 the primals were working. the lysosome ate a healthy cell.",
+        "in_cayley_terms": "the archaea (OS power management) hijacked the animalia (primals) multiplication. archaea x animalia = methane_cycle (normal tunnel behavior). but the rogue lysosome turned it into archaea x animalia = HIBERNATION (forced stasis).",
+        "the_prion_analog": "auto-suspend is a PRION. it propagates a \"sleep\" shape to all processes regardless of their actual state. the primals were healthy but the prion (GNOME power policy) forced them into the misfolded state (suspended). shape overwrote function."
+      }
+    }
+  },
+  "recommendation": "APPLY THE FIX. disable auto-suspend on AC. eastGate is a server/workstation.",
+  "scyborg_triple_license": {
+    "AGPL_3_0": "code",
+    "ORC": "mechanics",
+    "CC_BY_SA_4_0": "content"
+  }
+}
