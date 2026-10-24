@@ -1,0 +1,126 @@
+/* flat-invert.css — HUD as flat page
+   DAY   = black  (see the sun's rays against the void)
+   NIGHT = white  (see the night as print on snow)
+   NULL  = grey range (the invert between)
+   This IS the invert. Rays + backscatter become visible. */
+
+:root,
+html[data-flat="day"] {
+  --flat-bg: #000000;
+  --flat-fg: #e6e6e6;
+  --flat-mut: #6e6e6e;
+  --flat-null: #2a2a2a;
+  --flat-ray: #ffcc66;
+  --flat-back: #58a6ff;
+  --flat-planet: #3fb950;
+  --flat-mode: day;
+}
+
+html[data-flat="night"] {
+  --flat-bg: #ffffff;
+  --flat-fg: #0d1117;
+  --flat-mut: #6e7681;
+  --flat-null: #d0d7de;
+  --flat-ray: #b8860b;
+  --flat-back: #0969da;
+  --flat-planet: #1a7f37;
+  --flat-mode: night;
+}
+
+html[data-flat="null"] {
+  --flat-bg: #808080;
+  --flat-fg: #1a1a1a;
+  --flat-mut: #4a4a4a;
+  --flat-null: #a0a0a0;
+  --flat-ray: #c4a035;
+  --flat-back: #3d6ea8;
+  --flat-planet: #2d6a3e;
+  --flat-mode: null;
+}
+
+html[data-flat] {
+  background: var(--flat-bg) !important;
+  color: var(--flat-fg);
+}
+
+html[data-flat] body {
+  background: var(--flat-bg) !important;
+  color: var(--flat-fg) !important;
+  /* flat page — no depth theater */
+  box-shadow: none !important;
+}
+
+html[data-flat] #nav-ring,
+html[data-flat] .top-bar,
+html[data-flat] .panel,
+html[data-flat] .readout,
+html[data-flat] .sort-card,
+html[data-flat] .hud-card,
+html[data-flat] .grain,
+html[data-flat] .attn-bar,
+html[data-flat] .ring-btn,
+html[data-flat] .ep-strip,
+html[data-flat] .note-float input,
+html[data-flat] footer.hud-footer {
+  background: var(--flat-null) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: var(--flat-mut) !important;
+  color: var(--flat-fg) !important;
+  border-radius: 0 !important; /* flat */
+}
+
+html[data-flat] a { color: var(--flat-back); }
+html[data-flat] #ear-organ,
+html[data-flat] #ear-toggle,
+html[data-flat] #night-rhythm,
+html[data-flat] #self-paint-strip,
+html[data-flat] #flat-invert-ctl {
+  background: var(--flat-null) !important;
+  color: var(--flat-fg) !important;
+  border-color: var(--flat-mut) !important;
+  border-radius: 0 !important;
+}
+
+#flat-ray-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+html[data-flat] #flat-ray-canvas { opacity: 0.55; }
+html[data-flat="null"] #flat-ray-canvas { opacity: 0.35; }
+
+#flat-invert-ctl {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 7;
+  display: flex;
+  gap: 0;
+  font: 11px monospace;
+  border: 1px solid #30363d;
+  background: rgba(22, 27, 34, 0.92);
+}
+#flat-invert-ctl button {
+  font: inherit;
+  border: none;
+  background: transparent;
+  color: #8b949e;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+#flat-invert-ctl button[aria-pressed="true"] {
+  color: #fff;
+  background: #30363d;
+}
+html[data-flat="night"] #flat-invert-ctl button[aria-pressed="true"] {
+  color: #000;
+  background: #d0d7de;
+}
+html[data-flat="day"] #flat-invert-ctl button[aria-pressed="true"] {
+  color: #fff;
+  background: #222;
+}

@@ -22,6 +22,7 @@
     {glyph:'🥾', name:'trail',      href:'/trail.html',      hot:0.75, tier:'core'},
 
     // HOT (recently built or referenced — rise first)
+    {glyph:'◐', name:'flat',       href:'/data/flat-invert.json', hot:0.95, tier:'hot'},
     {glyph:'✋', name:'artisan',    href:'/artisan.html',    hot:0.7,  tier:'hot'},
     {glyph:'⚖',  name:'clutch',     href:'/clutch.html',     hot:0.7,  tier:'hot'},
     {glyph:'🎨', name:'easel',      href:'/easel.html',      hot:0.65, tier:'hot'},
