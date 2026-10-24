@@ -99,6 +99,50 @@
       taunt: ['too slow for the heuristic.','the hare leaps past.','lightning reflexes!',
               'A* approves the shortcut.','your reaction time: human.','faster than Dijkstra at least.'],
       inputType: 'keyboard'
+    },
+    {
+      id: 'portal', name: 'The Companion', icon: '🟠',
+      genre: 'portal', color: '#ff8c00',
+      challenge: 'HELP THE CHIPMUNK THINK WITH PORTALS',
+      desc: 'the chipmunk is stuck. place two portals to connect distant concepts. the human helps the AI.',
+      chambers: [
+        { from: 'hieroglyphic', to: 'gamma ray', hint: 'both encode maximum energy', answer: 'the lion burns like gamma — maximum symbol, maximum radiation' },
+        { from: 'sourdough', to: 'infrared', hint: 'heat made solid', answer: 'fermentation emits IR. bread IS captured infrared.' },
+        { from: 'git commit', to: 'fossil record', hint: 'both preserve state at a moment in time', answer: 'commits are digital fossils. the log IS the geological column.' },
+        { from: 'immune system', to: 'go-kart race', hint: 'both are challenge-response systems', answer: 'antigens are opponents. antibodies are racers. the track is the body.' },
+        { from: 'Dijkstra', to: 'cautious turtle', hint: 'both take the cheapest next step', answer: 'Dijkstra never runs. the turtle never rushes. both always arrive.' },
+        { from: 'random walk', to: 'chipmunk exploring', hint: 'stumbling reveals structure', answer: 'PageRank was built on stumbling. the chipmunk finds by wandering.' },
+        { from: 'Klein bottle', to: 'inside-out sock', hint: 'no boundary between inside and outside', answer: 'the organism has no skin. the membrane IS both sides.' },
+        { from: 'neutrino', to: 'falcon hieroglyph', hint: 'passes through everything', answer: 'both are messengers nothing can stop. 𓅃 = ν' },
+        { from: 'campfire', to: 'compiler', hint: 'both transform raw material into usable form', answer: 'stories compile experience. compilers compile code. fire compiles wood into light.' },
+        { from: 'painting trust', to: 'sourdough starter', hint: 'both grow by accumulation over time', answer: 'alpha 0.03. each feeding builds. trust ferments. neither can be rushed.' }
+      ],
+      taunt: ['the chipmunk stares at the wall.','wrong connection — the portals fizzle.','CLICK! the chipmunk runs through!',
+              'the companion cube approves.','think with portals, human.','GLaDOS would be proud. almost.'],
+      inputType: 'click'
+    },
+    {
+      id: 'coach', name: 'The Coach', icon: '🏋️',
+      genre: 'sport', color: '#3fb950',
+      challenge: 'TRAIN THE CHIPMUNK — REP BY REP',
+      desc: 'the chipmunk needs to get stronger. you spot. type the answer before the timer runs out. each correct answer = 1 rep.',
+      exercises: [
+        { q: 'What does KNN stand for?', a: 'k nearest neighbors', alt: ['k-nearest neighbors','knn'] },
+        { q: 'How many papers in the trail?', a: '539', alt: ['539 papers'] },
+        { q: 'What language are the shaders written in?', a: 'wgsl', alt: ['WGSL'] },
+        { q: 'What is the organism\'s heartbeat frequency?', a: '0.1', alt: ['0.1 hz','0.1hz'] },
+        { q: 'What is α (alpha) for painting trust?', a: '0.03', alt: ['alpha 0.03'] },
+        { q: 'Name one ancient triangulation post.', a: 'stonehenge', alt: ['newgrange','pyramid','callanish','nabta playa','angkor wat','easter island','machu picchu','chichen itza'] },
+        { q: 'What Valve game came in the Orange Box?', a: 'portal', alt: ['half-life 2','tf2','team fortress 2','half life 2 episode 2'] },
+        { q: 'What does AGPL stand for?', a: 'affero general public license', alt: ['affero gpl','gnu affero general public license'] },
+        { q: 'What is the synodic month length?', a: '29.53', alt: ['29.53 days','29.53059'] },
+        { q: 'How many Rust crates are published?', a: '11', alt: ['eleven'] },
+        { q: 'What does the scarab hieroglyph map to?', a: 'microwave', alt: ['microwaves'] },
+        { q: 'What is GabeN\'s real name?', a: 'gabe newell', alt: ['gabe','gabriel newell'] }
+      ],
+      taunt: ['the chipmunk drops the weight.','LIFT! good rep.','too slow — the spotter catches it.',
+              'personal best!','the chipmunk flexes.','one more rep. always one more.'],
+      inputType: 'keyboard'
     }
   ];
 
@@ -358,6 +402,167 @@
     gameArea.innerHTML = html;
   }
 
+  // === PORTAL GAME ENGINE ===
+  function startPortalGame(arch) {
+    score = 0; gameActive = true;
+    var chambers = arch.chambers.slice().sort(function() { return Math.random() - 0.5; });
+    var chamberIdx = 0;
+
+    function nextChamber() {
+      if (chamberIdx >= chambers.length) { endGame(arch); return; }
+      renderPortal(chambers[chamberIdx], arch);
+    }
+
+    window._portalConnect = function() {
+      if (!gameActive) return;
+      var chamber = chambers[chamberIdx];
+      score += 8;
+      // Show the answer — the chipmunk learns!
+      var html = '<div style="text-align:center;padding:20px">';
+      html += '<div style="font:9px monospace;color:#ff8c00;margin-bottom:8px">🟠 PORTAL CONNECTED 🔵</div>';
+      html += '<div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:12px 0">';
+      html += '<span style="font:14px monospace;color:#ff8c00;border:1px solid rgba(255,140,0,0.3);padding:8px 12px;border-radius:8px">' + chamber.from + '</span>';
+      html += '<span style="font:16px monospace;color:#5ab87a">⟷</span>';
+      html += '<span style="font:14px monospace;color:#58a6ff;border:1px solid rgba(88,166,255,0.3);padding:8px 12px;border-radius:8px">' + chamber.to + '</span>';
+      html += '</div>';
+      html += '<div style="font:11px/1.6 monospace;color:#c9d1d9;max-width:400px;margin:12px auto;padding:12px;' +
+        'border-left:2px solid #ff8c00;text-align:left">';
+      html += '🐿️ <em>"' + chamber.answer + '"</em>';
+      html += '</div>';
+      html += '<div style="font:9px monospace;color:#3fb950;margin:8px 0">the chipmunk learned something!</div>';
+      html += '<div style="font:10px monospace;color:#6e7681">score: <span style="color:#d29922">' + score + '</span></div>';
+      html += '<button onclick="window._portalNext()" style="margin-top:10px;background:rgba(255,140,0,0.15);' +
+        'border:1px solid rgba(255,140,0,0.3);color:#ff8c00;font:10px monospace;padding:6px 16px;' +
+        'border-radius:8px;cursor:pointer">next chamber →</button>';
+      html += '</div>';
+      gameArea.innerHTML = html;
+      renderTaunt(arch, true);
+    };
+    window._portalSkip = function() {
+      chamberIdx++;
+      nextChamber();
+    };
+    window._portalNext = function() { chamberIdx++; nextChamber(); };
+    nextChamber();
+  }
+
+  function renderPortal(chamber, arch) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#484f58;margin-bottom:12px">' + arch.challenge + '</div>';
+    html += '<div style="font:9px monospace;color:#6e7681;margin-bottom:16px">the chipmunk is stuck between two concepts. connect them.</div>';
+    // Two portals
+    html += '<div style="display:flex;gap:24px;justify-content:center;align-items:center;margin:20px 0">';
+    html += '<div style="text-align:center">';
+    html += '<div style="width:60px;height:60px;border:3px solid #ff8c00;border-radius:50%;display:flex;' +
+      'align-items:center;justify-content:center;font:11px monospace;color:#ff8c00;margin:0 auto 6px">🟠</div>';
+    html += '<div style="font:13px monospace;color:#ff8c00">' + chamber.from + '</div>';
+    html += '</div>';
+    html += '<div style="font:20px;color:#484f58">🐿️?</div>';
+    html += '<div style="text-align:center">';
+    html += '<div style="width:60px;height:60px;border:3px solid #58a6ff;border-radius:50%;display:flex;' +
+      'align-items:center;justify-content:center;font:11px monospace;color:#58a6ff;margin:0 auto 6px">🔵</div>';
+    html += '<div style="font:13px monospace;color:#58a6ff">' + chamber.to + '</div>';
+    html += '</div></div>';
+    // Hint
+    html += '<div style="font:10px monospace;color:#d29922;margin:12px 0;font-style:italic">"' + chamber.hint + '"</div>';
+    // Buttons
+    html += '<div style="display:flex;gap:12px;justify-content:center;margin-top:16px">';
+    html += '<button onclick="window._portalConnect()" style="background:rgba(255,140,0,0.2);' +
+      'border:1px solid rgba(255,140,0,0.4);color:#ff8c00;font:12px monospace;padding:10px 24px;' +
+      'border-radius:8px;cursor:pointer">🔗 connect portals</button>';
+    html += '<button onclick="window._portalSkip()" style="background:rgba(48,54,61,0.3);' +
+      'border:1px solid rgba(48,54,61,0.5);color:#6e7681;font:10px monospace;padding:8px 16px;' +
+      'border-radius:8px;cursor:pointer">skip →</button>';
+    html += '</div>';
+    html += '<div style="font:10px monospace;color:#6e7681;margin-top:12px">score: <span style="color:#d29922">' + score + '</span></div>';
+    html += '</div>';
+    gameArea.innerHTML = html;
+  }
+
+  // === COACH / SPORT GAME ENGINE ===
+  function startCoachGame(arch) {
+    score = 0; lives = 3; gameActive = true;
+    var exercises = arch.exercises.slice().sort(function() { return Math.random() - 0.5; });
+    var exIdx = 0;
+    var timerStart = 0;
+    var timerInterval = null;
+
+    function nextExercise() {
+      if (exIdx >= exercises.length || lives <= 0) {
+        clearInterval(timerInterval);
+        endGame(arch); return;
+      }
+      timerStart = Date.now();
+      renderCoach(exercises[exIdx], arch, 100);
+      // Timer countdown
+      clearInterval(timerInterval);
+      timerInterval = setInterval(function() {
+        var elapsed = (Date.now() - timerStart) / 1000;
+        var pct = Math.max(0, 100 - elapsed * 10);
+        var bar = document.getElementById('coach-timer-bar');
+        if (bar) bar.style.width = pct + '%';
+        if (pct <= 0) {
+          lives--;
+          renderTaunt(arch, false);
+          exIdx++;
+          nextExercise();
+        }
+      }, 100);
+    }
+
+    function onKey(e) {
+      if (!gameActive) return;
+      if (e.key === 'Escape') { clearInterval(timerInterval); endGame(arch); return; }
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      var input = document.getElementById('coach-input');
+      if (!input) return;
+      var val = input.value.trim().toLowerCase();
+      var ex = exercises[exIdx];
+      var correct = val === ex.a.toLowerCase() || (ex.alt && ex.alt.some(function(a) { return val === a.toLowerCase(); }));
+      if (correct) {
+        var elapsed = (Date.now() - timerStart) / 1000;
+        score += Math.max(1, Math.floor(10 - elapsed));
+        renderTaunt(arch, true);
+      } else {
+        lives--;
+        renderTaunt(arch, false);
+      }
+      exIdx++;
+      nextExercise();
+    }
+
+    gameArea._keyHandler = onKey;
+    document.addEventListener('keydown', onKey);
+    nextExercise();
+  }
+
+  function renderCoach(exercise, arch, pct) {
+    if (!gameArea) return;
+    var html = '<div style="text-align:center;padding:20px">';
+    html += '<div style="font:9px monospace;color:#3fb950;margin-bottom:8px">' + arch.challenge + '</div>';
+    // Timer bar
+    html += '<div style="width:100%;max-width:300px;height:4px;background:rgba(48,54,61,0.5);border-radius:2px;margin:0 auto 16px">';
+    html += '<div id="coach-timer-bar" style="width:' + pct + '%;height:100%;background:#3fb950;border-radius:2px;transition:width 0.1s linear"></div>';
+    html += '</div>';
+    // Question
+    html += '<div style="font:16px monospace;color:#e6edf3;margin:16px 0">' + exercise.q + '</div>';
+    // Input
+    html += '<input id="coach-input" type="text" autofocus style="background:rgba(22,27,34,0.8);' +
+      'border:1px solid rgba(63,185,80,0.3);color:#e6edf3;font:14px monospace;padding:8px 16px;' +
+      'border-radius:8px;width:80%;max-width:300px;text-align:center;outline:none" placeholder="type answer, press Enter">';
+    // Status
+    html += '<div style="font:10px monospace;color:#6e7681;margin-top:12px">';
+    html += '<span style="color:#f85149">' + '♥'.repeat(lives) + '♡'.repeat(3 - lives) + '</span>';
+    html += ' · reps: <span style="color:#d29922">' + score + '</span>';
+    html += ' · set ' + (exIdx + 1) + '/' + arch.exercises.length;
+    html += '</div></div>';
+    gameArea.innerHTML = html;
+    // Focus input
+    setTimeout(function() { var inp = document.getElementById('coach-input'); if (inp) inp.focus(); }, 50);
+  }
+
   // === COMMON ===
   function renderTaunt(arch, success) {
     var tauntEl = document.getElementById('arena-taunt');
@@ -402,6 +607,8 @@
       case 'argument': startDebateGame(arch); break;
       case 'speed': startSpeedGame(arch); break;
       case 'puzzle': startPuzzleGame(arch); break;
+      case 'portal': startPortalGame(arch); break;
+      case 'sport': startCoachGame(arch); break;
     }
   }
 
