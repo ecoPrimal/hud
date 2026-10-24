@@ -213,6 +213,7 @@ function reportEngagement(probe, request, url, sub) {
 
 export default {
   async fetch(request, env, ctx) {
+    try {
     const url = new URL(request.url);
     const host = url.hostname;
 
@@ -298,6 +299,7 @@ export default {
                             '/primals/', '/springs/', '/thesis/', '/philosophy/',
                             '/story/', '/vision/', '/audience/', '/collaborators/',
                             '/backstory/', '/certification/', '/contact/',
+                            '/outreach/', '/trails/',
                             '/atom.xml', '/sitemap.xml', '/llms.txt',
                             '/search_index.en.json'];
       const isSporePrint = sciencePaths.some(p => url.pathname.startsWith(p));
@@ -326,7 +328,36 @@ export default {
         // if GitHub Pages 404s, fall through to HUD assets (which has the 404 catcher)
       }
 
-      const coreResp = await env.ASSETS.fetch(request);
+      let coreResp;
+      try {
+        coreResp = await env.ASSETS.fetch(request);
+      } catch (e) {
+        // env.ASSETS.fetch throws on miss in Advanced Mode — serve 404.html explicitly
+        try {
+          coreResp = await env.ASSETS.fetch(new Request(new URL('/404.html', url.origin), request));
+        } catch {
+          // even 404.html failed — return minimal response
+          return new Response('not found', { status: 404, headers: { ...triadHeaders, ...workerAlive, 'content-type': 'text/plain' } });
+        }
+        const headers404 = new Headers(coreResp.headers);
+        Object.entries(triadHeaders).forEach(([k,v]) => headers404.set(k, v));
+        Object.entries(workerAlive).forEach(([k,v]) => headers404.set(k, v));
+        headers404.set('x-membrane-catch', 'berry-404');
+        return new Response(coreResp.body, { status: 404, headers: headers404 });
+      }
+      // ASSETS returned but might be 404 status — ensure Berry's 404 page serves
+      if (coreResp.status === 404) {
+        try {
+          const page404 = await env.ASSETS.fetch(new Request(new URL('/404.html', url.origin), request));
+          const h404 = new Headers(page404.headers);
+          Object.entries(triadHeaders).forEach(([k,v]) => h404.set(k, v));
+          Object.entries(workerAlive).forEach(([k,v]) => h404.set(k, v));
+          h404.set('x-membrane-catch', 'berry-404');
+          return new Response(page404.body, { status: 404, headers: h404 });
+        } catch {
+          // fall through — serve the original 404 response
+        }
+      }
       const coreHeaders = new Headers(coreResp.headers);
       Object.entries(triadHeaders).forEach(([k,v]) => coreHeaders.set(k, v));
       Object.entries(workerAlive).forEach(([k,v]) => coreHeaders.set(k, v));
@@ -621,6 +652,23 @@ export default {
         'x-klein-fold': 'you are inside the maze. the wildcard caught you.',
       },
     });
+
+    } catch (err) {
+      // Safety net — NEVER let the worker crash silently (connection close)
+      // Serve Berry's 404 page with the error context
+      try {
+        const fallback = await env.ASSETS.fetch(new Request(new URL('/404.html', new URL(request.url).origin), request));
+        const fh = new Headers(fallback.headers);
+        fh.set('x-worker-error', err.message || 'unknown');
+        fh.set('x-membrane-catch', 'safety-net');
+        return new Response(fallback.body, { status: 500, headers: fh });
+      } catch {
+        return new Response(`membrane error: ${err.message}`, {
+          status: 500,
+          headers: { 'content-type': 'text/plain', 'x-worker-error': err.message || 'unknown' },
+        });
+      }
+    }
   },
 };
 
