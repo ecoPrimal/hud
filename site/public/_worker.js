@@ -19,6 +19,15 @@ export default {
     const ip = request.headers.get('cf-connecting-ip') || '';
     const url = new URL(request.url);
 
+    // thesis host was copper HUD with the grey veil.
+    // serve the sitting static book. do not copy 16 chapters.
+    if (url.hostname === 'thesis.primals.eco') {
+      const dest = 'https://sporeprint.primals.eco/thesis' +
+        (url.pathname === '/' ? '/' : url.pathname) +
+        url.search;
+      return Response.redirect(dest, 302);
+    }
+
     // If this IS a vesicle hitting us, redirect to the ping endpoint
     // so it shows up as a unique path in CF analytics
     if (VESICLE_IPS.has(ip) && url.pathname !== '/api/vesicle-ping.json') {
