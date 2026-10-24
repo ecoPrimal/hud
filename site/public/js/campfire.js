@@ -180,6 +180,8 @@
     'a herd that heard together',
     'laughing which is listening',
     'a laugh that means the room went through',
+    'the red side past the pale and O',
+    'coming out the fold on the right',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
