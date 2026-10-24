@@ -130,6 +130,39 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 .vitruvian-toe a { color: #6e7681; text-decoration: none; border-bottom: 1px dotted #30363d; }
 .vitruvian-toe a:hover { color: #d2a8ff; border-color: #d2a8ff; }
 
+/* === INSIDE THE MASH === */
+#mash-jar { margin-top: 12px; font: 10px/1.45 'SF Mono', monospace; color: #8b949e; }
+.mash-row { display: grid; grid-template-columns: 52px 1fr 28px; gap: 6px; align-items: center; margin: 3px 0; }
+.mash-row b { font-weight: 400; }
+.mash-row i { height: 7px; border-radius: 7px; background: #21262d; display: block; }
+.mash-row[data-m="water"] i { background: linear-gradient(90deg, #58a6ff var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="energy"] i { background: linear-gradient(90deg, #d29922 var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="life"] i { background: linear-gradient(90deg, #3fb950 var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="mass"] i { background: linear-gradient(90deg, #f0883e var(--w,10%), #21262d var(--w,10%)); }
+#tense-rail { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+#tense-rail span { border: 1px solid #21262d; border-radius: 10px; padding: 2px 8px; font: 9px monospace; color: #6e7681; }
+#tense-rail span.on { color: #c9d1d9; border-color: #8b949e; }
+#tense-rail span[data-t="IS"].on { color: #3fb950; border-color: #3fb950; }
+#tense-rail span[data-t="NEAR"].on { color: #d29922; border-color: #d29922; }
+#tense-rail span[data-t="WAS"].on { color: #58a6ff; border-color: #58a6ff; }
+#tense-rail span[data-t="NOW"].on { color: #d2a8ff; border-color: #d2a8ff; }
+#loaf-bubbles { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; min-height: 28px; }
+#loaf-bubbles button { background: #0d1117; border: 1px solid #21262d; color: #8b949e; font: 8px monospace;
+  padding: 3px 7px; border-radius: 10px; cursor: pointer; }
+#loaf-bubbles button.near { border-color: #d29922; color: #d29922; }
+#loaf-bubbles button.was { border-color: #58a6ff; color: #58a6ff; }
+#loaf-bubbles button.now { border-color: #d2a8ff; color: #d2a8ff; }
+#mash-return { margin-top: 8px; color: #f0883e; font-size: 9px; min-height: 14px; }
+body.inside-mash .gallery-head,
+body.inside-mash .rooms-bar,
+body.inside-mash .sculpture-grid,
+body.inside-mash .vitruvian-toe,
+body.inside-mash .silver-thread,
+body.inside-mash #nav { display: none !important; }
+body.inside-mash .gallery-wrap { padding: 16px; max-width: none; }
+body.inside-mash .live-frame { transform: scale(1.08); }
+body.inside-mash #mash-jar { display: block; }
+
 /* === SQUIRREL WIRE � nav between nodes === */
 .squirrel-wire { margin: 12px 0 8px; }
 .squirrel-wire svg { display: block; }
@@ -152,8 +185,8 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 <!-- Gallery Layout -->
 <div class="gallery-wrap">
   <div class="gallery-head">
-    <h1>&#x1F5BC;&#xFE0F; the gallery</h1>
-    <p>the chipmunk makes art. the gallery grows. come in.</p>
+    <h1>&#x1F5BC;&#xFE0F; the jar</h1>
+    <p>inside the sourdough. mash = water + energy + life + mass. the bread goes back.</p>
   </div>
 
   <div class="rooms-bar">
@@ -178,13 +211,29 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
         <button onclick="togglePause()">pause</button>
         <button onclick="sharePainting()">share</button>
         <button onclick="cycleEasel()">easel</button>
+        <button onclick="enterMash()" id="mash-enter">enter mash</button>
+      </div>
+      <div id="mash-jar">
+        <div style="color:#c9d1d9;margin-bottom:4px">the mash · you are inside</div>
+        <div class="mash-row" data-m="water"><b>water</b><i></i><s id="mash-water-n">0</s></div>
+        <div class="mash-row" data-m="energy"><b>energy</b><i></i><s id="mash-energy-n">0</s></div>
+        <div class="mash-row" data-m="life"><b>life</b><i></i><s id="mash-life-n">0</s></div>
+        <div class="mash-row" data-m="mass"><b>mass</b><i></i><s id="mash-mass-n">0</s></div>
+        <div id="tense-rail">
+          <span data-t="IS" class="on">IS loaf</span>
+          <span data-t="NEAR">NEAR</span>
+          <span data-t="WAS">WAS</span>
+          <span data-t="NOW">NOW mash</span>
+        </div>
+        <div id="loaf-bubbles"></div>
+        <div id="mash-return">no loaf returned yet. the jar is waiting.</div>
       </div>
     </div>
   </div>
 
-  <!-- Previous paintings grid -->
+  <!-- Previous paintings grid — WAS loaves, still in the jar -->
   <div id="past-paintings">
-    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">previous paintings:</div>
+    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">WAS loaves in the starter · peek without leaving:</div>
     <div class="past-grid" id="gallery"></div>
   </div>
 
@@ -401,6 +450,15 @@ window.addEventListener('scroll', function() {
 
 // Stagger the initial appearance
 document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#tense-rail span').forEach(function(sp) {
+    sp.addEventListener('click', function() {
+      var t = sp.getAttribute('data-t');
+      if (t === 'IS') { setPeek('IS'); return; }
+      if (t === 'NOW') { setPeek('NOW'); return; }
+      if (t === 'NEAR' && starters.length) peekLoaf(starters[starters.length - 1], 'NEAR');
+      if (t === 'WAS' && starters.length) peekLoaf(starters[0], 'WAS');
+    });
+  });
   var pieces = document.querySelectorAll('.past-piece, .sculpt');
   for (var i = 0; i < pieces.length; i++) {
     (function(el, delay) {
@@ -464,6 +522,10 @@ var learnedTraits = {      // what the chipmunk has learned across generations
   colorMemory: [],         // colors sampled from previous paintings
 };
 
+// mash = water + energy + life + mass. the bread goes back.
+var mash = { water: 0.12, energy: 0.08, life: 0.05, mass: 0, lastReturn: '', peek: 'IS' };
+var insideMash = false;
+
 // Chicken and egg: to paint you need perspective, to get perspective you paint.
 // So just START. The starter culture does the rest.
 
@@ -512,7 +574,8 @@ var THOUGHTS = {
   ferment: [
     { brush: '🫙 fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
     { brush: '🫙 the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
-    { brush: '🝿 picking up the brush again.', learn: 'painting #N+1. the sourdough rises.' },
+    { brush: '🍞 the bread goes back.', learn: 'mash = water + energy + life + mass. mass is the loaf we pinch into the jar.' },
+    { brush: '🝿 picking up the brush again.', learn: 'painting #N+1. still inside. the sourdough rises.' },
   ],
 };
 
@@ -777,6 +840,8 @@ function ferment() {
     palette: sampleColors,
     weather: skyScore ? { kp: skyScore.kp, hue: skyScore.hue } : null,
     timestamp: Date.now(),
+    tense: 'NOW',
+    mass: 1
   });
 
   // Keep only the last MAX_STARTERS
@@ -785,7 +850,19 @@ function ferment() {
   // Feed the color memory
   learnedTraits.colorMemory = learnedTraits.colorMemory.concat(sampleColors).slice(-40);
 
+  // the bread goes back into the starter. mass is memory.
+  starters.forEach(function(s, i) {
+    s.tense = (i === starters.length - 1) ? 'NOW' : 'WAS';
+  });
+  mash.mass = starters.length;
+  mash.lastReturn = 'loaf #' + generation + ' pinched back into the jar. mass ' + mash.mass + '.';
+  var ret = document.getElementById('mash-return');
+  if (ret) ret.textContent = mash.lastReturn;
+  setPeek('NOW');
+
   renderGallery();
+  renderLoafBubbles();
+  updateMash();
 }
 
 // ╝╝╝ STUDY — look at previous paintings ╝╝╝
@@ -852,28 +929,111 @@ function paintFerment() {
   ctx.restore();
 }
 
-// ╝╝╝ GALLERY — thumbnails of previous paintings ╝╝╝
+// ╝╝╝ GALLERY — WAS / NEAR loaves still in the jar ╝╝╝
+function loafTense(s, i) {
+  if (i === starters.length - 1) return 'NOW';
+  if (i === starters.length - 2) return 'NEAR';
+  return 'WAS';
+}
+
+function peekLoaf(s, tense) {
+  if (!s) return;
+  setPeek(tense || s.tense || 'WAS');
+  var overlay = new Image();
+  overlay.onload = function() {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.drawImage(overlay, 0, 0, W, H);
+    ctx.restore();
+    var el = document.getElementById('thought');
+    if (el) {
+      el.innerHTML = '<span class="brush">still inside. ' + (tense || s.tense) + ' loaf #' + s.gen + '</span><br>' +
+        '<span class="learn">looking does not take you out of the mash. this bread is already starter.</span>';
+    }
+  };
+  overlay.src = s.dataURL;
+}
+
 function renderGallery() {
   var el = document.getElementById('gallery');
+  if (!el) return;
   el.innerHTML = '';
   starters.forEach(function(s, i) {
+    var tense = loafTense(s, i);
+    s.tense = tense;
+    var wrap = document.createElement('div');
+    wrap.className = 'past-piece';
     var img = document.createElement('img');
     img.className = 'thumb';
     img.src = s.dataURL;
-    img.title = 'painting #' + s.gen + (s.weather ? ' (Kp ' + s.weather.kp.toFixed(1) + ')' : '');
-    img.onclick = function() {
-      // Click a thumbnail to see it full-size briefly
-      var overlay = new Image();
-      overlay.onload = function() {
-        ctx.save();
-        ctx.globalAlpha = 0.3;
-        ctx.drawImage(overlay, 0, 0, W, H);
-        ctx.restore();
-      };
-      overlay.src = s.dataURL;
-    };
-    el.appendChild(img);
+    img.title = tense + ' loaf #' + s.gen;
+    img.onclick = function() { peekLoaf(s, tense); };
+    var plac = document.createElement('div');
+    plac.className = 'plac';
+    plac.innerHTML = '<b>' + tense + '</b> loaf #' + s.gen;
+    wrap.appendChild(img);
+    wrap.appendChild(plac);
+    el.appendChild(wrap);
   });
+  renderLoafBubbles();
+}
+
+function renderLoafBubbles() {
+  var box = document.getElementById('loaf-bubbles');
+  if (!box) return;
+  box.innerHTML = '';
+  var live = document.createElement('button');
+  live.className = 'now';
+  live.textContent = 'IS #' + generation;
+  live.onclick = function() { setPeek('IS'); };
+  box.appendChild(live);
+  starters.forEach(function(s, i) {
+    var tense = loafTense(s, i);
+    var b = document.createElement('button');
+    b.className = tense.toLowerCase();
+    b.textContent = tense + ' #' + s.gen;
+    b.onclick = function() { peekLoaf(s, tense); };
+    box.appendChild(b);
+  });
+}
+
+function setPeek(tense) {
+  mash.peek = tense;
+  document.querySelectorAll('#tense-rail span').forEach(function(sp) {
+    sp.classList.toggle('on', sp.getAttribute('data-t') === tense || (tense === 'NOW' && sp.getAttribute('data-t') === 'NOW'));
+  });
+  var isEl = document.querySelector('#tense-rail span[data-t="IS"]');
+  if (isEl && tense === 'IS') isEl.classList.add('on');
+}
+
+function enterMash() {
+  insideMash = !insideMash;
+  document.body.classList.toggle('inside-mash', insideMash);
+  var btn = document.getElementById('mash-enter');
+  if (btn) btn.textContent = insideMash ? 'leave jar' : 'enter mash';
+  setPeek(insideMash ? 'NOW' : 'IS');
+}
+
+function updateMash() {
+  var kp = skyScore && typeof skyScore.kp === 'number' ? skyScore.kp / 9 : 0.15;
+  mash.water = Math.max(0.08, Math.min(1, 0.2 + (breathPhase || 0) * 0.15 + kp));
+  mash.energy = Math.max(0.08, Math.min(1, (totalStrokes % 400) / 400));
+  mash.life = Math.max(0.05, Math.min(1, learnedTraits.perspective + 0.08));
+  mash.mass = Math.min(1, starters.length / MAX_STARTERS);
+  [['water', mash.water], ['energy', mash.energy], ['life', mash.life], ['mass', mash.mass]].forEach(function(pair) {
+    var row = document.querySelector('.mash-row[data-m="' + pair[0] + '"]');
+    if (row) row.style.setProperty('--w', Math.round(pair[1] * 100) + '%');
+    var n = document.getElementById('mash-' + pair[0] + '-n');
+    if (n) n.textContent = Math.round(pair[1] * 100);
+  });
+  window._mash = {
+    mash: mash,
+    generation: generation,
+    starters: starters.length,
+    peek: mash.peek,
+    inside: insideMash,
+    formula: 'water + energy + life + mass'
+  };
 }
 
 function updateGenCounter() {
@@ -944,6 +1104,8 @@ function nextStroke() {
   }
 
   updateThought();
+  if (totalStrokes % 8 === 0) updateMash();
+  if (phase === 'stars' && stroke === 1) setPeek('IS');
 }
 
 // ╝╝╝ TEMPO ╝╝╝
@@ -1452,6 +1614,9 @@ window._easel = {
   nowFeed: function() { return nowFeed; },
   share: sharePainting,
   braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
+  mash: function() { return mash; },
+  enterMash: enterMash,
+  peekLoaf: peekLoaf,
 };
 </script>
 <script defer src="/js/celestial-clock.js?v=1"></script>
