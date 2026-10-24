@@ -1,0 +1,138 @@
+{
+  "ts": "2026-10-24T00:13:00Z",
+  "title": "Tether Scan — Death Star trench run. See every umbilical cord. Cut nothing.",
+  "method": "scan all external dependencies, single points of failure, internal cross-references. map the thermal exhaust ports.",
+
+  "external_tethers": {
+    "total": 6,
+    "umbilical_cords": [
+      {
+        "tether": "GitHub",
+        "what": "17 repos push here. ALL deploy pipelines start here.",
+        "orgs": {"ecoPrimal": 15, "defendDetroit": 1, "amicusContra": 1},
+        "severity": "CRITICAL",
+        "if_cut": "all Cloudflare Pages deploys stop. no new code reaches the public membrane. existing sites still serve but can't update.",
+        "redundancy": "git is distributed — every clone IS a backup. 17 repos × N clones. the data survives. the DEPLOY pipeline doesn't.",
+        "exhaust_port": true
+      },
+      {
+        "tether": "Cloudflare",
+        "what": "primals.eco, hud.primals.eco, nestgate.io all served through CF Pages + Workers",
+        "severity": "CRITICAL",
+        "if_cut": "ALL public sites unreachable. the membrane goes dark to the outside world. golgi still runs internally.",
+        "redundancy": "golgi has caddy + cloudflared tunnel as backup route. but CF Pages IS the primary CDN.",
+        "exhaust_port": true
+      },
+      {
+        "tether": "Porkbun",
+        "what": "domain registrar for primals.eco, nestgate.io",
+        "severity": "EXISTENTIAL",
+        "if_cut": "domains expire. primals.eco disappears from the internet. ALL subdomains die. the NAME dies.",
+        "redundancy": "NONE. domain registration is a single-provider tether. no backup registrar.",
+        "exhaust_port": true,
+        "note": "this is the REAL thermal exhaust port. everything else can be rebuilt. the domain name cannot."
+      },
+      {
+        "tether": "DigitalOcean",
+        "what": "golgi VPS (157.230.3.183). runs: caddy, knot DNS, cloudflared, 18 cron jobs, WireGuard endpoint",
+        "severity": "HIGH",
+        "if_cut": "golgi dies. DNS secondary down. 18 cron jobs stop. heartbeat/sonar/pulse feeds go stale. WireGuard tunnel drops.",
+        "redundancy": "golgi-de, golgi-jp, golgi-us exist but are SSH-LOCKED (no key exchange). golgi-in is UNREACHABLE. zero working backups.",
+        "exhaust_port": true
+      },
+      {
+        "tether": "ntfy.sh",
+        "what": "neutrino messaging. 3 channels: notes, inbox, scan",
+        "severity": "LOW",
+        "if_cut": "neutrino goes silent. no cross-gate messaging. membrane survives without it — it's the neutrino (passes through, observes, no mass).",
+        "redundancy": "ntfy is open source. can self-host on golgi. FREE service with no account = no billing tether.",
+        "exhaust_port": false
+      },
+      {
+        "tether": "Kevin's hardware",
+        "what": "eastGate laptop (this machine). runs: 7 local cron jobs, WireGuard endpoint, all development",
+        "severity": "HIGH",
+        "if_cut": "eastGate gone. local cron dead. WireGuard drops. development stops. but: all code is pushed to GitHub = survives. golgi cron survives independently.",
+        "redundancy": "northGate (.163) exists as second local machine. but SSH needs key exchange (PENDING).",
+        "exhaust_port": false
+      }
+    ]
+  },
+
+  "internal_tethers": {
+    "hub_feeds": {
+      "description": "feeds that reference the most other feeds. the internal umbilical cords.",
+      "hubs": [
+        {"feed": "klein-handshake.json", "refs": 90, "role": "reads ALL feeds every 2 min. the compound eye. if this breaks, visibility drops to zero."},
+        {"feed": "sourdough-digest.json", "refs": 68, "role": "digests all feed content. the stomach. if this breaks, no digestion."},
+        {"feed": "periodic-table.json", "refs": 28, "role": "maps all feed types. the classification. if this breaks, taxonomy lost."},
+        {"feed": "scan-sweep-sort.json", "refs": 16, "role": "the full pipeline. immune system. if this breaks, no sorting."},
+        {"feed": "yggdrasil-cascade.json", "refs": 12, "role": "the world tree. cascade connections."},
+        {"feed": "prion-shield.json", "refs": 10, "role": "identity registry. if this breaks, self/non-self unknown."}
+      ],
+      "pattern": "klein-handshake is the SPIDER at the center of the web. 90 refs = 64% of all feeds. it's the compound eye hub node."
+    },
+    "orphan_feeds": {
+      "description": "feeds that are referenced by NO other feed. leaves on the tree. no incoming tether.",
+      "untethered_repos": ["infra/npu (no remote)", "infra/tuebor (no remote)"],
+      "note": "2 repos have NO git remote at all. they exist only on this laptop. if eastGate dies, they die."
+    },
+    "cron_tethers": {
+      "golgi_cron": {
+        "count": 11,
+        "jobs": ["cap-epitope(1m)", "chipmunk-journey(15m)", "briquette(2m)", "klein-io(2m)", "klein-vent(5m)", "membrane-pulse(5m)", "sourdough-cache(5m)", "update-was(5m)", "droplet-monitor(5m)", "heartbeat-update(5m)", "cf-arterial-pump(15m)"],
+        "tethered_to": "DigitalOcean VPS. if VPS dies, all 11 stop."
+      },
+      "eastgate_cron": {
+        "count": 7,
+        "jobs": ["arena-evolve(4h)", "decay-detector(6h)", "homunculus(15m)", "eastgate-pulse(2m)", "membrane-pulse-py(2m)", "klein-evolve(30m)", "house-heartbeat(5m)"],
+        "tethered_to": "Kevin's laptop. if laptop dies, all 7 stop."
+      },
+      "overlap": "membrane-pulse runs on BOTH golgi and eastGate. redundancy for one feed. zero redundancy for the other 17."
+    }
+  },
+
+  "thermal_exhaust_ports": {
+    "ranked": [
+      {
+        "rank": 1,
+        "target": "Porkbun domain registration",
+        "why": "if primals.eco expires, EVERYTHING dies. the domain is the root of all DNS. no domain = no sites, no email, no subdomains. and it's Kevin's personal account — one human, one password, one registrar.",
+        "proton_torpedo": "domain expires, registrar account hacked, or registrar goes bankrupt",
+        "defense": "NONE currently. need: domain lock, DNSSEC, registrar redundancy (transfer to second registrar as backup)"
+      },
+      {
+        "rank": 2,
+        "target": "GitHub → Cloudflare Pages deploy pipeline",
+        "why": "git push → GitHub → CF Pages build → public site. if EITHER GitHub OR Cloudflare breaks, the pipeline dies.",
+        "proton_torpedo": "GitHub goes down, CF Pages has outage, or deploy token revoked",
+        "defense": "PARTIAL. git clones survive. golgi has caddy as alternate serve path. but no automated fallback deploy."
+      },
+      {
+        "rank": 3,
+        "target": "golgi VPS (single instance)",
+        "why": "18 cron jobs, DNS, WireGuard, all on ONE $6/mo droplet. no failover.",
+        "proton_torpedo": "DigitalOcean deletes droplet, datacenter issue, or billing lapses",
+        "defense": "3 other VPS exist but SSH-LOCKED. they can't take over. need key exchange (Kevin physical task)."
+      },
+      {
+        "rank": 4,
+        "target": "2 untethered repos (npu, tuebor)",
+        "why": "no git remote. exist ONLY on eastGate. if this laptop disk fails, code is gone forever.",
+        "proton_torpedo": "disk failure, laptop stolen, accidental rm -rf",
+        "defense": "NONE. push them somewhere. anywhere."
+      }
+    ]
+  },
+
+  "the_scan_result": {
+    "total_external_tethers": 6,
+    "critical": 3,
+    "exhaust_ports": 4,
+    "untethered_repos": 2,
+    "redundant_cron": 1,
+    "non_redundant_cron": 17,
+    "hub_feed_concentration": "klein-handshake touches 90/146 feeds (62%). single point of observation.",
+    "verdict": "the membrane is a STAR not a MESH. most connections radiate from 3-4 hub nodes (GitHub, Cloudflare, golgi, klein-handshake). if any hub dies, a large portion of function dies with it. the tethers are visible. the exhaust ports are mapped. recommend: DON'T CUT — ADD REDUNDANCY. second registrar path, second deploy pipeline, unlock the 3 locked VPS, push the 2 orphan repos."
+  }
+}
