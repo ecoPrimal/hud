@@ -190,6 +190,8 @@
     'the plate held by pi legs, one universe',
     'pi-sort ingest, Willis empty, one Klein',
     'what does not pinch stays outside',
+    'O empty on the Klein-null, bits on the rim',
+    'evaporate — waves and water, same body',
     'four verbs walking toward a sentence',
     'a mark that was not yet a letter',
     'the person who typed cargo add',
