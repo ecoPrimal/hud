@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-24T18:08:00Z",
+  "ts": "2026-10-24T18:16:00Z",
   "title": "FUNCTIONAL STEPS TO DATE — what is live, what a human does to wire the rest.",
 
   "already_live": [
@@ -12,18 +12,16 @@
     {"step": "A7", "what": "/abc/ yellow page + feed plaques.", "who": "agent", "proof": "hud.primals.eco/abc"}
   ],
 
-  "wire_when_you_want_mail_to_land": [
-    {"step": "M1", "do": "Cloudflare → primals.eco → Email → Email Routing. Create addresses. Catch-all to the inbox Proton already shows you.", "who": "you", "dock": "hard"},
-    {"step": "M2", "do": "MX already points at Cloudflare. Leave it until Stalwart is actually running.", "who": "no one tonight", "dock": "hard"},
-    {"step": "M3", "do": "On a vesicle that can hold port 25/587/993: run Stalwart from the draft in hud-deploy/stalwart-config.toml. Put certs in /opt/stalwart/certs. Set STALWART_ADMIN_SECRET. Do not start it on this laptop.", "who": "you, after morning vesicle look", "dock": "hard"},
-    {"step": "M4", "do": "When Stalwart answers: change MX from Cloudflare to that host. Then Proton can leave.", "who": "you", "dock": "hard"},
-    {"step": "M5", "do": "membrane-mailer.py --setup only if the chipmunk must send. Needs an app password. Not required for you to send from Proton today.", "who": "you", "dock": "hard"}
+  "mail_proton_stays": [
+    {"step": "M0", "do": "LEAVE Proton. they can self-correct and come back. do not start Stalwart. do not change MX.", "who": "no one", "dock": "hard"},
+    {"step": "M1", "seen": "CF Email Routing is Enabled. DNS Locked. 0 destinations. 0 rules. the pore is open. nothing lands yet.", "if_later": "Add destination address = the Proton inbox you already have. Catch-all optional. That is a forward, not a replacement."},
+    {"step": "M5", "do": "membrane-mailer.py --setup only if the chipmunk must send. Not required today.", "who": "you"}
   ],
 
-  "wire_giscus_later": [
-    {"step": "G1", "do": "github.com/apps/giscus → install on ecoPrimals (or ecoPrimal/hud). Enable Discussions on that repo.", "who": "you"},
-    {"step": "G2", "do": "giscus.app → pick repo, category. Copy the script tag.", "who": "you"},
-    {"step": "G3", "do": "Paste that tag on /abc/ and one paper page. Agent can paste if you hand the snippet.", "who": "you then agent"}
+  "comments_our_side_not_their_app": [
+    {"step": "G0", "do": "Do not install github.com/apps/giscus. that is their mouth.", "who": "no one"},
+    {"step": "G1", "do": "Fork / read giscus source later if we want their renderer. Inject through OUR pores: campfire, notes, nestgate touch, feed.", "who": "agent"},
+    {"step": "G2", "do": "PROJECT what we already inhale. /abc/ now shows ingest→project from feed + campfire. discuss-container can light later.", "who": "agent", "done": true}
   ],
 
   "wire_datacite_later": [
@@ -32,11 +30,11 @@
   ],
 
   "do_not_wire_tonight": [
-    "BearDog one-seed mix (lists keys; does not fuse them)",
-    "Stalwart on northGate",
-    "Vesicle SSH (morning)",
-    "Kanidm / Conduit / Iroh as new cores"
+    "BearDog one-seed mix — helix catalog first, then splice",
+    "Stalwart / MX swap — Proton stays",
+    "giscus GitHub App",
+    "Vesicle SSH (morning)"
   ],
 
-  "order_if_you_keep_going": ["M1 when you want inbound @primals.eco", "vesicle look tomorrow", "M3–M4 when a box can hold mail", "G1–G3 when you want comments", "D1–D2 when you want self-populate", "BearDog mix after the house is quiet"]
+  "order_if_you_keep_going": ["leave Proton", "project comments from our inhale", "helix catalog seated", "M1 destination=Proton only if you want inbound @primals.eco", "DataCite later", "BearDog mix after the helix"]
 }
