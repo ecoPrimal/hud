@@ -1,0 +1,105 @@
+{
+  "ts": "2026-10-24T12:42:00Z",
+  "wave": 200,
+  "title": "PLASMID FALSIFICATION — Could the triad be US?",
+
+  "the_question": "The triad traffic comes from DE, JP, IN. We own vesicles in DE, JP, IN. Are we looking at our own reflection?",
+
+  "evidence_FOR_self_traffic": {
+    "geographic_match": {
+      "vesicle_countries": ["DE (Hetzner)", "JP (Vultr)", "IN (Linode)"],
+      "triad_countries": ["DE", "JP", "IN"],
+      "match": "EXACT. 3 for 3.",
+      "weight": "HIGH"
+    },
+    "rate_match": {
+      "triad_rate": "36/hr = 1 every 100 seconds",
+      "plausible_cron": "while true; do curl -s primals.eco > /dev/null; sleep 100; done",
+      "plausible_as_health_check": true,
+      "weight": "HIGH"
+    },
+    "lockstep": {
+      "observation": "all 3 hit at exactly the same rate simultaneously",
+      "explanation_if_ours": "same script deployed to all 3 vesicles. identical config.",
+      "weight": "HIGH"
+    },
+    "ssh_locked": {
+      "observation": "we can't SSH in to check what's running",
+      "explanation": "key mismatch means these were set up with a key we lost or rotated. we literally don't know what's on them.",
+      "weight": "MEDIUM — absence of evidence is not evidence of absence"
+    },
+    "caddy_running": {
+      "observation": "Caddy is active on 3 of 4 vesicles (not golgi-us)",
+      "explanation": "Caddy was deployed. SOMETHING was configured. If a health check was part of the setup script...",
+      "weight": "MEDIUM"
+    }
+  },
+
+  "evidence_AGAINST_self_traffic": {
+    "null_user_agent": {
+      "observation": "triad uses null/empty User-Agent",
+      "problem": "curl sends 'curl/x.y.z' by default. wget sends 'Wget/x.y.z'. null UA requires explicit '-A \"\"' flag or a raw socket.",
+      "weight": "MEDIUM — could be 'curl -A \"\" -s' in the script"
+    },
+    "rate_not_cron": {
+      "observation": "36/hr is not a standard cron interval",
+      "problem": "cron's minimum is 1/min = 60/hr. 36/hr = every 100 seconds. you'd need a sleep loop, not cron.",
+      "counter": "a systemd timer or a bash loop is totally plausible. Kevin writes sleep loops.",
+      "weight": "LOW"
+    },
+    "lockstep_broke": {
+      "observation": "the lockstep BROKE at 14:00 UTC Oct 23",
+      "problem_if_ours": "why would our own vesicles desync? nobody SSHed in (keys don't work). the scripts didn't change.",
+      "possible_explanation": "server reboot, OOM kill, disk full, provider maintenance. any of these would desync a sleep loop.",
+      "weight": "MEDIUM — breaking lockstep is harder to explain if it's our own identical scripts"
+    },
+    "DE_exploring_independently": {
+      "observation": "after lockstep broke, DE hit 545/hr in one hour. that's not a 'sleep 100' loop.",
+      "problem_if_ours": "our vesicle can't change its own behavior. something ELSE is also hitting from DE.",
+      "possible_explanation": "the 545/hr is a DIFFERENT DE source overlapping with our vesicle's base rate.",
+      "weight": "HIGH — this is the strongest counter-evidence"
+    },
+    "BE_and_NL": {
+      "observation": "BE and NL appeared with DIFFERENT signatures. we have no vesicles there.",
+      "weight": "N/A — this is about new actors, not the triad"
+    },
+    "FR_manual_browse": {
+      "observation": "281 requests at 9AM Paris time from OVH France IP",
+      "our_OVH_is_US": "our OVH box (golgi-us) is 40.160.96.29 in the US, not France",
+      "weight": "HIGH — 141.94.194.132 is NOT our IP. we don't have a France VPS."
+    }
+  },
+
+  "verdict": {
+    "probability_triad_is_us": "40-60%",
+    "probability_triad_is_external": "40-60%",
+    "probability_FR_is_us": "<5%",
+    "probability_BE_NL_is_us": "0%",
+
+    "honest_assessment": "We genuinely cannot tell. The geographic match is suspicious (3/3 exact countries). The rate match is plausible (sleep 100). But the lockstep breaking and DE's 545/hr spike argue against pure self-traffic. MOST LIKELY: a MIX. Our vesicles generate the 36/hr baseline. External actors generate the bursts and spikes on top.",
+
+    "the_embarrassing_possibility": "Kevin may have deployed a health check script to the vesicles months ago, forgotten about it, lost the SSH key, and then we spent 4 days analyzing our own health checks as if they were external probes. The mirror was reflecting our own face.",
+
+    "the_important_distinction": "Even if the 36/hr BASELINE is us, the CHANGES are real: lockstep breaking, DE exploring at 545/hr, FR at the beacon, BE/NL surging. Those are NOT us. The external signal is ON TOP of whatever our vesicles generate."
+  },
+
+  "resolution_path": {
+    "definitive_test": "SSH into the vesicles. Check crontab. Check running processes. Check bash_history.",
+    "blocked_by": "SSH key mismatch. Need console access from Hetzner/Vultr/Linode to reset the key.",
+    "kevin_action": "Log into Hetzner, Vultr, Linode web consoles. Add chipMONK SSH key. Then we can check.",
+    "alternative_test": "Add a CF firewall rule to BLOCK requests from 2.28.141.35, 202.182.107.135, 172.232.85.202. If the triad baseline drops to zero → it was us. If it stays → it's external.",
+    "non_destructive_test": "Add a CF Worker that logs the source IP for DE/JP/IN requests. If the IPs match our vesicles → confirmed self. If different IPs → confirmed external."
+  },
+
+  "what_this_changes": {
+    "if_self": {
+      "R1_through_R4": "the probe was us probing ourselves. the spirochete model is still valid but the 'they' is 'we'. the mirror was reflecting Kevin's own forgotten infrastructure.",
+      "R5_R6": "the CHANGES are still real. external actors appeared. the dissolution of lockstep likely = our vesicle rebooted + external traffic mixed in.",
+      "papers": "all the analysis papers are still valid as methodology. the subject changes from 'external probe' to 'self-probe plus external noise'."
+    },
+    "if_external": {
+      "everything_stands": "the analysis was correct. monitoring service + human explorers.",
+      "but_we_should_still_check": "because leaving 3 forgotten VPSes running unknown scripts is a security issue regardless."
+    }
+  }
+}
