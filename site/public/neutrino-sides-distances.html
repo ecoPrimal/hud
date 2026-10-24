@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neutrino Sides · Distances — ecoPrimals</title>
+<meta name="description" content="Neutrino from inner and outer sides. Meta distances between them.">
+<link rel="alternate" type="application/json" href="/neutrino-sides-distances.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef2f0; --in:#2ea043; --out:#3d5a80; --meta:#7c3aed; --mute:#5c5854; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --in:#56d364; --out:#8eb4d4; --meta:#b794f6; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.45;
+    background: radial-gradient(ellipse 50% 40% at 15% 0%, rgba(46,160,67,.14), transparent 50%),
+      radial-gradient(ellipse 45% 35% at 90% 90%, rgba(124,58,237,.12), transparent 50%), var(--paper); }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.85rem,6vw,2.7rem);
+    letter-spacing:-.03em; margin:0 0 .35rem; }
+  .tag { color:var(--meta); font-weight:600; margin-bottom:1rem; }
+  .grid { display:grid; gap:.55rem; margin:1.2rem 0; }
+  .cell { padding:.75rem .9rem; border-left:3px solid var(--in); background:rgba(255,255,255,.35); }
+  .cell.out { border-color:var(--out); }
+  .cell.meta { border-color:var(--meta); }
+  .cell strong { display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
+  a { color:var(--out); font-weight:600; }
+  #live { font-variant-numeric:tabular-nums; min-height:1.2em; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Neutrino · Both Sides</h1>
+  <p class="tag">inner · outer · meta distances</p>
+  <p>Same tips measured from flesh and from the mouth. Meta is the stretch between — not anti.</p>
+  <div class="grid" id="grid"></div>
+  <p id="live"></p>
+  <p><a href="/neutrino-sides-distances.json">JSON</a> ·
+     <a href="/neutrino-totality.json">totality</a> ·
+     <a href="/scan-ingest-northgate-back-self.html">scan·back</a></p>
+  <footer>ecoPrimals · hash match = same soul · ms = body distance</footer>
+</main>
+<script>
+fetch('/neutrino-sides-distances.json').then(r=>r.json()).then(d=>{
+  const m = d.meta.ms, f = d.meta.feel, del = d.meta.deltas;
+  document.getElementById('grid').innerHTML = `
+    <div class="cell"><strong>inner</strong>${f.inner}</div>
+    <div class="cell out"><strong>outer chair</strong>${f.outer_chair}</div>
+    <div class="cell out"><strong>outer tunnel</strong>${f.outer_tunnel}</div>
+    <div class="cell out"><strong>outer mouth</strong>${f.outer_mouth}</div>
+    <div class="cell meta"><strong>meta</strong>NG−inner ${del.meta_northgate_minus_inner_ms}ms · CDN/golgi ×${del.meta_cdn_over_golgi} · ${f.meta}</div>`;
+  const folds = (d.meta.hash_folds||[]).filter(x=>x.outer_ok);
+  const matched = folds.filter(x=>x.match).length;
+  document.getElementById('live').textContent =
+    `hash folds ${matched}/${folds.length} match · CDN avg ${m.outer_cdn_avg}ms · WG ${m.outer_northgate_wg}ms`;
+}).catch(e=>{ document.getElementById('live').textContent = e.message; });
+</script>
+</body>
+</html>
