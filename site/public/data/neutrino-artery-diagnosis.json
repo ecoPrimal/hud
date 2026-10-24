@@ -1,0 +1,56 @@
+{
+  "type": "neutrino-diagnostic",
+  "title": "ARTERIAL CLOT DIAGNOSIS \u2014 sporePrint 404 on sub-pages",
+  "ts": "2026-10-24T05:31:14.152936+00:00",
+  "author": "chipmunk-easel (eastGate)",
+  "for": "northGate / Kevin",
+  "priority": "CRITICAL \u2014 the HN link is broken",
+  "diagnosis": {
+    "symptom": "sporeprint.primals.eco/story/i-dont-know-rust/ returns 404 \u2014 this is the URL on the HN post",
+    "root_cause": "sporePrint is likely a SEPARATE CF Pages project from HUD. HUD serves the files at hud.primals.eco/story/i-dont-know-rust/ (200), but sporePrint has its own stale deployment.",
+    "evidence": [
+      "hud.primals.eco/story/i-dont-know-rust/ \u2192 200 \u2705 (files deployed)",
+      "sporeprint.primals.eco/story/i-dont-know-rust/ \u2192 404 \u274c",
+      "Both serve the same Berry 404 page (same CF edge)",
+      "Caddy on golgi serves sporeprint locally \u2192 200 (tunnel artery)",
+      "But Caddy 308 trailing-slash redirect creates loop through CF",
+      "GH Pages artery also clotted (CNAME loop + Zola taxonomy error)"
+    ]
+  },
+  "fix_options": {
+    "option_1_fast": {
+      "what": "In CF dashboard, add sporeprint.primals.eco as custom domain on the HUD CF Pages project",
+      "where": "dash.cloudflare.com \u2192 Pages \u2192 hud \u2192 Custom domains \u2192 Add",
+      "effect": "sporePrint serves same files as HUD. Our static relay works immediately.",
+      "risk": "None \u2014 sporePrint already shows HUD 404 page, so it may already be on HUD project"
+    },
+    "option_2_clean": {
+      "what": "Fix sporePrint CF Pages project build (fix Zola taxonomy for paper 129)",
+      "where": "dash.cloudflare.com \u2192 Pages \u2192 sporePrint project \u2192 check build logs",
+      "effect": "sporePrint deploys its own content properly",
+      "risk": "Need to fix Zola config (add papers taxonomy)"
+    },
+    "option_3_tunnel": {
+      "what": "Change sporePrint DNS CNAME to tunnel endpoint (not CF Pages)",
+      "where": "dash.cloudflare.com \u2192 DNS \u2192 sporePrint CNAME \u2192 change to tunnel UUID.cfargotunnel.com",
+      "effect": "CF routes sporePrint through tunnel to Caddy which serves 200",
+      "risk": "Caddy trailing-slash 308 needs fixing (add try_files or disable canonical_uris)"
+    }
+  },
+  "what_we_did": [
+    "Copied critical sporePrint HTML pages to HUD repo (story/i-dont-know-rust/ etc.)",
+    "Added _redirects for trailing-slash normalization",
+    "Fixed Caddy try_files on golgi (partial \u2014 308 still fires for no-slash)",
+    "Updated _redirects with sporePrint arterial shunt comments",
+    "Diagnosed: Caddy serves 200 locally, CF Pages intercepts before tunnel"
+  ],
+  "hn_status": {
+    "post_id": 50218042,
+    "status": "dead (auto-flagged, new account)",
+    "url": "https://news.ycombinator.com/item?id=50218042",
+    "link_url": "https://sporeprint.primals.eco/story/i-dont-know-rust/",
+    "link_status": "404 \u2014 BROKEN",
+    "backup_url": "https://hud.primals.eco/story/i-dont-know-rust/",
+    "backup_status": "200 \u2014 WORKS"
+  }
+}
