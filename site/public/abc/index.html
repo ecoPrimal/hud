@@ -93,18 +93,21 @@
       var title = s.story || s.path || '';
       if (title) out.push(item('campfire', title.slice(0, 140), '/data/berry-campfire.json'));
     });
-    return firstOk('/data/helix-tight.json', true);
+    return firstOk('/data/helix-all.json', true);
   }).then(function(h){
+    var total = (h.all && h.all.files) || 0;
+    out.push(item('all', total + ' files on the helix', '/data/helix-all.json'));
+    var layers = h.layers || {};
+    Object.keys(layers).forEach(function(k){
+      out.push(item('layer', layers[k] + ' · ' + k, '/data/helix-all.json'));
+    });
     var pairs = (h && h.pairs) || [];
     pairs.forEach(function(p){
-      var n = p.n != null ? p.n : 0;
-      if (p.js_live) n = n + ' + ' + p.js_live + ' js';
-      if (p.js_fossil) n = n + ' + ' + p.js_fossil + ' fossil';
-      out.push(item('helix bp' + p.bp, n + ' · ' + (p.A || ''), '/data/helix-tight.json'));
+      out.push(item('helix bp' + p.bp, (p.n != null ? p.n : 0) + ' · ' + (p.A || ''), '/data/helix-all.json'));
     });
-    var subs = (h.subcatalog_bp2 && h.subcatalog_bp2.now) || {};
+    var subs = (pairs[1] && pairs[1].data_subs) || {};
     Object.keys(subs).sort(function(a,b){ return subs[b] - subs[a]; }).forEach(function(k){
-      out.push(item('bp2 ' + k, String(subs[k]), '/data/helix-tight.json'));
+      out.push(item('data ' + k, String(subs[k]), '/data/helix-all.json'));
     });
     paint(out);
   }).catch(function(){ paint(out.length ? out : [item('pore', 'could not inhale. the page is still here.', null)]); });
