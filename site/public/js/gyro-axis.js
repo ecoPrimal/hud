@@ -1,22 +1,21 @@
-// gyro-axis.js — the 456 cut + H-pattern gear offset
-// Listens to DeviceOrientation (mobile) or mouse position (desktop).
-// Maps pitch/yaw/roll to CSS vars that shift all rail-pinned elements.
-// OFFSET = manual transmission. Discrete gears change what the rails show.
+// gyro-axis.js — the 456 cut + triple transmission
+// Three modes on one engine:
+//   M = MANUAL   — H-pattern, you shift (Shift+arrows)
+//   A = AUTO     — reads RPM from scroll/time/interaction, shifts itself
+//   C = CHIPMUNK — the AI drives, reads metabolism/attention/state
 //
-//   H-PATTERN (like a manual car):
-//
-//     1 ↑  3 ↑  5 ↑
-//     │    │    │
-//   ──┼────┼────┼──  neutral (center)
-//     │    │    │
-//     2 ↓  4 ↓  R ↓
-//
-//   Gate L: 1=surface, 2=feeds     (close view)
-//   Gate C: 3=organism, 4=graph    (mid view)
-//   Gate R: 5=cosmic, R=depth      (far view)
+// Cycle modes: Shift+G or tap the gear indicator
 //
 (function() {
   'use strict';
+
+  // === TRANSMISSION MODES ===
+  var MODE_MANUAL = 'M';
+  var MODE_AUTO   = 'A';
+  var MODE_CHIP   = 'C';
+  var transMode = MODE_MANUAL;
+  var MODE_LABELS = { M: 'manual', A: 'auto', C: 'chipmunk' };
+  var MODE_COLORS = { M: '#5ab87a', A: '#58a6ff', C: '#d29922' };
 
   // === GEAR SYSTEM ===
   var GEARS = [
@@ -73,8 +72,18 @@
     roll  = mx * 15;  // slight roll from horizontal
   }
 
-  // === GEAR SHIFTING ===
+  // === TRANSMISSION MODE CYCLING ===
+  function cycleMode() {
+    if (transMode === MODE_MANUAL) transMode = MODE_AUTO;
+    else if (transMode === MODE_AUTO) transMode = MODE_CHIP;
+    else transMode = MODE_MANUAL;
+    updateGearDisplay();
+    if (window._gearFlash) window._gearFlash();
+  }
+
+  // === GEAR SHIFTING (manual) ===
   function shiftGear(dir) {
+    if (transMode !== MODE_MANUAL) return; // only manual can shift manually
     var next = currentGear + dir;
     if (next < 0 || next >= GEARS.length) return;
     currentGear = next;
@@ -86,28 +95,132 @@
     document.body.setAttribute('data-gear', GEARS[currentGear].id);
   }
 
+  // === AUTOMATIC TRANSMISSION — reads RPM from behavior ===
+  var autoRPM = 0;
+  var autoScrollDepth = 0;
+  var autoInteractions = 0;
+  var autoIdleTime = 0;
+  var autoLastActivity = Date.now();
+
+  function autoListeners() {
+    window.addEventListener('scroll', function() {
+      var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      autoScrollDepth = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+      autoLastActivity = Date.now();
+      autoInteractions++;
+    }, { passive: true });
+    document.addEventListener('click', function() {
+      autoLastActivity = Date.now();
+      autoInteractions += 3;
+    });
+    document.addEventListener('mousemove', function() {
+      autoInteractions += 0.01;
+    }, { passive: true });
+  }
+
+  function autoShift() {
+    if (transMode !== MODE_AUTO) return;
+    var now = Date.now();
+    autoIdleTime = (now - autoLastActivity) / 1000;
+    // RPM decays over time, spikes with interaction
+    autoRPM = autoRPM * 0.995 + autoInteractions * 0.1;
+    autoInteractions *= 0.98; // bleed off
+
+    // Gear logic based on RPM + scroll depth + idle time
+    var target;
+    if (autoIdleTime > 30) {
+      target = 4; // idle → drift to cosmic view
+    } else if (autoIdleTime > 15) {
+      target = 3; // settling → graph view
+    } else if (autoScrollDepth > 0.7) {
+      target = 2; // deep scroll → organism
+    } else if (autoRPM > 20) {
+      target = 1; // high RPM → feeds (lots of activity)
+    } else if (autoRPM > 8) {
+      target = 0; // moderate RPM → surface
+    } else {
+      target = 2; // cruising → organism (default)
+    }
+
+    if (target !== currentGear) {
+      currentGear = target;
+      targetGear = target;
+      document.documentElement.style.setProperty('--gear', GEARS[target].id);
+      document.documentElement.style.setProperty('--gear-depth', GEARS[target].depth);
+      document.body.setAttribute('data-gear', GEARS[target].id);
+      updateGearDisplay();
+    }
+  }
+
+  // === CHIPMUNK POWER TRANSMISSION — the AI drives ===
+  function chipmunkShift() {
+    if (transMode !== MODE_CHIP) return;
+    var core = window._chipmunkCore;
+    if (!core) return;
+
+    var target;
+    var metabolism = core.metabolism || {};
+    var energy = metabolism.energy || 0.5;
+    var attention = core.attention || 0.5;
+    var state = core.state || 'wake';
+
+    // Chipmunk reads its own state and picks the gear
+    if (state === 'sleep' || state === 'rest') {
+      target = 5; // deepest — depth/reverse
+    } else if (state === 'explore') {
+      target = 4; // cosmic — looking outward
+    } else if (energy > 0.7 && attention > 0.6) {
+      target = 0; // surface — high energy, focused, close work
+    } else if (attention > 0.5) {
+      target = 1; // feeds — processing input
+    } else if (energy > 0.4) {
+      target = 2; // organism — default cruising
+    } else {
+      target = 3; // graph — low energy, mapping connections
+    }
+
+    if (target !== currentGear) {
+      currentGear = target;
+      targetGear = target;
+      document.documentElement.style.setProperty('--gear', GEARS[target].id);
+      document.documentElement.style.setProperty('--gear-depth', GEARS[target].depth);
+      document.body.setAttribute('data-gear', GEARS[target].id);
+      updateGearDisplay();
+    }
+  }
+
   function updateGearDisplay() {
     var el = document.getElementById('gear-indicator');
     if (!el) return;
-    var g = GEARS[currentGear];
+    var color = MODE_COLORS[transMode];
+    var mLabel = MODE_LABELS[transMode];
     // H-pattern visual
     var pattern = GEARS.map(function(gear, i) {
-      var ch = i === currentGear ? '[' + gear.label + ']' : ' ' + gear.label + ' ';
-      return ch;
+      if (i === currentGear) return '<span style="color:' + color + '">[' + gear.label + ']</span>';
+      return '<span style="color:#30363d"> ' + gear.label + ' </span>';
     });
-    // Format as H-pattern: L-up L-down | C-up C-down | R-up R-down
     el.innerHTML =
-      '<span style="color:#484f58">' + pattern[0] + ' ' + pattern[2] + ' ' + pattern[4] + '</span>\n' +
-      '<span style="color:#484f58">─┼──┼──┼─</span>\n' +
-      '<span style="color:#484f58">' + pattern[1] + ' ' + pattern[3] + ' ' + pattern[5] + '</span>';
+      pattern[0] + ' ' + pattern[2] + ' ' + pattern[4] + '\n' +
+      '<span style="color:#30363d">─┼──┼──┼─</span>\n' +
+      pattern[1] + ' ' + pattern[3] + ' ' + pattern[5] + '\n' +
+      '<span style="color:' + color + ';font-size:8px">' + transMode + ' · ' + mLabel + '</span>';
+    el.style.borderColor = color.replace(')', ',0.2)').replace('rgb', 'rgba').replace('#', 'rgba(') || 'rgba(90,184,122,0.15)';
   }
 
   // --- Apply to CSS vars ---
+  var frameCount = 0;
   function tick() {
+    frameCount++;
     // Smooth toward raw values
     sPitch += (pitch - sPitch) * SMOOTH;
     sYaw   += (yaw   - sYaw)   * SMOOTH;
     sRoll  += (roll  - sRoll)  * SMOOTH;
+
+    // Auto/chipmunk transmissions run every 60 frames (~1s at 60fps)
+    if (frameCount % 60 === 0) {
+      autoShift();
+      chipmunkShift();
+    }
 
     // Smooth gear transition
     gearLerp += (targetGear - gearLerp) * 0.06;
@@ -145,7 +258,9 @@
       hShift: hShift, vShift: vShift,
       gear: currentGear,
       gearId: GEARS[currentGear].id,
-      gearDepth: GEARS[currentGear].depth
+      gearDepth: GEARS[currentGear].depth,
+      transMode: transMode,
+      rpm: autoRPM
     };
 
     requestAnimationFrame(tick);
@@ -157,8 +272,13 @@
     el.id = 'gear-indicator';
     el.style.cssText = 'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:16;' +
       'background:rgba(13,17,23,0.88);border:1px solid rgba(90,184,122,0.15);border-radius:6px;' +
-      'padding:4px 10px;font:9px/1.3 monospace;color:#5ab87a;pointer-events:none;white-space:pre;' +
-      'text-align:center;letter-spacing:1px;transition:opacity 0.3s ease;opacity:0.6';
+      'padding:4px 10px;font:9px/1.3 monospace;color:#5ab87a;cursor:pointer;white-space:pre;' +
+      'text-align:center;letter-spacing:1px;transition:opacity 0.3s ease,border-color 0.3s ease;opacity:0.6';
+    el.title = 'Shift+G to cycle: Manual → Auto → Chipmunk';
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      cycleMode();
+    });
     document.body.appendChild(el);
     updateGearDisplay();
 
@@ -167,7 +287,7 @@
     window._gearFlash = function() {
       el.style.opacity = '1';
       clearTimeout(el._fadeTimer);
-      el._fadeTimer = setTimeout(function() { el.style.opacity = '0.4'; }, 3000);
+      el._fadeTimer = setTimeout(function() { el.style.opacity = '0.5'; }, 3000);
     };
   }
 
@@ -191,10 +311,12 @@
     // Mouse fallback
     document.addEventListener('mousemove', onMouseMove, { passive: true });
 
-    // Keyboard: Shift+↑ = upshift, Shift+↓ = downshift
+    // Keyboard: Shift+↑/↓ = shift gear, Shift+G = cycle transmission mode
     document.addEventListener('keydown', function(e) {
       if (!e.shiftKey) return;
-      if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+      if (e.key === 'G' || e.key === 'g') {
+        e.preventDefault(); cycleMode();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
         e.preventDefault(); shiftGear(1);
         if (window._gearFlash) window._gearFlash();
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
@@ -220,6 +342,7 @@
 
     // Build UI
     buildGearUI();
+    autoListeners();
 
     // Set initial gear attribute
     document.body.setAttribute('data-gear', GEARS[currentGear].id);
