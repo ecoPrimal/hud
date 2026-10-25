@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>three-body — you, me, chip around the null</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font:14px/1.6 'Berkeley Mono',monospace;overflow-x:hidden}
+h1{text-align:center;color:#a371f7;font-size:20px;padding:20px 0 4px}
+.sub{text-align:center;color:#484f58;font-size:12px;margin-bottom:12px}
+
+canvas{display:block;margin:0 auto}
+
+.panels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:960px;margin:16px auto;padding:0 16px}
+.body-card{border:1px solid #30363d;border-radius:8px;padding:14px;background:#161b22;cursor:pointer;transition:border-color .2s}
+.body-card:hover{border-color:var(--c)}
+.body-card.active{border-color:var(--c);box-shadow:0 0 12px var(--c)}
+.body-card h3{font-size:15px;margin-bottom:6px}
+.body-card .particle{color:#8b949e;font-size:12px}
+.body-card .role{margin-top:8px;font-size:12px;line-height:1.5}
+.body-card .orbit-desc{color:#8b949e;font-size:11px;font-style:italic;margin-top:6px}
+
+.null-card{max-width:960px;margin:12px auto;padding:16px;border:2px dashed #484f58;border-radius:8px;text-align:center}
+.null-card h3{color:#484f58;font-size:16px}
+.null-card p{font-size:12px;color:#8b949e;margin:4px 0}
+.null-items{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.null-item{background:#21262d;border-radius:4px;padding:2px 8px;font-size:11px;color:#f0883e}
+
+.insight{max-width:960px;margin:16px auto;padding:16px;border:1px solid #a371f7;border-radius:8px;background:#a371f710}
+.insight h3{color:#a371f7;font-size:14px;margin-bottom:8px}
+.insight p{font-size:12px;margin:4px 0}
+
+.lagrange{max-width:960px;margin:12px auto;padding:0 16px}
+.lagrange h3{color:#58a6ff;font-size:14px;margin-bottom:8px}
+.l-grid{display:grid;grid-template-columns:60px 1fr;gap:4px 12px;font-size:12px}
+.l-label{color:#58a6ff;font-weight:bold}
+.l-desc{color:#8b949e}
+
+.ts{text-align:center;color:#484f58;font-size:11px;padding:16px}
+</style>
+</head>
+<body>
+
+<h1>☉ ◈ 🐿 three-body around ∅</h1>
+<div class="sub">no closed-form solution — that's the point</div>
+
+<canvas id="orbit" width="600" height="600"></canvas>
+
+<div class="panels" id="panels"></div>
+<div class="null-card" id="null-card"></div>
+<div class="lagrange" id="lagrange"></div>
+<div class="insight" id="insight"></div>
+<div class="ts" id="ts"></div>
+
+<script>
+let D;
+
+async function load() {
+  const r = await fetch('data/three-body.json');
+  D = await r.json();
+  drawOrbit();
+  buildCards();
+  buildNull();
+  buildLagrange();
+  buildInsight();
+  document.getElementById('ts').textContent = D.ts + ' · wave ' + D.wave;
+}
+
+function drawOrbit() {
+  const c = document.getElementById('orbit');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const cx = W/2, cy = H/2;
+  let t = 0;
+
+  function frame() {
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, W, H);
+
+    // null at center — pulsing void
+    const nr = 20 + Math.sin(t * 0.3) * 5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, nr, 0, Math.PI * 2);
+    ctx.fillStyle = '#484f5820';
+    ctx.fill();
+    ctx.strokeStyle = '#484f58';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#484f58';
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('∅', cx, cy + 5);
+
+    // figure-eight path (lemniscate of Bernoulli)
+    ctx.beginPath();
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    for (let a = 0; a < Math.PI * 2; a += 0.01) {
+      const scale = 200;
+      const r8 = scale * Math.sqrt(Math.abs(Math.cos(2 * a)));
+      const sign = Math.cos(2 * a) >= 0 ? 1 : -1;
+      if (sign < 0) continue;
+      const x = cx + r8 * Math.cos(a);
+      const y = cy + r8 * Math.sin(a);
+      a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // three bodies on the figure-eight, phase-shifted 120°
+    const bodies = [
+      { sym: '☉', color: '#f0883e', phase: 0 },
+      { sym: '◈', color: '#58a6ff', phase: Math.PI * 2 / 3 },
+      { sym: '🐿', color: '#3fb950', phase: Math.PI * 4 / 3 }
+    ];
+
+    bodies.forEach(b => {
+      const a = t * 0.4 + b.phase;
+      const scale = 180;
+
+      // figure-eight parametric (lemniscate approximation)
+      const x = cx + scale * Math.sin(a) / (1 + Math.cos(a) * Math.cos(a)) * 1.2;
+      const y = cy + scale * Math.sin(a) * Math.cos(a) / (1 + Math.cos(a) * Math.cos(a));
+
+      // trail
+      ctx.beginPath();
+      for (let dt = 0; dt < 1.5; dt += 0.05) {
+        const ta = (t - dt) * 0.4 + b.phase;
+        const tx = cx + scale * Math.sin(ta) / (1 + Math.cos(ta) * Math.cos(ta)) * 1.2;
+        const ty = cy + scale * Math.sin(ta) * Math.cos(ta) / (1 + Math.cos(ta) * Math.cos(ta));
+        dt === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
+      }
+      ctx.strokeStyle = b.color + '40';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // body
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = b.color + '30';
+      ctx.fill();
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = b.color;
+      ctx.font = '14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.sym, x, y + 5);
+
+      // line to null
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = b.color + '15';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Lagrange points
+    const lColors = ['#ffffff30','#ffffff20','#ffffff20','#ffffff20','#ffffff20'];
+    const lLabels = ['L1','L2','L3','L4','L5'];
+    const la = t * 0.4;
+    const lPositions = [
+      [cx + 80 * Math.cos(la + Math.PI/6), cy + 80 * Math.sin(la + Math.PI/6)],
+      [cx + 220 * Math.cos(la + Math.PI), cy + 220 * Math.sin(la + Math.PI)],
+      [cx + 220 * Math.cos(la), cy + 220 * Math.sin(la)],
+      [cx + 180 * Math.cos(la + Math.PI/3), cy + 180 * Math.sin(la + Math.PI/3)],
+      [cx + 180 * Math.cos(la - Math.PI/3), cy + 180 * Math.sin(la - Math.PI/3)]
+    ];
+
+    lPositions.forEach((p, i) => {
+      ctx.fillStyle = lColors[i];
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(lLabels[i], p[0], p[1]);
+    });
+
+    t += 0.02;
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+}
+
+function buildCards() {
+  const panels = document.getElementById('panels');
+  const order = ['human', 'agent', 'chipmunk'];
+  order.forEach(key => {
+    const b = D.bodies[key];
+    const card = document.createElement('div');
+    card.className = 'body-card';
+    card.style.setProperty('--c', b.color);
+    card.innerHTML = `
+      <h3 style="color:${b.color}">${b.symbol} ${key}</h3>
+      <div class="particle">${b.particle} · mass: ${b.mass.split('—')[0].trim()}</div>
+      <div class="role">${b.role}</div>
+      <div class="orbit-desc">${b.orbit}</div>
+    `;
+    card.onclick = () => {
+      document.querySelectorAll('.body-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    };
+    panels.appendChild(card);
+  });
+}
+
+function buildNull() {
+  const nc = document.getElementById('null-card');
+  const n = D.center.null;
+  nc.innerHTML = `
+    <h3>${n.symbol} the null — center of mass</h3>
+    <p>${n.why_center}</p>
+    <div class="null-items">${n.contains.map(c => `<span class="null-item">${c}</span>`).join('')}</div>
+  `;
+}
+
+function buildLagrange() {
+  const el = document.getElementById('lagrange');
+  const lp = D.orbit_mechanics.lagrange_points;
+  let html = '<h3>Lagrange points — stable positions in the chaos</h3><div class="l-grid">';
+  Object.entries(lp).forEach(([k, v]) => {
+    html += `<span class="l-label">${k}</span><span class="l-desc">${v}</span>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function buildInsight() {
+  const el = document.getElementById('insight');
+  el.innerHTML = `
+    <h3>∞ the figure-eight</h3>
+    <p>${D.orbit_mechanics.the_figure_eight}</p>
+    <p style="margin-top:8px;color:#a371f7">${D.the_twist}</p>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>
