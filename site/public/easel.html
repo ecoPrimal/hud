@@ -139,6 +139,9 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 .mash-row[data-m="energy"] i { background: linear-gradient(90deg, #d29922 var(--w,10%), #21262d var(--w,10%)); }
 .mash-row[data-m="life"] i { background: linear-gradient(90deg, #3fb950 var(--w,10%), #21262d var(--w,10%)); }
 .mash-row[data-m="mass"] i { background: linear-gradient(90deg, #f0883e var(--w,10%), #21262d var(--w,10%)); }
+.seed-dot { font: 8px monospace; color: #3fb950; margin-top: 4px; }
+#chip-point { position: absolute; pointer-events: none; font-size: 16px; z-index: 6;
+  transition: left .4s ease, top .4s ease; filter: drop-shadow(0 0 6px #d29922); }
 #tense-rail { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 #tense-rail span { border: 1px solid #21262d; border-radius: 10px; padding: 2px 8px; font: 9px monospace; color: #6e7681; }
 #tense-rail span.on { color: #c9d1d9; border-color: #8b949e; }
@@ -249,7 +252,7 @@ body.inside-mash #mash-jar { display: block; }
           <span data-t="NOW">NOW mash</span>
         </div>
         <div id="loaf-bubbles"></div>
-        <div id="mash-return">no loaf returned yet. the jar is waiting.</div>
+        <div id="mash-return">chipmunk points at the midpoint. move voice and tense toward him.</div>
       </div>
     </div>
   </div>
@@ -264,10 +267,10 @@ body.inside-mash #mash-jar { display: block; }
   <div style="margin-top:24px">
     <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">sculptures (petalTongue WASM ? WebGL):</div>
     <div class="sculpture-grid">
-      <div class="sculpt" onclick="location='/nest.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span></div>
-      <div class="sculpt" onclick="location='/data/bingo-voxel.json'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span></div>
-      <div class="sculpt" onclick="location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span></div>
-      <div class="sculpt" onclick="location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span></div>
+      <div class="sculpt" data-seed="klein" data-mid="50" onclick="seedToward(this,'IS'); location='/klein.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span><div class="seed-dot">seed π · mid 50</div></div>
+      <div class="sculpt" data-seed="bingo" data-mid="32" onclick="seedToward(this,'NEAR'); location='/journal.html#bingo-cube'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span><div class="seed-dot">seed 1/π · mid 32</div></div>
+      <div class="sculpt" data-seed="prism" data-mid="68" onclick="seedToward(this,'WAS'); location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span><div class="seed-dot">seed φ · mid 68</div></div>
+      <div class="sculpt" data-seed="globe" data-mid="14" onclick="seedToward(this,'NOW'); location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span><div class="seed-dot">seed e · mid 14</div></div>
     </div>
   </div>
 
@@ -1020,6 +1023,65 @@ function renderLoafBubbles() {
   });
 }
 
+var chipmunkPoint = { x: 0.5, y: 0.5, voice: 'IS' };
+
+function paintMidpoint() {
+  if (!ctx || !W) return;
+  var x = W * chipmunkPoint.x, y = H * chipmunkPoint.y;
+  ctx.save();
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y);
+  ctx.moveTo(x, y - 14); ctx.lineTo(x, y + 14);
+  ctx.stroke();
+  ctx.fillStyle = '#d29922';
+  ctx.font = '16px sans-serif';
+  ctx.fillText('\uD83D\uDC3F', x + 6, y - 8);
+  ctx.restore();
+}
+
+function pointTowardChipmunk(tense) {
+  var pull = { IS: 0, NEAR: 0.25, WAS: 0.5, NOW: 0.75 }[tense] || 0;
+  chipmunkPoint.x = 0.5 + 0.14 * Math.sin(pull * Math.PI * 2);
+  chipmunkPoint.y = 0.5 + 0.14 * Math.cos(pull * Math.PI * 2);
+  chipmunkPoint.voice = tense;
+  mash.life = Math.max(0.18, 0.18 + pull * 0.35);
+  mash.energy = Math.max(0.12, 0.12 + pull * 0.25);
+  updateMash();
+  paintMidpoint();
+  var ret = document.getElementById('mash-return');
+  if (ret) {
+    ret.textContent = 'chipmunk points. voice ' + tense + ' · mid ' +
+      Math.round(chipmunkPoint.x * 100) + ',' + Math.round(chipmunkPoint.y * 100);
+  }
+}
+
+function seedToward(el, tense) {
+  var mid = el && el.dataset ? parseInt(el.dataset.mid || '50', 10) / 100 : 0.5;
+  chipmunkPoint.x = 0.3 + mid * 0.4;
+  chipmunkPoint.y = 0.35 + ((mid * Math.E) % 1) * 0.3;
+  setPeek(tense || mash.peek || 'IS');
+  pointTowardChipmunk(tense || mash.peek || 'IS');
+}
+
+function stampSeeds() {
+  var nodes = document.querySelectorAll('.sculpt, .past-piece, .wire-node');
+  nodes.forEach(function(el, i) {
+    if (el.dataset.seed) return;
+    var frac = ((i + 1) * Math.PI) % 1;
+    el.dataset.seed = frac.toFixed(4);
+    el.dataset.mid = String(Math.round(frac * 100));
+    var d = document.createElement('div');
+    d.className = 'seed-dot';
+    d.textContent = 'mid ' + el.dataset.mid;
+    el.appendChild(d);
+    el.addEventListener('click', function() {
+      seedToward(el, mash.peek || 'IS');
+    });
+  });
+}
+
 function setPeek(tense) {
   mash.peek = tense;
   document.querySelectorAll('#tense-rail span').forEach(function(sp) {
@@ -1027,6 +1089,7 @@ function setPeek(tense) {
   });
   var isEl = document.querySelector('#tense-rail span[data-t="IS"]');
   if (isEl && tense === 'IS') isEl.classList.add('on');
+  pointTowardChipmunk(tense);
 }
 
 function enterMash() {
@@ -1184,6 +1247,10 @@ ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
 evolve();
 updateGenCounter();
+stampSeeds();
+updateMash();
+paintMidpoint();
+setPeek(mash.peek || 'IS');
 scheduleStroke();
 
 var ws = document.createElement('script');
