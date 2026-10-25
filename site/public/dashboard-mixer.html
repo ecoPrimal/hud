@@ -335,6 +335,18 @@ function renderSphere() {
     t += 0.008;
     sphereCtx.clearRect(0, 0, w, h);
 
+    // Orthogonal axes — the + at center of sphere
+    sphereCtx.strokeStyle = 'rgba(210,169,34,0.08)';
+    sphereCtx.lineWidth = 1;
+    sphereCtx.beginPath(); sphereCtx.moveTo(0, cy); sphereCtx.lineTo(w, cy); sphereCtx.stroke();
+    sphereCtx.beginPath(); sphereCtx.moveTo(cx, 0); sphereCtx.lineTo(cx, h); sphereCtx.stroke();
+
+    // The + at dead center
+    sphereCtx.strokeStyle = 'rgba(210,169,34,0.2)';
+    sphereCtx.lineWidth = 1.5;
+    sphereCtx.beginPath(); sphereCtx.moveTo(cx - 8, cy); sphereCtx.lineTo(cx + 8, cy); sphereCtx.stroke();
+    sphereCtx.beginPath(); sphereCtx.moveTo(cx, cy - 8); sphereCtx.lineTo(cx, cy + 8); sphereCtx.stroke();
+
     // Grid lines — Cartesian sphere
     sphereCtx.strokeStyle = 'rgba(88,166,255,0.04)';
     sphereCtx.lineWidth = 0.5;
@@ -612,10 +624,72 @@ function renderOCenter() {
     ctx.beginPath(); ctx.moveTo(cx - 8, cy); ctx.lineTo(cx + 8, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 8); ctx.stroke();
 
+    // === INNER ENGINES — the processors at the heart of the O ===
+    const engines = [
+      { name: 'scan', icon: '🔬', angle: 0,           color: '#3fb950', desc: 'sweep · sort' },
+      { name: 'ferment', icon: '🍞', angle: Math.PI/2,    color: '#d29922', desc: 'sourdough' },
+      { name: 'weave', icon: '🔗', angle: Math.PI,        color: '#a371f7', desc: 'braid' },
+      { name: '🐿', icon: '🐿', angle: Math.PI*1.5,     color: '#58a6ff', desc: 'painter' },
+    ];
+    const eR = oR * 0.65;
+    engines.forEach((eng, ei) => {
+      const ea = eng.angle + t * 0.3;
+      const ex = cx + Math.cos(ea) * eR;
+      const ey = cy + Math.sin(ea) * eR;
+
+      // Engine glow
+      const grad = ctx.createRadialGradient(ex, ey, 0, ex, ey, 8);
+      grad.addColorStop(0, eng.color + '44');
+      grad.addColorStop(1, eng.color + '00');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(ex, ey, 8, 0, Math.PI * 2); ctx.fill();
+
+      // Engine dot
+      ctx.fillStyle = eng.color;
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Engine label
+      ctx.fillStyle = eng.color + '88';
+      ctx.font = '7px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(eng.icon + ' ' + eng.desc, ex, ey - 10);
+
+      // Connecting arc to nearest feed spoke
+      if (feeds.length > ei * 4) {
+        const target = feeds[ei * 4];
+        const tAngle = (ei * 4 / (feeds.length || 1)) * Math.PI * 2;
+        const tDist = oR + 40;
+        const tx = cx + Math.cos(tAngle + t * 0.01) * tDist;
+        const ty = cy + Math.sin(tAngle + t * 0.01) * tDist;
+        ctx.strokeStyle = eng.color + '15';
+        ctx.lineWidth = 0.5;
+        ctx.setLineDash([2, 4]);
+        ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(tx, ty); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
+    // === DIMENSIONAL LABELS on the axes ===
+    ctx.fillStyle = 'rgba(88,166,255,0.1)';
+    ctx.font = '7px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('X: time →', cx + 15, cy - 3);
+    ctx.textAlign = 'center';
+    ctx.fillText('Y: size ↓', cx + 3, cy + 15);
+    ctx.textAlign = 'left';
+    ctx.fillText('Z: depth ↗', cx + 10, cy - 14);
+
     // Life is orthogonal
     ctx.fillStyle = 'rgba(163,113,247,0.12)';
     ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
     ctx.fillText('life is orthogonal · multidimensional · not flat', cx, h - 16);
+
+    // The O at dead center
+    ctx.fillStyle = 'rgba(210,169,34,0.3)';
+    ctx.font = '11px monospace';
     ctx.fillText('O', cx, cy + 4);
 
     requestAnimationFrame(frame);
