@@ -18,15 +18,15 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 }
 #thought {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-  z-index: 10; color: #6e7681; font: 11px/1.6 'SF Mono', monospace;
+  z-index: 10; color: #3fb950; font: 11px/1.6 'SF Mono', monospace;
   text-align: center; max-width: 540px; padding: 8px 20px;
   background: rgba(8,6,10,0.75); border-radius: 16px;
   border: 1px solid rgba(110,118,129,0.15);
   transition: opacity 0.8s, color 0.8s;
 }
 #thought .brush { color: #d2a8ff; }
-#thought .learn { color: #8b949e; font-style: italic; }
-#thought .gen { color: #6e7681; font-size: 9px; }
+#thought .learn { color: #d29922; font-style: italic; }
+#thought .gen { color: #58a6ff; font-size: 9px; }
 #nav { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
   display: flex; gap: 6px; font: 10px monospace; }
 #nav a { color: #30363d; text-decoration: none; }
@@ -139,6 +139,9 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 .mash-row[data-m="energy"] i { background: linear-gradient(90deg, #d29922 var(--w,10%), #21262d var(--w,10%)); }
 .mash-row[data-m="life"] i { background: linear-gradient(90deg, #3fb950 var(--w,10%), #21262d var(--w,10%)); }
 .mash-row[data-m="mass"] i { background: linear-gradient(90deg, #f0883e var(--w,10%), #21262d var(--w,10%)); }
+.seed-dot { font: 8px monospace; color: #3fb950; margin-top: 4px; }
+#chip-point { position: absolute; pointer-events: none; font-size: 16px; z-index: 6;
+  transition: left .4s ease, top .4s ease; filter: drop-shadow(0 0 6px #d29922); }
 #tense-rail { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 #tense-rail span { border: 1px solid #21262d; border-radius: 10px; padding: 2px 8px; font: 9px monospace; color: #6e7681; }
 #tense-rail span.on { color: #c9d1d9; border-color: #8b949e; }
@@ -181,6 +184,29 @@ body.inside-mash #mash-jar { display: block; }
 </style>
 </head>
 <body>
+<!-- nav-ring: anthill tunnels -->
+<div id="nav-ring" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace;pointer-events:auto;flex-wrap:wrap;max-width:90vw;justify-content:center;">
+  <a href="/" style="color:#58a6ff;text-decoration:none" title="HUD viewport">&#9672; hud</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/story/" style="color:#f0883e;text-decoration:none" title="stories">&#9998; story</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/explore.html" style="color:#3fb950;text-decoration:none" title="explore feeds">&#9681; explore</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/trail.html" style="color:#d29922;text-decoration:none" title="the trail">&#9737; trail</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/science/" style="color:#a371f7;text-decoration:none" title="science">&#9883; science</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/philosophy/" style="color:#f85149;text-decoration:none" title="philosophy">&#9672; philosophy</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/klein.html" style="color:#58a6ff;text-decoration:none" title="Klein gate">&#8734; klein</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/identity.html" style="color:#3fb950;text-decoration:none" title="sovereign identity">&#9733; identity</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/gates.html" style="color:#d29922;text-decoration:none" title="every gate">&#9741; gates</a>
+</div>
+
 
 <!-- Gallery Layout -->
 <div class="gallery-wrap">
@@ -215,10 +241,10 @@ body.inside-mash #mash-jar { display: block; }
       </div>
       <div id="mash-jar">
         <div style="color:#c9d1d9;margin-bottom:4px">the mash · you are inside</div>
-        <div class="mash-row" data-m="water"><b>water</b><i></i><s id="mash-water-n">0</s></div>
-        <div class="mash-row" data-m="energy"><b>energy</b><i></i><s id="mash-energy-n">0</s></div>
-        <div class="mash-row" data-m="life"><b>life</b><i></i><s id="mash-life-n">0</s></div>
-        <div class="mash-row" data-m="mass"><b>mass</b><i></i><s id="mash-mass-n">0</s></div>
+        <div class="mash-row" data-m="water" style="--w:42%"><b>water</b><i></i><s id="mash-water-n">42</s></div>
+        <div class="mash-row" data-m="energy" style="--w:35%"><b>energy</b><i></i><s id="mash-energy-n">35</s></div>
+        <div class="mash-row" data-m="life" style="--w:28%"><b>life</b><i></i><s id="mash-life-n">28</s></div>
+        <div class="mash-row" data-m="mass" style="--w:18%"><b>mass</b><i></i><s id="mash-mass-n">18</s></div>
         <div id="tense-rail">
           <span data-t="IS" class="on">IS loaf</span>
           <span data-t="NEAR">NEAR</span>
@@ -226,7 +252,7 @@ body.inside-mash #mash-jar { display: block; }
           <span data-t="NOW">NOW mash</span>
         </div>
         <div id="loaf-bubbles"></div>
-        <div id="mash-return">no loaf returned yet. the jar is waiting.</div>
+        <div id="mash-return">chipmunk points at the midpoint. move voice and tense toward him.</div>
       </div>
     </div>
   </div>
@@ -241,10 +267,10 @@ body.inside-mash #mash-jar { display: block; }
   <div style="margin-top:24px">
     <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">sculptures (petalTongue WASM ? WebGL):</div>
     <div class="sculpture-grid">
-      <div class="sculpt" onclick="location='/nest.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span></div>
-      <div class="sculpt" onclick="location='/data/bingo-voxel.json'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span></div>
-      <div class="sculpt" onclick="location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span></div>
-      <div class="sculpt" onclick="location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span></div>
+      <div class="sculpt" data-seed="klein" data-mid="50" onclick="seedToward(this,'IS'); location='/klein.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span><div class="seed-dot">seed π · mid 50</div></div>
+      <div class="sculpt" data-seed="bingo" data-mid="32" onclick="seedToward(this,'NEAR'); location='/journal.html#bingo-cube'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span><div class="seed-dot">seed 1/π · mid 32</div></div>
+      <div class="sculpt" data-seed="prism" data-mid="68" onclick="seedToward(this,'WAS'); location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span><div class="seed-dot">seed φ · mid 68</div></div>
+      <div class="sculpt" data-seed="globe" data-mid="14" onclick="seedToward(this,'NOW'); location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span><div class="seed-dot">seed e · mid 14</div></div>
     </div>
   </div>
 
@@ -508,7 +534,10 @@ var breathPhase = 0;
 var skyScore = null;
 
 // ╝╝╝ SOURDOUGH — the starter culture ╝╝╝
-var generation = 1;        // which painting are we on?
+// π-seed: the chipmunk has been alive for waves. generation is not 1.
+// a blank canvas is the RAREST state. we start mid-painting.
+var _piDay = Math.floor(Date.now() / 86400000);
+var generation = Math.floor((_piDay * Math.PI) % 12) + 3;
 var starters = [];         // array of {dataURL, gen, palette, learned}
 var MAX_STARTERS = 12;     // keep the last 12 paintings
 var breathCount = 0;       // how long we've been breathing this painting
@@ -523,7 +552,8 @@ var learnedTraits = {      // what the chipmunk has learned across generations
 };
 
 // mash = water + energy + life + mass. the bread goes back.
-var mash = { water: 0.12, energy: 0.08, life: 0.05, mass: 0, lastReturn: '', peek: 'IS' };
+// never boot dead — the chipmunk has been alive for waves. that's not zero.
+var mash = { water: 0.42, energy: 0.35, life: 0.28, mass: 0.18, lastReturn: '', peek: 'IS' };
 var insideMash = false;
 
 // Chicken and egg: to paint you need perspective, to get perspective you paint.
@@ -997,6 +1027,65 @@ function renderLoafBubbles() {
   });
 }
 
+var chipmunkPoint = { x: 0.5, y: 0.5, voice: 'IS' };
+
+function paintMidpoint() {
+  if (!ctx || !W) return;
+  var x = W * chipmunkPoint.x, y = H * chipmunkPoint.y;
+  ctx.save();
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y);
+  ctx.moveTo(x, y - 14); ctx.lineTo(x, y + 14);
+  ctx.stroke();
+  ctx.fillStyle = '#d29922';
+  ctx.font = '16px sans-serif';
+  ctx.fillText('\uD83D\uDC3F', x + 6, y - 8);
+  ctx.restore();
+}
+
+function pointTowardChipmunk(tense) {
+  var pull = { IS: 0, NEAR: 0.25, WAS: 0.5, NOW: 0.75 }[tense] || 0;
+  chipmunkPoint.x = 0.5 + 0.14 * Math.sin(pull * Math.PI * 2);
+  chipmunkPoint.y = 0.5 + 0.14 * Math.cos(pull * Math.PI * 2);
+  chipmunkPoint.voice = tense;
+  mash.life = Math.max(0.18, 0.18 + pull * 0.35);
+  mash.energy = Math.max(0.12, 0.12 + pull * 0.25);
+  updateMash();
+  paintMidpoint();
+  var ret = document.getElementById('mash-return');
+  if (ret) {
+    ret.textContent = 'chipmunk points. voice ' + tense + ' · mid ' +
+      Math.round(chipmunkPoint.x * 100) + ',' + Math.round(chipmunkPoint.y * 100);
+  }
+}
+
+function seedToward(el, tense) {
+  var mid = el && el.dataset ? parseInt(el.dataset.mid || '50', 10) / 100 : 0.5;
+  chipmunkPoint.x = 0.3 + mid * 0.4;
+  chipmunkPoint.y = 0.35 + ((mid * Math.E) % 1) * 0.3;
+  setPeek(tense || mash.peek || 'IS');
+  pointTowardChipmunk(tense || mash.peek || 'IS');
+}
+
+function stampSeeds() {
+  var nodes = document.querySelectorAll('.sculpt, .past-piece, .wire-node');
+  nodes.forEach(function(el, i) {
+    if (el.dataset.seed) return;
+    var frac = ((i + 1) * Math.PI) % 1;
+    el.dataset.seed = frac.toFixed(4);
+    el.dataset.mid = String(Math.round(frac * 100));
+    var d = document.createElement('div');
+    d.className = 'seed-dot';
+    d.textContent = 'mid ' + el.dataset.mid;
+    el.appendChild(d);
+    el.addEventListener('click', function() {
+      seedToward(el, mash.peek || 'IS');
+    });
+  });
+}
+
 function setPeek(tense) {
   mash.peek = tense;
   document.querySelectorAll('#tense-rail span').forEach(function(sp) {
@@ -1004,6 +1093,7 @@ function setPeek(tense) {
   });
   var isEl = document.querySelector('#tense-rail span[data-t="IS"]');
   if (isEl && tense === 'IS') isEl.classList.add('on');
+  pointTowardChipmunk(tense);
 }
 
 function enterMash() {
@@ -1016,10 +1106,13 @@ function enterMash() {
 
 function updateMash() {
   var kp = skyScore && typeof skyScore.kp === 'number' ? skyScore.kp / 9 : 0.15;
-  mash.water = Math.max(0.08, Math.min(1, 0.2 + (breathPhase || 0) * 0.15 + kp));
-  mash.energy = Math.max(0.08, Math.min(1, (totalStrokes % 400) / 400));
-  mash.life = Math.max(0.05, Math.min(1, learnedTraits.perspective + 0.08));
-  mash.mass = Math.min(1, starters.length / MAX_STARTERS);
+  // wave baseline — chipmunk has been alive for waves. 214 waves is not zero.
+  var waveBase = Math.min(0.4, 0.18 + (generation || 1) * 0.02);
+  // NEVER crush existing values below what pointTowardChipmunk or other functions set.
+  mash.water = Math.max(mash.water, Math.max(0.25, Math.min(1, waveBase + (breathPhase || 0) * 0.15 + kp)));
+  mash.energy = Math.max(mash.energy, Math.max(0.2, Math.min(1, waveBase + (totalStrokes % 400) / 400)));
+  mash.life = Math.max(mash.life, Math.max(0.18, Math.min(1, waveBase + learnedTraits.perspective)));
+  mash.mass = Math.max(mash.mass, Math.min(1, waveBase * 0.5 + starters.length / MAX_STARTERS));
   [['water', mash.water], ['energy', mash.energy], ['life', mash.life], ['mass', mash.mass]].forEach(function(pair) {
     var row = document.querySelector('.mash-row[data-m="' + pair[0] + '"]');
     if (row) row.style.setProperty('--w', Math.round(pair[1] * 100) + '%');
@@ -1156,11 +1249,43 @@ function listenForWeather() {
 }
 
 // ╝╝╝ BOOT — the first stroke ╝╝╝
+// a blank canvas is the RAREST state. we start at the π-split point.
 resize();
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
 evolve();
+
+// π-split boot: run a burst of silent strokes so the canvas is mid-painting
+// frac(generation × π) determines how far through the painting we start
+var _piFrac = (generation * Math.PI) % 1;
+var _piPhaseIdx = Math.floor(_piFrac * 4); // 0=stars done, 1=nebula done, 2=gaia done, 3=aurora done
+var _piBootPhases = ['stars', 'nebula', 'gaia', 'aurora'];
+var _piBootStrokes = { stars: 60, nebula: 10, gaia: 6, aurora: 4 };
+for (var _bp = 0; _bp <= _piPhaseIdx && _bp < _piBootPhases.length; _bp++) {
+  var _bpName = _piBootPhases[_bp];
+  var _bpCount = _piBootStrokes[_bpName];
+  phase = _bpName;
+  stroke = 0;
+  for (var _bs = 0; _bs < _bpCount; _bs++) {
+    stroke++;
+    totalStrokes++;
+    switch (_bpName) {
+      case 'stars': paintStar(); break;
+      case 'nebula': paintNebula(); break;
+      case 'gaia': paintGaia(); break;
+      case 'aurora': paintAurora(); break;
+    }
+  }
+}
+// land at the π-split phase, not the first
+phase = _piBootPhases[Math.min(_piPhaseIdx + 1, 3)] || 'aurora';
+stroke = 0;
+
 updateGenCounter();
+stampSeeds();
+updateMash();
+paintMidpoint();
+setPeek(mash.peek || 'IS');
 scheduleStroke();
 
 var ws = document.createElement('script');
@@ -1174,6 +1299,7 @@ var selfChew = null;
 var poorTope = null;
 var kleinCards = null;
 var eonShape = null;
+var spineSiphon = null;
 
 function loadMembraneData() {
   var feeds = [
@@ -1181,6 +1307,7 @@ function loadMembraneData() {
     ['/data/poor-tope.json', function(d) { poorTope = d; }],
     ['/data/klein-cards.json', function(d) { kleinCards = d; }],
     ['/data/eon-shape.json', function(d) { eonShape = d; }],
+    ['/data/spine-siphon.json', function(d) { spineSiphon = d; }],
   ];
   feeds.forEach(function(f) {
     fetch(f[0], {cache:'no-store'}).then(function(r){return r.json()}).then(f[1]).catch(function(){});
@@ -1617,12 +1744,19 @@ window._easel = {
   mash: function() { return mash; },
   enterMash: enterMash,
   peekLoaf: peekLoaf,
+  spine: function() { return spineSiphon; },
 };
 </script>
 <script defer src="/js/celestial-clock.js?v=1"></script>
+<script defer src="/js/tidal-void.js?v=1"></script>
 <script defer src="/js/depth-walk.js?v=1"></script>
 <script defer src="/js/voxel-classroom.js?v=1"></script>
 <script defer src="/js/archetype-arena.js?v=1"></script>
 <script defer src="/js/hud-nav.js?v=1"></script>
+<script defer src="//primals.eco/js/klein-window.js?v=1"></script>
+<script defer src="//primals.eco/js/null-shadow.js?v=1"></script>
+<script defer src="//primals.eco/js/iron-peak.js?v=1"></script>
+<script defer src="//primals.eco/js/impact.js?v=1"></script>
+<script defer src="//primals.eco/js/klein-watcher.js?v=1"></script>
 </body>
 </html>

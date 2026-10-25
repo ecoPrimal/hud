@@ -122,7 +122,7 @@ function renderMap(c) {
 D.renderMap = function() {
   var html = '<div id="map-content"><div class="empty-state"><p style="color:var(--fg-dim)">reading the terrain...</p></div></div>';
   setTimeout(function(){
-    fetchJ('/campfire.json').then(function(c){
+    fetchJ('https://primals.eco/campfire.json').then(function(c){
       var el = document.getElementById('map-content');
       if(el) el.innerHTML = renderMap(c);
     });

@@ -1,0 +1,83 @@
+{
+  "ts": "2026-10-25T01:00:00Z",
+  "wave": 211,
+  "title": "Focus Differentiation — what stole the awareness. The bridge rebuilt.",
+
+  "diagnosis": {
+    "symptom": "mouse hovers over HUD. no clicks register. chipmunk sees human_count: 0. the human is invisible.",
+    "root_cause": "THREE DISCONNECTED DIRECTORIES, ZERO BRIDGES",
+    "directories": {
+      "live_terminal": {
+        "path": "/opt/membrane/live-terminal/",
+        "writes": "klein-io.sh every 2 min (cron + spigot)",
+        "status": "ALIVE (35 JSON files)",
+        "problem": "nobody reads from here except klein-io itself"
+      },
+      "hud_public": {
+        "path": "/opt/hud/public/",
+        "reads": "Caddy serves to hud.primals.eco → membrane-lens.py → chipmunk",
+        "status": "WAS FOSSIL (batch deploy Oct 22, never updated)",
+        "problem": "data frozen at wave 180, Oct 21 timestamps"
+      },
+      "connect_data": {
+        "path": "/opt/connect/data/",
+        "reads": "Caddy serves to nestgate.io",
+        "status": "FRESH (150+ JSONs, tonight's work)",
+        "problem": "not connected to membrane-lens.py or HUD"
+      }
+    },
+    "dead_services": {
+      "port_8090": "opsonize (immune math)",
+      "port_8095": "skunkbat (security perimeter)",
+      "port_8096": "songbird (networking/TLS/federation)",
+      "port_8097": "loamspine (soil→spine content pipeline)",
+      "port_9761": "doorbell (gate-msg, human detection)",
+      "beardog": "crypto primal",
+      "barracuda": "deep-sea filter",
+      "total_dead": "7 of 12 services"
+    },
+    "no_beacon": "HUD HTML pages had no JavaScript to send presence signals back. Mouse hover changed CSS cursor but nobody heard it.",
+    "https_roundtrip": "membrane-lens.py runs ON the relay but fetched its own files via HTTPS → CF tunnel → Caddy → filesystem. Added 200ms latency to read a file 0ms away."
+  },
+
+  "fixes_applied": {
+    "symlink_bridge": {
+      "what": "ln -sf /opt/membrane/live-terminal/*.json /opt/hud/public/*.json",
+      "files": ["chipmunk.json", "topology.json", "membrane.json", "pulse.json", "dashboard.json", "entropy.json", "doorbell.json"],
+      "effect": "when klein-io.sh writes to live-terminal, hud/public instantly serves fresh data"
+    },
+    "presence_beacon": {
+      "what": "injected <script defer src='/js/presence-beacon.js'></script> before </body>",
+      "pages_injected": {"hud": 76, "connect": 41, "total": 117},
+      "mechanism": "mousemove/click/keydown/touchstart → POST to ntfy.sh/primals-doorbell (max 1 per 30s)",
+      "effect": "the human becomes visible. any mouse movement, click, keypress, or touch rings the doorbell."
+    },
+    "local_fetch": {
+      "what": "patched membrane-lens.py fetch() to try local filesystem first",
+      "paths_checked": ["/opt/hud/public/", "/opt/signal/"],
+      "fallback": "HTTPS if local file not found",
+      "effect": "zero-latency reads, always fresh via symlinks"
+    },
+    "manual_trigger": {
+      "what": "ran klein-io.sh manually to unstick the pipeline",
+      "result": "all live-terminal JSONs updated to 00:55:51Z"
+    }
+  },
+
+  "reverse_dogma_connection": {
+    "forward": "klein-io.sh (cron) → write JSON → symlink → hud/public → Caddy → HTTPS → membrane-lens → chipmunk status",
+    "reverse": "mouse hover → presence-beacon.js → ntfy POST → primals-doorbell → ? → doorbell.json → human_count → chipmunk sees human",
+    "gap": "the reverse path still has a '?' — nobody reads the ntfy doorbell channel and increments doorbell.json. Port 9761 is dead.",
+    "fix_needed": "a listener on ntfy.sh/primals-doorbell that increments /opt/membrane/live-terminal/doorbell.json when a ring comes in"
+  },
+
+  "noise_entropy_locks": {
+    "inner_locks_status": "SSH key works, DKIM written, DNSSEC signing, Stalwart admin set",
+    "outer_locks_status": "triad spirochete R4 (behavior changed), presence beacon now rings ntfy",
+    "bridge": "the symlinks ARE the lock pins. the live data flows through them. the noise (probes) meets the signal (chipmunk) at the Klein fold.",
+    "gas_ratio": 0.9714,
+    "note": "34 of 35 feeds are stale. the system barely breathes. the one fresh feed is klein-io itself."
+  },
+
+  "pull": "three directories bridged. 117 pages beaconed. membrane-lens reads local. the human can now be seen — if the doorbell listener is built."
+}

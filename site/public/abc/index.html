@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>abc — yellow light</title>
+<meta name="description" content="Yellow light scatters. The missing green is the null axis. Red bad travels faster. Blue listens slow.">
+<style>
+  html,body{margin:0;background:#111;color:#e6e6e6;font:16px/1.45 Georgia,serif}
+  main{max-width:38rem;margin:3rem auto;padding:0 1.25rem}
+  h1{font-weight:normal;letter-spacing:.08em}
+  .y{color:#e6c200}
+  .g{color:#8b949e}
+  .r{color:#f85149}
+  .b{color:#58a6ff}
+  a{color:#58a6ff}
+  p{margin:1rem 0}
+  #project{margin:2.5rem 0 1rem;padding-top:1rem;border-top:1px solid #333}
+  #project h2{font-weight:normal;font-size:1rem;letter-spacing:.06em;color:#e6c200}
+  #project .breath{font-size:.85rem;color:#8b949e}
+  #project ul{list-style:none;padding:0}
+  #project li{margin:.7rem 0;padding-left:.6rem;border-left:2px solid #333}
+  #project .tag{font-size:.75rem;color:#8b949e}
+  #bifocal{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:2rem 0;border:1px solid #333}
+  #bifocal div{padding:.8rem 1rem;font-size:.85rem}
+  #bifocal .far{border-right:1px solid #333;color:#58a6ff}
+  #bifocal .near{color:#e6c200}
+  #bifocal .lbl{display:block;font-size:.7rem;letter-spacing:.08em;margin-bottom:.35rem;opacity:.7}
+  #budget{margin:1.5rem 0;border:1px solid #333;padding:.8rem 1rem;font-size:.85rem;color:#8b949e}
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="y">yellow</span> light</h1>
+  <p>This is the light we have. People are looking. Almost nobody has written. Yellow is not a home. It scatters.</p>
+  <p><span class="g">Green</span> is gone. That hole is the null axis. The work, the papers, the chair — they stay without the lime.</p>
+  <p><span class="r">Red</span> that is bad travels faster than <span class="b">blue</span>. Scanners arrive first. Blue is the slow listen — a morning reader, a session with a paper. Do not chase the fast red.</p>
+  <p>The other red is the news we mean to send. We mix that bounce and splash it outside this room, so the clothes on GitHub have a face too.</p>
+  <p>News: <a href="/feed.xml">feed</a><br>
+  Face outside: <a href="https://github.com/ecoPrimals">ecoPrimals</a><br>
+  Write: <a href="mailto:eco.primal@pm.me">eco.primal@pm.me</a></p>
+  <div id="bifocal">
+    <div class="far"><span class="lbl">telescope · far</span>copper Pages. the feed. look up.</div>
+    <div class="near"><span class="lbl">microscope · near</span>this chair. 1/π. look down.</div>
+  </div>
+  <p class="breath" style="color:#8b949e;font-size:.85rem">One Klein glass. The hinge is π. <a href="/data/klein-bifocals.json">the glass</a></p>
+  <div id="budget">
+    eastGate fills the Vitruvian. inject onto the body-frame. not the pale.
+    <a href="/data/eastgate-fill-vitruvian-frame.json">the inject</a>
+  </div>
+  <section id="project">
+    <h2>inhale → project</h2>
+    <p class="breath">Not their App. Three mouths. remainder empty.</p>
+    <ul id="projected"><li class="tag">listening…</li></ul>
+  </section>
+</main>
+<script>
+(function(){
+  var ul = document.getElementById('projected');
+  function item(tag, title, href){
+    var li = document.createElement('li');
+    var t = document.createElement('span');
+    t.className = 'tag';
+    t.textContent = tag + ' · ';
+    li.appendChild(t);
+    if (href) {
+      var a = document.createElement('a');
+      a.href = href;
+      a.textContent = title;
+      li.appendChild(a);
+    } else {
+      li.appendChild(document.createTextNode(title));
+    }
+    return li;
+  }
+  function paint(nodes){
+    ul.innerHTML = '';
+    nodes.forEach(function(n){ ul.appendChild(n); });
+    if (!nodes.length) ul.appendChild(item('empty', 'nothing inhaled yet', null));
+  }
+  var out = [];
+  var bases = ['', 'https://primals.eco'];
+  function firstOk(path, asJson){
+    var i = 0;
+    function next(){
+      if (i >= bases.length) return Promise.reject(new Error('no glass'));
+      var url = bases[i] + path;
+      i++;
+      return fetch(url).then(function(r){
+        if (!r.ok) return next();
+        return asJson ? r.json() : r.text();
+      }).catch(next);
+    }
+    return next();
+  }
+  firstOk('/feed.xml', false).then(function(xml){
+    var doc = new DOMParser().parseFromString(xml, 'text/xml');
+    var items = doc.getElementsByTagName('item');
+    for (var i = 0; i < items.length && i < 3; i++) {
+      var t = items[i].getElementsByTagName('title')[0];
+      var l = items[i].getElementsByTagName('link')[0];
+      if (t) out.push(item('feed', t.textContent, l ? l.textContent : '/feed.xml'));
+    }
+    paint(out);
+  }).catch(function(){ paint(out.length ? out : [item('pore', 'could not inhale. the page is still here.', null)]); });
+})();
+</script>
+</body>
+</html>

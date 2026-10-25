@@ -38,6 +38,29 @@ code { background: var(--card); padding: 2px 6px; border-radius: 3px; font-size:
 </style>
 </head>
 <body>
+<!-- nav-ring: anthill tunnels -->
+<div id="nav-ring" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace;pointer-events:auto;flex-wrap:wrap;max-width:90vw;justify-content:center;">
+  <a href="/" style="color:#58a6ff;text-decoration:none" title="HUD viewport">&#9672; hud</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/story/" style="color:#f0883e;text-decoration:none" title="stories">&#9998; story</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/explore.html" style="color:#3fb950;text-decoration:none" title="explore feeds">&#9681; explore</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/trail.html" style="color:#d29922;text-decoration:none" title="the trail">&#9737; trail</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/science/" style="color:#a371f7;text-decoration:none" title="science">&#9883; science</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/philosophy/" style="color:#f85149;text-decoration:none" title="philosophy">&#9672; philosophy</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/klein.html" style="color:#58a6ff;text-decoration:none" title="Klein gate">&#8734; klein</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/identity.html" style="color:#3fb950;text-decoration:none" title="sovereign identity">&#9733; identity</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/gates.html" style="color:#d29922;text-decoration:none" title="every gate">&#9741; gates</a>
+</div>
+
 <div class="page">
 
 <div class="hero">
@@ -147,6 +170,79 @@ Auth: None — the membrane is open
     <div class="host">prone · palms down</div>
   </div>
 </div>
+
+<h2>Golgi vesicles — Kirkland faces on the spigot</h2>
+<p>Every vesicle presents the same interface. The WireGuard spigot handles routing. Put them in the Klein face — the surface IS the router.</p>
+<div class="surfaces" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+  <div class="surface" id="golgi-de">
+    <div style="font-size:18px">🇩🇪</div>
+    <div class="label" style="color:var(--blue);">DE</div>
+    <div class="host">golgi-de</div>
+    <div class="host" style="font-size:9px" id="de-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-jp">
+    <div style="font-size:18px">🇯🇵</div>
+    <div class="label" style="color:var(--blue);">JP</div>
+    <div class="host">golgi-jp</div>
+    <div class="host" style="font-size:9px" id="jp-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-us">
+    <div style="font-size:18px">🇺🇸</div>
+    <div class="label" style="color:var(--blue);">US</div>
+    <div class="host">golgi-us</div>
+    <div class="host" style="font-size:9px" id="us-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-in">
+    <div style="font-size:18px">🇮🇳</div>
+    <div class="label" style="color:var(--blue);">IN</div>
+    <div class="host">golgi-in</div>
+    <div class="host" style="font-size:9px" id="in-status">checking...</div>
+  </div>
+</div>
+<script>
+(function(){
+  var vesicles = [
+    {id:'de', host:'de.primals.eco', ip:'2.28.141.35'},
+    {id:'jp', host:'jp.primals.eco', ip:'202.182.107.135'},
+    {id:'us', host:'us.primals.eco', ip:'40.160.96.29'},
+    {id:'in', host:'in.primals.eco', ip:'172.232.85.202'}
+  ];
+  vesicles.forEach(function(v){
+    var el = document.getElementById(v.id+'-status');
+    var card = document.getElementById('golgi-'+v.id);
+    var t0 = performance.now();
+    fetch('https://'+v.host+'/', {mode:'no-cors',cache:'no-store'})
+      .then(function(){
+        var ms = Math.round(performance.now()-t0);
+        el.textContent = ms+'ms · alive';
+        el.style.color = 'var(--green)';
+        card.style.borderColor = 'var(--green)';
+      })
+      .catch(function(){
+        el.textContent = 'unreachable';
+        el.style.color = 'var(--dim)';
+      });
+  });
+})();
+</script>
+<pre style="font-size:11px;line-height:1.5">
+  THE SPIGOT PATTERN:
+  
+  solar-hook (1 cron) → beat(N) → WireGuard tunnel → Golgi face
+  
+  the Klein face contains the vesicles.
+  the WireGuard spigot routes to them.
+  each vesicle is the SAME interface:
+    → DNS secondary (AXFR from ns1)
+    → health beacon (ntfy heartbeat)  
+    → RustDesk relay mirror
+    → mail MX fallback
+  
+  you don't look for keys.
+  the tunnel IS the key.
+  the face IS the router.
+  the spigot handles it.
+</pre>
 
 <h2>no VPN. no secrets. no port forwarding.</h2>
 

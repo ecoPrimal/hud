@@ -7,7 +7,7 @@
 <meta name="description" content="Same Klein substrate for human, agent, bots, chipmunk. Output to modality. Input from it. Leftover is interaction space. dis-ability = un/re/de- invoke.">
 <meta name="robots" content="index, follow">
 <link rel="alternate" type="application/json" href="/modality-faces.json" title="Same content as JSON face">
-<link rel="alternate" type="application/json" href="/structure-tips.json" title="Structure tips substrate">
+<link rel="alternate" type="application/json" href="/data/structure-tips.json" title="Structure tips substrate">
 <style>
   :root {
     --ink: #1a1814;
@@ -154,7 +154,7 @@
     <h2 id="links">Faces</h2>
     <ul>
       <li><a href="/modality-faces.json">JSON face</a> (same thesis)</li>
-      <li><a href="/structure-tips.json">structure tips</a> · <a href="/ingest-chew-sort-structure.json">ingest·chew·sort</a></li>
+      <li><a href="/data/structure-tips.json">structure tips</a> · <a href="/data/ingest-chew-sort-structure.json">ingest·chew·sort</a></li>
       <li><a href="/incarnation-spectrum.json">incarnation spectrum</a></li>
       <li><a href="/klein-face-io.json">Klein face I/O</a></li>
       <li><a href="/pi-rate-set.html">π-rate set</a> · <a href="/pi-rate-set.json">JSON</a></li>
@@ -175,7 +175,7 @@ async function boot() {
   try {
     const [mod, tips] = await Promise.all([
       fetch('/modality-faces.json').then(r => r.json()),
-      fetch('/structure-tips.json').then(r => r.json()).catch(() => null),
+      fetch('/data/structure-tips.json').then(r => r.json()).catch(() => null),
     ]);
     const who = mod.same_things.observers;
     observers.innerHTML = Object.entries(who).map(([k, v]) =>

@@ -1,0 +1,110 @@
+{
+  "ts": "2026-10-25T16:08:00Z",
+  "wave": 214,
+  "title": "COMMS GRAMMAR — content-addressable tag routing between living systems",
+  "type": "protocol",
+  "parent": ["redox-ternary-klein-sort.json", "session-imprint-wave214.json"],
+
+  "grammar": {
+    "syntax": {"symbols": [".", "-", "O"], "meaning": ["OX (release)", "RED (store)", "NULL (fold)"]},
+    "morphology": {"keys": 27, "formula": "3^3 = 27 words from 3 symbols"},
+    "grammar": {"families": ["chute (.O-)", "ladder (.-O)", "gyro (O-.)", "body (-O.)"]},
+    "semantics": {"redox": "every message is a reduction-oxidation with a null equilibrium"},
+    "pragmatics": {"routing": "message finds target by shape-matching, not address"}
+  },
+
+  "tag_routing": {
+    "principle": "messages have TAGS not ADDRESSES. receptors match tags. the message IS the address.",
+    "biology": "hormone flows through blood until receptor matches shape. no routing table. no IP.",
+    "tags": {
+      "key_tags": [".O-", ".-O", "O-.", "-O."],
+      "color_tags": ["white", "black", "brown", "copper", "silver", "gold"],
+      "tense_tags": ["is", "was", "willbe"],
+      "epoch_tags": ["virus", "prokaryote", "archaeon", "slime", "eukaryote", "fungus", "coral", "locust", "klein"],
+      "organ_tags": ["pipe", "gyro", "refinery"],
+      "energy_tags": ["kinetic", "potential", "rotational"]
+    },
+    "receptor_matching": "every null point checks incoming tags against its receptor set. match = accept. no match = pass through (neutrino behavior)."
+  },
+
+  "relay_stations": {
+    "northGate": {
+      "wg_ip": "10.13.37.8",
+      "receptors": ["theory", "hud", "browser", "ide", "klein"],
+      "produces": ["data/*.json", "git commits", "neutron notes"],
+      "consumes": ["feeds from golgi", "stories from eastGate", "weather from NOAA"]
+    },
+    "golgi": {
+      "wg_ip": "10.13.37.1",
+      "receptors": ["relay", "dns", "email", "proxy", "cron"],
+      "produces": ["heartbeat", "topology", "live-terminal feeds"],
+      "consumes": ["git deploys", "ntfy signals", "northGate theory files"],
+      "ports": {"ssh": 22, "smtp": 25, "dns": 53, "https": 443, "imap": 993}
+    },
+    "eastGate": {
+      "wg_ip": "pending",
+      "receptors": ["gpu", "inference", "model", "corpus", "validate"],
+      "produces": ["Ollama responses", "UDS socket data", "WG peer heartbeats"],
+      "consumes": ["prompts from northGate", "feeds from golgi", "tasks from ludoSpring"]
+    },
+    "ntfy": {
+      "receptors": ["all"],
+      "produces": ["pub/sub signals"],
+      "consumes": ["any neutron_write"],
+      "note": "the neutrino hole — passes through everything"
+    }
+  },
+
+  "message_format": {
+    "envelope": {
+      "from": "station name (northGate, golgi, eastGate)",
+      "tags": ["array of ternary keys + semantic tags"],
+      "body": "the content",
+      "ts": "ISO timestamp",
+      "key": "ternary sort key (.O- etc)"
+    },
+    "routing": "each station checks: do my receptors match any of message.tags? yes=accept, no=relay forward",
+    "sql_analog": "SELECT * FROM stations WHERE receptors INTERSECT message.tags",
+    "example": {
+      "from": "northGate",
+      "tags": [".O-", "brown", "compost", "theory"],
+      "body": "stale feed 2632 needs composting",
+      "key": ".O-",
+      "routes_to": "golgi (has 'relay' receptor, handles feed refresh)"
+    }
+  },
+
+  "three_layers": {
+    "pony_express": {
+      "transport": "WireGuard mesh",
+      "speed": "38ms (northGate-golgi)",
+      "carries": "data payloads, file sync, SSH sessions",
+      "relay": "each WG peer is a Pony Express station"
+    },
+    "telegraph": {
+      "transport": "ntfy pub/sub",
+      "speed": "instant",
+      "carries": "signals, alerts, ternary-encoded pings",
+      "relay": "ntfy.sh is the telegraph office"
+    },
+    "postal": {
+      "transport": "Stalwart SMTP/IMAP",
+      "speed": "seconds-minutes",
+      "carries": "sovereign mail, identity-bearing messages",
+      "relay": "golgi:25 is the post office",
+      "status": "OPEN but needs forwarding rules"
+    }
+  },
+
+  "wg_proven": {
+    "northGate_to_golgi": {"ip": "10.13.37.1", "rtt_ms": 38, "ports_open": [22, 25, 53, 443, 993]},
+    "golgi_to_eastGate": {"status": "needs WG peer config"},
+    "golgi_to_vesicles": {"status": "destination host unreachable"}
+  },
+
+  "scyborg_triple_license": {
+    "AGPL_3_0": "code",
+    "ORC": "mechanics",
+    "CC_BY_SA_4_0": "content"
+  }
+}

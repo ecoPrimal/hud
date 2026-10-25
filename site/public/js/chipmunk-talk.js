@@ -1390,32 +1390,7 @@
       if (!_mindLoaded) {
         _mindLoaded = true;
         var s1 = document.createElement('script');
-        s1.src = '/js/chipmunk-gaze.js?v=28';
-        s1.onload = function() {
-          var s2 = document.createElement('script');
-          s2.src = '/js/chipmunk-pressure.js?v=27';
-          s2.onload = function() {
-            var s3 = document.createElement('script');
-            s3.src = '/js/chipmunk-thought.js?v=1';
-            s3.onload = function() {
-              var s4 = document.createElement('script');
-              s4.src = '/js/chipmunk-learn.js?v=1';
-              s4.onload = function() {
-                var s5x = document.createElement('script');
-                s5x.src = '/js/chipmunk-mind-explore.js?v=1';
-                s5x.onload = function() {
-                  var s5 = document.createElement('script');
-                  s5.src = '/js/chipmunk-mind.js?v=43';
-                  document.head.appendChild(s5);
-                };
-                document.head.appendChild(s5x);
-              };
-              document.head.appendChild(s4);
-            };
-            document.head.appendChild(s3);
-          };
-          document.head.appendChild(s2);
-        };
+        s1.src = '/js/chipmunk-mind.js?v=44';
         document.head.appendChild(s1);
       }
       if (_origClick) _origClick.call(this);
