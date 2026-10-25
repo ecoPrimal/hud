@@ -306,6 +306,7 @@
     drawPareidolia(cx, cy, scale);
     drawGaze(cx, cy, scale);
     drawNodes(cx, cy, scale);
+    drawDeskInversion(cx, cy, scale);
 
     // update stats
     const statsEl = document.getElementById('holo-stats');
@@ -405,6 +406,13 @@
     }
   }
 
+  // desk ring inversion — desk icons on the hologram
+  function drawDeskInversion(cx, cy, scale) {
+    if (window.__deskHoloBridge && typeof window.__deskHoloBridge.drawDeskRing === 'function') {
+      window.__deskHoloBridge.drawDeskRing(ctx, cx, cy, scale, t);
+    }
+  }
+
   // init
   function init() {
     createHologram();
@@ -412,6 +420,10 @@
     fetchState();
     setInterval(fetchState, Math.PI * 10000);
     render();
+    // load bridge script
+    const bridge = document.createElement('script');
+    bridge.src = '/js/desk-hologram-bridge.js';
+    document.head.appendChild(bridge);
   }
 
   if (document.readyState === 'loading') {
