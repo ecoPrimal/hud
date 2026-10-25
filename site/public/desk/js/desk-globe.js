@@ -122,7 +122,7 @@ function renderGlobeView(c) {
 D.renderGlobe = function() {
   var html = '<div id="globe-content"><div class="empty-state"><p style="color:var(--fg-dim)">spinning up the globe...</p></div></div>';
   setTimeout(function(){
-    fetchJ('/campfire.json').then(function(c){
+    fetchJ('https://primals.eco/campfire.json').then(function(c){
       var el = document.getElementById('globe-content');
       if(el) el.innerHTML = renderGlobeView(c);
     });

@@ -197,9 +197,10 @@ D.renderCampfire = function() {
   var html = '<div id="campfire-content"><div class="empty-state"><p style="color:var(--fg-dim)">loading campfire...</p></div></div>';
 
   setTimeout(function() {
+    var base = 'https://primals.eco';
     Promise.all([
-      fetchData('/campfire.json'),
-      fetchData('/visitor-stories.json')
+      fetchData(base + '/campfire.json'),
+      fetchData(base + '/visitor-stories.json')
     ]).then(function(results) {
       var c = results[0], visitors = results[1];
       var el = document.getElementById('campfire-content');

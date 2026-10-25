@@ -171,9 +171,10 @@ function renderAtlas(c, visitors) {
 D.renderAtlas = function() {
   var html = '<div id="atlas-content"><div class="empty-state"><p style="color:var(--fg-dim)">opening the atlas...</p></div></div>';
   setTimeout(function(){
+    var base = 'https://primals.eco';
     Promise.all([
-      fetchJ('/campfire.json'),
-      fetchJ('/visitor-stories.json')
+      fetchJ(base + '/campfire.json'),
+      fetchJ(base + '/visitor-stories.json')
     ]).then(function(r){
       var el = document.getElementById('atlas-content');
       if(el) el.innerHTML = renderAtlas(r[0], r[1]);
