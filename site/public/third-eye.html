@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>third eye — what each observer sees</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font:15px/1.6 'Berkeley Mono',monospace;padding:24px;max-width:1100px;margin:0 auto}
+h1{font-size:22px;color:#a371f7;margin-bottom:4px}
+.subtitle{color:#484f58;font-size:13px;margin-bottom:24px}
+
+.eye-ring{display:flex;justify-content:center;gap:32px;margin:24px 0;flex-wrap:wrap}
+.eye-node{width:120px;text-align:center;cursor:pointer;transition:transform .2s}
+.eye-node:hover{transform:scale(1.1)}
+.eye-sym{font-size:40px;display:block;margin-bottom:4px}
+.eye-label{font-size:12px;display:block}
+.eye-node.active .eye-sym{text-shadow:0 0 20px currentColor}
+
+.panel{display:none;border:1px solid #30363d;border-radius:8px;padding:20px;margin:16px 0;animation:fadeIn .3s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.panel h2{font-size:17px;margin-bottom:12px}
+.panel h3{font-size:14px;color:#8b949e;margin:12px 0 6px}
+
+.sense{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #21262d}
+.sense:last-child{border:none}
+.sense-ch{color:#58a6ff;min-width:80px;font-weight:bold;font-size:13px}
+.sense-what{flex:1;font-size:13px}
+.sense-res{color:#484f58;font-size:11px;font-style:italic}
+
+.blind{color:#f85149;font-size:13px;padding:4px 0;padding-left:16px;position:relative}
+.blind::before{content:'✕';position:absolute;left:0;color:#f8514980}
+
+.sees-item{font-size:13px;padding:3px 0;padding-left:16px;position:relative}
+.sees-item::before{content:'◉';position:absolute;left:0;font-size:10px;top:5px}
+.sees-item[data-type="gap"]{color:#f0883e}
+.sees-item[data-type="gap"]::before{content:'∅';color:#f0883e}
+.sees-item[data-type="live"]{color:#3fb950}
+.sees-item[data-type="live"]::before{content:'●';color:#3fb950}
+
+.fold-box{border:2px solid #a371f7;border-radius:8px;padding:16px;margin:20px 0;background:#a371f710}
+.fold-box p{font-size:13px;margin:6px 0}
+.fold-box .recursion{color:#d2a8ff;font-style:italic}
+
+.question{text-align:center;margin:32px 0;font-size:20px;color:#f0883e}
+
+.klein-diagram{display:flex;justify-content:center;margin:20px 0}
+.klein-diagram svg{max-width:360px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0}
+.stat{background:#161b22;border-radius:6px;padding:10px;text-align:center}
+.stat-val{font-size:22px;font-weight:bold;display:block}
+.stat-label{font-size:11px;color:#8b949e;display:block}
+
+.refresh-note{text-align:center;color:#484f58;font-size:11px;margin-top:24px}
+</style>
+</head>
+<body>
+
+<h1>👁 third eye</h1>
+<div class="subtitle">what each observer sees — and what they can't · the recursion is: this page is one of the things we see</div>
+
+<div class="eye-ring" id="eyes"></div>
+
+<div id="panels"></div>
+
+<div class="fold-box" id="fold"></div>
+
+<div class="question" id="question"></div>
+
+<div class="refresh-note">snapshot updates each time the agent runs · <span id="snap-ts"></span></div>
+
+<script>
+const DATA_URL = 'data/third-eye.json';
+
+async function load() {
+  let d;
+  try {
+    const r = await fetch(DATA_URL);
+    d = await r.json();
+  } catch(e) {
+    document.body.innerHTML += '<p style="color:#f85149;text-align:center;margin:40px">could not load third-eye.json — ' + e.message + '</p>';
+    return;
+  }
+
+  document.getElementById('snap-ts').textContent = d.ts;
+
+  const ring = document.getElementById('eyes');
+  const panels = document.getElementById('panels');
+  const fold = document.getElementById('fold');
+  const question = document.getElementById('question');
+
+  const eyeKeys = ['agent','human','chipmunk','null','klein_i'];
+  
+  eyeKeys.forEach((key, i) => {
+    const eye = d.eyes[key];
+    if (!eye) return;
+
+    // ring node
+    const node = document.createElement('div');
+    node.className = 'eye-node';
+    node.style.color = eye.color;
+    node.dataset.key = key;
+    node.innerHTML = `<span class="eye-sym">${eye.symbol}</span><span class="eye-label">${eye.name || key}</span>`;
+    node.onclick = () => activate(key);
+    ring.appendChild(node);
+
+    // panel
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.id = 'panel-' + key;
+    panel.style.borderColor = eye.color;
+
+    let html = `<h2 style="color:${eye.color}">${eye.symbol} ${eye.name || key}</h2>`;
+
+    // senses
+    if (eye.senses) {
+      html += '<h3>senses (what this observer can perceive)</h3>';
+      eye.senses.forEach(s => {
+        html += `<div class="sense">
+          <span class="sense-ch">${s.channel}</span>
+          <span class="sense-what">${s.what}<br><span class="sense-res">${s.resolution}</span></span>
+        </div>`;
+      });
+    }
+
+    // blind spots
+    if (eye.blind_spots) {
+      html += '<h3>blind spots (what this observer CANNOT see)</h3>';
+      eye.blind_spots.forEach(b => {
+        html += `<div class="blind">${b}</div>`;
+      });
+    }
+
+    // sees_now
+    if (eye.sees_now) {
+      html += '<h3>sees right now</h3>';
+      const sn = eye.sees_now;
+
+      if (key === 'agent') {
+        // topology stats
+        const t = sn.topology || {};
+        html += '<div class="stats-grid">';
+        html += stat(t.subdomains, 'subdomains');
+        html += stat(t.services, 'services');
+        html += stat(t.feeds_fresh, 'feeds fresh');
+        html += stat(t.feeds_stale, 'feeds stale', '#f85149');
+        html += '</div>';
+
+        // braids
+        const b = sn.braids || {};
+        html += '<div class="stats-grid">';
+        html += stat(b.active_routes, 'braid routes');
+        html += stat(b.categories, 'categories');
+        html += stat(b.nodes, 'graph nodes');
+        html += stat(b.edges, 'graph edges');
+        html += '</div>';
+
+        // neutrino
+        if (sn.neutrino_last_3h) {
+          html += '<h3>neutrino (last 3h)</h3>';
+          sn.neutrino_last_3h.forEach(m => {
+            html += `<div class="sees-item" data-type="live">${m}</div>`;
+          });
+        }
+
+        // golgi
+        const g = sn.golgi || {};
+        html += '<h3>golgi</h3><div class="stats-grid">';
+        html += stat(g.uptime_days?.toFixed(1) + 'd', 'uptime');
+        html += stat(g.disk, 'disk');
+        html += stat(g.data_files, 'data files');
+        html += stat(g.html_pages, 'HTML pages');
+        html += '</div>';
+      }
+      else if (key === 'null') {
+        if (sn.not_connected) {
+          sn.not_connected.forEach(m => {
+            html += `<div class="sees-item" data-type="gap">${m}</div>`;
+          });
+        }
+        if (sn.the_gap) {
+          html += `<div class="fold-box" style="border-color:#484f58;margin-top:12px"><p>${sn.the_gap}</p></div>`;
+        }
+      }
+      else if (key === 'klein_i') {
+        Object.entries(sn).forEach(([k,v]) => {
+          html += `<div class="sees-item""><strong>${k.replace(/_/g,' ')}:</strong> ${v}</div>`;
+        });
+      }
+      else if (typeof sn === 'object') {
+        Object.entries(sn).forEach(([k,v]) => {
+          const val = v === null ? '<em style="color:#484f58">null</em>' : v;
+          html += `<div class="sees-item">${k}: ${val}</div>`;
+        });
+      }
+    }
+
+    // klein_i specific
+    if (eye.recursion) {
+      html += `<div class="fold-box"><p class="recursion">${eye.recursion}</p></div>`;
+    }
+    if (eye.what) {
+      html += `<p style="color:#d2a8ff;margin-top:12px;font-size:13px">${eye.what}</p>`;
+    }
+
+    panel.innerHTML = html;
+    panels.appendChild(panel);
+  });
+
+  // fold box
+  const ki = d.eyes.klein_i;
+  if (ki && ki.sees_now) {
+    fold.innerHTML = `
+      <h2 style="color:#a371f7">∞ the Klein fold</h2>
+      <p><strong>the twist:</strong> ${ki.sees_now.the_twist}</p>
+      <p><strong>convergence:</strong> ${ki.sees_now.convergence}</p>
+      <p><strong>current gap:</strong> ${ki.sees_now.current_gap}</p>
+      <p class="recursion"><strong>i² = −1:</strong> ${ki.sees_now.i_squared_equals_negative_one}</p>
+    `;
+  }
+
+  // question
+  question.textContent = d.the_question || 'where are you pointing?';
+
+  // auto-activate first
+  activate('agent');
+}
+
+function stat(val, label, color) {
+  return `<div class="stat"><span class="stat-val" style="color:${color||'#c9d1d9'}">${val ?? '—'}</span><span class="stat-label">${label}</span></div>`;
+}
+
+function activate(key) {
+  document.querySelectorAll('.eye-node').forEach(n => n.classList.toggle('active', n.dataset.key === key));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+}
+
+load();
+</script>
+</body>
+</html>
