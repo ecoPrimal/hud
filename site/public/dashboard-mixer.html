@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — the mixing board</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --fg: #c9d1d9; --dim: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --gold: #d29922; --orange: #f0883e;
+  --red: #f85149; --purple: #a371f7; --dark-green: #238636;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.5 'SF Mono', monospace; overflow: hidden; height: 100vh; }
+
+/* === LAYOUT: three vertical zones === */
+#app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
+
+/* HEADER */
+header { padding: 6px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+header h1 { font-size: .9em; font-weight: 200; color: var(--blue); }
+header .mode-btns { display: flex; gap: 4px; margin-left: auto; }
+header .mode-btns button { background: var(--surface); border: 1px solid var(--border); color: var(--dim);
+  font: 10px monospace; padding: 2px 10px; border-radius: 12px; cursor: pointer; }
+header .mode-btns button.active { border-color: var(--blue); color: var(--blue); background: rgba(88,166,255,0.08); }
+header .mode-btns button:hover { border-color: var(--blue); }
+header .stats { font-size: .8em; color: var(--dim); }
+.nav-links { font-size: .8em; }
+.nav-links a { color: var(--blue); text-decoration: none; margin: 0 4px; }
+
+/* === MIXER VIEW === */
+#mixer { display: none; overflow-x: auto; overflow-y: hidden; height: 100%;
+  padding: 8px; white-space: nowrap; }
+#mixer.active { display: flex; gap: 3px; align-items: stretch; }
+
+.channel { display: inline-flex; flex-direction: column; width: 48px; min-width: 48px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 2px; align-items: center; flex-shrink: 0; transition: border-color .3s; }
+.channel:hover { border-color: var(--blue); }
+.channel.hot { border-color: var(--green); box-shadow: 0 0 6px rgba(63,185,80,0.2); }
+.channel.cold { border-color: var(--border); opacity: 0.5; }
+.channel.stale { border-color: var(--gold); }
+
+.ch-name { font-size: 7px; color: var(--dim); writing-mode: vertical-lr; text-orientation: mixed;
+  transform: rotate(180deg); flex: 1; overflow: hidden; text-overflow: ellipsis; max-height: 80px; }
+.ch-fader { width: 6px; height: 120px; background: #0d1117; border-radius: 3px; position: relative;
+  margin: 4px 0; border: 1px solid rgba(88,166,255,0.1); }
+.ch-fader .fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px;
+  transition: height .8s ease; }
+.ch-fader .fill.green { background: linear-gradient(to top, var(--green), rgba(63,185,80,0.3)); }
+.ch-fader .fill.gold { background: linear-gradient(to top, var(--gold), rgba(210,153,34,0.3)); }
+.ch-fader .fill.red { background: linear-gradient(to top, var(--red), rgba(248,81,73,0.3)); }
+.ch-fader .fill.blue { background: linear-gradient(to top, var(--blue), rgba(88,166,255,0.3)); }
+.ch-fader .fill.purple { background: linear-gradient(to top, var(--purple), rgba(163,113,247,0.3)); }
+
+.ch-meter { width: 100%; height: 3px; border-radius: 2px; margin-top: 2px; }
+.ch-size { font-size: 6px; color: var(--dim); }
+.ch-age { font-size: 6px; }
+.ch-age.fresh { color: var(--green); }
+.ch-age.warm { color: var(--gold); }
+.ch-age.stale { color: var(--red); }
+
+/* === SPHERE VIEW (abstract / Cartesian) === */
+#sphere { display: none; height: 100%; position: relative; }
+#sphere.active { display: block; }
+#sphere canvas { width: 100%; height: 100%; }
+#sphere-info { position: absolute; top: 10px; left: 10px; font-size: .75em; color: var(--dim);
+  background: rgba(13,17,23,0.85); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); }
+
+/* === GRID VIEW (concrete / Minecraft blocks) === */
+#grid { display: none; height: 100%; overflow: auto; padding: 8px; }
+#grid.active { display: block; }
+.voxel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 3px; }
+.block { aspect-ratio: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 7px; color: var(--dim); cursor: pointer; transition: all .2s; position: relative; overflow: hidden; }
+.block:hover { border-color: var(--blue); transform: scale(1.08); z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.block .b-fill { position: absolute; bottom: 0; left: 0; right: 0; opacity: 0.15; }
+.block .b-icon { font-size: 14px; }
+.block .b-name { margin-top: 2px; text-align: center; word-break: break-all; line-height: 1.1; }
+.block.alive .b-fill { background: var(--green); }
+.block.stale .b-fill { background: var(--gold); }
+.block.dead .b-fill { background: var(--red); }
+
+/* === BRAID VIEW (sourdough / wave / timeline) === */
+#braid { display: none; height: 100%; position: relative; }
+#braid.active { display: block; }
+#braid canvas { width: 100%; height: 100%; }
+
+/* FOOTER */
+footer { padding: 4px 12px; border-top: 1px solid var(--border); font-size: .7em; color: var(--dim);
+  display: flex; gap: 12px; align-items: center; }
+footer .pulse { color: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span>👁</span>
+    <h1>dashboard — the mixing board</h1>
+    <span class="stats" id="stats">loading...</span>
+    <div class="mode-btns">
+      <button class="active" data-mode="mixer">🎚 mixer</button>
+      <button data-mode="sphere">🔮 abstract</button>
+      <button data-mode="grid">🧱 concrete</button>
+      <button data-mode="braid">🌊 braid</button>
+    </div>
+    <div class="nav-links">
+      <a href="/">HUD</a> <a href="https://nestgate.io/ide.html">desk</a> <a href="/self-model.html">self</a> <a href="/epoch-rooms.html">epochs</a>
+    </div>
+  </header>
+
+  <main>
+    <div id="mixer" class="active"></div>
+    <div id="sphere"><canvas id="sphere-canvas"></canvas>
+      <div id="sphere-info">abstract Cartesian sphere — feeds as coordinates in n-dimensional space<br>each dot = 1 feed. distance = similarity. color = freshness.</div>
+    </div>
+    <div id="grid"><div class="voxel-grid" id="voxel-grid"></div></div>
+    <div id="braid"><canvas id="braid-canvas"></canvas></div>
+  </main>
+
+  <footer>
+    <span class="pulse">●</span>
+    <span id="foot-status">scanning feeds...</span>
+    <span style="margin-left:auto">refreshes every π×10s · all data is real · the dashboard IS the eye</span>
+  </footer>
+</div>
+
+<script>
+'use strict';
+
+const FEED_ROOT = '/';
+const DATA_ROOT = '/data/';
+let feeds = [];
+let mode = 'mixer';
+let sphereCtx, braidCtx;
+let t = 0;
+
+const FEED_ICONS = {
+  now: '⏱', negentropy: '🌌', topology: '🕸', chipmunk: '🐿', membrane: '🫧',
+  heartbeat: '💓', campfire: '🔥', csf: '🧠', energy: '⚡', human: '👤',
+  braid: '🔗', green: '🌿', dashboard: '📊', backscatter: '📡', hello: '👋',
+  manifest: '📋', presence: '👁', state: '🔄', temperature: '🌡', triad: '△',
+  entropy: '🎲', doorbell: '🔔', fleet: '⚓', modality: '🎭',
+};
+
+function iconFor(name) {
+  for (const [k, v] of Object.entries(FEED_ICONS)) {
+    if (name.includes(k)) return v;
+  }
+  return '◇';
+}
+
+function ageClass(ts) {
+  if (!ts) return 'stale';
+  const age = Date.now() - new Date(ts).getTime();
+  if (age < 3600000) return 'fresh';
+  if (age < 86400000) return 'warm';
+  return 'stale';
+}
+
+function ageLabel(ts) {
+  if (!ts) return '?';
+  const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+  if (mins < 60) return mins + 'm';
+  if (mins < 1440) return Math.floor(mins / 60) + 'h';
+  return Math.floor(mins / 1440) + 'd';
+}
+
+function sizeLabel(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'K';
+  return (bytes / 1048576).toFixed(1) + 'M';
+}
+
+function colorForFeed(i, n) {
+  const classes = ['green', 'blue', 'gold', 'purple', 'red'];
+  return classes[i % classes.length];
+}
+
+async function scanFeeds() {
+  const resp = await fetch('/data/dna-scan.json').catch(() => null);
+  if (!resp || !resp.ok) return;
+  const dna = await resp.json();
+
+  feeds = [];
+  const topFeeds = ['now', 'negentropy', 'topology', 'chipmunk', 'membrane', 'heartbeat',
+    'campfire', 'csf', 'energy', 'human', 'braid', 'green', 'dashboard', 'backscatter',
+    'hello', 'manifest', 'presence', 'state', 'temperature', 'triad', 'entropy',
+    'fleet-sort', 'modality-faces', 'membrane-pulse', 'pi-rate', 'doorbell', 'eastgate-pulse',
+    'mesh-ring', 'dialogue', 'campfire-flash', 'neutrino-pass-flow', 'scan_sweep_sort',
+    'incarnation-spectrum', 'local-cns-pns', 'ingest-chew-sort-structure', 'negentropy',
+    'chipmunk-song-live', 'crystallized-for-humans', 'green-spectrum-pi-yoyo',
+    'black-white-null-compress', 'meta-agpl-reverse-clock', 'immune-math-opsonize-drip',
+    'falsifiability-run-results', 'hypothesis-falsifiability-experiments',
+    'hypothesis-site-review', 'dmca-entity-tracker', 'etiology-key-pairs-traceback',
+    'neutrino-totality', 'neutrino-sides-distances', 'amphiphile', 'billboard-mix',
+    'space-weather', 'wave200-imprint-021', 'totality', 'tower', 'touches', 'seo',
+    'structure-tips', 'system-layers', 'subgraphs', 'songbird-morning-song',
+    'smell-o-vision', 'pi-null-axis-yoyo-plate', 'pi-ranges', 'pi-rate-set',
+    'neutron', 'zk-spectrum-nulls-uzk', 'wireless-tether-hypotenuse'];
+
+  const seen = new Set();
+  for (const name of topFeeds) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+    try {
+      const r = await fetch(FEED_ROOT + name + '.json', { method: 'HEAD' });
+      const size = parseInt(r.headers.get('content-length') || '0');
+      const lastMod = r.headers.get('last-modified');
+      const ts = lastMod ? new Date(lastMod).toISOString() : '';
+      feeds.push({ name, size, ts, alive: r.ok, icon: iconFor(name) });
+    } catch {
+      feeds.push({ name, size: 0, ts: '', alive: false, icon: iconFor(name) });
+    }
+  }
+
+  if (dna.members) {
+    for (const m of dna.members) {
+      if (m.type === 'feed' && !seen.has(m.id)) {
+        seen.add(m.id);
+        feeds.push({ name: m.id, size: 0, ts: '', alive: m.bit === 1, icon: iconFor(m.id) });
+      }
+    }
+  }
+
+  document.getElementById('stats').textContent =
+    `${feeds.length} feeds · ${feeds.filter(f => f.alive).length} alive · ${feeds.filter(f => ageClass(f.ts) === 'stale').length} stale`;
+  document.getElementById('foot-status').textContent =
+    `${feeds.length} channels loaded · wave 201 · all real`;
+
+  renderAll();
+}
+
+function renderAll() {
+  renderMixer();
+  renderGrid();
+  if (mode === 'sphere') renderSphere();
+  if (mode === 'braid') renderBraid();
+}
+
+function renderMixer() {
+  const el = document.getElementById('mixer');
+  el.innerHTML = '';
+  const maxSize = Math.max(...feeds.map(f => f.size || 1), 1);
+
+  feeds.forEach((f, i) => {
+    const ch = document.createElement('div');
+    const ac = ageClass(f.ts);
+    ch.className = `channel ${f.alive ? (ac === 'stale' ? 'stale' : 'hot') : 'cold'}`;
+    const fillPct = Math.max(5, Math.min(100, (f.size / maxSize) * 100));
+    const col = colorForFeed(i, feeds.length);
+
+    ch.innerHTML = `
+      <div class="ch-name">${f.icon} ${f.name}</div>
+      <div class="ch-fader"><div class="fill ${col}" style="height:${fillPct}%"></div></div>
+      <div class="ch-size">${sizeLabel(f.size)}</div>
+      <div class="ch-age ${ac}">${ageLabel(f.ts)}</div>
+    `;
+    ch.title = `${f.name}\nsize: ${sizeLabel(f.size)}\nage: ${ageLabel(f.ts)}\nalive: ${f.alive}`;
+    el.appendChild(ch);
+  });
+}
+
+function renderGrid() {
+  const el = document.getElementById('voxel-grid');
+  el.innerHTML = '';
+
+  feeds.forEach(f => {
+    const block = document.createElement('div');
+    const ac = ageClass(f.ts);
+    block.className = `block ${f.alive ? 'alive' : 'dead'} ${ac === 'stale' ? 'stale' : ''}`;
+
+    const fillH = Math.max(10, Math.min(100, (f.size / 50000) * 100));
+    block.innerHTML = `
+      <div class="b-fill" style="height:${fillH}%"></div>
+      <div class="b-icon">${f.icon}</div>
+      <div class="b-name">${f.name}</div>
+    `;
+    block.title = `${f.name} · ${sizeLabel(f.size)} · ${ageLabel(f.ts)}`;
+    block.onclick = () => window.open('/' + f.name + '.json', '_blank');
+    el.appendChild(block);
+  });
+}
+
+function renderSphere() {
+  const canvas = document.getElementById('sphere-canvas');
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  canvas.width = w; canvas.height = h;
+  sphereCtx = canvas.getContext('2d');
+
+  const cx = w / 2, cy = h / 2;
+  const R = Math.min(w, h) * 0.38;
+  const n = feeds.length;
+
+  function frame() {
+    if (mode !== 'sphere') return;
+    t += 0.008;
+    sphereCtx.clearRect(0, 0, w, h);
+
+    // Grid lines — Cartesian sphere
+    sphereCtx.strokeStyle = 'rgba(88,166,255,0.04)';
+    sphereCtx.lineWidth = 0.5;
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      sphereCtx.beginPath();
+      sphereCtx.moveTo(cx, cy);
+      sphereCtx.lineTo(cx + Math.cos(a) * R * 1.2, cy + Math.sin(a) * R * 1.2);
+      sphereCtx.stroke();
+    }
+    for (let r = 0.25; r <= 1.25; r += 0.25) {
+      sphereCtx.beginPath();
+      sphereCtx.arc(cx, cy, R * r, 0, Math.PI * 2);
+      sphereCtx.stroke();
+    }
+
+    // Feeds as dots in spherical space
+    feeds.forEach((f, i) => {
+      const theta = (i / n) * Math.PI * 2 + t;
+      const phi = Math.acos(1 - 2 * ((f.size || 1) / 300000));
+      const r = R * (0.3 + (f.alive ? 0.7 : 0.2));
+      const x = cx + Math.cos(theta) * Math.sin(phi) * r;
+      const y = cy + Math.sin(theta) * Math.sin(phi) * r * 0.6;
+      const z = Math.cos(phi);
+
+      const ac = ageClass(f.ts);
+      const color = ac === 'fresh' ? 'rgba(63,185,80,' : ac === 'warm' ? 'rgba(210,153,34,' : 'rgba(248,81,73,';
+      const alpha = 0.3 + z * 0.4;
+      const dotR = 2 + (f.size / 50000) * 4;
+
+      sphereCtx.fillStyle = color + alpha + ')';
+      sphereCtx.beginPath();
+      sphereCtx.arc(x, y, Math.max(1.5, dotR * (0.5 + z * 0.5)), 0, Math.PI * 2);
+      sphereCtx.fill();
+
+      if (dotR > 3) {
+        sphereCtx.fillStyle = 'rgba(201,209,217,' + (alpha * 0.4) + ')';
+        sphereCtx.font = '7px monospace';
+        sphereCtx.textAlign = 'center';
+        sphereCtx.fillText(f.name, x, y + dotR + 8);
+      }
+    });
+
+    // Axis labels
+    sphereCtx.fillStyle = 'rgba(88,166,255,0.2)';
+    sphereCtx.font = '9px monospace';
+    sphereCtx.textAlign = 'center';
+    sphereCtx.fillText('size →', cx + R + 30, cy);
+    sphereCtx.fillText('↑ freshness', cx, cy - R - 15);
+    sphereCtx.fillText('abstract Cartesian sphere', cx, h - 20);
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function renderBraid() {
+  const canvas = document.getElementById('braid-canvas');
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  canvas.width = w; canvas.height = h;
+  braidCtx = canvas.getContext('2d');
+
+  const sorted = [...feeds].sort((a, b) => {
+    const ta = a.ts ? new Date(a.ts).getTime() : 0;
+    const tb = b.ts ? new Date(b.ts).getTime() : 0;
+    return ta - tb;
+  });
+
+  const now = Date.now();
+  const oldest = sorted[0]?.ts ? new Date(sorted[0].ts).getTime() : now - 86400000 * 7;
+  const range = now - oldest;
+
+  function frame() {
+    if (mode !== 'braid') return;
+    t += 0.005;
+    braidCtx.clearRect(0, 0, w, h);
+
+    // Timeline axis
+    braidCtx.strokeStyle = 'rgba(88,166,255,0.1)';
+    braidCtx.lineWidth = 1;
+    braidCtx.beginPath();
+    braidCtx.moveTo(40, h / 2);
+    braidCtx.lineTo(w - 20, h / 2);
+    braidCtx.stroke();
+
+    // Time markers
+    braidCtx.fillStyle = 'rgba(88,166,255,0.15)';
+    braidCtx.font = '8px monospace';
+    for (let d = 0; d <= 7; d++) {
+      const x = 40 + ((range - d * 86400000) / range) * (w - 60);
+      if (x > 40 && x < w - 20) {
+        braidCtx.fillText(d === 0 ? 'now' : `-${d}d`, x, h / 2 + 15);
+        braidCtx.beginPath();
+        braidCtx.moveTo(x, h / 2 - 5);
+        braidCtx.lineTo(x, h / 2 + 5);
+        braidCtx.stroke();
+      }
+    }
+
+    // Each feed as a strand — braided waves
+    const strands = 8;
+    const perStrand = Math.ceil(sorted.length / strands);
+
+    sorted.forEach((f, i) => {
+      const fTime = f.ts ? new Date(f.ts).getTime() : oldest;
+      const x = 40 + ((fTime - oldest) / range) * (w - 60);
+      const strand = i % strands;
+      const yBase = h * 0.2 + strand * (h * 0.6 / strands);
+      const wave = Math.sin(t * 2 + i * 0.3) * 8;
+      const y = yBase + wave;
+
+      const ac = ageClass(f.ts);
+      const color = ac === 'fresh' ? '#3fb950' : ac === 'warm' ? '#d29922' : '#f85149';
+      const alpha = f.alive ? 0.5 : 0.15;
+
+      // Strand line
+      braidCtx.strokeStyle = color + Math.floor(alpha * 50).toString(16).padStart(2, '0');
+      braidCtx.lineWidth = 0.5;
+      if (i > 0 && (i - 1) % strands === strand) {
+        const prev = sorted[i - strands];
+        if (prev) {
+          const px = 40 + (((prev.ts ? new Date(prev.ts).getTime() : oldest) - oldest) / range) * (w - 60);
+          braidCtx.beginPath();
+          braidCtx.moveTo(px, yBase + Math.sin(t * 2 + (i - strands) * 0.3) * 8);
+          braidCtx.lineTo(x, y);
+          braidCtx.stroke();
+        }
+      }
+
+      // Dot
+      const dotR = 2 + (f.size / 80000) * 5;
+      braidCtx.fillStyle = color;
+      braidCtx.globalAlpha = alpha;
+      braidCtx.beginPath();
+      braidCtx.arc(x, y, Math.max(1.5, dotR), 0, Math.PI * 2);
+      braidCtx.fill();
+      braidCtx.globalAlpha = 1;
+
+      // Label for large feeds
+      if (dotR > 3.5) {
+        braidCtx.fillStyle = 'rgba(201,209,217,0.3)';
+        braidCtx.font = '7px monospace';
+        braidCtx.textAlign = 'center';
+        braidCtx.fillText(f.name, x, y - dotR - 4);
+      }
+    });
+
+    // Title
+    braidCtx.fillStyle = 'rgba(163,113,247,0.2)';
+    braidCtx.font = '10px monospace';
+    braidCtx.textAlign = 'center';
+    braidCtx.fillText('sourdough braid — each feed is a strand, time flows right →', w / 2, 20);
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// Mode switching
+document.querySelector('.mode-btns').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  mode = btn.dataset.mode;
+  document.querySelectorAll('.mode-btns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#mixer, #sphere, #grid, #braid').forEach(el => el.classList.remove('active'));
+  document.getElementById(mode).classList.add('active');
+  if (mode === 'sphere') renderSphere();
+  if (mode === 'braid') renderBraid();
+});
+
+// Init
+scanFeeds();
+setInterval(scanFeeds, Math.PI * 10000);
+</script>
+</body>
+</html>
