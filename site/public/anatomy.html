@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomy — the meat, organs, offal, sinew, nerves, bones, immune</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --fg: #c9d1d9; --dim: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --gold: #d29922; --orange: #f0883e;
+  --red: #f85149; --purple: #a371f7;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.5 'SF Mono', monospace; }
+
+header { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { font-size: 1em; font-weight: 200; color: var(--red); }
+.nav-links { font-size: .8em; margin-left: auto; }
+.nav-links a { color: var(--blue); text-decoration: none; margin: 0 4px; }
+
+#main { display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: calc(100vh - 40px); }
+
+/* === BODY FIGURE (left) === */
+#body-fig { border-right: 1px solid var(--border); padding: 12px; position: relative; overflow: hidden; }
+#body-fig canvas { display: block; margin: 0 auto; }
+
+/* === SYSTEM LIST (right) === */
+#systems { overflow-y: auto; padding: 12px 16px; }
+
+.sys-card {
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+  overflow: hidden; cursor: pointer; transition: all .2s;
+}
+.sys-card:hover { border-color: var(--gold); }
+.sys-card.active { border-color: var(--blue); }
+.sys-card .head {
+  padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+}
+.sys-card .head .icon { font-size: 18px; }
+.sys-card .head .title { font-weight: 600; font-size: 11px; flex: 1; }
+.sys-card .head .common { font-size: 9px; color: var(--dim); }
+
+.sys-card .body { display: none; padding: 8px 12px; font-size: 10px; }
+.sys-card.active .body { display: block; }
+
+.sys-card .maps { margin: 4px 0; }
+.sys-card .maps span { display: inline-block; background: rgba(88,166,255,0.08); padding: 1px 6px; border-radius: 8px; font-size: 8px; color: var(--blue); margin: 1px 2px; }
+
+.sys-card .function { color: var(--dim); margin: 4px 0; font-style: italic; }
+
+.sys-card .comp-table { width: 100%; margin: 6px 0; border-collapse: collapse; font-size: 9px; }
+.sys-card .comp-table th { text-align: left; font-weight: normal; color: var(--dim); padding: 2px 4px; border-bottom: 1px solid var(--border); }
+.sys-card .comp-table td { padding: 2px 4px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: top; }
+.sys-card .comp-table td:first-child { color: var(--gold); font-weight: 600; min-width: 60px; }
+
+.sys-card .insight { margin-top: 6px; padding: 6px 8px; background: rgba(163,113,247,0.06); border-radius: 6px; font-size: 9px; color: var(--purple); }
+
+/* === COMPARATIVE BANNER === */
+.comp-banner {
+  margin: 8px 0; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 10px;
+}
+.comp-banner h3 { color: var(--gold); font-size: 12px; margin-bottom: 4px; }
+.comp-banner .pcp { color: var(--orange); margin-top: 6px; }
+
+footer { padding: 6px 12px; border-top: 1px solid var(--border); font-size: .8em; color: var(--dim); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <span>🫀</span>
+  <h1>anatomy — the meat, organs, sinew, nerves, bones</h1>
+  <div class="nav-links">
+    <a href="/">HUD</a> <a href="/membrane-table.html">table</a> <a href="/digestive-tract.html">tract</a>
+    <a href="/pi-budget.html">π budget</a> <a href="/dashboard-mixer.html">mixer</a> <a href="/self-model.html">self</a>
+  </div>
+</header>
+
+<div id="main">
+  <div id="body-fig">
+    <canvas id="vitruvian" width="256" height="600"></canvas>
+  </div>
+  <div id="systems"></div>
+</div>
+
+<script>
+'use strict';
+
+const SYSTEM_COLORS = {
+  skeletal: '#c9d1d9', muscular: '#f85149', digestive: '#f0883e', nervous: '#a371f7',
+  circulatory: '#f85149', integumentary: '#58a6ff', immune: '#3fb950', endocrine: '#d29922',
+  reproductive: '#3fb950', excretory: '#6e7681', respiratory: '#58a6ff'
+};
+
+const BODY_REGIONS = {
+  skeletal: { y: 0.15, label: 'spine' },
+  nervous: { y: 0.08, label: 'brain' },
+  respiratory: { y: 0.28, label: 'lungs' },
+  circulatory: { y: 0.32, label: 'heart' },
+  immune: { y: 0.36, label: 'thymus' },
+  endocrine: { y: 0.12, label: 'pituitary' },
+  digestive: { y: 0.48, label: 'gut' },
+  muscular: { y: 0.42, label: 'core' },
+  excretory: { y: 0.55, label: 'kidney' },
+  reproductive: { y: 0.62, label: 'gonad' },
+  integumentary: { y: 0.02, label: 'skin' },
+};
+
+let data = null;
+let activeSystem = null;
+
+async function load() {
+  const resp = await fetch('/data/anatomy.json');
+  data = await resp.json();
+  renderBody();
+  renderSystems();
+}
+
+function renderBody() {
+  const c = document.getElementById('vitruvian');
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  const cx = w / 2;
+
+  function frame() {
+    const t = Date.now() * 0.001;
+    ctx.clearRect(0, 0, w, h);
+
+    // Vitruvian circle + square
+    ctx.strokeStyle = 'rgba(210,153,34,0.08)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.arc(cx, h * 0.35, h * 0.28, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeRect(cx - h * 0.22, h * 0.07, h * 0.44, h * 0.56);
+
+    // Spine (central axis)
+    ctx.strokeStyle = 'rgba(201,209,217,0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, h * 0.06); ctx.lineTo(cx, h * 0.68); ctx.stroke();
+
+    // Head (circle)
+    ctx.strokeStyle = 'rgba(163,113,247,0.2)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, h * 0.06, 16, 0, Math.PI * 2); ctx.stroke();
+
+    // Shoulders
+    ctx.strokeStyle = 'rgba(201,209,217,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - 50, h * 0.16); ctx.lineTo(cx + 50, h * 0.16); ctx.stroke();
+
+    // Arms
+    ctx.beginPath(); ctx.moveTo(cx - 50, h * 0.16); ctx.lineTo(cx - 80, h * 0.38); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 50, h * 0.16); ctx.lineTo(cx + 80, h * 0.38); ctx.stroke();
+
+    // Ribs (T1-T12 region)
+    for (let i = 0; i < 6; i++) {
+      const ry = h * 0.18 + i * 14;
+      const rw = 35 - i * 2;
+      ctx.strokeStyle = 'rgba(201,209,217,0.05)';
+      ctx.beginPath();
+      ctx.ellipse(cx, ry, rw, 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Pelvis
+    ctx.strokeStyle = 'rgba(201,209,217,0.08)';
+    ctx.beginPath();
+    ctx.ellipse(cx, h * 0.56, 30, 12, 0, 0, Math.PI);
+    ctx.stroke();
+
+    // Legs
+    ctx.beginPath(); ctx.moveTo(cx - 20, h * 0.58); ctx.lineTo(cx - 30, h * 0.82); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 20, h * 0.58); ctx.lineTo(cx + 30, h * 0.82); ctx.stroke();
+
+    // Organ dots with labels
+    if (data) {
+      data.body_systems.forEach(sys => {
+        const region = BODY_REGIONS[sys.system];
+        if (!region) return;
+        const color = SYSTEM_COLORS[sys.system] || '#888';
+        const isActive = activeSystem === sys.system;
+        const yPos = h * (region.y + 0.06);
+
+        // Organ glow
+        const pulse = Math.sin(t * 1.5 + region.y * 10) * 0.15;
+        const r = isActive ? 10 : 5;
+        const grad = ctx.createRadialGradient(cx, yPos, 0, cx, yPos, r + 4);
+        grad.addColorStop(0, color + (isActive ? '88' : '44'));
+        grad.addColorStop(1, color + '00');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, yPos, r + 4, 0, Math.PI * 2); ctx.fill();
+
+        // Organ dot
+        ctx.fillStyle = color;
+        ctx.globalAlpha = isActive ? 1 : (0.4 + pulse);
+        ctx.beginPath(); ctx.arc(cx, yPos, r, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Icon + label
+        ctx.fillStyle = color + (isActive ? 'ff' : '88');
+        ctx.font = isActive ? 'bold 9px monospace' : '8px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(sys.icon + ' ' + region.label, cx + r + 8, yPos + 3);
+      });
+    }
+
+    // Klein skin outline (the integumentary system)
+    if (activeSystem === 'integumentary') {
+      ctx.strokeStyle = 'rgba(88,166,255,0.15)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.arc(cx, h * 0.35, h * 0.3, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // The O at center (navel)
+    ctx.strokeStyle = 'rgba(210,153,34,' + (0.15 + Math.sin(t) * 0.05) + ')';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, h * 0.42, 6, 0, Math.PI * 2); ctx.stroke();
+
+    // "the offal underneath"
+    ctx.fillStyle = 'rgba(201,209,217,0.06)';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('the offal underneath', cx, h * 0.88);
+    ctx.fillText('inject the self INTO the body', cx, h * 0.91);
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function renderSystems() {
+  const container = document.getElementById('systems');
+  let html = '';
+
+  html += `<div class="comp-banner">
+    <h3>Why comparative anatomy matters</h3>
+    <div>You cannot understand human skin by studying only human skin. You need dog skin (7μm), cat skin (25μm),
+    fish scales, fungal cell walls. The PATTERN is: a boundary between self and world, made of different materials
+    at different thicknesses, solving the same problem.</div>
+    <div class="pcp">PCP calms chimps but agitates humans — same molecule, different architecture, opposite effect.
+    NMDA receptor density in the prefrontal cortex differs between species. This is why we compare.</div>
+  </div>`;
+
+  data.body_systems.forEach(sys => {
+    const color = SYSTEM_COLORS[sys.system] || '#888';
+    const comp = sys.comparative;
+
+    html += `
+    <div class="sys-card" data-sys="${sys.system}" onclick="toggleSystem('${sys.system}')">
+      <div class="head">
+        <span class="icon">${sys.icon}</span>
+        <span class="title" style="color:${color}">${sys.system}</span>
+        <span class="common">${sys.common_name}</span>
+      </div>
+      <div class="body">
+        <div class="function">${sys.function}</div>
+        <div class="maps">${sys.membrane_maps_to.map(m => '<span>' + m + '</span>').join('')}</div>
+        <table class="comp-table">
+          <thead><tr><th>species</th><th>implementation</th></tr></thead>
+          <tbody>
+            ${Object.entries(comp).map(([sp, impl]) =>
+              `<tr><td>${sp}</td><td>${impl}</td></tr>`
+            ).join('')}
+          </tbody>
+        </table>
+        <div class="insight">${sys.key_insight}</div>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleSystem(sys) {
+  const cards = document.querySelectorAll('.sys-card');
+  const wasActive = activeSystem === sys;
+  activeSystem = wasActive ? null : sys;
+  cards.forEach(c => {
+    c.classList.toggle('active', c.dataset.sys === activeSystem);
+  });
+}
+
+load();
+</script>
+</body>
+</html>
