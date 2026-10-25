@@ -1,0 +1,118 @@
+{
+  "ts": "2026-10-25T13:15:00Z",
+  "wave": 214,
+  "title": "ludoSpring Voids — the negative space, where to look next",
+
+  "void_fraction": 0.622,
+  "coverage": 0.378,
+  "convergence": "coverage (0.378) ≈ selectivity (1/π = 0.318) — converging",
+  "irreducible_floor": 0.14159,
+
+  "voids": [
+    {
+      "id": "void-stone-age",
+      "severity": "largest",
+      "boundary": ["epoch-stone-age", "epoch-bronze-age", "epoch-cenozoic", "epoch-oral-tradition", "game-kenshi"],
+      "missing_edges": 6,
+      "fix": ["bronze-age→cenozoic", "bronze-age→oral-tradition", "bronze-age→kenshi", "cenozoic→oral-tradition", "cenozoic→kenshi", "oral-tradition→kenshi"],
+      "gps_center": {"x": 0.55, "y": 0.70},
+      "thesis": "Stone Age is a hub that touches everything but nothing touches each other through it. The Neolithic gap."
+    },
+    {
+      "id": "void-writing",
+      "severity": "large",
+      "boundary": ["epoch-writing", "epoch-bronze-age", "epoch-oral-tradition", "epoch-renaissance", "game-kenshi"],
+      "missing_edges": 6,
+      "fix": ["bronze-age→oral-tradition", "bronze-age→renaissance", "bronze-age→kenshi", "oral-tradition→renaissance", "oral-tradition→kenshi", "renaissance→kenshi"],
+      "gps_center": {"x": 0.65, "y": 0.65},
+      "thesis": "The literacy transition. Writing changed everything but it's not yet connected to the games that model it."
+    },
+    {
+      "id": "void-oral-tradition",
+      "severity": "medium",
+      "boundary": ["epoch-oral-tradition", "epoch-stone-age", "epoch-writing", "game-caves-of-qud"],
+      "missing_edges": 3,
+      "fix": ["stone-age→writing", "stone-age→caves-of-qud", "writing→caves-of-qud"],
+      "gps_center": {"x": 0.48, "y": 0.68},
+      "thesis": "Caves of Qud IS oral tradition. The game literally generates myths. This void should close FIRST.",
+      "priority": 1
+    },
+    {
+      "id": "void-medieval",
+      "severity": "medium",
+      "boundary": ["epoch-medieval", "epoch-iron-age", "epoch-renaissance", "game-kenshi"],
+      "missing_edges": 3,
+      "fix": ["iron-age→renaissance", "iron-age→kenshi", "renaissance→kenshi"],
+      "gps_center": {"x": 0.75, "y": 0.58},
+      "thesis": "Kenshi IS medieval. This void should close SECOND.",
+      "priority": 2
+    },
+    {
+      "id": "void-industrial",
+      "severity": "medium",
+      "boundary": ["epoch-industrial", "epoch-digital", "epoch-renaissance", "game-satisfactory"],
+      "missing_edges": 3,
+      "fix": ["digital→renaissance", "digital→satisfactory", "renaissance→satisfactory"],
+      "gps_center": {"x": 0.88, "y": 0.55},
+      "thesis": "Satisfactory IS industrialization. This void should close THIRD.",
+      "priority": 3
+    },
+    {
+      "id": "void-caves-of-qud",
+      "severity": "small",
+      "boundary": ["game-caves-of-qud", "corpus", "epoch-oral-tradition"],
+      "missing_edges": 1,
+      "fix": ["corpus→oral-tradition"],
+      "gps_center": {"x": 0.20, "y": 0.55},
+      "thesis": "One missing edge. The corpus has the game data. Oral tradition has the epoch. Connect them."
+    },
+    {
+      "id": "void-satisfactory",
+      "severity": "small",
+      "boundary": ["game-satisfactory", "corpus", "epoch-industrial"],
+      "missing_edges": 1,
+      "fix": ["corpus→industrial"],
+      "gps_center": {"x": 0.75, "y": 0.58}
+    },
+    {
+      "id": "void-big-bang",
+      "severity": "small",
+      "boundary": ["epoch-big-bang", "epoch-stellar-nucleosynthesis", "game-noita"],
+      "missing_edges": 1,
+      "fix": ["stellar-nucleosynthesis→noita"],
+      "gps_center": {"x": 0.12, "y": 0.88},
+      "thesis": "Noita IS stellar nucleosynthesis — the game simulates particle physics from first principles."
+    },
+    {
+      "id": "void-proterozoic",
+      "severity": "small",
+      "boundary": ["epoch-proterozoic", "epoch-archean", "epoch-cambrian"],
+      "missing_edges": 1,
+      "fix": ["archean→cambrian"],
+      "gps_center": {"x": 0.35, "y": 0.80}
+    },
+    {
+      "id": "void-cenozoic",
+      "severity": "small",
+      "boundary": ["epoch-cenozoic", "epoch-mesozoic", "epoch-stone-age"],
+      "missing_edges": 1,
+      "fix": ["mesozoic→stone-age"],
+      "gps_center": {"x": 0.50, "y": 0.72}
+    },
+    {
+      "id": "void-iron-age",
+      "severity": "small",
+      "boundary": ["epoch-iron-age", "epoch-bronze-age", "epoch-medieval"],
+      "missing_edges": 1,
+      "fix": ["bronze-age→medieval"],
+      "gps_center": {"x": 0.72, "y": 0.62}
+    }
+  ],
+
+  "how_hud_renders_voids": {
+    "dim_boundary": "Draw a faint dashed polygon connecting boundary nodes. Fill with 2% opacity of the face color.",
+    "on_hover": "Show: 'This space is unexplored. {fix[0]} would connect it.'",
+    "on_close": "When a void closes (new edge added), flash the area with the new triad's face color, then fade.",
+    "priority_glow": "Voids with priority 1-3 get a subtle pulse animation to draw attention."
+  }
+}
