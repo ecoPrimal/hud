@@ -1,0 +1,90 @@
+{
+  "ts": "2026-10-25T01:20:00Z",
+  "wave": 212,
+  "title": "Solar Hook Manifest — the ONE cron, the silver wires, the scaffold",
+
+  "concept": {
+    "hook": "ONE cron entry. ONE line. The path the sun draws on the horizon. Gold/brass.",
+    "weld": "spigot-wrap.sh IS the membrane of time. It sits between fire and not-fire.",
+    "wires": "Each script is a silver wire hanging from the brass hook. Different lengths = different frequencies.",
+    "clock": "EPOCH minutes. beat(N) fires when MINUTE % N == 0. No complex schedule. Just division.",
+    "old": "13 cron entries, each a separate line, each its own frequency",
+    "new": "1 cron entry: * * * * * /opt/membrane/solar-hook.sh"
+  },
+
+  "code_census": {
+    "rust_source": {"count": 20, "path": "/opt/sporePrint/crates/", "state": "deployed", "type": "sporePrint validator"},
+    "rust_binaries": {
+      "stalwart": {"path": "/opt/stalwart/bin/stalwart", "role": "sovereign email (AGPL)", "state": "running"},
+      "hbbs": {"path": "/opt/rustdesk-relay/hbbs", "role": "RustDesk rendezvous (AGPL)", "state": "running"},
+      "hbbr": {"path": "/opt/rustdesk-relay/hbbr", "role": "RustDesk relay (AGPL)", "state": "running"}
+    },
+    "python": {"count": 55, "total_lines": 15358, "path": "/opt/membrane/", "state": "scaffold-needed"},
+    "shell": {"count": 25, "total_lines": 2278, "path": "/opt/membrane/", "state": "running"},
+    "javascript": {"count": 20, "path": "/opt/hud/public/js/", "state": "deployed"},
+    "html": {"count": 1369, "state": "deployed"},
+    "json_data": {"count": 1131, "state": "35 live-terminal, rest static"}
+  },
+
+  "wires": {
+    "breath": {
+      "frequency": "1 min",
+      "scripts": [
+        {"name": "cap-epitope.sh", "reads": "CF analytics, live-terminal", "writes": "epitope data", "lines": 50, "lang": "bash"}
+      ]
+    },
+    "heartbeat": {
+      "frequency": "2 min",
+      "scripts": [
+        {"name": "briquette.sh", "reads": "campfire state", "writes": "campfire.json", "lines": 30, "lang": "bash"},
+        {"name": "klein-io.sh", "reads": "system state, ports, services", "writes": "chipmunk.json, topology.json, membrane.json, pulse.json, doorbell.json, state.json, neutron.json", "lines": 199, "lang": "bash"}
+      ]
+    },
+    "circulation": {
+      "frequency": "5 min",
+      "scripts": [
+        {"name": "klein-vent.sh", "reads": "gas state, feeds", "writes": "vent data", "lines": 193, "lang": "bash"},
+        {"name": "membrane-pulse.sh", "reads": "RAM, load, connections, services", "writes": "membrane-pulse.json", "lines": 55, "lang": "bash"},
+        {"name": "sourdough-cache.sh", "reads": "feed cache, TTLs", "writes": "sourdough-cache.json", "lines": 174, "lang": "bash"},
+        {"name": "update-was.sh", "reads": "WAS snapshots", "writes": "was state", "lines": 50, "lang": "bash"},
+        {"name": "droplet-monitor.sh", "reads": "DO API", "writes": "droplets.json", "lines": 66, "lang": "bash"},
+        {"name": "heartbeat-update.sh", "reads": "eastgate pulse, LAN", "writes": "heartbeat.json", "lines": 50, "lang": "bash"}
+      ]
+    },
+    "digestion": {
+      "frequency": "15 min",
+      "scripts": [
+        {"name": "chipmunk-journey.py", "reads": "all feeds, journey state", "writes": "chipmunk journey, fermentation", "lines": 298, "lang": "python"},
+        {"name": "cf-arterial-pump.sh", "reads": "CF GraphQL analytics", "writes": "cf-arterial.json", "lines": 127, "lang": "bash+python"}
+      ]
+    },
+    "hormesis": {
+      "frequency": "30 min",
+      "scripts": [
+        {"name": "hormesis-thymus-bounce.sh", "reads": "stress signals, bounce data", "writes": "thymus bounce", "lines": 50, "lang": "bash"}
+      ]
+    },
+    "tides": {
+      "frequency": "60 min (NEW)",
+      "scripts": [
+        {"name": "scan_sweep_sort.py", "reads": "all 1131 JSONs, feed graph", "writes": "sorted feeds, health", "lines": 2879, "lang": "python"}
+      ]
+    },
+    "seasons": {
+      "frequency": "6h (NEW)",
+      "scripts": [
+        {"name": "taxonomy-braid.py", "reads": "all feeds, braid graph", "writes": "taxonomy, classification", "lines": 337, "lang": "python"},
+        {"name": "yggdrasil.py", "reads": "full tree, all data", "writes": "world tree", "lines": 450, "lang": "python"}
+      ]
+    }
+  },
+
+  "scaffold_needed": {
+    "what": "55 Python scripts are good solves but need to be written as scaffold",
+    "plan": "each script declares: frequency, inputs, outputs, health check",
+    "format": "a MANIFEST dict at the top of each .py that the solar hook can read",
+    "reverse_dogma": "scan all scripts, extract their I/O, build the dependency graph, trim dead wires"
+  },
+
+  "pull": "1 cron. 1 hook. The sun travels the horizon. Silver wires hang from gold brass. The spigot IS the membrane of time."
+}
