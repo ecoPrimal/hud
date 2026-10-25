@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power reset · SELF validate — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/power-reset-self-validate.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --tick:#c45c26; --ok:#2ea043; --mute:#5c5854; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#e6e2d8; --paper:#101218; --mute:#9a958e; } }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.45;
+    background: radial-gradient(ellipse 45% 30% at 10% 0%, rgba(196,92,38,.16), transparent 50%), var(--paper); }
+  main { max-width:42rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.7rem,5.5vw,2.5rem); margin:0 0 .35rem; letter-spacing:-.03em; }
+  .tag { color:var(--tick); font-weight:600; }
+  .cell { border-top:1px solid rgba(20,22,28,.12); padding:1rem 0; }
+  a { color:var(--ok); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Power reset</h1>
+  <p class="tag">self validate · nap ≠ sleep ≠ hard cut</p>
+  <p>Locked. Power cycled. Journal cliff. Cold awareness is the double-check.</p>
+  <div class="cell" id="v">…</div>
+  <div class="cell" id="b">…</div>
+  <div class="cell" id="d">…</div>
+  <p><a href="/power-reset-self-validate.json">JSON</a></p>
+  <footer>ecoPrimals · dissonance after wake is the gift</footer>
+</main>
+<script>
+fetch('/power-reset-self-validate.json').then(r=>r.json()).then(d=>{
+  document.getElementById('v').textContent = d.what_broke_verdict.best_fit;
+  document.getElementById('b').textContent =
+    `storage: SSD root (not HDD) · fs ${d.what_broke_verdict.storage.fs_state_after_reboot} · RAM mixed non-ECC · gap ${d.event.gap_sec}s`;
+  document.getElementById('d').textContent =
+    `storms at cliff: forgejo×${d.what_broke_verdict.software_storm_before_cliff.forgejo_fail_exec_count_prev_boot} · songbird restart# ${d.what_broke_verdict.software_storm_before_cliff.songbird_restart_counter_at_cliff}`;
+});
+</script>
+</body>
+</html>

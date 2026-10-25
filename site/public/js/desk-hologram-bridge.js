@@ -2,7 +2,7 @@
 // desk icons appear on the HUD hologram as an inner ring
 // HUD hologram appears in the desk as a looking-down pane
 // the fold where inside meets outside
-// v1
+// v2 — labels offset to avoid hologram node overlap, pulse ring
 
 (function() {
   'use strict';
@@ -24,10 +24,19 @@
 
   function drawDeskRing(ctx, cx, cy, scale, t) {
     if (!ctx) return;
-    const ringR = 55 * scale;
+    const ringR = 50 * scale;
     const n = DESK_PANES.length;
 
     ctx.save();
+
+    // Draw the desk orbit ring — faint dashed circle
+    ctx.strokeStyle = 'rgba(88,166,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
     DESK_PANES.forEach((pane, i) => {
       const angle = (i / n) * Math.PI * 2 - Math.PI / 2 + t * 0.008;
@@ -35,30 +44,36 @@
       const py = cy + Math.sin(angle) * ringR;
 
       const isActive = deskState.activePanes.includes(pane.id);
-      const alpha = isActive ? 0.6 : 0.15;
-      const glow = isActive ? 4 : 0;
+      const alpha = isActive ? 0.7 : 0.12;
+      const nodeR = (isActive ? 5 : 2.5) * scale;
 
-      if (glow > 0) {
+      if (isActive) {
         ctx.shadowColor = pane.color;
-        ctx.shadowBlur = glow;
+        ctx.shadowBlur = 6;
       }
 
       ctx.fillStyle = pane.color.replace(/[\d.]+\)$/, alpha + ')');
       ctx.beginPath();
-      ctx.arc(px, py, (isActive ? 5 : 3) * scale, 0, Math.PI * 2);
+      ctx.arc(px, py, nodeR, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.shadowBlur = 0;
 
-      ctx.font = `${Math.round(8 * scale)}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = `rgba(201,209,217,${isActive ? 0.5 : 0.2})`;
-      ctx.fillText(pane.label, px, py + 12 * scale);
+      // Labels: place INSIDE the ring (toward center) to avoid fighting outer nodes
+      const labelR = ringR - 14 * scale;
+      const lx = cx + Math.cos(angle) * labelR;
+      const ly = cy + Math.sin(angle) * labelR;
 
+      ctx.font = `${Math.round(7 * scale)}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(201,209,217,${isActive ? 0.45 : 0.12})`;
+      ctx.fillText(pane.label, lx, ly);
+
+      // Active spokes — connect to center
       if (isActive) {
-        ctx.strokeStyle = pane.color.replace(/[\d.]+\)$/, '0.15)');
+        ctx.strokeStyle = pane.color.replace(/[\d.]+\)$/, '0.08)');
         ctx.lineWidth = 0.5;
-        ctx.setLineDash([2, 4]);
+        ctx.setLineDash([2, 6]);
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.lineTo(px, py);
@@ -67,10 +82,12 @@
       }
     });
 
-    ctx.font = `${Math.round(7 * scale)}px monospace`;
+    // Center label
+    ctx.font = `${Math.round(6 * scale)}px monospace`;
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(88,166,255,0.2)';
-    ctx.fillText('desk', cx, cy + ringR + 18 * scale);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(88,166,255,0.15)';
+    ctx.fillText('desk ↕', cx, cy + ringR + 14 * scale);
 
     ctx.restore();
   }

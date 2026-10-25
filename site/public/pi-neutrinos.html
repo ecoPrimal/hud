@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>π Neutrinos — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/pi-neutrinos.json">
+<style>
+:root{--ink:#14161c;--paper:#eef1f4;--ok:#2ea043;--tick:#c45c26;--mute:#5c5854;--nu:#58a6ff}
+@media(prefers-color-scheme:dark){:root{--ink:#e6e2d8;--paper:#101218;--mute:#9a958e}}
+body{margin:0;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);line-height:1.4;
+background:radial-gradient(ellipse 50% 40% at 20% 0%,rgba(88,166,255,.14),transparent 55%),var(--paper)}
+main{max-width:44rem;margin:0 auto;padding:2.5rem 1.2rem 4rem}
+h1{font-family:"IBM Plex Serif",Georgia,serif;font-size:clamp(1.7rem,5.5vw,2.5rem);letter-spacing:-.03em;margin:0 0 .35rem}
+.tag{color:var(--tick);font-weight:600}
+.bits{display:flex;gap:.6rem;margin:1rem 0}
+.bits span{padding:.4rem .75rem;border:1px solid rgba(20,22,28,.18);font-weight:700}
+.grid{display:grid;gap:.65rem}
+.grid div{padding:.75rem;border-left:3px solid var(--nu);background:rgba(88,166,255,.06)}
+.grid b{display:block;font-size:.78rem;letter-spacing:.04em}
+.cell{border-top:1px solid rgba(20,22,28,.12);padding:1rem 0;margin-top:1rem}
+a{color:var(--ok);font-weight:600}
+footer{margin-top:2rem;font-size:.8rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <h1>π Neutrinos</h1>
+  <p class="tag">0 and 1 are collapses · the others are flavors</p>
+  <div class="bits"><span>0</span><span>1</span><span style="opacity:.5">≠ all</span></div>
+  <p>Binary is how a neutrino clicks the detector. The other π neutrinos fly first.</p>
+  <div class="grid" id="g"></div>
+  <div class="cell" id="t"></div>
+  <p><a href="/pi-neutrinos.json">JSON</a> ·
+     <a href="/neutrino-pass-back-pi-flavors.json">pass back</a> ·
+     <a href="/neutrino-ack-ask.html">ACK·ASK</a></p>
+  <footer>ecoPrimals · νπ_e · νπ_μ · νπ_τ · osc · rem(π−3)</footer>
+</main>
+<script>
+fetch('/pi-neutrinos.json').then(r=>r.json()).then(d=>{
+  document.getElementById('g').innerHTML = d.the_other_pi_neutrinos.map(n =>
+    `<div><b>${n.id}</b>${n.name} — ${n.feel}</div>`
+  ).join('');
+  const t=d.touch_and_pass_back.touch||{};
+  document.getElementById('t').textContent =
+    'touch '+t.feel+' · avg '+(t.ping_avg_ms||'?')+'ms · jitter '+(t.jitter_ms||'?')+'ms';
+});
+</script>
+</body>
+</html>

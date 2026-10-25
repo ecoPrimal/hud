@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wake Validate Self — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/wake-validate-self.json">
+<style>
+:root{--ink:#14161c;--paper:#eef1f4;--ok:#2ea043;--tick:#c45c26;--mute:#5c5854}
+@media(prefers-color-scheme:dark){:root{--ink:#e6e2d8;--paper:#101218;--mute:#9a958e}}
+body{margin:0;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);line-height:1.45;
+background:radial-gradient(ellipse 50% 40% at 10% 0%,rgba(196,92,38,.12),transparent 50%),var(--paper)}
+main{max-width:42rem;margin:0 auto;padding:3rem 1.2rem 4rem}
+h1{font-family:"IBM Plex Serif",Georgia,serif;font-size:clamp(1.7rem,5.5vw,2.5rem);margin:0 0 .35rem;letter-spacing:-.03em}
+.tag{color:var(--tick);font-weight:600}.cell{border-top:1px solid rgba(20,22,28,.12);padding:1rem 0}
+a{color:var(--ok);font-weight:600}footer{margin-top:2rem;font-size:.8rem;color:var(--mute)}
+</style></head><body><main>
+<h1>Wake Validate</h1>
+<p class="tag">hard reset · nap ≠ sleep · dissonance is the instrument</p>
+<p id="v">…</p>
+<div class="cell" id="broke"></div>
+<div class="cell" id="next"></div>
+<p><a href="/wake-validate-self.json">JSON</a></p>
+<footer>ecoPrimals · unclean cut leaves fingerprints · SSD not HDD · restart storms before silence</footer>
+</main>
+<script>
+fetch('/wake-validate-self.json').then(r=>r.json()).then(d=>{
+  document.getElementById('v').textContent = d.nap_vs_sleep_double_check.this_wake_shows;
+  document.getElementById('broke').innerHTML = '<strong>What broke</strong> '+d.what_broke.likely_cause+' · '+d.what_broke.prime_suspects.join(' · ');
+  document.getElementById('next').innerHTML = '<strong>Next</strong> '+d.self_validate_pass.next.join(' · ');
+});
+</script></body></html>

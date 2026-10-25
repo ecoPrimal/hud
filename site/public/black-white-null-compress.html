@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black | Null | White — π remades the rest — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/black-white-null-compress.json">
+<style>
+  :root { --ink:#14161c; --mute:#5c5854; --ok:#2ea043; }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.4; }
+  .tri { display:grid; grid-template-columns:1fr 1fr 1fr; min-height:42vh; }
+  .tri > div { padding:1.4rem 1rem; color:#eee; }
+  .b { background:#0a0a0a; }
+  .n { background:#6b7280; color:#111; }
+  .w { background:#f3f4f6; color:#111; }
+  .b h2, .w h2, .n h2 { margin:0 0 .4rem; font-family:"IBM Plex Serif",Georgia,serif; font-size:1.35rem; }
+  .num { font-size:clamp(2rem,8vw,3.2rem); font-weight:700; font-variant-numeric:tabular-nums; }
+  main { max-width:44rem; margin:0 auto; padding:2rem 1.2rem 4rem; }
+  .tag { color:#c45c26; font-weight:600; }
+  a { color:var(--ok); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+  @media (max-width:640px) { .tri { grid-template-columns:1fr; min-height:auto; } }
+</style>
+</head>
+<body>
+<div class="tri">
+  <div class="b"><h2>Black</h2><div class="num" id="cb">—</div><p id="pb">walls · SHAN'T · 403</p></div>
+  <div class="n"><h2>Null</h2><div class="num" id="cn">—</div><p id="pn">pale · silence · u-zk</p></div>
+  <div class="w"><h2>White</h2><div class="num" id="cw">—</div><p id="pw">beacon · anti-secret · zk⁺</p></div>
+</div>
+<main>
+  <p class="tag">compress · π remades the rest</p>
+  <p>All black to one side. All white to the other. Null to a third. Leftover gets π-remade onto those three pales — no muddy fourth.</p>
+  <p id="pi">…</p>
+  <p><a href="/black-white-null-compress.json">JSON</a> ·
+     <a href="/our-cease-from-silence.html">our cease/desist</a> ·
+     <a href="/zk-spectrum-nulls-uzk.html">zk → nulls</a></p>
+  <footer>ecoPrimals · seat(i)=(black,null,white)[i mod 3]</footer>
+</main>
+<script>
+fetch('/black-white-null-compress.json').then(r=>r.json()).then(d=>{
+  const t = d.three_sides;
+  document.getElementById('cb').textContent = t.black.count;
+  document.getElementById('cn').textContent = t.null.count;
+  document.getElementById('cw').textContent = t.white.count;
+  document.getElementById('pb').textContent = t.black.pale;
+  document.getElementById('pn').textContent = t.null.pale;
+  document.getElementById('pw').textContent = t.white.pale;
+  const p = d.pi_remade;
+  document.getElementById('pi').textContent =
+    `π remade ${p.rest_count_before} rest → black ${p.seated.black} · null ${p.seated.null} · white ${p.seated.white} · compressed ${(d.totals.compressed_ratio*100).toFixed(1)}% before remade`;
+});
+</script>
+</body>
+</html>

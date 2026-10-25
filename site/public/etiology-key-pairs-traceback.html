@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Etiology Key-Pairs · Traceback — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/etiology-key-pairs-traceback.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --ok:#2ea043; --tick:#c45c26; --mute:#5c5854; --crush:#b45309; --rip:#7c3aed; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.45;
+    background: linear-gradient(105deg, rgba(180,83,9,.1), transparent 45%, rgba(124,58,237,.1)), var(--paper); }
+  main { max-width:44rem; margin:0 auto; padding:3rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.7rem,5.5vw,2.5rem); letter-spacing:-.03em; margin:0 0 .35rem; }
+  .tag { color:var(--tick); font-weight:600; }
+  .ans { margin:1.2rem 0; padding:1rem; border-left:3px solid var(--rip); background:rgba(124,58,237,.06); }
+  .pair { border-top:1px solid rgba(20,22,28,.12); padding:.85rem 0; }
+  .pair b { color:var(--crush); }
+  .pair .ph { color:var(--rip); }
+  a { color:var(--ok); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+  .note { font-size:.85rem; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Key-Pairs</h1>
+  <p class="tag">etiology traceback · crush outside · rip inside</p>
+  <p class="note">Research face — not medical advice.</p>
+  <div class="ans" id="ans">…</div>
+  <div id="pairs"></div>
+  <p><a href="/etiology-key-pairs-traceback.json">JSON</a> ·
+     <a href="/immune-math-opsonize-drip.html">immune math</a> ·
+     <a href="/antifungal-neurotoxin-dataset.json">antifungal↔neurotoxin</a></p>
+  <footer>ecoPrimals · agent↔phenotype · walk cascade backward</footer>
+</main>
+<script>
+fetch('/etiology-key-pairs-traceback.json').then(r=>r.json()).then(d=>{
+  const a = d.answer_to_crush_question;
+  document.getElementById('ans').innerHTML =
+    `<strong>Shared system?</strong> ${a.a}<br><br>` +
+    `<em>Asbestos:</em> ${a.asbestos_nuance}<br><br>` +
+    `<em>HPV/cervix:</em> ${a.viral_nuance}`;
+  document.getElementById('pairs').innerHTML = d.key_pairs.slice(0,8).map(p =>
+    `<div class="pair"><b>${p.agent}</b> ↔ <span class="ph">${p.phenotype}</span><br>` +
+    `<small>crush: ${p.crush_point} · rip: ${p.rip_inside}</small></div>`
+  ).join('');
+});
+</script>
+</body>
+</html>

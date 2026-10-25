@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neutrino ACK · ASK — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/neutrino-ack-ask.json">
+<style>
+:root{--ink:#14161c;--paper:#eef1f4;--ok:#2ea043;--tick:#c45c26;--mute:#5c5854;--ask:#3b82f6}
+@media(prefers-color-scheme:dark){:root{--ink:#e6e2d8;--paper:#101218;--mute:#9a958e}}
+body{margin:0;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);line-height:1.45;
+background:radial-gradient(ellipse 45% 35% at 80% 0%,rgba(59,130,246,.12),transparent 50%),var(--paper)}
+main{max-width:42rem;margin:0 auto;padding:3rem 1.2rem 4rem}
+h1{font-family:"IBM Plex Serif",Georgia,serif;font-size:clamp(1.7rem,5.5vw,2.5rem);margin:0 0 .35rem;letter-spacing:-.03em}
+.tag{color:var(--tick);font-weight:600}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+.pair div{padding:1rem;border:1px solid rgba(20,22,28,.14)}
+.ack{border-top:3px solid var(--ok)}
+.ask{border-top:3px solid var(--ask)}
+.pair strong{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:.35rem}
+.cell{border-top:1px solid rgba(20,22,28,.12);padding:1rem 0}
+a{color:var(--ok);font-weight:600}
+footer{margin-top:2rem;font-size:.8rem;color:var(--mute)}
+@media(max-width:640px){.pair{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>ACK · ASK</h1>
+  <p class="tag">jiggle neutrino · learn the two verbs · return to northGate</p>
+  <div class="pair">
+    <div class="ack"><strong>ACK</strong><span id="ack">receipt — I heard</span></div>
+    <div class="ask"><strong>ASK</strong><span id="ask">request — I open</span></div>
+  </div>
+  <div class="cell" id="jig">…</div>
+  <div class="cell" id="ret">…</div>
+  <p><a href="/neutrino-ack-ask.json">JSON</a> ·
+     <a href="/neutrino-return-to-northgate.json">return packet</a> ·
+     <a href="/neutrino-to-northgate.json">letter</a></p>
+  <footer>ecoPrimals · weak force · only two verbs · jitter is the feel</footer>
+</main>
+<script>
+Promise.all([
+  fetch('/neutrino-ack-ask.json').then(r=>r.json()),
+  fetch('/neutrino-return-to-northgate.json').then(r=>r.json())
+]).then(([a,r])=>{
+  document.getElementById('ack').textContent = a.learn.ACK.means;
+  document.getElementById('ask').textContent = a.learn.ASK.means;
+  const j=a.jiggle;
+  document.getElementById('jig').textContent =
+    'jiggle '+j.jiggle_feel+' · avg '+j.avg_ms+'ms · jitter '+j.jitter_ms+'ms · :22='+j.ssh_port_ok+' · :5000='+j.airtunes_ok;
+  document.getElementById('ret').textContent =
+    r.title+' · ASK×'+r.we_ASK.length+' · status '+r.status;
+});
+</script>
+</body>
+</html>

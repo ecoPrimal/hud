@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kevin actions now</title>
+<style>
+:root{--ink:#14161c;--paper:#eef1f4;--tick:#c45c26;--ok:#2ea043}
+body{margin:0;font-family:IBM Plex Sans,sans-serif;background:var(--paper);color:var(--ink);line-height:1.45}
+main{max-width:40rem;margin:0 auto;padding:2.5rem 1.2rem}
+h1{font-family:IBM Plex Serif,Georgia,serif;font-size:clamp(1.6rem,5vw,2.2rem);margin:0 0 .4rem}
+.tag{color:var(--tick);font-weight:600}
+.cell{border-top:1px solid rgba(0,0,0,.12);padding:.9rem 0}
+.k{font-weight:700;color:var(--tick)}
+a{color:var(--ok);font-weight:600}
+</style></head>
+<body><main>
+<h1>Kevin actions</h1>
+<p class="tag">chair · Pages · print · optional ZK</p>
+<div id="list"></div>
+<p><a href="/kevin-actions-now.json">JSON</a> · <a href="/print-sheet-hymns-artisan.html">print sheet</a></p>
+</main>
+<script>
+fetch('/kevin-actions-now.json').then(r=>r.json()).then(d=>{
+  document.getElementById('list').innerHTML = d.actions.map(a=>
+    `<div class="cell"><div class="k">${a.id} · ${a.what}</div><div>${a.how}</div><div style="color:#5c5854;font-size:.9rem">${a.why}</div></div>`
+  ).join('');
+});
+</script></body></html>

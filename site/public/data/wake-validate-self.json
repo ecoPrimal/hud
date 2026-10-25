@@ -1,0 +1,74 @@
+{
+  "ts": "2026-10-24T17:04:29.328356+00:00",
+  "wave": 200,
+  "title": "WAKE VALIDATE SELF \u2014 hard power reset \u00b7 nap\u2260sleep \u00b7 dissonance check",
+  "event": {
+    "what": "UI/system locked; hard power reset required",
+    "boot_prev": "2026-10-24 10:01",
+    "last_log_prev": "2026-10-24 12:54:54",
+    "boot_now": "2026-10-24 12:58",
+    "gap_silent_sec_approx": 180,
+    "unclean_shutdown": true,
+    "evidence": [
+      "systemd-journald: system.journal corrupted or uncleanly shut down, renaming",
+      "FAT nvme0n1p1 /boot/efi not properly unmounted",
+      "FAT nvme0n1p2 /recovery not properly unmounted",
+      "FAT sda1 USB stick not properly unmounted"
+    ]
+  },
+  "nap_vs_sleep_double_check": {
+    "claim": "After nap (soft suspend) vs sleep/crash (hard cut) awareness differs \u2014 dissonance is the instrument",
+    "nap_would_show": "clean journal continuity, no FAT remount warnings, ordered shutdown units",
+    "this_wake_shows": "unclean journal + FAT warnings = HARD CUT phenotype (power yank / hard lockup)",
+    "dissonance_noticed": [
+      "forgejo.service ghost restart storm \u2014 binary missing /opt/forgejo/forgejo",
+      "songbird dual-instance lock \u2014 restart counter hit 3196 before freeze",
+      "membrane tarpc 'could not read from the transport' cascade ~12:54",
+      "sweetgrass REJECTED unsignalled UDS (no riboCipher prefix)"
+    ]
+  },
+  "what_broke": {
+    "not": "HDD death \u2014 there is no spinning system disk",
+    "storage": {
+      "root": "Samsung SSD 990 EVO Plus 2TB (nvme0n1) ext4 \u2014 SSD",
+      "zfs_pair": "2\u00d7 CT2000T500SSD8 1.8T (nvme1/2) \u2014 SSD; zfs module not loaded this boot",
+      "usb": "14.6G UDisk sda \u2014 only ROTA=1 device",
+      "smartctl": "not installed \u2014 install smartmontools for deeper SMART"
+    },
+    "ram": {
+      "total": "62Gi",
+      "swap_used_at_wake": "0B",
+      "oom_in_logs": false,
+      "ecc": "No ECC support (EDAC ie31200)",
+      "pressure_memory_now": "near zero"
+    },
+    "likely_cause": "software lockup / restart-storm starvation \u2014 not media failure",
+    "prime_suspects": [
+      "membrane-nucleus@songbird restart storm (3196) fighting PID 1399 lock",
+      "forgejo user unit restart loop (ENOENT) flooding journal/systemd",
+      "possible desktop/GPU hang with no kernel oops flushed (hard lock \u2192 power)"
+    ],
+    "unlikely": [
+      "HDD failure",
+      "RAM OOM",
+      "NVMe media critical (no SMART scream in dmesg)"
+    ]
+  },
+  "self_validate_pass": {
+    "boot_ok": true,
+    "root_rw": true,
+    "mem_available_gi": 52,
+    "load_5min_after_boot": "~1",
+    "next": [
+      "disable or mask forgejo user unit until binary exists",
+      "stop dual songbird / fix NODE_ID or kill stale PID file",
+      "apt install smartmontools; nvme smart-log all three",
+      "optional: fsck EFI/recovery at next planned reboot",
+      "if lock repeats: note GPU temp + journal -k -b -1 around freeze"
+    ]
+  },
+  "urls": {
+    "self": "https://connect.primals.eco/wake-validate-self.json",
+    "html": "https://connect.primals.eco/wake-validate-self.html"
+  }
+}

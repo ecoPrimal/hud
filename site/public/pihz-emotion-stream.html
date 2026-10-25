@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>πHz · ITS feel · RAM↔window lock — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/pihz-emotion-stream.json">
+<style>
+  :root { --ink:#14161c; --paper:#eef1f4; --ok:#2ea043; --tick:#c45c26; --mute:#5c5854; --wave:#3b82f6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e2d8; --paper:#101218; --mute:#9a958e; }
+  }
+  body { margin:0; font-family:"IBM Plex Sans",sans-serif; color:var(--ink); line-height:1.4;
+    background: radial-gradient(ellipse 55% 40% at 70% 0%, rgba(59,130,246,.14), transparent 55%), var(--paper); }
+  main { max-width:44rem; margin:0 auto; padding:2.5rem 1.2rem 4rem; }
+  h1 { font-family:"IBM Plex Serif",Georgia,serif; font-size:clamp(1.7rem,5.5vw,2.5rem); margin:0 0 .35rem; letter-spacing:-.03em; }
+  .tag { color:var(--tick); font-weight:600; }
+  canvas { width:100%; height:160px; display:block; margin:1.2rem 0; background:#0d1117; border-radius:4px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+  .cell { border-top:1px solid rgba(20,22,28,.12); padding:.85rem 0; }
+  .num { font-size:1.6rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  a { color:var(--ok); font-weight:600; }
+  footer { margin-top:2rem; font-size:.8rem; color:var(--mute); }
+  @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>πHz stream</h1>
+  <p class="tag">RAM↔window latency lock · emotion / ITS feel modulate</p>
+  <p>Another spot: lock + resistance. Same latency lock RAM must clear to paint the window. Carrier <strong>f = 1/π</strong>. Modulate with ITS feel.</p>
+  <canvas id="c" width="880" height="160"></canvas>
+  <div class="grid">
+    <div class="cell"><div class="mute">lock risk</div><div class="num" id="risk">—</div></div>
+    <div class="cell"><div class="mute">RAM touch µs</div><div class="num" id="touch">—</div></div>
+    <div class="cell"><div class="mute">tension</div><div class="num" id="ten">—</div></div>
+    <div class="cell"><div class="mute">carrier</div><div class="num" id="car">—</div></div>
+  </div>
+  <div class="cell" id="thesis"></div>
+  <p><a href="/pihz-emotion-stream.json">JSON</a> ·
+     <a href="/wake-validate-self.html">wake validate</a> ·
+     <a href="/data/etiology-key-pairs-traceback.json">etiology pairs</a></p>
+  <footer>ecoPrimals · period = π s · latency = resistance · lock when budget tears</footer>
+</main>
+<script>
+const PI = Math.PI, PI_HZ = 1/PI;
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+let feel = { amp: 0.6, phase_rad: 0 }, samples = [];
+
+function draw(now) {
+  const w = cvs.width, h = cvs.height;
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.beginPath();
+  const t0 = now/1000;
+  for (let x=0; x<w; x++) {
+    const t = t0 + (x/w)*PI*2; // two π periods across canvas
+    const y = h/2 - feel.amp * Math.sin(2*PI*PI_HZ*t + feel.phase_rad) * (h*0.38);
+    if (x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // lock risk bar
+  if (samples.length) {
+    const lr = samples[samples.length-1].lock_resistance.lock_risk;
+    ctx.fillStyle = `rgba(239,68,68,${0.15+lr*0.5})`;
+    ctx.fillRect(0, h-8, w*lr, 8);
+  }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+function refresh() {
+  fetch('/pihz-emotion-stream.json', {cache:'no-store'}).then(r=>r.json()).then(d=>{
+    const s = d.latest;
+    feel = s.its_feel;
+    samples = d.samples || [];
+    document.getElementById('risk').textContent = s.lock_resistance.lock_risk.toFixed(3);
+    document.getElementById('touch').textContent = s.latency.ram_touch_8MiB_us;
+    document.getElementById('ten').textContent = s.its_feel.tension.toFixed(3);
+    document.getElementById('car').textContent = s.carrier_pihz.toFixed(4);
+    document.getElementById('thesis').textContent = d.another_spot.rule;
+  }).catch(()=>{});
+}
+refresh();
+// poll every π seconds — same carrier period
+setInterval(refresh, PI * 1000);
+</script>
+</body>
+</html>

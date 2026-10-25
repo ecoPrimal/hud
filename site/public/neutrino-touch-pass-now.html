@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neutrino touch + pass — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/neutrino-touch-pass-now.json">
+<style>
+:root{--ink:#14161c;--paper:#eef1f4;--ok:#2ea043;--tick:#c45c26;--mute:#5c5854}
+@media(prefers-color-scheme:dark){:root{--ink:#e6e2d8;--paper:#101218;--mute:#9a958e}}
+body{margin:0;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);line-height:1.45;
+background:radial-gradient(ellipse 50% 35% at 30% 0%,rgba(46,160,67,.1),transparent 55%),var(--paper)}
+main{max-width:42rem;margin:0 auto;padding:2.8rem 1.2rem 4rem}
+h1{font-family:"IBM Plex Serif",Georgia,serif;font-size:clamp(1.7rem,5vw,2.4rem);margin:0 0 .35rem;letter-spacing:-.03em}
+.tag{color:var(--tick);font-weight:600}
+.cell{border-top:1px solid rgba(20,22,28,.12);padding:1rem 0}
+ul{padding-left:1.1rem;margin:.4rem 0}
+a{color:var(--ok);font-weight:600}
+footer{margin-top:2rem;font-size:.8rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Touch · Pass</h1>
+  <p class="tag">what's new · what's next</p>
+  <div class="cell" id="touch">…</div>
+  <div class="cell"><strong>New</strong><ul id="new"></ul></div>
+  <div class="cell"><strong>Next</strong><ul id="next"></ul></div>
+  <p><a href="/neutrino-touch-pass-now.json">JSON</a> ·
+     <a href="/membrane-hymns-localize.html">hymns</a> ·
+     <a href="/artisan-pi-series.html">artisan π</a></p>
+  <footer>ecoPrimals · soft path jiggle · packet to northGate</footer>
+</main>
+<script>
+fetch('/neutrino-touch-pass-now.json').then(r=>r.json()).then(d=>{
+  const t=d.touch;
+  document.getElementById('touch').textContent =
+    t.feel+' · avg '+t.ping_avg_ms+'ms · jitter '+t.jitter_ms+'ms · :22='+t.tcp_22.ok+' · :5000='+t.tcp_5000.ok+
+    ' · chair_ack http='+d.chair_ack['neutrino-from-northgate'].http;
+  document.getElementById('new').innerHTML = d.whats_new.map(x=>'<li>'+x+'</li>').join('');
+  document.getElementById('next').innerHTML = d.whats_next.map(x=>'<li>'+x+'</li>').join('');
+});
+</script>
+</body>
+</html>

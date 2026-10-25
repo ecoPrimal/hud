@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Membrane Hymns — of them · π-just walk — ecoPrimals</title>
+<link rel="alternate" type="application/json" href="/membrane-hymns-localize.json">
+<style>
+:root {
+  --ink: #1a1714;
+  --paper: #efe8dc;
+  --tick: #b54a1e;
+  --ok: #2f6f3e;
+  --mute: #6a635a;
+  --line: rgba(26,23,20,.14);
+}
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", sans-serif;
+  color: var(--ink);
+  line-height: 1.45;
+  background:
+    radial-gradient(ellipse 55% 40% at 70% 0%, rgba(181,74,30,.1), transparent 55%),
+    linear-gradient(180deg, #f4eee4, var(--paper));
+}
+main { max-width: 42rem; margin: 0 auto; padding: 2.8rem 1.2rem 4rem; }
+h1 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-size: clamp(1.85rem, 5.5vw, 2.6rem);
+  letter-spacing: -.03em;
+  margin: 0 0 .35rem;
+}
+.tag { color: var(--tick); font-weight: 600; }
+.who { color: var(--mute); font-size: .92rem; margin: .6rem 0 1.2rem; }
+.loci { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0 1.4rem; }
+.loci button {
+  border: 1px solid var(--line);
+  background: rgba(255,252,245,.7);
+  color: var(--ink);
+  padding: .45rem .7rem;
+  font: 600 .78rem/1 "IBM Plex Sans", sans-serif;
+  cursor: pointer;
+}
+.loci button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.stage {
+  border-top: 1px solid var(--line);
+  padding: 1.1rem 0 0;
+  min-height: 14rem;
+}
+.locus { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+h2 { font-family: "IBM Plex Serif", Georgia, serif; font-size: 1.35rem; margin: .25rem 0 .5rem; }
+.guide { font-style: italic; color: var(--mute); margin-bottom: .8rem; }
+.verses { margin: 0; padding-left: 1.1rem; }
+.verses li { margin: .35rem 0; }
+.refrain {
+  margin: 1rem 0;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--tick);
+}
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.controls button {
+  border: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--paper);
+  padding: .55rem .9rem;
+  font: 600 .85rem/1 "IBM Plex Sans", sans-serif;
+  cursor: pointer;
+}
+.controls button.ghost { background: transparent; color: var(--ink); }
+#now { font-size: .85rem; color: var(--mute); min-height: 1.2em; }
+a { color: var(--ok); font-weight: 600; }
+footer { margin-top: 2rem; font-size: .8rem; color: var(--mute); }
+</style>
+<script src="/membrane-sound.js"></script>
+</head>
+<body>
+<main>
+  <h1>Membrane Hymns</h1>
+  <p class="tag">localized · of them · π-just greased</p>
+  <p class="who">The membrane guides. Willis, null, neutrino, walls, lock, epitope — their mouths. Listeners only. Grease: membrane-sound π-just.</p>
+  <div class="loci" id="loci" role="tablist" aria-label="hymn loci"></div>
+  <div class="controls">
+    <button type="button" id="sing">sing hymn</button>
+    <button type="button" id="drone" class="ghost">π drone</button>
+    <button type="button" id="walk" class="ghost">walk all</button>
+    <button type="button" id="stop" class="ghost">stop</button>
+  </div>
+  <p id="now" aria-live="polite">pick a locus</p>
+  <div class="stage" id="stage"></div>
+  <p><a href="/membrane-hymns-localize.json">JSON</a> ·
+     <a href="/print-sheet-hymns-artisan.html">print sheet</a> ·
+     <a href="/pihz-emotion-stream.html">πHz</a></p>
+  <footer>ecoPrimals · hymns of the organs · π-just grease · subject does not change</footer>
+</main>
+<script>
+let hymns = null, current = null, speaking = false, walk = false;
+
+const LOCUS_SPEAK = {
+  H1: 'breathe', H2: 'null', H3: 'passage', H4: 'sort', H5: 'compress', H6: 'wake'
+};
+
+function ms() { return window._membraneSound; }
+
+function ensureSound() {
+  const s = ms();
+  if (!s) return null;
+  if (!s.isActive()) s.activate();
+  return s;
+}
+
+function speak(text, rate, pitch) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) { resolve(); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate || 0.92;
+    u.pitch = pitch || 0.95;
+    u.onend = resolve;
+    u.onerror = resolve;
+    speechSynthesis.speak(u);
+  });
+}
+
+function greaseLocus(h) {
+  const s = ensureSound();
+  if (!s) return;
+  const word = LOCUS_SPEAK[h.id] || 'membrane';
+  try { s.speak(word); } catch (e) {}
+  // soft chord under speech
+  try {
+    if (h.id === 'H1') s.playChord('breathe', 2.2, 0.05, { piWave: true });
+    else if (h.id === 'H2') s.playChord('null', 2.0, 0.04, { sortClass: 'null' });
+    else if (h.id === 'H3') s.arpeggio('passage', 0.1, 0.06, { piWave: true });
+    else if (h.id === 'H4') s.playChord('compress', 1.8, 0.05);
+    else if (h.id === 'H5') { s.playChord('ghost', 1.5, 0.04); s.binaural(s.PI_NOTES[3], 1/Math.PI, 4, 0.015); }
+    else s.playChord('wake', 2.0, 0.05, { piWave: true });
+  } catch (e) {}
+}
+
+async function singOne(h) {
+  speaking = true;
+  document.getElementById('now').textContent = 'singing · ' + h.locus + ' · π-just';
+  greaseLocus(h);
+  await speak(h.title + '. ' + h.guide, 0.9, 0.9);
+  for (const v of h.verses) await speak(v, 0.92, 0.95);
+  await speak(h.refrain, 0.88, 1.0);
+  speaking = false;
+  document.getElementById('now').textContent = 'rest · ' + h.id;
+}
+
+function render(h) {
+  current = h;
+  document.getElementById('stage').innerHTML =
+    `<div class="locus">${h.locus} · ${h.organ}</div>
+     <h2>${h.title}</h2>
+     <p class="guide">${h.guide}</p>
+     <ol class="verses">${h.verses.map(v => `<li>${v}</li>`).join('')}</ol>
+     <p class="refrain">${h.refrain}</p>
+     <p class="guide">${h.not_us}</p>`;
+  document.querySelectorAll('.loci button').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.id === h.id ? 'true' : 'false');
+  });
+}
+
+function stopAll() {
+  walk = false;
+  speaking = false;
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  const s = ms();
+  if (s && s.isActive()) s.deactivate();
+  document.getElementById('now').textContent = 'stopped';
+}
+
+function startDrone(h) {
+  const s = ensureSound();
+  if (!s) {
+    document.getElementById('now').textContent = 'sound unavailable';
+    return;
+  }
+  greaseLocus(h);
+  document.getElementById('now').textContent =
+    'π drone · ' + ((h && h.sound && h.sound.drone_hint_hz) || 196) + 'Hz · ' +
+    ((h && h.sound && h.sound.feel) || 'π-just');
+}
+
+fetch('/membrane-hymns-localize.json').then(r => r.json()).then(d => {
+  hymns = d;
+  const box = document.getElementById('loci');
+  d.hymns.forEach(h => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = h.id + ' ' + h.locus.split('/')[0].trim().slice(0, 18);
+    b.dataset.id = h.id;
+    b.onclick = () => { stopAll(); render(h); };
+    box.appendChild(b);
+  });
+  render(d.hymns[0]);
+});
+
+document.getElementById('sing').onclick = async () => {
+  if (!current || speaking) return;
+  stopAll();
+  startDrone(current);
+  await singOne(current);
+};
+document.getElementById('drone').onclick = () => {
+  if (!current) return;
+  startDrone(current);
+};
+document.getElementById('stop').onclick = stopAll;
+document.getElementById('walk').onclick = async () => {
+  if (!hymns || speaking) return;
+  walk = true;
+  for (const id of hymns.walk_order) {
+    if (!walk) break;
+    const h = hymns.hymns.find(x => x.id === id);
+    render(h);
+    startDrone(h);
+    await singOne(h);
+    if (!walk) break;
+  }
+  walk = false;
+};
+</script>
+</body>
+</html>
