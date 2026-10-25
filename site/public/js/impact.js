@@ -550,6 +550,187 @@
     }
   }
 
+  // ═══ TECTONIC SENSE — stuck, pressure, frozen, pinned ═══
+  // Impact is NOT just collision. It's also:
+  //   STUCK    — element hasn't moved in N frames. Friction > force.
+  //   PRESSURE — elements pushing but not yielding. Energy building with no release.
+  //   FROZEN   — element SHOULD move (has velocity source) but position unchanged.
+  //   PINNED   — user or system intentionally fixed an element. It RESISTS movement.
+  //
+  // These are the PLATE TECTONICS of the organism.
+  // Subduction = one layer sliding under another (helix bends)
+  // Divergence = layers pulling apart (gaps opening)
+  // Transform  = layers sliding past each other (shear at Klein fold)
+  //
+  // The ooze = lubricant at stuck interfaces. Heat reduces friction.
+  // Gas exchange = energy that escapes between layers (sound leaking through).
+
+  var TECTONIC = {
+    stuck: [],      // bodies that haven't moved
+    pressure: [],   // pairs with high potential but no impact
+    frozen: [],     // bodies with expected motion but zero actual motion
+    pinned: [],     // bodies intentionally fixed
+    plates: []      // layer-pair tectonic states
+  };
+
+  var positionHistory = {};  // id → [{x,y,t}...] circular buffer
+  var HISTORY_LEN = 90;     // ~1.5 seconds at 60fps
+  var STUCK_THRESHOLD = 0.0005;  // less than 0.05% viewport movement = stuck
+  var PRESSURE_THRESHOLD = 0.01; // pair potential above this = pressure building
+
+  function recordPositions(bodies) {
+    var now = Date.now();
+    for (var i = 0; i < bodies.length; i++) {
+      var b = bodies[i];
+      if (!positionHistory[b.id]) positionHistory[b.id] = [];
+      positionHistory[b.id].push({ x: b.x, y: b.y, t: now });
+      if (positionHistory[b.id].length > HISTORY_LEN) positionHistory[b.id].shift();
+    }
+  }
+
+  function detectTectonics(bodies) {
+    TECTONIC.stuck = [];
+    TECTONIC.pressure = [];
+    TECTONIC.frozen = [];
+
+    // STUCK detection: has this body moved over the last ~1 second?
+    for (var i = 0; i < bodies.length; i++) {
+      var b = bodies[i];
+      var hist = positionHistory[b.id];
+      if (!hist || hist.length < 30) continue;
+
+      var oldest = hist[0];
+      var newest = hist[hist.length - 1];
+      var travel = Math.sqrt(
+        Math.pow(newest.x - oldest.x, 2) + Math.pow(newest.y - oldest.y, 2)
+      );
+
+      if (travel < STUCK_THRESHOLD) {
+        // is it EXPECTED to move? orbits and pendulums should move. chroma dots don't.
+        var shouldMove = b.type === 'orbit' || b.type === 'null' || b.type === 'pendulum';
+        if (shouldMove) {
+          TECTONIC.frozen.push({
+            id: b.id, type: b.type, travel: travel,
+            screenX: b.screenX, screenY: b.screenY, color: b.color
+          });
+        } else {
+          TECTONIC.stuck.push({
+            id: b.id, type: b.type, travel: travel
+          });
+        }
+      }
+    }
+
+    // PRESSURE detection: pairs with high potential, no recent impact
+    var pairKeys = Object.keys(PAIRS);
+    for (var p = 0; p < pairKeys.length; p++) {
+      var pair = PAIRS[pairKeys[p]];
+      if (pair.potential > PRESSURE_THRESHOLD && !pair.impacted) {
+        TECTONIC.pressure.push({
+          pair: pairKeys[p],
+          potential: pair.potential,
+          building: true
+        });
+      }
+    }
+
+    // PINNED detection: null-pinned class on SVG
+    var pinnedSvg = document.querySelector('.null-pinned');
+    if (pinnedSvg) {
+      TECTONIC.pinned = [{ id: 'null-center', reason: 'user-pinned' }];
+    }
+
+    // PLATE TECTONICS: compare helix layer movements
+    detectPlates();
+  }
+
+  function detectPlates() {
+    TECTONIC.plates = [];
+    if (!window._helixTwist) return;
+    var layers = window._helixTwist.findLayers();
+    if (!layers || layers.length < 2) return;
+
+    for (var i = 0; i < layers.length - 1; i++) {
+      var dir1 = (i % 2 === 0) ? 1 : -1;
+      var dir2 = ((i + 1) % 2 === 0) ? 1 : -1;
+      var type;
+
+      if (dir1 !== dir2) {
+        type = 'transform';  // counter-rotating = sliding past each other
+      } else if (dir1 === 1) {
+        type = 'subduction';  // both CW = one slides under
+      } else {
+        type = 'divergence';  // both CCW = pulling apart
+      }
+
+      TECTONIC.plates.push({
+        layers: [layers[i].name, layers[i + 1].name],
+        type: type,
+        friction: type === 'transform' ? 0.1 : type === 'subduction' ? 0.8 : 0.3
+      });
+    }
+  }
+
+  // ═══ TECTONIC SOUNDS — the deep rumble beneath ═══
+  TIMBRES.frozen_thaw = { type: 'triangle', attack: 0.1, decay: 2.0, baseHz: 65 };  // deep creak
+  TIMBRES.pressure_release = { type: 'sawtooth', attack: 0.02, decay: 0.8, baseHz: 85 }; // groan
+  TIMBRES.tectonic_shift = { type: 'sine', attack: 0.3, decay: 3.0, baseHz: 40 }; // subsonic rumble
+
+  function processTectonics() {
+    // FROZEN elements: apply ice-blue glow, play creak when they start moving again
+    for (var f = 0; f < TECTONIC.frozen.length; f++) {
+      var frozen = TECTONIC.frozen[f];
+      createHeatSpot(frozen.screenX, frozen.screenY,
+        'rgba(88,166,255,0.15)', 0.3); // ice-blue, not warm
+    }
+
+    // PRESSURE: warn with amber glow at pressure points
+    for (var p = 0; p < TECTONIC.pressure.length; p++) {
+      var press = TECTONIC.pressure[p];
+      // pressure is between a pair — use the midpoint if we can find bodies
+      if (press.potential > PRESSURE_THRESHOLD * 3) {
+        // high pressure — play groan
+        playImpactSound('pressure_release', 0.05, press.potential);
+      }
+    }
+  }
+
+  // ═══ TECTONIC INDICATOR ═══
+  function updateTectonicIndicator() {
+    var el = document.getElementById('tectonic-indicator');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'tectonic-indicator';
+      el.style.cssText = 'position:fixed;bottom:52px;right:12px;z-index:9999;' +
+        'font:7px SF Mono,monospace;color:#484f58;pointer-events:none;opacity:0.4;' +
+        'text-align:right;max-width:140px';
+      document.body.appendChild(el);
+    }
+
+    var parts = [];
+    if (TECTONIC.frozen.length > 0)
+      parts.push('<span style="color:#58a6ff">❄' + TECTONIC.frozen.length + '</span>');
+    if (TECTONIC.stuck.length > 0)
+      parts.push('<span style="color:#8b6914">▪' + TECTONIC.stuck.length + '</span>');
+    if (TECTONIC.pressure.length > 0)
+      parts.push('<span style="color:#f85149">⬆' + TECTONIC.pressure.length + '</span>');
+    if (TECTONIC.pinned.length > 0)
+      parts.push('<span style="color:#d2a8ff">📌' + TECTONIC.pinned.length + '</span>');
+
+    var plateTypes = {};
+    for (var t = 0; t < TECTONIC.plates.length; t++) {
+      plateTypes[TECTONIC.plates[t].type] = (plateTypes[TECTONIC.plates[t].type] || 0) + 1;
+    }
+    var plateStr = '';
+    if (plateTypes.transform) plateStr += '⇌' + plateTypes.transform;
+    if (plateTypes.subduction) plateStr += ' ⤵' + plateTypes.subduction;
+    if (plateTypes.divergence) plateStr += ' ⤴' + plateTypes.divergence;
+
+    el.innerHTML = parts.length > 0
+      ? parts.join(' ') + (plateStr ? '<br>' + plateStr : '')
+      : '';
+  }
+
   // ═══ MAIN LOOP ═══
   var frameCount = 0;
 
@@ -558,6 +739,9 @@
 
     // gather all moving bodies
     var bodies = gatherBodies();
+
+    // record positions for tectonic analysis
+    recordPositions(bodies);
 
     // detect spatial collisions (every frame)
     var collisions = detectCollisions(bodies);
@@ -582,9 +766,16 @@
       checkHelixAlignment();
     }
 
-    // update indicator every ~20 frames
+    // TECTONIC SCAN — every ~45 frames (~0.75s)
+    if (frameCount % 45 === 0) {
+      detectTectonics(bodies);
+      processTectonics();
+    }
+
+    // update indicators every ~20 frames
     if (frameCount % 20 === 0) {
       updateIndicator();
+      updateTectonicIndicator();
     }
 
     requestAnimationFrame(tick);
@@ -595,6 +786,7 @@
     pairs: function () { return PAIRS; },
     impacts: function () { return IMPACTS; },
     bodies: gatherBodies,
+    tectonic: function () { return TECTONIC; },
     energy: function () {
       var k = 0, l = 0, p = 0;
       var keys = Object.keys(PAIRS);
