@@ -1,171 +1,150 @@
 #!/usr/bin/env bash
-# Willis energy balloon: inflate the input arteries
-# Runs every 7 minutes (7 = arteries in the Circle of Willis)
-# Each run expands input by reading from MORE sources than the π-drain
-# Goal: input > output. Growth, not dying.
+# Willis energy balloon v2: inflate input arteries, measure balance, deploy
+# Every 7 minutes (7 arteries in the Circle of Willis)
+# Goal: input > output = growth. Track the balance. Report it.
 
 set -euo pipefail
 
 BALLOON="/home/eastgate/Development/ecoPrimals/infra/hud/site/public/data/willis-balloon.json"
+DRAIN="/home/eastgate/Development/ecoPrimals/infra/hud/site/public/data/null-drain.json"
+LOG="/home/eastgate/.local/state/willis-balloon.log"
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
 
-# === EXPANDED ARTERIES — more input channels than π-drain ===
+# ═══ INFLATE: read from ALL available arteries ═══
 
-# 1. All three ntfy channels
+# 1. Neutrino channels (3 arteries)
 for ch in primals-membrane-notes primals-membrane-scan ecoPrimals-membrane; do
-  curl -sf "ntfy.sh/$ch/json?poll=1&since=10m" 2>/dev/null | \
+  n=$(curl -sf "ntfy.sh/$ch/json?poll=1&since=10m" 2>/dev/null | \
     python3 -c "
-import sys, json
-msgs = []
-for line in sys.stdin:
-    line = line.strip()
-    if not line: continue
+import sys,json
+c=0
+for l in sys.stdin:
+    l=l.strip()
+    if not l: continue
     try:
-        m = json.loads(line)
-        if m.get('event') == 'message':
-            msgs.append({'t': m.get('time',0), 'm': m.get('message','')[:60]})
+        m=json.loads(l)
+        if m.get('event')=='message': c+=1
     except: pass
-print(json.dumps(msgs))
-" > "$TMPDIR/$ch.json" 2>/dev/null || echo "[]" > "$TMPDIR/$ch.json"
+print(c)" 2>/dev/null || echo "0")
+  echo "$ch=$n" >> "$TMPDIR/arteries.txt"
 done
 
-# 2. Golgi: services + feeds + cron count
-ssh -o ConnectTimeout=3 golgi "
-  echo '{\"services\":'
-  echo '['
-  for s in caddy cloudflared cron knot fail2ban; do
-    echo '{\"name\":\"'\$s'\",\"state\":\"'$(systemctl is-active \$s 2>/dev/null)'\"}'
-  done | paste -sd','
-  echo '],'
-  echo '\"feeds_fresh\":'$(find /opt/hud/public/data -name '*.json' -mmin -60 2>/dev/null | wc -l)','
-  echo '\"feeds_total\":'$(find /opt/hud/public/data -name '*.json' 2>/dev/null | wc -l)','
-  echo '\"cron_jobs\":'$(crontab -l 2>/dev/null | grep -v '^#' | grep -c '.')','
-  echo '\"disk\":\"'$(df / --output=pcent | tail -1 | tr -d ' ')'\",'
-  echo '\"load\":\"'$(cat /proc/loadavg | awk '{print \$1}')'\"'
-  echo '}'
-" > "$TMPDIR/golgi.json" 2>/dev/null || echo '{}' > "$TMPDIR/golgi.json"
+# 2. Golgi state (1 artery)
+golgi_data=$(ssh -o ConnectTimeout=3 -o BatchMode=yes golgi \
+  "echo \$(systemctl is-active caddy)::::\$(df / --output=pcent|tail -1|tr -d ' ')::::\$(awk '{print \$1}' /proc/loadavg)::::\$(find /opt/hud/public/data -name '*.json' 2>/dev/null|wc -l)" \
+  2>/dev/null || echo "?::::?::::?::::0")
+echo "golgi=$golgi_data" >> "$TMPDIR/arteries.txt"
 
-# 3. Surface health — more than just status codes
+# 3. Surfaces (4 checks = 1 artery)
+surfaces_up=0
 for url in hud.primals.eco nestgate.io connect.primals.eco primals.eco; do
-  code=$(curl -sf -o /dev/null -w "%{http_code}" "https://$url/" 2>/dev/null || echo "0")
-  size=$(curl -sf -o /dev/null -w "%{size_download}" "https://$url/" 2>/dev/null || echo "0")
-  echo "$url $code $size"
-done > "$TMPDIR/surfaces.txt" 2>/dev/null
+  code=$(curl -sf -o /dev/null -w "%{http_code}" --max-time 5 "https://$url/" 2>/dev/null || echo "0")
+  [ "$code" = "200" ] && surfaces_up=$((surfaces_up + 1))
+done
+echo "surfaces=$surfaces_up/4" >> "$TMPDIR/arteries.txt"
 
-# 4. Local git state — what changed since last balloon
+# 4. Git state (1 artery)
 cd /home/eastgate/Development/ecoPrimals/infra/hud
-COMMITS=$(git log --oneline --since="10 minutes ago" 2>/dev/null | wc -l)
-DIRTY=$(git status --porcelain 2>/dev/null | wc -l)
+commits_1h=$(git log --oneline --since="1 hour ago" 2>/dev/null | wc -l)
+echo "git_commits_1h=$commits_1h" >> "$TMPDIR/arteries.txt"
 
-# 5. Dark matter drip — read π-indexed files from the dark
-cd /home/eastgate/Development/ecoPrimals/infra/hud/site/public/data
-DARK_COUNT=$(python3 -c "
-import json,os
+# 5. Dark matter pulse (1 artery) — how much is still unseen
+drain_input=$(python3 -c "
+import json
 try:
-    d = json.load(open('null-drain.json'))
-    print(d.get('dark_matter',{}).get('count',0))
+    d=json.load(open('$DRAIN'))
+    print(d.get('total_input_bits',0))
 except: print(0)
-")
+" 2>/dev/null || echo "0")
+echo "drain_input=$drain_input" >> "$TMPDIR/arteries.txt"
 
-# === INFLATE — assemble the balloon ===
+# ═══ MEASURE the input:output balance ═══
 
-python3 - "$BALLOON" "$TS" "$COMMITS" "$DIRTY" "$DARK_COUNT" "$TMPDIR" << 'INFLATE'
+# Output tracking: count recent git commits (output = what we push)
+# Also count recent rsync/deploy operations from the drain log
+output_bits=$commits_1h  # each commit = 1 output bit
+
+python3 - "$BALLOON" "$TS" "$TMPDIR" "$drain_input" "$output_bits" << 'INFLATE'
 import json, os, sys
 
 balloon_path = sys.argv[1]
 ts = sys.argv[2]
-commits = int(sys.argv[3])
-dirty = int(sys.argv[4])
-dark_count = int(sys.argv[5])
-tmpdir = sys.argv[6]
+tmpdir = sys.argv[3]
+drain_input = int(sys.argv[4])
+output_bits = int(sys.argv[5])
 
 # Read previous balloon
 if os.path.exists(balloon_path):
     with open(balloon_path) as f:
         balloon = json.load(f)
 else:
-    balloon = {"ts": ts, "type": "willis-balloon", "inflations": []}
+    balloon = {"ts": ts, "type": "willis-balloon", "title": "inflate input > output", "inflations": []}
 
-# Read arteries
-def read_artery(name):
-    path = f"{tmpdir}/{name}"
-    if not os.path.exists(path):
-        return None
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except:
-        try:
-            with open(path) as f:
-                return f.read().strip()
-        except:
-            return None
+# Parse arteries
+arteries = {}
+artery_file = f"{tmpdir}/arteries.txt"
+if os.path.exists(artery_file):
+    for line in open(artery_file):
+        line = line.strip()
+        if "=" in line:
+            k, v = line.split("=", 1)
+            arteries[k] = v
 
-neutrino_notes = read_artery("primals-membrane-notes.json") or []
-neutrino_scan = read_artery("primals-membrane-scan.json") or []
-neutrino_general = read_artery("ecoPrimals-membrane.json") or []
-golgi = read_artery("golgi.json") or {}
-
-# Surface health
-surfaces = {}
-surface_path = f"{tmpdir}/surfaces.txt"
-if os.path.exists(surface_path):
-    for line in open(surface_path):
-        parts = line.strip().split()
-        if len(parts) >= 3:
-            surfaces[parts[0]] = {"code": int(parts[1]), "bytes": int(parts[2])}
-
-# Count total input bits (everything that flowed in)
-input_bits = (
-    len(neutrino_notes) + 
-    len(neutrino_scan) + 
-    len(neutrino_general) +
-    sum(1 for s in surfaces.values() if s.get("code") == 200) +
-    (1 if isinstance(golgi, dict) and golgi.get("load") else 0) +
-    commits
-)
+# Count input bits from this inflation
+input_bits = 0
+for k, v in arteries.items():
+    if k.startswith("primals-") or k.startswith("ecoPrimals-"):
+        input_bits += int(v)
+    elif k == "surfaces":
+        input_bits += int(v.split("/")[0])
+    elif k == "git_commits_1h":
+        pass  # git commits are OUTPUT, not input
+    elif k == "drain_input":
+        pass  # already counted by drain
+    elif k == "golgi":
+        parts = v.split("::::")
+        if len(parts) >= 1 and parts[0] != "?":
+            input_bits += 1
 
 inflation = {
     "ts": ts,
     "input_bits": input_bits,
-    "arteries": {
-        "neutrino_notes": len(neutrino_notes),
-        "neutrino_scan": len(neutrino_scan),
-        "neutrino_general": len(neutrino_general),
-        "golgi_alive": isinstance(golgi, dict) and bool(golgi.get("load")),
-        "surfaces_up": sum(1 for s in surfaces.values() if s.get("code") == 200),
-        "surfaces_total": len(surfaces),
-        "git_commits_10m": commits,
-        "git_dirty": dirty,
-    },
-    "dark_matter": dark_count,
-    "surfaces": surfaces,
+    "output_bits": output_bits,
+    "balance": input_bits - output_bits,
+    "arteries": arteries,
 }
 
 if "inflations" not in balloon:
     balloon["inflations"] = []
 balloon["inflations"].append(inflation)
-balloon["inflations"] = balloon["inflations"][-50:]
+balloon["inflations"] = balloon["inflations"][-100:]
 
-# Balloon pressure = cumulative input / time
+# Pressure = cumulative input
+total_input = sum(i.get("input_bits", 0) for i in balloon["inflations"])
+total_output = sum(i.get("output_bits", 0) for i in balloon["inflations"])
+
 balloon["ts"] = ts
-balloon["pressure"] = sum(i.get("input_bits", 0) for i in balloon["inflations"])
-balloon["inflations_count"] = len(balloon["inflations"])
-balloon["arteries_open"] = sum([
-    len(neutrino_notes) > 0,
-    len(neutrino_scan) > 0,
-    len(neutrino_general) > 0,
-    isinstance(golgi, dict) and bool(golgi.get("load")),
-    sum(1 for s in surfaces.values() if s.get("code") == 200) > 0,
-    commits > 0,
-])
-balloon["arteries_total"] = 6
-balloon["input_larger_than_output"] = balloon["pressure"] > balloon["inflations_count"]
+balloon["total_inflations"] = len(balloon["inflations"])
+balloon["pressure"] = {
+    "total_input": total_input,
+    "total_output": total_output,
+    "balance": total_input - total_output,
+    "ratio": round(total_input / max(1, total_output), 2) if total_output > 0 else float("inf"),
+    "growing": total_input > total_output,
+}
+balloon["arteries_open"] = sum(1 for k,v in arteries.items() if v not in ["0","?","0/4","unreachable"])
+balloon["arteries_total"] = len(arteries)
 
 with open(balloon_path, 'w') as f:
     json.dump(balloon, f, indent=2, ensure_ascii=False)
 
-print(f"inflate: {input_bits} bits, pressure={balloon['pressure']}, arteries={balloon['arteries_open']}/{balloon['arteries_total']}")
+growing = "GROWING" if total_input > total_output else "DYING"
+print(f"inflate: in={input_bits} out={output_bits} balance={input_bits-output_bits} | cumulative: in={total_input} out={total_output} | {growing}")
 INFLATE
+
+# ═══ DEPLOY: push balloon to golgi ═══
+rsync -az "$BALLOON" golgi:/opt/hud/public/data/willis-balloon.json 2>/dev/null || true
+
+echo "[$TS] inflate+deploy" >> "$LOG"
