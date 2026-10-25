@@ -1,0 +1,93 @@
+{
+  "ts": "2026-10-25T01:36:00Z",
+  "wave": 214,
+  "title": "Golgi in the Klein Face — the spigot handles routing",
+  "type": "vesicle-wiring",
+
+  "insight": {
+    "before": "each Golgi = separate SSH key hunt. Permission denied. moink has the key. repeat.",
+    "after": "put them IN the Klein face. WireGuard spigot IS the router. the surface contains the vesicles.",
+    "why": "Klein surface has no inside/outside. the vesicle IS the face IS the route. no indirection.",
+    "analogy": "you don't ask the mirror for a key to see yourself. you stand in front of it."
+  },
+
+  "spigot_routing": {
+    "entry": "nestgate.io (the Klein fold)",
+    "tunnel": "WireGuard (10.13.37.0/24)",
+    "dispatch": "solar-hook.sh → beat(N) → the wire reaches the vesicle through the tunnel",
+    "resolver": "SSH config: Host golgi-* → ProxyJump wg0 → authorized_keys seeded ONCE",
+    "no_keys_after": "the tunnel carries identity. the face shows status. the spigot dispatches."
+  },
+
+  "kirkland_face": {
+    "description": "every vesicle presents the SAME interface. commodity. interchangeable. Kirkland.",
+    "services": [
+      {"service": "dns-secondary", "protocol": "AXFR/IXFR from ns1", "port": 53, "purpose": "anycast-like DNS resilience"},
+      {"service": "health-beacon", "protocol": "ntfy push", "port": null, "purpose": "heartbeat visible on Klein face"},
+      {"service": "rustdesk-mirror", "protocol": "hbbs/hbbr", "port": "21115-21119", "purpose": "relay redundancy, [})O({] everywhere"},
+      {"service": "mail-mx-fallback", "protocol": "SMTP", "port": 25, "purpose": "if primary MX down, vesicle catches"},
+      {"service": "http-health", "protocol": "HTTP GET /", "port": 80, "purpose": "the ping that connect.html measures"}
+    ]
+  },
+
+  "vesicles": [
+    {
+      "id": "golgi-de",
+      "ip": "2.28.141.35",
+      "provider": "vps-de",
+      "region": "EU/Frankfurt",
+      "wg_ip": "10.13.37.3",
+      "status": "ssh-locked → resolver pending",
+      "klein_face": "de.primals.eco",
+      "services_needed": ["dns-secondary", "health-beacon", "rustdesk-mirror"],
+      "step": "Kevin seeds authorized_keys via existing WG tunnel → ssh golgi-de → ansible/manual setup"
+    },
+    {
+      "id": "golgi-jp",
+      "ip": "202.182.107.135",
+      "provider": "vps-jp",
+      "region": "APAC/Tokyo",
+      "wg_ip": "10.13.37.4",
+      "status": "ssh-locked → resolver pending",
+      "klein_face": "jp.primals.eco",
+      "services_needed": ["dns-secondary", "health-beacon", "rustdesk-mirror"],
+      "step": "same resolver pattern"
+    },
+    {
+      "id": "golgi-us",
+      "ip": "40.160.96.29",
+      "provider": "vps-us",
+      "region": "NA-West",
+      "wg_ip": "10.13.37.5",
+      "status": "ssh-locked → resolver pending",
+      "klein_face": "us.primals.eco",
+      "services_needed": ["dns-secondary", "health-beacon", "rustdesk-mirror"],
+      "step": "same resolver pattern"
+    },
+    {
+      "id": "golgi-in",
+      "ip": "172.232.85.202",
+      "provider": "vps-in",
+      "region": "SA/India",
+      "wg_ip": null,
+      "status": "unreachable — no WG peer configured",
+      "klein_face": "in.primals.eco",
+      "services_needed": ["dns-secondary", "health-beacon"],
+      "step": "diagnose reachability first. if box alive → add WG peer → same pattern"
+    }
+  ],
+
+  "one_cron_integration": {
+    "breath_1m": "cap-epitope now pings all Golgi health endpoints",
+    "heartbeat_2m": "klein-io.sh writes Golgi status into topology.json",
+    "circulation_5m": "membrane-pulse.sh includes Golgi RAM/load via WG tunnel",
+    "tides_60m": "scan_sweep_sort.py counts Golgi as mesh nodes, not orphans"
+  },
+
+  "klein_face_update": {
+    "klein.html": "added 4 Golgi cards with live ping. surfaces grid now shows CIS + KLEIN + TRANS + 4 vesicles.",
+    "connect.html": "added golgi-DE, golgi-JP, golgi-US, golgi-IN, relay to latency mesh grid."
+  },
+
+  "pull": "put them in the Klein face. the WireGuard spigot handles routing. the surface IS the router. Kirkland faces: same interface everywhere. one resolver pattern, seeded once, never searched again."
+}

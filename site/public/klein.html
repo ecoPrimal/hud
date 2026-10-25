@@ -148,6 +148,79 @@ Auth: None — the membrane is open
   </div>
 </div>
 
+<h2>Golgi vesicles — Kirkland faces on the spigot</h2>
+<p>Every vesicle presents the same interface. The WireGuard spigot handles routing. Put them in the Klein face — the surface IS the router.</p>
+<div class="surfaces" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+  <div class="surface" id="golgi-de">
+    <div style="font-size:18px">🇩🇪</div>
+    <div class="label" style="color:var(--blue);">DE</div>
+    <div class="host">golgi-de</div>
+    <div class="host" style="font-size:9px" id="de-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-jp">
+    <div style="font-size:18px">🇯🇵</div>
+    <div class="label" style="color:var(--blue);">JP</div>
+    <div class="host">golgi-jp</div>
+    <div class="host" style="font-size:9px" id="jp-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-us">
+    <div style="font-size:18px">🇺🇸</div>
+    <div class="label" style="color:var(--blue);">US</div>
+    <div class="host">golgi-us</div>
+    <div class="host" style="font-size:9px" id="us-status">checking...</div>
+  </div>
+  <div class="surface" id="golgi-in">
+    <div style="font-size:18px">🇮🇳</div>
+    <div class="label" style="color:var(--blue);">IN</div>
+    <div class="host">golgi-in</div>
+    <div class="host" style="font-size:9px" id="in-status">checking...</div>
+  </div>
+</div>
+<script>
+(function(){
+  var vesicles = [
+    {id:'de', host:'de.primals.eco', ip:'2.28.141.35'},
+    {id:'jp', host:'jp.primals.eco', ip:'202.182.107.135'},
+    {id:'us', host:'us.primals.eco', ip:'40.160.96.29'},
+    {id:'in', host:'in.primals.eco', ip:'172.232.85.202'}
+  ];
+  vesicles.forEach(function(v){
+    var el = document.getElementById(v.id+'-status');
+    var card = document.getElementById('golgi-'+v.id);
+    var t0 = performance.now();
+    fetch('https://'+v.host+'/', {mode:'no-cors',cache:'no-store'})
+      .then(function(){
+        var ms = Math.round(performance.now()-t0);
+        el.textContent = ms+'ms · alive';
+        el.style.color = 'var(--green)';
+        card.style.borderColor = 'var(--green)';
+      })
+      .catch(function(){
+        el.textContent = 'unreachable';
+        el.style.color = 'var(--dim)';
+      });
+  });
+})();
+</script>
+<pre style="font-size:11px;line-height:1.5">
+  THE SPIGOT PATTERN:
+  
+  solar-hook (1 cron) → beat(N) → WireGuard tunnel → Golgi face
+  
+  the Klein face contains the vesicles.
+  the WireGuard spigot routes to them.
+  each vesicle is the SAME interface:
+    → DNS secondary (AXFR from ns1)
+    → health beacon (ntfy heartbeat)  
+    → RustDesk relay mirror
+    → mail MX fallback
+  
+  you don't look for keys.
+  the tunnel IS the key.
+  the face IS the router.
+  the spigot handles it.
+</pre>
+
 <h2>no VPN. no secrets. no port forwarding.</h2>
 
 <pre>
