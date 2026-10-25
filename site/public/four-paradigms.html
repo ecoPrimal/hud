@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four Paradigms — unsupervised · supervised · reinforcement · WFC</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --fg: #c9d1d9; --dim: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --gold: #d29922; --orange: #f0883e;
+  --red: #f85149; --purple: #a371f7;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.5 'SF Mono', monospace; }
+
+header { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { font-size: 1em; font-weight: 200; color: var(--purple); }
+.nav { font-size: .8em; margin-left: auto; }
+.nav a { color: var(--blue); text-decoration: none; margin: 0 4px; }
+
+#main { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* === THE FOUR QUADRANTS === */
+.quad-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;
+}
+.quad {
+  border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+  position: relative; overflow: hidden; transition: all .3s; cursor: pointer;
+}
+.quad:hover { border-color: var(--gold); }
+.quad.active { border-width: 2px; }
+.quad .number { position: absolute; top: 8px; right: 12px; font-size: 36px; font-weight: 700; opacity: 0.06; }
+.quad .icon { font-size: 24px; }
+.quad h2 { font-size: 14px; font-weight: 600; margin: 4px 0; }
+.quad .question { font-style: italic; color: var(--dim); font-size: 10px; }
+.quad .learning { font-size: 10px; margin: 6px 0; }
+.quad .examples { font-size: 9px; color: var(--dim); }
+
+/* === BODY MAPPING === */
+.body-map {
+  display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; margin: 16px 0;
+  align-items: center;
+}
+.body-map .arrow { text-align: center; font-size: 20px; color: var(--dim); }
+.body-map .left, .body-map .right { font-size: 10px; }
+.map-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; margin: 2px; }
+
+/* === DETAIL PANEL === */
+.detail {
+  display: none; margin: 8px 0; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.detail.active { display: block; }
+.detail h3 { font-size: 12px; margin-bottom: 6px; }
+.detail .bio { font-size: 10px; color: var(--dim); margin: 6px 0; padding: 8px; border-left: 3px solid var(--border); }
+.detail .insight { font-size: 10px; color: var(--purple); margin-top: 8px; padding: 8px; background: rgba(163,113,247,0.06); border-radius: 6px; }
+.detail .maps { margin: 6px 0; }
+.detail .maps span { display: inline-block; background: rgba(88,166,255,0.08); padding: 2px 8px; border-radius: 8px; font-size: 8px; color: var(--blue); margin: 2px; }
+
+/* === SPIROCHETE === */
+.spirochete {
+  margin: 16px 0; padding: 16px; border: 1px solid var(--purple); border-radius: 10px;
+  background: rgba(163,113,247,0.03);
+}
+.spirochete h3 { color: var(--purple); font-size: 13px; margin-bottom: 6px; }
+.spirochete .drill { font-size: 10px; }
+
+/* === LOOP === */
+.loop {
+  margin: 16px 0; padding: 16px; text-align: center;
+  border: 1px dashed var(--gold); border-radius: 10px;
+}
+.loop .cycle { font-size: 16px; font-weight: 200; color: var(--gold); margin: 8px 0; }
+.loop .steps { font-size: 10px; color: var(--dim); text-align: left; max-width: 600px; margin: 8px auto; }
+.loop .steps div { margin: 3px 0; }
+
+/* === COMPARISON TABLE === */
+.comp { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10px; }
+.comp th { text-align: left; padding: 4px 8px; border-bottom: 1.5px solid var(--fg); color: var(--dim); font-weight: normal; }
+.comp td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
+
+footer { max-width: 900px; margin: 0 auto; padding: 8px 16px; font-size: .8em; color: var(--dim); text-align: center; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <span>🌀</span>
+  <h1>four paradigms of learning</h1>
+  <div class="nav">
+    <a href="/">HUD</a> <a href="/anatomy.html">anatomy</a> <a href="/shannon-range.html">Shannon</a>
+    <a href="/membrane-table.html">table</a> <a href="/digestive-tract.html">tract</a> <a href="/pi-budget.html">π budget</a>
+  </div>
+</header>
+
+<div id="main">
+
+  <div class="quad-grid" id="quads"></div>
+
+  <div id="detail-1" class="detail"></div>
+  <div id="detail-2" class="detail"></div>
+  <div id="detail-3" class="detail"></div>
+  <div id="detail-4" class="detail"></div>
+
+  <table class="comp" id="comp-table">
+    <thead>
+      <tr><th></th><th>paradigm</th><th>organ</th><th>variable</th><th>verb</th><th>biology</th><th>channel</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="spirochete" id="spirochete"></div>
+
+  <div class="loop" id="loop"></div>
+
+</div>
+
+<footer>
+  the 4th paradigm is not learning — it is COLLAPSING.
+  WFC → unsupervised → supervised → reinforcement → WFC.
+  the learning loop IS the digestive tract IS the ouroboros.
+</footer>
+
+<script>
+'use strict';
+
+let data = null;
+let active = null;
+
+async function load() {
+  const resp = await fetch('/data/four-paradigms.json');
+  data = await resp.json();
+  renderQuads();
+  renderTable();
+  renderSpirochete();
+  renderLoop();
+}
+
+function renderQuads() {
+  const grid = document.getElementById('quads');
+
+  data.paradigms.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'quad';
+    div.style.borderColor = p.color + '44';
+    div.dataset.num = p.number;
+    div.onclick = () => toggleDetail(p.number);
+
+    div.innerHTML = `
+      <span class="number">${p.number}</span>
+      <span class="icon">${p.icon}</span>
+      <h2 style="color:${p.color}">${p.name}</h2>
+      <div class="question">${p.question}</div>
+      <div class="learning">${p.learning}</div>
+      <div class="examples">${p.examples.join(' · ')}</div>
+
+      <div class="body-map" style="margin-top:10px">
+        <div class="left" style="text-align:right">
+          <span class="map-tag" style="background:${p.color}22;color:${p.color}">${p.anatomy_organ}</span>
+        </div>
+        <div class="arrow">↔</div>
+        <div class="right">
+          <span class="map-tag" style="background:${p.color}22;color:${p.color}">${p.variable}</span>
+          <span class="map-tag" style="background:rgba(201,209,217,0.05);color:var(--dim)">${p.shannon_channel.split('.')[0]}</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function toggleDetail(num) {
+  const wasActive = active === num;
+  active = wasActive ? null : num;
+
+  document.querySelectorAll('.quad').forEach(q => {
+    q.classList.toggle('active', parseInt(q.dataset.num) === active);
+  });
+  document.querySelectorAll('.detail').forEach(d => d.classList.remove('active'));
+
+  if (active) {
+    const p = data.paradigms.find(x => x.number === active);
+    const det = document.getElementById('detail-' + num);
+    det.innerHTML = `
+      <h3 style="color:${p.color}">${p.icon} ${p.name} → ${p.anatomy_organ}</h3>
+      <div>${p.anatomy_why}</div>
+      <div class="bio"><b>Biology:</b> ${p.biology}</div>
+      ${p.also_biology ? Object.entries(p.also_biology).map(([k,v]) => `<div class="bio"><b>${k}:</b> ${v}</div>`).join('') : ''}
+      <div class="maps">${p.membrane_maps_to.map(m => '<span>' + m + '</span>').join('')}</div>
+      <div class="insight">${p.key_insight}</div>
+    `;
+    det.classList.add('active');
+  }
+}
+
+function renderTable() {
+  const tbody = document.querySelector('#comp-table tbody');
+  const m = data.the_mapping.table;
+
+  for (const [key, val] of Object.entries(m)) {
+    const p = data.paradigms.find(x => x.name.toLowerCase().replace(/ /g, '_').startsWith(key.substring(0,4)));
+    const color = p ? p.color : '#888';
+    const icon = p ? p.icon : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${icon}</td>
+      <td style="color:${color};font-weight:600">${key}</td>
+      <td>${val.organ}</td>
+      <td style="font-family:monospace;font-size:12px;font-weight:bold">${val.variable}</td>
+      <td>${val.verb}</td>
+      <td>${val.biology}</td>
+      <td style="font-size:9px;color:var(--dim)">${val.channel}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderSpirochete() {
+  const s = data.spirochete_as_veil_cutter;
+  const el = document.getElementById('spirochete');
+  el.innerHTML = `
+    <h3>🌀 ${s.title}</h3>
+    <div class="drill">
+      <p>${s.what}</p>
+      <p style="margin-top:6px">${s.why_it_matters}</p>
+      <p style="margin-top:6px;color:var(--gold)">${s.the_anatomy_connection}</p>
+      <p style="margin-top:6px;color:var(--dim);font-style:italic">${s.corkscrew_geometry}</p>
+    </div>
+  `;
+}
+
+function renderLoop() {
+  const l = data.how_they_combine;
+  const el = document.getElementById('loop');
+  el.innerHTML = `
+    <div style="font-size:11px;color:var(--dim)">${l.title}</div>
+    <div class="cycle">🌀 → 🌊 → 📐 → 🎮 → 🌀</div>
+    <div class="cycle" style="font-size:12px">WFC → unsupervised → supervised → reinforcement → WFC</div>
+    <div class="steps">
+      ${l.pipeline.map(s => '<div>' + s + '</div>').join('')}
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:var(--gold)">${l.the_loop}</div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>
