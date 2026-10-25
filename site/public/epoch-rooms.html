@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epoch Rooms — every null axis seeded to grow</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d1117; color: #c9d1d9; font: 13px/1.7 'SF Mono', monospace; }
+h1 { font-size: 1.4em; font-weight: 200; color: #e6edf3; text-align: center; padding: 1.2rem; }
+h1 .sub { font-size: .6em; color: #6e7681; display: block; }
+.nav { text-align: center; padding: .5rem; font-size: .8em; }
+.nav a { color: #58a6ff; text-decoration: none; margin: 0 .5rem; }
+.nav a:hover { text-decoration: underline; }
+
+.timeline { max-width: 900px; margin: 0 auto; padding: 0 1rem 2rem; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, #f85149 0%, #d29922 15%, #3fb950 30%, #58a6ff 50%, #a371f7 70%, #f0883e 85%, #238636 100%); }
+
+.epoch { margin-left: 48px; margin-bottom: 2rem; position: relative; }
+.epoch::before { content: ''; position: absolute; left: -34px; top: 8px; width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid; }
+.epoch .era-name { font-size: 1.1em; font-weight: 600; }
+.epoch .range { font-size: .75em; color: #6e7681; }
+.epoch .room-name { font-size: .85em; color: #8b949e; font-style: italic; margin: .2rem 0; }
+.epoch .null-axis { font-size: .78em; color: #d2a8ff; margin: .3rem 0; }
+.epoch .sourdough { font-size: .75em; color: #d29922; margin-top: .3rem; border-left: 2px solid #d29922; padding-left: .5rem; }
+.epoch .seeds { display: flex; flex-wrap: wrap; gap: .3rem; margin: .4rem 0; }
+.epoch .seeds span { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15); border-radius: 10px;
+  padding: 1px 8px; font-size: .7em; color: #58a6ff; }
+.epoch .grows { font-size: .72em; color: #3fb950; }
+.epoch .grows-back { font-size: .72em; color: #f0883e; }
+
+.rooms-grid { max-width: 900px; margin: 1rem auto 2rem; padding: 0 1rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem; }
+.room-card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: .8rem;
+  transition: all .3s; cursor: default; }
+.room-card:hover { border-color: var(--rc); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.room-card .icon { font-size: 1.6em; }
+.room-card .name { font-weight: 600; font-size: .9em; }
+.room-card .null { font-size: .72em; color: #d2a8ff; margin: .3rem 0; font-style: italic; }
+.room-card .grow-out { font-size: .7em; color: #3fb950; }
+.room-card .grow-back { font-size: .7em; color: #f0883e; }
+
+.era-rooms { max-width: 900px; margin: 0 auto 2rem; padding: 0 1rem; }
+.era-rooms h3 { font-size: .95em; font-weight: 400; color: #e6edf3; margin-bottom: .5rem; border-bottom: 1px solid #21262d; padding-bottom: .3rem; }
+.era-rooms .room-row { display: grid; grid-template-columns: 30px 1fr; gap: .5rem; margin-bottom: .5rem; font-size: .78em; }
+.era-rooms .room-row .cat-icon { font-size: 1.2em; }
+.era-rooms .room-row .cat-content { color: #8b949e; }
+
+.sculptures { max-width: 900px; margin: 1rem auto 2rem; padding: 0 1rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .6rem; }
+.sculpt { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: .8rem;
+  text-align: center; cursor: pointer; transition: all .4s; }
+.sculpt:hover { border-color: #3fb950; transform: scale(1.05); box-shadow: 0 8px 20px rgba(63,185,80,0.15); }
+.sculpt .s-icon { font-size: 2em; }
+.sculpt .s-name { font-weight: 600; font-size: .85em; color: #e6edf3; }
+.sculpt .s-status { font-size: .7em; color: #3fb950; }
+.sculpt .s-desc { font-size: .68em; color: #6e7681; margin-top: .3rem; }
+
+h2 { max-width: 900px; margin: 1.5rem auto .5rem; padding: 0 1rem; font-size: 1em; font-weight: 400; color: #d2a8ff; }
+h2 .count { color: #6e7681; font-weight: 200; }
+
+footer { text-align: center; padding: 1rem; font-size: .7em; color: #30363d; }
+footer a { color: #58a6ff; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>🌱 Epoch Rooms <span class="sub">every null axis seeded to grow — out and BACK</span></h1>
+
+<div class="nav">
+  <a href="/">HUD ↑</a> · <a href="/self-model.html">🪞 self</a> · <a href="/spinal-column.html">🦴 cord</a> ·
+  <a href="/dimensions.html">📐 dim</a> · <a href="/easel.html">🎨 easel</a> · <a href="https://nestgate.io/ide.html">🖥 desk</a>
+</div>
+
+<h2>🌍 Geological Epochs <span class="count">— 7 eras, deep time → now</span></h2>
+<div class="timeline" id="geo-timeline"></div>
+
+<h2>🏛️ Human Epochs <span class="count">— 8 eras × 8 categories = 64 rooms</span></h2>
+<div id="human-epochs"></div>
+
+<h2>📦 Room Categories <span class="count">— 8 null axes</span></h2>
+<div class="rooms-grid" id="categories"></div>
+
+<h2>🗿 Sculptures <span class="count">— 8 objects in the gallery</span></h2>
+<div class="sculptures" id="sculptures"></div>
+
+<footer>
+  <a href="/data/epoch-rooms.json">epoch-rooms.json</a> · seeded wave 201 ·
+  each room is a null axis · the sourdough is the starter · it grows out and BACK
+</footer>
+
+<script>
+'use strict';
+fetch('/data/epoch-rooms.json').then(r=>r.json()).then(data => {
+  // Geological timeline
+  const tl = document.getElementById('geo-timeline');
+  data.epochs.forEach(ep => {
+    const div = document.createElement('div');
+    div.className = 'epoch';
+    div.style.cssText = `--ec: ${ep.color}`;
+    div.querySelector?.('::before')?.style;
+    div.innerHTML = `
+      <style>.epoch[style*="${ep.color}"]::before { border-color: ${ep.color}; background: ${ep.color}22; }</style>
+      <div class="era-name" style="color:${ep.color}">${ep.name}</div>
+      <div class="range">${ep.range}</div>
+      <div class="room-name">${ep.room}</div>
+      <div class="null-axis">∅ ${ep.null_axis}</div>
+      <div class="seeds">${ep.seeds.map(s => `<span>${s}</span>`).join('')}</div>
+      <div class="grows">↗ grows into: ${ep.grows_into.join(', ')}</div>
+      <div class="grows-back">↩ grows back: ${ep.grows_back}</div>
+      <div class="sourdough">🍞 ${ep.sourdough}</div>
+    `;
+    tl.appendChild(div);
+  });
+
+  // Human epochs
+  const he = document.getElementById('human-epochs');
+  const cats = Object.keys(data.room_categories);
+  data.human_epochs.forEach(ep => {
+    const sec = document.createElement('div');
+    sec.className = 'era-rooms';
+    let rows = '';
+    cats.forEach(cat => {
+      const rc = data.room_categories[cat];
+      const content = ep.rooms[cat] || '—';
+      rows += `<div class="room-row"><span class="cat-icon">${rc.icon}</span><span class="cat-content"><strong style="color:${rc.color}">${cat}:</strong> ${content}</span></div>`;
+    });
+    sec.innerHTML = `
+      <h3>${ep.name} <span style="color:#6e7681;font-weight:200">${ep.range}</span></h3>
+      <div style="font-size:.78em;color:#d2a8ff;margin-bottom:.4rem;font-style:italic">∅ ${ep.null_axis}</div>
+      ${rows}
+      <div style="font-size:.72em;color:#d29922;margin-top:.3rem;border-left:2px solid #d29922;padding-left:.5rem">🍞 ${ep.sourdough}</div>
+    `;
+    he.appendChild(sec);
+  });
+
+  // Categories
+  const cg = document.getElementById('categories');
+  Object.entries(data.room_categories).forEach(([key, cat]) => {
+    const card = document.createElement('div');
+    card.className = 'room-card';
+    card.style.cssText = `--rc: ${cat.color}`;
+    card.innerHTML = `
+      <div class="icon">${cat.icon}</div>
+      <div class="name" style="color:${cat.color}">${key}</div>
+      <div class="null">∅ ${cat.null_axis}</div>
+      <div class="grow-out">↗ ${cat.grows_out}</div>
+      <div class="grow-back">↩ ${cat.grows_back}</div>
+    `;
+    cg.appendChild(card);
+  });
+
+  // Sculptures
+  const sg = document.getElementById('sculptures');
+  Object.entries(data.sculpture_seeds).forEach(([key, s]) => {
+    const card = document.createElement('div');
+    card.className = 'sculpt';
+    card.onclick = () => location.href = s.link;
+    card.innerHTML = `
+      <div class="s-icon">${s.icon}</div>
+      <div class="s-name">${key.replace(/_/g, ' ')}</div>
+      <div class="s-status">${s.status}</div>
+      <div class="s-desc">${s.description}</div>
+    `;
+    sg.appendChild(card);
+  });
+}).catch(e => {
+  document.body.innerHTML += '<p style="color:#f85149;text-align:center;padding:2rem">failed to load epoch-rooms.json: ' + e.message + '</p>';
+});
+</script>
+</body>
+</html>
