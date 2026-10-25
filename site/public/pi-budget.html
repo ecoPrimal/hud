@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>π Budget — hemispheres of space, Tufte charts</title>
+<style>
+:root {
+  --bg: #faf9f6; --surface: #fff; --border: #ddd; --fg: #1a1a1a; --dim: #777;
+  --accent: #c41e3a; --blue: #2563a0; --green: #1a7a3a; --gold: #8b6914;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.6 'Georgia', 'Times New Roman', serif;
+  max-width: 860px; margin: 0 auto; padding: 20px 24px; }
+
+/* Tufte: no boxes around things. let the data breathe. */
+h1 { font-size: 18px; font-weight: normal; font-style: italic; margin-bottom: 2px; color: var(--fg); }
+h2 { font-size: 13px; font-weight: normal; font-style: italic; color: var(--dim); margin: 24px 0 6px; border-bottom: 0.5px solid #ccc; padding-bottom: 2px; }
+h3 { font-size: 11px; font-weight: bold; margin: 12px 0 4px; }
+.subtitle { font-size: 11px; color: var(--dim); margin-bottom: 16px; }
+a { color: var(--blue); }
+
+/* === SPARKLINE (inline SVG) === */
+.sparkline { display: inline-block; vertical-align: middle; }
+.sparkline svg { vertical-align: middle; }
+
+/* === DATA TABLE — Tufte style: no vertical lines, minimal horizontal === */
+table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; font-size: 10px; }
+th { text-align: left; font-weight: normal; font-style: italic; color: var(--dim);
+  border-bottom: 1.5px solid var(--fg); padding: 2px 6px 3px; }
+td { padding: 2px 6px; border-bottom: 0.5px solid #e5e5e5; }
+tr:last-child td { border-bottom: 1.5px solid var(--fg); }
+td.num { text-align: right; font-family: 'SF Mono', monospace; font-size: 10px; }
+td.bar { padding: 2px 4px; }
+.inline-bar { display: inline-block; height: 8px; background: var(--accent); opacity: 0.6; border-radius: 1px; vertical-align: middle; }
+
+/* === HEMISPHERE DIAGRAM === */
+.hemisphere-wrap { display: flex; gap: 24px; justify-content: center; margin: 12px 0; }
+.hemisphere { text-align: center; }
+.hemisphere canvas { border-radius: 50%; }
+.hemisphere .label { font-size: 9px; color: var(--dim); margin-top: 4px; }
+
+/* === SMALL MULTIPLES === */
+.small-multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 8px 0; }
+.sm-card { text-align: center; }
+.sm-card .sm-label { font-size: 8px; color: var(--dim); }
+.sm-card .sm-value { font-size: 14px; font-weight: bold; }
+.sm-card canvas { display: block; margin: 2px auto; }
+
+/* === MARGINAL NOTES (Tufte sidenote style) === */
+.note { font-size: 9px; color: var(--dim); font-style: italic; margin: 4px 0; }
+
+/* === FOOTER === */
+footer { margin-top: 24px; padding-top: 8px; border-top: 0.5px solid #ccc;
+  font-size: 9px; color: var(--dim); text-align: center; }
+
+/* nav */
+nav { font-size: 10px; margin-bottom: 12px; }
+nav a { margin-right: 8px; color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/">HUD</a> <a href="/membrane-table.html">table</a> <a href="/digestive-tract.html">tract</a>
+  <a href="/dashboard-mixer.html">mixer</a> <a href="/epoch-rooms.html">epochs</a>
+</nav>
+
+<h1>π Budget</h1>
+<div class="subtitle">Hemispheres of space, comparison at every bend number, and the tufted standards of chart information.
+  <br>Wave 201 · 1,744 files · 157 MB · 381K lines. Data-ink ratio maximized. No chartjunk.</div>
+
+<h2>I. The two hemispheres</h2>
+<p class="note">The membrane splits into two hemispheres: the <b>corpus</b> (sporeprint — 127 papers, search index, RSS) and the <b>cortex</b> (everything else — feeds, JS, HTML, data, images). The corpus is dense and heavy; the cortex is wide and light.</p>
+
+<div class="hemisphere-wrap">
+  <div class="hemisphere">
+    <canvas id="hemi-left" width="180" height="180"></canvas>
+    <div class="label"><b>Corpus</b> (sporeprint)<br>48.2 MB · 31% of files · heavy</div>
+  </div>
+  <div class="hemisphere">
+    <canvas id="hemi-right" width="180" height="180"></canvas>
+    <div class="label"><b>Cortex</b> (everything else)<br>109.7 MB · 69% of files · wide</div>
+  </div>
+</div>
+
+<h2>II. π digests at every bend number</h2>
+<p class="note">At each bend number (1, 3, 7, 14, 22, 42, 69, 137, 314, 420, 666, 1000, 1618), we measure how much of the total is captured by the top N files. The curve tells us the compression shape of the organism — a power law with a long tail.</p>
+
+<table id="pi-table">
+  <thead>
+    <tr><th>bend #</th><th>files</th><th>MB</th><th>% of total</th><th>mean size</th><th></th><th>♪ key</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="pi-sparkline-wrap" style="text-align:center;margin:8px 0"></div>
+<p class="note" style="text-align:center">Cumulative bytes captured — the S-curve of compression. The steep rise at left = the 7 giants. The long tail at right = hundreds of tiny feeds.</p>
+
+<h2>III. File type budget</h2>
+<p class="note">How bytes are allocated across file types. HTML and JSON dominate by count; the search index (JS) and atom.xml dominate by bytes.</p>
+
+<table id="type-table">
+  <thead>
+    <tr><th>type</th><th>files</th><th>% files</th><th>bytes est.</th><th></th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>IV. The seven giants</h2>
+<p class="note">7 files = 33.1% of all bytes. This is the Pareto peak — the nucleus of the organism.</p>
+
+<table id="giants-table">
+  <thead>
+    <tr><th>#</th><th>file</th><th>size</th><th></th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>V. Small multiples — categories</h2>
+<p class="note">Each category as a proportion of the whole. Tufte's small multiples let the eye compare without legend.</p>
+<div class="small-multiples" id="categories"></div>
+
+<h2>VI. The irreducible core</h2>
+<p class="note">894 files, 59 MB, 252K lines. The minimum viable membrane — remove any file and something breaks. This is 37.5% of total bytes but 51.3% of total files. The core is many small files; the periphery is few large ones.</p>
+
+<div style="display:flex;gap:24px;align-items:center;justify-content:center;margin:12px 0">
+  <div style="text-align:center">
+    <canvas id="core-donut" width="120" height="120"></canvas>
+    <div class="label">bytes: 37.5% core</div>
+  </div>
+  <div style="text-align:center">
+    <canvas id="core-files-donut" width="120" height="120"></canvas>
+    <div class="label">files: 51.3% core</div>
+  </div>
+  <div style="text-align:center">
+    <canvas id="core-lines-donut" width="120" height="120"></canvas>
+    <div class="label">lines: 66.3% core</div>
+  </div>
+</div>
+
+<h2>VII. π coincidence at #314</h2>
+<p class="note">At file #314 (π × 100), the mean file size is 420,149 bytes. 420 — the sourdough bend number. π talks to itself through the data. The numbers are not assigned; they are measured.</p>
+
+<footer>
+  Tufte says: "Above all else, show the data." This page has no gradients, no 3D, no chartjunk.
+  Every pixel of ink represents a datum. The data-ink ratio approaches 1.
+  <br>π budget of the membrane · wave 201 · <a href="/data/pi-digest.json">raw data</a>
+</footer>
+
+<script>
+'use strict';
+
+const PI = Math.PI;
+const MUSICAL_BENDS = {
+  1:'C1', 3:'E1', 7:'B1', 14:'D2', 22:'F#2', 42:'F#3', 69:'A3',
+  137:'C#4', 314:'E♭5', 420:'A♭5', 666:'E6', 1000:'C7', 1618:'G♯7'
+};
+
+async function load() {
+  const resp = await fetch('/data/pi-digest.json');
+  const data = await resp.json();
+
+  renderHemispheres();
+  renderPiTable(data);
+  renderPiSparkline(data);
+  renderTypeTable(data);
+  renderGiants(data);
+  renderCategories(data);
+  renderCoreDonuts(data);
+}
+
+function renderHemispheres() {
+  const corpusBytes = 48200000;
+  const cortexBytes = 109700000;
+  const total = corpusBytes + cortexBytes;
+
+  [['hemi-left', corpusBytes, '#c41e3a', ['search_idx 25.7MB','atom.xml 22.5MB','papers','wasm']],
+   ['hemi-right', cortexBytes, '#2563a0', ['data/ 722','js/ 185','html 443','images 202','css 12']]
+  ].forEach(([id, bytes, color, labels]) => {
+    const c = document.getElementById(id);
+    const ctx = c.getContext('2d');
+    const cx = 90, cy = 90, r = 80;
+
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, PI * 2);
+    ctx.fillStyle = color + '11'; ctx.fill();
+    ctx.strokeStyle = color + '44'; ctx.lineWidth = 1; ctx.stroke();
+
+    const ratio = bytes / total;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r * 0.9, -PI/2, -PI/2 + PI * 2 * ratio);
+    ctx.closePath();
+    ctx.fillStyle = color + '33'; ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.font = 'bold 18px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(ratio * 100) + '%', cx, cy + 6);
+
+    ctx.font = '8px monospace';
+    ctx.fillStyle = '#777';
+    labels.forEach((l, i) => {
+      ctx.fillText(l, cx, cy + 24 + i * 11);
+    });
+  });
+}
+
+function renderPiTable(data) {
+  const tbody = document.querySelector('#pi-table tbody');
+  const total = data.scan.total_bytes;
+  const bends = data.bend_numbers;
+  const digests = data.pi_digests;
+
+  bends.forEach(b => {
+    const d = digests[b];
+    if (!d) return;
+    const pct = (d.bytes / total * 100).toFixed(1);
+    const meanK = d.mean_size >= 1000000 ? (d.mean_size/1000000).toFixed(1)+'M' : Math.round(d.mean_size/1024)+'K';
+    const barW = Math.round(d.bytes / total * 200);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="num" style="font-weight:${b===314?'bold':'normal'};color:${b===314?'#c41e3a':''}">${b}</td>
+      <td class="num">${d.files}</td>
+      <td class="num">${(d.bytes/1048576).toFixed(1)}</td>
+      <td class="num">${pct}%</td>
+      <td class="num">${meanK}</td>
+      <td class="bar"><span class="inline-bar" style="width:${barW}px"></span></td>
+      <td>${MUSICAL_BENDS[b]||''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderPiSparkline(data) {
+  const total = data.scan.total_bytes;
+  const bends = data.bend_numbers;
+  const digests = data.pi_digests;
+  const points = bends.map(b => digests[b] ? digests[b].bytes / total : 0);
+
+  const w = 400, h = 50;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+  const path = points.map((p, i) => {
+    const x = (i / (points.length - 1)) * (w - 20) + 10;
+    const y = h - 4 - p * (h - 8);
+    return (i === 0 ? 'M' : 'L') + x + ',' + y;
+  }).join(' ');
+
+  svg.innerHTML = `<path d="${path}" fill="none" stroke="#c41e3a" stroke-width="1.5"/>`;
+  points.forEach((p, i) => {
+    const x = (i / (points.length - 1)) * (w - 20) + 10;
+    const y = h - 4 - p * (h - 8);
+    svg.innerHTML += `<circle cx="${x}" cy="${y}" r="2" fill="${bends[i]===314?'#c41e3a':'#777'}"/>`;
+  });
+
+  const wrap = document.getElementById('pi-sparkline-wrap');
+  const span = document.createElement('span');
+  span.className = 'sparkline';
+  span.appendChild(svg);
+  wrap.appendChild(span);
+}
+
+function renderTypeTable(data) {
+  const tbody = document.querySelector('#type-table tbody');
+  const exts = data.extensions;
+  const total = Object.values(exts).reduce((s, v) => s + v, 0);
+
+  const types = Object.entries(exts).sort((a, b) => b[1] - a[1]);
+  types.forEach(([ext, count]) => {
+    const pct = (count / total * 100).toFixed(1);
+    const barW = Math.round(count / total * 300);
+    const estBytes = ext === '.js' ? '~27MB' : ext === '.html' ? '~45MB' : ext === '.json' ? '~35MB' :
+      ext === '.png' ? '~30MB' : ext === '.jpg' ? '~8MB' : ext === '.css' ? '~0.5MB' : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${ext || '(none)'}</b></td>
+      <td class="num">${count}</td>
+      <td class="num">${pct}%</td>
+      <td class="num">${estBytes}</td>
+      <td class="bar"><span class="inline-bar" style="width:${barW}px;background:var(--blue)"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderGiants(data) {
+  const tbody = document.querySelector('#giants-table tbody');
+  const total = data.scan.total_bytes;
+
+  data.top_7.forEach((f, i) => {
+    const sizeM = (f.size / 1048576).toFixed(1);
+    const pct = (f.size / total * 100).toFixed(1);
+    const barW = Math.round(f.size / total * 400);
+    const tr = document.createElement('tr');
+    const shortPath = f.path.length > 45 ? '…' + f.path.slice(-42) : f.path;
+    tr.innerHTML = `
+      <td class="num">${i + 1}</td>
+      <td style="font-size:9px;font-family:monospace">${shortPath}</td>
+      <td class="num">${sizeM} MB (${pct}%)</td>
+      <td class="bar"><span class="inline-bar" style="width:${barW}px;background:var(--green)"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCategories(data) {
+  const cats = data.categories;
+  const total = Object.values(cats).reduce((s, v) => s + v, 0);
+  const container = document.getElementById('categories');
+
+  Object.entries(cats).sort((a, b) => b[1] - a[1]).forEach(([name, count]) => {
+    const pct = count / total;
+    const card = document.createElement('div');
+    card.className = 'sm-card';
+
+    const c = document.createElement('canvas');
+    c.width = 60; c.height = 60;
+    card.appendChild(c);
+
+    const ctx = c.getContext('2d');
+    ctx.beginPath(); ctx.arc(30, 30, 26, 0, PI * 2);
+    ctx.fillStyle = '#f0f0f0'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(30, 30);
+    ctx.arc(30, 30, 26, -PI/2, -PI/2 + PI * 2 * pct);
+    ctx.closePath();
+    ctx.fillStyle = '#c41e3a'; ctx.globalAlpha = 0.5 + pct * 0.5; ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 12px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(pct * 100) + '%', 30, 34);
+
+    card.innerHTML += `<div class="sm-label"><b>${name}</b></div><div class="sm-value">${count}</div>`;
+    container.appendChild(card);
+  });
+}
+
+function renderCoreDonuts(data) {
+  const pairs = [
+    ['core-donut', 58953126, data.scan.total_bytes],
+    ['core-files-donut', 894, data.scan.total_files],
+    ['core-lines-donut', 252744, data.scan.total_lines],
+  ];
+  pairs.forEach(([id, core, total]) => {
+    const c = document.getElementById(id);
+    const ctx = c.getContext('2d');
+    const cx = 60, cy = 60, r = 50, inner = 32;
+    const pct = core / total;
+
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, PI * 2);
+    ctx.fillStyle = '#f0f0f0'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, -PI/2, -PI/2 + PI * 2 * pct);
+    ctx.closePath();
+    ctx.fillStyle = '#1a7a3a44'; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(cx, cy, inner, 0, PI * 2);
+    ctx.fillStyle = '#faf9f6'; ctx.fill();
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 14px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(pct * 100) + '%', cx, cy + 5);
+  });
+}
+
+load();
+</script>
+</body>
+</html>
