@@ -241,10 +241,10 @@ body.inside-mash #mash-jar { display: block; }
       </div>
       <div id="mash-jar">
         <div style="color:#c9d1d9;margin-bottom:4px">the mash · you are inside</div>
-        <div class="mash-row" data-m="water"><b>water</b><i></i><s id="mash-water-n">0</s></div>
-        <div class="mash-row" data-m="energy"><b>energy</b><i></i><s id="mash-energy-n">0</s></div>
-        <div class="mash-row" data-m="life"><b>life</b><i></i><s id="mash-life-n">0</s></div>
-        <div class="mash-row" data-m="mass"><b>mass</b><i></i><s id="mash-mass-n">0</s></div>
+        <div class="mash-row" data-m="water" style="--w:42%"><b>water</b><i></i><s id="mash-water-n">42</s></div>
+        <div class="mash-row" data-m="energy" style="--w:35%"><b>energy</b><i></i><s id="mash-energy-n">35</s></div>
+        <div class="mash-row" data-m="life" style="--w:28%"><b>life</b><i></i><s id="mash-life-n">28</s></div>
+        <div class="mash-row" data-m="mass" style="--w:18%"><b>mass</b><i></i><s id="mash-mass-n">18</s></div>
         <div id="tense-rail">
           <span data-t="IS" class="on">IS loaf</span>
           <span data-t="NEAR">NEAR</span>
@@ -549,7 +549,8 @@ var learnedTraits = {      // what the chipmunk has learned across generations
 };
 
 // mash = water + energy + life + mass. the bread goes back.
-var mash = { water: 0.12, energy: 0.08, life: 0.05, mass: 0, lastReturn: '', peek: 'IS' };
+// never boot dead — the chipmunk has been alive for waves. that's not zero.
+var mash = { water: 0.42, energy: 0.35, life: 0.28, mass: 0.18, lastReturn: '', peek: 'IS' };
 var insideMash = false;
 
 // Chicken and egg: to paint you need perspective, to get perspective you paint.
@@ -1102,10 +1103,13 @@ function enterMash() {
 
 function updateMash() {
   var kp = skyScore && typeof skyScore.kp === 'number' ? skyScore.kp / 9 : 0.15;
-  mash.water = Math.max(0.08, Math.min(1, 0.2 + (breathPhase || 0) * 0.15 + kp));
-  mash.energy = Math.max(0.08, Math.min(1, (totalStrokes % 400) / 400));
-  mash.life = Math.max(0.05, Math.min(1, learnedTraits.perspective + 0.08));
-  mash.mass = Math.min(1, starters.length / MAX_STARTERS);
+  // wave baseline — chipmunk has been alive for waves. 214 waves is not zero.
+  var waveBase = Math.min(0.4, 0.18 + (generation || 1) * 0.02);
+  // NEVER crush existing values below what pointTowardChipmunk or other functions set.
+  mash.water = Math.max(mash.water, Math.max(0.25, Math.min(1, waveBase + (breathPhase || 0) * 0.15 + kp)));
+  mash.energy = Math.max(mash.energy, Math.max(0.2, Math.min(1, waveBase + (totalStrokes % 400) / 400)));
+  mash.life = Math.max(mash.life, Math.max(0.18, Math.min(1, waveBase + learnedTraits.perspective)));
+  mash.mass = Math.max(mash.mass, Math.min(1, waveBase * 0.5 + starters.length / MAX_STARTERS));
   [['water', mash.water], ['energy', mash.energy], ['life', mash.life], ['mass', mash.mass]].forEach(function(pair) {
     var row = document.querySelector('.mash-row[data-m="' + pair[0] + '"]');
     if (row) row.style.setProperty('--w', Math.round(pair[1] * 100) + '%');
