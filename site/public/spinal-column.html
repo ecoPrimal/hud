@@ -1,0 +1,157 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>Spinal Column — CNS/PNS Nerve Map</title>
+<meta name=description content="The spinal column wire. 30 vertebrae. Afferent signals flow UP (sensory). Efferent signals flow DOWN (motor). The SAME fibers. Both directions. Dave's nerves along the column.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0c12;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.6;overflow-x:hidden}
+.page{max-width:960px;margin:0 auto;padding:80px 20px 60px}
+h1{color:#e6edf3;font-size:clamp(20px,4vw,32px);font-weight:300;margin-bottom:6px}
+h2{color:#58a6ff;font-size:16px;margin:32px 0 12px;border-bottom:1px solid #21262d;padding-bottom:6px}
+p{margin-bottom:12px;font-size:13px}
+a{color:#58a6ff}
+.dim{color:#6e7681}
+.green{color:#3fb950}
+.gold{color:#d29922}
+.orange{color:#f0883e}
+.red{color:#f85149}
+.purple{color:#a371f7}
+
+.cord-layout{display:grid;grid-template-columns:48px 1fr;gap:0;margin:20px 0}
+.cord-strip{position:relative;background:linear-gradient(180deg,
+  rgba(88,166,255,0.12) 0%,rgba(63,185,80,0.08) 23%,
+  rgba(163,113,247,0.06) 40%,rgba(210,153,34,0.08) 60%,
+  rgba(240,136,62,0.06) 80%,rgba(248,81,73,0.04) 100%);
+  border-radius:4px 0 0 4px;min-height:600px}
+.cord-strip .fiber{position:absolute;left:50%;width:2px;height:100%;
+  background:linear-gradient(180deg,#58a6ff,#3fb950,#a371f7,#d29922,#f0883e,#f85149);
+  transform:translateX(-50%);opacity:.25}
+
+.v-row{display:flex;align-items:stretch;border-bottom:1px solid rgba(33,38,45,.5)}
+.v-id{width:48px;text-align:center;padding:8px 4px;font-size:10px;font-weight:700;
+  border-right:2px solid rgba(88,166,255,.15);flex-shrink:0}
+.v-id.cervical{color:#58a6ff;border-color:rgba(88,166,255,.3)}
+.v-id.thoracic{color:#3fb950;border-color:rgba(63,185,80,.3)}
+.v-id.lumbar{color:#d29922;border-color:rgba(210,153,34,.3)}
+.v-id.sacral{color:#f85149;border-color:rgba(248,81,73,.3)}
+.v-body{flex:1;padding:6px 12px;display:grid;grid-template-columns:120px 100px 1fr 100px;gap:8px;align-items:center;font-size:11px}
+.v-body .name{font-weight:600;color:#f0f6fc}
+.v-body .dir{font-size:10px}
+.v-body .dir.up{color:#3fb950}
+.v-body .dir.down{color:#f0883e}
+.v-body .dir.both{color:#58a6ff}
+.v-body .desc{color:#8b949e}
+.v-body .organ{color:#d29922;font-size:10px;font-style:italic}
+
+.legend{display:flex;gap:20px;margin:16px 0;font-size:11px}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+@media(max-width:700px){
+  .v-body{grid-template-columns:1fr;gap:2px}
+}
+</style></head><body>
+<div class="page">
+
+<h1>🦴 Spinal Column</h1>
+<p>The wire along which ALL signals travel. <strong class="green">Afferent</strong> (sensory) flows <strong class="green">UP ↑</strong>.
+<strong class="orange">Efferent</strong> (motor) flows <strong class="orange">DOWN ↓</strong>.
+<strong class="purple">Both</strong> on the <strong>SAME fibers</strong>. Dave's nerves along the column.</p>
+
+<p class="dim">HUD = the ONLY viewport (brain). Desk = puppet strings (motor cortex).
+The spinal column connects them. <code>spinal-column.js</code> is the wire.
+30 vertebrae: C1–C7 cervical, T1–T12 thoracic, L1–L5 lumbar, S1–S5 sacral.</p>
+
+<div class="legend">
+  <span><span class="dot" style="background:#3fb950"></span> afferent (sensory ↑)</span>
+  <span><span class="dot" style="background:#f0883e"></span> efferent (motor ↓)</span>
+  <span><span class="dot" style="background:#58a6ff"></span> both (↕)</span>
+</div>
+
+<h2>Cervical (C1–C7) — Brain & Neck · Highest Bandwidth</h2>
+<div id="cord-cervical"></div>
+
+<h2>Thoracic (T1–T12) — Chest & Organs · The Core Pathways</h2>
+<div id="cord-thoracic"></div>
+
+<h2>Lumbar (L1–L5) — Lower Body · Structure & Projection</h2>
+<div id="cord-lumbar"></div>
+
+<h2>Sacral (S1–S5) — Base · Grounding & Infrastructure</h2>
+<div id="cord-sacral"></div>
+
+<h2>The Waterfall</h2>
+<p>Every feed, every MCP call, every poll — routes through this cord.
+The <a href="/cns.html">CNS page</a> maps the organs.
+The <a href="/local-cns-pns.html">local CNS/PNS</a> senses the physical machine.
+This page maps the <strong>wire itself</strong> — the column that connects them all.</p>
+
+<p>The HUD is the brain — the viewport. It renders what the cord delivers.
+The desk pulls puppet strings — efferent commands that travel DOWN the cord to MCP tools.
+The response travels BACK UP the same fiber — afferent data returning to the viewport.</p>
+
+<p class="dim" style="margin-top:24px">
+<a href="/">HUD ↑</a> · <a href="/cns.html">CNS</a> · <a href="/local-cns-pns.html">local CNS/PNS</a> ·
+<a href="/homunculus.html">homunculus</a> · <a href="https://nestgate.io/ide.html">desk (IDE)</a> ·
+<a href="https://nestgate.io/desk.html">sys desk</a>
+</p>
+</div>
+
+<script>
+const VERTEBRAE = [
+  {id:'C1',name:'pulse',feed:'/now.json',tool:'membrane_counts',dir:'both',organ:'heart',region:'cervical'},
+  {id:'C2',name:'topology',feed:'/topology.json',tool:'topology',dir:'both',organ:'skeleton',region:'cervical'},
+  {id:'C3',name:'negentropy',feed:'/negentropy.json',tool:'raw_feed',dir:'afferent',organ:'vestibular',region:'cervical'},
+  {id:'C4',name:'chipmunk',feed:'/chipmunk.json',tool:'chipmunk_status',dir:'both',organ:'autonomic',region:'cervical'},
+  {id:'C5',name:'observe',feed:null,tool:'observe_membrane',dir:'afferent',organ:'eye',region:'cervical'},
+  {id:'C6',name:'human',feed:null,tool:'human_epitopes',dir:'afferent',organ:'skin',region:'cervical'},
+  {id:'C7',name:'billboard',feed:'/billboard',tool:null,dir:'efferent',organ:'voice',region:'cervical'},
+  {id:'T1',name:'rss',feed:null,tool:'whats_new',dir:'afferent',organ:'stomach',region:'thoracic'},
+  {id:'T2',name:'neutron',feed:null,tool:'neutron_read',dir:'both',organ:'vagus',region:'thoracic'},
+  {id:'T3',name:'journal',feed:null,tool:'read_journal',dir:'afferent',organ:'hippocampus',region:'thoracic'},
+  {id:'T4',name:'stories',feed:null,tool:'read_stories',dir:'afferent',organ:'Broca',region:'thoracic'},
+  {id:'T5',name:'braid',feed:null,tool:'braid_connections',dir:'both',organ:'corpus_callosum',region:'thoracic'},
+  {id:'T6',name:'discuss',feed:null,tool:'discuss_thread',dir:'both',organ:'ear',region:'thoracic'},
+  {id:'T7',name:'scan',feed:null,tool:'scan_sweep_sort',dir:'efferent',organ:'immune',region:'thoracic'},
+  {id:'T8',name:'particle',feed:null,tool:'particle_model',dir:'afferent',organ:'pineal',region:'thoracic'},
+  {id:'T9',name:'notes',feed:null,tool:'human_notes',dir:'both',organ:'prefrontal',region:'thoracic'},
+  {id:'T10',name:'neutron_write',feed:null,tool:'neutron_write',dir:'efferent',organ:'motor_cortex',region:'thoracic'},
+  {id:'T11',name:'campfire',feed:'/campfire.json',tool:null,dir:'afferent',organ:'limbic',region:'thoracic'},
+  {id:'T12',name:'heartbeat',feed:'/heartbeat.json',tool:null,dir:'afferent',organ:'SA_node',region:'thoracic'},
+  {id:'L1',name:'hologram',feed:null,tool:null,dir:'efferent',organ:'retina_projection',region:'lumbar'},
+  {id:'L2',name:'desk',feed:null,tool:null,dir:'both',organ:'puppet_strings',region:'lumbar'},
+  {id:'L3',name:'presence',feed:'/presence.json',tool:null,dir:'afferent',organ:'proprioception',region:'lumbar'},
+  {id:'L4',name:'membrane_sound',feed:null,tool:null,dir:'efferent',organ:'cochlea',region:'lumbar'},
+  {id:'L5',name:'cron',feed:null,tool:null,dir:'efferent',organ:'circadian',region:'lumbar'},
+  {id:'S1',name:'dns',feed:null,tool:null,dir:'afferent',organ:'root',region:'sacral'},
+  {id:'S2',name:'cf_tunnel',feed:null,tool:null,dir:'both',organ:'spinal_tap',region:'sacral'},
+  {id:'S3',name:'wireguard',feed:null,tool:null,dir:'both',organ:'myelin_sheath',region:'sacral'},
+  {id:'S4',name:'ssh',feed:null,tool:null,dir:'both',organ:'axon_terminal',region:'sacral'},
+  {id:'S5',name:'git',feed:null,tool:null,dir:'both',organ:'long_term_potentiation',region:'sacral'},
+];
+
+const regions = {cervical:'cord-cervical',thoracic:'cord-thoracic',lumbar:'cord-lumbar',sacral:'cord-sacral'};
+
+VERTEBRAE.forEach(v => {
+  const container = document.getElementById(regions[v.region]);
+  if (!container) return;
+
+  const row = document.createElement('div');
+  row.className = 'v-row';
+
+  const dirCls = v.dir === 'afferent' ? 'up' : v.dir === 'efferent' ? 'down' : 'both';
+  const dirArrow = v.dir === 'afferent' ? '↑ sensory' : v.dir === 'efferent' ? '↓ motor' : '↕ both';
+
+  row.innerHTML = `
+    <div class="v-id ${v.region}">${v.id}</div>
+    <div class="v-body">
+      <div class="name">${v.name}</div>
+      <div class="dir ${dirCls}">${dirArrow}</div>
+      <div class="desc">${v.feed ? `feed: ${v.feed}` : ''}${v.tool ? `tool: ${v.tool}` : ''}${!v.feed && !v.tool ? 'infrastructure' : ''}</div>
+      <div class="organ">${v.organ.replace(/_/g,' ')}</div>
+    </div>
+  `;
+  container.appendChild(row);
+});
+</script>
+</body></html>

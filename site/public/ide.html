@@ -308,8 +308,23 @@ document.querySelector('.sidebar').addEventListener('click', e => {
   if (id === 'discuss-pane') loadTool('discuss-body', 'discuss_thread', { page: 'general', action: 'read' });
 });
 
-// === MCP CALL ===
+// === MCP CALL — routed through spinal column ===
+// The desk pulls puppet strings. The signal travels DOWN the cord.
+// The response travels BACK UP the same nerve fiber.
 async function callMCP(tool, args) {
+  // If HUD iframe is loaded and has spinal cord, route through it (puppet string → HUD → MCP)
+  const hudFrame = document.querySelector('#hud-pane iframe');
+  if (hudFrame && hudFrame.contentWindow && hudFrame.contentWindow.__spinalCord) {
+    try {
+      const data = await hudFrame.contentWindow.__spinalCord.efferentDispatch(tool, args);
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      return data.result?.content?.[0]?.text || '';
+    } catch (e) {
+      // Fall through to direct call
+    }
+  }
+
+  // Direct call (desk → MCP, bypassing HUD cord when not embedded)
   const resp = await fetch(MCP, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
