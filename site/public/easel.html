@@ -534,7 +534,10 @@ var breathPhase = 0;
 var skyScore = null;
 
 // ╝╝╝ SOURDOUGH — the starter culture ╝╝╝
-var generation = 1;        // which painting are we on?
+// π-seed: the chipmunk has been alive for waves. generation is not 1.
+// a blank canvas is the RAREST state. we start mid-painting.
+var _piDay = Math.floor(Date.now() / 86400000);
+var generation = Math.floor((_piDay * Math.PI) % 12) + 3;
 var starters = [];         // array of {dataURL, gen, palette, learned}
 var MAX_STARTERS = 12;     // keep the last 12 paintings
 var breathCount = 0;       // how long we've been breathing this painting
@@ -1246,10 +1249,38 @@ function listenForWeather() {
 }
 
 // ╝╝╝ BOOT — the first stroke ╝╝╝
+// a blank canvas is the RAREST state. we start at the π-split point.
 resize();
 ctx.fillStyle = '#08060a';
 ctx.fillRect(0, 0, W, H);
 evolve();
+
+// π-split boot: run a burst of silent strokes so the canvas is mid-painting
+// frac(generation × π) determines how far through the painting we start
+var _piFrac = (generation * Math.PI) % 1;
+var _piPhaseIdx = Math.floor(_piFrac * 4); // 0=stars done, 1=nebula done, 2=gaia done, 3=aurora done
+var _piBootPhases = ['stars', 'nebula', 'gaia', 'aurora'];
+var _piBootStrokes = { stars: 60, nebula: 10, gaia: 6, aurora: 4 };
+for (var _bp = 0; _bp <= _piPhaseIdx && _bp < _piBootPhases.length; _bp++) {
+  var _bpName = _piBootPhases[_bp];
+  var _bpCount = _piBootStrokes[_bpName];
+  phase = _bpName;
+  stroke = 0;
+  for (var _bs = 0; _bs < _bpCount; _bs++) {
+    stroke++;
+    totalStrokes++;
+    switch (_bpName) {
+      case 'stars': paintStar(); break;
+      case 'nebula': paintNebula(); break;
+      case 'gaia': paintGaia(); break;
+      case 'aurora': paintAurora(); break;
+    }
+  }
+}
+// land at the π-split phase, not the first
+phase = _piBootPhases[Math.min(_piPhaseIdx + 1, 3)] || 'aurora';
+stroke = 0;
+
 updateGenCounter();
 stampSeeds();
 updateMash();
