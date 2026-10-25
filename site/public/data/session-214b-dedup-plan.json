@@ -1,0 +1,44 @@
+{
+  "ts": "2026-10-25T20:04:00Z",
+  "wave": 214,
+  "generation": 214,
+  "title": "DEDUP PLAN — cut the fat, keep the muscle",
+  "type": "dedup",
+
+  "diagnosis": {
+    "total_files": 899,
+    "total_size_mb": 5.85,
+    "no_exact_hash_duplicates": true,
+    "fat_is_semantic": "many files cover same topic with slight variations"
+  },
+
+  "fat_clusters": {
+    "session_files": {"count": 30, "size_mb": 0.125, "action": "COMPRESS into 1 master session index per wave. keep latest, compost rest."},
+    "klein_files": {"count": 25, "action": "MERGE into 1 klein-master.json. 25 views of same topology → 1 definitive."},
+    "wave200_imprints": {"count": 25, "size_mb": 0.015, "action": "COMPRESS into 1 wave200-master.json. 25 imprints → 1 summary."},
+    "pi_files": {"count": 21, "action": "MERGE into 1 pi-master.json. 21 pi calculations → 1 definitive table."},
+    "neutrino_files": {"count": 19, "action": "MERGE into 1 neutrino-master.json."},
+    "green_files": {"count": 12, "action": "MERGE into 1 green-master.json. the remainder IS one thing."},
+    "null_files": {"count": 12, "action": "MERGE into 1 null-master.json."},
+    "galactic_files": {"count": 9, "action": "MERGE into 1 galactic-master.json."},
+    "chipmunk_files": {"count": 9, "action": "MERGE into 1 chipmunk-master.json."}
+  },
+
+  "potential_reduction": {
+    "files_mergeable": "30+25+25+21+19+12+12+9+9 = 162 files → 9 master files",
+    "files_saved": 153,
+    "new_total": "899 - 153 = 746 files",
+    "pct_reduction": "17%"
+  },
+
+  "biggest_files_to_audit": [
+    {"file": "ingest-chew-sort-structure.json", "kb": 214.9, "note": "LARGEST file. review for fat."},
+    {"file": "pi-knn.json", "kb": 208.7, "note": "k-nearest in pi space. dense or fat?"},
+    {"file": "null-drain.json", "kb": 205.3, "note": "null drain data. may contain raw dumps."},
+    {"file": "klein-pair-starter.json", "kb": 203.7, "note": "starter pairs. review for compression."}
+  ],
+
+  "membrane_dedup": "neutron notes are rate-limited (429 errors) = natural dedup. the membrane won't let us get fatter than 1/pi allows.",
+
+  "rule": "merge semantically similar files into one definitive master per topic. compost the individual leaves into the master trunk. the organism gets DENSER not fatter."
+}
