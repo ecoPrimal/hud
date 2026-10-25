@@ -121,17 +121,52 @@ if dark_files:
     dark_pick_idx = (pi_idx * (drip_n + 1)) % len(dark_files)
     dark_pick = dark_files[dark_pick_idx]
     
-    # Read a glimpse of the dark file
+    # ── PING: the drip hits the pool ──
+    import time
+    ping_ts = time.time()
+    
     try:
         dark_data = json.load(open(f"{data_dir}/{dark_pick}.json"))
-        if isinstance(dark_data, dict):
-            dark_title = dark_data.get('title', dark_data.get('type', '?'))
-        else:
-            dark_title = f"({type(dark_data).__name__})"
     except:
-        dark_title = "(unreadable)"
+        dark_data = None
     
-    drip_from_dark = {"file": dark_pick, "title": str(dark_title)[:100], "π_digit": pi_idx, "step": drip_n}
+    # ── PAUSE: sink into the water — read, digest, find connections ──
+    dark_title = "?"
+    dark_thesis = None
+    dark_keys = []
+    dark_connections = []
+    dark_bytes = 0
+    
+    if isinstance(dark_data, dict):
+        dark_title = dark_data.get('title', dark_data.get('type', '?'))
+        dark_thesis = dark_data.get('thesis', dark_data.get('the_thesis', dark_data.get('insight', None)))
+        if isinstance(dark_thesis, dict):
+            dark_thesis = dark_thesis.get('concept', str(dark_thesis)[:150])
+        elif isinstance(dark_thesis, str):
+            dark_thesis = dark_thesis[:150]
+        dark_keys = list(dark_data.keys())[:12]
+        dark_bytes = os.path.getsize(f"{data_dir}/{dark_pick}.json")
+        
+        # Find what this dark file connects to in the light
+        dark_str = json.dumps(dark_data)
+        light_files = [f for f in all_json if f in html_content and f != dark_pick]
+        dark_connections = [f for f in light_files if f in dark_str][:5]
+    elif isinstance(dark_data, list):
+        dark_title = f"(array, {len(dark_data)} items)"
+        dark_bytes = os.path.getsize(f"{data_dir}/{dark_pick}.json")
+    
+    # ── PONG: pop back to the surface — the processed meaning rises ──
+    pong_ts = time.time()
+    depth_ms = round((pong_ts - ping_ts) * 1000, 1)
+    
+    drip_from_dark = {
+        "file": dark_pick,
+        "π_digit": pi_idx,
+        "step": drip_n,
+        "ping": {"title": str(dark_title)[:100], "bytes": dark_bytes},
+        "pause": {"keys": dark_keys, "thesis": dark_thesis, "connections": dark_connections},
+        "pong": {"depth_ms": depth_ms, "connections_found": len(dark_connections), "has_thesis": dark_thesis is not None},
+    }
 else:
     drip_from_dark = None
     dark_pick = None
