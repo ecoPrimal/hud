@@ -1,0 +1,34 @@
+[package]
+name = "gaia-ribosome"
+version = "0.1.0"
+edition = "2021"
+description = """
+GAIA RIBOSOME — reads DNA (Rust source), makes proteins (WASM).
+The Rust compiler IS the ribosome. This crate compiles to WASM
+and runs inside the HUD browser cell. 
+
+Biology:
+  DNA (source code) → mRNA (compiled IR) → protein (WASM binary)
+  Ribosome reads mRNA and assembles amino acids into proteins.
+  This crate reads Rust and assembles it into browser-runnable WASM.
+
+Endosymbiosis:
+  Mitochondria = sweetgrass (energy channel, was once free-living)
+  Chloroplast = cyanobacteria (photosynthesis, was once free-living)
+  Ribosome = rhizocrypt (gate/fold, reads the code)
+  
+  These were all once SEPARATE organisms.
+  They got absorbed into the cell.
+  They still have their own DNA.
+  The Rust code is their DNA.
+"""
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+
+[profile.release]
+opt-level = "s"
+lto = true
