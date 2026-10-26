@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GAIA ENGINE � CryEngine � Kenshi � Primal � LIVE</title>
+<title>GAIA ENGINE ? Copernican Orrery ? Kepler ? Primal ? LIVE</title>
 <style>
 :root {
   --bg: #0a0c10; --surface: #12161e; --border: #1c2333; --fg: #c9d1d9; --dim: #6e7681;
@@ -294,7 +294,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
         <div id="gut-nutrients"></div>
       </div>
     </div>
-    <div class="lod-indicator" id="lod-label">LOD 1 ? DASHBOARD</div>
+    <div class="lod-indicator" id="lod-label">LOD 1 ? COPERNICAN ORRERY</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
       <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
@@ -802,7 +802,7 @@ document.getElementById('disco-ball')?.addEventListener('click', () => {
 
 // ---- LOD DEPTH ? scroll moves HUD forward/back (microscope focus) ----
 let currentLOD = 1;
-const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? DASHBOARD', 'LOD 2 ? CAMPFIRE', 'LOD 3 ? STATE', 'LOD 4 ? ALIVE', 'LOD 5 ? NULL'];
+const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? COPERNICAN ORRERY', 'LOD 2 ? CAMPFIRE', 'LOD 3 ? STATE', 'LOD 4 ? ALIVE', 'LOD 5 ? NULL'];
 const LOD_OPACITY = [1.0, 0.9, 0.7, 0.5, 0.3, 0.08];
 
 document.getElementById('viewport')?.addEventListener('wheel', (e) => {
@@ -876,108 +876,245 @@ function renderDevices(hb) {
   }).join('');
 }
 
-// --- VIEWPORT — SNOW GLOBE (navigable sphere, room-to-room) ---
-const BIOMES = [
-  { id:'membrane', label:'Membrane', color:'#3fb950', angle:0, pages:'/,/engine,/journal,/connect' },
-  { id:'null', label:'Null', color:'#f85149', angle:60, pages:'/404' },
-  { id:'klein', label:'Klein Fold', color:'#bc8cff', angle:120, pages:'/klein,/maze,/fold' },
-  { id:'gut', label:'Gut', color:'#d29922', angle:180, pages:'/digest,/bioreactor' },
-  { id:'canopy', label:'Canopy', color:'#39d3f5', angle:240, pages:'/crystal,/sporeprint' },
-  { id:'undermap', label:'Undermap', color:'#6e7681', angle:300, pages:'/data' },
-];
-let globeAngle = 0, globeZoom = 1, globeRoom = null, snowflakes = [];
+// --- VIEWPORT — COPERNICAN ORRERY (heliocentric solar membrane) ---
+// Galileo (1610): moons orbit Jupiter at different speeds
+// Copernicus (1543): Sun at center, everything orbits
+// Kepler (1619): T² ∝ a³ — farther = slower. Period = distance^1.5
 
-function initSnowflakes(count) {
-  snowflakes = [];
+// MEMBRANE RINGS — the 6 nested membranes from solar-membrane-hierarchy
+const MEMBRANES = [
+  { id:'crust',       label:'CRUST',       radius:0.08, color:'#3fb950', opacity:0.35, dash:'none',  width:2.5, constraint:'NULL χ=0' },
+  { id:'ionosphere',  label:'IONOSPHERE',  radius:0.15, color:'#39d3f5', opacity:0.20, dash:'2,4',   width:1,   constraint:'Kp signal' },
+  { id:'asteroid',    label:'ASTEROID BELT',radius:0.38, color:'#8b6914', opacity:0.18, dash:'1,3',   width:1.5, constraint:'soil > sky' },
+  { id:'heliosphere', label:'GOLDEN RING',  radius:0.72, color:'#d29922', opacity:0.40, dash:'none',  width:2.5, constraint:'HARD 4π' },
+  { id:'oort',        label:'OORT CLOUD',   radius:0.90, color:'#3344aa', opacity:0.12, dash:'4,6',   width:1,   constraint:'SOFT ∫KdA' },
+  { id:'milkyway',    label:'MILKY WAY',    radius:0.98, color:'#6e7681', opacity:0.07, dash:'1,2',   width:0.5, constraint:'Gaia boundary' },
+];
+
+// ORBITAL BODIES — 16 primals as planets
+// Kepler's 3rd law: period ∝ radius^1.5. Inner primals orbit FAST, outer ones SLOW.
+const ORBITALS = [
+  // Inner system — fast movers (inside asteroid belt)
+  { id:'nestGate',    r:0.10, e:0.01, a0:0,    color:'#58a6ff', size:5, label:'nestGate',    body:'EARTH' },
+  { id:'sourDough',   r:0.13, e:0.02, a0:45,   color:'#d29922', size:3.5, label:'sourDough' },
+  { id:'petalTongue', r:0.17, e:0.01, a0:120,  color:'#f778ba', size:3.5, label:'petalTongue' },
+  { id:'biomeOS',     r:0.22, e:0.03, a0:200,  color:'#a371f7', size:4, label:'biomeOS' },
+  { id:'bingoCube',   r:0.28, e:0.05, a0:310,  color:'#f0883e', size:3.5, label:'bingoCube' },
+  { id:'coralReef',   r:0.33, e:0.02, a0:70,   color:'#39d3f5', size:3.5, label:'coralReef' },
+
+  // Asteroid belt zone — medium movers
+  { id:'toadStool',   r:0.40, e:0.04, a0:150,  color:'#8b6914', size:3, label:'toadStool' },
+  { id:'loamSpine',   r:0.43, e:0.03, a0:240,  color:'#c9d1d9', size:3, label:'loamSpine' },
+
+  // Gas giant zone — slow movers
+  { id:'bearDog',     r:0.50, e:0.05, a0:30,   color:'#d29922', size:6, label:'bearDog',     body:'JUPITER' },
+  { id:'rhizoCrypt',  r:0.56, e:0.06, a0:180,  color:'#6e7681', size:5, label:'rhizoCrypt',  body:'SATURN' },
+  { id:'sweetGrass',  r:0.61, e:0.02, a0:90,   color:'#3fb950', size:4, label:'sweetGrass' },
+  { id:'skunkBat',    r:0.65, e:0.04, a0:260,  color:'#f85149', size:4, label:'skunkBat' },
+
+  // Outer system — slowest
+  { id:'swarmVine',   r:0.73, e:0.08, a0:45,   color:'#39d3f5', size:3, label:'swarmVine' },
+  { id:'barraCuda',   r:0.78, e:0.05, a0:160,  color:'#f85149', size:3, label:'barraCuda' },
+  { id:'squirrel',    r:0.83, e:0.03, a0:300,  color:'#3fb950', size:3, label:'squirrel' },
+  { id:'songBird',    r:0.88, e:0.02, a0:220,  color:'#58a6ff', size:3, label:'songBird' },
+];
+
+// Moon orbits Earth (nestGate)
+const MOON = { r:0.025, period:2.7, a0:0, color:'#c9d1d9', size:2.5, label:'MOON' };
+
+// Cosmic dust particles
+let cosmicDust = [];
+function initDust(count) {
+  cosmicDust = [];
   for (let i = 0; i < count; i++) {
-    snowflakes.push({
-      x: Math.random() * 100, y: Math.random() * 100,
-      size: 0.5 + Math.random() * 1.5, speed: 0.1 + Math.random() * 0.3,
-      human: Math.random() < 0.115
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 0.05 + Math.random() * 0.95;
+    cosmicDust.push({
+      angle, dist,
+      speed: (0.0001 + Math.random() * 0.0003) / Math.pow(dist, 1.5),
+      size: 0.3 + Math.random() * 1.2,
+      human: Math.random() < 0.115,
+      twinkle: Math.random() * Math.PI * 2
     });
   }
 }
 
-function renderGlobe(now) {
+let orreryZoom = 1, orreryTime = 0;
+const KEPLER_SPEED = 0.0005;
+
+function renderOrrery(now) {
   const el = document.getElementById('render-target');
+  if (!el) return;
   const w = el.clientWidth || 500, h = el.clientHeight || 400;
-  const cx = w/2, cy = h/2, r = Math.min(w,h) * 0.38 * globeZoom;
-  const self = now?.classification?.self || 15372;
-  const fleet = now?.classification?.non_self || 220876;
+  const cx = w / 2, cy = h / 2;
+  const maxR = Math.min(w, h) * 0.46 * orreryZoom;
   const total = now?.entities?.total || 249576;
 
-  if (snowflakes.length === 0) initSnowflakes(Math.min(200, Math.floor(total/1000)));
+  if (cosmicDust.length === 0) initDust(Math.min(300, Math.floor(total / 800)));
+
+  orreryTime += KEPLER_SPEED;
 
   let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">`;
+
   svg += `<defs>
-    <radialGradient id="globe-g"><stop offset="0%" stop-color="rgba(255,255,255,0.06)"/>
-    <stop offset="70%" stop-color="rgba(88,166,255,0.03)"/><stop offset="100%" stop-color="rgba(0,0,0,0.3)"/></radialGradient>
-    <clipPath id="globe-clip"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>
+    <radialGradient id="sun-glow">
+      <stop offset="0%" stop-color="rgba(255,220,100,0.9)"/>
+      <stop offset="30%" stop-color="rgba(255,180,50,0.5)"/>
+      <stop offset="60%" stop-color="rgba(210,153,34,0.15)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <radialGradient id="corona">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="60%" stop-color="transparent"/>
+      <stop offset="80%" stop-color="rgba(210,153,34,0.04)"/>
+      <stop offset="100%" stop-color="rgba(210,153,34,0.08)"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="sun-blur"><feGaussianBlur stdDeviation="4"/></filter>
   </defs>`;
 
-  // globe shell
-  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#globe-g)" stroke="rgba(88,166,255,0.2)" stroke-width="1.5"/>`;
-
-  // biome sectors inside globe
-  const g = `<g clip-path="url(#globe-clip)">`;
-  svg += g;
-  for (const b of BIOMES) {
-    const a = ((b.angle + globeAngle) % 360) * Math.PI / 180;
-    const bx = cx + r * 0.55 * Math.cos(a);
-    const by = cy + r * 0.55 * Math.sin(a);
-    const br = r * 0.28;
-    svg += `<circle cx="${bx}" cy="${by}" r="${br}" fill="${b.color}" opacity="0.12" class="biome-zone" data-biome="${b.id}"/>`;
-    svg += `<text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="middle" fill="${b.color}" font-size="8" opacity="0.7" font-family="monospace">${b.label}</text>`;
+  // Starfield
+  for (let i = 0; i < 80; i++) {
+    const sx = Math.random() * w, sy = Math.random() * h;
+    const ss = 0.2 + Math.random() * 0.8;
+    const so = 0.1 + 0.3 * Math.sin(orreryTime * 200 + i * 7);
+    svg += `<circle cx="${sx}" cy="${sy}" r="${ss}" fill="white" opacity="${so}"/>`;
   }
 
-  // snowflakes (entities as particles)
-  for (const s of snowflakes) {
-    s.y += s.speed;
-    if (s.y > 100) { s.y = 0; s.x = Math.random() * 100; }
-    const sx = cx + (s.x - 50) * r * 0.018;
-    const sy = cy + (s.y - 50) * r * 0.018;
-    const dist = Math.sqrt((sx-cx)**2 + (sy-cy)**2);
-    if (dist < r) {
-      const col = s.human ? '#d29922' : 'rgba(200,210,220,0.3)';
-      svg += `<circle cx="${sx}" cy="${sy}" r="${s.size}" fill="${col}"/>`;
+  // MEMBRANE RINGS
+  for (const m of MEMBRANES) {
+    const mr = m.radius * maxR;
+    if (m.id === 'heliosphere') {
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width + 1}" opacity="${m.opacity * 0.5}" filter="url(#glow)"/>`;
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width}" opacity="${m.opacity}"/>`;
+      const la = orreryTime * 20;
+      const lx = cx + mr * Math.cos(la) + 5;
+      const ly = cy - mr * Math.sin(la) - 5;
+      svg += `<text x="${lx}" y="${ly}" fill="${m.color}" font-size="7" font-family="monospace" opacity="0.7">${m.label}</text>`;
+    } else {
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width}" opacity="${m.opacity}"${m.dash !== 'none' ? ` stroke-dasharray="${m.dash}"` : ''}/>`;
+    }
+    const tx = cx + mr + 4;
+    const ty = cy + 3;
+    if (m.constraint && mr > 30) {
+      svg += `<text x="${tx}" y="${ty}" fill="${m.color}" font-size="5" font-family="monospace" opacity="0.4">${m.constraint}</text>`;
     }
   }
 
-  // primal dots on sphere surface
-  const primals = ['toadStool','biomeOS','nestGate','bearDog','petalTongue','rhizoCrypt',
-    'sweetGrass','loamSpine','skunkBat','sourDough','swarmVine','bingoCube',
-    'coralReef','barraCuda','squirrel','songBird'];
-  const t = Date.now() / 5000;
-  for (let i = 0; i < primals.length; i++) {
-    const pa = (i / primals.length) * Math.PI * 2 + t;
-    const pr = r * (0.6 + 0.15 * Math.sin(t * 0.7 + i));
-    const px = cx + pr * Math.cos(pa);
-    const py = cy + pr * Math.sin(pa);
-    svg += `<circle cx="${px}" cy="${py}" r="3" fill="var(--cyan)" opacity="0.8" class="primal-dot" data-primal="${primals[i]}"/>`;
-    svg += `<text x="${px}" y="${py+8}" text-anchor="middle" fill="var(--dim)" font-size="5" font-family="monospace">${primals[i]}</text>`;
+  // Asteroid belt scatter
+  for (let i = 0; i < 60; i++) {
+    const aa = (i / 60) * Math.PI * 2 + orreryTime * 8 + i * 0.3;
+    const ar = (0.35 + Math.random() * 0.07) * maxR;
+    const ax = cx + ar * Math.cos(aa);
+    const ay = cy + ar * Math.sin(aa);
+    svg += `<circle cx="${ax}" cy="${ay}" r="${0.5 + Math.random()}" fill="#8b6914" opacity="${0.15 + Math.random() * 0.15}"/>`;
   }
 
-  svg += '</g>';
+  // SUN
+  const sunR = maxR * 0.045;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 3}" fill="url(#sun-glow)" filter="url(#sun-blur)"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR}" fill="#ffd755" opacity="0.95"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 0.7}" fill="#ffe890"/>`;
+  svg += `<text x="${cx}" y="${cy + sunR + 10}" text-anchor="middle" fill="#d29922" font-size="7" font-family="monospace" font-weight="bold">GAIA</text>`;
 
-  // center label
-  svg += `<text x="${cx}" y="${cy-r-8}" text-anchor="middle" fill="var(--cyan)" font-size="10" font-family="monospace" letter-spacing="3">SNOW GLOBE</text>`;
-  svg += `<text x="${cx}" y="${h-12}" text-anchor="middle" fill="var(--dim)" font-size="7" font-family="monospace">scroll=zoom · click biome=enter · ESC=globe · ${total.toLocaleString()} entities as snow</text>`;
+  const coronaPulse = 1 + 0.1 * Math.sin(orreryTime * 300);
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 5 * coronaPulse}" fill="url(#corona)"/>`;
 
-  // highlight on globe glass
-  svg += `<circle cx="${cx - r*0.3}" cy="${cy - r*0.3}" r="${r*0.15}" fill="rgba(255,255,255,0.06)"/>`;
+  // COSMIC DUST
+  for (const d of cosmicDust) {
+    d.angle += d.speed;
+    d.twinkle += 0.02;
+    const dx = cx + d.dist * maxR * Math.cos(d.angle);
+    const dy = cy + d.dist * maxR * Math.sin(d.angle);
+    const dop = 0.15 + 0.15 * Math.sin(d.twinkle);
+    const col = d.human ? '#d29922' : 'rgba(200,210,220,0.4)';
+    svg += `<circle cx="${dx}" cy="${dy}" r="${d.size}" fill="${col}" opacity="${dop}"/>`;
+  }
+
+  // ORBITAL PATHS
+  for (const orb of ORBITALS) {
+    const or2 = orb.r * maxR;
+    const rx = or2 * (1 + orb.e);
+    const ry = or2 * (1 - orb.e);
+    svg += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${orb.color}" stroke-width="0.3" opacity="0.15" transform="rotate(${orb.a0 * 0.1}, ${cx}, ${cy})"/>`;
+  }
+
+  // PRIMAL ORBITS — Keplerian motion
+  let earthX = cx, earthY = cy;
+  for (const orb of ORBITALS) {
+    const period = Math.pow(orb.r * 10, 1.5);
+    const angularSpeed = orreryTime * 400 / period;
+    const angle = (orb.a0 * Math.PI / 180) + angularSpeed;
+    const dist = orb.r * maxR * (1 - orb.e * Math.cos(angle));
+    const px = cx + dist * Math.cos(angle);
+    const py = cy + dist * Math.sin(angle);
+
+    // Trail
+    for (let t = 0; t < 12; t++) {
+      const ta = angle - (t * 0.08);
+      const td = orb.r * maxR * (1 - orb.e * Math.cos(ta));
+      const ttx = cx + td * Math.cos(ta);
+      const tty = cy + td * Math.sin(ta);
+      const to2 = 0.4 - t * 0.033;
+      if (to2 > 0) svg += `<circle cx="${ttx}" cy="${tty}" r="${orb.size * 0.3}" fill="${orb.color}" opacity="${to2}"/>`;
+    }
+
+    // Planet body
+    svg += `<circle cx="${px}" cy="${py}" r="${orb.size}" fill="${orb.color}" opacity="0.85" filter="url(#glow)" class="primal-orbit" data-primal="${orb.id}" style="cursor:pointer"/>`;
+
+    // Label
+    const labelDist = orb.size + 6;
+    svg += `<text x="${px + labelDist}" y="${py + 2}" fill="${orb.color}" font-size="${orb.body ? 7 : 5}" font-family="monospace" opacity="${orb.body ? 0.9 : 0.6}">${orb.label}</text>`;
+
+    if (orb.body) {
+      svg += `<text x="${px + labelDist}" y="${py + 10}" fill="${orb.color}" font-size="5" font-family="monospace" opacity="0.4">${orb.body}</text>`;
+    }
+
+    if (orb.id === 'nestGate') { earthX = px; earthY = py; }
+  }
+
+  // MOON
+  const moonAngle = orreryTime * 400 / MOON.period + MOON.a0;
+  const moonDist = MOON.r * maxR;
+  const moonX = earthX + moonDist * Math.cos(moonAngle);
+  const moonY = earthY + moonDist * Math.sin(moonAngle);
+  svg += `<circle cx="${earthX}" cy="${earthY}" r="${moonDist}" fill="none" stroke="${MOON.color}" stroke-width="0.3" opacity="0.2"/>`;
+  svg += `<circle cx="${moonX}" cy="${moonY}" r="${MOON.size}" fill="${MOON.color}" opacity="0.8"/>`;
+  svg += `<text x="${moonX + 5}" y="${moonY + 2}" fill="${MOON.color}" font-size="4" font-family="monospace" opacity="0.5">MOON</text>`;
+
+  // THREE-BODY LINES
+  svg += `<line x1="${cx}" y1="${cy}" x2="${earthX}" y2="${earthY}" stroke="#d29922" stroke-width="0.3" opacity="0.08" stroke-dasharray="3,6"/>`;
+  svg += `<line x1="${earthX}" y1="${earthY}" x2="${moonX}" y2="${moonY}" stroke="#c9d1d9" stroke-width="0.3" opacity="0.1" stroke-dasharray="2,4"/>`;
+  svg += `<line x1="${cx}" y1="${cy}" x2="${moonX}" y2="${moonY}" stroke="#aaa" stroke-width="0.2" opacity="0.05" stroke-dasharray="1,5"/>`;
+
+  // Title
+  svg += `<text x="${cx}" y="14" text-anchor="middle" fill="#d29922" font-size="9" font-family="monospace" letter-spacing="3" font-weight="bold">COPERNICAN ORRERY</text>`;
+  svg += `<text x="${cx}" y="24" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">Kepler 1619: inner orbits fast, outer orbits slow</text>`;
+
+  // Bottom legend
+  const legendY = h - 4;
+  svg += `<text x="${cx}" y="${legendY}" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">scroll=zoom | click planet=inspect | ${total.toLocaleString()} entities | 3 bodies | 6 membranes</text>`;
+
+  // Constraint corner
+  svg += `<text x="8" y="${h-20}" fill="#d29922" font-size="6" font-family="monospace" opacity="0.5">HARD: 4pi total deficit</text>`;
+  svg += `<text x="8" y="${h-12}" fill="#39d3f5" font-size="6" font-family="monospace" opacity="0.5">SOFT: curvature budget</text>`;
+  svg += `<text x="8" y="${h-4}" fill="#3fb950" font-size="6" font-family="monospace" opacity="0.5">NULL: d=0 inside</text>`;
 
   svg += '</svg>';
   el.innerHTML = svg;
 
-  // click handlers for biomes
-  el.querySelectorAll('.biome-zone').forEach(z => {
-    z.style.cursor = 'pointer';
-    z.addEventListener('click', () => {
-      const biome = BIOMES.find(b => b.id === z.dataset.biome);
-      if (biome) {
-        showToast(`entering ${biome.label}...`);
-        const firstPage = biome.pages.split(',')[0];
-        setTimeout(() => window.location.href = firstPage, 600);
+  // Click handlers for orbital bodies
+  el.querySelectorAll('.primal-orbit').forEach(p => {
+    p.addEventListener('click', () => {
+      const primalId = p.dataset.primal;
+      const sq = SQUAD.find(s => s.id === primalId);
+      if (sq) {
+        gameState.selected = sq.id;
+        document.querySelectorAll('.squad-member').forEach(el2 => el2.classList.remove('selected'));
+        document.querySelector(`[data-id="${sq.id}"]`)?.classList.add('selected');
+        showPrimalDetail(sq);
+        const orbData = ORBITALS.find(o => o.id === primalId);
+        toast(`${sq.icon} ${sq.id} — ${sq.role} — orbit r=${orbData?.r?.toFixed(2)} AU`, sq.color, 2500);
       }
     });
   });
@@ -985,21 +1122,19 @@ function renderGlobe(now) {
 
 async function renderViewport() {
   const now = await fetchJSON('/now.json');
-  renderGlobe(now);
-  // animate globe rotation + snowfall
+  renderOrrery(now);
   function animate() {
-    globeAngle += 0.15;
-    renderGlobe(now);
+    renderOrrery(now);
     requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
 
-  // scroll to zoom
-  document.getElementById('viewport').addEventListener('wheel', (e) => {
+  document.getElementById('viewport')?.addEventListener('wheel', (e) => {
     e.preventDefault();
-    globeZoom = Math.max(0.5, Math.min(2.5, globeZoom - e.deltaY * 0.001));
+    orreryZoom = Math.max(0.3, Math.min(3.0, orreryZoom - e.deltaY * 0.001));
   }, {passive:false});
 }
+
 
 // --- HEADER + FOOTER ---
 function updateHeader(now, rates) {
