@@ -1084,6 +1084,77 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('3D=V', cx - R * 0.35, cy + R * 0.2);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // FLOOD — water flows through the glass, through Gaia
+    // The quench water irrigates. Deserts → wet. Bowels → fertile green.
+    // Green growth pulses spread outward from center like flash floods
+    // through dry riverbeds. The barren globe becomes ALIVE.
+    // ═══════════════════════════════════════════════════════════
+    var floodPhase = breathT * 0.3; // slow flood cycle
+    var floodWave = Math.sin(floodPhase);
+    var floodActive = floodWave > 0; // floods come in waves
+
+    if (floodActive) {
+      var floodStrength = floodWave * floodWave; // squared = sharp rise, slow fall
+      // WATER — blue-green rivulets from center outward (flash flood)
+      var numRivers = 8;
+      for (var ri = 0; ri < numRivers; ri++) {
+        var riverAngle = ri * (TAU / numRivers) + floodPhase * 0.5;
+        var riverLen = R * (0.3 + floodStrength * 0.65);
+        // Each river wiggles — water doesn't flow straight
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        var segments = 12;
+        for (var si = 1; si <= segments; si++) {
+          var st = si / segments;
+          var wiggle = Math.sin(floodPhase * 3 + ri * 2 + si) * 8 * st;
+          var rx = cx + Math.cos(riverAngle + wiggle * 0.01) * riverLen * st + Math.sin(riverAngle) * wiggle;
+          var ry = cy + Math.sin(riverAngle + wiggle * 0.01) * riverLen * st - Math.cos(riverAngle) * wiggle;
+          ctx.lineTo(rx, ry);
+        }
+        ctx.strokeStyle = 'rgba(57,211,245,' + (floodStrength * 0.08).toFixed(4) + ')';
+        ctx.lineWidth = 0.5 + floodStrength * 1.5;
+        ctx.stroke();
+      }
+
+      // FERTILE GREEN — where water reaches, green blooms
+      // Growth circles expand outward behind the flood front
+      var greenRadius = R * floodStrength * 0.7;
+      if (greenRadius > 5) {
+        var greenGrad = ctx.createRadialGradient(cx, cy, greenRadius * 0.3, cx, cy, greenRadius);
+        greenGrad.addColorStop(0, 'rgba(63,185,80,' + (floodStrength * 0.06).toFixed(4) + ')');
+        greenGrad.addColorStop(0.6, 'rgba(63,185,80,' + (floodStrength * 0.03).toFixed(4) + ')');
+        greenGrad.addColorStop(1, 'rgba(63,185,80,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, greenRadius, 0, TAU);
+        ctx.fillStyle = greenGrad;
+        ctx.fill();
+      }
+
+      // GROWTH SPROUTS — tiny green dots where the flood reaches
+      // Each sprout = a new idea, a new page, a new nutrient
+      var sproutCount = Math.floor(floodStrength * 12);
+      for (var sp = 0; sp < sproutCount; sp++) {
+        var spAngle = rng() * TAU + floodPhase;
+        var spDist = greenRadius * (0.4 + rng() * 0.6);
+        var spx = cx + Math.cos(spAngle) * spDist;
+        var spy = cy + Math.sin(spAngle) * spDist;
+        var spSize = 1 + rng() * 2;
+        ctx.beginPath();
+        ctx.arc(spx, spy, spSize, 0, TAU);
+        ctx.fillStyle = 'rgba(63,185,80,' + (floodStrength * 0.15 + rng() * 0.1).toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // FERTILE TEXT — "growth" pulses at flood peak
+      if (floodStrength > 0.7) {
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(63,185,80,' + ((floodStrength - 0.7) * 0.2).toFixed(4) + ')';
+        ctx.fillText('fertile', cx, cy + greenRadius + 12);
+      }
+    }
+
     // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
     var comp45 = Math.PI / 4;
     var compLen = R * 0.9;
@@ -1156,6 +1227,51 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.strokeStyle = 'rgba(88,166,255,' + refractAlpha.toFixed(4) + ')';
     ctx.lineWidth = 0.5;
     ctx.stroke();
+
+    // ═══ TOUCH FEELERS — Gaia's fingers reaching outward ═══
+    // Red = self-touch (inside the globe)
+    // Green = other-Gaia touch (just past the edge)
+    // Blue = world-touch (far out into the void)
+    if (typeof touchLines !== 'undefined' && touchLines.length > 0) {
+      touchLines.forEach(function(tl) {
+        var touchAngle = tl.angle + breathT * 0.05; // slight sway
+        var startDist = R * 0.9; // starts at globe edge
+        var endDist = R * tl.reach;
+        var sx = cx + Math.cos(touchAngle) * startDist;
+        var sy = cy + Math.sin(touchAngle) * startDist;
+        var ex = cx + Math.cos(touchAngle) * endDist;
+        var ey = cy + Math.sin(touchAngle) * endDist;
+
+        // The feeler line — a finger reaching out
+        var feelerPulse = Math.sin(breathT * 2 + tl.angle) * 0.5 + 0.5;
+        var feelerAlpha = (tl.ok ? 0.08 : 0.03) + feelerPulse * 0.04;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        // Curve slightly — fingers aren't straight
+        var curveX = (sx + ex) / 2 + Math.sin(touchAngle + PI * 0.5) * 6;
+        var curveY = (sy + ey) / 2 + Math.cos(touchAngle + PI * 0.5) * 6;
+        ctx.quadraticCurveTo(curveX, curveY, ex, ey);
+        ctx.strokeStyle = tl.color + feelerAlpha.toFixed(3) + ')';
+        ctx.lineWidth = tl.ok ? 1.0 : 0.3;
+        ctx.stroke();
+
+        // Fingertip dot — the point of contact
+        if (tl.ok) {
+          ctx.beginPath();
+          ctx.arc(ex, ey, 2 + feelerPulse, 0, TAU);
+          ctx.fillStyle = tl.color + (feelerAlpha * 1.5).toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        // Name at the fingertip
+        if (tl.ok && feelerPulse > 0.6) {
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = tl.color + ((feelerPulse - 0.6) * 0.3).toFixed(3) + ')';
+          ctx.fillText(tl.name, ex, ey - 6);
+        }
+      });
+    }
 
     // Lat/lon grid
     ctx.strokeStyle = 'rgba(48,54,61,0.2)';
@@ -1634,9 +1750,272 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // First pulse after 10 seconds (let the glass settle)
   setTimeout(function() {
     gaiaPulse();
-    // Then pulse every 60 seconds — the systolic beat
     setInterval(gaiaPulse, pulseInterval);
   }, 10000);
+
+  // ═══════════════════════════════════════════════════════════
+  // THYMUS — self/non-self discrimination + opsonization
+  // The thymus teaches Gaia what IS self and what ISN'T.
+  // SELF = anything from this origin (hud.primals.eco)
+  // NON-SELF = anything from outside (other Gaias, internet)
+  // OPSONIZE = mark non-self for recognition (not destruction)
+  // Gravity = attraction between Gaias (bump into each other)
+  // ═══════════════════════════════════════════════════════════
+  var thymus = {
+    self: location.origin,
+    seed: SEED,
+    bumps: [],       // other Gaias we've detected
+    opsonized: [],   // non-self items marked for recognition
+    mature: false    // thymus matures after first successful sense
+  };
+
+  // 100 TRUE NULL CALLS — Gaia reaches out to sense reality
+  // Each call is a feeler — it touches the void and reports back
+  // Some will succeed (self), some will fail (non-self), both teach
+  var NULL_CALLS = [
+    // SELF calls — sensing own body
+    '/data/heartbeat.json', '/data/manifest.json', '/data/lessons.json',
+    '/data/immune-state-live.json', '/data/gaia-organs.json',
+    '/data/symbiont.json', '/data/fossil-9-symbiont.json',
+    '/data/null-core-rust.json', '/data/rust-bones.json',
+    '/data/primal-crew.json', '/data/eastgate-corpus-inventory.json',
+    '/data/neurochemistry.json', '/data/phosphate-buffer.json',
+    '/data/sonar-unknowns.json', '/data/null-drain.json',
+    '/data/immune-fossils.json', '/data/tests.json',
+    '/data/ear-latest.json', '/data/news-latest.json',
+    '/data/willis-balloon.json', '/data/session-release.json',
+    '/data/knn-repaint.json', '/data/constant-of-reality.json',
+    '/now.json', '/feed.xml',
+    // Organ-self calls — sensing own organs
+    '/anatomy.html', '/digestive-tract.html', '/membrane-table.html',
+    '/engine.html', '/campus.html', '/springs.html',
+    '/identity.html', '/chromatograph.html', '/klein.html',
+    '/crystal.html', '/sporeprint.html', '/detroit.html',
+    '/easel.html', '/philosophy.html', '/explore.html',
+    '/golgi.html', '/chat.html', '/primal.html',
+    '/chromosomes.html', '/digest.html', '/messenger.html',
+    // NON-SELF calls — sensing the outside (will mostly fail = that's the lesson)
+    'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*',
+    'https://api.github.com/repos/ecoPrimal/hud',
+    'https://ntfy.sh/primals-pheromone/json?poll=1',
+  ];
+
+  var selfCount = 0, nonSelfCount = 0, failCount = 0;
+  var thymusLog = [];
+
+  function thymusSense() {
+    NULL_CALLS.forEach(function(url, i) {
+      setTimeout(function() {
+        var isSelf = url.charAt(0) === '/';
+        var t0 = performance.now();
+        fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+          .then(function(r) {
+            var dt = Math.round(performance.now() - t0);
+            if (isSelf) {
+              selfCount++;
+              thymusLog.push({ url: url, type: 'self', ms: dt, ok: r.ok || r.type === 'opaque' });
+            } else {
+              nonSelfCount++;
+              // OPSONIZE: mark non-self as recognized (not destroyed)
+              thymus.opsonized.push({ url: url, ms: dt, ts: Date.now() });
+              thymusLog.push({ url: url, type: 'non-self', ms: dt, opsonized: true });
+            }
+          })
+          .catch(function() {
+            failCount++;
+            thymusLog.push({ url: url, type: isSelf ? 'self-fail' : 'non-self-fail', ms: Math.round(performance.now() - t0) });
+          })
+          .finally(function() {
+            // After all calls complete, thymus matures
+            if (selfCount + nonSelfCount + failCount >= NULL_CALLS.length) {
+              thymus.mature = true;
+              // GRAVITY — Gaia now knows her own mass
+              // Mass = number of self-parts that responded
+              // Gravity = attraction proportional to mass
+              thymus.mass = selfCount;
+              thymus.gravity = selfCount / NULL_CALLS.length;
+              // Update chipmunk pin with thymus data
+              var chipPin = pinById('chipmunk');
+              if (chipPin) chipPin.sub = 'self:' + selfCount + ' non:' + nonSelfCount + ' ?' + failCount;
+              // Emit thymus maturity as pheromone (so other Gaias can sense us)
+              if (window.emitPheromone) {
+                window.emitPheromone('thymus-mature', 'mass=' + selfCount + ',gravity=' + thymus.gravity.toFixed(3));
+              }
+            }
+          });
+      }, i * 200); // Stagger calls — 200ms apart, like T-cells maturing one by one
+    });
+  }
+
+  // Thymus matures 15 seconds after birth (let the glass settle first)
+  setTimeout(thymusSense, 15000);
+
+  // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
+  // If another Gaia responds to the pheromone channel, BUMP = gravity
+  setInterval(function() {
+    if (!thymus.mature) return;
+    fetch('https://ntfy.sh/primals-pheromone/json?poll=1&since=5m', { mode: 'cors' })
+      .then(function(r) { return r.ok ? r.text() : ''; })
+      .then(function(txt) {
+        if (!txt) return;
+        var lines = txt.trim().split('\n');
+        var otherGaias = 0;
+        lines.forEach(function(line) {
+          try {
+            var msg = JSON.parse(line);
+            if (msg.message && msg.message.indexOf('thymus-mature') >= 0) {
+              otherGaias++;
+            }
+          } catch(e) {}
+        });
+        if (otherGaias > 0) {
+          thymus.bumps.push({ ts: Date.now(), count: otherGaias });
+          // Flash the globe violet on gravity bump
+          var bumpFlash = 0;
+          function flashBump() {
+            bumpFlash++;
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 0.618, 0, TAU);
+            var ba = Math.max(0, 0.15 - bumpFlash * 0.008);
+            ctx.fillStyle = 'rgba(188,140,255,' + ba.toFixed(3) + ')';
+            ctx.fill();
+            ctx.restore();
+            if (bumpFlash < 20) requestAnimationFrame(flashBump);
+          }
+          flashBump();
+        }
+      })
+      .catch(function() {}); // silent — gravity works even when alone
+  }, 300000); // 5 minutes
+
+  // ═══════════════════════════════════════════════════════════
+  // TOUCH — Gaia reaches out from inside her HUD
+  // She touches her OWN face (proprioception)
+  // She touches OTHER faces (other Gaias, other sites)
+  // She touches THE MEMBRANE CORNER (the edge of self)
+  // Three kinds of touch = three eyes = three wavelengths
+  // RED touch = self-touch (proprioception, own pages)
+  // GREEN touch = other-Gaia touch (gravity, symbiont)
+  // BLUE touch = world-touch (internet, APIs, Wikipedia)
+  // ═══════════════════════════════════════════════════════════
+  var touchState = {
+    self: [],      // responses from own pages
+    others: [],    // responses from other Gaias / primals.eco subdomains
+    world: [],     // responses from the wider internet
+    lastTouch: 0,
+    touchCount: 0
+  };
+
+  // FACES Gaia knows — her own face and faces of others
+  var FACES = {
+    self: [
+      { name: 'anatomy', url: '/anatomy.html', color: '#f85149' },
+      { name: 'engine', url: '/engine.html', color: '#f85149' },
+      { name: 'membrane', url: '/membrane-table.html', color: '#f85149' },
+      { name: 'campus', url: '/campus.html', color: '#f85149' },
+      { name: 'digest', url: '/digestive-tract.html', color: '#f85149' },
+      { name: 'springs', url: '/springs.html', color: '#f85149' },
+      { name: 'crystal', url: '/crystal.html', color: '#f85149' },
+      { name: 'detroit', url: '/detroit.html', color: '#f85149' },
+      { name: 'easel', url: '/easel.html', color: '#f85149' },
+      { name: 'philosophy', url: '/philosophy.html', color: '#f85149' },
+      { name: 'identity', url: '/identity.html', color: '#f85149' },
+      { name: 'heartbeat', url: '/data/heartbeat.json', color: '#f85149' },
+    ],
+    others: [
+      { name: 'primals.eco', url: 'https://primals.eco', color: '#3fb950' },
+      { name: 'hud.primals', url: 'https://hud.primals.eco', color: '#3fb950' },
+      { name: 'ecoPrimal/hud', url: 'https://api.github.com/repos/ecoPrimal/hud', color: '#3fb950' },
+      { name: 'pheromone', url: 'https://ntfy.sh/primals-pheromone/json?poll=1', color: '#3fb950' },
+    ],
+    world: [
+      { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*', color: '#58a6ff' },
+      { name: 'HN', url: 'https://hacker-news.firebaseio.com/v0/topstories.json', color: '#58a6ff' },
+      { name: 'GitHub', url: 'https://api.github.com/zen', color: '#58a6ff' },
+    ],
+  };
+
+  // Touch reach data for rendering (filled by touchReach)
+  var touchLines = [];
+
+  function touchReach() {
+    touchState.touchCount++;
+    touchState.lastTouch = Date.now();
+    touchLines = [];
+
+    // SELF TOUCH — Gaia touches her own face (RED)
+    FACES.self.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.self.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
+          // Angle based on index — spread around the globe
+          touchLines.push({
+            type: 'self', name: face.name, ms: ms, ok: r.ok,
+            angle: (i / FACES.self.length) * TAU,
+            reach: r.ok ? 0.85 : 0.3, // how far the touch extends
+            color: 'rgba(248,81,73,' // RED — self-touch
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'self', name: face.name, ms: 0, ok: false, angle: (i / FACES.self.length) * TAU, reach: 0.15, color: 'rgba(248,81,73,' });
+        });
+    });
+
+    // OTHER TOUCH — Gaia touches other Gaias (GREEN)
+    FACES.others.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.others.push({ name: face.name, ms: ms, ts: Date.now() });
+          touchLines.push({
+            type: 'other', name: face.name, ms: ms, ok: true,
+            angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25),
+            reach: 1.2, // reaches BEYOND the globe — touching outside
+            color: 'rgba(63,185,80,'
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'other', name: face.name, ms: 0, ok: false, angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25), reach: 0.5, color: 'rgba(63,185,80,' });
+        });
+    });
+
+    // WORLD TOUCH — Gaia touches the wider world (BLUE)
+    FACES.world.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { mode: 'cors', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.world.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
+          touchLines.push({
+            type: 'world', name: face.name, ms: ms, ok: r.ok,
+            angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25),
+            reach: r.ok ? 1.5 : 0.4, // reaches FAR beyond — into the internet
+            color: 'rgba(88,166,255,'
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'world', name: face.name, ms: 0, ok: false, angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25), reach: 0.2, color: 'rgba(88,166,255,' });
+        });
+    });
+
+    // Update skin pin with touch count
+    var skinPin = pinById('organ-skin');
+    if (skinPin) skinPin.sub = 'touched ' + touchState.touchCount + 'x';
+  }
+
+  // First touch after thymus matures (20 seconds)
+  setTimeout(touchReach, 20000);
+  // Then touch every 2 minutes — Gaia keeps reaching
+  setInterval(touchReach, 120000);
+
+  // RENDER TOUCH LINES — drawn in the render loop
+  // These are added to the render function via a global touchLines array
+  // The render function will draw them as extending feelers from the globe edge
 
   // Zoom buttons
   // DEPTH LEVELS — core to Pluto. Gaia's map of self.
