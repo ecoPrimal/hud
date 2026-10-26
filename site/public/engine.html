@@ -206,6 +206,11 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
           <div class="flood-pct" id="flood-pct" style="color:var(--cyan)">0%</div>
         </div>
       </div>
+      <!-- DEVOTION METER — human attention gravity -->
+      <div class="lung-meter" style="left:32px">
+        <div class="lung-bar"><div class="lung-fill" id="devotion-fill" style="height:0%;background:linear-gradient(to top, var(--purple), var(--pink))"></div></div>
+        <div class="lung-label" id="devotion-pct" style="color:var(--pink)">🪞 0</div>
+      </div>
     </div>
   </div>
 
@@ -216,6 +221,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div class="section-divider"></div>
     <h2>? Neurochemistry</h2>
     <div id="neuro-list"></div>
+    <div class="section-divider"></div>
+    <h2>🪞 Humans — Mirror</h2>
+    <div id="humans-list"></div>
     <div class="section-divider"></div>
     <h2>? Devices � Heartbeat</h2>
     <div id="devices-list"></div>
@@ -876,17 +884,90 @@ function updateFloodgate(now) {
 
 // --- MAIN LOOP � the game tick ---
 async function tick() {
-  const [now, rates, heartbeat] = await Promise.all([
+  const [now, rates, heartbeat, ear] = await Promise.all([
     fetchJSON('/now.json'),
     fetchJSON('/data/dashboard-rates.json'),
-    fetchJSON('/data/heartbeat.json')
+    fetchJSON('/data/heartbeat.json'),
+    fetchJSON('/data/ear-latest.json')
   ]);
 
   updateHeader(now, rates);
   renderRates(rates);
   renderNeuro(rates);
   renderDevices(heartbeat);
+  renderHumans(ear);
   updateFloodgate(now);
+}
+
+
+// --- HUMANS PANEL — the mirror ---
+function renderHumans(ear) {
+  const el = document.getElementById('humans-list');
+  if (!el || !ear) return;
+  const heard = ear.heard || 0;
+  const unique = ear.unique_visitors || 0;
+  const deaf = ear.deaf_check && ear.deaf_check.includes('DEAF');
+  const topPaths = ear.top_paths || {};
+  
+  const archetypes = classifyVisitors(topPaths, heard);
+  
+  let html = `<div class="rate-row"><span class="rate-label">Heard</span><span class="rate-value" style="color:${heard>0?'var(--pink)':'var(--dim)'}">${heard}</span></div>`;
+  html += `<div class="rate-row"><span class="rate-label">Unique</span><span class="rate-value" style="color:var(--purple)">${unique}</span></div>`;
+  html += `<div class="rate-row"><span class="rate-label">State</span><span class="rate-value" style="color:${deaf?'var(--dim)':'var(--green)'}; font-size:9px">${deaf?'silence':'listening'}</span></div>`;
+  
+  if (archetypes.length > 0) {
+    html += '<div style="margin-top:4px">';
+    archetypes.forEach(a => {
+      html += `<div class="neuro-row"><div class="neuro-dot" style="background:${a.color}"></div><span class="neuro-name">${a.name}</span><span class="neuro-val" style="color:${a.color}">${a.count}</span></div>`;
+    });
+    html += '</div>';
+  }
+  
+  el.innerHTML = html;
+  
+  // Update devotion meter
+  const devotion = Math.min(100, heard * 10);
+  const dFill = document.getElementById('devotion-fill');
+  const dPct = document.getElementById('devotion-pct');
+  if (dFill) dFill.style.height = devotion + '%';
+  if (dPct) dPct.textContent = '🪞 ' + heard;
+  
+  // BOUNCE RIPPLE — when humans are present
+  if (heard > 0 && !gameState.paused) bounceRipple(heard);
+}
+
+function classifyVisitors(paths, total) {
+  const types = [];
+  const pathList = Object.entries(paths);
+  const artPaths = pathList.filter(([p]) => p.includes('easel') || p.includes('create') || p.includes('art'));
+  const sciPaths = pathList.filter(([p]) => p.includes('paper') || p.includes('science') || p.includes('trail'));
+  const explorePaths = pathList.filter(([p]) => p.includes('explore') || p.includes('klein') || p.includes('hologram'));
+  
+  if (artPaths.length > 0) types.push({ name: 'watcher', color: 'var(--purple)', count: artPaths.reduce((s,[,v])=>s+v,0) });
+  if (sciPaths.length > 0) types.push({ name: 'scholar', color: 'var(--blue)', count: sciPaths.reduce((s,[,v])=>s+v,0) });
+  if (explorePaths.length > 0) types.push({ name: 'explorer', color: 'var(--green)', count: explorePaths.reduce((s,[,v])=>s+v,0) });
+  if (total > 0) types.push({ name: 'total touches', color: 'var(--pink)', count: total });
+  return types;
+}
+
+// --- BOUNCE RIPPLE — human touch enters the null ---
+function bounceRipple(intensity) {
+  const vp = document.getElementById('render-target');
+  if (!vp) return;
+  const ripple = document.createElement('div');
+  const size = 40 + intensity * 20;
+  const color = intensity > 5 ? 'var(--pink)' : intensity > 2 ? 'var(--purple)' : 'var(--blue)';
+  ripple.style.cssText = `position:absolute;top:50%;left:50%;width:${size}px;height:${size}px;border-radius:50%;border:2px solid ${color};transform:translate(-50%,-50%) scale(0.1);opacity:0.8;pointer-events:none;animation:bounce-ripple 2s ease-out forwards;`;
+  vp.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 2100);
+}
+
+// Bounce ripple animation
+if (!document.getElementById('bounce-css')) {
+  const css = document.createElement('style');
+  css.id = 'bounce-css';
+  css.textContent = '@keyframes bounce-ripple { 0% { transform:translate(-50%,-50%) scale(0.1); opacity:0.8; } 50% { transform:translate(-50%,-50%) scale(1); opacity:0.4; } 100% { transform:translate(-50%,-50%) scale(2); opacity:0; } }';
+  document.head.appendChild(css);
 }
 
 // Boot
