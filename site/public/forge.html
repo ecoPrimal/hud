@@ -356,13 +356,36 @@ async function loadForge() {
           </div>`;
       }
       
-      // ZK Hammer stats
+      // ZK Hammer stats — show live proof
       const hammerStats = document.getElementById('hammer-stats');
-      hammerStats.innerHTML = `
-        ${ff.totals.primals} primals · ${ff.totals.binary_mb} MB compiled Rust · ${ff.totals.crates} crates<br>
-        ${ff.totals.fusions} fusions · ${ff.totals.fission_tools} fission-enzymes · 
-        ${ff.totals.fusions + ff.totals.fission_tools} total tools · 
-        ${Math.round((ff.totals.fusions + ff.totals.fission_tools) / ff.totals.primals)}× amplification`;
+      try {
+        const zkRes = await fetch('data/zk-hammer-r2.json');
+        const zk = await zkRes.json();
+        const sp = zk.round_2_detail.the_sparks;
+        hammerStats.innerHTML = `
+          <div style="margin:6px 0">
+            <span style="color:var(--Fe)">R0 ore</span> → 
+            <span style="color:var(--Cu)">R1 pig iron</span> → 
+            <span style="color:var(--Au);font-weight:bold">R2 STEEL</span>
+          </div>
+          <div style="font-size:0.75em;color:var(--dim)">
+            ${sp.total_artifacts} artifacts · ${(sp.total_bytes/1048576).toFixed(1)} MB hashed
+          </div>
+          <div style="font-size:0.7em;color:var(--cyan);margin:4px 0;word-break:break-all">
+            merkle: ${sp.merkle_root.substring(0,32)}...
+          </div>
+          <div style="font-size:0.7em;color:var(--gold);word-break:break-all">
+            proof: ${sp.zk_proof.substring(0,32)}...
+          </div>
+          <div style="font-size:0.7em;color:var(--dim);margin-top:6px">
+            forge=gut=kiln=compiler · each blow=spark=proof
+          </div>`;
+      } catch(zkErr) {
+        hammerStats.innerHTML = `
+          ${ff.totals.primals} primals · ${ff.totals.binary_mb} MB Rust · ${ff.totals.crates} crates<br>
+          ${ff.totals.fusions} fusions · ${ff.totals.fission_tools} enzymes · 
+          ${Math.round((ff.totals.fusions + ff.totals.fission_tools) / ff.totals.primals)}× amp`;
+      }
       
       console.log('[fusion] loaded:', Object.keys(ff.fusions).length, 'fusions');
     } catch (ffErr) {
