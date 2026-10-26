@@ -1,346 +1,958 @@
-<!doctype html>
-<html lang="en" data-theme="dark">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>desk — primals.eco</title>
-<meta name="description" content="Your workspace on the membrane. Study your marks. Write from your notes. Draw connections. Play the epitope sort.">
-<meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nestGate ? Desktop</title>
 <style>
+/* === WINDOWS 98 / XP HYBRID DESKTOP === */
 :root {
-  --bg: #0d1117; --bg-alt: #0a0c12;
-  --surface: #161b22; --surface2: #1c2030; --surface3: #21262d;
-  --border: #30363d; --border-active: #58a6ff;
-  --fg: #c9d1d9; --fg-dim: #8b949e; --fg-muted: #484f58;
-  --accent: #58a6ff; --accent-dim: rgba(88,166,255,0.12);
-  --ep-philosophy: #3fb950; --ep-immune: #ff6b35; --ep-investigation: #f1c40f;
-  --ep-topology: #9b59b6; --ep-science: #e8e8e8; --ep-physics: #e85d3a;
-  --ep-method: #58a6ff; --ep-signal: #4a8fb8;
-
-  /* golden ratio panels */
-  --phi: 1.618;
-  --sidebar-w: 220px;
-  --header-h: 42px;
+  --win-bg: #008080;
+  --win-silver: #c0c0c0;
+  --win-dark: #808080;
+  --win-darkest: #404040;
+  --win-light: #dfdfdf;
+  --win-white: #ffffff;
+  --win-title: #000080;
+  --win-title-inactive: #808080;
+  --win-title-text: #ffffff;
+  --win-text: #000000;
+  --win-highlight: #0000aa;
+  --win-btn-face: #c0c0c0;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@font-face {
+  font-family: 'W95FA';
+  src: local('MS Sans Serif'), local('Tahoma'), local('Arial');
+}
+
 body {
-  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
-  background: var(--bg); color: var(--fg);
-  font-size: 13px; line-height: 1.55;
-}
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* === LAYOUT === */
-.desk {
-  display: grid; height: 100vh;
-  grid-template-rows: var(--header-h) 1fr;
-  grid-template-columns: 1fr;
+  font-family: 'Tahoma', 'MS Sans Serif', 'Arial', sans-serif;
+  font-size: 11px;
+  background: var(--win-bg);
+  color: var(--win-text);
+  height: 100vh;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
 }
 
-/* === HEADER === */
-.desk-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 16px; background: var(--bg-alt);
-  border-bottom: 1px solid var(--border);
-}
-.desk-title {
-  font-family: "Iosevka","Fira Code",monospace;
-  font-size: 14px; color: var(--fg); font-weight: 600;
-  letter-spacing: 0.03em;
-}
-.desk-nav { display: flex; gap: 2px; margin-left: 24px; }
-.desk-tab {
-  background: none; border: none; color: var(--fg-dim);
-  font-family: inherit; font-size: 12px; padding: 8px 14px;
-  cursor: pointer; border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-}
-.desk-tab:hover { color: var(--fg); }
-.desk-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.desk-links {
-  margin-left: auto; display: flex; gap: 12px;
-  font-size: 11px; color: var(--fg-dim);
-}
-.desk-links a { color: var(--fg-dim); font-size: 11px; }
-.desk-links a:hover { color: var(--accent); }
-
-/* === MAIN PANEL === */
-.desk-main {
-  overflow-y: auto; padding: 24px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) var(--bg);
+/* === DESKTOP AREA === */
+#desktop {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  bottom: 28px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
 }
 
-/* === CARDS === */
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; margin-bottom: 16px; overflow: hidden;
+/* === DESKTOP ICONS === */
+.desk-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 72px;
+  padding: 4px 2px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-align: center;
 }
-.card-header {
-  padding: 12px 16px; font-size: 12px; font-weight: 600;
-  color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
+.desk-icon:hover { background: rgba(0,0,128,0.15); }
+.desk-icon.selected {
+  background: var(--win-highlight);
+  color: white;
+  border: 1px dotted #ffffff;
 }
-.card-body { padding: 16px; }
+.desk-icon .ico {
+  font-size: 32px;
+  line-height: 36px;
+  margin-bottom: 2px;
+  image-rendering: pixelated;
+}
+.desk-icon .ico-label {
+  font-size: 10px;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #000;
+  word-wrap: break-word;
+  max-width: 68px;
+  line-height: 1.2;
+}
+.desk-icon.selected .ico-label { text-shadow: none; }
 
-/* === EPITOPE PILL === */
-.ep-pill {
-  display: inline-block; padding: 2px 8px; border-radius: 3px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
-  border: 1px solid; margin: 0 2px;
+/* === WINDOWS === */
+.win98-window {
+  position: absolute;
+  background: var(--win-silver);
+  border: 2px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
+  box-shadow: 1px 1px 0 var(--win-darkest);
+  min-width: 280px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+}
+.win98-window.maximized {
+  top: 0 !important; left: 0 !important;
+  width: 100% !important; height: calc(100vh - 28px) !important;
 }
 
-/* === STUDY TAB === */
-.study-group { margin-bottom: 20px; }
-.study-group-label {
-  font-size: 11px; color: var(--fg-dim); text-transform: uppercase;
-  letter-spacing: 0.08em; margin-bottom: 8px; padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+/* TITLE BAR */
+.win-titlebar {
+  background: linear-gradient(90deg, var(--win-title), #1084d0);
+  color: var(--win-title-text);
+  padding: 2px 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: move;
+  flex-shrink: 0;
 }
-.study-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.3);
+.win-titlebar.inactive {
+  background: linear-gradient(90deg, var(--win-title-inactive), #b4b4b4);
 }
-.study-item:last-child { border-bottom: none; }
-.study-item a { font-size: 13px; }
-.study-item .study-time { font-size: 11px; color: var(--fg-muted); margin-left: auto; }
+.win-titlebar .win-ico { font-size: 14px; }
+.win-titlebar .win-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.win-btn {
+  width: 16px; height: 14px;
+  background: var(--win-btn-face);
+  border: 1px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
+  font-size: 9px;
+  font-weight: 700;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: 'Marlett', 'Tahoma', sans-serif;
+}
+.win-btn:active {
+  border-color: var(--win-darkest) var(--win-light) var(--win-light) var(--win-darkest);
+}
 
-/* === WRITE TAB === */
-.write-entry { margin-bottom: 16px; }
-.write-page {
-  font-size: 11px; color: var(--fg-dim); margin-bottom: 4px;
-  display: flex; align-items: center; gap: 8px;
+/* MENU BAR */
+.win-menubar {
+  background: var(--win-silver);
+  border-bottom: 1px solid var(--win-dark);
+  padding: 1px 0;
+  display: flex;
+  font-size: 11px;
+  flex-shrink: 0;
 }
-.write-note {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 4px; padding: 10px 12px; font-size: 13px;
-  color: var(--fg); line-height: 1.5; white-space: pre-wrap;
+.win-menu-item {
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.win-menu-item:hover { background: var(--win-highlight); color: white; }
+
+/* WINDOW BODY */
+.win-body {
+  flex: 1;
+  overflow: auto;
+  background: #ffffff;
+  border: 2px solid;
+  border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+  margin: 2px;
+  padding: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--win-text);
+}
+.win-body pre {
+  font-family: 'Fixedsys', 'Lucida Console', 'Courier New', monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-/* === DRAW TAB === */
-.draw-canvas {
-  width: 100%; height: calc(100vh - var(--header-h) - 80px);
-  background: var(--bg-alt); border: 1px solid var(--border);
-  border-radius: 6px; position: relative; overflow: hidden;
+/* STATUS BAR */
+.win-statusbar {
+  background: var(--win-silver);
+  border-top: 1px solid var(--win-dark);
+  padding: 2px 6px;
+  font-size: 10px;
+  color: var(--win-darkest);
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
-.draw-node {
-  position: absolute; background: var(--surface);
-  border: 2px solid; border-radius: 50%;
-  width: 50px; height: 50px; display: flex;
-  align-items: center; justify-content: center;
-  font-size: 9px; text-align: center; cursor: grab;
-  transition: box-shadow 0.2s;
+.win-status-section {
+  border: 1px solid;
+  border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+  padding: 0 6px;
+  flex: 1;
 }
-.draw-node:hover { box-shadow: 0 0 12px rgba(88,166,255,0.3); }
 
-/* === GAIA TAB — ring reflection === */
-.gaia-ring-svg { width: 100%; max-width: 600px; margin: 0 auto; display: block; }
-.gaia-ring-svg text { font-family: -apple-system, system-ui, sans-serif; }
-.gaia-legend { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px; font-size:11px; color:var(--fg-dim); }
-.gaia-legend span { display:flex; align-items:center; gap:4px; }
-.gaia-legend .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
-.gaia-profile { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
-.gaia-profile-item { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; }
-.gaia-profile-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:4px; }
-.gaia-profile-val { font-size:18px; font-weight:600; }
+/* === TASKBAR === */
+#taskbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 28px;
+  background: var(--win-silver);
+  border-top: 2px solid var(--win-light);
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  gap: 2px;
+  z-index: 9999;
+}
 
-/* === SHAPE BAR CHART (gaia tab) === */
-.shape-bar-row { display:flex; align-items:center; gap:8px; padding:3px 0; }
-.shape-bar-label { width:100px; font-size:11px; text-align:right; }
-.shape-bar-track { flex:1; height:12px; background:var(--surface); border-radius:3px; overflow:hidden; position:relative; }
-.shape-bar-fill { height:100%; border-radius:3px; transition:width 0.4s; }
-.shape-bar-val { min-width:42px; font-size:11px; color:var(--fg-muted); text-align:right; }
+/* START BUTTON */
+#start-btn {
+  height: 22px;
+  padding: 0 6px;
+  border: 2px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
+  background: var(--win-silver);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+}
+#start-btn:active, #start-btn.pressed {
+  border-color: var(--win-darkest) var(--win-light) var(--win-light) var(--win-darkest);
+}
+#start-btn .start-flag { font-size: 14px; }
 
-/* === WEAVE TAB — progressive trust === */
-.weave-section { margin-bottom:24px; }
-.weave-section h3 { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-dim); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
-.weave-commitment { font-family:monospace; font-size:11px; background:var(--surface); padding:8px 12px; border-radius:4px; word-break:break-all; color:var(--fg-dim); user-select:all; }
-.weave-round { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:16px; margin-bottom:12px; }
-.weave-round-header { font-size:13px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
-.weave-round-header .round-num { background:var(--accent); color:var(--bg); width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
-.weave-input { background:var(--bg-alt); border:1px solid var(--border); color:var(--fg); font-family:monospace; font-size:12px; padding:6px 10px; border-radius:4px; width:100%; }
-.weave-input:focus { border-color:var(--accent); outline:none; }
-.weave-btn { background:none; border:1px solid var(--border); color:var(--fg); font-family:inherit; font-size:12px; padding:6px 14px; border-radius:4px; cursor:pointer; }
-.weave-btn:hover { border-color:var(--accent); color:var(--accent); }
-.weave-btn.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
-.weave-btn.primary:hover { opacity:0.9; }
-.weave-result { margin-top:8px; padding:8px 12px; border-radius:4px; font-size:12px; }
-.weave-result.match { background:rgba(63,185,80,0.12); border:1px solid rgba(63,185,80,0.3); color:#3fb950; }
-.weave-result.partial { background:rgba(241,196,15,0.12); border:1px solid rgba(241,196,15,0.3); color:#f1c40f; }
-.weave-result.none { background:rgba(255,107,53,0.12); border:1px solid rgba(255,107,53,0.3); color:#ff6b35; }
-.weave-mirror { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; }
-.weave-mirror-half { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; }
-.weave-mirror-half h4 { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--fg-dim); margin-bottom:8px; }
+.taskbar-sep {
+  width: 2px; height: 20px;
+  border-left: 1px solid var(--win-dark);
+  border-right: 1px solid var(--win-light);
+  margin: 0 2px;
+}
 
-/* === CUBE FACE — bingoCube visual board === */
-.cube-face { display:grid; gap:4px; width:fit-content; margin:0 auto; user-select:none; }
-.cube-face.L3 { grid-template-columns:repeat(3, 90px); grid-template-rows:repeat(3, 90px); }
-.cube-face.L5 { grid-template-columns:repeat(5, 64px); grid-template-rows:repeat(5, 64px); }
-.cube-cell {
-  border-radius:6px; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; cursor:grab;
-  border:2px solid transparent; transition:all 0.2s;
-  position:relative; overflow:hidden;
+/* TASK BUTTONS */
+#task-buttons {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
 }
-.cube-cell:hover { border-color:var(--accent); transform:scale(1.04); z-index:1; }
-.cube-cell.dragging { opacity:0.4; transform:scale(0.95); }
-.cube-cell.drag-over { border-color:#fff; border-style:dashed; }
-.cube-cell .cell-label { font-size:9px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; z-index:1; }
-.cube-cell .cell-val { font-size:16px; font-weight:700; z-index:1; }
-.cube-cell.L5 .cell-label { font-size:7px; }
-.cube-cell.L5 .cell-val { font-size:12px; }
-.cube-cell .cell-fill {
-  position:absolute; bottom:0; left:0; right:0;
-  transition:height 0.4s; border-radius:0 0 4px 4px;
+.task-btn {
+  height: 22px;
+  min-width: 100px;
+  max-width: 160px;
+  padding: 0 6px;
+  border: 2px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
+  background: var(--win-silver);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: inherit;
 }
-.cube-cell.center-cell { border:2px solid var(--accent); }
-.cube-cell.center-cell .cell-label { color:var(--accent); }
-.cube-controls { display:flex; gap:8px; justify-content:center; margin-top:12px; align-items:center; }
-.cube-level-indicator {
-  display:flex; gap:4px; align-items:center; font-size:11px; color:var(--fg-dim);
+.task-btn.active {
+  border-color: var(--win-darkest) var(--win-light) var(--win-light) var(--win-darkest);
+  background: #b0b0b0;
+  font-weight: 700;
 }
-.cube-level-indicator .prime-dot {
-  width:12px; height:12px; border-radius:50%; display:inline-flex;
-  align-items:center; justify-content:center; font-size:8px; font-weight:700;
-  border:1px solid var(--border);
-}
-.cube-level-indicator .prime-dot.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
-.cube-level-indicator .prime-dot.locked { background:var(--surface); color:var(--fg-dim); }
+.task-btn .tb-ico { font-size: 12px; }
 
-/* === PLAY TAB — mountain journey === */
-.mountain-viz {
-  width: 100%; height: 300px; position: relative;
-  background: var(--bg-alt); border: 1px solid var(--border);
-  border-radius: 6px; overflow: hidden;
+/* SYSTEM TRAY */
+#systray {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 22px;
+  border: 2px solid;
+  border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+  font-size: 10px;
 }
-.mountain-path { position: absolute; bottom: 0; left: 0; right: 0; }
+#systray .tray-icon { font-size: 12px; cursor: pointer; }
 
-/* === EMPTY STATE === */
-.empty-state {
-  text-align: center; padding: 60px 20px; color: var(--fg-dim);
+/* === START MENU === */
+#start-menu {
+  display: none;
+  position: fixed;
+  bottom: 28px;
+  left: 0;
+  width: 200px;
+  background: var(--win-silver);
+  border: 2px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
+  z-index: 10000;
 }
-.empty-state h3 { font-size: 18px; color: var(--fg); margin-bottom: 8px; }
-.empty-state p { max-width: 400px; margin: 0 auto 16px; line-height: 1.6; }
-.empty-state a { color: var(--accent); }
+#start-menu.open { display: block; }
 
-/* === STATS BAR === */
-.stats-bar {
-  display: flex; gap: 24px; padding: 12px 0; margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+.start-sidebar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 22px;
+  background: linear-gradient(to top, #000080, #1084d0);
+  display: flex;
+  align-items: flex-end;
+  padding: 4px 2px;
 }
-.stat-item { text-align: center; }
-.stat-val { font-size: 20px; font-weight: 600; color: var(--fg); }
-.stat-label { font-size: 10px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.start-sidebar span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
 
-/* === EXPORT === */
-.export-btn {
-  background: var(--accent-dim); border: 1px solid var(--accent);
-  color: var(--accent); padding: 6px 14px; border-radius: 4px;
-  cursor: pointer; font-family: inherit; font-size: 12px;
-  transition: all 0.15s;
+.start-items {
+  margin-left: 22px;
+  padding: 2px 0;
 }
-.export-btn:hover { background: var(--accent); color: #fff; }
+.start-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.start-item:hover { background: var(--win-highlight); color: white; }
+.start-item .si-ico { font-size: 18px; width: 24px; text-align: center; }
+.start-sep { border-top: 1px solid var(--win-dark); border-bottom: 1px solid var(--win-light); margin: 2px 22px 2px 26px; }
 
-@media(max-width: 700px) {
-  .desk-nav { gap: 0; }
-  .desk-tab { padding: 8px 10px; font-size: 11px; }
-  .desk-links { display: none; }
-  .desk-main { padding: 16px; }
+/* === SCROLLBARS === */
+.win-body::-webkit-scrollbar { width: 16px; }
+.win-body::-webkit-scrollbar-track { background: var(--win-silver); border: 1px solid var(--win-dark); }
+.win-body::-webkit-scrollbar-thumb {
+  background: var(--win-btn-face);
+  border: 2px solid;
+  border-color: var(--win-light) var(--win-darkest) var(--win-darkest) var(--win-light);
 }
+
+/* === BOOT SCREEN === */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #aaa;
+  font-family: 'Fixedsys', 'Lucida Console', 'Courier New', monospace;
+  font-size: 14px;
+  padding: 20px;
+  z-index: 99999;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+#boot-screen.done { display: none; }
+
+/* Explorer list view */
+.explorer-list { width: 100%; border-collapse: collapse; }
+.explorer-list th {
+  text-align: left;
+  padding: 2px 8px;
+  background: var(--win-silver);
+  border: 1px solid;
+  border-color: var(--win-light) var(--win-dark) var(--win-dark) var(--win-light);
+  font-weight: 400;
+  font-size: 10px;
+  cursor: pointer;
+}
+.explorer-list td {
+  padding: 1px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.explorer-list tr:hover td { background: var(--win-highlight); color: white; }
+.explorer-list tr td:first-child { display: flex; align-items: center; gap: 4px; }
 </style>
 </head>
 <body>
-<div style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
-  display:flex;gap:8px;padding:4px 12px;background:rgba(13,17,23,0.9);border:1px solid rgba(88,166,255,0.15);
-  border-radius:20px;font:11px monospace;">
-  <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a>
-  <span style="color:#30363d">·</span>
-  <a href="/neutron/circulatory.html" style="color:#f85149;text-decoration:none">? circulatory</a>
-  <span style="color:#30363d">·</span>
-  <a href="/neutron/" style="color:#d29922;text-decoration:none">? neutron</a>
-  <span style="color:#30363d">·</span>
-  <a href="/neutron/board.html" style="color:#a371f7;text-decoration:none" title="backend board — all metrics">? board</a>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen"></div>
+
+<!-- DESKTOP -->
+<div id="desktop"></div>
+
+<!-- START MENU -->
+<div id="start-menu">
+  <div class="start-sidebar"><span>nestGate</span></div>
+  <div class="start-items">
+    <div class="start-item" onclick="openWindow('my-computer')"><span class="si-ico">???</span> My Computer</div>
+    <div class="start-item" onclick="openWindow('springs-explorer')"><span class="si-ico">??</span> Springs Explorer</div>
+    <div class="start-item" onclick="openWindow('archive')"><span class="si-ico">??</span> Archive (TR-49)</div>
+    <div class="start-item" onclick="openWindow('cmd')"><span class="si-ico">?</span> Command Prompt</div>
+    <div class="start-sep"></div>
+    <div class="start-item" onclick="openWindow('notepad','Welcome to nestGate','README.txt')"><span class="si-ico">??</span> Notepad</div>
+    <div class="start-item" onclick="openWindow('control-panel')"><span class="si-ico">??</span> Control Panel</div>
+    <div class="start-item" onclick="window.open('/engine.html','_self')"><span class="si-ico">??</span> Engine (Kenshi HUD)</div>
+    <div class="start-item" onclick="window.open('/','_self')"><span class="si-ico">??</span> Body Map (HUD)</div>
+    <div class="start-sep"></div>
+    <div class="start-item" onclick="toggleStartMenu()"><span class="si-ico">??</span> Shut Down...</div>
+  </div>
 </div>
 
-<div class="desk">
-  <header class="desk-header">
-    <span class="desk-title">? desk</span>
-    <nav class="desk-nav">
-      <button class="desk-tab active" data-tab="cockpit">? cockpit</button>
-      <button class="desk-tab" data-tab="study">study</button>
-      <button class="desk-tab" data-tab="write">write</button>
-      <button class="desk-tab" data-tab="draw">draw</button>
-      <button class="desk-tab" data-tab="play">play</button>
-      <button class="desk-tab" data-tab="create">create</button>
-      <button class="desk-tab" data-tab="gaia">gaia</button>
-      <button class="desk-tab" data-tab="weave">weave</button>
-      <button class="desk-tab" data-tab="campfire">campfire</button>
-      <button class="desk-tab" data-tab="globe">globe</button>
-      <button class="desk-tab" data-tab="helix">?? helix</button>
-      <button class="desk-tab" data-tab="map">map</button>
-      <button class="desk-tab" data-tab="atlas">atlas</button>
-      <button class="desk-tab" data-tab="neutron">neutron</button>
-    </nav>
-    <div class="desk-links">
-      <a href="/">? hud</a>
-      <a href="/braid/">? braid</a>
-      <a href="https://sporeprint.primals.eco">sporePrint</a>
-      <a href="/water">? water</a>
-      <a href="/playground">? sort</a>
-      <a href="https://tuebor.primals.eco">tuebor</a>
+<!-- TASKBAR -->
+<div id="taskbar">
+  <button id="start-btn" onclick="toggleStartMenu()">
+    <span class="start-flag">??</span> Start
+  </button>
+  <div class="taskbar-sep"></div>
+  <div id="task-buttons"></div>
+  <div class="taskbar-sep"></div>
+  <div id="systray">
+    <span class="tray-icon" title="Wave status">??</span>
+    <span class="tray-icon" title="Network">??</span>
+    <span id="clock">12:00 AM</span>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// nestGate DESKTOP ? Windows 98 computer running the organism
+// ================================================================
+
+const SPRINGS = [
+  { id: 'ludoSpring', ico: '??', label: 'ludoSpring', loc: 'MSU Campus, MI', lat: 42.73, lon: -84.48, desc: 'The Playground ? Science of Play. 982 tests. Fitts, Hick, Flow.' },
+  { id: 'hotSpring', ico: '??', label: 'hotSpring', loc: 'Yellowstone, WY', lat: 44.46, lon: -110.83, desc: 'The Furnace ? Grand Prismatic Spring. Thermus aquaticus. Taq polymerase.' },
+  { id: 'wetSpring', ico: '??', label: 'wetSpring', loc: 'Everglades, FL', lat: 25.39, lon: -80.68, desc: 'The Swamp ? Bioinformatics. River of grass. Invisible diversity.' },
+  { id: 'primalSpring', ico: '??', label: 'primalSpring', loc: 'Ann Arbor, MI', lat: 42.28, lon: -83.74, desc: 'The Forge ? Validation. U of M. The rival peer reviewer.' },
+  { id: 'groundSpring', ico: '??', label: 'groundSpring', loc: 'Bitterroot, MT', lat: 46.87, lon: -113.99, desc: 'The Earth ? 1.5B year old bedrock. Foundation.' },
+  { id: 'airSpring', ico: '??', label: 'airSpring', loc: 'Albuquerque, NM', lat: 35.08, lon: -106.65, desc: 'The Breath ? Balloon Fiesta. 500 balloons. Clear sky signals.' },
+  { id: 'healthSpring', ico: '??', label: 'healthSpring', loc: 'Hot Springs, AR', lat: 34.42, lon: -93.06, desc: 'The Cure ? Bathhouse Row. 47 springs. 143°F healing water.' },
+  { id: 'neuralSpring', ico: '??', label: 'neuralSpring', loc: 'Silicon Valley, CA', lat: 37.39, lon: -122.08, desc: 'The Brain ? AI birthplace. Neural networks at scale.' },
+  { id: 'sourDough', ico: '??', label: 'sourDough', loc: 'San Francisco, CA', lat: 37.77, lon: -122.42, desc: 'The Starter ? Boudin 1849 sourdough. 175-year living culture.' },
+  { id: 'songBird', ico: '??', label: 'songBird', loc: 'New Orleans, LA', lat: 29.95, lon: -90.07, desc: 'The Singer ? Jazz mesh. Polyphonic decentralized improv.' },
+  { id: 'sweetGrass', ico: '??', label: 'sweetGrass', loc: 'Glacier NP, MT', lat: 48.56, lon: -113.00, desc: 'The Scent ? Braided attribution. Sacred medicine. PROV-O.' },
+  { id: 'rhizoCrypt', ico: '??', label: 'rhizoCrypt', loc: 'Seattle, WA', lat: 47.75, lon: -122.34, desc: 'The Root ? Ephemeral DAG. Underground city. Mycelial nets.' },
+  { id: 'loamSpine', ico: '??', label: 'loamSpine', loc: 'Grand Canyon, AZ', lat: 36.11, lon: -112.11, desc: 'The Bone ? 2B years of immutable geological commits.' },
+  { id: 'coralReef', ico: '??', label: 'coralReef', loc: 'Florida Keys, FL', lat: 24.56, lon: -81.78, desc: 'The Reef ? GPU shaders. Million polyps = million threads.' },
+  { id: 'petalTongue', ico: '???', label: 'petalTongue', loc: 'Sequoia NP, CA', lat: 36.05, lon: -118.20, desc: 'The Eye ? General Sherman. Making the invisible visible.' },
+  { id: 'toadStool', ico: '??', label: 'toadStool', loc: 'Casper, WY', lat: 42.89, lon: -106.31, desc: 'The Toad ? Hoodoo formations. GPU/NPU/CPU dispatch.' },
+  { id: 'skunkBat', ico: '??', label: 'skunkBat', loc: 'Carlsbad, NM', lat: 32.14, lon: -104.56, desc: 'The Shadow ? 400K bats. Network defense at dusk.' },
+  { id: 'bearDog', ico: '??', label: 'bearDog', loc: 'Kenai Fjords, AK', lat: 60.97, lon: -149.09, desc: 'The Guard ? Crypto/TLS. Fjords = encryption channels.' },
+];
+
+const DESK_ICONS = [
+  { id: 'my-computer', ico: '???', label: 'My Computer' },
+  { id: 'springs-explorer', ico: '??', label: 'Springs Explorer' },
+  { id: 'archive', ico: '??', label: 'Archive' },
+  { id: 'cmd', ico: '?', label: 'Command\nPrompt' },
+  ...SPRINGS.slice(0, 8).map(s => ({ id: 'spring-' + s.id, ico: s.ico, label: s.label })),
+  { id: 'engine', ico: '??', label: 'Kenshi\nEngine', href: '/engine.html' },
+  { id: 'body-map', ico: '??', label: 'Body Map', href: '/' },
+  { id: 'recycle', ico: '???', label: 'Recycle Bin' },
+];
+
+let windows = [];
+let zCounter = 100;
+let bootDone = false;
+
+// ---- BOOT SEQUENCE ----
+async function boot() {
+  const el = document.getElementById('boot-screen');
+  const lines = [
+    'nestGate BIOS v1.0 ? ecoPrimal Systems, 2026',
+    'CPU: Organism Core @ 1/? GHz',
+    'RAM: 39T bacterial cells',
+    'Detecting springs...',
+    '',
+    '  C:\\SPRINGS\\LUDOSPRING    OK (MSU Campus, MI)',
+    '  C:\\SPRINGS\\HOTSPRING     OK (Yellowstone, WY)',
+    '  C:\\SPRINGS\\WETSPRING     OK (Everglades, FL)',
+    '  C:\\SPRINGS\\PRIMALSPRING  OK (Ann Arbor, MI)',
+    '  C:\\SPRINGS\\NEURALSPRING  OK (Silicon Valley, CA)',
+    '  C:\\SPRINGS\\SOURDOUGH     OK (San Francisco, CA)',
+    '  C:\\SPRINGS\\SWEETGRASS    OK (Glacier NP, MT)',
+    '  C:\\SPRINGS\\LOAMSPINE     OK (Grand Canyon, AZ)',
+    '',
+    '18 springs detected. 18 beacons online.',
+    'Membrane selectivity: 1/? = 0.31831',
+    'Wave: 214',
+    '',
+    'Loading nestGate Desktop...',
+    '',
+    'Starting Windows...',
+  ];
+
+  for (const line of lines) {
+    el.textContent += line + '\n';
+    await sleep(80 + Math.random() * 60);
+    el.scrollTop = el.scrollHeight;
+  }
+  await sleep(600);
+  el.classList.add('done');
+  bootDone = true;
+  renderDesktop();
+  startClock();
+  fetchLiveData();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ---- RENDER DESKTOP ICONS ----
+function renderDesktop() {
+  const desk = document.getElementById('desktop');
+  desk.innerHTML = '';
+  DESK_ICONS.forEach(ic => {
+    const el = document.createElement('div');
+    el.className = 'desk-icon';
+    el.innerHTML = `<span class="ico">${ic.ico}</span><span class="ico-label">${ic.label}</span>`;
+    el.ondblclick = () => {
+      if (ic.href) { window.open(ic.href, '_self'); return; }
+      if (ic.id.startsWith('spring-')) {
+        const sp = SPRINGS.find(s => 'spring-' + s.id === ic.id);
+        if (sp) openWindow('spring-detail', sp);
+      } else {
+        openWindow(ic.id);
+      }
+    };
+    el.onclick = (e) => {
+      document.querySelectorAll('.desk-icon').forEach(d => d.classList.remove('selected'));
+      el.classList.add('selected');
+      e.stopPropagation();
+    };
+    desk.appendChild(el);
+  });
+}
+
+// ---- WINDOW SYSTEM ----
+function openWindow(type, data, title) {
+  const existing = windows.find(w => w.id === type && !data);
+  if (existing) { focusWindow(existing.el); return; }
+
+  const winId = type + '-' + Date.now();
+  const wEl = document.createElement('div');
+  wEl.className = 'win98-window';
+  wEl.style.left = (80 + windows.length * 24) + 'px';
+  wEl.style.top = (40 + windows.length * 24) + 'px';
+  wEl.style.width = '560px';
+  wEl.style.height = '400px';
+  wEl.style.zIndex = ++zCounter;
+
+  let winTitle = title || 'Window';
+  let winIco = '??';
+  let bodyHTML = '';
+  let menubar = '<div class="win-menubar"><span class="win-menu-item">File</span><span class="win-menu-item">Edit</span><span class="win-menu-item">View</span><span class="win-menu-item">Help</span></div>';
+  let statusText = 'Ready';
+
+  switch (type) {
+    case 'my-computer':
+      winTitle = 'My Computer';
+      winIco = '???';
+      statusText = '18 spring(s), 50+ data file(s)';
+      bodyHTML = buildMyComputer();
+      break;
+
+    case 'springs-explorer':
+      winTitle = 'Springs Explorer ? North America';
+      winIco = '??';
+      statusText = '18 springs across 12 states';
+      bodyHTML = buildSpringsExplorer();
+      break;
+
+    case 'archive':
+      winTitle = 'Archive Terminal (TR-49)';
+      winIco = '??';
+      bodyHTML = buildArchive();
+      menubar = '';
+      break;
+
+    case 'spring-detail':
+      winTitle = data.label + ' ? ' + data.loc;
+      winIco = data.ico;
+      statusText = `${data.lat}°N, ${Math.abs(data.lon)}°W`;
+      bodyHTML = buildSpringDetail(data);
+      break;
+
+    case 'cmd':
+      winTitle = 'C:\\WINDOWS\\system32\\cmd.exe';
+      winIco = '?';
+      bodyHTML = buildCmd();
+      menubar = '';
+      wEl.style.width = '640px';
+      break;
+
+    case 'notepad':
+      winTitle = (title || 'Untitled') + ' - Notepad';
+      winIco = '??';
+      bodyHTML = buildNotepad(data || '');
+      break;
+
+    case 'control-panel':
+      winTitle = 'Control Panel';
+      winIco = '??';
+      bodyHTML = buildControlPanel();
+      statusText = '18 beacons | selectivity 1/?';
+      break;
+
+    case 'recycle':
+      winTitle = 'Recycle Bin';
+      winIco = '???';
+      bodyHTML = '<div style="padding:20px;text-align:center;color:#808080;font-size:12px;">The Recycle Bin is empty.<br><br>Fungi always win.<br>Nothing is truly waste.</div>';
+      statusText = '0 object(s) ? everything composted';
+      break;
+
+    default:
+      winTitle = type;
+      bodyHTML = '<div style="padding:12px">Loading...</div>';
+  }
+
+  wEl.innerHTML = `
+    <div class="win-titlebar" onmousedown="startDrag(event,'${winId}')">
+      <span class="win-ico">${winIco}</span>
+      <span class="win-title">${winTitle}</span>
+      <button class="win-btn" onclick="minimizeWindow('${winId}')" title="Minimize">_</button>
+      <button class="win-btn" onclick="maximizeWindow('${winId}')" title="Maximize">?</button>
+      <button class="win-btn" onclick="closeWindow('${winId}')" title="Close">?</button>
     </div>
-  </header>
+    ${menubar}
+    <div class="win-body">${bodyHTML}</div>
+    <div class="win-statusbar"><span class="win-status-section">${statusText}</span></div>
+  `;
 
-  <main class="desk-main" id="desk-main">
-    <div id="panel-cockpit"></div>
-    <div id="panel-study" style="display:none"></div>
-    <div id="panel-write" style="display:none"></div>
-    <div id="panel-draw" style="display:none"></div>
-    <div id="panel-play" style="display:none"></div>
-    <div id="panel-create" style="display:none"></div>
-    <div id="panel-gaia" style="display:none"></div>
-    <div id="panel-weave" style="display:none"></div>
-    <div id="panel-campfire" style="display:none"></div>
-    <div id="panel-globe" style="display:none"><iframe src="/neutron/globe.html" style="width:100%;height:calc(100vh - 80px);border:none" loading="lazy"></iframe></div>
-    <div id="panel-helix" style="display:none"><iframe src="/neutron/helix.html" style="width:100%;height:calc(100vh - 80px);border:none" loading="lazy"></iframe></div>
-    <div id="panel-map" style="display:none"></div>
-    <div id="panel-atlas" style="display:none"></div>
-    <div id="panel-neutron" style="display:none"></div>
-  </main>
-</div>
-<div class="desk-panel" id="panel-live" style="display:none">
-<div style="padding:8px">
-<h3 style="margin-bottom:8px;color:#a371f7">petalTongue — interactive exploration</h3>
-<div style="display:flex;gap:8px;margin-bottom:12px;font:11px monospace;flex-wrap:wrap">
-<a href="https://live.primals.eco" target="_blank" style="color:#a371f7">open full dashboard</a>
-<span style="color:#30363d">·</span>
-<a href="https://nestgate.io" target="_blank" style="color:#58a6ff">nestgate.io</a>
-<span style="color:#30363d">·</span>
-<a href="/neutron/circulatory.html" target="_blank" style="color:#f85149">circulatory</a>
-<span style="color:#30363d">·</span>
-<a href="/neutron/footprint.html" target="_blank" style="color:#3fb950">footprint</a>
-<span style="color:#30363d">·</span>
-<a href="/neutron/board.html" target="_blank" style="color:#d29922">board</a>
-</div>
-<iframe src="https://live.primals.eco" style="width:100%;height:calc(100vh - 150px);border:1px solid #30363d;border-radius:6px" loading="lazy"></iframe>
-</div>
-</div>
+  wEl.onmousedown = () => focusWindow(wEl);
+  document.getElementById('desktop').appendChild(wEl);
+  const win = { id: type, winId, el: wEl, title: winTitle, ico: winIco, minimized: false };
+  windows.push(win);
+  updateTaskbar();
+  focusWindow(wEl);
+}
 
-<script src="js/desk-core.js?v=188"></script>
-<script src="js/desk-gaia.js"></script>
-<script src="js/desk-weave.js"></script>
-<script src="js/desk-globe.js?v=1792286241"></script>
-<script src="js/desk-map.js?v=1792286241"></script>
-<script src="js/desk-atlas.js?v=1792286241"></script>
-<script src="/js/pulse-clock.js?v=1"></script>
-<script src="js/desk-neutron.js?v=180"></script>
-<script src="js/desk-campfire.js?v=1792286032"></script>
-<script src="js/desk-convergence.js?v=188"></script>
-<script src="js/desk-boot.js?v=188"></script>
+function closeWindow(winId) {
+  const idx = windows.findIndex(w => w.winId === winId);
+  if (idx === -1) return;
+  windows[idx].el.remove();
+  windows.splice(idx, 1);
+  updateTaskbar();
+}
+
+function minimizeWindow(winId) {
+  const win = windows.find(w => w.winId === winId);
+  if (!win) return;
+  win.minimized = true;
+  win.el.style.display = 'none';
+  updateTaskbar();
+}
+
+function maximizeWindow(winId) {
+  const win = windows.find(w => w.winId === winId);
+  if (!win) return;
+  win.el.classList.toggle('maximized');
+}
+
+function focusWindow(el) {
+  el.style.zIndex = ++zCounter;
+  document.querySelectorAll('.win-titlebar').forEach(tb => tb.classList.add('inactive'));
+  el.querySelector('.win-titlebar').classList.remove('inactive');
+  const win = windows.find(w => w.el === el);
+  if (win && win.minimized) {
+    win.minimized = false;
+    win.el.style.display = 'flex';
+  }
+  updateTaskbar();
+}
+
+// ---- DRAG WINDOWS ----
+let dragState = null;
+function startDrag(e, winId) {
+  const win = windows.find(w => w.winId === winId);
+  if (!win || win.el.classList.contains('maximized')) return;
+  dragState = {
+    el: win.el,
+    startX: e.clientX - win.el.offsetLeft,
+    startY: e.clientY - win.el.offsetTop,
+  };
+  e.preventDefault();
+}
+document.addEventListener('mousemove', e => {
+  if (!dragState) return;
+  dragState.el.style.left = (e.clientX - dragState.startX) + 'px';
+  dragState.el.style.top = (e.clientY - dragState.startY) + 'px';
+});
+document.addEventListener('mouseup', () => { dragState = null; });
+
+// ---- TASKBAR ----
+function updateTaskbar() {
+  const cont = document.getElementById('task-buttons');
+  cont.innerHTML = '';
+  windows.forEach(w => {
+    const btn = document.createElement('button');
+    btn.className = 'task-btn' + (w.minimized ? '' : ' active');
+    btn.innerHTML = `<span class="tb-ico">${w.ico}</span> ${w.title.slice(0, 20)}`;
+    btn.onclick = () => {
+      if (w.minimized) {
+        w.minimized = false;
+        w.el.style.display = 'flex';
+      }
+      focusWindow(w.el);
+    };
+    cont.appendChild(btn);
+  });
+}
+
+// ---- START MENU ----
+function toggleStartMenu() {
+  document.getElementById('start-menu').classList.toggle('open');
+  document.getElementById('start-btn').classList.toggle('pressed');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+    document.getElementById('start-menu').classList.remove('open');
+    document.getElementById('start-btn').classList.remove('pressed');
+  }
+});
+document.getElementById('desktop').addEventListener('click', e => {
+  if (e.target === document.getElementById('desktop')) {
+    document.querySelectorAll('.desk-icon').forEach(d => d.classList.remove('selected'));
+  }
+});
+
+// ---- CLOCK ----
+function startClock() {
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }, 1000);
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+// ---- WINDOW CONTENT BUILDERS ----
+
+function buildMyComputer() {
+  let rows = '';
+  rows += `<tr ondblclick="openWindow('springs-explorer')"><td>?? Springs Explorer</td><td>Folder</td><td>18 springs</td></tr>`;
+  rows += `<tr ondblclick="openWindow('archive')"><td>?? Archive (TR-49)</td><td>Application</td><td>50+ entries</td></tr>`;
+  rows += `<tr ondblclick="openWindow('cmd')"><td>? Command Prompt</td><td>Application</td><td></td></tr>`;
+  rows += `<tr ondblclick="window.open('/engine.html','_self')"><td>?? Kenshi Engine</td><td>Application</td><td>LIVE HUD</td></tr>`;
+  rows += `<tr ondblclick="window.open('/','_self')"><td>?? Body Map</td><td>Application</td><td>LIVE organism</td></tr>`;
+  SPRINGS.forEach(s => {
+    rows += `<tr ondblclick="openWindow('spring-detail',SPRINGS.find(x=>x.id==='${s.id}'))"><td>${s.ico} ${s.label}</td><td>Spring</td><td>${s.loc}</td></tr>`;
+  });
+  return `<table class="explorer-list"><tr><th>Name</th><th>Type</th><th>Location</th></tr>${rows}</table>`;
+}
+
+function buildSpringsExplorer() {
+  const W = 520, H = 300;
+  let dots = '';
+  SPRINGS.forEach(s => {
+    const x = ((s.lon + 170) / 100) * W;
+    const y = ((70 - s.lat) / 50) * H;
+    dots += `<div style="position:absolute;left:${x}px;top:${y}px;cursor:pointer;text-align:center;transform:translate(-50%,-100%)" ondblclick="openWindow('spring-detail',SPRINGS.find(x=>x.id==='${s.id}'))" title="${s.label} ? ${s.loc}">
+      <span style="font-size:20px">${s.ico}</span><br>
+      <span style="font-size:8px;color:#000;background:rgba(255,255,255,0.85);padding:0 2px;white-space:nowrap">${s.label}</span>
+    </div>`;
+  });
+  return `<div style="position:relative;width:${W}px;height:${H}px;margin:8px auto;background:#d4e8d4;border:1px solid #808080;overflow:hidden">
+    <div style="position:absolute;inset:0;opacity:0.3;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#aaa 19px,#aaa 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#aaa 19px,#aaa 20px)"></div>
+    <div style="position:absolute;top:4px;left:4px;font-size:9px;color:#404040">?? North America ? 18 Springs</div>
+    ${dots}
+  </div>
+  <div style="font-size:10px;padding:4px 8px;color:#404040">
+    Span: Alaska (61°N) to Key West (25°N) = 4,100 mi north-south<br>
+    Double-click a spring to see details.
+  </div>`;
+}
+
+function buildSpringDetail(s) {
+  return `<div style="padding:8px">
+    <div style="font-size:24px;margin-bottom:4px">${s.ico}</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:8px">${s.label}</div>
+    <table style="font-size:11px;border-collapse:collapse">
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Location:</td><td>${s.loc}</td></tr>
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Latitude:</td><td>${s.lat}°N</td></tr>
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Longitude:</td><td>${Math.abs(s.lon)}°W</td></tr>
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Description:</td><td>${s.desc}</td></tr>
+    </table>
+    <hr style="margin:10px 0;border:none;border-top:1px solid #c0c0c0">
+    <div style="font-size:10px;color:#808080">${s.desc}</div>
+  </div>`;
+}
+
+function buildArchive() {
+  return `<div style="background:#1a1200;color:#c8a832;font-family:'Lucida Console','Courier New',monospace;padding:12px;min-height:100%;font-size:13px">
+    <div style="text-align:center;margin-bottom:16px;color:#e8c840">
+      ????????????????????????????????????<br>
+      ?  CAULDERLY-DOOLER ARCHIVE v2.14  ?<br>
+      ?  nestGate Terminal ? CONNECTED    ?<br>
+      ????????????????????????????????????
+    </div>
+    <div style="color:#a08020;margin-bottom:12px">
+      Enter a code (SS-NNN) to access an archive entry.<br>
+      Type HELP for commands. Type LIST for all codes.<br>
+    </div>
+    <div id="archive-output" style="margin-bottom:8px"></div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span style="color:#e8c840">?</span>
+      <input id="archive-input" type="text" maxlength="6" placeholder="SS-NNN"
+        style="background:transparent;border:none;border-bottom:1px solid #a08020;color:#e8c840;font-family:inherit;font-size:13px;width:100px;outline:none"
+        onkeydown="if(event.key==='Enter')archiveCommand(this.value)"
+        autofocus>
+    </div>
+  </div>`;
+}
+
+function archiveCommand(cmd) {
+  const input = document.getElementById('archive-input');
+  const output = document.getElementById('archive-output');
+  input.value = '';
+  const c = cmd.trim().toUpperCase();
+
+  let result = '';
+  if (c === 'HELP') {
+    result = `COMMANDS:
+  LIST     ? Show all archive codes
+  LS-NNN   ? ludoSpring entry
+  HS-NNN   ? hotSpring entry
+  WS-NNN   ? wetSpring entry
+  PS-NNN   ? primalSpring entry
+  NG-NNN   ? nestGate entry
+  SPRINGS  ? Show all spring locations
+  CLEAR    ? Clear screen
+  EXIT     ? Close terminal`;
+  } else if (c === 'LIST') {
+    result = SPRINGS.map(s => {
+      const prefix = s.id.replace(/[a-z]/g, '').slice(0, 2) || s.id.slice(0, 2).toUpperCase();
+      return `  ${prefix}-001  ${s.label.padEnd(16)} ${s.loc}`;
+    }).join('\n');
+  } else if (c === 'SPRINGS') {
+    result = SPRINGS.map(s => `  ${s.ico} ${s.label.padEnd(16)} ${s.lat}°N ${Math.abs(s.lon)}°W  ${s.loc}`).join('\n');
+  } else if (c === 'CLEAR') {
+    output.innerHTML = '';
+    return;
+  } else if (c === 'EXIT') {
+    const win = windows.find(w => w.id === 'archive');
+    if (win) closeWindow(win.winId);
+    return;
+  } else {
+    const prefix = c.slice(0, 2);
+    const sp = SPRINGS.find(s => s.id.slice(0, 2).toUpperCase() === prefix || s.id.replace(/[a-z]/g, '').slice(0, 2) === prefix);
+    if (sp) {
+      result = `??? ${sp.label} ???\n${sp.ico}  ${sp.desc}\nLocation: ${sp.loc}\nCoords: ${sp.lat}°N, ${Math.abs(sp.lon)}°W`;
+    } else {
+      result = `Unknown code: ${c}. Type HELP for commands.`;
+    }
+  }
+
+  output.innerHTML += `<div style="margin-bottom:8px"><span style="color:#806020">? ${cmd}</span>\n${result}</div>`;
+  output.scrollTop = output.scrollHeight;
+}
+
+function buildCmd() {
+  return `<div style="background:#000;color:#c0c0c0;font-family:'Lucida Console','Courier New',monospace;padding:8px;min-height:100%;font-size:12px">
+    <div>nestGate Operating System [Version 2.14.0]</div>
+    <div>(C) ecoPrimal Systems. All rights composted.</div>
+    <div style="margin-top:8px" id="cmd-output"></div>
+    <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+      <span>C:\\SPRINGS&gt;</span>
+      <input id="cmd-input" type="text"
+        style="background:transparent;border:none;color:#c0c0c0;font-family:inherit;font-size:12px;flex:1;outline:none"
+        onkeydown="if(event.key==='Enter')cmdCommand(this.value)"
+        autofocus>
+    </div>
+  </div>`;
+}
+
+function cmdCommand(cmd) {
+  const input = document.getElementById('cmd-input');
+  const output = document.getElementById('cmd-output');
+  input.value = '';
+  const c = cmd.trim().toLowerCase();
+
+  let result = '';
+  if (c === 'dir' || c === 'ls') {
+    result = ` Volume in drive C is NESTGATE
+ Directory of C:\\SPRINGS\n
+`;
+    SPRINGS.forEach(s => {
+      result += `  <DIR>    ${s.label.padEnd(20)} ${s.loc}\n`;
+    });
+    result += `\n  18 Dir(s)   39,000,000,000,000 cells free`;
+  } else if (c === 'ver') {
+    result = 'nestGate OS Version 2.14.0 ? wave 214';
+  } else if (c === 'help') {
+    result = 'DIR  VER  CLS  HELP  PING  TRACERT  EXIT  SPRINGS';
+  } else if (c === 'cls') {
+    output.innerHTML = '';
+    return;
+  } else if (c.startsWith('ping')) {
+    result = `Pinging primals.eco [172.67.xxx.xxx] with 32 bytes of data:\nReply: bytes=32 time<1ms TTL=128 (selectivity=1/?)\nReply: bytes=32 time<1ms TTL=128 (membrane=permeable)\n\nPing statistics: Sent=2, Received=2, Lost=0 (0% loss)`;
+  } else if (c.startsWith('tracert') || c.startsWith('traceroute')) {
+    result = `Tracing route to primals.eco\n  1  <1ms  MSU Campus (42.70°N, 84.48°W) ? origin\n  2   2ms  Ann Arbor (42.28°N, 83.74°W) ? primalSpring\n  3  18ms  Yellowstone (44.46°N, 110.83°W) ? hotSpring\n  4  22ms  Grand Canyon (36.11°N, 112.11°W) ? loamSpine\n  5  28ms  Silicon Valley (37.39°N, 122.08°W) ? neuralSpring\n  6  44ms  Kenai Fjords (60.97°N, 149.09°W) ? bearDog\n\nTrace complete. 18 hops. All springs alive.`;
+  } else if (c === 'exit') {
+    const win = windows.find(w => w.id === 'cmd');
+    if (win) closeWindow(win.winId);
+    return;
+  } else if (c === 'springs') {
+    result = SPRINGS.map(s => `${s.ico} ${s.label.padEnd(16)} ${s.lat.toFixed(2)}°N ${Math.abs(s.lon).toFixed(2)}°W  ${s.loc}`).join('\n');
+  } else if (c) {
+    result = `'${cmd}' is not recognized as an internal or external command,\noperable program or batch file.`;
+  }
+
+  output.innerHTML += `<div style="margin-bottom:4px"><span style="color:#808080">C:\\SPRINGS&gt;</span> ${cmd}\n${result}</div>`;
+  output.scrollTop = output.scrollHeight;
+}
+
+function buildNotepad(text) {
+  const content = text || `Welcome to nestGate Desktop v2.14
+===================================
+
+This computer is the organism looking at itself.
+The desk is the surface. The springs are the programs.
+The archive is the memory. The command prompt is the voice.
+
+You are sitting in front of a machine.
+The machine contains everything.
+You just have to find the right codes.
+
+? nestGate, MSU Campus, Michigan
+   42.70°N, 84.48°W
+   Wave 214`;
+  return `<textarea style="width:100%;height:100%;border:none;resize:none;font-family:'Lucida Console',monospace;font-size:12px;padding:4px;outline:none" spellcheck="false">${content}</textarea>`;
+}
+
+function buildControlPanel() {
+  const items = [
+    { ico: '??', name: 'Network (18 springs)', desc: 'Configure spring connections' },
+    { ico: '??', name: 'Sounds', desc: 'nestGate sound scheme' },
+    { ico: '???', name: 'Display', desc: 'Background: Teal (Windows 98)' },
+    { ico: '??', name: 'Membrane', desc: 'Selectivity: 1/? = 0.31831' },
+    { ico: '??', name: 'DNA / Dogma', desc: 'papers ? scripts ? Rust' },
+    { ico: '??', name: 'Zero Knowledge', desc: 'ZK identity active' },
+    { ico: '??', name: 'Sourdough Cache', desc: 'TTL tiers: 30s/5m/10m/1d/1w' },
+    { ico: '???', name: 'Chipmunk', desc: 'Narrator: online' },
+    { ico: '??', name: 'Wave Monitor', desc: 'Current wave: 214' },
+  ];
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px">
+    ${items.map(i => `<div style="width:120px;padding:8px;text-align:center;cursor:pointer;border:1px solid transparent" onmouseover="this.style.borderColor='#0000aa'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-size:28px">${i.ico}</div>
+      <div style="font-size:10px;font-weight:700;margin-top:2px">${i.name}</div>
+      <div style="font-size:9px;color:#808080">${i.desc}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ---- FETCH LIVE DATA ----
+async function fetchLiveData() {
+  try {
+    const res = await fetch('/now.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      document.title = `nestGate ? Wave ${data.wave || 214}`;
+    }
+  } catch {}
+  setTimeout(fetchLiveData, 30000);
+}
+
+// ---- BOOT ----
+boot();
+
+</script>
 </body>
 </html>
