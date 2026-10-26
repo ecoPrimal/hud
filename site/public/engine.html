@@ -876,70 +876,129 @@ function renderDevices(hb) {
   }).join('');
 }
 
-// --- VIEWPORT � PetalTongue WASM render ---
-async function renderViewport() {
-  try {
-    const mod = await import('/wasm/petal_tongue_wasm.js');
-    await mod.default('/wasm/petal_tongue_wasm_bg.wasm');
-    mod.init();
+// --- VIEWPORT — SNOW GLOBE (navigable sphere, room-to-room) ---
+const BIOMES = [
+  { id:'membrane', label:'Membrane', color:'#3fb950', angle:0, pages:'/,/engine,/journal,/connect' },
+  { id:'null', label:'Null', color:'#f85149', angle:60, pages:'/404' },
+  { id:'klein', label:'Klein Fold', color:'#bc8cff', angle:120, pages:'/klein,/maze,/fold' },
+  { id:'gut', label:'Gut', color:'#d29922', angle:180, pages:'/digest,/bioreactor' },
+  { id:'canopy', label:'Canopy', color:'#39d3f5', angle:240, pages:'/crystal,/sporeprint' },
+  { id:'undermap', label:'Undermap', color:'#6e7681', angle:300, pages:'/data' },
+];
+let globeAngle = 0, globeZoom = 1, globeRoom = null, snowflakes = [];
 
-    // Fetch live data for rendering
-    const [now, membrane, campfire] = await Promise.all([
-      fetchJSON('/now.json'),
-      fetchJSON('/membrane.json'),
-      fetchJSON('/campfire.json')
-    ]);
-
-    if (!now) return;
-
-    // Build dashboard bindings with correct petalTongue DataBinding channel format
-    const sel = now.sort_quality || 0.318;
-    const esc = now.rates_live?.escape_velocity || 0.783;
-    const mor = now.rates_live?.mor || 0.797;
-    const gpu = (now.rates_live?.gpu_headroom_pct || 91) / 100;
-    const braid = (now.rates_live?.braid_health_pct || 89.4) / 100;
-    const pi_pos = now.rates_live?.gaia_pi_position || 1.728;
-
-    const bindings = [
-      { id: 'selectivity', channel_type: 'gauge', label: 'Selectivity 1/p', value: sel, min: 0, max: 1, unit: '1/p', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
-      { id: 'escape', channel_type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
-      { id: 'mor', channel_type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
-      { id: 'gpu', channel_type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
-      { id: 'braid', channel_type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
-      { id: 'gaia_pi', channel_type: 'gauge', label: 'Gaia p Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'p', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
-      { id: 'entities', channel_type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
-        values: [now.classification?.self || 15372, now.classification?.partial || 6411, now.classification?.null || 16655, now.classification?.non_self || 220876], unit: 'entities' },
-      { id: 'neuro', channel_type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
-        values: [0.725, 0.622, 0.627, 0.414, 0.248, 0.309], unit: 'normalized' },
-    ];
-
-    const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE � LIVE', domain: 'ecology' };
-
-    try {
-      const svg = mod.render_dashboard(JSON.stringify(bindings), JSON.stringify(config));
-      document.getElementById('render-target').innerHTML = svg;
-    } catch(e) {
-      // Fallback: render individual bindings
-      let html = '<div style="padding:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;height:100%">';
-      for (const b of bindings) {
-        try {
-          const svg = mod.render_binding(JSON.stringify(b), 'ecology');
-          html += `<div style="background:rgba(18,22,30,0.8);border:1px solid #1c2333;border-radius:6px;padding:8px">${svg}</div>`;
-        } catch(e2) {
-          html += `<div style="color:var(--dim);font-size:9px;padding:8px">${b.label}: ${(b.value*100).toFixed(1)}%</div>`;
-        }
-      }
-      html += '</div>';
-      document.getElementById('render-target').innerHTML = html;
-    }
-  } catch(e) {
-    // No WASM � fallback to text render
-    document.getElementById('render-target').innerHTML = `<div style="color:var(--dim);padding:40px;text-align:center">
-      <div style="font-size:24px;color:var(--cyan);margin-bottom:12px">? GAIA ENGINE</div>
-      <div>PetalTongue WASM loading�</div>
-      <div style="margin-top:8px;font-size:9px">${e.message}</div>
-    </div>`;
+function initSnowflakes(count) {
+  snowflakes = [];
+  for (let i = 0; i < count; i++) {
+    snowflakes.push({
+      x: Math.random() * 100, y: Math.random() * 100,
+      size: 0.5 + Math.random() * 1.5, speed: 0.1 + Math.random() * 0.3,
+      human: Math.random() < 0.115
+    });
   }
+}
+
+function renderGlobe(now) {
+  const el = document.getElementById('render-target');
+  const w = el.clientWidth || 500, h = el.clientHeight || 400;
+  const cx = w/2, cy = h/2, r = Math.min(w,h) * 0.38 * globeZoom;
+  const self = now?.classification?.self || 15372;
+  const fleet = now?.classification?.non_self || 220876;
+  const total = now?.entities?.total || 249576;
+
+  if (snowflakes.length === 0) initSnowflakes(Math.min(200, Math.floor(total/1000)));
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">`;
+  svg += `<defs>
+    <radialGradient id="globe-g"><stop offset="0%" stop-color="rgba(255,255,255,0.06)"/>
+    <stop offset="70%" stop-color="rgba(88,166,255,0.03)"/><stop offset="100%" stop-color="rgba(0,0,0,0.3)"/></radialGradient>
+    <clipPath id="globe-clip"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>
+  </defs>`;
+
+  // globe shell
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#globe-g)" stroke="rgba(88,166,255,0.2)" stroke-width="1.5"/>`;
+
+  // biome sectors inside globe
+  const g = `<g clip-path="url(#globe-clip)">`;
+  svg += g;
+  for (const b of BIOMES) {
+    const a = ((b.angle + globeAngle) % 360) * Math.PI / 180;
+    const bx = cx + r * 0.55 * Math.cos(a);
+    const by = cy + r * 0.55 * Math.sin(a);
+    const br = r * 0.28;
+    svg += `<circle cx="${bx}" cy="${by}" r="${br}" fill="${b.color}" opacity="0.12" class="biome-zone" data-biome="${b.id}"/>`;
+    svg += `<text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="middle" fill="${b.color}" font-size="8" opacity="0.7" font-family="monospace">${b.label}</text>`;
+  }
+
+  // snowflakes (entities as particles)
+  for (const s of snowflakes) {
+    s.y += s.speed;
+    if (s.y > 100) { s.y = 0; s.x = Math.random() * 100; }
+    const sx = cx + (s.x - 50) * r * 0.018;
+    const sy = cy + (s.y - 50) * r * 0.018;
+    const dist = Math.sqrt((sx-cx)**2 + (sy-cy)**2);
+    if (dist < r) {
+      const col = s.human ? '#d29922' : 'rgba(200,210,220,0.3)';
+      svg += `<circle cx="${sx}" cy="${sy}" r="${s.size}" fill="${col}"/>`;
+    }
+  }
+
+  // primal dots on sphere surface
+  const primals = ['toadStool','biomeOS','nestGate','bearDog','petalTongue','rhizoCrypt',
+    'sweetGrass','loamSpine','skunkBat','sourDough','swarmVine','bingoCube',
+    'coralReef','barraCuda','squirrel','songBird'];
+  const t = Date.now() / 5000;
+  for (let i = 0; i < primals.length; i++) {
+    const pa = (i / primals.length) * Math.PI * 2 + t;
+    const pr = r * (0.6 + 0.15 * Math.sin(t * 0.7 + i));
+    const px = cx + pr * Math.cos(pa);
+    const py = cy + pr * Math.sin(pa);
+    svg += `<circle cx="${px}" cy="${py}" r="3" fill="var(--cyan)" opacity="0.8" class="primal-dot" data-primal="${primals[i]}"/>`;
+    svg += `<text x="${px}" y="${py+8}" text-anchor="middle" fill="var(--dim)" font-size="5" font-family="monospace">${primals[i]}</text>`;
+  }
+
+  svg += '</g>';
+
+  // center label
+  svg += `<text x="${cx}" y="${cy-r-8}" text-anchor="middle" fill="var(--cyan)" font-size="10" font-family="monospace" letter-spacing="3">SNOW GLOBE</text>`;
+  svg += `<text x="${cx}" y="${h-12}" text-anchor="middle" fill="var(--dim)" font-size="7" font-family="monospace">scroll=zoom · click biome=enter · ESC=globe · ${total.toLocaleString()} entities as snow</text>`;
+
+  // highlight on globe glass
+  svg += `<circle cx="${cx - r*0.3}" cy="${cy - r*0.3}" r="${r*0.15}" fill="rgba(255,255,255,0.06)"/>`;
+
+  svg += '</svg>';
+  el.innerHTML = svg;
+
+  // click handlers for biomes
+  el.querySelectorAll('.biome-zone').forEach(z => {
+    z.style.cursor = 'pointer';
+    z.addEventListener('click', () => {
+      const biome = BIOMES.find(b => b.id === z.dataset.biome);
+      if (biome) {
+        showToast(`entering ${biome.label}...`);
+        const firstPage = biome.pages.split(',')[0];
+        setTimeout(() => window.location.href = firstPage, 600);
+      }
+    });
+  });
+}
+
+async function renderViewport() {
+  const now = await fetchJSON('/now.json');
+  renderGlobe(now);
+  // animate globe rotation + snowfall
+  function animate() {
+    globeAngle += 0.15;
+    renderGlobe(now);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+
+  // scroll to zoom
+  document.getElementById('viewport').addEventListener('wheel', (e) => {
+    e.preventDefault();
+    globeZoom = Math.max(0.5, Math.min(2.5, globeZoom - e.deltaY * 0.001));
+  }, {passive:false});
 }
 
 // --- HEADER + FOOTER ---
