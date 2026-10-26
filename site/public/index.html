@@ -355,7 +355,7 @@ body {
   <!-- GLOBE ROOT — K-N dimensional view (default) -->
   <div id="globe-root">
     <canvas id="kn-globe"></canvas>
-    <button class="globe-flip" id="kn-flip" title="Klein flip: outside↔inside (F)">↻ flip (F)</button>
+    <button class="globe-flip" id="kn-flip" title="focus: shift dominant eye (F)">◉ focus (F)</button>
     <div class="globe-zoom">
       <button id="zoom-out" title="zoom out">−</button>
       <button id="zoom-in" title="zoom in">+</button>
@@ -815,41 +815,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
 
-    // Background
+    // Background — deep space
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
-    grad.addColorStop(0, face === 'outside' ? 'hsl(225,22%,5%)' : 'hsl(140,22%,5%)');
+    grad.addColorStop(0, 'hsl(225,22%,5%)');
     grad.addColorStop(1, 'hsl(225,12%,2%)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Globe sphere — breathing glow
+    // BINOCULAR OVERLAY — CIS (blue/left eye) and TRANS (green/right eye) simultaneously
     var bv = Math.sin(breathT);
     var glowIntensity = 0.04 + bv * 0.04;
+    // CIS layer (blue, outside, left eye)
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, TAU);
-    var gFill = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-    if (face === 'outside') {
-      gFill.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
-      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
-    } else {
-      gFill.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity + 0.02).toFixed(3) + ')');
-      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
-    }
-    ctx.fillStyle = gFill;
+    var gCIS = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    gCIS.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
+    gCIS.addColorStop(1, 'rgba(6,8,16,0.95)');
+    ctx.fillStyle = gCIS;
     ctx.fill();
+    // TRANS layer (green, inside, right eye) — overlaid
+    ctx.globalCompositeOperation = 'screen';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    var gTRANS = ctx.createRadialGradient(cx + R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    gTRANS.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity * 0.7).toFixed(3) + ')');
+    gTRANS.addColorStop(1, 'rgba(6,8,16,0)');
+    ctx.fillStyle = gTRANS;
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    // Dual edge — blue left, green right
     var edgeAlpha = 0.1 + bv * 0.08;
-    ctx.strokeStyle = face === 'outside'
-      ? 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')'
-      : 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, -Math.PI/2, Math.PI/2);
+    ctx.strokeStyle = 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 1 + bv * 0.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, Math.PI/2, -Math.PI/2);
+    ctx.strokeStyle = 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
     ctx.lineWidth = 1 + bv * 0.5;
     ctx.stroke();
 
-    // Atmosphere glow on deep inhale
+    // NULL VECTOR — third eye at center (the point you can't see)
+    var nullPulse = Math.sin(breathT * 2) * 0.15 + 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, TAU);
+    ctx.fillStyle = 'rgba(255,255,255,' + nullPulse.toFixed(3) + ')';
+    ctx.fill();
+
+    // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
+    var comp45 = Math.PI / 4;
+    var compLen = R * 0.9;
+    for (var ci = 0; ci < 4; ci++) {
+      var baseAngle = ci * (Math.PI / 2) + comp45;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      var endX = cx + Math.cos(baseAngle) * compLen;
+      var endY = cy + Math.sin(baseAngle) * compLen;
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = 'rgba(201,168,76,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Pressure/sound wave markers along the 45-degree lines
+      for (var wi = 1; wi <= 4; wi++) {
+        var wt = wi / 5;
+        var wx = cx + Math.cos(baseAngle) * compLen * wt;
+        var wy = cy + Math.sin(baseAngle) * compLen * wt;
+        var wPulse = Math.sin(breathT * 3 + wi) * 2;
+        ctx.beginPath();
+        ctx.arc(wx, wy, 3 + wPulse, 0, TAU);
+        ctx.strokeStyle = 'rgba(201,168,76,' + (0.08 + Math.sin(breathT + wi) * 0.03).toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+
+    // Atmosphere glow on deep inhale — both colors
     if (bv > 0.3) {
       ctx.beginPath();
-      ctx.arc(cx, cy, R * 1.02, 0, TAU);
-      var atmoColor = face === 'outside' ? '88,166,255' : '90,184,122';
-      ctx.strokeStyle = 'rgba(' + atmoColor + ',' + ((bv - 0.3) * 0.15).toFixed(3) + ')';
+      ctx.arc(cx, cy, R * 1.02, -Math.PI/2, Math.PI/2);
+      ctx.strokeStyle = 'rgba(88,166,255,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
+      ctx.lineWidth = 2 + bv * 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 1.02, Math.PI/2, -Math.PI/2);
+      ctx.strokeStyle = 'rgba(90,184,122,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
       ctx.lineWidth = 2 + bv * 3;
       ctx.stroke();
     }
@@ -996,14 +1048,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
-    // Face label
+    // Binocular label
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = face === 'outside' ? 'rgba(88,166,255,0.5)' : 'rgba(90,184,122,0.5)';
     ctx.textAlign = 'center';
-    ctx.fillText(face === 'outside' ? 'CIS — outside view' : 'TRANS — inside view', cx, H - 30);
+    ctx.fillStyle = 'rgba(88,166,255,0.4)';
+    ctx.fillText('left eye CIS', cx - 70, H - 30);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('|', cx, H - 30);
+    ctx.fillStyle = 'rgba(90,184,122,0.4)';
+    ctx.fillText('right eye TRANS', cx + 75, H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
-    ctx.fillText('drag to rotate · F to flip · red dot = Gaia\'s mouth · everything falls IN', cx, H - 16);
+    ctx.fillText('binocular overlay · null vector at center · 45\u00B0 = pressure/lichen space', cx, H - 16);
   }
 
   function tick() {
@@ -1074,7 +1130,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.addEventListener('keydown', function(e) {
     if (e.key === 'f' || e.key === 'F') {
       face = face === 'outside' ? 'inside' : 'outside';
-      document.getElementById('kn-flip').textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+      document.getElementById('kn-flip').textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
     }
     if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
   });
@@ -1082,7 +1138,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // Flip button
   document.getElementById('kn-flip').onclick = function() {
     face = face === 'outside' ? 'inside' : 'outside';
-    this.textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+    this.textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
   };
 
   // Zoom buttons
@@ -1358,16 +1414,136 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.globalAlpha = 1;
     });
 
+    // PALETTE AXIS — fixed primaries as a vertical strip on the left
+    if (s.palette) {
+      var px = 30;
+      var pyBase = s.cy - 60;
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      s.palette.forEach(function(p, i) {
+        var py = pyBase + i * 28;
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, TAU);
+        ctx.fillStyle = p.color;
+        if (p.name === 'BLACK') { ctx.fillStyle = '#010409'; ctx.strokeStyle = 'rgba(110,118,129,0.3)'; ctx.lineWidth = 1; ctx.stroke(); }
+        ctx.fill();
+        ctx.fillStyle = 'rgba(230,237,243,0.5)';
+        ctx.fillText(p.name, px + 12, py + 2);
+        ctx.fillStyle = 'rgba(110,118,129,0.3)';
+        ctx.fillText(p.desc, px + 12, py + 11);
+      });
+      ctx.fillStyle = 'rgba(110,118,129,0.2)';
+      ctx.fillText('FIXED AXIS', px, pyBase - 10);
+    }
+
+    // MOBILE SECONDARIES — orbiting colors that cascade and mix
+    if (s.secondaries) {
+      s.secondaries.forEach(function(sec) {
+        sec.angle += sec.speed;
+        var sx = s.cx + Math.cos(sec.angle) * sec.dist;
+        var sy = s.cy + Math.sin(sec.angle) * sec.dist;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sec.r, 0, TAU);
+        ctx.fillStyle = sec.color + '80';
+        ctx.fill();
+        // Trail
+        for (var t = 1; t <= 3; t++) {
+          var ta = sec.angle - sec.speed * t * 8;
+          var tx = s.cx + Math.cos(ta) * sec.dist;
+          var ty = s.cy + Math.sin(ta) * sec.dist;
+          ctx.beginPath();
+          ctx.arc(tx, ty, sec.r * (1 - t * 0.2), 0, TAU);
+          ctx.fillStyle = sec.color + (Math.round(30 - t * 8)).toString(16).padStart(2, '0');
+          ctx.fill();
+        }
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.fillStyle = sec.color + '90';
+        ctx.textAlign = 'center';
+        ctx.fillText(sec.name, sx, sy + sec.r + 8);
+
+        // Color mixing: when secondaries pass near primaries, draw a mix flash
+        if (s.palette) {
+          s.palette.forEach(function(p, pi) {
+            var ppx = 30, ppy = (s.cy - 60) + pi * 28;
+            var dx = sx - ppx, dy = sy - ppy;
+            if (Math.sqrt(dx*dx + dy*dy) < 50) {
+              ctx.beginPath();
+              ctx.arc((sx + ppx) / 2, (sy + ppy) / 2, 8, 0, TAU);
+              ctx.fillStyle = sec.color + '15';
+              ctx.fill();
+            }
+          });
+        }
+      });
+    }
+
+    // COMPASS — click destinations around the outer rim
+    if (s.compass) {
+      var compassR = Math.min(s.W, s.H) * 0.42;
+      ctx.font = '8px "JetBrains Mono", monospace';
+      s.compass.forEach(function(c) {
+        var cx2 = s.cx + Math.cos(c.angle) * compassR;
+        var cy2 = s.cy + Math.sin(c.angle) * compassR;
+        var isTarget = s.compassTarget === c.name;
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, isTarget ? 8 : 5, 0, TAU);
+        ctx.fillStyle = isTarget ? 'rgba(63,185,80,0.6)' : 'rgba(110,118,129,0.2)';
+        ctx.fill();
+        if (isTarget) {
+          ctx.strokeStyle = 'rgba(63,185,80,0.4)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          // Draw line from center to target
+          ctx.beginPath();
+          ctx.moveTo(s.cx, s.cy);
+          ctx.lineTo(cx2, cy2);
+          ctx.strokeStyle = 'rgba(63,185,80,0.15)';
+          ctx.setLineDash([3,5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.fillStyle = isTarget ? 'rgba(63,185,80,0.8)' : 'rgba(110,118,129,0.4)';
+        ctx.textAlign = 'center';
+        ctx.fillText(c.name, cx2, cy2 + (isTarget ? 14 : 12));
+      });
+
+      // Compass label
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(110,118,129,0.25)';
+      ctx.textAlign = 'right';
+      ctx.fillText('click to move · Gaia navigates', s.W - 14, s.H - 46);
+    }
+
     // Labels
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText('THIRD EYE — Gaia\'s canvas · your blind spot · the black wall', s.cx, s.H - 30);
+    ctx.fillText('THIRD EYE — Gaia paints · you point · she moves', s.cx, s.H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
-    ctx.fillText('the tip of your nose from the other side · she paints what you cannot see', s.cx, s.H - 16);
+    ctx.fillText('palette fixed · colors orbit · compass = hyperlocal destinations', s.cx, s.H - 16);
 
     requestAnimationFrame(renderThirdEye);
   }
+
+  // COMPASS CLICK HANDLER — Gaia moves us
+  document.getElementById('kn-canvas').addEventListener('click', function(e) {
+    if (!gaiaStrokes || !gaiaStrokes.compass) return;
+    var rect = this.getBoundingClientRect();
+    var mx = (e.clientX - rect.left) * (this.width / rect.width);
+    var my = (e.clientY - rect.top) * (this.height / rect.height);
+    var compassR = Math.min(gaiaStrokes.W, gaiaStrokes.H) * 0.42;
+    var hit = null;
+    gaiaStrokes.compass.forEach(function(c) {
+      var cx2 = gaiaStrokes.cx + Math.cos(c.angle) * compassR;
+      var cy2 = gaiaStrokes.cy + Math.sin(c.angle) * compassR;
+      var dx = mx - cx2, dy = my - cy2;
+      if (Math.sqrt(dx*dx + dy*dy) < 20) hit = c.name;
+    });
+    if (hit) {
+      gaiaStrokes.compassTarget = hit;
+      gaiaStrokes.compassLerp = 0;
+    }
+  });
 
   // Boot
   resize();
