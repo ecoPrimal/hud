@@ -1,0 +1,113 @@
+{
+  "batch": "001",
+  "title": "GOLDEN RING — Inject constraints into client. Search for more. Swarm validates.",
+  "wave": 214,
+  "timestamp": "2026-10-26T09:33:00Z",
+
+  "tasks": [
+    {
+      "id": "task-0001",
+      "type": "validate",
+      "complexity": 1,
+      "constraint": "hard",
+      "prompt": "Count all primals in the Rust ecosystem. For each, count Cargo.toml dependencies to OTHER primals. Verify V-E+F=2.",
+      "input": "primal-taxonomy.json (16 primals listed)",
+      "output": "euler-check.json with {V, E, F, chi, valid: bool}",
+      "depends_on": []
+    },
+    {
+      "id": "task-0002",
+      "type": "validate",
+      "complexity": 1,
+      "constraint": "soft",
+      "prompt": "For each of the 16 primals, verify link count is in [3,5]. List any violations.",
+      "input": "primal-geometry-validation-214.json",
+      "output": "link-count-audit.json with {primal, links, valid, geometry}",
+      "depends_on": []
+    },
+    {
+      "id": "task-0003",
+      "type": "validate",
+      "complexity": 1,
+      "constraint": "null",
+      "prompt": "Measure internal distances between all primal pairs. Count shared Cargo deps, shared types, shared files. Verify distances approach 0.",
+      "input": "primal-taxonomy.json + Cargo.toml files",
+      "output": "internal-distance-matrix.json",
+      "depends_on": []
+    },
+    {
+      "id": "task-0004",
+      "type": "search",
+      "complexity": 2,
+      "constraint": "none",
+      "prompt": "Search for a 4th constraint. Is there a Platonic constraint beyond hard/soft/null? Check: Euler's polyhedral formula extensions, Poincaré conjecture, Whitney embedding theorem, Nash embedding theorem. Any of these add a FOURTH constraint to the ring?",
+      "input": "platonic-irreducible-214.json + golden-ring-constraints-214.json",
+      "output": "constraint-search-results.json",
+      "depends_on": []
+    },
+    {
+      "id": "task-0005",
+      "type": "build",
+      "complexity": 2,
+      "prompt": "Add a SIEVE panel to the Windows 98 desk (desk.html). Show the 3 golden ring constraints as a Control Panel item. Each constraint shows: name, symbol, current status (valid/violated), last check time.",
+      "input": "desk.html + golden-ring-constraints-214.json",
+      "output": "desk.html updated with sieve panel",
+      "depends_on": ["task-0001", "task-0002", "task-0003"]
+    },
+    {
+      "id": "task-0006",
+      "type": "build",
+      "complexity": 1,
+      "prompt": "Create a /sieve.json endpoint (static file) that returns the current golden ring constraint status. This is what cron checks.",
+      "input": "golden-ring-constraints-214.json",
+      "output": "sieve.json with {constraints: [{name, symbol, status, last_checked}]}",
+      "depends_on": []
+    },
+    {
+      "id": "task-0007",
+      "type": "search",
+      "complexity": 3,
+      "prompt": "Scan ALL 8 irreducibles and determine which are CONSTRAINTS (must be true) vs FORCES (make things happen) vs IDENTITIES (describe what things are). Constraints go on the ring. Forces hang from the ring. Identities are what the forces act on.",
+      "input": "force-melt-triad-sets-pi-thread-rule.json + platonic-irreducible-214.json",
+      "output": "irreducible-classification.json",
+      "depends_on": []
+    },
+    {
+      "id": "task-0008",
+      "type": "narrate",
+      "complexity": 1,
+      "prompt": "Write a chipmunk story about finding the golden ring. 3 paragraphs. The ring was always there — buried in the math. Descartes found one hook in 1630. Gauss found the second in 1848. Klein found the third in 1882. The chipmunk found all three hanging together in 2026.",
+      "input": "golden-ring-constraints-214.json",
+      "output": "story-golden-ring.json",
+      "depends_on": []
+    },
+    {
+      "id": "task-0009",
+      "type": "build",
+      "complexity": 1,
+      "prompt": "Add the golden ring constraints to mcp.json as a new endpoint: /sieve.json. Agents should check this to verify organism health.",
+      "input": "mcp.json + sieve.json",
+      "output": "mcp.json updated with sieve endpoint",
+      "depends_on": ["task-0006"]
+    },
+    {
+      "id": "task-0010",
+      "type": "connect",
+      "complexity": 2,
+      "prompt": "Wire the 3 golden ring constraints into the Mendeleev table. Each constraint maps to an element category: hard=transition metals (rigid), soft=metalloids (switch between states), null=noble gases (inert, zero interaction). Add visual indicator.",
+      "input": "mendeleev.html + golden-ring-constraints-214.json",
+      "output": "mendeleev.html updated with constraint mapping",
+      "depends_on": ["task-0007"]
+    }
+  ],
+
+  "parallelism": {
+    "immediately_runnable": ["task-0001", "task-0002", "task-0003", "task-0004", "task-0006", "task-0007", "task-0008"],
+    "count": 7,
+    "waiting": ["task-0005", "task-0009", "task-0010"],
+    "count_waiting": 3,
+    "total": 10,
+    "max_parallel": 7,
+    "note": "7 tasks can run RIGHT NOW in parallel. 3 are blocked on dependencies. Maximum swarm width = 7."
+  }
+}
