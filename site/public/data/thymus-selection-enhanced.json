@@ -1,85 +1,85 @@
-{
+{"gaia_digested": "2026-10-26T07:25:00Z", "gaia_wave": 214, 
   "ts": "2026-10-25T19:57:19Z",
   "wave": 201,
   "type": "thymus-selection-table",
-  "title": "Wildcard Selection with /Suffix Output — the Enhanced Thymus",
+  "title": "Wildcard Selection with /Suffix Output � the Enhanced Thymus",
   "three_selections": {
     "biology": {
-      "negative": "T cells that ATTACK self-antigens → killed (autoimmune prevention)",
-      "positive": "T cells that CAN bind MHC (self molecules) → survive (functional)",
-      "null": "T cells that BIND NOTHING → killed (useless, anergic)"
+      "negative": "T cells that ATTACK self-antigens ? killed (autoimmune prevention)",
+      "positive": "T cells that CAN bind MHC (self molecules) ? survive (functional)",
+      "null": "T cells that BIND NOTHING ? killed (useless, anergic)"
     },
     "ours": {
-      "negative": "requests matching *GPTBot*, *AhrefsBot*, *masscan*, */wp-admin* → /scatter, /403, /blackhole",
-      "positive": "requests matching *Mozilla*, *Googlebot*, *curl* → /, /sitemap, /self",
-      "null": "requests matching NOTHING in the table → /204 (apoptosis, no content)"
+      "negative": "requests matching *GPTBot*, *AhrefsBot*, *masscan*, */wp-admin* ? /scatter, /403, /blackhole",
+      "positive": "requests matching *Mozilla*, *Googlebot*, *curl* ? /, /sitemap, /self",
+      "null": "requests matching NOTHING in the table ? /204 (apoptosis, no content)"
     }
   },
   "pattern_syntax": {
     "format": "(UA_glob, URI_glob, verdict, /suffix)",
-    "matching": "fnmatch glob — * matches anything, ? matches one char",
+    "matching": "fnmatch glob � * matches anything, ? matches one char",
     "order": "first match wins. negative rules first, then positive, then null catch-all",
-    "output": "/suffix IS the immune response. not a label — a ROUTE."
+    "output": "/suffix IS the immune response. not a label � a ROUTE."
   },
   "route_table": {
     "/": {
       "status": 200,
-      "meaning": "human visitor → full site",
+      "meaning": "human visitor ? full site",
       "selection": "positive"
     },
     "/mobile": {
       "status": 200,
-      "meaning": "human mobile → mobile-optimized",
+      "meaning": "human mobile ? mobile-optimized",
       "selection": "positive"
     },
     "/self": {
       "status": 200,
-      "meaning": "internal tool → dashboard",
+      "meaning": "internal tool ? dashboard",
       "selection": "positive"
     },
     "/sitemap": {
       "status": 200,
-      "meaning": "search engine → structured XML",
+      "meaning": "search engine ? structured XML",
       "selection": "positive"
     },
     "/webfinger": {
       "status": 200,
-      "meaning": "fediverse peer → JRD discovery",
+      "meaning": "fediverse peer ? JRD discovery",
       "selection": "positive"
     },
     "/feed": {
       "status": 200,
-      "meaning": "RSS subscriber → Atom feed",
+      "meaning": "RSS subscriber ? Atom feed",
       "selection": "positive"
     },
     "/classify": {
       "status": 200,
-      "meaning": "unknown → serve normally, study behavior",
+      "meaning": "unknown ? serve normally, study behavior",
       "selection": "positive"
     },
     "/scatter": {
       "status": 403,
-      "meaning": "AI scraper → fake data (skunkBat scatter)",
+      "meaning": "AI scraper ? fake data (skunkBat scatter)",
       "selection": "negative"
     },
     "/403": {
       "status": 403,
-      "meaning": "SEO parasite → blocked",
+      "meaning": "SEO parasite ? blocked",
       "selection": "negative"
     },
     "/blackhole": {
       "status": 444,
-      "meaning": "attacker → drop connection (no response)",
+      "meaning": "attacker ? drop connection (no response)",
       "selection": "negative"
     },
     "/204": {
       "status": 204,
-      "meaning": "null → apoptosis (no content, cell dies)",
+      "meaning": "null ? apoptosis (no content, cell dies)",
       "selection": "null"
     }
   },
   "self_tolerance_library": {
-    "what": "everything the thymus knows is SELF. T cells that attack these → apoptosis.",
+    "what": "everything the thymus knows is SELF. T cells that attack these ? apoptosis.",
     "categories": {
       "domains": 5,
       "gates": 5,
@@ -97,9 +97,9 @@
     }
   },
   "null_selection": {
-    "what": "cells that match NO rule in the table → apoptosis",
+    "what": "cells that match NO rule in the table ? apoptosis",
     "biology": "in real thymus, T cells that can't bind any MHC molecule are useless and die via neglect",
-    "ours": "requests with empty/unknown UA that don't match any glob → 204 No Content",
+    "ours": "requests with empty/unknown UA that don't match any glob ? 204 No Content",
     "note": "null is not the same as non_self. non_self actively attacks. null is just... nothing. it can't participate. it dies by neglect, not execution."
   },
   "wildcard_examples": [
@@ -108,42 +108,42 @@
       "uri": "*",
       "verdict": "non_self",
       "route": "/scatter",
-      "note": "OpenAI scraper → fake data"
+      "note": "OpenAI scraper ? fake data"
     },
     {
       "pattern": "*Mozilla/5.0*Chrome*",
       "uri": "*",
       "verdict": "human",
       "route": "/",
-      "note": "Chrome browser → full site"
+      "note": "Chrome browser ? full site"
     },
     {
       "pattern": "*",
       "uri": "*wp-admin*",
       "verdict": "non_self",
       "route": "/blackhole",
-      "note": "WordPress probe → drop"
+      "note": "WordPress probe ? drop"
     },
     {
       "pattern": "*Googlebot*",
       "uri": "*",
       "verdict": "organic",
       "route": "/sitemap",
-      "note": "Google → structured data"
+      "note": "Google ? structured data"
     },
     {
       "pattern": "*Mastodon*",
       "uri": "*",
       "verdict": "organic",
       "route": "/webfinger",
-      "note": "fedi peer → discovery"
+      "note": "fedi peer ? discovery"
     },
     {
       "pattern": "",
       "uri": "*",
       "verdict": "null",
       "route": "/204",
-      "note": "empty UA → apoptosis"
+      "note": "empty UA ? apoptosis"
     }
   ],
   "first_run_results": {
@@ -188,16 +188,16 @@
       "note": "never fully forgets"
     },
     "decay": "0.5%/cycle (~10%/day at */7 cron)",
-    "pruning": "below 5% confidence → pruned (except memory_B)"
+    "pruning": "below 5% confidence ? pruned (except memory_B)"
   },
   "selection_table_size": 59,
   "connections": [
-    "identity-melt.json (self-antigen library → self-tolerance)",
+    "identity-melt.json (self-antigen library ? self-tolerance)",
     "immune-activate.json (activation manifest)",
     "immune-state-live.json (live telemetry)",
     "thymus-gate.json (original pipeline definition)",
     "immune-triad.json (swarmVine + skunkBat + thymus)",
-    "chromatic-vdj.json (VDJ recombination → antibody diversity)",
+    "chromatic-vdj.json (VDJ recombination ? antibody diversity)",
     "antibodies.rs (skunkBat Rust code for actual defense)"
   ],
   "hash": "9b1294d100eac22a5ac3270ba2d56d53"

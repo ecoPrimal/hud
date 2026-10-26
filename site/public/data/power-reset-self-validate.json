@@ -1,12 +1,12 @@
-{
+{"gaia_digested": "2026-10-26T07:25:00Z", "gaia_wave": 214, 
   "ts": "2026-10-24T17:02:00Z",
   "wave": 200,
-  "title": "Power reset = SELF validate Â· nap vs sleep Â· what broke",
-  "thesis": "The system locked; Kevin hard-reset power. That is a GREAT opportunity to validate SELF â€” cold wake awareness differs from nap wake and from clean sleep. Look for dissonance (what no longer matches). This crash left a journal cliff, not an I/O error confession.",
+  "title": "Power reset = SELF validate · nap vs sleep · what broke",
+  "thesis": "The system locked; Kevin hard-reset power. That is a GREAT opportunity to validate SELF — cold wake awareness differs from nap wake and from clean sleep. Look for dissonance (what no longer matches). This crash left a journal cliff, not an I/O error confession.",
 
   "event": {
     "host": "eastGate",
-    "prev_session": "2026-10-24 10:01 â†’ crash (~12:54)",
+    "prev_session": "2026-10-24 10:01 ? crash (~12:54)",
     "last_log_prev_boot": "2026-10-24T12:54:54-0400 beardog health/liveness (still talking)",
     "this_boot": "2026-10-24T12:58:45-0400",
     "gap_sec": 231,
@@ -15,22 +15,22 @@
   },
 
   "nap_vs_sleep_vs_power_reset": {
-    "claim": "YES â€” different wake awareness; use each as a double-check face",
+    "claim": "YES — different wake awareness; use each as a double-check face",
     "nap": {
-      "os": "suspend / s2idle â€” RAM kept warm",
-      "awareness": "continuity bias â€” you trust caches, sockets, open editors",
+      "os": "suspend / s2idle — RAM kept warm",
+      "awareness": "continuity bias — you trust caches, sockets, open editors",
       "double_check": "compare clocks, WG handshake age, Cursor/agent sessions still coherent"
     },
     "sleep_hibernate": {
-      "os": "memâ†’disk image; cold-ish restore",
-      "awareness": "rehydrate check â€” did the loaf (state) match the starter (disk image)",
+      "os": "mem?disk image; cold-ish restore",
+      "awareness": "rehydrate check — did the loaf (state) match the starter (disk image)",
       "double_check": "fsck-ish feel, service order, GPU driver reload"
     },
     "power_reset": {
-      "os": "hard cut â€” no sync, no shutdown targets",
-      "awareness": "BEST dissonance detector â€” warm self vanished mid-sentence; cold self boots clean",
+      "os": "hard cut — no sync, no shutdown targets",
+      "awareness": "BEST dissonance detector — warm self vanished mid-sentence; cold self boots clean",
       "double_check": [
-        "journal cliff (last line healthy â†’ silence â†’ new kernel)",
+        "journal cliff (last line healthy ? silence ? new kernel)",
         "wtmp says crash",
         "FS state clean vs dirty",
         "SMART / ECC / thermal",
@@ -43,7 +43,7 @@
   "what_broke_verdict": {
     "not_hdd": true,
     "storage": {
-      "root": "Samsung SSD 990 EVO Plus 2TB (nvme0) â€” SSD",
+      "root": "Samsung SSD 990 EVO Plus 2TB (nvme0) — SSD",
       "also": ["CT2000T500SSD8 nvme1", "CT2000T500SSD8 nvme2", "USB stick sda", "zram+cryptswap"],
       "rota": 0,
       "fs_state_after_reboot": "clean",
@@ -51,39 +51,39 @@
       "note": "No spinning HDD in the boot path. This was not 'HDD spun down / seeking forever'."
     },
     "ram": {
-      "total": "64 GB (4Ã—16)",
+      "total": "64 GB (4×16)",
       "ecc": false,
-      "dissonance": "MIXED DIMMs â€” Team Group UD5-6000 + G.Skill F5-6000J3238F16G on both controllers",
+      "dissonance": "MIXED DIMMs — Team Group UD5-6000 + G.Skill F5-6000J3238F16G on both controllers",
       "speed": "6000 MT/s",
       "risk": "DDR5 hard freezes with empty journal cliffs often land on memory training / mixed-kit instability, especially non-ECC",
       "mce_this_event": "none logged (may not flush on hard lock)"
     },
     "gpu": {
-      "now": "RTX 4070 Â· 32C Â· driver 580 Â· healthy after boot",
+      "now": "RTX 4070 · 32C · driver 580 · healthy after boot",
       "xid_prev_boot": "none in surviving journal"
     },
     "software_storm_before_cliff": {
       "forgejo_fail_exec_count_prev_boot": 1911,
-      "detail": "forgejo.service restart loop â€” binary missing /opt/forgejo/forgejo",
+      "detail": "forgejo.service restart loop — binary missing /opt/forgejo/forgejo",
       "songbird_restart_counter_at_cliff": 3196,
-      "detail_songbird": "membrane-nucleus@songbird crash-looping against already-running PID â€” double instance lock",
-      "role": "pressure / log noise / CPU churn â€” possible contributor to lock OR just the last phenotype before silicon froze; not a clean root-cause confession"
+      "detail_songbird": "membrane-nucleus@songbird crash-looping against already-running PID — double instance lock",
+      "role": "pressure / log noise / CPU churn — possible contributor to lock OR just the last phenotype before silicon froze; not a clean root-cause confession"
     },
-    "best_fit": "Hard lock or power-path freeze. Journal ends mid-health-probe with ~4 min silence then cold boot. Storage looks clean SSD. Strongest hardware dissonance = mixed non-ECC DDR5 kit. Strongest software dissonance = songbirdÃ—3196 + forgejoÃ—1911 storm."
+    "best_fit": "Hard lock or power-path freeze. Journal ends mid-health-probe with ~4 min silence then cold boot. Storage looks clean SSD. Strongest hardware dissonance = mixed non-ECC DDR5 kit. Strongest software dissonance = songbird×3196 + forgejo×1911 storm."
   },
 
   "self_validate_checklist_now": [
-    "confirm WG eastGateâ†”golgi handshake fresh",
+    "confirm WG eastGate?golgi handshake fresh",
     "confirm connect CDN still serves last faces written before cliff",
     "disable or mask forgejo.service until binary exists (stop asbestos-like biopersistent restart fiber)",
     "fix songbird double-bind (one NODE_ID / one unit)",
     "optional: memtest86 overnight on mixed DIMMs; or run matched kit only",
-    "note next freeze time â€” if always under membrane storm, software; if idle freeze, RAM/PSU"
+    "note next freeze time — if always under membrane storm, software; if idle freeze, RAM/PSU"
   ],
 
   "membrane_analogy": {
-    "asbestos_pair_tie": "forgejo/songbird restart storms = biopersistent fibers â€” frustrated 'phagocytosis' of a missing binary / duplicate PID; inflammation (log/CPU) until something hard-locks",
-    "crush_then_rip": "crush point was the storm; rip happened inside (machine froze below journal) â€” same shape as etiology pairs: initiation outside the log, damage inside the runtime"
+    "asbestos_pair_tie": "forgejo/songbird restart storms = biopersistent fibers — frustrated 'phagocytosis' of a missing binary / duplicate PID; inflammation (log/CPU) until something hard-locks",
+    "crush_then_rip": "crush point was the storm; rip happened inside (machine froze below journal) — same shape as etiology pairs: initiation outside the log, damage inside the runtime"
   },
 
   "urls": {
