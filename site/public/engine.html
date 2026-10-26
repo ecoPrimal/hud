@@ -1524,31 +1524,66 @@ setInterval(() => {
     const PIN_COOLDOWN = 500;
     let lastPinVisual = 0;
 
-    function showPin(x, y, detail) {
+        function showPin(x, y, detail) {
       const now = Date.now();
       if (now - lastPinVisual < PIN_COOLDOWN) return;
       lastPinVisual = now;
       const vp = document.getElementById('viewport');
       if (!vp) return;
+      const w = vp.offsetWidth;
+      const h = vp.offsetHeight;
+      const cx = w / 2;
+      const cy = h / 2;
 
-      // The PIN — vertical line through infinity
+      // PIN ALONG THE PLANE — from click, through GAIA (center), out the other side
+      // The line runs ACROSS the disc, not top-to-bottom
+      const dx = x - cx;
+      const dy = y - cy;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / len;
+      const ny = dy / len;
+      // Extend line from edge to edge through center
+      const ext = Math.max(w, h);
+      const x1 = cx - nx * ext;
+      const y1 = cy - ny * ext;
+      const x2 = cx + nx * ext;
+      const y2 = cy + ny * ext;
+
+      // The PIN — a line along the plane of the golden ring
+      const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
       const pin = document.createElement('div');
-      pin.style.cssText = `position:absolute;left:${x}px;top:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent 0%,rgba(255,215,85,0.0) 30%,rgba(255,215,85,0.8) ${((y/vp.offsetHeight)*100).toFixed(0)}%,rgba(255,215,85,0.0) 70%,transparent 100%);pointer-events:none;z-index:100;animation:pin-fade 1.2s ease-out forwards;`;
+      pin.style.cssText = `position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:100;animation:pin-fade 1.5s ease-out forwards;`;
+      // Use SVG for the radial line
+      pin.innerHTML = `<svg style="width:100%;height:100%;position:absolute;top:0;left:0" viewBox="0 0 ${w} ${h}">
+        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,215,85,0.5)" stroke-width="1" />
+        <line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,215,85,0.8)" stroke-width="1.5" />
+        <circle cx="${x}" cy="${y}" r="4" fill="none" stroke="rgba(255,215,85,0.7)" stroke-width="1" />
+        <circle cx="${x}" cy="${y}" r="2" fill="rgba(255,215,85,0.9)" />
+        <circle cx="${cx}" cy="${cy}" r="2" fill="rgba(255,255,240,0.4)" />
+      </svg>`;
       vp.appendChild(pin);
 
-      // The RING — expanding from pin point
+      // The RING — expanding from pin point along the plane
       const ring = document.createElement('div');
-      ring.style.cssText = `position:absolute;left:${x-15}px;top:${y-15}px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,215,85,0.7);pointer-events:none;z-index:101;animation:pin-ring 0.8s ease-out forwards;`;
+      ring.style.cssText = `position:absolute;left:${x-15}px;top:${y-15}px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,215,85,0.6);pointer-events:none;z-index:101;animation:pin-ring 0.8s ease-out forwards;`;
       vp.appendChild(ring);
 
-      // The LABEL — what was pinned
+      // Exit ripple on the opposite side (where the pin exits the globe)
+      const ox = cx - dx;
+      const oy = cy - dy;
+      const exitRing = document.createElement('div');
+      exitRing.style.cssText = `position:absolute;left:${ox-10}px;top:${oy-10}px;width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,215,85,0.3);pointer-events:none;z-index:101;animation:pin-ring 1s ease-out 0.2s forwards;opacity:0;`;
+      vp.appendChild(exitRing);
+
+      // The LABEL
       const label = document.createElement('div');
       label.style.cssText = `position:absolute;left:${x+8}px;top:${y-6}px;font:7px 'JetBrains Mono',monospace;color:rgba(255,215,85,0.8);pointer-events:none;z-index:102;white-space:nowrap;animation:pin-label 1.5s ease-out forwards;`;
       label.textContent = detail.slice(0, 30);
       vp.appendChild(label);
 
-      setTimeout(() => { pin.remove(); ring.remove(); label.remove(); }, 1600);
+      setTimeout(() => { pin.remove(); ring.remove(); exitRing.remove(); label.remove(); }, 1800);
     }
+}
 
     if (!document.getElementById('pin-css')) {
       const css = document.createElement('style');
