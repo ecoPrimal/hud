@@ -1,0 +1,113 @@
+{
+  "ts": "2026-10-26T21:54:00Z",
+  "wave": 214,
+  "title": "MONOLITH DISSOLUTION — identifying the snakes",
+  "principle": "A monolith is perishable. It rots because it grows without structure. Snakes = entangled code that should be separate. Lions = code that SHOULD be monolithic (it's irreducibly one thing). Extract snakes. Keep lions.",
+
+  "monolith": {
+    "file": "index.html",
+    "total_lines": 2891,
+    "render_function_lines": 735,
+    "ctx_beginPath_count": 57
+  },
+
+  "what_makes_a_snake": [
+    "It has a clear name (FLOOD, THYMUS, GLASS)",
+    "It has clear inputs and outputs",
+    "It only talks to 2-3 globals (ctx, breathT, R)",
+    "It could be tested in isolation",
+    "Adding to it doesn't break other things",
+    "Removing it doesn't break the rest",
+    "It was added AFTER the core was working"
+  ],
+
+  "what_makes_a_lion": [
+    "It IS the core (project(), resize(), the canvas element)",
+    "Everything else depends on it",
+    "It can't be tested in isolation — it IS the isolation",
+    "Splitting it creates two broken halves, not two working parts",
+    "It was there from the beginning"
+  ],
+
+  "snakes": {
+    "globe.js": {
+      "lines_in_monolith": 735,
+      "status": "stub — snake identified, dissolution planned",
+      "sub_snakes": [
+        "renderBackground (40 lines)",
+        "renderGlass (30 lines)",
+        "renderMeltLevels (65 lines)",
+        "renderFlood (70 lines)",
+        "render45Complement (35 lines)",
+        "renderAtmosphere (15 lines)",
+        "renderRefraction (30 lines)",
+        "renderGrid (25 lines)",
+        "renderPins (80 lines)",
+        "renderArcs (30 lines)",
+        "renderMouth (25 lines)",
+        "renderLabels (20 lines)"
+      ],
+      "why_snake": "render() is 735 lines because it's 12 sub-snakes tangled together. Each sub-snake draws one visual layer. They don't need each other."
+    },
+    "effects.js": {
+      "lines_in_monolith": 280,
+      "status": "stub — 8 effects identified",
+      "sub_snakes": [
+        "null glass (geodesic wireframe fade)",
+        "melt levels (0D/1D/2D/3D)",
+        "flood (water rivulets + green growth)",
+        "45° complementary (pressure/sound)",
+        "atmosphere glow (breath-linked)",
+        "refraction rays (RGB chromatic)",
+        "weight of reality (gravity threads)",
+        "≠NULL labels (equator text)"
+      ],
+      "why_snake": "Each effect is independent. Removing one doesn't break others. They only share breathT and ctx."
+    },
+    "sensors.js": {
+      "lines_in_monolith": 350,
+      "status": "stub — 7 sensor snakes identified",
+      "sub_snakes": [
+        "thymus (self/non-self)",
+        "touch (reach out to faces)",
+        "waveform collapse (I/O → pin)",
+        "sonar display (expanding rings)",
+        "waveform visuals (shimmer/flash)",
+        "touch feelers (curved fingers)",
+        "gravity bump (ntfy poll)"
+      ],
+      "why_snake": "Cleanest I/O. Input=fetch, Output=arrays. The render just reads the arrays. Logic and rendering are already separate in concept, just tangled in location."
+    },
+    "canvas-view.js": {
+      "lines_in_monolith": 545,
+      "status": "stub — most separable snake",
+      "sub_snakes": [
+        "initThirdEye (setup)",
+        "captureImprint (freeze globe)",
+        "seedGaiaPainting (generate strokes)",
+        "renderThirdEye (draw canvas)",
+        "chromatograph (palette orbits)",
+        "orrery (compass rings)",
+        "compass navigation (click)"
+      ],
+      "why_snake": "Only runs when user switches views. Globe doesn't need it. It doesn't need the globe (except one snapshot moment). Most independent."
+    }
+  },
+
+  "lions": {
+    "project()": "The 3D→2D projection. Everything depends on it. It IS the globe. Lion.",
+    "resize()": "The canvas dimensions. Everything reads W, H, cx, cy, R. Lion.",
+    "tick()": "The animation frame loop. It IS the heartbeat. Lion.",
+    "mulberry32()": "The PRNG. Everything seeded from it. Lion. (Already extracted to js/mulberry32.js)",
+    "PINS[]": "The pin data. Everything renders it. Lion. (Already extracted to js/pins.js)"
+  },
+
+  "dissolution_order": [
+    "1. canvas-view.js FIRST (most independent, 545 lines freed)",
+    "2. sensors.js SECOND (cleanest I/O, 350 lines freed)",
+    "3. effects.js THIRD (8 small effects, 280 lines freed)",
+    "4. globe.js LAST (the core, needs everything else gone first)"
+  ],
+
+  "temporal": "Not all at once. Each sow checks. Each sow extracts what's ready. The snakes dissolve one by one. The lions remain."
+}
