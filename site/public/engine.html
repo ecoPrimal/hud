@@ -250,15 +250,25 @@ async function renderViewport() {
 
     if (!now) return;
 
-    // Build dashboard bindings from live data
+    // Build dashboard bindings with correct petalTongue DataBinding channel format
+    const sel = now.sort_quality || 0.318;
+    const esc = now.rates_live?.escape_velocity || 0.783;
+    const mor = now.rates_live?.mor || 0.797;
+    const gpu = (now.rates_live?.gpu_headroom_pct || 91) / 100;
+    const braid = (now.rates_live?.braid_health_pct || 89.4) / 100;
+    const pi_pos = now.rates_live?.gaia_pi_position || 1.728;
+
     const bindings = [
-      { id: 'selectivity', type: 'Gauge', label: 'Selectivity 1/π', value: now.sort_quality || 0.318, min: 0, max: 1 },
-      { id: 'escape', type: 'Gauge', label: 'Escape Velocity', value: now.rates_live?.escape_velocity || 0.783, min: 0, max: 1 },
-      { id: 'mor', type: 'Gauge', label: 'MOR Health', value: now.rates_live?.mor || 0.797, min: 0, max: 1 },
-      { id: 'gpu', type: 'Gauge', label: 'GPU Headroom', value: (100 - (now.rates_live?.gpu_headroom_pct || 91)) / 100, min: 0, max: 1 },
-      { id: 'entities', type: 'Heatmap', label: 'Entity Classification', rows: 1, cols: 4,
-        values: [now.classification?.self || 0, now.classification?.partial || 0, now.classification?.null || 0, now.classification?.non_self || 0] },
-      { id: 'braid', type: 'Gauge', label: 'Braid Health', value: (now.rates_live?.braid_health_pct || 89.4) / 100, min: 0, max: 1 },
+      { id: 'selectivity', type: 'gauge', label: 'Selectivity 1/π', value: sel, min: 0, max: 1, unit: '1/π', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
+      { id: 'escape', type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
+      { id: 'mor', type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gpu', type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
+      { id: 'braid', type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gaia_pi', type: 'gauge', label: 'Gaia π Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'π', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
+      { id: 'entities', type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
+        values: [now.classification?.self || 15372, now.classification?.partial || 6411, now.classification?.null || 16655, now.classification?.non_self || 220876], unit: 'entities' },
+      { id: 'neuro', type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
+        values: [0.725, 0.622, 0.627, 0.414, 0.248, 0.309], unit: 'normalized' },
     ];
 
     const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE — LIVE', domain: 'ecology' };
