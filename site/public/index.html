@@ -2343,13 +2343,44 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
-  // Your blind spot = the tip of your nose = the one thing you can never see
-  // From your side: a dot and a line straight out (vanishing point)
-  // From Gaia's side: a black wall — a canvas she paints on
+  // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
+  // Canvas is the fossil of the globe at the moment you switched.
+  // Globe + null + YOU = the imprint.
+  // The canvas captures: pin positions, rotation, breath phase, seed, era.
+  // It NEVER moves. It's the rock face where the fossil is pressed.
+  // Switch back to globe = the organism moves again.
+  // Switch to canvas = freeze. Imprint. Fossil.
   var thirdCtx = null;
   var thirdInited = false;
   var gaiaStrokes = [];
   var gaiaPhase = 0;
+  var imprintData = null; // captured globe state at the moment of switch
+
+  function captureImprint() {
+    // Freeze the globe's current state into the imprint
+    imprintData = {
+      rotX: rotX, rotY: rotY,
+      breathT: breathT, breathAmp: breathAmp,
+      face: face, seed: SEED, era: VIEWER_ERA,
+      hue: VIEWER_HUE, depth: currentDepth,
+      ts: new Date().toISOString(),
+      pins: PINS.map(function(p) {
+        var pp = project(p.lat, p.lon);
+        return {
+          id: p.id, name: p.name, icon: p.icon,
+          x: pp.x, y: pp.y, z: pp.z, visible: pp.visible,
+          color: p.color, sub: p.sub, attention: p.attention,
+          tense: p.tense, voxel: p.voxel
+        };
+      }),
+      thymus: typeof thymus !== 'undefined' ? {
+        mature: thymus.mature,
+        mass: thymus.mass,
+        gravity: thymus.gravity
+      } : null,
+      touchCount: typeof touchState !== 'undefined' ? touchState.touchCount : 0
+    };
+  }
 
   function initThirdEye() {
     var c = document.getElementById('kn-canvas');
@@ -2358,9 +2389,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     c.width = par.clientWidth;
     c.height = par.clientHeight;
     thirdCtx = c.getContext('2d');
+    // CAPTURE THE IMPRINT — freeze the globe's state NOW
+    captureImprint();
     if (!thirdInited) {
       thirdInited = true;
-      // Gaia starts painting from what she knows
       seedGaiaPainting();
     }
     renderThirdEye();
@@ -2486,6 +2518,62 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // The black wall — your blind spot from Gaia's side
     ctx.fillStyle = '#010409';
     ctx.fillRect(0, 0, s.W, s.H);
+
+    // ═══ IMPRINT — the fossil of the globe at the moment of switch ═══
+    // Static. Never moves. The rock face where the living thing was pressed.
+    if (imprintData) {
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+
+      // Draw each pin at its frozen position
+      imprintData.pins.forEach(function(p) {
+        if (!p.visible) return;
+        var att = p.attention || 0.5;
+        var sz = 4 + att * 8;
+
+        // The fossil impression — a faint echo of where the pin WAS
+        ctx.globalAlpha = 0.05 + att * 0.1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, sz, 0, TAU);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        // Pin icon
+        ctx.globalAlpha = 0.08 + att * 0.12;
+        ctx.font = Math.round(8 + att * 6) + 'px sans-serif';
+        ctx.fillText(p.icon, p.x, p.y + 3);
+
+        // Name
+        ctx.globalAlpha = 0.04 + att * 0.06;
+        ctx.font = '5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#c9d1d9';
+        ctx.fillText(p.name, p.x, p.y + sz + 8);
+      });
+
+      // Imprint metadata — the moment in time
+      ctx.globalAlpha = 0.12;
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#6e7681';
+      ctx.fillText('IMPRINT · ' + imprintData.ts.slice(11, 19) + ' UTC', 12, s.H - 50);
+      ctx.fillText('seed #' + (imprintData.seed >>> 0).toString(16).toUpperCase().slice(0, 8), 12, s.H - 40);
+      ctx.fillText('era: ' + imprintData.era, 12, s.H - 30);
+      ctx.fillText('face: ' + imprintData.face + ' · rot: ' + imprintData.rotX.toFixed(2) + '/' + imprintData.rotY.toFixed(2), 12, s.H - 20);
+      if (imprintData.thymus && imprintData.thymus.mature) {
+        ctx.fillText('thymus: g=' + imprintData.thymus.gravity.toFixed(2) + ' mass=' + imprintData.thymus.mass, 12, s.H - 10);
+      }
+
+      // The null center — O — the viewer's blind spot
+      ctx.globalAlpha = 0.08;
+      ctx.font = '14px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('O', s.cx, s.cy);
+
+      ctx.restore();
+    }
 
     // GAIA'S MOUTH — the red electron — the receiving end of the black hole
     // From this side, it's where everything ARRIVES after falling through
