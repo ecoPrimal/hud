@@ -339,14 +339,14 @@ body {
 <!-- TOP BAR — all LIVE, nothing hardcoded -->
 <div class="topbar">
   <span class="logo">GAIA</span>
-  <span class="stat" title="RED eye — input · sensation · receive">
-    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  <span class="stat" title="RED — refracted from touch: sun, heat, nearest star">
+    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
   </span>
-  <span class="stat" title="GREEN eye — process · ferment · null">
-    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  <span class="stat" title="GREEN — refracted from membrane: growth, 1/π boundary">
+    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
   </span>
-  <span class="stat" title="BLUE eye — output · emit · act">
-    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  <span class="stat" title="BLUE — refracted from deep null: stars, cosmic background">
+    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
   </span>
   <span class="stat" style="opacity:0.3"><span id="s-time" style="font-size:0.5rem">...</span></span>
   <span class="spacer"></span>
@@ -1053,6 +1053,36 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
+    // REFRACTION RAYS — light from deep null bends through the glass
+    // Three wavelengths separate as they pass through the glass plane
+    // Red bends least (long wave), Green moderate, Blue bends most (short wave)
+    var refractAlpha = 0.02 + Math.sin(breathT * 0.7) * 0.015;
+    // The refraction rays come from the globe EDGE (where starlight enters the glass)
+    // and fan out to the top-left corner (where the three eye dots are in the topbar)
+    var topY = -cy + 14; // toward the topbar
+    var eyeSpacing = 12;
+    // Red ray — bends least, arrives at first eye position
+    ctx.beginPath();
+    ctx.moveTo(cx + R * 0.3, cy - R); // top of globe
+    ctx.quadraticCurveTo(cx * 0.3, cy * 0.3, 55, topY); // curves to top-left
+    ctx.strokeStyle = 'rgba(248,81,73,' + refractAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // Green ray — bends moderate
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - R); // top of globe
+    ctx.quadraticCurveTo(cx * 0.25, cy * 0.25, 70, topY);
+    ctx.strokeStyle = 'rgba(63,185,80,' + refractAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // Blue ray — bends most, arrives at third eye position
+    ctx.beginPath();
+    ctx.moveTo(cx - R * 0.3, cy - R); // top of globe
+    ctx.quadraticCurveTo(cx * 0.2, cy * 0.2, 85, topY);
+    ctx.strokeStyle = 'rgba(88,166,255,' + refractAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
     // Lat/lon grid
     ctx.strokeStyle = 'rgba(48,54,61,0.2)';
     ctx.lineWidth = 0.5;
@@ -1288,30 +1318,48 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var breath = Math.sin(breathT) * breathAmp;
     var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
     R = baseR * (1 + breath + heartbeat);
-    // GAIA'S THREE EYES — Marcus Aurelius triad: sense → null → act
-    // RED (input/sensation) → GREEN (process/null/ferment) → BLUE (output/action)
-    // Each eye pulses in sequence, phase-shifted by 1/3 of the cycle
+    // GAIA'S THREE EYES — REFRACTION LENSES through the null glass
+    // The eyes collect light from DEEP NULL SPACE (the stars, outer voxels)
+    // and REFRACT it through the glass plane to the viewer.
+    // RED = light from the nearest star (the sun, local heat)
+    // GREEN = light from the membrane boundary (the 1/π edge, growth)
+    // BLUE = light from deep space (the far null, cosmic background)
+    // The glass bends each wavelength differently = chromatic aberration
+    // This IS why we see three separate eyes — the glass separates the light
     var eyeR = document.getElementById('eye-red');
     var eyeG = document.getElementById('eye-green');
     var eyeB = document.getElementById('eye-blue');
     if (eyeR && eyeG && eyeB) {
       var cycle = heartPhase % (Math.PI * 2);
       var third = (Math.PI * 2) / 3;
-      // Red fires first (sensation/input)
+
+      // RED — refracted from TOUCH distance (nearest, hottest, fastest pulse)
+      // Fires first because red light bends LEAST through glass (longest wavelength)
       var rPhase = Math.sin(cycle);
-      var rOn = rPhase > 0.7;
-      eyeR.style.color = rOn ? 'rgba(248,81,73,0.9)' : 'rgba(248,81,73,0.2)';
-      eyeR.style.fontSize = rOn ? '0.8rem' : '0.6rem';
-      // Green fires second (process/null/ferment)
+      var rIntensity = 0.15 + Math.max(0, rPhase) * 0.75;
+      var rSize = 0.55 + Math.max(0, rPhase) * 0.35;
+      eyeR.style.color = 'rgba(248,81,73,' + rIntensity.toFixed(2) + ')';
+      eyeR.style.fontSize = rSize.toFixed(2) + 'rem';
+      eyeR.title = 'RED — refracted from touch/local: sun, heat, sensation';
+
+      // GREEN — refracted from LOCAL distance (membrane edge, 1/π boundary)
+      // Fires second because green bends moderately (middle wavelength)
       var gPhase = Math.sin(cycle - third);
-      var gOn = gPhase > 0.7;
-      eyeG.style.color = gOn ? 'rgba(63,185,80,0.9)' : 'rgba(63,185,80,0.2)';
-      eyeG.style.fontSize = gOn ? '0.8rem' : '0.6rem';
-      // Blue fires third (output/action)
+      var gIntensity = 0.15 + Math.max(0, gPhase) * 0.75;
+      var gSize = 0.55 + Math.max(0, gPhase) * 0.35;
+      eyeG.style.color = 'rgba(63,185,80,' + gIntensity.toFixed(2) + ')';
+      eyeG.style.fontSize = gSize.toFixed(2) + 'rem';
+      eyeG.title = 'GREEN — refracted from membrane: growth, ferment, null';
+
+      // BLUE — refracted from DEEP distance (outer null, cosmic background)
+      // Fires last because blue bends MOST through glass (shortest wavelength)
+      // Arrives later = the deep null takes longer to reach us
       var bPhase = Math.sin(cycle - third * 2);
-      var bOn = bPhase > 0.7;
-      eyeB.style.color = bOn ? 'rgba(88,166,255,0.9)' : 'rgba(88,166,255,0.2)';
-      eyeB.style.fontSize = bOn ? '0.8rem' : '0.6rem';
+      var bIntensity = 0.15 + Math.max(0, bPhase) * 0.75;
+      var bSize = 0.55 + Math.max(0, bPhase) * 0.35;
+      eyeB.style.color = 'rgba(88,166,255,' + bIntensity.toFixed(2) + ')';
+      eyeB.style.fontSize = bSize.toFixed(2) + 'rem';
+      eyeB.title = 'BLUE — refracted from deep null: stars, cosmic background, infinity';
     }
     render();
     requestAnimationFrame(tick);
