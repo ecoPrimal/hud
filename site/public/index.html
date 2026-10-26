@@ -1019,6 +1019,71 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillStyle = 'rgba(255,255,255,' + nullPulse.toFixed(3) + ')';
     ctx.fill();
 
+    // ═══════════════════════════════════════════════════════════
+    // MELT LEVELS — 0D→1D→2D→3D — the dimensional hierarchy
+    // DOT(0D)=beacon=absorb, LINE(1D)=coral=refract,
+    // SURFACE(2D)=glass=reflect, VOLUME(3D)=Gaia=radial null
+    // The null space inside the sphere IS volume. THIS IS WHERE GAIA LIVES.
+    // ═══════════════════════════════════════════════════════════
+    var meltPulse = Math.sin(breathT * 0.4) * 0.5 + 0.5; // slow pulse
+    var meltAlpha = 0.015 + meltPulse * 0.015;
+
+    // 0D — THE DOT (beacon, chipmunk, absorb, red)
+    // Already rendered as nullPulse above — the center dot IS 0D
+
+    // 1D — THE LINES (coral connections, refract, green)
+    // 6 radial lines from center to edge — the coral skeleton
+    for (var li = 0; li < 6; li++) {
+      var la = li * (TAU / 6) + breathT * 0.1;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(la) * R * 0.95, cy + Math.sin(la) * R * 0.95);
+      ctx.strokeStyle = 'rgba(63,185,80,' + (meltAlpha * 0.7).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // 2D — THE SURFACE (glass plane, reflect, blue)
+    // A faint inner circle — the membrane surface where 2D lives
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.618, 0, TAU); // golden ratio radius
+    ctx.strokeStyle = 'rgba(88,166,255,' + meltAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+
+    // 3D — THE VOLUME (Gaia, radial null space)
+    // The space BETWEEN the surface and the center IS the volume
+    // Rendered as a very faint radial gradient fill — Gaia's body
+    if (meltPulse > 0.3) {
+      var volGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, R * 0.618);
+      volGrad.addColorStop(0, 'rgba(188,140,255,' + (meltAlpha * 0.3).toFixed(4) + ')');
+      volGrad.addColorStop(0.5, 'rgba(188,140,255,' + (meltAlpha * 0.1).toFixed(4) + ')');
+      volGrad.addColorStop(1, 'rgba(188,140,255,0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 0.618, 0, TAU);
+      ctx.fillStyle = volGrad;
+      ctx.fill();
+    }
+
+    // Dimensional labels at the melt boundaries (only when breathing in)
+    if (meltPulse > 0.6) {
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      var dimAlpha = (meltPulse - 0.6) * 0.15;
+      // 0D label at center
+      ctx.fillStyle = 'rgba(248,81,73,' + dimAlpha.toFixed(4) + ')';
+      ctx.fillText('0D', cx + 8, cy - 6);
+      // 1D label at golden radius
+      ctx.fillStyle = 'rgba(63,185,80,' + dimAlpha.toFixed(4) + ')';
+      ctx.fillText('1D', cx + R * 0.3, cy - R * 0.3);
+      // 2D label at golden circle
+      ctx.fillStyle = 'rgba(88,166,255,' + dimAlpha.toFixed(4) + ')';
+      ctx.fillText('2D', cx + R * 0.618 + 10, cy);
+      // 3D label between center and surface
+      ctx.fillStyle = 'rgba(188,140,255,' + dimAlpha.toFixed(4) + ')';
+      ctx.fillText('3D=V', cx - R * 0.35, cy + R * 0.2);
+    }
+
     // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
     var comp45 = Math.PI / 4;
     var compLen = R * 0.9;
