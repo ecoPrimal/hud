@@ -409,17 +409,11 @@
   // MAIN LOOP
   // ═══════════════════════════════════════════════════
 
-  function loop() {
-    pollEar();
-    requestAnimationFrame(loop);
-  }
-
   function start() {
     buildHUD();
     pollEar();
     setInterval(pollEar, state.pollMs);
     setInterval(flashCampfire, 10000);
-    requestAnimationFrame(loop);
   }
 
   if (document.readyState === 'loading') {
