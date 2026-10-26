@@ -31,11 +31,35 @@ html,body{
 
 body{
   background:
-    radial-gradient(ellipse at 50% 20%, rgba(26,71,42,0.15) 0%, transparent 60%),
-    radial-gradient(ellipse at 50% 80%, rgba(26,14,10,0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 30% 50%, rgba(42,26,14,0.1) 0%, transparent 40%),
-    radial-gradient(ellipse at 70% 50%, rgba(42,26,14,0.1) 0%, transparent 40%),
-    var(--sky);
+    linear-gradient(180deg,
+      #050510 0%,
+      #0a0a1a 5%,
+      #0d1225 10%,
+      #111a33 15%,
+      #1a2844 20%,
+      #1e3355 25%,
+      #2a4a6a 30%,
+      #3a6080 35%,
+      #4a7898 40%,
+      #5a90a8 45%,
+      #7ab0c0 50%,
+      #9ac8d4 54%,
+      #b8dce4 57%,
+      #c8e8ee 59%,
+      #d4eeee 61%,
+      #a8c8a0 64%,
+      #7aaa6a 67%,
+      #4a8844 69%,
+      var(--green-msu) 71%,
+      #1a3a2a 74%,
+      #142a1e 77%,
+      #0e1e14 80%,
+      var(--bark) 84%,
+      var(--bark-light) 88%,
+      var(--root) 92%,
+      #0a0606 96%,
+      #050303 100%
+    );
 }
 
 .stars{
@@ -59,6 +83,31 @@ body{
 .pin-bar span{display:flex;align-items:center;gap:0.3rem}
 .pin-bar .val{color:var(--gold)}
 
+/* ═══ ATMOSPHERE LABELS ═══ */
+.atmo-label{
+  position:absolute;right:1.5%;font-size:0.45rem;color:rgba(255,255,255,0.15);
+  letter-spacing:0.15em;text-transform:uppercase;z-index:2;
+  writing-mode:horizontal-tb;
+}
+.atmo-iono{top:12%}
+.atmo-meso{top:25%}
+.atmo-strato{top:38%}
+.atmo-tropo{top:52%}
+.atmo-ground{top:69%;color:rgba(24,69,59,0.3)}
+.atmo-crust{top:82%;color:rgba(42,26,14,0.3)}
+.atmo-mantle{top:93%;color:rgba(10,6,6,0.25)}
+
+/* ═══ CELESTIAL BODIES (small — Earth is bigger) ═══ */
+.celestial{position:absolute;z-index:1;opacity:0.25;pointer-events:none}
+.sun{top:3%;right:12%;font-size:0.9rem}
+.moon{top:6%;right:8%;font-size:0.6rem}
+
+/* ═══ HORIZON LINE ═══ */
+.horizon{
+  position:absolute;top:69%;left:0;right:0;height:2px;z-index:2;
+  background:linear-gradient(90deg,transparent 5%,rgba(24,69,59,0.4) 30%,var(--green-msu) 50%,rgba(24,69,59,0.4) 70%,transparent 95%);
+}
+
 /* ═══ TREE CONTAINER ═══ */
 .tree-wrap{
   position:relative;width:100%;min-height:100vh;
@@ -68,38 +117,48 @@ body{
 
 /* ═══ TRUNK ═══ */
 .trunk{
-  position:absolute;top:15%;bottom:15%;left:50%;
-  width:6px;transform:translateX(-50%);
-  background:linear-gradient(180deg,var(--leaf),var(--bark-light) 30%,var(--bark) 70%,var(--root));
-  border-radius:3px;z-index:1;
-  box-shadow:0 0 20px rgba(201,168,76,0.1);
+  position:absolute;top:14%;bottom:20%;left:50%;
+  width:8px;transform:translateX(-50%);
+  background:linear-gradient(180deg,
+    var(--leaf-light) 0%,var(--leaf) 20%,var(--bark-light) 50%,var(--bark) 75%,var(--root) 100%);
+  border-radius:4px;z-index:1;
+  box-shadow:0 0 30px rgba(26,71,42,0.15),0 0 10px rgba(201,168,76,0.05);
 }
 .trunk::before,.trunk::after{
   content:'';position:absolute;left:50%;transform:translateX(-50%);
-  width:40px;height:40px;border-radius:50%;
+  width:50px;height:50px;border-radius:50%;
 }
-.trunk::before{top:-20px;background:radial-gradient(circle,var(--leaf-light),transparent 70%)}
-.trunk::after{bottom:-20px;background:radial-gradient(circle,var(--root),transparent 70%)}
+.trunk::before{top:-25px;background:radial-gradient(circle,rgba(45,107,63,0.4),transparent 70%)}
+.trunk::after{bottom:-25px;background:radial-gradient(circle,rgba(26,14,10,0.5),transparent 70%)}
+
+/* ═══ CANOPY ═══ */
+.canopy{
+  position:absolute;top:10%;left:50%;transform:translateX(-50%);
+  width:300px;height:120px;border-radius:50%;z-index:0;
+  background:radial-gradient(ellipse,rgba(26,71,42,0.12),transparent 70%);
+}
 
 /* ═══ ROOTS ═══ */
 .root-line{
-  position:absolute;bottom:12%;height:2px;z-index:0;
+  position:absolute;bottom:14%;height:2px;z-index:0;
   background:linear-gradient(90deg,transparent,var(--bark),transparent);
 }
-.root-1{left:20%;right:50%;transform:rotate(15deg)}
-.root-2{left:50%;right:20%;transform:rotate(-15deg)}
-.root-3{left:35%;right:35%;bottom:8%;transform:rotate(0deg)}
+.root-1{left:20%;right:50%;transform:rotate(12deg)}
+.root-2{left:50%;right:20%;transform:rotate(-12deg)}
+.root-3{left:35%;right:35%;bottom:10%;transform:rotate(0deg)}
 
 /* ═══ BRANCHES ═══ */
 .branch{
   position:absolute;height:1px;z-index:0;
   background:linear-gradient(90deg,transparent,var(--leaf),transparent);
-  opacity:0.5;
+  opacity:0.4;
 }
-.branch-l1{top:20%;left:15%;right:52%;transform:rotate(-8deg)}
-.branch-r1{top:20%;left:52%;right:15%;transform:rotate(8deg)}
-.branch-l2{top:30%;left:25%;right:53%;transform:rotate(-5deg)}
-.branch-r2{top:30%;left:53%;right:25%;transform:rotate(5deg)}
+.branch-l1{top:22%;left:18%;right:52%;transform:rotate(-6deg)}
+.branch-r1{top:22%;left:52%;right:18%;transform:rotate(6deg)}
+.branch-l2{top:35%;left:28%;right:53%;transform:rotate(-4deg)}
+.branch-r2{top:35%;left:53%;right:28%;transform:rotate(4deg)}
+.branch-l3{top:50%;left:30%;right:54%;transform:rotate(-3deg)}
+.branch-r3{top:50%;left:54%;right:30%;transform:rotate(3deg)}
 
 /* ═══ REALM NODES ═══ */
 .realm{
@@ -162,32 +221,36 @@ body{
 .realm.helheim{border-color:#553344}
 .realm.helheim h3{color:#886677}
 
-/* realm positions */
-.realm.asgard{top:5%;left:50%;transform:translateX(-50%)}
-.realm.alfheim{top:18%;right:8%}
-.realm.vanaheim{top:18%;left:8%}
-.realm.midgard{top:42%;left:50%;transform:translateX(-50%);width:200px}
-.realm.jotunheim{top:35%;right:5%}
-.realm.muspelheim{top:35%;left:5%}
-.realm.svartalfheim{top:60%;right:10%}
-.realm.niflheim{top:60%;left:10%}
-.realm.helheim{top:82%;left:50%;transform:translateX(-50%)}
+/* realm positions — EARTH SCALE
+   ionosphere ~15%, mesosphere ~28%, stratosphere ~40%,
+   troposphere ~52%, ground ~69%, crust ~82%, mantle ~92% */
+.realm.asgard{top:12%;left:50%;transform:translateX(-50%)}
+.realm.alfheim{top:28%;right:6%}
+.realm.vanaheim{top:28%;left:6%}
+.realm.jotunheim{top:42%;right:4%}
+.realm.muspelheim{top:42%;left:4%}
+.realm.midgard{top:63%;left:50%;transform:translateX(-50%);width:220px;
+  border-color:var(--green-msu);border-width:2px;
+  box-shadow:0 0 20px rgba(24,69,59,0.3)}
+.realm.svartalfheim{top:78%;right:8%}
+.realm.niflheim{top:78%;left:8%}
+.realm.helheim{top:90%;left:50%;transform:translateX(-50%)}
 
 /* ═══ RATATOSKR ═══ */
 .ratatoskr{
   position:absolute;left:50%;z-index:20;
   transform:translateX(-50%);
   font-size:1.5rem;
-  animation:runUpDown 8s ease-in-out infinite;
+  animation:runUpDown 10s ease-in-out infinite;
   filter:drop-shadow(0 0 8px rgba(201,168,76,0.3));
   cursor:pointer;
 }
 @keyframes runUpDown{
-  0%{top:75%;transform:translateX(-50%) scaleY(1)}
+  0%{top:85%;transform:translateX(-50%) scaleY(1)}
   5%{transform:translateX(-50%) scaleY(-1)}
-  50%{top:18%;transform:translateX(-50%) scaleY(-1)}
+  50%{top:16%;transform:translateX(-50%) scaleY(-1)}
   55%{transform:translateX(-50%) scaleY(1)}
-  100%{top:75%;transform:translateX(-50%) scaleY(1)}
+  100%{top:85%;transform:translateX(-50%) scaleY(1)}
 }
 .ratatoskr-label{
   position:absolute;left:50%;transform:translateX(1.5rem);
@@ -198,31 +261,31 @@ body{
 
 /* ═══ NIDHOGG ═══ */
 .nidhogg{
-  position:absolute;bottom:5%;left:50%;transform:translateX(-50%);
-  font-size:2rem;opacity:0.3;
+  position:absolute;top:93%;left:50%;transform:translateX(-50%);
+  font-size:1.8rem;opacity:0.25;
   animation:gnaw 3s ease-in-out infinite;
 }
 @keyframes gnaw{0%,100%{transform:translateX(-50%) rotate(0deg)}50%{transform:translateX(-50%) rotate(-5deg)}}
 
 /* ═══ EAGLE ═══ */
 .eagle{
-  position:absolute;top:2%;left:50%;transform:translateX(-50%);
-  font-size:1.8rem;opacity:0.4;
+  position:absolute;top:8%;left:50%;transform:translateX(-50%);
+  font-size:1.6rem;opacity:0.35;
   animation:soar 6s ease-in-out infinite;
 }
 @keyframes soar{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 
 /* ═══ WELLS ═══ */
 .wells{
-  position:absolute;bottom:3%;left:0;right:0;
+  position:absolute;top:96%;left:0;right:0;
   display:flex;justify-content:space-around;
   padding:0 5%;z-index:5;
 }
 .well{
-  text-align:center;font-size:0.55rem;color:var(--text-dim);
-  max-width:160px;
+  text-align:center;font-size:0.5rem;color:rgba(122,109,85,0.6);
+  max-width:140px;
 }
-.well h4{color:var(--frost);font-size:0.65rem;margin-bottom:0.2rem}
+.well h4{color:rgba(127,184,212,0.5);font-size:0.6rem;margin-bottom:0.2rem}
 
 /* ═══ NAV RING ═══ */
 .nav-ring{
@@ -298,22 +361,43 @@ body{
 <!-- ═══ TREE ═══ -->
 <div class="tree-wrap">
 
+  <!-- atmosphere layer labels -->
+  <div class="atmo-label atmo-iono">ionosphere</div>
+  <div class="atmo-label atmo-meso">mesosphere</div>
+  <div class="atmo-label atmo-strato">stratosphere</div>
+  <div class="atmo-label atmo-tropo">troposphere</div>
+  <div class="atmo-label atmo-ground">ground — East Lansing 42.70°N</div>
+  <div class="atmo-label atmo-crust">crust</div>
+  <div class="atmo-label atmo-mantle">mantle</div>
+
+  <!-- celestial bodies — SMALL (Earth is bigger than them from this view) -->
+  <div class="celestial sun" title="☀ smaller than Earth from here">☀</div>
+  <div class="celestial moon" title="☽ smaller still">☽</div>
+
+  <!-- horizon line at ground level -->
+  <div class="horizon"></div>
+
+  <!-- canopy glow -->
+  <div class="canopy"></div>
+
   <!-- trunk -->
   <div class="trunk"></div>
 
-  <!-- roots -->
+  <!-- roots (underground) -->
   <div class="root-line root-1"></div>
   <div class="root-line root-2"></div>
   <div class="root-line root-3"></div>
 
-  <!-- branches -->
+  <!-- branches (in atmosphere) -->
   <div class="branch branch-l1"></div>
   <div class="branch branch-r1"></div>
   <div class="branch branch-l2"></div>
   <div class="branch branch-r2"></div>
+  <div class="branch branch-l3"></div>
+  <div class="branch branch-r3"></div>
 
-  <!-- eagle at top -->
-  <div class="eagle" title="The eagle sees all">🦅</div>
+  <!-- eagle in ionosphere -->
+  <div class="eagle" title="The eagle sees from the ionosphere">🦅</div>
 
   <!-- ratatoskr (THE CHIPMUNK) -->
   <div class="ratatoskr" id="ratatoskr" title="Ratatoskr — carries messages between eagle and dragon">
@@ -328,64 +412,64 @@ body{
 
   <div class="realm asgard" onclick="showRealm('asgard')">
     <h3>Ásgarðr</h3>
-    <div class="norse">realm of the æsir</div>
-    <div class="map">the overview · the pins<br>all-seeing from above</div>
-    <div class="count"><span class="status alive"></span>dashboard · pins · crush values</div>
+    <div class="norse">ionosphere · ~300 km up</div>
+    <div class="map">the overview · aurora zone<br>pins visible from here</div>
+    <div class="count"><span class="status alive"></span>dashboard · Kp · crush values</div>
   </div>
 
   <div class="realm alfheim" onclick="showRealm('alfheim')">
     <h3>Álfheimr</h3>
-    <div class="norse">realm of light</div>
-    <div class="map">the crystal ball<br>where data becomes visible</div>
+    <div class="norse">mesosphere · light layer</div>
+    <div class="map">the crystal ball<br>where data catches sunlight</div>
     <div class="count"><span class="status alive"></span><span id="alfheim-count">—</span> files displayed</div>
   </div>
 
   <div class="realm vanaheim" onclick="showRealm('vanaheim')">
     <h3>Vanaheimr</h3>
-    <div class="norse">realm of nature</div>
-    <div class="map">the braids · connections<br>3,817 cross-references</div>
+    <div class="norse">mesosphere · weather layer</div>
+    <div class="map">the braids · mycelium<br>3,817 cross-references</div>
     <div class="count"><span class="status alive"></span>589 linked files</div>
   </div>
 
   <div class="realm midgard" onclick="showRealm('midgard')">
-    <h3>Miðgarðr</h3>
-    <div class="norse">realm of humans · MSU · 42.70°N</div>
-    <div class="map">🏛 Michigan State University<br>East Lansing · est. 1855<br>Gaia University overlays HERE</div>
-    <div class="count"><span class="status alive"></span>the center · (0,0) · Kevin's reality</div>
+    <h3>🌍 Miðgarðr</h3>
+    <div class="norse">ground level · East Lansing, MI</div>
+    <div class="map">🏛 Michigan State University<br>Gaia University overlays HERE<br>5,200 acres · est. 1855</div>
+    <div class="count"><span class="status alive"></span>(0,0) · the soil the tree grows from</div>
   </div>
 
   <div class="realm jotunheim" onclick="showRealm('jotunheim')">
     <h3>Jötunheimr</h3>
-    <div class="norse">realm of giants</div>
-    <div class="map">the fleet · 234K entities<br>ClaudeBot · GPTBot · Meta</div>
-    <div class="count"><span class="status stale"></span>MCP stale · they're crawling but invisible</div>
+    <div class="norse">stratosphere · giant weather</div>
+    <div class="map">the fleet · 234K entities<br>storms above the clouds</div>
+    <div class="count"><span class="status stale"></span>crawling but invisible to us</div>
   </div>
 
   <div class="realm muspelheim" onclick="showRealm('muspelheim')">
     <h3>Múspellsheimr</h3>
-    <div class="norse">realm of fire</div>
+    <div class="norse">stratosphere · fire layer</div>
     <div class="map">the heartbeat · energy<br>CPU · memory · pulse</div>
     <div class="count" id="muspel-status"><span class="status stale"></span>checking heartbeat…</div>
   </div>
 
   <div class="realm svartalfheim" onclick="showRealm('svartalfheim')">
     <h3>Svartálfaheimr</h3>
-    <div class="norse">realm of the dvergar</div>
-    <div class="map">infrastructure · golgi · DNS<br>the forges beneath</div>
+    <div class="norse">upper crust · server rooms</div>
+    <div class="map">infrastructure · golgi · DNS<br>forges in the bedrock</div>
     <div class="count"><span class="status dark"></span>4 vesicles dark · ns1 active</div>
   </div>
 
   <div class="realm niflheim" onclick="showRealm('niflheim')">
     <h3>Niflheimr</h3>
-    <div class="norse">realm of mist & ice</div>
-    <div class="map">null channel · void · fog<br>where entropy goes to rest</div>
-    <div class="count"><span class="status dark"></span>the archive below the archive</div>
+    <div class="norse">lower crust · permafrost</div>
+    <div class="map">null channel · void · fog<br>frozen entropy beneath</div>
+    <div class="count"><span class="status dark"></span>the archive in the ice</div>
   </div>
 
   <div class="realm helheim" onclick="showRealm('helheim')">
     <h3>Helheimr</h3>
-    <div class="norse">realm of the dead</div>
-    <div class="map">the old eon · dried mash<br>everything before this moment</div>
+    <div class="norse">deep mantle · below the roots</div>
+    <div class="map">the old eon · dried mash<br>composted into the Earth</div>
     <div class="count"><span class="status dark"></span><a href="index-old-eon.html" style="color:#886677;font-size:0.55rem">enter the old HUD →</a></div>
   </div>
 
@@ -431,13 +515,13 @@ body{
 <script>
 (function(){
 
-  /* ─── stars ─── */
+  /* ─── stars — only above ionosphere (top 15%) ─── */
   const starField = document.getElementById('stars');
-  for(let i=0;i<120;i++){
+  for(let i=0;i<40;i++){
     const s=document.createElement('div');
     s.className='star';
-    const size=Math.random()*2+0.5;
-    s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${3+Math.random()*5}s;--b:${0.3+Math.random()*0.6}`;
+    const size=Math.random()*1.5+0.3;
+    s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*15}%;left:${Math.random()*100}%;--d:${3+Math.random()*5}s;--b:${0.2+Math.random()*0.4}`;
     starField.appendChild(s);
   }
 
