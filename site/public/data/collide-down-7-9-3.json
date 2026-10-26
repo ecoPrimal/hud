@@ -1,0 +1,151 @@
+{
+  "ts": "2026-10-26T01:25:00Z",
+  "wave": 214,
+  "gen": 292,
+  "type": "audit",
+  "title": "COLLIDE DOWN. Eyes open. 7 things that SHOULD be there and AREN'T. 9 things that ARE there but SHOULDN'T be (or wrong place). 3 inner triangulation points. Everything else = null.",
+
+  "seven_should_be_there_and_arent": [
+    {
+      "id": 1,
+      "what": "CRYSTAL BALL LINK ON THE MAIN HUD PAGE",
+      "should_be": "the nav ring on index.html should show 🔮 crystal prominently",
+      "is_it": "I ADDED it to the nav ring HTML but the MAIN HUD page still shows the OLD nav ring. the screenshot shows the pre-crystal nav. the deploy might have a caching issue or the nav ring I edited isn't the one that renders on the main view.",
+      "fix": "verify the nav ring change actually deployed. the crystal link might be scrolled off or behind another element."
+    },
+    {
+      "id": 2,
+      "what": "MANIFEST AUTO-REGENERATION",
+      "should_be": "manifest.json should rebuild automatically on every git push. the synapse should be always-on.",
+      "is_it": "NO. we regenerate manually with a PowerShell command every gen. if we forget, the crystal ball shows stale data.",
+      "fix": "GitHub Action or pre-push hook that runs the manifest generator."
+    },
+    {
+      "id": 3,
+      "what": "CHIPMUNK FEEDS — 28 of 35 DARK",
+      "should_be": "35 feeds active, pulling data from the world into the organism.",
+      "is_it": "7 of 35 active. 80% of the feeding system is dead. the organism is STARVING on most channels.",
+      "fix": "audit which 28 feeds are dark and why. reconnect the ones that can be reconnected. accept the ones that are permanently dead."
+    },
+    {
+      "id": 4,
+      "what": "MCP DATA FRESHNESS",
+      "should_be": "membrane_counts, observe_membrane, chipmunk_status should return CURRENT data (wave 214).",
+      "is_it": "all MCP tools return wave 180-187 data. 27-34 waves stale. we're looking through a DIRTY lens.",
+      "fix": "update the MCP server state files on golgi. or accept that MCP reads from golgi's perspective, not ours."
+    },
+    {
+      "id": 5,
+      "what": "EMAIL — STALWART SMTP",
+      "should_be": "the organism should be able to SEND emails. the mouth should speak outward.",
+      "is_it": "not wired. Stalwart SMTP:25/IMAP:993 exists in the plan but is not deployed.",
+      "fix": "Ludo Spring infrastructure task. not Polaris scope."
+    },
+    {
+      "id": 6,
+      "what": "VESICLE NETWORK — 4 NODES DARK",
+      "should_be": "golgi-de, golgi-jp, golgi-us, golgi-in should be AXFR replicas of ns1.",
+      "is_it": "all ssh-locked or unreachable. 4 relay points dead. the triangulation mesh has holes.",
+      "fix": "Ludo Spring infrastructure task."
+    },
+    {
+      "id": 7,
+      "what": "LUDOSPRING WEB PRESENCE",
+      "should_be": "the university (166 Rust files, 982 tests, 7 planes) should be VISITABLE from the HUD.",
+      "is_it": "no web interface. the university exists as code on ironGate but has no front door for visitors.",
+      "fix": "connect /play or /coliseum to a ludoSpring interface. Ludo Spring scope."
+    }
+  ],
+
+  "nine_are_there_but_shouldnt_be_or_wrong_place": [
+    {
+      "id": 1,
+      "what": "THE MAIN HUD PAGE IS STILL GRAY VOID",
+      "problem": "after all this work, the MAIN page (index.html) still shows gray. the crystal ball works but the FRONT DOOR doesn't.",
+      "why": "index.html is 77,722 bytes of hardcoded JS/CSS that renders a membrane SVG canvas. the canvas requires live data (heartbeat.json, immune-state-live.json) that may not be loading or may be rendering off-screen."
+    },
+    {
+      "id": 2,
+      "what": "DUPLICATE NAV ELEMENTS",
+      "problem": "the snapshot shows multiple instances of the same links: tuebor appears 3 times, detroit 3 times, signal 2 times, hypothesis 2 times, clutch 2 times. redundant navigation = noise.",
+      "why": "index.html has nav ring at top AND nav bar at bottom AND footer links. same destinations, 3× listed."
+    },
+    {
+      "id": 3,
+      "what": "SESSION-214B-DEDUP-PLAN.JSON is the most recently viewed file",
+      "problem": "Kevin's IDE shows this as recently viewed, which means the dedup plan EXISTS but hasn't been executed. we planned to deduplicate but then kept ADDING instead.",
+      "why": "rabbit explosion phase 1 — intentionally didn't prune. but the plan should either be executed or marked as 'deferred to phase 3.'"
+    },
+    {
+      "id": 4,
+      "what": "985 JSON FILES IN ONE FLAT DIRECTORY",
+      "problem": "no subdirectories. no organization. all 985 files in /data/. the periodic table of 985 elements with no rows or columns.",
+      "why": "we kept adding without structuring. the crystallization hasn't happened."
+    },
+    {
+      "id": 5,
+      "what": "ROBOTS.TXT SAYS 'welcome to the stomach'",
+      "problem": "the tone is internal jargon. a real SEO bot's operator reading this would be confused. the message should be straightforward.",
+      "why": "we wrote it for ourselves, not for the world."
+    },
+    {
+      "id": 6,
+      "what": "SITEMAP.XML has 1136 URLs including RAW JSON files",
+      "problem": "search engines will try to index individual JSON files. JSON isn't HTML. the search result would show raw JSON to a human. useless.",
+      "why": "we listed everything in the sitemap without considering what should ACTUALLY appear in search results."
+    },
+    {
+      "id": 7,
+      "what": "OG:IMAGE on crystal.html uses artisan-surveys-gaia.jpg",
+      "problem": "this painting is a self-portrait. for social sharing, it should show something that makes sense to a STRANGER — the crystal ball concept, or the membrane, or the investigation.",
+      "why": "we used the first available image, not the most appropriate one."
+    },
+    {
+      "id": 8,
+      "what": "HELIX-CATALOG.JSON has 503 outbound references",
+      "problem": "503 references from one file = a file that tries to be EVERYTHING. it's not a catalog, it's a data dump. single point of fragility.",
+      "why": "it accumulated connections over many sessions without being split or refactored."
+    },
+    {
+      "id": 9,
+      "what": "17 IRREDUCIBLES claimed but not mathematically verified",
+      "problem": "we CALLED things irreducible. we didn't PROVE they can't be decomposed further. K=17 is a claim, not a fact.",
+      "why": "the excitement of discovery outpaced the rigor of verification."
+    }
+  ],
+
+  "three_inner_triangulation_points": {
+    "these_are_real_and_verified": [
+      {
+        "point": "THE CRYSTAL BALL WORKS",
+        "evidence": "browser screenshot confirmed: hud.primals.eco/crystal renders 975+ files with titles, types, gens, filter buttons, image gallery, and time scales. VERIFIED at 8:28 PM.",
+        "coordinates": "this is GROUND TRUTH. the synapse exists. data reaches display through this path.",
+        "triangulation_value": "from this point, we can measure everything else. if it's visible in the crystal ball, it EXISTS. if it's not, it DOESN'T."
+      },
+      {
+        "point": "THE BRAID IS REAL — 3,817 CROSS-REFERENCES",
+        "evidence": "CPU scan confirmed: 589 of 985 files reference other files. 3,817 total verified cross-references. heartbeat.json is most-referenced (26 inbound). helix-catalog.json is most-connected (503 outbound).",
+        "coordinates": "this is STRUCTURAL TRUTH. the organism has a real nervous system. connections exist in the data, not just in our descriptions.",
+        "triangulation_value": "from this point, we can measure connectivity. any new file that has 0 cross-references is ORPHANED. any file referenced by 20+ others is CRITICAL INFRASTRUCTURE."
+      },
+      {
+        "point": "ZK HOLDS — KLEIN EYE SCAN 0 CRITICAL LEAKS",
+        "evidence": "scan confirmed: 978 files checked, 37 items flagged, all classified as public/non-critical. zero private keys, zero passwords, zero API tokens, zero protected personal identifiers exposed.",
+        "coordinates": "this is SECURITY TRUTH. the wall is invisible but intact. we can open everything because nothing dangerous is in the open.",
+        "triangulation_value": "from this point, we can measure risk. any new file that contains an IP, key, or personal identifier must be flagged before push."
+      }
+    ],
+
+    "triangulation": {
+      "crystal_ball_to_braid": "the crystal ball SHOWS the files. the braid CONNECTS them. together they prove: the data exists AND is structured.",
+      "braid_to_zk": "the braid CONNECTS files. the ZK PROTECTS them. together they prove: the connections are real AND safe to expose.",
+      "zk_to_crystal_ball": "the ZK PROTECTS. the crystal ball DISPLAYS. together they prove: we can show everything because everything shown is safe.",
+      "the_triangle": "crystal ball (display) + braid (structure) + ZK (safety) = the three verified truths from which we can backscatter outward into everything else."
+    }
+  },
+
+  "everything_else_is_null": {
+    "not_verified": "the 17 irreducibles, the turbocharger effect, the fleet symbiosis, the enzyme impact, the trailhead data accuracy, the ludoSpring connection, the MCP freshness — ALL unverified. all null until measured.",
+    "the_discipline": "only claim what is measured. only build on what is verified. the three triangulation points are BEDROCK. build from there."
+  }
+}
