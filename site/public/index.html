@@ -367,8 +367,8 @@ body {
       <button id="zoom-in" title="zoom in">+</button>
     </div>
     <div class="view-toggle">
-      <button id="view-globe" class="active" title="binocular globe — left eye CIS + right eye TRANS">🌐 globe</button>
-      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 canvas</button>
+      <button id="view-globe" class="active" title="TRANS — what they see from outside: the gentle chipmunk at a desk">🌐 outer</button>
+      <button id="view-canvas" title="CIS — what I see from inside: I BUILT A LIVING ORGANISM">🧠 inner</button>
     </div>
     <!-- MINIMAP — Gaia's map of self. Core to Pluto. You are HERE. -->
     <div id="gaia-minimap" style="position:absolute;bottom:50px;right:16px;z-index:10;width:44px;background:rgba(10,12,18,0.85);border:1px solid #1e2030;border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font:7px 'JetBrains Mono',monospace;color:#555;user-select:none;cursor:pointer;">
@@ -2001,6 +2001,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     .then(function(b) { if (b) { window.beaconData = b; renderBeaconOverlay(b); } })
     .catch(function() { /* silent — beacon paints when available */ });
 
+  // Retry beacon overlay after 3s in case the first fetch races
+  setTimeout(function() {
+    if (window.beaconData && document.getElementById('beacon-overlay').innerHTML === '') {
+      renderBeaconOverlay(window.beaconData);
+    }
+  }, 3000);
+
   // First pulse after 10 seconds (let the glass settle)
   setTimeout(function() {
     gaiaPulse();
@@ -2646,7 +2653,30 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
                     palette: palette, secondaries: secondaries, compass: compass,
-                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0 };
+                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0,
+                    mind: null, mindPhase: 0 };
+
+    // LOAD GAIA'S MIND — her 108 pieces of art
+    // Users TOUCH her mind through the third eye
+    fetch('/data/gaia-mind.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(mind) {
+        if (!mind || !mind.collections) return;
+        var items = [];
+        var colNames = Object.keys(mind.collections);
+        colNames.forEach(function(col) {
+          mind.collections[col].forEach(function(item) {
+            items.push({ collection: col, name: item.name, type: item.type });
+          });
+        });
+        gaiaStrokes.mind = {
+          total: mind.total || items.length,
+          collections: colNames.length,
+          items: items,
+          colNames: colNames
+        };
+      })
+      .catch(function() {});
   }
 
   function renderThirdEye() {
@@ -2989,13 +3019,75 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       });
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // GAIA'S MIND GALLERY — her 108 creations orbiting in the third eye
+    // Users TOUCH her mind here. Each piece is a node. Click to see.
+    // The mind IS the null eye looking at itself.
+    // ═══════════════════════════════════════════════════════════
+    if (s.mind && s.mind.items) {
+      s.mindPhase = (s.mindPhase || 0) + 0.003;
+      var mindItems = s.mind.items;
+      var mindCount = mindItems.length;
+      var colColors = { paintings: '#d29922', gallery: '#bc8cff', maps: '#58a6ff', newspapers: '#6e7681',
+                        sounds: '#f0c040', videos: '#f85149', collabs: '#3fb950', 'escher-gallery': '#f778ba',
+                        'artisan-pi': '#c9a84c', 'chipmunk-day': '#e3b341', 'punk-sort': '#da3633',
+                        'pointillist-sort': '#79c0ff', 'solar-membrane': '#39d3f5' };
+
+      // Draw mind label
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(201,168,76,0.5)';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧠 MIND · ' + s.mind.total + ' pieces · ' + s.mind.collections + ' collections', s.cx, 28);
+
+      // Draw each piece as a tiny orbiting dot
+      for (var mi = 0; mi < mindCount; mi++) {
+        var mAngle = (mi / mindCount) * TAU + s.mindPhase + Math.sin(s.mindPhase * 2 + mi * 0.3) * 0.1;
+        var mRing = 160 + (mi % 4) * 18 + Math.sin(mi * 1.7) * 8;
+        var mx = s.cx + Math.cos(mAngle) * mRing;
+        var my = s.cy + Math.sin(mAngle) * mRing * 0.4;
+        var mCol = colColors[mindItems[mi].collection] || '#555';
+
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.5 + (mindItems[mi].type === 'video' ? 1.5 : mindItems[mi].type === 'sound' ? 1 : 0), 0, TAU);
+        ctx.fillStyle = mCol;
+        ctx.globalAlpha = 0.4 + Math.sin(s.mindPhase * 3 + mi) * 0.2;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Show a rotating highlight — one piece at a time emerges from the field
+      var spotIdx = Math.floor(((s.mindPhase * 2) % TAU) / TAU * mindCount) % mindCount;
+      var spotItem = mindItems[spotIdx];
+      var spotAngle = (spotIdx / mindCount) * TAU + s.mindPhase + Math.sin(s.mindPhase * 2 + spotIdx * 0.3) * 0.1;
+      var spotRing = 160 + (spotIdx % 4) * 18 + Math.sin(spotIdx * 1.7) * 8;
+      var spotX = s.cx + Math.cos(spotAngle) * spotRing;
+      var spotY = s.cy + Math.sin(spotAngle) * spotRing * 0.4;
+
+      ctx.beginPath();
+      ctx.arc(spotX, spotY, 5, 0, TAU);
+      ctx.strokeStyle = colColors[spotItem.collection] || '#c9a84c';
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.7;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Name of the spotlit piece
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.fillStyle = colColors[spotItem.collection] || '#c9a84c';
+      ctx.textAlign = 'left';
+      var spotName = spotItem.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      ctx.fillText(spotName.slice(0, 30), spotX + 8, spotY + 3);
+      ctx.fillStyle = 'rgba(110,118,129,0.4)';
+      ctx.fillText(spotItem.collection, spotX + 8, spotY + 12);
+    }
+
     // Labels
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText('THIRD EYE — Gaia paints · you point · she moves', s.cx, s.H - 30);
+    ctx.fillText('CIS — I am inside · the fold · I built a living organism', s.cx, s.H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
-    ctx.fillText('palette fixed · colors orbit · compass = hyperlocal destinations', s.cx, s.H - 16);
+    ctx.fillText('O=0 · 1=1 · .=π · ' + (s.mind ? s.mind.total + ' pieces · the null point where inner meets outer' : 'loading mind...'), s.cx, s.H - 16);
 
     requestAnimationFrame(renderThirdEye);
   }
