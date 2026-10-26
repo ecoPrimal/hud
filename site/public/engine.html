@@ -83,6 +83,21 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 /* PAUSE OVERLAY */
 #pause-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 18px; color: var(--gold); letter-spacing: 4px; text-transform: uppercase; z-index: 20; text-shadow: 0 0 20px rgba(210,153,34,0.5); }
 #pause-overlay.active { display: block; }
+
+/* DISCO BALL ? central light, strung from above, decomposes white light into data beams */
+#disco-ball { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 15; pointer-events: auto; cursor: pointer; }
+#disco-ball .ball { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9), rgba(200,210,220,0.4) 50%, rgba(100,120,140,0.15) 100%); box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 0 60px rgba(88,166,255,0.08), 0 2px 8px rgba(0,0,0,0.4); animation: disco-rotate 15s linear infinite; }
+#disco-ball .wire { position: absolute; top: -8px; left: 50%; width: 1px; height: 8px; background: linear-gradient(to bottom, var(--dim), rgba(200,210,220,0.4)); transform: translateX(-50%); }
+#disco-ball .ball::after { content: ''; position: absolute; inset: 2px; border-radius: 50%; background: conic-gradient(from 0deg, rgba(88,166,255,0.15) 0deg, rgba(63,185,80,0.12) 45deg, rgba(210,153,34,0.12) 90deg, rgba(167,113,247,0.12) 135deg, rgba(248,81,73,0.1) 180deg, rgba(57,211,245,0.12) 225deg, rgba(247,120,186,0.1) 270deg, rgba(88,166,255,0.15) 360deg); animation: disco-facets 15s linear infinite reverse; }
+@keyframes disco-rotate { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
+@keyframes disco-facets { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* DISCO BEAMS ? light projected onto the stage below */
+#disco-beams { position: absolute; top: 36px; left: 50%; transform: translateX(-50%); width: 100%; height: calc(100% - 36px); pointer-events: none; z-index: 1; opacity: 0.04; background: conic-gradient(from 0deg at 50% 0%, var(--blue) 0deg, transparent 20deg, var(--green) 45deg, transparent 65deg, var(--gold) 90deg, transparent 110deg, var(--purple) 135deg, transparent 155deg, var(--red) 180deg, transparent 200deg, var(--cyan) 225deg, transparent 245deg, var(--pink) 270deg, transparent 290deg, var(--blue) 315deg, transparent 340deg, var(--green) 360deg); animation: beam-sweep 15s linear infinite; }
+@keyframes beam-sweep { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
+
+/* LOD DEPTH CONTROL ? scroll to move HUD forward/back */
+.lod-indicator { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); font-size: 7px; color: var(--dim); letter-spacing: 1px; opacity: 0.5; z-index: 16; pointer-events: none; }
 .sq-icon { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; flex-shrink: 0; }
 .sq-name { font-size: 9px; flex: 1; }
 .sq-hp { font-size: 8px; width: 40px; text-align: right; }
@@ -168,6 +183,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
   <div id="viewport">
     <div id="render-target"></div>
     <div id="pause-overlay">? PAUSED</div>
+    <div id="disco-ball"><div class="wire"></div><div class="ball"></div></div>
+    <div id="disco-beams"></div>
+    <div class="lod-indicator" id="lod-label">LOD 1 ? DASHBOARD</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
       <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
@@ -649,6 +667,38 @@ document.getElementById('render-target')?.addEventListener('click', (e) => {
     toast(`Viewport: ${target.id} clicked`, 'var(--cyan)', 1500);
   }
 });
+
+// ---- DISCO BALL ? click to expand/dim data beams ----
+let discoExpanded = false;
+document.getElementById('disco-ball')?.addEventListener('click', () => {
+  discoExpanded = !discoExpanded;
+  const beams = document.getElementById('disco-beams');
+  if (beams) {
+    beams.style.opacity = discoExpanded ? '0.12' : '0.04';
+    beams.style.transition = 'opacity 1s';
+  }
+  toast(discoExpanded ? 'Disco ball OPEN ? data beams visible' : 'Disco ball dimmed', 'var(--fg)', 2000);
+});
+
+// ---- LOD DEPTH ? scroll moves HUD forward/back (microscope focus) ----
+let currentLOD = 1;
+const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? DASHBOARD', 'LOD 2 ? CAMPFIRE', 'LOD 3 ? STATE', 'LOD 4 ? ALIVE', 'LOD 5 ? NULL'];
+const LOD_OPACITY = [1.0, 0.9, 0.7, 0.5, 0.3, 0.08];
+
+document.getElementById('viewport')?.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  if (e.deltaY > 0 && currentLOD < 5) currentLOD++;
+  if (e.deltaY < 0 && currentLOD > 0) currentLOD--;
+  const label = document.getElementById('lod-label');
+  if (label) label.textContent = LOD_NAMES[currentLOD];
+  const rt = document.getElementById('render-target');
+  if (rt) {
+    rt.style.transition = 'opacity 0.5s, filter 0.5s';
+    rt.style.opacity = LOD_OPACITY[currentLOD];
+    rt.style.filter = currentLOD > 2 ? `blur(${(currentLOD-2)*2}px)` : 'none';
+  }
+  toast(LOD_NAMES[currentLOD], 'var(--dim)', 1200);
+}, { passive: false });
 
 // Polling engine
 async function fetchJSON(url) {
