@@ -59,6 +59,20 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .lung-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, var(--cyan), var(--blue)); border-radius: 0 0 3px 3px; transition: height 1s ease; }
 .lung-label { font-size: 7px; color: var(--cyan); text-align: center; margin-top: 2px; }
 
+/* FLOOD/TURBO METERS */
+.flood-meters { position: absolute; right: 12px; top: 12px; display: flex; gap: 6px; }
+.flood-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.flood-col label { font-size: 6px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+.flood-bar { width: 8px; height: 80px; background: rgba(12,16,24,0.8); border: 1px solid var(--border); border-radius: 4px; position: relative; }
+.flood-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 3px 3px; transition: height 2s ease; }
+.flood-pct { font-size: 7px; text-align: center; }
+.turbo-fill { background: linear-gradient(to top, var(--gold), var(--orange)); }
+.flood-fill-bar { background: linear-gradient(to top, var(--blue), var(--cyan)); }
+
+/* BOUNDARY LABEL */
+.boundary-label { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 7px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
+.twist-count { position: absolute; top: 4px; left: 12px; font-size: 7px; color: var(--purple); }
+
 /* RIGHT PANEL — RATES DASHBOARD */
 .rate-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; border-bottom: 1px solid rgba(28,35,51,0.5); }
 .rate-label { font-size: 8px; color: var(--dim); }
@@ -105,9 +119,23 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div id="render-target"></div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
+      <div class="boundary-label" id="boundary-label">IONOSPHERE — Kp 1.0 quiet</div>
+      <div class="twist-count" id="twist-count">⟳ 3 Klein twists</div>
       <div class="lung-meter">
         <div class="lung-bar"><div class="lung-fill" id="lung-fill" style="height:9%"></div></div>
         <div class="lung-label" id="lung-pct">9%</div>
+      </div>
+      <div class="flood-meters">
+        <div class="flood-col">
+          <label>turbo</label>
+          <div class="flood-bar"><div class="flood-fill turbo-fill" id="turbo-fill" style="height:100%"></div></div>
+          <div class="flood-pct" id="turbo-pct" style="color:var(--gold)">100%</div>
+        </div>
+        <div class="flood-col">
+          <label>flood</label>
+          <div class="flood-bar"><div class="flood-fill flood-fill-bar" id="flood-fill" style="height:0%"></div></div>
+          <div class="flood-pct" id="flood-pct" style="color:var(--cyan)">0%</div>
+        </div>
       </div>
     </div>
   </div>
@@ -136,6 +164,10 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
   <span id="f-escape">escape — %</span>
   <span>|</span>
   <span id="f-selectivity">selectivity 1/π</span>
+  <span>|</span>
+  <span id="f-boundary" style="color:var(--purple)">boundary: ionosphere</span>
+  <span>|</span>
+  <span id="f-twists" style="color:var(--purple)">⟳ 3 twists</span>
   <span style="flex:1"></span>
   <span id="f-time"></span>
 </footer>
@@ -330,6 +362,28 @@ function updateHeader(now, rates) {
   document.getElementById('lung-pct').textContent = gpuPct + '%';
 }
 
+// ═══ FLOODGATE POWER SWAP ═══
+function updateFloodgate(now) {
+  const twists = now?.klein_twists || 3;
+  const boundary = now?.boundary || 'ionosphere';
+  const phase = now?.phase || '';
+  document.getElementById('twist-count').textContent = '⟳ ' + twists + ' Klein twists';
+  document.getElementById('f-twists').textContent = '⟳ ' + twists + ' twists';
+  document.getElementById('boundary-label').textContent = boundary.toUpperCase() + ' — outer skin';
+  document.getElementById('f-boundary').textContent = 'boundary: ' + boundary;
+  document.getElementById('phase-label').textContent = phase.slice(0, 80);
+
+  // Turbo→flood power ramp: simulate based on time since floodgate opened
+  const floodTs = Date.parse('2026-10-26T06:42:00Z');
+  const elapsed = (Date.now() - floodTs) / 60000; // minutes since floodgate
+  const floodPct = Math.min(95, Math.max(0, elapsed * 2)); // ramp 2%/min, cap 95%
+  const turboPct = Math.max(5, 100 - floodPct);
+  document.getElementById('turbo-fill').style.height = turboPct + '%';
+  document.getElementById('turbo-pct').textContent = Math.round(turboPct) + '%';
+  document.getElementById('flood-fill').style.height = floodPct + '%';
+  document.getElementById('flood-pct').textContent = Math.round(floodPct) + '%';
+}
+
 // ═══ MAIN LOOP — the game tick ═══
 async function tick() {
   const [now, rates, heartbeat] = await Promise.all([
@@ -342,6 +396,7 @@ async function tick() {
   renderRates(rates);
   renderNeuro(rates);
   renderDevices(heartbeat);
+  updateFloodgate(now);
 }
 
 // Boot
