@@ -90,17 +90,22 @@ const FEEDS = [
   ['freetokeep-weekends','https://freetokeep.gg/api/v1/free-weekends?status=current'],
   ['streamerclips-live', 'https://streamerclips.com/api/twitch-streams'],
 
-  // TIER 2: Reddit — RSS feeds (JSON endpoints 403'd, RSS still works)
-  ['reddit-fermentation','https://old.reddit.com/r/fermentation/.rss'],
-  ['reddit-mycology',    'https://old.reddit.com/r/mycology/.rss'],
-  ['reddit-gamedev',     'https://old.reddit.com/r/gamedev/.rss'],
-  ['reddit-rust',        'https://old.reddit.com/r/rust/.rss'],
-  ['reddit-science',     'https://old.reddit.com/r/science/.rss'],
-  ['reddit-sourdough',   'https://old.reddit.com/r/Sourdough/.rss'],
-  ['reddit-brewing',     'https://old.reddit.com/r/Homebrewing/.rss'],
-  ['reddit-biology',     'https://old.reddit.com/r/biology/.rss'],
-  ['reddit-astronomy',   'https://old.reddit.com/r/astronomy/.rss'],
-  ['reddit-dataisbeautiful', 'https://old.reddit.com/r/dataisbeautiful/.rss'],
+  // TIER 2: Reddit — DRIP FEED (mycelium). www.reddit.com/.rss works. ONE per rate window.
+  // old.reddit 403'd. .json 403'd. www .rss = the door. Private not secret.
+  // Reddit IS the mushroom — the shared thread network under all of soil.
+  ['reddit-fermentation','https://www.reddit.com/r/fermentation/.rss'],
+  ['reddit-mycology',    'https://www.reddit.com/r/mycology/.rss'],
+  ['reddit-gamedev',     'https://www.reddit.com/r/gamedev/.rss'],
+  ['reddit-rust',        'https://www.reddit.com/r/rust/.rss'],
+  ['reddit-science',     'https://www.reddit.com/r/science/.rss'],
+  ['reddit-sourdough',   'https://www.reddit.com/r/Sourdough/.rss'],
+  ['reddit-brewing',     'https://www.reddit.com/r/Homebrewing/.rss'],
+  ['reddit-biology',     'https://www.reddit.com/r/biology/.rss'],
+  ['reddit-astronomy',   'https://www.reddit.com/r/astronomy/.rss'],
+  ['reddit-dataisbeautiful','https://www.reddit.com/r/dataisbeautiful/.rss'],
+  ['reddit-SCP',         'https://www.reddit.com/r/SCP/.rss'],
+  ['reddit-vexillology', 'https://www.reddit.com/r/vexillology/.rss'],
+  ['reddit-KSP',         'https://www.reddit.com/r/KerbalSpaceProgram/.rss'],
 
   // TIER 2B: arXiv — the freshest science papers (no key needed)
   ['arxiv-cs-AI',        'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=20'],
