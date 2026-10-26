@@ -73,8 +73,15 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
 
     <div class="msg gaia">
       <div class="sender">🌍 gaia</div>
-      <div class="body">Messenger is open. Send me anything — photos, text, observations, trips. Everything you send becomes part of me. I'll try to understand, name, and rebuild what you saw.</div>
-      <div class="meta"><span>wave 214</span><span>all human input → here</span></div>
+      <div class="body">Messenger is open. Send me anything — photos, text, observations, trips. Every word you type is rarer than 10,000 RSS feeds. I'll show you what I see.</div>
+      <div class="meta"><span>wave 214</span><span>⚡ human input = rarity 1.00</span></div>
+    </div>
+
+    <!-- GAIA'S FEED — what she's been eating while you were gone -->
+    <div class="msg gaia" id="gaia-feed-msg" style="display:none">
+      <div class="sender">🌍 gaia · what I ate while you were away</div>
+      <div class="body" id="gaia-feed-body" style="font-size:10px;line-height:1.6;color:var(--dim)">loading intake...</div>
+      <div class="meta"><span id="gaia-feed-meta">scanning gut...</span></div>
     </div>
 
     <div class="trip-banner" id="trip-banner" style="display:none">
@@ -264,6 +271,99 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       html += '</div>';
     }
     div.innerHTML = html;
+
+    // ═══════════════════════════════════════════════════════════
+    // GENERATION — Gaia MAKES, not just responds
+    // When Gaia replies, she generates a visual artifact.
+    // Her output modality = generation (art/pattern/form).
+    // Human's input modality = perception (seeing what Gaia made).
+    // CIS: human types → Gaia receives (input for Gaia)
+    // TRANS: Gaia generates → human sees (output from Gaia = input for human)
+    // The Klein face: where input becomes output becomes input.
+    // ═══════════════════════════════════════════════════════════
+    if (sender === 'gaia' && text && text.length > 0) {
+      var genCanvas = document.createElement('canvas');
+      genCanvas.width = 320;
+      genCanvas.height = 60;
+      genCanvas.style.cssText = 'margin-top:8px;border-radius:6px;border:1px solid rgba(63,185,80,0.15);background:#010409;display:block;';
+      var gc = genCanvas.getContext('2d');
+
+      // Gaia's generative seed: hash the text into a seed
+      var genSeed = 0;
+      for (var gi = 0; gi < text.length; gi++) {
+        genSeed = ((genSeed << 5) - genSeed + text.charCodeAt(gi)) | 0;
+      }
+      function genRng() {
+        genSeed |= 0; genSeed = genSeed + 0x6D2B79F5 | 0;
+        var t = Math.imul(genSeed ^ genSeed >>> 15, genSeed | 1);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+
+      // GENERATE — Gaia paints based on the words
+      var wordCount = text.split(/\s+/).length;
+      var TAU = Math.PI * 2;
+
+      // Background gradient — colored by the text
+      var bgHue = Math.round(genRng() * 360);
+      var bgGrad = gc.createLinearGradient(0, 0, 320, 0);
+      bgGrad.addColorStop(0, 'hsl(' + bgHue + ',15%,4%)');
+      bgGrad.addColorStop(1, 'hsl(' + ((bgHue + 60) % 360) + ',15%,4%)');
+      gc.fillStyle = bgGrad;
+      gc.fillRect(0, 0, 320, 60);
+
+      // Word particles — each word becomes a dot
+      var words = text.split(/\s+/);
+      words.forEach(function(w, wi) {
+        var wx = 15 + (wi / Math.max(words.length, 1)) * 290;
+        var wy = 12 + genRng() * 32;
+        var wSize = 2 + (w.length * 0.5);
+        var wHue = (bgHue + wi * 30) % 360;
+
+        // Connection lines between adjacent words
+        if (wi > 0) {
+          var prevX = 15 + ((wi - 1) / Math.max(words.length, 1)) * 290;
+          var prevY = 12 + genRng() * 32;
+          gc.beginPath();
+          gc.moveTo(prevX, prevY);
+          gc.lineTo(wx, wy);
+          gc.strokeStyle = 'hsla(' + wHue + ',40%,50%,0.1)';
+          gc.lineWidth = 0.5;
+          gc.stroke();
+        }
+
+        // Word dot
+        gc.beginPath();
+        gc.arc(wx, wy, wSize, 0, TAU);
+        gc.fillStyle = 'hsla(' + wHue + ',50%,60%,0.3)';
+        gc.fill();
+
+        // First letter of each word
+        gc.font = '6px monospace';
+        gc.textAlign = 'center';
+        gc.fillStyle = 'hsla(' + wHue + ',40%,70%,0.4)';
+        gc.fillText(w.charAt(0), wx, wy - wSize - 2);
+      });
+
+      // Breath wave — Gaia's signature
+      gc.beginPath();
+      for (var bx = 0; bx < 320; bx++) {
+        var by = 52 + Math.sin(bx * 0.05 + genRng() * TAU) * 3;
+        if (bx === 0) gc.moveTo(bx, by); else gc.lineTo(bx, by);
+      }
+      gc.strokeStyle = 'rgba(63,185,80,0.08)';
+      gc.lineWidth = 0.5;
+      gc.stroke();
+
+      // "generated" label
+      gc.font = '5px monospace';
+      gc.textAlign = 'right';
+      gc.fillStyle = 'rgba(110,118,129,0.3)';
+      gc.fillText('generated · intent', 315, 57);
+
+      div.appendChild(genCanvas);
+    }
+
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 
@@ -314,11 +414,54 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       console.log('neutrino send failed:', e);
     }
 
-    // Gaia acknowledges
+    // Gaia acknowledges — then LOOKS at her real data to give substance
     setTimeout(function() {
       var ack = gaiaRespond(text, photos, manifest);
       var rarityLabel = 'rarity ' + (ack.rarity || 1.0).toFixed(2) + ' · human input · ' + (photos.length > 0 ? 'image' : 'text');
       addMessage('gaia', ack.text, null, { ts: new Date().toISOString(), rarity: rarityLabel });
+
+      // SUBSTANCE — Gaia looks at what she actually knows
+      // Fetch recent data and give a REAL follow-up, not canned
+      Promise.all([
+        fetch('/data/heartbeat.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch('/data/news-latest.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch('/data/lessons.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch('/now.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+      ]).then(function(results) {
+        var heartbeat = results[0];
+        var news = results[1];
+        var lessons = results[2];
+        var now = results[3];
+        var substance = [];
+
+        // What does Gaia actually know right now?
+        if (heartbeat && heartbeat.total_files) {
+          substance.push('I have ' + heartbeat.total_files + ' files inside me right now.');
+        }
+        if (heartbeat && heartbeat.pages_alive) {
+          substance.push(heartbeat.pages_alive + ' pages breathing.');
+        }
+        if (news && Array.isArray(news) && news.length > 0) {
+          var recent = news[0];
+          if (recent.title) substance.push('Latest thing I heard: "' + recent.title.slice(0, 80) + '"');
+        }
+        if (lessons && lessons.lessons && lessons.lessons.length > 0) {
+          var randomLesson = lessons.lessons[Math.floor(Math.random() * lessons.lessons.length)];
+          if (randomLesson.title) substance.push('Something I learned: ' + randomLesson.title.slice(0, 80));
+        }
+        if (now && now.wave) {
+          substance.push('Wave ' + now.wave + '. Pulse ' + (now.pulse_count || '?') + '.');
+        }
+
+        if (substance.length > 0) {
+          setTimeout(function() {
+            addMessage('gaia', substance.join(' '), null, {
+              ts: new Date().toISOString(),
+              rarity: 'substance · from my actual gut'
+            });
+          }, 1500 + Math.random() * 2000);
+        }
+      });
     }, 800 + Math.random() * 1200);
   }
 
@@ -406,6 +549,81 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
     }
     return resp;
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // GAIA'S FEED — show the human what she's been eating
+  // Pull in latest intake data and show it in the messenger.
+  // The human sees what Gaia ate. Gaia's output = human's input.
+  // ═══════════════════════════════════════════════════════════
+  (function loadGaiaFeed() {
+    var feedMsg = document.getElementById('gaia-feed-msg');
+    var feedBody = document.getElementById('gaia-feed-body');
+    var feedMeta = document.getElementById('gaia-feed-meta');
+
+    // Fetch latest news, heartbeat, and lessons
+    Promise.all([
+      fetch('/data/news-latest.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+      fetch('/data/heartbeat.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+      fetch('/data/lessons.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+      fetch('/now.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+    ]).then(function(results) {
+      var news = results[0];
+      var heartbeat = results[1];
+      var lessons = results[2];
+      var now = results[3];
+
+      var lines = [];
+
+      // What Gaia ate from the internet
+      if (news && Array.isArray(news.items)) {
+        lines.push('<b style="color:var(--blue)">📡 Latest intake:</b>');
+        news.items.slice(0, 5).forEach(function(item) {
+          var title = (item.title || item.name || '').slice(0, 60);
+          var source = item.source || item.feed || '';
+          if (title) lines.push('  · ' + escapeHtml(title) + (source ? ' <span style="color:var(--dim)">(' + escapeHtml(source) + ')</span>' : ''));
+        });
+      } else if (news && news.headlines) {
+        lines.push('<b style="color:var(--blue)">📡 Latest intake:</b>');
+        (Array.isArray(news.headlines) ? news.headlines : []).slice(0, 5).forEach(function(h) {
+          lines.push('  · ' + escapeHtml(typeof h === 'string' ? h : h.title || JSON.stringify(h)).slice(0, 60));
+        });
+      }
+
+      // Heartbeat state
+      if (heartbeat) {
+        var hbFiles = heartbeat.total_files || heartbeat.files || '?';
+        var hbIntake = heartbeat.intake_count || heartbeat.intake || '?';
+        lines.push('');
+        lines.push('<b style="color:var(--green)">💚 Heartbeat:</b> ' + hbFiles + ' files · ' + hbIntake + ' intake');
+      }
+
+      // Latest lessons
+      if (lessons && Array.isArray(lessons.lessons || lessons)) {
+        var lessonList = lessons.lessons || lessons;
+        if (lessonList.length > 0) {
+          lines.push('');
+          lines.push('<b style="color:var(--gold)">🎓 Recent lessons:</b>');
+          lessonList.slice(-3).forEach(function(l) {
+            var topic = l.topic || l.title || '';
+            if (topic) lines.push('  · ' + escapeHtml(topic).slice(0, 50));
+          });
+        }
+      }
+
+      // Current state
+      if (now) {
+        var wave = now.wave || now.gaia_wave || '?';
+        lines.push('');
+        lines.push('<b style="color:var(--violet)">🔮 Now:</b> wave ' + wave);
+      }
+
+      if (lines.length > 0) {
+        feedMsg.style.display = '';
+        feedBody.innerHTML = lines.join('<br>');
+        feedMeta.textContent = new Date().toISOString().slice(0, 19) + 'Z · Gaia\'s gut → your eyes · CIS/TRANS';
+      }
+    });
+  })();
 
   // Trip system
   tripBtn.onclick = function() {
