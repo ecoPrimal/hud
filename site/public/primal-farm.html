@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>primal farm — catch · grow · mint</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:'Press Start 2P',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:1rem;padding:0.4rem 0.8rem;background:#0f0f23;border-bottom:2px solid #2a2a4a;font-size:0.55rem;z-index:10}
+.topbar .logo{color:#5bf;font-size:0.65rem}
+.topbar .coins{color:#fc4}
+.topbar .day{color:#aaa}
+.spacer{flex:1}
+.topbar a{color:#666;text-decoration:none;font-size:0.5rem}
+.topbar a:hover{color:#fff}
+.game-wrap{display:flex;flex:1;overflow:hidden}
+canvas{display:block;image-rendering:pixelated;cursor:crosshair;flex-shrink:0}
+.sidebar{width:220px;min-width:220px;background:#0f0f23;border-left:2px solid #2a2a4a;overflow-y:auto;padding:0.5rem;font-size:0.45rem}
+.sidebar h3{color:#5bf;font-size:0.55rem;margin:0.5rem 0 0.3rem;letter-spacing:1px}
+.sidebar .section{margin-bottom:1rem}
+.primal-list,.inv-list{list-style:none}
+.primal-list li,.inv-list li{padding:0.25rem 0.3rem;border-bottom:1px solid #1a1a2e;display:flex;align-items:center;gap:0.4rem;line-height:1.5}
+.primal-list li .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.primal-list li.caught{color:#5f5}
+.primal-list li.wild{color:#666}
+.inv-list li .count{color:#fc4;margin-left:auto}
+.tool-bar{display:flex;gap:4px;margin:0.5rem 0}
+.tool-btn{padding:0.3rem 0.5rem;background:#2a2a4a;border:1px solid #3a3a5a;color:#ccc;font-family:inherit;font-size:0.45rem;cursor:pointer;border-radius:3px}
+.tool-btn:hover,.tool-btn.active{background:#3a3a6a;color:#fff;border-color:#5bf}
+.msg-box{position:fixed;bottom:0;left:0;right:220px;background:rgba(15,15,35,0.95);border-top:2px solid #2a2a4a;padding:0.6rem 1rem;font-size:0.5rem;line-height:1.8;z-index:10;min-height:60px}
+.msg-box .speaker{color:#5bf}
+.msg-box .text{color:#ddd}
+.mint-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0f0f23;border:2px solid #fc4;border-radius:8px;padding:1.5rem;z-index:100;min-width:300px;text-align:center}
+.mint-modal h2{color:#fc4;font-size:0.7rem;margin-bottom:1rem}
+.mint-modal .recipe{font-size:0.5rem;color:#aaa;margin:0.5rem 0}
+.mint-modal button{margin-top:1rem;padding:0.4rem 1rem;background:#fc4;color:#000;border:none;font-family:inherit;font-size:0.5rem;cursor:pointer;border-radius:4px}
+.mint-modal button:hover{background:#fd5}
+.mint-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:99}
+@media(max-width:700px){.sidebar{width:160px;font-size:0.4rem}.msg-box{right:160px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">🌱 primal farm</span>
+  <span class="coins" id="coins">💰 0</span>
+  <span class="day" id="day-display">day 1 · spring</span>
+  <span class="spacer"></span>
+  <span id="clock" style="color:#888">06:00</span>
+  <a href="/">← HUD</a>
+</div>
+
+<div class="game-wrap">
+  <canvas id="game"></canvas>
+  <div class="sidebar">
+    <h3>🎯 tools</h3>
+    <div class="tool-bar">
+      <button class="tool-btn active" data-tool="hand" title="interact">🤚</button>
+      <button class="tool-btn" data-tool="hoe" title="till soil">⛏️</button>
+      <button class="tool-btn" data-tool="water" title="water">💧</button>
+      <button class="tool-btn" data-tool="seed" title="plant">🌱</button>
+      <button class="tool-btn" data-tool="mint" title="mint">🔥</button>
+    </div>
+
+    <div class="section">
+      <h3>🐿️ primals (<span id="caught-count">0</span>/16)</h3>
+      <ul class="primal-list" id="primal-list"></ul>
+    </div>
+
+    <div class="section">
+      <h3>🎒 inventory</h3>
+      <ul class="inv-list" id="inv-list"></ul>
+    </div>
+
+    <div class="section">
+      <h3>📖 recipes</h3>
+      <div id="recipes" style="font-size:0.4rem;color:#888;line-height:2"></div>
+    </div>
+  </div>
+</div>
+
+<div class="msg-box" id="msg-box">
+  <span class="speaker">gaia:</span>
+  <span class="text" id="msg-text">welcome to the farm. till the soil, plant elements, and catch the primals that wander by...</span>
+</div>
+
+<div class="mint-overlay" id="mint-overlay"></div>
+<div class="mint-modal" id="mint-modal">
+  <h2>🔥 FORGE</h2>
+  <div id="forge-content"></div>
+</div>
+
+<script>
+const C = document.getElementById('game');
+const ctx = C.getContext('2d');
+
+// ═══════════════════════════════════════
+// PRIMALS — 16 creatures to catch
+// ═══════════════════════════════════════
+const PRIMALS = [
+  {id:'petalTongue',   name:'petalTongue',  emoji:'🌺', color:'#f0a',  element:'C',  personality:'curious and warm',      catchRate:0.4},
+  {id:'bearDog',       name:'bearDog',      emoji:'🐻', color:'#a55',  element:'Fe', personality:'loyal guardian',         catchRate:0.25},
+  {id:'songBird',      name:'songBird',     emoji:'🐦', color:'#fc4',  element:'Au', personality:'sings at dawn',          catchRate:0.2},
+  {id:'biomeOS',       name:'biomeOS',      emoji:'🧬', color:'#5f5',  element:'Si', personality:'coordinates everything', catchRate:0.15},
+  {id:'nestGate',      name:'nestGate',     emoji:'🏠', color:'#58f',  element:'Cu', personality:'opens doors',            catchRate:0.35},
+  {id:'squirrel',      name:'squirrel',     emoji:'🐿️', color:'#b80',  element:'N',  personality:'hoards and sorts',       catchRate:0.5},
+  {id:'rhizoCrypt',    name:'rhizoCrypt',   emoji:'🍄', color:'#a6a',  element:'P',  personality:'secret keeper',          catchRate:0.3},
+  {id:'sweetGrass',    name:'sweetGrass',   emoji:'🌾', color:'#8b5',  element:'K',  personality:'gentle and fragrant',    catchRate:0.45},
+  {id:'loamSpine',     name:'loamSpine',    emoji:'🦴', color:'#964',  element:'Ca', personality:'structural backbone',    catchRate:0.3},
+  {id:'skunkBat',      name:'skunkBat',     emoji:'🦨', color:'#666',  element:'S',  personality:'nocturnal defender',     catchRate:0.2},
+  {id:'sourDough',     name:'sourDough',    emoji:'🍞', color:'#da8',  element:'Na', personality:'slow and patient',       catchRate:0.4},
+  {id:'swarmVine',     name:'swarmVine',    emoji:'🌿', color:'#3a8',  element:'Mg', personality:'wraps everything',       catchRate:0.35},
+  {id:'bingoCube',     name:'bingoCube',    emoji:'🎲', color:'#f55',  element:'Cl', personality:'unpredictable',          catchRate:0.3},
+  {id:'toadStool',     name:'toadStool',    emoji:'🍄', color:'#d64',  element:'O',  personality:'discovers everything',   catchRate:0.25},
+  {id:'barraCuda',     name:'barraCuda',    emoji:'🐟', color:'#4af',  element:'H',  personality:'fast and sharp',         catchRate:0.2},
+  {id:'coralReef',     name:'coralReef',    emoji:'🪸', color:'#f8a',  element:'Mn', personality:'builds ecosystems',      catchRate:0.15},
+];
+
+// ═══════════════════════════════════════
+// ELEMENTS — plantable seeds
+// ═══════════════════════════════════════
+const ELEMENTS = {
+  C:  {name:'Carbon',    color:'#555', growTime:3, emoji:'⬛'},
+  Fe: {name:'Iron',      color:'#a55', growTime:5, emoji:'🔴'},
+  Au: {name:'Gold',      color:'#fc4', growTime:8, emoji:'🟡'},
+  Si: {name:'Silicon',   color:'#88a', growTime:4, emoji:'🔵'},
+  Cu: {name:'Copper',    color:'#b84', growTime:4, emoji:'🟠'},
+  N:  {name:'Nitrogen',  color:'#58f', growTime:3, emoji:'💨'},
+  P:  {name:'Phosphorus',color:'#f5a', growTime:4, emoji:'✨'},
+  K:  {name:'Potassium', color:'#a5f', growTime:3, emoji:'💜'},
+  Ca: {name:'Calcium',   color:'#fff', growTime:6, emoji:'🦴'},
+  S:  {name:'Sulfur',    color:'#ff5', growTime:3, emoji:'💛'},
+  Na: {name:'Sodium',    color:'#f80', growTime:2, emoji:'🧂'},
+  Mg: {name:'Magnesium', color:'#5fa', growTime:3, emoji:'💚'},
+  Cl: {name:'Chlorine',  color:'#5ff', growTime:2, emoji:'💧'},
+  O:  {name:'Oxygen',    color:'#aef', growTime:2, emoji:'🫧'},
+  H:  {name:'Hydrogen',  color:'#eee', growTime:1, emoji:'💨'},
+  Mn: {name:'Manganese', color:'#c8a', growTime:5, emoji:'🔶'},
+};
+
+// ═══════════════════════════════════════
+// RECIPES — mint combinations
+// ═══════════════════════════════════════
+const RECIPES = [
+  {inputs:['Fe','C'],         output:'Steel',       emoji:'⚔️',  coins:10},
+  {inputs:['Au','Cu'],        output:'Crown',       emoji:'👑',  coins:25},
+  {inputs:['Na','Cl'],        output:'Salt',        emoji:'🧂',  coins:5},
+  {inputs:['H','O'],          output:'Water',       emoji:'💧',  coins:3},
+  {inputs:['Ca','P'],         output:'Bone',        emoji:'🦴',  coins:8},
+  {inputs:['C','C','C'],      output:'Diamond',     emoji:'💎',  coins:50},
+  {inputs:['Fe','Au','C'],    output:'Triangle',    emoji:'🔺',  coins:100},
+  {inputs:['N','P','K'],      output:'Fertilizer',  emoji:'🌿',  coins:15},
+  {inputs:['Si','Cu','Au'],   output:'Circuit',     emoji:'🔌',  coins:30},
+  {inputs:['S','Fe'],         output:'Pyrite',      emoji:'✨',  coins:12},
+  {inputs:['Mg','O'],         output:'Magnesia',    emoji:'🤍',  coins:7},
+  {inputs:['Ca','C','O'],     output:'Limestone',   emoji:'🪨',  coins:9},
+];
+
+// ═══════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════
+const FARM_W = 10, FARM_H = 8;
+const TILE = 48;
+let gameW, gameH;
+let tool = 'hand';
+let day = 1, hour = 6, minute = 0;
+let coins = 0;
+let caughtPrimals = new Set();
+let inventory = {};  // element -> count
+let mintedItems = {};
+
+// Farm grid: null | {state:'tilled'|'planted'|'watered'|'growing'|'ready', element, growth, maxGrowth}
+let farm = Array.from({length: FARM_H}, () => Array(FARM_W).fill(null));
+
+// Wandering primals
+let wanderers = [];
+const MAX_WANDERERS = 4;
+
+// Messages
+let msgQueue = [];
+let currentMsg = {speaker:'gaia', text:'welcome to the farm. till soil with ⛏️, plant with 🌱, water with 💧. catch primals with 🤚!'};
+
+// Particles
+let particles = [];
+
+function addMsg(speaker, text) {
+  msgQueue.push({speaker, text});
+}
+
+function showMsg(m) {
+  currentMsg = m;
+  document.getElementById('msg-text').textContent = m.text;
+  document.querySelector('#msg-box .speaker').textContent = m.speaker + ':';
+}
+
+// ═══════════════════════════════════════
+// PRIMAL WANDERERS
+// ═══════════════════════════════════════
+function spawnWanderer() {
+  if (wanderers.length >= MAX_WANDERERS) return;
+  const available = PRIMALS.filter(p => !caughtPrimals.has(p.id));
+  if (!available.length) return;
+  const p = available[Math.floor(Math.random() * available.length)];
+  const side = Math.floor(Math.random() * 4);
+  let x, y;
+  if (side === 0) { x = -1; y = Math.random() * FARM_H; }
+  else if (side === 1) { x = FARM_W; y = Math.random() * FARM_H; }
+  else if (side === 2) { x = Math.random() * FARM_W; y = -1; }
+  else { x = Math.random() * FARM_W; y = FARM_H; }
+  
+  wanderers.push({
+    primal: p,
+    x, y,
+    vx: (Math.random() - 0.5) * 0.02,
+    vy: (Math.random() - 0.5) * 0.02,
+    targetX: Math.random() * FARM_W,
+    targetY: Math.random() * FARM_H,
+    bobPhase: Math.random() * Math.PI * 2,
+    lifetime: 600 + Math.random() * 600,
+    age: 0,
+    hearts: 0,
+    fleeing: false,
+    catchable: false
+  });
+}
+
+function updateWanderers() {
+  for (let i = wanderers.length - 1; i >= 0; i--) {
+    const w = wanderers[i];
+    w.age++;
+    w.bobPhase += 0.06;
+    
+    if (w.fleeing) {
+      w.x += w.vx * 3;
+      w.y += w.vy * 3;
+      if (w.x < -2 || w.x > FARM_W + 2 || w.y < -2 || w.y > FARM_H + 2) {
+        wanderers.splice(i, 1);
+      }
+      continue;
+    }
+    
+    // Move toward target
+    const dx = w.targetX - w.x;
+    const dy = w.targetY - w.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > 0.3) {
+      w.x += dx / dist * 0.015;
+      w.y += dy / dist * 0.015;
+    } else {
+      w.targetX = 1 + Math.random() * (FARM_W - 2);
+      w.targetY = 1 + Math.random() * (FARM_H - 2);
+    }
+    
+    // Become catchable near planted elements of their type
+    w.catchable = false;
+    const gx = Math.floor(w.x), gy = Math.floor(w.y);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        const fx = gx + ox, fy = gy + oy;
+        if (fx >= 0 && fx < FARM_W && fy >= 0 && fy < FARM_H) {
+          const cell = farm[fy][fx];
+          if (cell && cell.element === w.primal.element && (cell.state === 'growing' || cell.state === 'ready')) {
+            w.catchable = true;
+            w.hearts = Math.min(w.hearts + 0.003, 1);
+          }
+        }
+      }
+    }
+    
+    if (w.age > w.lifetime && !w.catchable) {
+      w.fleeing = true;
+      w.vx = (w.x < FARM_W/2) ? -0.05 : 0.05;
+      w.vy = (w.y < FARM_H/2) ? -0.05 : 0.05;
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// DRAWING
+// ═══════════════════════════════════════
+const COLORS = {
+  grass: '#4a8f38',
+  grassLight: '#5aa848',
+  grassDark: '#3a7a2e',
+  soil: '#7a5a3a',
+  soilTilled: '#8a6a48',
+  soilWet: '#5a4028',
+  path: '#9a8a6a'
+};
+
+function drawTile(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+}
+
+function drawText(text, x, y, size, color, align) {
+  ctx.font = `${size}px 'Press Start 2P', monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align || 'center';
+  ctx.fillText(text, x, y);
+}
+
+function drawFarm() {
+  // Background grass with checkerboard + grid
+  for (let y = 0; y < FARM_H; y++) {
+    for (let x = 0; x < FARM_W; x++) {
+      const isLight = (x + y) % 2 === 0;
+      drawTile(x, y, isLight ? COLORS.grass : COLORS.grassLight);
+      
+      // Grid lines
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x * TILE, y * TILE, TILE, TILE);
+      
+      // Draw grass tufts on empty tiles
+      if (!farm[y][x] && Math.sin(x * 7.3 + y * 13.7) > 0.3) {
+        ctx.fillStyle = '#6abd55';
+        ctx.fillRect(x * TILE + 10, y * TILE + 30, 3, 8);
+        ctx.fillRect(x * TILE + 20, y * TILE + 28, 3, 10);
+        ctx.fillRect(x * TILE + 32, y * TILE + 32, 3, 6);
+      }
+      // Flowers on some tiles
+      if (!farm[y][x] && Math.sin(x * 3.1 + y * 5.7) > 0.7) {
+        const flowerColors = ['#f8a','#ff5','#f55','#5bf','#fa5'];
+        ctx.fillStyle = flowerColors[(x*3+y*7)%flowerColors.length];
+        ctx.fillRect(x * TILE + 15 + (x%3)*8, y * TILE + 12 + (y%3)*6, 5, 5);
+      }
+      
+      const cell = farm[y][x];
+      if (!cell) continue;
+      
+      const cx = x * TILE + TILE/2;
+      const cy = y * TILE + TILE/2;
+      
+      if (cell.state === 'tilled') {
+        drawTile(x, y, COLORS.soilTilled);
+        // Furrow lines
+        ctx.strokeStyle = '#3a2a10';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x * TILE + 4, y * TILE + 8 + i * 10);
+          ctx.lineTo(x * TILE + TILE - 4, y * TILE + 8 + i * 10);
+          ctx.stroke();
+        }
+      }
+      else if (cell.state === 'planted' || cell.state === 'watered') {
+        drawTile(x, y, cell.state === 'watered' ? COLORS.soilWet : COLORS.soilTilled);
+        // Tiny sprout
+        const el = ELEMENTS[cell.element];
+        ctx.fillStyle = el.color;
+        ctx.fillRect(cx - 1, cy + 4, 3, 8);
+        ctx.fillRect(cx - 3, cy + 2, 7, 3);
+      }
+      else if (cell.state === 'growing') {
+        drawTile(x, y, COLORS.soilWet);
+        const el = ELEMENTS[cell.element];
+        const progress = cell.growth / cell.maxGrowth;
+        const h = 6 + progress * 16;
+        // Stem
+        ctx.fillStyle = '#3a7a28';
+        ctx.fillRect(cx - 1, cy + 10 - h, 3, h);
+        // Leaves
+        ctx.fillStyle = el.color;
+        const lw = 4 + progress * 8;
+        ctx.fillRect(cx - lw/2, cy + 6 - h, lw, lw * 0.6);
+        // Element symbol
+        if (progress > 0.5) {
+          drawText(cell.element, cx, cy - 2, 8, '#fff', 'center');
+        }
+      }
+      else if (cell.state === 'ready') {
+        drawTile(x, y, COLORS.soilWet);
+        const el = ELEMENTS[cell.element];
+        // Full grown - pulsing
+        const pulse = Math.sin(Date.now() / 300) * 2;
+        ctx.fillStyle = '#3a7a28';
+        ctx.fillRect(cx - 2, cy - 10, 4, 22);
+        ctx.fillStyle = el.color;
+        ctx.beginPath();
+        ctx.arc(cx, cy - 12, 10 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+        drawText(el.emoji, cx, cy - 6, 16, '#fff', 'center');
+        // Sparkle
+        if (Math.random() < 0.05) {
+          particles.push({x: cx + (Math.random()-0.5)*20, y: cy - 15 + (Math.random()-0.5)*10,
+                         vx: (Math.random()-0.5)*0.5, vy: -0.5, life: 30, color: el.color, size: 3});
+        }
+      }
+    }
+  }
+}
+
+function drawWanderers() {
+  for (const w of wanderers) {
+    const px = w.x * TILE + TILE/2;
+    const py = w.y * TILE + TILE/2 + Math.sin(w.bobPhase) * 3;
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(px, py + 14, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Body
+    ctx.fillStyle = w.primal.color;
+    ctx.beginPath();
+    ctx.arc(px, py, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(px - 5, py - 4, 4, 4);
+    ctx.fillRect(px + 1, py - 4, 4, 4);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(px - 4, py - 3, 2, 2);
+    ctx.fillRect(px + 2, py - 3, 2, 2);
+    
+    // Emoji label
+    drawText(w.primal.emoji, px, py - 18, 14, '#fff', 'center');
+    
+    // Name when close
+    drawText(w.primal.name, px, py + 26, 6, 'rgba(255,255,255,0.7)', 'center');
+    
+    // Hearts (catchable indicator)
+    if (w.catchable) {
+      const hx = px + 16;
+      const hy = py - 16;
+      ctx.fillStyle = `rgba(255,100,100,${0.5 + Math.sin(Date.now()/200)*0.5})`;
+      drawText('❤️', hx, hy, 10, '#f55', 'center');
+    }
+    
+    // Friendship hearts
+    if (w.hearts > 0) {
+      const fullHearts = Math.floor(w.hearts * 5);
+      for (let h = 0; h < fullHearts; h++) {
+        drawText('♥', px - 12 + h * 7, py - 22, 6, '#f55', 'center');
+      }
+    }
+  }
+}
+
+function drawParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = p.life / 30;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawUI() {
+  // Tool cursor highlight
+  if (hoverTile) {
+    const {x, y} = hoverTile;
+    ctx.strokeStyle = tool === 'hand' ? '#5bf' : tool === 'hoe' ? '#a85' : tool === 'water' ? '#58f' : tool === 'seed' ? '#5f5' : '#fc4';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x * TILE + 1, y * TILE + 1, TILE - 2, TILE - 2);
+  }
+  
+  // Day/night tint
+  const nightAlpha = hour < 6 ? 0.4 : hour > 20 ? 0.3 : hour > 18 ? (hour - 18) * 0.15 : 0;
+  if (nightAlpha > 0) {
+    ctx.fillStyle = `rgba(10,10,40,${nightAlpha})`;
+    ctx.fillRect(0, 0, gameW, gameH);
+  }
+}
+
+// ═══════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════
+let hoverTile = null;
+let lastTick = 0;
+const TICK_MS = 1000;
+let tickAccum = 0;
+
+function resize() {
+  const wrap = C.parentElement;
+  const availW = wrap.clientWidth - 224;
+  const availH = wrap.clientHeight;
+  gameW = FARM_W * TILE;
+  gameH = FARM_H * TILE;
+  C.width = gameW;
+  C.height = gameH;
+  // Scale to fit available space while maintaining aspect ratio
+  const scaleX = availW / gameW;
+  const scaleY = availH / gameH;
+  const scale = Math.min(scaleX, scaleY, 1.5);
+  C.style.width = Math.floor(gameW * scale) + 'px';
+  C.style.height = Math.floor(gameH * scale) + 'px';
+}
+
+function gameTick() {
+  // Advance time
+  minute += 10;
+  if (minute >= 60) { minute = 0; hour++; }
+  if (hour >= 24) {
+    hour = 6;
+    day++;
+    // New day: grow plants, spawn primals
+    for (let y = 0; y < FARM_H; y++) {
+      for (let x = 0; x < FARM_W; x++) {
+        const cell = farm[y][x];
+        if (!cell) continue;
+        if (cell.state === 'watered' || cell.state === 'growing') {
+          cell.growth++;
+          cell.state = 'growing';
+          if (cell.growth >= cell.maxGrowth) {
+            cell.state = 'ready';
+            addMsg('gaia', `${ELEMENTS[cell.element].name} is ready to harvest! 🌟`);
+          }
+        }
+        // Watered plants that grow reset to needing water
+        if (cell.state === 'growing') cell.state = 'planted';
+      }
+    }
+    addMsg('chip', `day ${day}! ${wanderers.length} primals nearby. ${caughtPrimals.size}/16 caught.`);
+  }
+  
+  // Spawn wanderers
+  if (Math.random() < 0.08) spawnWanderer();
+  
+  // Process messages
+  if (msgQueue.length > 0 && Math.random() < 0.3) {
+    showMsg(msgQueue.shift());
+  }
+  
+  // Update clock
+  document.getElementById('clock').textContent = 
+    `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+  document.getElementById('day-display').textContent = 
+    `day ${day} · ${day <= 28 ? 'spring' : day <= 56 ? 'summer' : day <= 84 ? 'autumn' : 'winter'}`;
+  document.getElementById('coins').textContent = `💰 ${coins}`;
+}
+
+function gameLoop(ts) {
+  requestAnimationFrame(gameLoop);
+  
+  tickAccum += ts - (lastTick || ts);
+  lastTick = ts;
+  while (tickAccum >= TICK_MS) {
+    tickAccum -= TICK_MS;
+    gameTick();
+  }
+  
+  updateWanderers();
+  
+  ctx.clearRect(0, 0, gameW, gameH);
+  drawFarm();
+  drawWanderers();
+  drawParticles();
+  drawUI();
+}
+
+// ═══════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════
+C.addEventListener('mousemove', e => {
+  const rect = C.getBoundingClientRect();
+  const sx = gameW / rect.width;
+  const sy = gameH / rect.height;
+  const mx = (e.clientX - rect.left) * sx;
+  const sy = gameH / rect.height;
+  const my = (e.clientY - rect.top) * sy;
+  const tx = Math.floor(mx / TILE);
+  const ty = Math.floor(my / TILE);
+  if (tx >= 0 && tx < FARM_W && ty >= 0 && ty < FARM_H) {
+    hoverTile = {x: tx, y: ty};
+  } else {
+    hoverTile = null;
+  }
+});
+
+C.addEventListener('click', e => {
+  if (!hoverTile) return;
+  const {x, y} = hoverTile;
+  const cell = farm[y][x];
+  
+  const rect = C.getBoundingClientRect();
+  const sx = gameW / rect.width;
+  const mx = (e.clientX - rect.left) * sx;
+  const sy = gameH / rect.height;
+  const my = (e.clientY - rect.top) * sy;
+  
+  if (tool === 'hand') {
+    // Try to catch a primal
+    for (let i = wanderers.length - 1; i >= 0; i--) {
+      const w = wanderers[i];
+      const dx = w.x - x;
+      const dy = w.y - y;
+      if (Math.abs(dx) < 1.5 && Math.abs(dy) < 1.5) {
+        if (w.catchable || w.hearts > 0.5) {
+          const roll = Math.random();
+          const rate = w.primal.catchRate + w.hearts * 0.3;
+          if (roll < rate) {
+            caughtPrimals.add(w.primal.id);
+            wanderers.splice(i, 1);
+            coins += 5;
+            addMsg(w.primal.name, `${w.primal.personality}. i'll stay with you! 💚`);
+            for (let k = 0; k < 15; k++) {
+              particles.push({x: w.x*TILE+TILE/2, y: w.y*TILE+TILE/2,
+                vx:(Math.random()-0.5)*3, vy:(Math.random()-0.5)*3,
+                life:40, color:w.primal.color, size:4});
+            }
+            updateSidebar();
+            break;
+          } else {
+            w.fleeing = true;
+            w.vx = (w.x < FARM_W/2) ? -0.05 : 0.05;
+            w.vy = (w.y < FARM_H/2) ? -0.05 : 0.05;
+            addMsg('chip', `${w.primal.name} got startled! plant more ${w.primal.element} to attract them...`);
+          }
+        } else {
+          addMsg('gaia', `${w.primal.name} needs ${ELEMENTS[w.primal.element].name} growing nearby to trust you.`);
+        }
+        return;
+      }
+    }
+    // Harvest ready plants
+    if (cell && cell.state === 'ready') {
+      const el = cell.element;
+      inventory[el] = (inventory[el] || 0) + 1;
+      farm[y][x] = {state: 'tilled'};
+      coins += 2;
+      addMsg('gaia', `harvested ${ELEMENTS[el].emoji} ${ELEMENTS[el].name}! (${inventory[el]} total)`);
+      for (let k = 0; k < 8; k++) {
+        particles.push({x:x*TILE+TILE/2, y:y*TILE+TILE/2,
+          vx:(Math.random()-0.5)*2, vy:-Math.random()*2,
+          life:25, color:ELEMENTS[el].color, size:3});
+      }
+      updateSidebar();
+    }
+  }
+  else if (tool === 'hoe') {
+    if (!cell) {
+      farm[y][x] = {state: 'tilled'};
+      addMsg('chip', 'soil tilled! now plant a seed 🌱');
+    }
+  }
+  else if (tool === 'water') {
+    if (cell && (cell.state === 'planted' || cell.state === 'growing')) {
+      cell.state = 'watered';
+      addMsg('chip', `watered the ${ELEMENTS[cell.element].name}! it'll grow overnight 💧`);
+    }
+  }
+  else if (tool === 'seed') {
+    if (cell && cell.state === 'tilled') {
+      // Pick a random element to plant (or cycle through available)
+      const elKeys = Object.keys(ELEMENTS);
+      const el = elKeys[Math.floor(Math.random() * elKeys.length)];
+      cell.state = 'planted';
+      cell.element = el;
+      cell.growth = 0;
+      cell.maxGrowth = ELEMENTS[el].growTime;
+      addMsg('gaia', `planted ${ELEMENTS[el].emoji} ${ELEMENTS[el].name}! water it and wait...`);
+      
+      // Check if this attracts a primal
+      const attracted = PRIMALS.find(p => p.element === el && !caughtPrimals.has(p.id));
+      if (attracted) {
+        addMsg('chip', `psst... ${attracted.emoji} ${attracted.name} likes ${ELEMENTS[el].name}! they might visit...`);
+      }
+    }
+  }
+  else if (tool === 'mint') {
+    openForge();
+  }
+});
+
+// Fix: need sy for click handler
+C.addEventListener('click', function handler(e) {
+  const rect = C.getBoundingClientRect();
+  const sy = gameH / rect.height;
+}, {once: true});
+
+// Tool buttons
+document.querySelectorAll('.tool-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.tool-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    tool = btn.dataset.tool;
+    if (tool === 'mint') openForge();
+  });
+});
+
+// ═══════════════════════════════════════
+// FORGE / MINT
+// ═══════════════════════════════════════
+function openForge() {
+  const modal = document.getElementById('mint-modal');
+  const overlay = document.getElementById('mint-overlay');
+  const content = document.getElementById('forge-content');
+  
+  let html = '<div style="text-align:left">';
+  for (const recipe of RECIPES) {
+    const canMake = recipe.inputs.every(el => (inventory[el] || 0) >= recipe.inputs.filter(e => e === el).length);
+    const inputStr = recipe.inputs.map(el => `${ELEMENTS[el].emoji}${el}`).join(' + ');
+    const style = canMake ? 'color:#5f5' : 'color:#555';
+    html += `<div class="recipe" style="${style};margin:0.5rem 0;cursor:${canMake?'pointer':'default'}" 
+             ${canMake ? `onclick="doMint('${recipe.output}')"` : ''}>
+      ${inputStr} → ${recipe.emoji} ${recipe.output} (💰${recipe.coins})
+    </div>`;
+  }
+  html += '</div>';
+  
+  content.innerHTML = html;
+  modal.style.display = 'block';
+  overlay.style.display = 'block';
+  overlay.onclick = () => { modal.style.display = 'none'; overlay.style.display = 'none'; };
+}
+
+window.doMint = function(outputName) {
+  const recipe = RECIPES.find(r => r.output === outputName);
+  if (!recipe) return;
+  
+  // Check and consume ingredients
+  const needed = {};
+  for (const el of recipe.inputs) needed[el] = (needed[el] || 0) + 1;
+  for (const [el, count] of Object.entries(needed)) {
+    if ((inventory[el] || 0) < count) return;
+  }
+  for (const [el, count] of Object.entries(needed)) {
+    inventory[el] -= count;
+    if (inventory[el] <= 0) delete inventory[el];
+  }
+  
+  mintedItems[outputName] = (mintedItems[outputName] || 0) + 1;
+  coins += recipe.coins;
+  
+  addMsg('gaia', `🔥 MINTED: ${recipe.emoji} ${outputName}! +${recipe.coins} coins`);
+  updateSidebar();
+  
+  // Close and reopen to refresh
+  document.getElementById('mint-modal').style.display = 'none';
+  document.getElementById('mint-overlay').style.display = 'none';
+  
+  if (outputName === 'Triangle') {
+    addMsg('chip', '🔺 THE TRIANGLE! Fe + Au + C — iron carries, gold endures, carbon speaks!');
+  }
+};
+
+// ═══════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════
+function updateSidebar() {
+  // Primals
+  const list = document.getElementById('primal-list');
+  list.innerHTML = PRIMALS.map(p => {
+    const caught = caughtPrimals.has(p.id);
+    return `<li class="${caught ? 'caught' : 'wild'}">
+      <span class="dot" style="background:${p.color}"></span>
+      ${p.emoji} ${caught ? p.name : '???'}
+      ${caught ? '✓' : ''}
+    </li>`;
+  }).join('');
+  document.getElementById('caught-count').textContent = caughtPrimals.size;
+  
+  // Inventory
+  const inv = document.getElementById('inv-list');
+  const items = Object.entries(inventory).filter(([,c]) => c > 0);
+  const minted = Object.entries(mintedItems).filter(([,c]) => c > 0);
+  inv.innerHTML = items.map(([el, count]) => 
+    `<li>${ELEMENTS[el].emoji} ${el} <span class="count">×${count}</span></li>`
+  ).join('') + minted.map(([name, count]) => {
+    const r = RECIPES.find(r => r.output === name);
+    return `<li>${r?.emoji||'🔮'} ${name} <span class="count">×${count}</span></li>`;
+  }).join('');
+  
+  // Recipes
+  const recipes = document.getElementById('recipes');
+  recipes.innerHTML = RECIPES.map(r => {
+    const canMake = r.inputs.every(el => (inventory[el] || 0) > 0);
+    return `<div style="color:${canMake ? '#5f5' : '#444'}">${r.inputs.join('+')}→${r.emoji}${r.output}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init() {
+  resize();
+  window.addEventListener('resize', resize);
+  updateSidebar();
+  
+  // Starting seeds in inventory
+  addMsg('gaia', 'here are some starter seeds. till the soil, plant them, water daily.');
+  addMsg('chip', 'primals wander through! grow their favorite element to attract them 🐿️');
+  addMsg('gaia', 'mint at the forge 🔥 — combine elements into treasures!');
+  
+  // Spawn initial wanderers
+  spawnWanderer();
+  spawnWanderer();
+  
+  requestAnimationFrame(gameLoop);
+}
+
+init();
+</script>
+</body>
+</html>
