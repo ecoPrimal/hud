@@ -608,6 +608,33 @@ setInterval(() => {
 }, 1000);
 addEntropy(performance.now() ^ Date.now());
 addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
+
+  // PHEROMONE EMITTER — every touch on the HUD throws a stinky ball
+  (function() {
+    const TRAIL = [];
+    const NTFY = 'https://ntfy.sh/primals-pheromone';
+    let lastEmit = 0;
+    const COOLDOWN = 30000;
+    function emit(type, detail) {
+      const now = Date.now();
+      if (now - lastEmit < COOLDOWN) return;
+      lastEmit = now;
+      const p = { t: type, d: String(detail).slice(0, 100), ts: now, p: location.pathname };
+      TRAIL.push(p);
+      if (TRAIL.length > 50) TRAIL.shift();
+      try { navigator.sendBeacon(NTFY, JSON.stringify(p)); } catch {}
+    }
+    document.addEventListener('click', function(e) {
+      emit('click', (e.target.tagName||'') + ':' + (e.target.id || e.target.className || ''));
+    });
+    document.addEventListener('visibilitychange', function() {
+      emit(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 50));
+    });
+    emit('arrive', navigator.userAgent.slice(0, 50));
+    window.PHEROMONE_TRAIL = TRAIL;
+    window.emitPheromone = emit;
+  })();
+
 </script>
 </body>
 </html>
