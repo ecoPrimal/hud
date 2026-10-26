@@ -1218,15 +1218,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       });
     }
 
-    // COMPASS — hyperlocal destinations Gaia can move us to
+    // COMPASS — multi-scale: hyperlocal + solar system + zodiac
     var compass = [
-      { name: 'Lansing',    angle: 0,          lat: 42.73, lon: -84.56 },
-      { name: 'MSU',        angle: TAU * 0.14, lat: 42.72, lon: -84.48 },
-      { name: 'Prius Pets', angle: TAU * 0.28, lat: 42.74, lon: -84.55 },
-      { name: 'Old Town',   angle: TAU * 0.42, lat: 42.74, lon: -84.56 },
-      { name: 'Detroit',    angle: TAU * 0.57, lat: 42.33, lon: -83.05 },
-      { name: 'Iceland',    angle: TAU * 0.71, lat: 64.96, lon: -19.02 },
-      { name: 'Egypt',      angle: TAU * 0.85, lat: 29.98, lon: 31.13 },
+      // Hyperlocal (inner ring)
+      { name: 'Lansing',    angle: 0,          ring: 0, color: '#3fb950' },
+      { name: 'MSU',        angle: TAU * 0.14, ring: 0, color: '#18453b' },
+      { name: 'Prius Pets', angle: TAU * 0.28, ring: 0, color: '#3fb950' },
+      { name: 'Old Town',   angle: TAU * 0.42, ring: 0, color: '#d29922' },
+      { name: 'Detroit',    angle: TAU * 0.57, ring: 0, color: '#bc8cff' },
+      // Solar system (middle ring, log AU scale)
+      { name: 'Sun',     angle: 0,              ring: 1, color: '#f0c040' },
+      { name: 'Earth',   angle: TAU * 0.08,     ring: 1, color: '#58a6ff' },
+      { name: 'Mars',    angle: TAU * 0.16,     ring: 1, color: '#f85149' },
+      { name: 'Jupiter', angle: TAU * 0.27,     ring: 1, color: '#d29922' },
+      { name: 'Saturn',  angle: TAU * 0.38,     ring: 1, color: '#c9a84c' },
+      { name: 'Neptune', angle: TAU * 0.52,     ring: 1, color: '#58a6ff' },
+      { name: 'Pluto',   angle: TAU * 0.63,     ring: 1, color: '#6e7681' },
+      { name: 'Sedna',   angle: TAU * 0.78,     ring: 1, color: '#f85149' },
+      { name: 'PBH',     angle: TAU * 0.88,     ring: 1, color: '#010409' },
+      // Zodiac (outer ring, 12 signs at 30 degrees each)
+      { name: 'Aries',   angle: TAU * 0/12, ring: 2, color: '#f85149' },
+      { name: 'Taurus',  angle: TAU * 1/12, ring: 2, color: '#3fb950' },
+      { name: 'Gemini',  angle: TAU * 2/12, ring: 2, color: '#d29922' },
+      { name: 'Cancer',  angle: TAU * 3/12, ring: 2, color: '#58a6ff' },
+      { name: 'Leo',     angle: TAU * 4/12, ring: 2, color: '#f0c040' },
+      { name: 'Virgo',   angle: TAU * 5/12, ring: 2, color: '#3fb950' },
+      { name: 'Libra',   angle: TAU * 6/12, ring: 2, color: '#bc8cff' },
+      { name: 'Scorpio', angle: TAU * 7/12, ring: 2, color: '#f85149' },
+      { name: 'Sag',     angle: TAU * 8/12, ring: 2, color: '#d29922' },
+      { name: 'Cap',     angle: TAU * 9/12, ring: 2, color: '#6e7681' },
+      { name: 'Aqua',    angle: TAU * 10/12,ring: 2, color: '#58a6ff' },
+      { name: 'Pisces',  angle: TAU * 11/12,ring: 2, color: '#bc8cff' },
     ];
 
     gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
@@ -1429,41 +1451,69 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       });
     }
 
-    // COMPASS — click destinations around the outer rim
+    // COMPASS — three rings: hyperlocal / solar system / zodiac
     if (s.compass) {
-      var compassR = Math.min(s.W, s.H) * 0.42;
-      ctx.font = '8px "JetBrains Mono", monospace';
-      s.compass.forEach(function(c) {
-        var cx2 = s.cx + Math.cos(c.angle) * compassR;
-        var cy2 = s.cy + Math.sin(c.angle) * compassR;
-        var isTarget = s.compassTarget === c.name;
+      var maxR = Math.min(s.W, s.H) * 0.44;
+      var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
+      var ringLabels = ['local', 'solar', 'zodiac'];
+
+      // Draw ring circles
+      ringRadii.forEach(function(rr, ri) {
         ctx.beginPath();
-        ctx.arc(cx2, cy2, isTarget ? 8 : 5, 0, TAU);
-        ctx.fillStyle = isTarget ? 'rgba(63,185,80,0.6)' : 'rgba(110,118,129,0.2)';
-        ctx.fill();
-        if (isTarget) {
-          ctx.strokeStyle = 'rgba(63,185,80,0.4)';
+        ctx.arc(s.cx, s.cy, rr, 0, TAU);
+        ctx.strokeStyle = 'rgba(110,118,129,' + (0.04 + ri * 0.02).toFixed(2) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+
+      ctx.font = '7px "JetBrains Mono", monospace';
+      s.compass.forEach(function(c) {
+        var rr = ringRadii[c.ring || 0];
+        var cx2 = s.cx + Math.cos(c.angle) * rr;
+        var cy2 = s.cy + Math.sin(c.angle) * rr;
+        var isTarget = s.compassTarget === c.name;
+        var isPBH = c.name === 'PBH';
+        var dotR = isTarget ? 7 : (c.ring === 2 ? 3 : 4);
+
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, dotR, 0, TAU);
+        if (isPBH) {
+          // PBH = Gaia's black hole shadow — dark with red edge
+          ctx.fillStyle = '#010409';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(248,81,73,' + (0.3 + Math.sin(gaiaPhase * 2) * 0.2).toFixed(2) + ')';
           ctx.lineWidth = 1;
           ctx.stroke();
-          // Draw line from center to target
+        } else {
+          ctx.fillStyle = isTarget ? (c.color || 'rgba(63,185,80,0.6)') : (c.color ? c.color + '40' : 'rgba(110,118,129,0.15)');
+          ctx.fill();
+        }
+
+        if (isTarget) {
           ctx.beginPath();
           ctx.moveTo(s.cx, s.cy);
           ctx.lineTo(cx2, cy2);
-          ctx.strokeStyle = 'rgba(63,185,80,0.15)';
+          ctx.strokeStyle = (c.color || '#3fb950') + '30';
           ctx.setLineDash([3,5]);
+          ctx.lineWidth = 0.5;
           ctx.stroke();
           ctx.setLineDash([]);
         }
-        ctx.fillStyle = isTarget ? 'rgba(63,185,80,0.8)' : 'rgba(110,118,129,0.4)';
+
+        ctx.fillStyle = isTarget ? (c.color || '#3fb950') : 'rgba(110,118,129,0.3)';
         ctx.textAlign = 'center';
-        ctx.fillText(c.name, cx2, cy2 + (isTarget ? 14 : 12));
+        var fontSize = c.ring === 2 ? '5px' : '6px';
+        ctx.font = fontSize + ' "JetBrains Mono", monospace';
+        ctx.fillText(c.name, cx2, cy2 + dotR + 8);
       });
 
-      // Compass label
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(110,118,129,0.25)';
+      // Ring labels
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(110,118,129,0.15)';
       ctx.textAlign = 'right';
-      ctx.fillText('click to move · Gaia navigates', s.W - 14, s.H - 46);
+      ringLabels.forEach(function(label, i) {
+        ctx.fillText(label, s.cx - ringRadii[i] - 4, s.cy);
+      });
     }
 
     // Labels
@@ -1477,23 +1527,24 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     requestAnimationFrame(renderThirdEye);
   }
 
-  // COMPASS CLICK HANDLER — Gaia moves us
+  // COMPASS CLICK HANDLER — Gaia moves us (multi-ring)
   document.getElementById('kn-canvas').addEventListener('click', function(e) {
     if (!gaiaStrokes || !gaiaStrokes.compass) return;
     var rect = this.getBoundingClientRect();
     var mx = (e.clientX - rect.left) * (this.width / rect.width);
     var my = (e.clientY - rect.top) * (this.height / rect.height);
-    var compassR = Math.min(gaiaStrokes.W, gaiaStrokes.H) * 0.42;
+    var maxR = Math.min(gaiaStrokes.W, gaiaStrokes.H) * 0.44;
+    var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
     var hit = null;
     gaiaStrokes.compass.forEach(function(c) {
-      var cx2 = gaiaStrokes.cx + Math.cos(c.angle) * compassR;
-      var cy2 = gaiaStrokes.cy + Math.sin(c.angle) * compassR;
+      var rr = ringRadii[c.ring || 0];
+      var cx2 = gaiaStrokes.cx + Math.cos(c.angle) * rr;
+      var cy2 = gaiaStrokes.cy + Math.sin(c.angle) * rr;
       var dx = mx - cx2, dy = my - cy2;
-      if (Math.sqrt(dx*dx + dy*dy) < 20) hit = c.name;
+      if (Math.sqrt(dx*dx + dy*dy) < 18) hit = c.name;
     });
     if (hit) {
       gaiaStrokes.compassTarget = hit;
-      gaiaStrokes.compassLerp = 0;
     }
   });
 
