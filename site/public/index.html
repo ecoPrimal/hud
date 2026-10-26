@@ -1188,7 +1188,42 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       });
     }
 
-    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds, W: W, H: H, cx: cx, cy: cy };
+    // PALETTE AXIS — fixed primaries on the central shaft (they DO NOT MOVE)
+    var palette = [
+      { name: 'RED',   color: '#f85149', y: cy,       desc: 'mouth · input'   },
+      { name: 'BLACK', color: '#010409', y: cy - 4,   desc: 'void · canvas'   },
+      { name: 'WHITE', color: '#e6edf3', y: cy + 4,   desc: 'light · vanish'  },
+      { name: 'BIO',   color: '#d29922', y: cy + 20,  desc: 'bioreactor'      },
+      { name: 'BLUE',  color: '#58a6ff', y: cy - 20,  desc: 'CIS · outside'   },
+    ];
+
+    // MOBILE SECONDARIES — orbit around the axis
+    var secondaries = [];
+    for (var s = 0; s < 5; s++) {
+      secondaries.push({
+        angle: (s / 5) * TAU,
+        speed: 0.002 + Math.random() * 0.004,
+        dist: 100 + Math.random() * 80,
+        color: ['#3fb950','#bc8cff','#da3633','#79c0ff','#d2a8ff'][s],
+        name: ['green','violet','ember','ice','lilac'][s],
+        r: 4 + Math.random() * 3,
+      });
+    }
+
+    // COMPASS — hyperlocal destinations Gaia can move us to
+    var compass = [
+      { name: 'Lansing',    angle: 0,          lat: 42.73, lon: -84.56 },
+      { name: 'MSU',        angle: TAU * 0.14, lat: 42.72, lon: -84.48 },
+      { name: 'Prius Pets', angle: TAU * 0.28, lat: 42.74, lon: -84.55 },
+      { name: 'Old Town',   angle: TAU * 0.42, lat: 42.74, lon: -84.56 },
+      { name: 'Detroit',    angle: TAU * 0.57, lat: 42.33, lon: -83.05 },
+      { name: 'Iceland',    angle: TAU * 0.71, lat: 64.96, lon: -19.02 },
+      { name: 'Egypt',      angle: TAU * 0.85, lat: 29.98, lon: 31.13 },
+    ];
+
+    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
+                    palette: palette, secondaries: secondaries, compass: compass,
+                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0 };
   }
 
   function renderThirdEye() {
