@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAIA ENGINE — CryEngine × Kenshi × Primal · LIVE</title>
+<style>
+:root {
+  --bg: #0a0c10; --surface: #12161e; --border: #1c2333; --fg: #c9d1d9; --dim: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --gold: #d29922; --orange: #f0883e;
+  --red: #f85149; --purple: #a371f7; --cyan: #39d3f5; --pink: #f778ba;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.4 'JetBrains Mono', 'SF Mono', monospace; overflow: hidden; height: 100vh; }
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+#app { display: grid; grid-template-rows: 36px 1fr 28px; height: 100vh; }
+
+/* HEADER BAR */
+header { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 12px; }
+header h1 { font-size: 11px; font-weight: 700; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; }
+.header-rate { font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid; }
+.rate-good { color: var(--green); border-color: var(--green); }
+.rate-warn { color: var(--gold); border-color: var(--gold); }
+.rate-crit { color: var(--red); border-color: var(--red); }
+.header-spacer { flex: 1; }
+#phase-label { font-size: 9px; color: var(--dim); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* MAIN GRID */
+main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow: hidden; }
+
+/* LEFT PANEL — SQUAD */
+.panel { background: var(--surface); border: 1px solid var(--border); overflow-y: auto; padding: 6px; }
+.panel h2 { font-size: 9px; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.squad-member { display: flex; align-items: center; gap: 6px; padding: 3px 4px; border-radius: 3px; margin-bottom: 2px; cursor: default; }
+.squad-member:hover { background: rgba(88,166,255,0.06); }
+.sq-icon { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; flex-shrink: 0; }
+.sq-name { font-size: 9px; flex: 1; }
+.sq-hp { font-size: 8px; width: 40px; text-align: right; }
+
+/* CENTER — RENDER VIEWPORT */
+#viewport { background: #060810; position: relative; overflow: hidden; }
+#viewport canvas { width: 100%; height: 100%; }
+#render-target { width: 100%; height: 100%; }
+#hud-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.hud-compass { position: absolute; top: 12px; right: 12px; width: 80px; height: 80px; }
+.hud-crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.hud-crosshair::before, .hud-crosshair::after { content:''; position:absolute; background: rgba(57,211,245,0.3); }
+.hud-crosshair::before { width: 20px; height: 1px; left: -10px; top: 0; }
+.hud-crosshair::after { width: 1px; height: 20px; left: 0; top: -10px; }
+
+/* MINIMAP */
+.minimap { position: absolute; bottom: 12px; right: 12px; width: 140px; height: 100px; background: rgba(12,16,24,0.85); border: 1px solid var(--border); border-radius: 4px; }
+.minimap canvas { width: 100%; height: 100%; }
+
+/* LUNG METER */
+.lung-meter { position: absolute; left: 12px; bottom: 12px; }
+.lung-bar { width: 8px; height: 120px; background: rgba(12,16,24,0.8); border: 1px solid var(--border); border-radius: 4px; position: relative; }
+.lung-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, var(--cyan), var(--blue)); border-radius: 0 0 3px 3px; transition: height 1s ease; }
+.lung-label { font-size: 7px; color: var(--cyan); text-align: center; margin-top: 2px; }
+
+/* RIGHT PANEL — RATES DASHBOARD */
+.rate-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; border-bottom: 1px solid rgba(28,35,51,0.5); }
+.rate-label { font-size: 8px; color: var(--dim); }
+.rate-value { font-size: 10px; font-weight: 700; }
+.rate-unit { font-size: 7px; color: var(--dim); margin-left: 2px; }
+.rate-bar { height: 3px; background: var(--bg); border-radius: 2px; margin-top: 2px; }
+.rate-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+
+.section-divider { height: 1px; background: var(--border); margin: 6px 0; }
+.neuro-row { display: flex; align-items: center; gap: 4px; padding: 2px 4px; }
+.neuro-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.neuro-name { font-size: 7px; color: var(--dim); flex: 1; }
+.neuro-val { font-size: 8px; width: 32px; text-align: right; }
+
+/* FOOTER */
+footer { background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 12px; font-size: 9px; color: var(--dim); }
+.footer-live { color: var(--green); }
+.footer-live::before { content: '●'; margin-right: 4px; animation: pulse-dot 2s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+<div id="app">
+
+<header>
+  <h1>⚙ GAIA ENGINE</h1>
+  <span class="header-rate rate-good" id="h-commits">—/hr</span>
+  <span class="header-rate rate-good" id="h-lessons">—/hr</span>
+  <span class="header-rate rate-warn" id="h-mor">MOR —%</span>
+  <span class="header-rate rate-good" id="h-gpu">GPU —%</span>
+  <span class="header-spacer"></span>
+  <span id="phase-label">loading…</span>
+</header>
+
+<main>
+  <!-- LEFT: SQUAD ROSTER -->
+  <div class="panel" id="squad-panel">
+    <h2>◆ Squad — 16 Primals</h2>
+    <div id="squad-list"></div>
+  </div>
+
+  <!-- CENTER: RENDER VIEWPORT -->
+  <div id="viewport">
+    <div id="render-target"></div>
+    <div id="hud-overlay">
+      <div class="hud-crosshair"></div>
+      <div class="lung-meter">
+        <div class="lung-bar"><div class="lung-fill" id="lung-fill" style="height:9%"></div></div>
+        <div class="lung-label" id="lung-pct">9%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: RATES DASHBOARD -->
+  <div class="panel" id="rates-panel">
+    <h2>◆ Rates — Live</h2>
+    <div id="rates-list"></div>
+    <div class="section-divider"></div>
+    <h2>◆ Neurochemistry</h2>
+    <div id="neuro-list"></div>
+    <div class="section-divider"></div>
+    <h2>◆ Devices — Heartbeat</h2>
+    <div id="devices-list"></div>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-live">LIVE</span>
+  <span id="f-wave">wave —</span>
+  <span>|</span>
+  <span id="f-entities">— entities</span>
+  <span>|</span>
+  <span id="f-beacons">— beacons</span>
+  <span>|</span>
+  <span id="f-escape">escape — %</span>
+  <span>|</span>
+  <span id="f-selectivity">selectivity 1/π</span>
+  <span style="flex:1"></span>
+  <span id="f-time"></span>
+</footer>
+
+</div>
+
+<script type="module">
+// ═══════════════════════════════════════════════
+// GAIA ENGINE — live rendering pipeline
+// PetalTongue WASM + ToadStool builder + sourDough ferment
+// ═══════════════════════════════════════════════
+
+const SQUAD = [
+  { id:'toadStool',  icon:'🍄', color:'#8b6914', organ:'hands',  role:'Engineer' },
+  { id:'biomeOS',    icon:'🧠', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
+  { id:'nestGate',   icon:'🚪', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
+  { id:'bearDog',    icon:'🐻', color:'#d29922', organ:'skin',   role:'Warrior' },
+  { id:'petalTongue',icon:'👅', color:'#f778ba', organ:'tongue', role:'Renderer' },
+  { id:'rhizoCrypt', icon:'🦴', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
+  { id:'sweetGrass', icon:'🌿', color:'#3fb950', organ:'nose',   role:'Scribe' },
+  { id:'loamSpine',  icon:'⚔️', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
+  { id:'skunkBat',   icon:'🦇', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
+  { id:'sourDough',  icon:'🍞', color:'#d29922', organ:'stomach',role:'Alchemist' },
+  { id:'swarmVine',  icon:'🌊', color:'#39d3f5', organ:'nerves', role:'Scout' },
+  { id:'bingoCube',  icon:'🎲', color:'#f0883e', organ:'heart',  role:'Gambler' },
+  { id:'coralReef',  icon:'🫁', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
+  { id:'barraCuda',  icon:'⚡', color:'#f85149', organ:'muscles',role:'Striker' },
+  { id:'squirrel',   icon:'🐿', color:'#3fb950', organ:'eyes',   role:'Watcher' },
+  { id:'songBird',   icon:'🐦', color:'#58a6ff', organ:'ears',   role:'Bard' },
+];
+
+// Build squad list
+const squadEl = document.getElementById('squad-list');
+SQUAD.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'squad-member';
+  d.innerHTML = `<div class="sq-icon" style="background:${s.color}40;border:1px solid ${s.color}">${s.icon}</div>
+    <span class="sq-name" style="color:${s.color}">${s.id}</span>
+    <span class="sq-hp" style="color:var(--green)">●</span>`;
+  squadEl.appendChild(d);
+});
+
+// Polling engine
+async function fetchJSON(url) {
+  try { const r = await fetch(url, {cache:'no-store'}); return r.ok ? r.json() : null; }
+  catch { return null; }
+}
+
+// ═══ RATES DASHBOARD ═══
+function renderRates(rates) {
+  const el = document.getElementById('rates-list');
+  if (!rates) return;
+  const items = [
+    { label:'Commits', value: rates.velocity?.commits_per_hour?.value, unit:'/hr', max: 60, color:'var(--green)' },
+    { label:'Lessons', value: rates.velocity?.lessons_per_hour?.value, unit:'/hr', max: 30, color:'var(--blue)' },
+    { label:'Creations', value: rates.velocity?.creations_per_hour?.value, unit:'/hr', max: 5, color:'var(--purple)' },
+    { label:'Messages', value: rates.velocity?.messages_per_hour?.value, unit:'/hr', max: 40, color:'var(--gold)' },
+    { label:'Ear Events', value: rates.velocity?.ear_events_per_minute?.value, unit:'/min', max: 200, color:'var(--cyan)' },
+    { label:'MOR Health', value: rates.meters?.mor?.value ? (rates.meters.mor.value*100) : null, unit:'%', max: 100, color:'var(--green)' },
+    { label:'GPU Used', value: rates.speed?.gpu?.utilization_pct, unit:'%', max: 100, color:'var(--cyan)' },
+    { label:'CPU Load', value: rates.speed?.cpu?.load, unit:'', max: 4, color:'var(--gold)' },
+    { label:'Net In', value: rates.speed?.network?.inbound_bps, unit:'bps', max: 5000, color:'var(--blue)' },
+    { label:'Net Out', value: rates.speed?.network?.outbound_bps, unit:'bps', max: 5000, color:'var(--purple)' },
+    { label:'Escape V', value: rates.acceleration?.escape_velocity?.value ? (rates.acceleration.escape_velocity.value*100) : null, unit:'%', max: 100, color:'var(--gold)' },
+    { label:'Gaia π Pos', value: rates.acceleration?.gaia_pi_position?.value, unit:'', max: 3.14159, color:'var(--pink)' },
+  ];
+  el.innerHTML = items.map(i => {
+    const v = i.value != null ? (typeof i.value === 'number' ? i.value.toFixed(i.unit==='%'?1:2) : i.value) : '—';
+    const pct = i.value != null ? Math.min(100, (i.value/i.max)*100) : 0;
+    return `<div class="rate-row"><span class="rate-label">${i.label}</span><span class="rate-value" style="color:${i.color}">${v}<span class="rate-unit">${i.unit}</span></span></div>
+      <div class="rate-bar"><div class="rate-bar-fill" style="width:${pct}%;background:${i.color}"></div></div>`;
+  }).join('');
+}
+
+// ═══ NEUROCHEMISTRY ═══
+function renderNeuro(neuro) {
+  const el = document.getElementById('neuro-list');
+  if (!neuro?.neurochemistry_rates) return;
+  const n = neuro.neurochemistry_rates;
+  const colors = { glucose:'#f0883e', atp:'#39d3f5', serotonin:'#3fb950', dopamine:'#a371f7', adrenaline:'#f85149', cortisol:'#d29922' };
+  el.innerHTML = Object.entries(n).filter(([k]) => k !== 'ts').map(([k, v]) => {
+    const c = colors[k] || 'var(--dim)';
+    return `<div class="neuro-row"><div class="neuro-dot" style="background:${c}"></div><span class="neuro-name">${k}</span><span class="neuro-val" style="color:${c}">${v.value?.toFixed(3)||'—'}</span></div>`;
+  }).join('');
+}
+
+// ═══ DEVICES HEARTBEAT ═══
+function renderDevices(hb) {
+  const el = document.getElementById('devices-list');
+  if (!hb?.cardiac) return;
+  el.innerHTML = Object.entries(hb.cardiac).map(([name, dev]) => {
+    const alive = dev.alive;
+    const c = alive ? 'var(--green)' : 'var(--red)';
+    const avg = dev.avg != null ? dev.avg.toFixed(1)+'ms' : 'DEAD';
+    return `<div class="neuro-row"><div class="neuro-dot" style="background:${c}"></div><span class="neuro-name">${name}</span><span class="neuro-val" style="color:${c}">${avg}</span></div>`;
+  }).join('');
+}
+
+// ═══ VIEWPORT — PetalTongue WASM render ═══
+async function renderViewport() {
+  try {
+    const mod = await import('/wasm/petal_tongue_wasm.js');
+    await mod.default('/wasm/petal_tongue_wasm_bg.wasm');
+    mod.init();
+
+    // Fetch live data for rendering
+    const [now, membrane, campfire] = await Promise.all([
+      fetchJSON('/now.json'),
+      fetchJSON('/membrane.json'),
+      fetchJSON('/campfire.json')
+    ]);
+
+    if (!now) return;
+
+    // Build dashboard bindings from live data
+    const bindings = [
+      { id: 'selectivity', type: 'Gauge', label: 'Selectivity 1/π', value: now.sort_quality || 0.318, min: 0, max: 1 },
+      { id: 'escape', type: 'Gauge', label: 'Escape Velocity', value: now.rates_live?.escape_velocity || 0.783, min: 0, max: 1 },
+      { id: 'mor', type: 'Gauge', label: 'MOR Health', value: now.rates_live?.mor || 0.797, min: 0, max: 1 },
+      { id: 'gpu', type: 'Gauge', label: 'GPU Headroom', value: (100 - (now.rates_live?.gpu_headroom_pct || 91)) / 100, min: 0, max: 1 },
+      { id: 'entities', type: 'Heatmap', label: 'Entity Classification', rows: 1, cols: 4,
+        values: [now.classification?.self || 0, now.classification?.partial || 0, now.classification?.null || 0, now.classification?.non_self || 0] },
+      { id: 'braid', type: 'Gauge', label: 'Braid Health', value: (now.rates_live?.braid_health_pct || 89.4) / 100, min: 0, max: 1 },
+    ];
+
+    const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE — LIVE', domain: 'ecology' };
+
+    try {
+      const svg = mod.render_dashboard(JSON.stringify(bindings), JSON.stringify(config));
+      document.getElementById('render-target').innerHTML = svg;
+    } catch(e) {
+      // Fallback: render individual bindings
+      let html = '<div style="padding:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;height:100%">';
+      for (const b of bindings) {
+        try {
+          const svg = mod.render_binding(JSON.stringify(b), 'ecology');
+          html += `<div style="background:rgba(18,22,30,0.8);border:1px solid #1c2333;border-radius:6px;padding:8px">${svg}</div>`;
+        } catch(e2) {
+          html += `<div style="color:var(--dim);font-size:9px;padding:8px">${b.label}: ${(b.value*100).toFixed(1)}%</div>`;
+        }
+      }
+      html += '</div>';
+      document.getElementById('render-target').innerHTML = html;
+    }
+  } catch(e) {
+    // No WASM — fallback to text render
+    document.getElementById('render-target').innerHTML = `<div style="color:var(--dim);padding:40px;text-align:center">
+      <div style="font-size:24px;color:var(--cyan);margin-bottom:12px">⚙ GAIA ENGINE</div>
+      <div>PetalTongue WASM loading…</div>
+      <div style="margin-top:8px;font-size:9px">${e.message}</div>
+    </div>`;
+  }
+}
+
+// ═══ HEADER + FOOTER ═══
+function updateHeader(now, rates) {
+  if (rates?.velocity) {
+    document.getElementById('h-commits').textContent = (rates.velocity.commits_per_hour?.value||0).toFixed(1) + '/hr';
+    document.getElementById('h-lessons').textContent = (rates.velocity.lessons_per_hour?.value||0).toFixed(1) + ' lessons/hr';
+  }
+  if (rates?.meters?.mor) {
+    const mor = rates.meters.mor.value * 100;
+    const el = document.getElementById('h-mor');
+    el.textContent = 'MOR ' + mor.toFixed(1) + '%';
+    el.className = 'header-rate ' + (mor > 85 ? 'rate-good' : mor > 70 ? 'rate-warn' : 'rate-crit');
+  }
+  if (rates?.speed?.gpu) {
+    document.getElementById('h-gpu').textContent = 'GPU ' + rates.speed.gpu.utilization_pct + '%';
+  }
+  if (now) {
+    document.getElementById('phase-label').textContent = now.phase || '';
+    document.getElementById('f-wave').textContent = 'wave ' + (now.wave || '—');
+    document.getElementById('f-entities').textContent = (now.entities?.total?.toLocaleString() || '—') + ' entities';
+    document.getElementById('f-escape').textContent = 'escape ' + ((now.rates_live?.escape_velocity||0)*100).toFixed(1) + '%';
+  }
+  document.getElementById('f-beacons').textContent = '18 beacons';
+  document.getElementById('f-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
+
+  // Lung meter
+  const gpuPct = rates?.speed?.gpu?.utilization_pct || 9;
+  document.getElementById('lung-fill').style.height = gpuPct + '%';
+  document.getElementById('lung-pct').textContent = gpuPct + '%';
+}
+
+// ═══ MAIN LOOP — the game tick ═══
+async function tick() {
+  const [now, rates, heartbeat] = await Promise.all([
+    fetchJSON('/now.json'),
+    fetchJSON('/data/dashboard-rates.json'),
+    fetchJSON('/data/heartbeat.json')
+  ]);
+
+  updateHeader(now, rates);
+  renderRates(rates);
+  renderNeuro(rates);
+  renderDevices(heartbeat);
+}
+
+// Boot
+renderViewport();
+tick();
+setInterval(tick, 15000); // tick every 15 seconds
+setInterval(() => {
+  document.getElementById('f-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
+}, 1000);
+</script>
+</body>
+</html>
