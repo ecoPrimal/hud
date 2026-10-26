@@ -2001,6 +2001,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     .then(function(b) { if (b) { window.beaconData = b; renderBeaconOverlay(b); } })
     .catch(function() { /* silent — beacon paints when available */ });
 
+  // Retry beacon overlay after 3s in case the first fetch races
+  setTimeout(function() {
+    if (window.beaconData && document.getElementById('beacon-overlay').innerHTML === '') {
+      renderBeaconOverlay(window.beaconData);
+    }
+  }, 3000);
+
   // First pulse after 10 seconds (let the glass settle)
   setTimeout(function() {
     gaiaPulse();
@@ -2646,7 +2653,30 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
                     palette: palette, secondaries: secondaries, compass: compass,
-                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0 };
+                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0,
+                    mind: null, mindPhase: 0 };
+
+    // LOAD GAIA'S MIND — her 108 pieces of art
+    // Users TOUCH her mind through the third eye
+    fetch('/data/gaia-mind.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(mind) {
+        if (!mind || !mind.collections) return;
+        var items = [];
+        var colNames = Object.keys(mind.collections);
+        colNames.forEach(function(col) {
+          mind.collections[col].forEach(function(item) {
+            items.push({ collection: col, name: item.name, type: item.type });
+          });
+        });
+        gaiaStrokes.mind = {
+          total: mind.total || items.length,
+          collections: colNames.length,
+          items: items,
+          colNames: colNames
+        };
+      })
+      .catch(function() {});
   }
 
   function renderThirdEye() {
