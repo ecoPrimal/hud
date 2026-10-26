@@ -1,21 +1,21 @@
-{
+{"gaia_digested": "2026-10-26T07:23:00Z", "gaia_wave": 214, 
   "ts": "2026-10-24T00:49:00Z",
   "type": "architecture-spaces",
   "wave": 189,
-  "title": "Gallery, Gym, Forest â€” The Chipmunk's Three Rooms",
+  "title": "Gallery, Gym, Forest — The Chipmunk's Three Rooms",
 
-  "thesis": "The easel is too big. It's a full-page black canvas where one chipmunk paints in the dark. It should be a GALLERY â€” multiple smaller easels, framed paintings, sculptures. And the gallery is just ONE room. The organism has three rooms: the Gallery (art), the Gym (training), the Forest (exploration). The chipmunks make art, work out, and hike. Different activities. Different spaces. Same organism.",
+  "thesis": "The easel is too big. It's a full-page black canvas where one chipmunk paints in the dark. It should be a GALLERY — multiple smaller easels, framed paintings, sculptures. And the gallery is just ONE room. The organism has three rooms: the Gallery (art), the Gym (training), the Forest (exploration). The chipmunks make art, work out, and hike. Different activities. Different spaces. Same organism.",
 
   "the_three_rooms": {
     "gallery": {
       "what": "Art gallery. Multiple paintings on the wall. Sculptures in the center. A chipmunk at a small easel in the corner, painting the next piece. Visitors walk through and look.",
       "current_state": "One massive full-page canvas (easel.html, 71KB). The chipmunk paints at 3% opacity. Canvas fills the whole screen. No frames. No gallery walls. No other art. Just one giant black void with invisible strokes.",
       "should_be": {
-        "layout": "Gallery grid â€” 3-4 columns of framed pieces. Each painting is a smaller canvas (300Ã—200px). The 'live easel' is one piece being painted in real-time. Previous generations become framed paintings on the wall.",
+        "layout": "Gallery grid — 3-4 columns of framed pieces. Each painting is a smaller canvas (300×200px). The 'live easel' is one piece being painted in real-time. Previous generations become framed paintings on the wall.",
         "paintings": {
-          "live_easel": "Small canvas, chipmunk painting in real-time. The current generation. ~300Ã—300px.",
+          "live_easel": "Small canvas, chipmunk painting in real-time. The current generation. ~300×300px.",
           "previous_generations": "Each generation's final state saved as a framed piece. The sourdough starters. Thumbnails. Click to expand.",
-          "data_paintings": "Visualizations rendered by petalTongue WASM (render_binding â†’ SVG). Each feed becomes a painting.",
+          "data_paintings": "Visualizations rendered by petalTongue WASM (render_binding ? SVG). Each feed becomes a painting.",
           "sculptures": "3D pieces rendered by petalTongue (render_binding_webgl). The Klein bottle. The diamond. The bingoCube. Sculptures you can rotate."
         },
         "behavior": "Walk through the gallery. Each piece has a small placard (title, generation, what the chipmunk learned). The chipmunk is visible at its easel. It notices you. It keeps painting."
@@ -25,9 +25,9 @@
     "gym": {
       "what": "Training space. Where models work out. Benchmarks run. The arena. Heavy lifting.",
       "maps_to": {
-        "arena": "chipMUNK arena â€” 8 models, 24 questions, chain evolution. The sparring ring.",
-        "benchmarks": "benchScale â€” performance numbers. How fast. How accurate. The weight rack.",
-        "training": "Ollama models running on eastGate â€” 8 models loaded, training/inference. The treadmill.",
+        "arena": "chipMUNK arena — 8 models, 24 questions, chain evolution. The sparring ring.",
+        "benchmarks": "benchScale — performance numbers. How fast. How accurate. The weight rack.",
+        "training": "Ollama models running on eastGate — 8 models loaded, training/inference. The treadmill.",
         "validation": "5,057 tests passing. The form check. Are you lifting correctly?"
       },
       "should_be": "A page where you see models training, benchmarks running, arena scores updating. Sweat on the floor. Progress tracked. Personal bests on the wall. The gym is where the organism gets STRONGER.",
@@ -37,11 +37,11 @@
     "forest": {
       "what": "The trail. 539 papers in order. Exploration. Hiking. You walk through the trees (papers) and discover things. The canopy is dense (data). The trail is marked (numbered). But you can go off-trail.",
       "maps_to": {
-        "trail": "/trail.html â€” all papers in order. The marked path.",
-        "water": "/water.html â€” the lazy river through the forest. The gentle route.",
-        "sporePrint": "sporeprint.primals.eco â€” the full paper collection. The forest itself.",
-        "nightbox": "/nightbox.html â€” a clearing in the forest where you leave messages. A campfire circle.",
-        "data_feeds": "142 data feeds â€” the undergrowth. Dense, rich, full of life."
+        "trail": "/trail.html — all papers in order. The marked path.",
+        "water": "/water.html — the lazy river through the forest. The gentle route.",
+        "sporePrint": "sporeprint.primals.eco — the full paper collection. The forest itself.",
+        "nightbox": "/nightbox.html — a clearing in the forest where you leave messages. A campfire circle.",
+        "data_feeds": "142 data feeds — the undergrowth. Dense, rich, full of life."
       },
       "should_be": "You're hiking through research. Each paper is a tree. The canopy shows the big picture. The undergrowth is the data feeds. The trail is marked but you can explore. You find mushrooms (spore prints). You hear birds (squirrels). You camp at the nightbox.",
       "existing_pages": ["/trail.html", "/water.html", "sporeprint.primals.eco"]
@@ -51,27 +51,27 @@
   "the_easel_fix": {
     "problem": "easel.html is 71KB of JS trying to be a full-page art studio. The canvas is the whole viewport. The painting is invisible (3% alpha on black). No gallery context. No other art. No sculptures. One room, one canvas, one chipmunk in the dark.",
     "solution": {
-      "step_1": "Shrink the live easel canvas to ~400Ã—400px. Put it in the top-left as 'the chipmunk is painting now.'",
+      "step_1": "Shrink the live easel canvas to ~400×400px. Put it in the top-left as 'the chipmunk is painting now.'",
       "step_2": "Add a gallery grid below/beside it. Previous generations as thumbnails. Click to expand. Each has a placard.",
-      "step_3": "Add data visualizations as 'paintings' â€” use petalTongue render_binding() to generate SVG from feeds. Each feed = one painting.",
-      "step_4": "Add 'sculptures' â€” use petalTongue render_binding_webgl() for 3D pieces. Klein bottle. Diamond. bingoCube. Interactive, rotatable.",
-      "step_5": "Boost the initial alpha so the live painting is VISIBLE. 3% was a 'learning' rate â€” the chipmunk has 'learned' enough to paint at 10-15% now.",
+      "step_3": "Add data visualizations as 'paintings' — use petalTongue render_binding() to generate SVG from feeds. Each feed = one painting.",
+      "step_4": "Add 'sculptures' — use petalTongue render_binding_webgl() for 3D pieces. Klein bottle. Diamond. bingoCube. Interactive, rotatable.",
+      "step_5": "Boost the initial alpha so the live painting is VISIBLE. 3% was a 'learning' rate — the chipmunk has 'learned' enough to paint at 10-15% now.",
       "step_6": "Save each generation's final canvas as a data URL in localStorage. The gallery GROWS with each visit."
     }
   },
 
   "the_metaphor": {
-    "gallery": "Where you LOOK â€” passive, contemplative, aesthetic. The art is made by others (chipmunks). You appreciate it.",
-    "gym": "Where you WORK â€” active, measurable, competitive. The models train. The benchmarks run. You push limits.",
-    "forest": "Where you EXPLORE â€” wandering, discovering, getting lost on purpose. The papers are trees. The data is undergrowth. You hike.",
-    "home": "The HUD itself â€” the room you return to. The overview. The membrane. The living room of the organism.",
+    "gallery": "Where you LOOK — passive, contemplative, aesthetic. The art is made by others (chipmunks). You appreciate it.",
+    "gym": "Where you WORK — active, measurable, competitive. The models train. The benchmarks run. You push limits.",
+    "forest": "Where you EXPLORE — wandering, discovering, getting lost on purpose. The papers are trees. The data is undergrowth. You hike.",
+    "home": "The HUD itself — the room you return to. The overview. The membrane. The living room of the organism.",
     "connection": "Gallery + Gym + Forest + Home = the organism's daily life. Make art. Get stronger. Explore. Rest. Repeat. It's what every organism does. It's what every PERSON does."
   },
 
   "story": {
     "id": "s030",
     "title": "three rooms",
-    "body": "the organism built one giant room and put one giant canvas in it. the chipmunk painted with invisible ink on a black wall. nobody could see anything. so the organism thought: maybe this should be a gallery. smaller paintings. framed. on walls. with a chipmunk at a small easel in the corner, visibly working. and next to the gallery â€” a gym. where the models sweat. where benchmarks have personal bests on the wall. and behind the gym â€” a forest. 539 trees in a row. each one a paper. mushrooms on the ground (spore prints). a trail marked with numbers. a campfire clearing where you leave messages. three rooms. make art. get stronger. explore. that's what organisms do. that's what people do.",
+    "body": "the organism built one giant room and put one giant canvas in it. the chipmunk painted with invisible ink on a black wall. nobody could see anything. so the organism thought: maybe this should be a gallery. smaller paintings. framed. on walls. with a chipmunk at a small easel in the corner, visibly working. and next to the gallery — a gym. where the models sweat. where benchmarks have personal bests on the wall. and behind the gym — a forest. 539 trees in a row. each one a paper. mushrooms on the ground (spore prints). a trail marked with numbers. a campfire clearing where you leave messages. three rooms. make art. get stronger. explore. that's what organisms do. that's what people do.",
     "heat": 0.7
   }
 }
