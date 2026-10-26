@@ -359,6 +359,8 @@ body {
   <!-- GLOBE ROOT — K-N dimensional view (default) -->
   <div id="globe-root">
     <canvas id="kn-globe"></canvas>
+    <!-- BEACON OVERLAY — organ status painted on the glass -->
+    <div id="beacon-overlay" style="position:absolute;top:50px;left:10px;z-index:10;pointer-events:none;font-family:'JetBrains Mono',monospace;opacity:0;transition:opacity 1s;"></div>
     <button class="globe-flip" id="kn-flip" title="focus: shift dominant eye (F)">◉ focus (F)</button>
     <div class="globe-zoom">
       <button id="zoom-out" title="zoom out">−</button>
@@ -775,7 +777,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     { id:'heartbeat', name:'heartbeat',    icon:'💚', lat: 90,   lon:  0,   color:'#f85149', sub:'RED→GRN→BLU',   href:'/engine.html', face:'both', tense:'is', voxel:'touch' },
     { id:'ears',      name:'ears',         icon:'👂', lat: 22.5, lon: 30.7, color:'#58a6ff', sub:'oblique intake', href:'/explore.html', face:'inside', tense:'is', voxel:'touch' },
     { id:'chipmunk',  name:'chipmunk',     icon:'🐿', lat:  0,   lon:  0,   color:'#c9a84c', sub:'O=0 1=1 .=π',   href:'/chat.html', face:'both', tense:'is', voxel:'touch' },
-    { id:'artisan',   name:'artisan',      icon:'🎨', lat: 13.4, lon:103.9, color:'#d29922', sub:'Gaia paints',   href:'/easel.html', face:'inside', tense:'now', voxel:'local' },
+    { id:'artisan',   name:'artisan',      icon:'🎨', lat: 13.4, lon:103.9, color:'#d29922', sub:'108 pieces · 13 collections',   href:'/easel.html', face:'inside', tense:'now', voxel:'local' },
     { id:'primals',   name:'16 primals',   icon:'🍌', lat: 20.7, lon:-88.6, color:'#3fb950', sub:'Rust nucleus',  href:'/primal.html', face:'inside', tense:'was', voxel:'touch' },
     { id:'rss',       name:'rss·feed',     icon:'📡', lat:-90,   lon:  0,   color:'#f0883e', sub:'smoke signal',  href:'/feed.xml', face:'both', tense:'now', voxel:'solar' },
 
@@ -1655,14 +1657,15 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (window.beaconData) {
       ctx.save();
       ctx.globalAlpha = 1;
-      var bAlpha = 0.5 + Math.sin(breathT * 0.3) * 0.08;
+      var bAlpha = 0.7 + Math.sin(breathT * 0.3) * 0.1;
       var bx = 14;
-      var by = 80;
+      var by = 70;
       ctx.textAlign = 'left';
 
       // BEACON HEADER
-      ctx.font = '10px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(201,168,76,' + bAlpha.toFixed(3) + ')';
+      ctx.globalAlpha = 1;
+      ctx.font = '12px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#c9a84c';
       ctx.fillText('BEACON', bx, by);
 
       // ORGAN STATUS — each organ gets a colored dot + name + status
@@ -1683,44 +1686,45 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           var oStatus = oData.status || '?';
           var oColor = organColors[oStatus] || '110,118,129';
           var oAlpha = oStatus === 'EMPTY' || oStatus === 'MISSING' ? bAlpha * 0.7 : bAlpha;
-          var oy = by + 16 + oi * 14;
+          var oy = by + 18 + oi * 16;
 
           // Status dot
           ctx.beginPath();
-          ctx.arc(bx, oy - 3, 3, 0, TAU);
-          ctx.fillStyle = 'rgba(' + oColor + ',' + Math.min(1, oAlpha * 2).toFixed(3) + ')';
+          ctx.arc(bx, oy - 4, 3.5, 0, TAU);
+          ctx.fillStyle = 'rgba(' + oColor + ',' + Math.min(1, oAlpha * 1.5).toFixed(3) + ')';
           ctx.fill();
 
           // Name + status
-          ctx.font = '9px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(201,209,217,' + oAlpha.toFixed(3) + ')';
+          ctx.globalAlpha = 1;
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#c9d1d9';
           ctx.fillText(oName, bx + 10, oy);
-          ctx.font = '8px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(' + oColor + ',' + (oAlpha * 0.85).toFixed(3) + ')';
-          ctx.fillText(oStatus, bx + 85, oy);
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgb(' + oColor + ')';
+          ctx.fillText(oStatus, bx + 100, oy);
         }
 
         // STATS below organs
-        var countsY = by + 16 + organEntries.length * 14 + 8;
-        ctx.font = '8px "JetBrains Mono", monospace';
+        var countsY = by + 18 + organEntries.length * 16 + 10;
+        ctx.font = '9px "JetBrains Mono", monospace';
         ctx.fillStyle = 'rgba(110,118,129,' + (bAlpha * 0.7).toFixed(3) + ')';
         if (bd.counts) {
           ctx.fillText(bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients', bx, countsY);
-          ctx.fillText(bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js · ' + (bd.counts.wasm || 0) + ' wasm', bx, countsY + 12);
+          ctx.fillText(bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js · ' + (bd.counts.wasm || 0) + ' wasm', bx, countsY + 13);
         }
         if (bd.git) {
-          ctx.fillStyle = 'rgba(63,185,80,' + (bAlpha * 0.5).toFixed(3) + ')';
-          ctx.fillText(bd.git.branch + '@' + bd.git.hash, bx, countsY + 24);
+          ctx.fillStyle = 'rgba(63,185,80,' + (bAlpha * 0.6).toFixed(3) + ')';
+          ctx.fillText(bd.git.branch + '@' + bd.git.hash, bx, countsY + 26);
         }
         if (bd.eastGate) {
           var egCol = bd.eastGate.alive ? '63,185,80' : '248,81,73';
           ctx.fillStyle = 'rgba(' + egCol + ',' + (bAlpha * 0.7).toFixed(3) + ')';
-          ctx.fillText(bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE', bx, countsY + 36);
+          ctx.fillText(bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE', bx, countsY + 39);
         }
         if (bd.organs.gut) {
-          ctx.font = '11px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(201,168,76,' + Math.min(1, bAlpha * 1.2).toFixed(3) + ')';
-          ctx.fillText(bd.organs.gut.extraction, bx, countsY + 54);
+          ctx.font = '13px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(201,168,76,' + Math.min(1, bAlpha * 1.1).toFixed(3) + ')';
+          ctx.fillText(bd.organs.gut.extraction, bx, countsY + 56);
         }
       }
       ctx.restore();
@@ -1884,7 +1888,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // BEACON FETCH — the organism reads its own local state
     fetch('/data/beacon-local.json?t=' + Date.now())
       .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(b) { if (b) window.beaconData = b; })
+      .then(function(b) { if (b) { window.beaconData = b; renderBeaconOverlay(b); } })
       .catch(function() { /* silent */ });
 
     // Fetch the latest self-heartbeat from the organism
@@ -1949,9 +1953,52 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
 
   // BOOT BEACON — fetch immediately so organs paint on first frame
+  function renderBeaconOverlay(bd) {
+    var el = document.getElementById('beacon-overlay');
+    if (!el || !bd || !bd.organs) return;
+    var html = '<div style="font-size:10px;color:#c9a84c;margin-bottom:4px;letter-spacing:1px;">BEACON</div>';
+    var entries = Object.entries(bd.organs);
+    var colors = {
+      HEALTHY:'#3fb950', MATURE:'#bc8cff', ACTIVE:'#58a6ff',
+      COMPILED:'#c9a84c', DISTILLED:'#39d3f5', PROVED:'#3fb950',
+      PERMEABLE:'#3fb950', FOLDED:'#c9a84c', SPECTRAL:'#f778ba',
+      EMPTY:'#f85149', PENDING:'#6e7681', DORMANT:'#6e7681',
+      MISSING:'#f85149', UNPROVED:'#f85149'
+    };
+    for (var i = 0; i < entries.length; i++) {
+      var n = entries[i][0], s = entries[i][1].status || '?';
+      var c = colors[s] || '#6e7681';
+      var dotC = s === 'EMPTY' || s === 'MISSING' ? '#f85149' : '#3fb950';
+      html += '<div style="font-size:9px;line-height:14px;white-space:nowrap;">'
+        + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dotC + ';margin-right:4px;vertical-align:middle;"></span>'
+        + '<span style="color:#c9d1d9;">' + n + '</span> '
+        + '<span style="color:' + c + ';">' + s + '</span></div>';
+    }
+    if (bd.counts) {
+      html += '<div style="font-size:8px;color:#6e7681;margin-top:4px;">'
+        + bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients</div>';
+      html += '<div style="font-size:8px;color:#6e7681;">'
+        + bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js</div>';
+    }
+    if (bd.git) {
+      html += '<div style="font-size:8px;color:#3fb950;margin-top:2px;">'
+        + bd.git.branch + '@' + bd.git.hash + '</div>';
+    }
+    if (bd.eastGate) {
+      var ec = bd.eastGate.alive ? '#3fb950' : '#f85149';
+      html += '<div style="font-size:8px;color:' + ec + ';">'
+        + (bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE') + '</div>';
+    }
+    if (bd.organs.gut) {
+      html += '<div style="font-size:11px;color:#c9a84c;margin-top:4px;">' + bd.organs.gut.extraction + '</div>';
+    }
+    el.innerHTML = html;
+    el.style.opacity = '0.7';
+  }
+
   fetch('/data/beacon-local.json?t=' + Date.now())
     .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(b) { if (b) window.beaconData = b; })
+    .then(function(b) { if (b) { window.beaconData = b; renderBeaconOverlay(b); } })
     .catch(function() { /* silent — beacon paints when available */ });
 
   // First pulse after 10 seconds (let the glass settle)
