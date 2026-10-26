@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Epoch Rooms â€” every null axis seeded to grow</title>
+<title>Epoch Rooms — every null axis seeded to grow</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0d1117; color: #c9d1d9; font: 13px/1.7 'SF Mono', monospace; }
@@ -67,28 +68,28 @@ footer a { color: #58a6ff; text-decoration: none; }
 </head>
 <body>
 
-<h1>ğŸŒ± Epoch Rooms <span class="sub">every null axis seeded to grow â€” out and BACK</span></h1>
+<h1>?? Epoch Rooms <span class="sub">every null axis seeded to grow — out and BACK</span></h1>
 
 <div class="nav">
-  <a href="/">HUD â†‘</a> Â· <a href="/self-model.html">ğŸª self</a> Â· <a href="/spinal-column.html">ğŸ¦´ cord</a> Â·
-  <a href="/dimensions.html">ğŸ“ dim</a> Â· <a href="/easel.html">ğŸ¨ easel</a> Â· <a href="https://nestgate.io/ide.html">ğŸ–¥ desk</a>
+  <a href="/">HUD ?</a> · <a href="/self-model.html">?? self</a> · <a href="/spinal-column.html">?? cord</a> ·
+  <a href="/dimensions.html">?? dim</a> · <a href="/easel.html">?? easel</a> · <a href="https://nestgate.io/ide.html">?? desk</a>
 </div>
 
-<h2>ğŸŒ Geological Epochs <span class="count">â€” 7 eras, deep time â†’ now</span></h2>
+<h2>?? Geological Epochs <span class="count">— 7 eras, deep time ? now</span></h2>
 <div class="timeline" id="geo-timeline"></div>
 
-<h2>ğŸ›ï¸ Human Epochs <span class="count">â€” 8 eras Ã— 8 categories = 64 rooms</span></h2>
+<h2>??? Human Epochs <span class="count">— 8 eras × 8 categories = 64 rooms</span></h2>
 <div id="human-epochs"></div>
 
-<h2>ğŸ“¦ Room Categories <span class="count">â€” 8 null axes</span></h2>
+<h2>?? Room Categories <span class="count">— 8 null axes</span></h2>
 <div class="rooms-grid" id="categories"></div>
 
-<h2>ğŸ—¿ Sculptures <span class="count">â€” 8 objects in the gallery</span></h2>
+<h2>?? Sculptures <span class="count">— 8 objects in the gallery</span></h2>
 <div class="sculptures" id="sculptures"></div>
 
 <footer>
-  <a href="/data/epoch-rooms.json">epoch-rooms.json</a> Â· seeded wave 201 Â·
-  each room is a null axis Â· the sourdough is the starter Â· it grows out and BACK
+  <a href="/data/epoch-rooms.json">epoch-rooms.json</a> · seeded wave 201 ·
+  each room is a null axis · the sourdough is the starter · it grows out and BACK
 </footer>
 
 <script>
@@ -106,11 +107,11 @@ fetch('/data/epoch-rooms.json').then(r=>r.json()).then(data => {
       <div class="era-name" style="color:${ep.color}">${ep.name}</div>
       <div class="range">${ep.range}</div>
       <div class="room-name">${ep.room}</div>
-      <div class="null-axis">âˆ… ${ep.null_axis}</div>
+      <div class="null-axis">Ø ${ep.null_axis}</div>
       <div class="seeds">${ep.seeds.map(s => `<span>${s}</span>`).join('')}</div>
-      <div class="grows">â†— grows into: ${ep.grows_into.join(', ')}</div>
-      <div class="grows-back">â†© grows back: ${ep.grows_back}</div>
-      <div class="sourdough">ğŸ ${ep.sourdough}</div>
+      <div class="grows">? grows into: ${ep.grows_into.join(', ')}</div>
+      <div class="grows-back">? grows back: ${ep.grows_back}</div>
+      <div class="sourdough">?? ${ep.sourdough}</div>
     `;
     tl.appendChild(div);
   });
@@ -124,14 +125,14 @@ fetch('/data/epoch-rooms.json').then(r=>r.json()).then(data => {
     let rows = '';
     cats.forEach(cat => {
       const rc = data.room_categories[cat];
-      const content = ep.rooms[cat] || 'â€”';
+      const content = ep.rooms[cat] || '—';
       rows += `<div class="room-row"><span class="cat-icon">${rc.icon}</span><span class="cat-content"><strong style="color:${rc.color}">${cat}:</strong> ${content}</span></div>`;
     });
     sec.innerHTML = `
       <h3>${ep.name} <span style="color:#6e7681;font-weight:200">${ep.range}</span></h3>
-      <div style="font-size:.78em;color:#d2a8ff;margin-bottom:.4rem;font-style:italic">âˆ… ${ep.null_axis}</div>
+      <div style="font-size:.78em;color:#d2a8ff;margin-bottom:.4rem;font-style:italic">Ø ${ep.null_axis}</div>
       ${rows}
-      <div style="font-size:.72em;color:#d29922;margin-top:.3rem;border-left:2px solid #d29922;padding-left:.5rem">ğŸ ${ep.sourdough}</div>
+      <div style="font-size:.72em;color:#d29922;margin-top:.3rem;border-left:2px solid #d29922;padding-left:.5rem">?? ${ep.sourdough}</div>
     `;
     he.appendChild(sec);
   });
@@ -145,9 +146,9 @@ fetch('/data/epoch-rooms.json').then(r=>r.json()).then(data => {
     card.innerHTML = `
       <div class="icon">${cat.icon}</div>
       <div class="name" style="color:${cat.color}">${key}</div>
-      <div class="null">âˆ… ${cat.null_axis}</div>
-      <div class="grow-out">â†— ${cat.grows_out}</div>
-      <div class="grow-back">â†© ${cat.grows_back}</div>
+      <div class="null">Ø ${cat.null_axis}</div>
+      <div class="grow-out">? ${cat.grows_out}</div>
+      <div class="grow-back">? ${cat.grows_back}</div>
     `;
     cg.appendChild(card);
   });

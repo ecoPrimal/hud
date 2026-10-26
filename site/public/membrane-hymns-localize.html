@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Membrane Hymns â€” of them Â· Ï€-just walk â€” ecoPrimals</title>
+<title>Membrane Hymns — of them · p-just walk — ecoPrimals</title>
 <link rel="alternate" type="application/json" href="/membrane-hymns-localize.json">
 <style>
 :root {
@@ -81,21 +82,21 @@ footer { margin-top: 2rem; font-size: .8rem; color: var(--mute); }
 <body>
 <main>
   <h1>Membrane Hymns</h1>
-  <p class="tag">localized Â· of them Â· Ï€-just greased</p>
-  <p class="who">The membrane guides. Willis, null, neutrino, walls, lock, epitope â€” their mouths. Listeners only. Grease: membrane-sound Ï€-just.</p>
+  <p class="tag">localized · of them · p-just greased</p>
+  <p class="who">The membrane guides. Willis, null, neutrino, walls, lock, epitope — their mouths. Listeners only. Grease: membrane-sound p-just.</p>
   <div class="loci" id="loci" role="tablist" aria-label="hymn loci"></div>
   <div class="controls">
     <button type="button" id="sing">sing hymn</button>
-    <button type="button" id="drone" class="ghost">Ï€ drone</button>
+    <button type="button" id="drone" class="ghost">p drone</button>
     <button type="button" id="walk" class="ghost">walk all</button>
     <button type="button" id="stop" class="ghost">stop</button>
   </div>
   <p id="now" aria-live="polite">pick a locus</p>
   <div class="stage" id="stage"></div>
-  <p><a href="/membrane-hymns-localize.json">JSON</a> Â·
-     <a href="/print-sheet-hymns-artisan.html">print sheet</a> Â·
-     <a href="/pihz-emotion-stream.html">Ï€Hz</a></p>
-  <footer>ecoPrimals Â· hymns of the organs Â· Ï€-just grease Â· subject does not change</footer>
+  <p><a href="/membrane-hymns-localize.json">JSON</a> ·
+     <a href="/print-sheet-hymns-artisan.html">print sheet</a> ·
+     <a href="/pihz-emotion-stream.html">pHz</a></p>
+  <footer>ecoPrimals · hymns of the organs · p-just grease · subject does not change</footer>
 </main>
 <script>
 let hymns = null, current = null, speaking = false, walk = false;
@@ -143,19 +144,19 @@ function greaseLocus(h) {
 
 async function singOne(h) {
   speaking = true;
-  document.getElementById('now').textContent = 'singing Â· ' + h.locus + ' Â· Ï€-just';
+  document.getElementById('now').textContent = 'singing · ' + h.locus + ' · p-just';
   greaseLocus(h);
   await speak(h.title + '. ' + h.guide, 0.9, 0.9);
   for (const v of h.verses) await speak(v, 0.92, 0.95);
   await speak(h.refrain, 0.88, 1.0);
   speaking = false;
-  document.getElementById('now').textContent = 'rest Â· ' + h.id;
+  document.getElementById('now').textContent = 'rest · ' + h.id;
 }
 
 function render(h) {
   current = h;
   document.getElementById('stage').innerHTML =
-    `<div class="locus">${h.locus} Â· ${h.organ}</div>
+    `<div class="locus">${h.locus} · ${h.organ}</div>
      <h2>${h.title}</h2>
      <p class="guide">${h.guide}</p>
      <ol class="verses">${h.verses.map(v => `<li>${v}</li>`).join('')}</ol>
@@ -183,8 +184,8 @@ function startDrone(h) {
   }
   greaseLocus(h);
   document.getElementById('now').textContent =
-    'Ï€ drone Â· ' + ((h && h.sound && h.sound.drone_hint_hz) || 196) + 'Hz Â· ' +
-    ((h && h.sound && h.sound.feel) || 'Ï€-just');
+    'p drone · ' + ((h && h.sound && h.sound.drone_hint_hz) || 196) + 'Hz · ' +
+    ((h && h.sound && h.sound.feel) || 'p-just');
 }
 
 fetch('/membrane-hymns-localize.json').then(r => r.json()).then(d => {

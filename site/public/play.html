@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ludoSpring — play through the membrane</title>
+<title>ludoSpring � play through the membrane</title>
 <style>
 :root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --pink: #f778ba; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,15 +51,15 @@ a { color: var(--blue); }
 <body>
 
 <div class="nav">
-  <a href="/">← membrane</a> · <a href="/connect">🐿️ connect</a> · <a href="/five-o-five">5/O/5</a> · <a href="/vitruvian">🧍</a>
+  <a href="/">? membrane</a> � <a href="/connect">??? connect</a> � <a href="/five-o-five">5/O/5</a> � <a href="/vitruvian">??</a>
 </div>
 
 <div class="page">
 
 <div class="hero">
-  <div class="dice" id="dice" onclick="rollDice()" title="click to roll">🎲</div>
+  <div class="dice" id="dice" onclick="rollDice()" title="click to roll">??</div>
   <h1>ludoSpring</h1>
-  <p>play through the membrane — esotericWeb game master</p>
+  <p>play through the membrane � esotericWeb game master</p>
 </div>
 
 <h2>character</h2>
@@ -125,13 +126,13 @@ function rollDice() {
   setTimeout(() => dice.classList.remove('rolling'), 500);
   
   const r = roll4d6();
-  addLog(`🎲 rolled ${r.rolls.join(',')} → kept ${r.kept.join('+')} = ${r.total}`, 'dice');
+  addLog(`?? rolled ${r.rolls.join(',')} ? kept ${r.kept.join('+')} = ${r.total}`, 'dice');
   
   // send roll through membrane
   fetch(`${NTFY_BASE}/${NTFY_GAME}`, {
     method: 'POST',
     headers: { 'Title': 'dice roll', 'Tags': 'game_die' },
-    body: `[northGate/player] 🎲 ${r.rolls.join(',')} → ${r.total}`
+    body: `[northGate/player] ?? ${r.rolls.join(',')} ? ${r.total}`
   }).catch(() => {});
   
   return r.total;
@@ -145,7 +146,7 @@ function rollStats() {
     document.getElementById(s).textContent = r.total;
     rolls.push(`${s.toUpperCase()}:${r.total}`);
   });
-  addLog(`📊 rolled stats: ${rolls.join(' ')}`, 'dice');
+  addLog(`?? rolled stats: ${rolls.join(' ')}`, 'dice');
 }
 
 function addLog(text, type) {
@@ -165,7 +166,7 @@ function sendAction() {
   const activeVoice = document.querySelector('.voice.active');
   const voice = activeVoice ? activeVoice.dataset.voice : 'logic';
   
-  addLog(`<span style="color:var(--green)">▶ [you]</span> ${action}`, 'player');
+  addLog(`<span style="color:var(--green)">? [you]</span> ${action}`, 'player');
   addLog(`<span style="color:var(--dim);font-style:italic">[${voice}] processing...</span>`, 'system');
   
   // send through membrane via ntfy
@@ -177,9 +178,9 @@ function sendAction() {
     },
     body: `[northGate/player] (voice:${voice}) ${action}`
   }).then(() => {
-    addLog(`<span style="color:var(--dim)">→ sent through neutrino hole to game master</span>`, 'system');
+    addLog(`<span style="color:var(--dim)">? sent through neutrino hole to game master</span>`, 'system');
   }).catch(e => {
-    addLog(`<span style="color:var(--pink)">⚠ membrane unreachable: ${e.message}</span>`, 'system');
+    addLog(`<span style="color:var(--pink)">? membrane unreachable: ${e.message}</span>`, 'system');
   });
   
   input.value = '';
@@ -205,36 +206,36 @@ async function pollGM() {
     
     messages.forEach(m => {
       if (m.message && m.message.startsWith('[eastGate')) {
-        addLog(`<span style="color:var(--gold)">🕷️ [GM]</span> ${m.message.replace('[eastGate/gm] ', '')}`, 'gm');
+        addLog(`<span style="color:var(--gold)">??? [GM]</span> ${m.message.replace('[eastGate/gm] ', '')}`, 'gm');
       }
     });
   } catch(e) {}
 }
 
-// poll every π seconds
+// poll every p seconds
 setInterval(pollGM, Math.PI * 1000);
 
 // roll initial stats
 rollStats();
 
-addLog('<span style="color:var(--gold)">⏳ waiting for game master (eastGate LLM) to connect...</span>', 'system');
-addLog('<span style="color:var(--dim)">the game plays through ntfy.sh — the neutrino hole</span>', 'system');
-addLog('<span style="color:var(--dim)">your actions travel: cursor → primals.eco → ntfy → eastGate → ollama → ntfy → here</span>', 'system');
+addLog('<span style="color:var(--gold)">? waiting for game master (eastGate LLM) to connect...</span>', 'system');
+addLog('<span style="color:var(--dim)">the game plays through ntfy.sh � the neutrino hole</span>', 'system');
+addLog('<span style="color:var(--dim)">your actions travel: cursor ? primals.eco ? ntfy ? eastGate ? ollama ? ntfy ? here</span>', 'system');
 </script>
 
 <h2>how it works</h2>
 
 <pre>
   northGate (you + Cursor)
-    ↓ type action
+    ? type action
   primals.eco/play
-    ↓ POST to ntfy.sh
+    ? POST to ntfy.sh
   neutrino hole (primals-ludospring topic)
-    ↓ eastGate polls
+    ? eastGate polls
   eastGate LLM (Ollama on RTX 4060)
-    ↓ generates narration
+    ? generates narration
   ntfy.sh response
-    ↓ this page polls
+    ? this page polls
   game log updates
 
   the membrane IS the dungeon.
@@ -243,19 +244,19 @@ addLog('<span style="color:var(--dim)">your actions travel: cursor → primals.e
   the game master is a spider on a GPU.
 </pre>
 
-<h2 id="library">🍎 the orchard — steam library</h2>
+<h2 id="library">?? the orchard � steam library</h2>
 <p>93 games. Sorted by how we can play together. Click a category to filter. Click a game to invite.</p>
-<p style="color:var(--green)">Steam ID: <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--green)">76561198002558137</a> · <a href="https://s.team/p/cjbk-bmvh/JQFVCWHJ" style="color:var(--green)" target="_blank">add friend</a></p>
+<p style="color:var(--green)">Steam ID: <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--green)">76561198002558137</a> � <a href="https://s.team/p/cjbk-bmvh/JQFVCWHJ" style="color:var(--green)" target="_blank">add friend</a></p>
 
 <div id="steam-filters" style="display:flex;flex-wrap:wrap;gap:4px;margin:12px 0">
   <button class="steam-filter active" data-filter="all" onclick="filterGames('all')">all (93)</button>
-  <button class="steam-filter" data-filter="play-together" onclick="filterGames('play-together')" style="border-color:var(--green)">🎮 play together</button>
-  <button class="steam-filter" data-filter="solve-together" onclick="filterGames('solve-together')" style="border-color:var(--blue)">🧩 solve together</button>
-  <button class="steam-filter" data-filter="pass-the-controller" onclick="filterGames('pass-the-controller')" style="border-color:var(--gold)">🎯 pass the controller</button>
-  <button class="steam-filter" data-filter="all-ages" onclick="filterGames('all-ages')" style="border-color:var(--pink)">🌱 all ages</button>
-  <button class="steam-filter" data-filter="watch" onclick="filterGames('watch')" style="border-color:var(--purple)">👀 watch together</button>
-  <button class="steam-filter" data-filter="chill" onclick="filterGames('chill')" style="border-color:var(--dim)">☕ chill</button>
-  <button class="steam-filter" data-filter="solo" onclick="filterGames('solo')" style="border-color:#484f58">🧘 solo</button>
+  <button class="steam-filter" data-filter="play-together" onclick="filterGames('play-together')" style="border-color:var(--green)">?? play together</button>
+  <button class="steam-filter" data-filter="solve-together" onclick="filterGames('solve-together')" style="border-color:var(--blue)">?? solve together</button>
+  <button class="steam-filter" data-filter="pass-the-controller" onclick="filterGames('pass-the-controller')" style="border-color:var(--gold)">?? pass the controller</button>
+  <button class="steam-filter" data-filter="all-ages" onclick="filterGames('all-ages')" style="border-color:var(--pink)">?? all ages</button>
+  <button class="steam-filter" data-filter="watch" onclick="filterGames('watch')" style="border-color:var(--purple)">?? watch together</button>
+  <button class="steam-filter" data-filter="chill" onclick="filterGames('chill')" style="border-color:var(--dim)">? chill</button>
+  <button class="steam-filter" data-filter="solo" onclick="filterGames('solo')" style="border-color:#484f58">?? solo</button>
 </div>
 
 <div id="steam-games" style="margin:12px 0"></div>
@@ -282,13 +283,13 @@ addLog('<span style="color:var(--dim)">your actions travel: cursor → primals.e
 
 <div id="invite-bar" class="invite-bar">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-    <span style="color:var(--green);font-size:0.85em" id="invite-title">🎮 invite to play</span>
-    <button onclick="closeInvite()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.2em">×</button>
+    <span style="color:var(--green);font-size:0.85em" id="invite-title">?? invite to play</span>
+    <button onclick="closeInvite()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.2em">�</button>
   </div>
   <div id="invite-body" style="font-size:0.8em;color:var(--dim)"></div>
   <div style="display:flex;gap:8px;margin-top:10px">
-    <button onclick="copyInvite()" style="background:var(--green);border:none;border-radius:6px;padding:6px 14px;color:var(--bg);cursor:pointer;font-family:inherit;font-size:0.8em">📋 copy invite</button>
-    <a id="steam-launch" href="#" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--blue);text-decoration:none;font-size:0.8em">🚀 open in Steam</a>
+    <button onclick="copyInvite()" style="background:var(--green);border:none;border-radius:6px;padding:6px 14px;color:var(--bg);cursor:pointer;font-family:inherit;font-size:0.8em">?? copy invite</button>
+    <a id="steam-launch" href="#" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--blue);text-decoration:none;font-size:0.8em">?? open in Steam</a>
   </div>
 </div>
 
@@ -300,13 +301,13 @@ fetch('/api/steam-library.json').then(r=>r.json()).then(function(data){
 }).catch(function(){ document.getElementById('steam-games').textContent = 'loading library...'; });
 
 var familyLabels = {
-  'play-together': '🎮 co-op/multiplayer — let\'s play!',
-  'solve-together': '🧩 puzzle — we solve it together on the couch',
-  'pass-the-controller': '🎯 take turns — pass the controller',
-  'all-ages': '🌱 family-friendly — Tamison can play too',
-  'watch': '👀 spectator — fun to watch together',
-  'chill': '☕ relaxing — no pressure, just vibes',
-  'solo': '🧘 deep solo — one player journey',
+  'play-together': '?? co-op/multiplayer � let\'s play!',
+  'solve-together': '?? puzzle � we solve it together on the couch',
+  'pass-the-controller': '?? take turns � pass the controller',
+  'all-ages': '?? family-friendly � Tamison can play too',
+  'watch': '?? spectator � fun to watch together',
+  'chill': '? relaxing � no pressure, just vibes',
+  'solo': '?? deep solo � one player journey',
 };
 
 var familyColors = {
@@ -336,9 +337,9 @@ function renderGames(games) {
     groups[fam].forEach(function(g) {
       html.push('<a class="game-card" data-family="'+g.family+'" data-id="'+g.id+'" onclick="showInvite('+g.id+')" title="'+g.tags.join(', ')+'">');
       html.push('<div class="game-name">'+g.name+'</div>');
-      html.push('<div class="game-tags">'+g.tags.slice(0,3).join(' · ')+'</div>');
-      if (g.coop) html.push('<div class="game-family" style="color:var(--green)">✓ co-op</div>');
-      if (g.multi && !g.coop) html.push('<div class="game-family" style="color:var(--blue)">✓ multiplayer</div>');
+      html.push('<div class="game-tags">'+g.tags.slice(0,3).join(' � ')+'</div>');
+      if (g.coop) html.push('<div class="game-family" style="color:var(--green)">? co-op</div>');
+      if (g.multi && !g.coop) html.push('<div class="game-family" style="color:var(--blue)">? multiplayer</div>');
       html.push('</a>');
     });
   });
@@ -364,16 +365,16 @@ function showInvite(id) {
   var bar = document.getElementById('invite-bar');
   bar.classList.add('show');
   
-  document.getElementById('invite-title').innerHTML = '🎮 ' + game.name;
+  document.getElementById('invite-title').innerHTML = '?? ' + game.name;
   
   var body = '<strong>' + game.name + '</strong><br>';
   body += 'tags: ' + game.tags.join(', ') + '<br>';
-  if (game.coop) body += '<span style="color:var(--green)">✓ has co-op!</span> ';
-  if (game.multi) body += '<span style="color:var(--blue)">✓ multiplayer</span>';
+  if (game.coop) body += '<span style="color:var(--green)">? has co-op!</span> ';
+  if (game.multi) body += '<span style="color:var(--blue)">? multiplayer</span>';
   body += '<br><br>';
-  body += '<span style="color:var(--text)">hey — want to play ' + game.name + ' together? ';
+  body += '<span style="color:var(--text)">hey � want to play ' + game.name + ' together? ';
   if (game.coop) body += 'it\'s co-op so we can team up. ';
-  body += 'add me on Steam and let\'s go! 🎮</span>';
+  body += 'add me on Steam and let\'s go! ??</span>';
   
   document.getElementById('invite-body').innerHTML = body;
   document.getElementById('steam-launch').href = 'steam://run/' + game.id;
@@ -390,26 +391,26 @@ function copyInvite() {
   if (g.coop) text += 'it has co-op! ';
   text += '\n\nadd me on Steam: https://s.team/p/cjbk-bmvh/JQFVCWHJ';
   text += '\nor see my whole library: https://primals.eco/play#library';
-  text += '\n\n🎮 let\'s go!';
+  text += '\n\n?? let\'s go!';
   
   navigator.clipboard.writeText(text).then(function(){
     var btn = document.querySelector('[onclick="copyInvite()"]');
-    btn.textContent = '✓ copied!';
-    setTimeout(function(){ btn.textContent = '📋 copy invite'; }, 2000);
+    btn.textContent = '? copied!';
+    setTimeout(function(){ btn.textContent = '?? copy invite'; }, 2000);
   });
 }
 </script>
 
 <pre style="margin-top:20px">
-  🍎 the orchard — sorted by how we play
+  ?? the orchard � sorted by how we play
 
-  🎮 play together  — co-op/multiplayer, jump in
-  🌱 all ages       — Tamison can play
-  🧩 solve together — puzzle it out on the couch  
-  🎯 pass it        — take turns, share the controller
-  👀 watch together — one plays, the other narrates
-  ☕ chill           — no pressure, just vibes
-  🧘 solo           — deep journeys, one traveler
+  ?? play together  � co-op/multiplayer, jump in
+  ?? all ages       � Tamison can play
+  ?? solve together � puzzle it out on the couch  
+  ?? pass it        � take turns, share the controller
+  ?? watch together � one plays, the other narrates
+  ? chill           � no pressure, just vibes
+  ?? solo           � deep journeys, one traveler
 
   like Johnny Appleseed:
   plant a game, share the orchard, 
@@ -417,15 +418,15 @@ function copyInvite() {
 
   steam://run/{id} opens it directly.
   every game is a campfire.
-  come play. 🎲🍎
+  come play. ????
 </pre>
 
 <div class="footer">
-  ludoSpring — the science of play<br>
-  RPGPT dialogue engine · Disco Elysium internal voices · provably fair dice<br>
-  93 games sorted by how we play together · <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--blue)">Steam profile</a><br>
-  powered by the membrane · no servers · no accounts · just play<br>
-  <span style="color:var(--purple);">🎲</span> <span style="color:var(--green);">🍎</span>
+  ludoSpring � the science of play<br>
+  RPGPT dialogue engine � Disco Elysium internal voices � provably fair dice<br>
+  93 games sorted by how we play together � <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank" style="color:var(--blue)">Steam profile</a><br>
+  powered by the membrane � no servers � no accounts � just play<br>
+  <span style="color:var(--purple);">??</span> <span style="color:var(--green);">??</span>
 </div>
 
 </div>

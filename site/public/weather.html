@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>weather â€” the sun writes the score</title>
-<meta name="description" content="Live NOAA Kp, GOES X-ray, solar wind, and USGS quakes turned into color and Ï€-just sound. The measurement is the Klein fold.">
+<title>weather — the sun writes the score</title>
+<meta name="description" content="Live NOAA Kp, GOES X-ray, solar wind, and USGS quakes turned into color and p-just sound. The measurement is the Klein fold.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #010409; overflow: hidden; font-family: 'SF Mono', ui-monospace, monospace; color: #c9d1d9; }
@@ -44,19 +45,19 @@ canvas { display: block; }
 </head>
 <body>
 <div id="nav">
-  <a href="/">â—ˆ hud</a><span>Â·</span>
-  <a href="/aurora.html" style="color:#7ee787">aurora</a><span>Â·</span>
-  <a href="/weather.html" style="color:#ffe135">â˜€ weather</a><span>Â·</span>
-  <a href="/neutron/circulatory.html" style="color:#f85149">â™¥ circ</a><span>Â·</span>
-  <a href="/neutron/core.html">â—‰ core</a>
+  <a href="/">? hud</a><span>·</span>
+  <a href="/aurora.html" style="color:#7ee787">aurora</a><span>·</span>
+  <a href="/weather.html" style="color:#ffe135">? weather</a><span>·</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149">? circ</a><span>·</span>
+  <a href="/neutron/core.html">? core</a>
 </div>
-<div id="title">the sun writes the score Â· Klein fold Â· wave 195</div>
+<div id="title">the sun writes the score · Klein fold · wave 195</div>
 <canvas id="c"></canvas>
 <div id="score">
-  <div class="row" id="stats">listening for the skyâ€¦</div>
+  <div class="row" id="stats">listening for the sky…</div>
   <div id="poem">NOAA is inside Earth reading the outside. tap to hear the fold.</div>
   <button id="listen" type="button">tap to hear the sun</button>
-  <div id="hint">Kp â†’ hue Â· X-ray â†’ heat Â· wind â†’ tempo Â· quake â†’ pluck Â· pulse â†’ breath Â· Ï€/N families â†’ voices</div>
+  <div id="hint">Kp ? hue · X-ray ? heat · wind ? tempo · quake ? pluck · pulse ? breath · p/N families ? voices</div>
 </div>
 <script src="/js/membrane-sound.js?v=4"></script>
 <script src="/js/weather-song.js?v=1"></script>
@@ -92,7 +93,7 @@ function applyScore(s) {
     '<div class="stat"><div class="num" style="color:' + stormColor + '">' + s.kp.toFixed(2) + '</div><div class="lbl">Kp ' + s.storm + '</div></div>' +
     '<div class="stat"><div class="num" style="color:#ffe135">' + s.xray_class + '</div><div class="lbl">x-ray</div></div>' +
     '<div class="stat"><div class="num">' + Math.round(s.wind_kms) + '</div><div class="lbl">wind km/s</div></div>' +
-    '<div class="stat"><div class="num" style="color:#58a6ff">' + (s.quake_max ? s.quake_max.toFixed(1) : 'â€”') + '</div><div class="lbl">earth</div></div>' +
+    '<div class="stat"><div class="num" style="color:#58a6ff">' + (s.quake_max ? s.quake_max.toFixed(1) : '—') + '</div><div class="lbl">earth</div></div>' +
     '<div class="stat"><div class="num" style="color:#d2a8ff">' + s.pulse.toFixed(3) + '</div><div class="lbl">pulse</div></div>' +
     '<div class="stat"><div class="num" style="color:#7ee787">' + s.tempo.toFixed(3) + '</div><div class="lbl">tempo Hz</div></div>';
   document.getElementById('poem').textContent = s.poem;
@@ -106,7 +107,7 @@ if (window._weatherSong) window._weatherSong.onScore(applyScore);
 var btn = document.getElementById('listen');
 function syncBtn() {
   var on = window._weatherSong && window._weatherSong.isListening();
-  btn.textContent = on ? 'hearing the sun Â· tap to hush' : 'tap to hear the sun';
+  btn.textContent = on ? 'hearing the sun · tap to hush' : 'tap to hear the sun';
   btn.className = on ? 'on' : '';
 }
 btn.onclick = function () {
@@ -138,7 +139,7 @@ function draw() {
   ctx.fillStyle = heat;
   ctx.fillRect(cx - 200, cy - 200, 400, 400);
 
-  // Aurora curtain â€” Kp stretches amplitude
+  // Aurora curtain — Kp stretches amplitude
   var amp = 40 + (score ? score.kp * 18 : 20);
   for (var y = 0; y < H * 0.42; y += 3) {
     var wave = Math.sin(y * 0.02 + t * 0.5) * amp + Math.sin(y * 0.01 + t * 0.3) * amp * 0.6;
@@ -148,7 +149,7 @@ function draw() {
     ctx.fillRect(W * 0.22 + wave, y, W * 0.56, 2);
   }
 
-  // 15 families orbit at Ï€/N Â· wind
+  // 15 families orbit at p/N · wind
   for (var i = 0; i < families.length; i++) {
     var f = families[i];
     var speed = f.rate * ((score && score.wind_norm) || 1);
@@ -176,7 +177,7 @@ function draw() {
     }
   }
 
-  // Quake rings â€” earth answering
+  // Quake rings — earth answering
   for (var r = rings.length - 1; r >= 0; r--) {
     var ring = rings[r];
     ring.r += 2.4;

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>scuffle ¬∑ IS / WAS / COULD BE</title>
+<title>scuffle ∑ IS / WAS / COULD BE</title>
 <style>
 :root{--bg:#0d1117;--card:#161b22;--fg:#c9d1d9;--dim:#8b949e;--green:#3fb950;--blue:#58a6ff;--gold:#d29922;--red:#f85149;--purple:#a371f7;--border:#21262d}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -31,30 +32,30 @@ canvas{display:block;position:fixed;top:0;left:0;z-index:0}
 <body>
 
 <div class="nav">
-  <a href="/">‚óà hud</a><span>¬∑</span>
-  <a href="/neutron/footprint.html">üåç geo</a><span>¬∑</span>
-  <a href="/neutron/scuffle.html" style="color:var(--green)">üè≠ scuffle</a><span>¬∑</span>
-  <a href="/sporeprint/vision/lansing-scuffle/">üìÑ paper</a><span>¬∑</span>
-  <a href="/nightbox" style="color:var(--gold)">üìÆ nightbox</a>
+  <a href="/">? hud</a><span>∑</span>
+  <a href="/neutron/footprint.html">?? geo</a><span>∑</span>
+  <a href="/neutron/scuffle.html" style="color:var(--green)">?? scuffle</a><span>∑</span>
+  <a href="/sporeprint/vision/lansing-scuffle/">?? paper</a><span>∑</span>
+  <a href="/nightbox" style="color:var(--gold)">?? nightbox</a>
 </div>
 
 <div class="overlay">
   <div class="title">the lansing scuffle</div>
-  <div class="sub">1305 S Cedar St ¬∑ Lansing MI ¬∑ 464,281 SF ¬∑ 12 acres<br>IS / WAS / COULD BE ‚Äî tap layers to toggle</div>
+  <div class="sub">1305 S Cedar St ∑ Lansing MI ∑ 464,281 SF ∑ 12 acres<br>IS / WAS / COULD BE ó tap layers to toggle</div>
 </div>
 
 <div class="controls" id="controls">
   <div class="btn active" onclick="toggle('was')" id="btn-was">
     <div class="dot" style="background:var(--dim)"></div>
-    <span>WAS ‚Äî 1941 factory, FMC, cannabis</span>
+    <span>WAS ó 1941 factory, FMC, cannabis</span>
   </div>
   <div class="btn active" onclick="toggle('is')" id="btn-is">
     <div class="dot" style="background:var(--blue)"></div>
-    <span>IS ‚Äî vacant, 8MW, 600 tons cooling</span>
+    <span>IS ó vacant, 8MW, 600 tons cooling</span>
   </div>
   <div class="btn active" onclick="toggle('could')" id="btn-could">
     <div class="dot" style="background:var(--green)"></div>
-    <span>COULD BE ‚Äî sovereign campus</span>
+    <span>COULD BE ó sovereign campus</span>
   </div>
 </div>
 
@@ -97,8 +98,8 @@ function toggle(layer) {
   updateInfo();
 }
 
-// Building footprint ‚Äî approximate polygon for 1305 S Cedar
-// Real coords: 42.7215¬∞N, 84.5525¬∞W  
+// Building footprint ó approximate polygon for 1305 S Cedar
+// Real coords: 42.7215∞N, 84.5525∞W  
 var BUILDING = {
   lat: 42.7215,
   lng: -84.5525,
@@ -136,11 +137,11 @@ var ZONES = [
 
 // Thermal loop arrows
 var THERMAL = [
-  { from: 'Roof', to: '3rd', label: 'solar ‚Üí compute', color: '#f1c40f' },
-  { from: '3rd', to: 'North', label: 'GPU heat ‚Üí sand', color: '#f85149' },
-  { from: 'North', to: '1st', label: 'sand ‚Üí hot water', color: '#d29922' },
-  { from: 'North', to: 'Roof', label: 'sand ‚Üí greenhouse', color: '#3fb950' },
-  { from: 'North', to: '2nd', label: 'sand ‚Üí HVAC', color: '#58a6ff' }
+  { from: 'Roof', to: '3rd', label: 'solar ? compute', color: '#f1c40f' },
+  { from: '3rd', to: 'North', label: 'GPU heat ? sand', color: '#f85149' },
+  { from: 'North', to: '1st', label: 'sand ? hot water', color: '#d29922' },
+  { from: 'North', to: 'Roof', label: 'sand ? greenhouse', color: '#3fb950' },
+  { from: 'North', to: '2nd', label: 'sand ? HVAC', color: '#58a6ff' }
 ];
 
 // Historical timeline
@@ -192,7 +193,7 @@ function drawBuilding() {
   
   phase += 0.015;
   
-  // WAS layer ‚Äî ghosted building outline with history
+  // WAS layer ó ghosted building outline with history
   if (layers.was) {
     ctx.globalAlpha = 0.15;
     ctx.strokeStyle = '#8b949e';
@@ -215,7 +216,7 @@ function drawBuilding() {
       ctx.fill();
       ctx.fillStyle = '#8b949e';
       ctx.textAlign = 'left';
-      ctx.fillText(h.year + ' ‚Äî ' + h.label, tlX + 12, y + 4);
+      ctx.fillText(h.year + ' ó ' + h.label, tlX + 12, y + 4);
       // Connect to building
       ctx.strokeStyle = 'rgba(139,148,158,0.1)';
       ctx.beginPath();
@@ -226,7 +227,7 @@ function drawBuilding() {
     ctx.globalAlpha = 1;
   }
   
-  // IS layer ‚Äî current building with real stats
+  // IS layer ó current building with real stats
   if (layers.is) {
     // North warehouse
     var ny = cy - floorH * 0.5;
@@ -241,9 +242,9 @@ function drawBuilding() {
     ctx.fillText('NORTH WAREHOUSE', northX + northW / 2, ny + floorH * 0.75);
     ctx.fillStyle = '#8b949e';
     ctx.font = '9px monospace';
-    ctx.fillText('14\'7" ceilings ¬∑ 5 docks ¬∑ rail', northX + northW / 2, ny + floorH * 0.75 + 14);
+    ctx.fillText('14\'7" ceilings ∑ 5 docks ∑ rail', northX + northW / 2, ny + floorH * 0.75 + 14);
     
-    // South section ‚Äî 3 floors
+    // South section ó 3 floors
     for (var f = 0; f < 3; f++) {
       var fy = cy + floorH * (1 - f);
       var floorLabel = ['1st Floor', '2nd Floor', '3rd Floor'][f];
@@ -262,7 +263,7 @@ function drawBuilding() {
       if (f === 2) {
         ctx.font = '9px monospace';
         ctx.fillStyle = '#8b949e';
-        ctx.fillText('400A/480V per room ¬∑ 35-ton HVAC', southX + southW / 2, fy + floorH / 2 + 18);
+        ctx.fillText('400A/480V per room ∑ 35-ton HVAC', southX + southW / 2, fy + floorH / 2 + 18);
       }
     }
     
@@ -275,18 +276,18 @@ function drawBuilding() {
     ctx.stroke();
     ctx.font = '10px monospace';
     ctx.fillStyle = '#f85149';
-    ctx.fillText('ROOF ¬∑ ~100K SF', southX + southW / 2, cy - floorH - 8);
+    ctx.fillText('ROOF ∑ ~100K SF', southX + southW / 2, cy - floorH - 8);
     
     // Power stats
     ctx.font = '9px monospace';
     ctx.fillStyle = '#d29922';
     ctx.textAlign = 'left';
-    ctx.fillText('‚ö° 8 MW transformer', southX, cy + floorH * 2.5);
-    ctx.fillText('‚ùÑ ~600 tons cooling', southX, cy + floorH * 2.5 + 14);
-    ctx.fillText('üìê 464,281 SF total', southX, cy + floorH * 2.5 + 28);
+    ctx.fillText('? 8 MW transformer', southX, cy + floorH * 2.5);
+    ctx.fillText('? ~600 tons cooling', southX, cy + floorH * 2.5 + 14);
+    ctx.fillText('?? 464,281 SF total', southX, cy + floorH * 2.5 + 28);
   }
   
-  // COULD BE layer ‚Äî K-Derm zones + thermal loops
+  // COULD BE layer ó K-Derm zones + thermal loops
   if (layers.could) {
     var zy = cy - floorH;
     
@@ -335,12 +336,12 @@ function drawBuilding() {
     ctx.textAlign = 'left';
     
     var flowData = [
-      { label: 'solar ‚Üí electricity ‚Üí GPU', y: cy - floorH - 30, color: '#f1c40f', dx: 0 },
-      { label: 'GPU heat ‚Üí glycol loops', y: cy + floorH * 0.3, color: '#f85149', dx: 30 },
-      { label: 'glycol ‚Üí sand batteries', y: cy, color: '#d29922', dx: 60 },
-      { label: 'sand ‚Üí hot water (24/7)', y: cy + floorH, color: '#3fb950', dx: 40 },
-      { label: 'sand ‚Üí greenhouses', y: cy + floorH * 1.4, color: '#3fb950', dx: 20 },
-      { label: 'sand ‚Üí building HVAC', y: cy + floorH * 1.8, color: '#58a6ff', dx: 0 }
+      { label: 'solar ? electricity ? GPU', y: cy - floorH - 30, color: '#f1c40f', dx: 0 },
+      { label: 'GPU heat ? glycol loops', y: cy + floorH * 0.3, color: '#f85149', dx: 30 },
+      { label: 'glycol ? sand batteries', y: cy, color: '#d29922', dx: 60 },
+      { label: 'sand ? hot water (24/7)', y: cy + floorH, color: '#3fb950', dx: 40 },
+      { label: 'sand ? greenhouses', y: cy + floorH * 1.4, color: '#3fb950', dx: 20 },
+      { label: 'sand ? building HVAC', y: cy + floorH * 1.8, color: '#58a6ff', dx: 0 }
     ];
     
     flowData.forEach(function(fd, fi) {
@@ -348,7 +349,7 @@ function drawBuilding() {
       var beat = Math.sin(phase * 2 + fi * 0.7) * 0.3 + 0.7;
       ctx.globalAlpha = beat;
       ctx.fillStyle = fd.color;
-      ctx.fillText('‚Üí ' + fd.label, fx, fd.y);
+      ctx.fillText('? ' + fd.label, fx, fd.y);
       
       // Flowing particle
       var px = fx - 15 + Math.sin(phase * 3 + fi) * 8;
@@ -376,7 +377,7 @@ function drawBuilding() {
   ctx.save();
   ctx.translate(southX - 40, cy);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillText('‚Üê S CEDAR STREET ‚Üí', 0, 0);
+  ctx.fillText('? S CEDAR STREET ?', 0, 0);
   ctx.restore();
   
   // Rail spur
@@ -419,10 +420,10 @@ function updateInfo() {
   if (layers.could) {
     html += '<div style="color:var(--green);margin-bottom:4px">K-Derm zones active</div>';
     html += '<div class="row"><span>zones</span><span class="val">5</span></div>';
-    html += '<div class="row"><span>thermal loop</span><span class="val">every joule 2√ó</span></div>';
+    html += '<div class="row"><span>thermal loop</span><span class="val">every joule 2◊</span></div>';
   }
   if (layers.was) {
-    html += '<div style="color:var(--dim);margin:4px 0">timeline: 1941‚Üí2026</div>';
+    html += '<div style="color:var(--dim);margin:4px 0">timeline: 1941?2026</div>';
   }
   html += '</div>';
   el.innerHTML = html;

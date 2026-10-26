@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>backend board · primals.eco</title>
+<title>backend board � primals.eco</title>
 <style>
 :root { --bg:#0d1117; --fg:#c9d1d9; --dim:#8b949e; --border:rgba(48,54,61,0.6); }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -39,12 +40,12 @@ h1 { font-size:22px; margin-bottom:4px; color:#c9d1d9; }
 <body>
 
 <div class="nav">
-  <a href="/">◈ hud</a><span>·</span>
-  <a href="/neutron/circulatory.html" style="color:#f85149">♥ circulatory</a><span>·</span>
-  <a href="/neutron/helix.html" style="color:#d29922">🧬 helix</a><span>·</span>
-  <a href="/neutron/invite.html" style="color:#3fb950">🤝 invite</a><span>·</span>
-  <a href="/neutron/globe.html" style="color:#f1c40f">🌐 globe</a><span>·</span>
-  <a href="/desk/" style="color:#3fb950">◧ desk</a>
+  <a href="/">? hud</a><span>�</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149">? circulatory</a><span>�</span>
+  <a href="/neutron/helix.html" style="color:#d29922">?? helix</a><span>�</span>
+  <a href="/neutron/invite.html" style="color:#3fb950">?? invite</a><span>�</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f">?? globe</a><span>�</span>
+  <a href="/desk/" style="color:#3fb950">? desk</a>
 </div>
 
 <h1><span id="pulse-dot"></span> backend board</h1>
@@ -70,13 +71,13 @@ function load() {
     var fl = dir.fluids || {};
 
     document.getElementById('subtitle').textContent = 
-      'RPM ' + (b.rpm||0).toFixed(0) + ' · trend ' + (b.trend||'?') + ' · sigmoid ' + (dir.sigmoid||'?') + 
-      ' · ' + (uni.layers_connected||0) + ' feeds unified · live';
+      'RPM ' + (b.rpm||0).toFixed(0) + ' � trend ' + (b.trend||'?') + ' � sigmoid ' + (dir.sigmoid||'?') + 
+      ' � ' + (uni.layers_connected||0) + ' feeds unified � live';
 
     var html = '';
 
-    // ── PULSE ──
-    html += '<div class="card"><h3>♥ pulse</h3>';
+    // -- PULSE --
+    html += '<div class="card"><h3>? pulse</h3>';
     html += m('RPM', (b.rpm||0).toFixed(0), 'green');
     html += m('trend', b.trend||'?');
     html += m('sigmoid', dir.sigmoid||'?', 'amber');
@@ -86,27 +87,27 @@ function load() {
     html += m('interval', (b.interval_seconds||'?') + 's');
     html += '</div>';
 
-    // ── BLOOD ──
+    // -- BLOOD --
     var blood = fl.blood || {};
-    html += '<div class="card"><h3>🩸 blood (cardiovascular)</h3>';
+    html += '<div class="card"><h3>?? blood (cardiovascular)</h3>';
     html += m('cells (humans)', blood.cells||0, 'red');
     html += m('pressure', blood.pressure||0);
     html += m('flow', blood.flow||0);
     html += bar('blood pressure', (blood.pressure||0)*100, '#f85149');
     html += '</div>';
 
-    // ── LYMPH ──
+    // -- LYMPH --
     var lymph = fl.lymph || {};
-    html += '<div class="card"><h3>⚡ lymph (immune)</h3>';
+    html += '<div class="card"><h3>? lymph (immune)</h3>';
     html += m('status', lymph.active?'ACTIVE':'dormant', lymph.active?'green':'red');
     html += m('volume', lymph.volume||0, 'amber');
     html += m('nodes', lymph.surfaces||0);
     html += '</div>';
 
-    // ── FLEET ──
+    // -- FLEET --
     if (fleet) {
       var fs = fleet.summary || {};
-      html += '<div class="card"><h3>🤖 fleet analysis</h3>';
+      html += '<div class="card"><h3>?? fleet analysis</h3>';
       html += m('bot %', (fs.bot_pct||0)+'%', 'red');
       html += m('human %', (fs.human_pct||0)+'%', 'green');
       html += m('total requests', (fs.total_requests||0).toLocaleString());
@@ -117,10 +118,10 @@ function load() {
       html += '</div>';
     }
 
-    // ── ANDERSON ──
+    // -- ANDERSON --
     if (dash) {
       var ag = dash.anderson_selectivity || {};
-      html += '<div class="card"><h3>⚛ anderson localization</h3>';
+      html += '<div class="card"><h3>? anderson localization</h3>';
       html += m('W (disorder)', (ag.w_population||0).toFixed(1), 'purple');
       html += m('selectivity', ((ag.selectivity_observed||0)*100).toFixed(0)+'%', 'green');
       html += m('Pielou J', (ag.pielou_j||0).toFixed(3));
@@ -130,9 +131,9 @@ function load() {
       html += '</div>';
     }
 
-    // ── GEOGRAPHY (footprint) ──
+    // -- GEOGRAPHY (footprint) --
     if (dash && dash.geography) {
-      html += '<div class="card"><h3>🌍 geographic footprint</h3>';
+      html += '<div class="card"><h3>?? geographic footprint</h3>';
       (dash.geography||[]).forEach(function(g) {
         var country = g.country || '?';
         var reqs = (g.requests||0).toLocaleString();
@@ -153,7 +154,7 @@ function load() {
       html += '</div>';
     }
 
-    // ── INVESTIGATION (clutch) ──
+    // -- INVESTIGATION (clutch) --
     if (clutch) {
       var nodes = clutch.nodes || [];
       var edges = clutch.edges || [];
@@ -163,7 +164,7 @@ function load() {
         if (!byInv[inv]) byInv[inv] = [];
         byInv[inv].push(n);
       });
-      html += '<div class="card"><h3>⚖ investigation (clutch)</h3>';
+      html += '<div class="card"><h3>? investigation (clutch)</h3>';
       html += m('nodes', nodes.length, 'gold');
       html += m('edges', edges.length);
       for (var inv in byInv) {
@@ -174,14 +175,14 @@ function load() {
       edges.forEach(function(e) { var t = e.type||e.relationship||'?'; etypes[t]=(etypes[t]||0)+1; });
       var topEdges = Object.keys(etypes).sort(function(a,b){return etypes[b]-etypes[a]}).slice(0,5);
       topEdges.forEach(function(t) { html += m('  '+t, etypes[t]); });
-      html += '<div style="margin-top:8px"><a href="https://clutch.primals.eco" target="_blank" style="color:#f1c40f;font-size:11px">→ open full investigation graph</a></div>';
+      html += '<div style="margin-top:8px"><a href="https://clutch.primals.eco" target="_blank" style="color:#f1c40f;font-size:11px">? open full investigation graph</a></div>';
       html += '</div>';
     }
 
-    // ── SCAN SWEEP SORT ──
+    // -- SCAN SWEEP SORT --
     if (scan) {
       var sc = scan.scan || {};
-      html += '<div class="card"><h3>🔄 scan sweep sort</h3>';
+      html += '<div class="card"><h3>?? scan sweep sort</h3>';
       html += m('entities', sc.entities_discovered||0, 'blue');
       html += m('nodes', sc.nodes_discovered||0);
       html += m('edges', (sc.edges_discovered||0).toLocaleString());
@@ -191,13 +192,13 @@ function load() {
       html += m('shifters', sc.shifters||0);
       html += m('human sessions', sc.human_sessions||0, 'green');
       var evo = (scan.evolve||{}).recommendations || [];
-      evo.forEach(function(r) { html += m('→ '+r.action, r.priority, r.priority==='high'?'red':'amber'); });
+      evo.forEach(function(r) { html += m('? '+r.action, r.priority, r.priority==='high'?'red':'amber'); });
       html += '</div>';
     }
 
-    // ── MEMBRANE STACK ──
+    // -- MEMBRANE STACK --
     if (stack && stack.layers) {
-      html += '<div class="card"><h3>🌍 membrane stack</h3>';
+      html += '<div class="card"><h3>?? membrane stack</h3>';
       html += '<div style="font-size:10px;color:#8b949e;margin-bottom:8px">' + (stack.motto||'') + '</div>';
       stack.layers.forEach(function(l) {
         var w = l.anderson_w || 0;
@@ -206,8 +207,8 @@ function load() {
       html += '</div>';
     }
 
-    // ── UNIFIED ──
-    html += '<div class="card"><h3>🔗 unified layers</h3>';
+    // -- UNIFIED --
+    html += '<div class="card"><h3>?? unified layers</h3>';
     html += m('feeds connected', uni.layers_connected||0, 'green');
     html += m('graph entities', (uni.graph||{}).entities||0);
     html += m('graph density', (uni.graph||{}).density||0);
@@ -223,11 +224,11 @@ function load() {
     }
     html += '</div>';
 
-    // ── HELIXVISION / ALPHAFOLD ──
-    html += '<div class="card"><h3>🧬 helixVision (sovereign AlphaFold)</h3>';
+    // -- HELIXVISION / ALPHAFOLD --
+    html += '<div class="card"><h3>?? helixVision (sovereign AlphaFold)</h3>';
     html += m('checks passing', '154', 'green');
-    html += m('GPU speedup', '8.6×', 'purple');
-    html += m('precision', 'f64 (1e⁻¹⁰)', 'blue');
+    html += m('GPU speedup', '8.6�', 'purple');
+    html += m('precision', 'f64 (1e?��)', 'blue');
     html += m('isomorphism', '6 primitives', 'amber');
     html += m('GEMM', 'matrix multiply');
     html += m('ATTENTION', 'scaled dot-product');
@@ -237,58 +238,58 @@ function load() {
     html += m('GATING', 'sigmoid modulation');
     html += bar('pipeline', 25, '#a371f7');
     html += m('status', 'seed (0.1.0)', 'amber');
-    html += '<div style="margin-top:8px"><a href="/neutron/helix.html" style="color:#a371f7;font-size:11px">→ open helix visualization</a></div>';
+    html += '<div style="margin-top:8px"><a href="/neutron/helix.html" style="color:#a371f7;font-size:11px">? open helix visualization</a></div>';
     html += '</div>';
 
-    // ── GOOGLE MUTUALISM ──
+    // -- GOOGLE MUTUALISM --
     var googleEntity = null;
     if (symb) {
       (symb.entities||[]).forEach(function(e) {
         if (e.entity === 'google_bot') googleEntity = e;
       });
     }
-    html += '<div class="card"><h3>🤝 Google mutualism</h3>';
+    html += '<div class="card"><h3>?? Google mutualism</h3>';
     html += m('relationship', googleEntity ? googleEntity.relationship : 'mutualist', 'green');
     html += m('they give', 'AlphaFold2/3 science');
     html += m('they give', 'open weights + search indexing');
     html += m('we give', 'sovereign f64 implementation');
     html += m('we give', 'consumer hardware validation');
     html += m('we give', 'AGPL knowledge commons');
-    html += m('golden rule', googleEntity && googleEntity.ledger && googleEntity.ledger.golden ? '✓ YES' : 'pending', 'gold');
+    html += m('golden rule', googleEntity && googleEntity.ledger && googleEntity.ledger.golden ? '? YES' : 'pending', 'gold');
     html += '</div>';
 
-    // ── OUTREACH — INVITE ENGINEERS ──
-    html += '<div class="card"><h3>🤝 outreach — invite engineers</h3>';
-    html += m('Mark (ABG)', 'PI — PTP metastasis + PfAAT1 MD sim', 'green');
-    html += m('Mark needs', 'AlphaFold structural modeling → helixVision', 'amber');
-    html += m('Mark needs', 'RNA-seq PTP screening → wetSpring', 'amber');
-    html += m('intro status', 'drafted — Anderson localization for PfAAT1', 'blue');
-    html += m('Valve / Inkfish', 'email sent Jul 29 — Gabe Newell', 'blue');
-    html += m('Andrea Gonzales', 'NF drug discovery — engaged', 'green');
-    html += m('landing page', '/neutron/invite.html — live', 'green');
+    // -- OUTREACH � INVITE ENGINEERS --
+    html += '<div class="card"><h3>?? outreach � invite engineers</h3>';
+    html += m('Mark (ABG)', 'PI � PTP metastasis + PfAAT1 MD sim', 'green');
+    html += m('Mark needs', 'AlphaFold structural modeling ? helixVision', 'amber');
+    html += m('Mark needs', 'RNA-seq PTP screening ? wetSpring', 'amber');
+    html += m('intro status', 'drafted � Anderson localization for PfAAT1', 'blue');
+    html += m('Valve / Inkfish', 'email sent Jul 29 � Gabe Newell', 'blue');
+    html += m('Andrea Gonzales', 'NF drug discovery � engaged', 'green');
+    html += m('landing page', '/neutron/invite.html � live', 'green');
     html += m('Infectious Science', 'thesis: if it works, adoption follows');
     html += m('tuebor + barry', 'live investigations = the proof', 'purple');
-    html += '<div style="margin-top:8px"><a href="/neutron/invite.html" style="color:#3fb950;font-size:11px">→ open invite page</a></div>';
+    html += '<div style="margin-top:8px"><a href="/neutron/invite.html" style="color:#3fb950;font-size:11px">? open invite page</a></div>';
     html += '</div>';
 
-    // ── CONVERGENCE — CRUSH PYTHON TO RUST ──
-    html += '<div class="card"><h3>🦀 convergence — crush to Rust</h3>';
-    html += m('skunky-ingest', '32,650 lines Rust · 19 flags active', 'green');
-    html += m('Python crushed', '40+ → 5 files remaining', 'green');
-    html += m('systemd fossilized', '17 dead services → fossilRecord', 'green');
-    html += m('pulse-pollen.py', '→ Rust --pulse-writer · ban-pulse.json + pollen.json', 'green');
-    html += m('ntfy-bridge.py', '→ Rust --ntfy-bridge · ntfy → neutron inbox', 'green');
-    html += m('campfire.py', '→ Rust campfire_writer.rs + storyteller.rs', 'green');
-    html += m('bloom-emitter', '→ Rust --bloom-emitter · IndexNow + Wayback', 'green');
-    html += m('membrane-stack', '→ Rust --membrane-stack · nested profiles', 'green');
-    html += m('remaining', 'braid_learner · human_epitope · scan_sweep_sort', 'amber');
-    html += m('remaining', 'neutron-writer.py · symbiosis-overlay.py (human)', 'amber');
-    html += m('target', 'pure Rust membrane — no Python, no shell', 'purple');
+    // -- CONVERGENCE � CRUSH PYTHON TO RUST --
+    html += '<div class="card"><h3>?? convergence � crush to Rust</h3>';
+    html += m('skunky-ingest', '32,650 lines Rust � 19 flags active', 'green');
+    html += m('Python crushed', '40+ ? 5 files remaining', 'green');
+    html += m('systemd fossilized', '17 dead services ? fossilRecord', 'green');
+    html += m('pulse-pollen.py', '? Rust --pulse-writer � ban-pulse.json + pollen.json', 'green');
+    html += m('ntfy-bridge.py', '? Rust --ntfy-bridge � ntfy ? neutron inbox', 'green');
+    html += m('campfire.py', '? Rust campfire_writer.rs + storyteller.rs', 'green');
+    html += m('bloom-emitter', '? Rust --bloom-emitter � IndexNow + Wayback', 'green');
+    html += m('membrane-stack', '? Rust --membrane-stack � nested profiles', 'green');
+    html += m('remaining', 'braid_learner � human_epitope � scan_sweep_sort', 'amber');
+    html += m('remaining', 'neutron-writer.py � symbiosis-overlay.py (human)', 'amber');
+    html += m('target', 'pure Rust membrane � no Python, no shell', 'purple');
     html += '</div>';
 
-    // ── SYMBIOSIS ──
+    // -- SYMBIOSIS --
     if (symb) {
-      html += '<div class="card"><h3>🤝 symbiosis (tit-for-tat)</h3>';
+      html += '<div class="card"><h3>?? symbiosis (tit-for-tat)</h3>';
       (symb.entities||[]).forEach(function(e) {
         var cls = e.relationship || '?';
         var cc = cls==='mutualist'?'green':cls.indexOf('commensal')===0?'blue':cls==='parasite'?'amber':cls==='pathogen'?'red':'';
