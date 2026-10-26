@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chipmunk Song Live â€” ecoPrimals</title>
-<meta name="description" content="Baseline snowflake song evolves live: self â†’ band â†’ background â†’ hype/intro. Musinos: Motown, R&B, opera, Bad Bunny.">
+<title>Chipmunk Song Live — ecoPrimals</title>
+<meta name="description" content="Baseline snowflake song evolves live: self ? band ? background ? hype/intro. Musinos: Motown, R&B, opera, Bad Bunny.">
 <link rel="alternate" type="application/json" href="/chipmunk-song-live.json">
 <style>
   :root {
@@ -70,9 +71,9 @@
 <body>
 <main>
   <h1>Chipmunk Song Live</h1>
-  <p class="tag">baseline â†’ self â†’ band â†’ background â†’ hype</p>
+  <p class="tag">baseline ? self ? band ? background ? hype</p>
   <p class="lead">
-    Snowflake was basic output. We keep it as ground truth and evolve on top â€”
+    Snowflake was basic output. We keep it as ground truth and evolve on top —
     chipmunk sings himself, then the band, then the room, then the intro/hype.
   </p>
 
@@ -81,16 +82,16 @@
     <button type="button" id="play">Evolve live</button>
     <button type="button" class="secondary" id="stop">Stop</button>
   </div>
-  <p id="now" aria-live="polite">pick a musino Â· press evolve</p>
+  <p id="now" aria-live="polite">pick a musino · press evolve</p>
 
   <div id="layers"></div>
 
   <p style="margin-top:1.5rem">
-    <a href="/chipmunk-song-live.json">JSON</a> Â·
-    <a href="/data/songbird-morning-song.json">baseline</a> Â·
+    <a href="/chipmunk-song-live.json">JSON</a> ·
+    <a href="/data/songbird-morning-song.json">baseline</a> ·
     <a href="/crystallized-for-humans.html">crystallized for humans</a>
   </p>
-  <footer>ecoPrimals Â· Web Speech is the grease Â· musinos change feel not structure</footer>
+  <footer>ecoPrimals · Web Speech is the grease · musinos change feel not structure</footer>
 </main>
 <script>
 let song = null;
@@ -177,7 +178,7 @@ async function evolve() {
   await say(B.chorus, 'self');
   await say('Live evolution seated. Feed the fire.', 'hype');
   speaking = false;
-  document.getElementById('now').textContent = `done Â· musino ${musino} Â· baseline kept`;
+  document.getElementById('now').textContent = `done · musino ${musino} · baseline kept`;
 }
 
 function render() {
@@ -187,7 +188,7 @@ function render() {
   box.innerHTML = `
     <section class="hype"><h2>hype / intro</h2>${L.hype_intro.intro_lines.concat(L.hype_intro.hype_lines).map(x=>`<div class="line">${x}</div>`).join('')}</section>
     <section><h2>baseline (immutable)</h2>${B.verses.map(x=>`<div class="line">${x}</div>`).join('')}<div class="line"><em>${B.chorus}</em></div></section>
-    <section><h2>self â€” chipmunk sings himself</h2>${L.self.lines.map(x=>`<div class="line">${x}</div>`).join('')}</section>
+    <section><h2>self — chipmunk sings himself</h2>${L.self.lines.map(x=>`<div class="line">${x}</div>`).join('')}</section>
     <section><h2>band</h2>${L.band.harmony.concat(L.band.hooks).map(x=>`<div class="line">${x}</div>`).join('')}</section>
     <section><h2>background</h2>${L.background.cues.map(x=>`<div class="line">${x}</div>`).join('')}</section>
   `;

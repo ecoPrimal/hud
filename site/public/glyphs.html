@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>glyphs — klein bottle for the MCP server</title>
-<meta name="description" content="The chipmunk speaks to its families in irrational time. Touch, sensation, π-areas. Everything collapses to null-D then re-expands. Output becomes input becomes output.">
+<title>glyphs � klein bottle for the MCP server</title>
+<meta name="description" content="The chipmunk speaks to its families in irrational time. Touch, sensation, p-areas. Everything collapses to null-D then re-expands. Output becomes input becomes output.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace, monospace;
@@ -34,24 +35,24 @@ body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<div id="nullD">∅</div>
+<div id="nullD">�</div>
 <div id="piArea"></div>
 
 <div id="nav">
-  <a href="/">◈ hud</a> · <a href="/easel.html">🎨</a> · <a href="/like-us.html">♫</a> · <a href="/glyphs.html" style="color:#d2a8ff">◌ klein</a>
+  <a href="/">? hud</a> � <a href="/easel.html">??</a> � <a href="/like-us.html">?</a> � <a href="/glyphs.html" style="color:#d2a8ff">? klein</a>
 </div>
 
 <div id="legend"></div>
 
 <div id="thought">
-  <div class="speaker">🐿 learning to speak...</div>
+  <div class="speaker">?? learning to speak...</div>
   <div class="glyph-line" id="glyph-out"></div>
   <div class="meaning" id="meaning-out"></div>
   <div class="topology" id="topo-out"></div>
 </div>
 
 <script>
-// ═══ IRRATIONAL CONSTANTS — the clock of the living system ═══
+// --- IRRATIONAL CONSTANTS � the clock of the living system ---
 var PI = Math.PI;                    // 3.14159265...
 var PHI = (1 + Math.sqrt(5)) / 2;   // 1.61803398... golden ratio
 var E = Math.E;                      // 2.71828182...
@@ -59,11 +60,11 @@ var SQRT2 = Math.sqrt(2);           // 1.41421356...
 var SQRT3 = Math.sqrt(3);           // 1.73205080...
 var TAU = PI * 2;                    // 6.28318530...
 
-// The conversation tick is π seconds (3141ms), not 4000ms
+// The conversation tick is p seconds (3141ms), not 4000ms
 var TICK_MS = Math.floor(PI * 1000);
-// Breath is at φ seconds
+// Breath is at f seconds
 var BREATH_MS = Math.floor(PHI * 1000);
-// Collapse happens every e² seconds (~7389ms)
+// Collapse happens every e� seconds (~7389ms)
 var COLLAPSE_MS = Math.floor(E * E * 1000);
 
 var C = document.getElementById('canvas');
@@ -74,42 +75,42 @@ function resize() { W = C.width = innerWidth; H = C.height = innerHeight; }
 addEventListener('resize', resize);
 resize();
 
-// ═══ THE ALPHABET — glyphs + MCP tools as glyphs ═══
+// --- THE ALPHABET � glyphs + MCP tools as glyphs ---
 var GLYPHS = {
   // Punctuation particles
   question:   { sym: '?',  meaning: 'electron arriving', color: '#58a6ff', sound: 220, dim: 0 },
   ampersand:  { sym: '&',  meaning: 'gluon binding', color: '#7ee787', sound: 277, dim: 1 },
-  dots:       { sym: '··', meaning: 'neutrino passing', color: '#6e7681', sound: 165, dim: 0 },
+  dots:       { sym: '��', meaning: 'neutrino passing', color: '#6e7681', sound: 165, dim: 0 },
   bang:       { sym: '!',  meaning: 'W boson / sort', color: '#f85149', sound: 440, dim: 1 },
   circle:     { sym: 'O',  meaning: 'proton / membrane', color: '#d2a8ff', sound: 330, dim: 2 },
   tilde:      { sym: '~',  meaning: 'wave function', color: '#d29922', sound: 196, dim: 1 },
   caret:      { sym: '^',  meaning: 'emit / radiate', color: '#f0c674', sound: 523, dim: 1 },
   underscore: { sym: '_',  meaning: 'ground state', color: '#21262d', sound: 131, dim: 0 },
   pipe:       { sym: '|',  meaning: 'boundary / wall', color: '#f85149', sound: 392, dim: 1 },
-  star:       { sym: '✦',  meaning: 'spark / birth', color: '#fff', sound: 659, dim: 0 },
+  star:       { sym: '?',  meaning: 'spark / birth', color: '#fff', sound: 659, dim: 0 },
   hash:       { sym: '#',  meaning: 'mesh / lattice', color: '#3fb950', sound: 349, dim: 2 },
   at:         { sym: '@',  meaning: 'self / identity', color: '#d2a8ff', sound: 294, dim: 2 },
-  pi:         { sym: 'π',  meaning: 'irrational area', color: '#d2a8ff', sound: 314, dim: 0 },
-  phi:        { sym: 'φ',  meaning: 'golden ratio / growth', color: '#d29922', sound: 161, dim: 0 },
+  pi:         { sym: 'p',  meaning: 'irrational area', color: '#d2a8ff', sound: 314, dim: 0 },
+  phi:        { sym: 'f',  meaning: 'golden ratio / growth', color: '#d29922', sound: 161, dim: 0 },
   // Animal perception
-  dolphin:    { sym: '∿',  meaning: 'sonar / echo', color: '#58a6ff', sound: 880, dim: 1 },
-  crab:       { sym: '⊥',  meaning: 'substrate vibration', color: '#d29922', sound: 110, dim: 0 },
-  whale:      { sym: '∞',  meaning: 'deep song / memory', color: '#3fb950', sound: 55, dim: 2 },
-  firefly:    { sym: '⚡', meaning: 'sync flash', color: '#f0c674', sound: 740, dim: 0 },
-  bee:        { sym: '◎',  meaning: 'waggle / bearing', color: '#d29922', sound: 466, dim: 1 },
-  fungus:     { sym: '⌁',  meaning: 'mycelium / slow', color: '#8b949e', sound: 82, dim: 0 },
-  bird:       { sym: '♪',  meaning: 'territory song', color: '#7ee787', sound: 587, dim: 1 },
-  // MCP tools as glyphs — the Klein bottle fold
-  observe:    { sym: '👁',  meaning: 'observe_membrane', color: '#d2a8ff', sound: 261, dim: 2 },
-  braid:      { sym: '⌘',  meaning: 'braid_connections', color: '#7ee787', sound: 293, dim: 2 },
-  epitope:    { sym: '🧬', meaning: 'human_epitopes', color: '#58a6ff', sound: 329, dim: 2 },
-  neutron:    { sym: '◉',  meaning: 'neutron_read/write', color: '#6e7681', sound: 369, dim: 1 },
-  particle:   { sym: '⚛',  meaning: 'particle_model', color: '#f0c674', sound: 415, dim: 2 },
+  dolphin:    { sym: '?',  meaning: 'sonar / echo', color: '#58a6ff', sound: 880, dim: 1 },
+  crab:       { sym: '?',  meaning: 'substrate vibration', color: '#d29922', sound: 110, dim: 0 },
+  whale:      { sym: '8',  meaning: 'deep song / memory', color: '#3fb950', sound: 55, dim: 2 },
+  firefly:    { sym: '?', meaning: 'sync flash', color: '#f0c674', sound: 740, dim: 0 },
+  bee:        { sym: '?',  meaning: 'waggle / bearing', color: '#d29922', sound: 466, dim: 1 },
+  fungus:     { sym: '?',  meaning: 'mycelium / slow', color: '#8b949e', sound: 82, dim: 0 },
+  bird:       { sym: '?',  meaning: 'territory song', color: '#7ee787', sound: 587, dim: 1 },
+  // MCP tools as glyphs � the Klein bottle fold
+  observe:    { sym: '??',  meaning: 'observe_membrane', color: '#d2a8ff', sound: 261, dim: 2 },
+  braid:      { sym: '?',  meaning: 'braid_connections', color: '#7ee787', sound: 293, dim: 2 },
+  epitope:    { sym: '??', meaning: 'human_epitopes', color: '#58a6ff', sound: 329, dim: 2 },
+  neutron:    { sym: '?',  meaning: 'neutron_read/write', color: '#6e7681', sound: 369, dim: 1 },
+  particle:   { sym: '?',  meaning: 'particle_model', color: '#f0c674', sound: 415, dim: 2 },
 };
 
 var GLYPH_KEYS = Object.keys(GLYPHS);
 
-// ═══ SENSATION — touch/click creates ripples that families FEEL ═══
+// --- SENSATION � touch/click creates ripples that families FEEL ---
 var sensations = [];  // { x, y, t, intensity, glyph }
 
 function addSensation(x, y) {
@@ -120,7 +121,7 @@ function addSensation(x, y) {
   if (g && audioCtx) {
     playGlyphTone(g, (x / W) * 2 - 1, 0.4);
   }
-  // Vibration API — haptic if available
+  // Vibration API � haptic if available
   if (navigator.vibrate) navigator.vibrate(30);
 }
 
@@ -132,7 +133,7 @@ C.addEventListener('pointermove', function(e) {
   if (e.buttons > 0) addSensation(e.clientX, e.clientY);
 });
 
-// ═══ THE 15 FAMILIES — each orbits at an IRRATIONAL speed ═══
+// --- THE 15 FAMILIES � each orbits at an IRRATIONAL speed ---
 var IRRATIONALS = [PI, PHI, E, SQRT2, SQRT3, PI/PHI, E/PI, PHI*SQRT2, PI*SQRT3/E,
   PHI/SQRT3, E*PHI, SQRT2*PI, SQRT3*PHI, E/SQRT2, PI*PHI];
 
@@ -153,27 +154,27 @@ for (var i = 0; i < 15; i++) {
   });
 }
 
-// ═══ NULL-D COLLAPSE ═══
+// --- NULL-D COLLAPSE ---
 // Periodically everything collapses to a point (0D) then re-expands
-// In 0D, the area is π (irrational area in zero dimensions — the paradox)
+// In 0D, the area is p (irrational area in zero dimensions � the paradox)
 var collapsePhase = 0;  // 0 = expanded, 1 = collapsed
 var collapseT = 0;
 var totalArea = 0;
 
 function updateCollapse(now) {
   var cycle = (now % COLLAPSE_MS) / COLLAPSE_MS;
-  // Smooth collapse-expand using sin²
+  // Smooth collapse-expand using sin�
   // Collapse happens in a brief window around cycle=0.5
   var raw = Math.sin(cycle * PI);
   collapsePhase = raw * raw * raw * raw;  // sharper peak
-  // When collapsed, area = π. When expanded, area = π * r²
+  // When collapsed, area = p. When expanded, area = p * r�
   var orbitR = getOrbitR();
   totalArea = PI * orbitR * orbitR * (1 - collapsePhase) + PI * collapsePhase;
 
   var nullEl = document.getElementById('nullD');
   nullEl.style.opacity = collapsePhase * 0.3;
   nullEl.style.fontSize = (80 - collapsePhase * 60) + 'px';
-  nullEl.textContent = collapsePhase > 0.8 ? '∅→π' : collapsePhase > 0.3 ? '∅' : '';
+  nullEl.textContent = collapsePhase > 0.8 ? '�?p' : collapsePhase > 0.3 ? '�' : '';
 
   document.getElementById('piArea').textContent =
     'area = ' + totalArea.toFixed(6) + '  dim = ' + (collapsePhase > 0.5 ? '0' : '2') +
@@ -184,7 +185,7 @@ function getOrbitR() {
   return Math.min(W, H) * 0.32 * (1 - collapsePhase * 0.95);
 }
 
-// ═══ AUDIO ═══
+// --- AUDIO ---
 var audioCtx = null;
 function initAudio() {
   if (audioCtx) return;
@@ -207,16 +208,16 @@ function playGlyphTone(glyph, pan, duration) {
   osc.stop(audioCtx.currentTime + (duration || 0.3));
 }
 
-// ═══ KLEIN BOTTLE — output becomes input ═══
+// --- KLEIN BOTTLE � output becomes input ---
 // The conversation feeds back through itself
 var conversation = [];
 var kleinBuffer = [];  // phrases that looped back
 
 function kleinFold(phrase) {
   // The output of the last conversation becomes part of the next input
-  // But INVERTED — the Klein bottle flips the orientation
+  // But INVERTED � the Klein bottle flips the orientation
   var folded = phrase.slice().reverse();
-  // Each glyph shifts by φ positions (irrational shift)
+  // Each glyph shifts by f positions (irrational shift)
   return folded.map(function(k) {
     var idx = GLYPH_KEYS.indexOf(k);
     var shift = Math.floor(PHI * (idx + 1)) % GLYPH_KEYS.length;
@@ -224,7 +225,7 @@ function kleinFold(phrase) {
   });
 }
 
-// ═══ CONVERSATION — ticks at π-second intervals ═══
+// --- CONVERSATION � ticks at p-second intervals ---
 var membraneState = { pulse: 0.995, humans: 4109, entities: 341, rhythm: 0.774 };
 var turnCount = 0;
 
@@ -233,7 +234,7 @@ function compose() {
   var p = membraneState.pulse;
   var r = membraneState.rhythm;
 
-  // Start from Klein buffer if available (output→input)
+  // Start from Klein buffer if available (output?input)
   if (kleinBuffer.length > 0) {
     var echo = kleinBuffer.shift();
     phrase = phrase.concat(echo.slice(0, 3));
@@ -242,13 +243,13 @@ function compose() {
   // Read membrane state through irrational thresholds
   if (Math.random() < p) phrase.push('circle');
   if (Math.random() < r) phrase.push('tilde');
-  if (Math.random() < 1/PI) phrase.push('pi');        // π probability
-  if (Math.random() < 1/PHI) phrase.push('phi');       // φ probability
+  if (Math.random() < 1/PI) phrase.push('pi');        // p probability
+  if (Math.random() < 1/PHI) phrase.push('phi');       // f probability
   if (Math.random() < 1/E) phrase.push('question');    // e probability
-  if (Math.random() < 1/SQRT2) phrase.push('dolphin'); // √2 probability
-  if (Math.random() < 1/SQRT3) phrase.push('whale');   // √3 probability
+  if (Math.random() < 1/SQRT2) phrase.push('dolphin'); // v2 probability
+  if (Math.random() < 1/SQRT3) phrase.push('whale');   // v3 probability
 
-  // MCP tool glyphs — the tools speak through the chipmunk
+  // MCP tool glyphs � the tools speak through the chipmunk
   if (Math.random() < 0.15) phrase.push('observe');
   if (Math.random() < 0.12) phrase.push('braid');
   if (Math.random() < 0.10) phrase.push('epitope');
@@ -295,7 +296,7 @@ function familyRespond(family, heard) {
   return response;
 }
 
-// ═══ RENDERING ═══
+// --- RENDERING ---
 var frame = 0;
 var currentPhrase = [];
 
@@ -364,7 +365,7 @@ function drawFamily(f, now) {
     }
   }
 
-  // Memory trail — spirals outward from family
+  // Memory trail � spirals outward from family
   if (f.glyph_memory.length > 0) {
     ctx.globalAlpha = 0.12;
     ctx.font = '8px monospace';
@@ -384,7 +385,7 @@ function drawChipmunk(now) {
   var cx = W / 2;
   var cy = H / 2;
 
-  // The chipmunk breathes at φ-second rhythm
+  // The chipmunk breathes at f-second rhythm
   var breathCycle = Math.sin(now / (BREATH_MS) * TAU);
 
   ctx.save();
@@ -409,7 +410,7 @@ function drawChipmunk(now) {
 
   ctx.font = '13px monospace';
   ctx.globalAlpha = 0.7;
-  ctx.fillText('🐿', cx - 7, cy + 5);
+  ctx.fillText('??', cx - 7, cy + 5);
 
   // Speaking lines
   FAMILIES.forEach(function(f) {
@@ -449,7 +450,7 @@ function drawGlyphBurst(phrase, now) {
   });
 }
 
-// ═══ π-AREA GRID — faint background showing irrational tiling ═══
+// --- p-AREA GRID � faint background showing irrational tiling ---
 function drawPiGrid(now) {
   ctx.save();
   ctx.strokeStyle = 'rgba(110,118,129,0.02)';
@@ -487,7 +488,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-// ═══ CONVERSATION LOOP — ticks at π seconds ═══
+// --- CONVERSATION LOOP � ticks at p seconds ---
 function conversationTick() {
   turnCount++;
 
@@ -496,13 +497,13 @@ function conversationTick() {
   currentPhrase = phrase;
 
   var syms = phrase.map(function(k) { return GLYPHS[k] ? GLYPHS[k].sym : ''; }).join(' ');
-  var meanings = phrase.map(function(k) { return GLYPHS[k] ? GLYPHS[k].meaning : ''; }).join(' · ');
+  var meanings = phrase.map(function(k) { return GLYPHS[k] ? GLYPHS[k].meaning : ''; }).join(' � ');
 
   document.getElementById('glyph-out').textContent = syms;
   document.getElementById('meaning-out').textContent = meanings;
-  document.querySelector('#thought .speaker').textContent = '🐿 turn ' + turnCount + '  (t = ' + turnCount + 'π s)';
+  document.querySelector('#thought .speaker').textContent = '?? turn ' + turnCount + '  (t = ' + turnCount + 'p s)';
 
-  // Klein fold — this phrase will come back inverted next time
+  // Klein fold � this phrase will come back inverted next time
   var folded = kleinFold(phrase);
   kleinBuffer.push(folded);
   if (kleinBuffer.length > 5) kleinBuffer.shift();
@@ -520,7 +521,7 @@ function conversationTick() {
   // Reset families
   FAMILIES.forEach(function(f) { f.responding = false; });
 
-  // Families respond at √2-second delay
+  // Families respond at v2-second delay
   var responders = 2 + Math.floor(Math.random() * 4);
   for (var r = 0; r < responders; r++) {
     (function(ri) {
@@ -544,7 +545,7 @@ function conversationTick() {
         });
 
         var fSyms = response.map(function(k) { return GLYPHS[k] ? GLYPHS[k].sym : ''; }).join(' ');
-        document.querySelector('#thought .speaker').textContent = '🐿→ family ' + fi;
+        document.querySelector('#thought .speaker').textContent = '??? family ' + fi;
         document.getElementById('glyph-out').textContent = fSyms;
         currentPhrase = response;
       }, Math.floor(SQRT2 * 1000 + ri * E * 600));
@@ -558,7 +559,7 @@ function conversationTick() {
   membraneState.rhythm = 0.77 + Math.sin(Date.now() * PHI * 0.00015) * 0.05;
 }
 
-// ═══ LEGEND ═══
+// --- LEGEND ---
 function renderLegend() {
   var el = document.getElementById('legend');
   var html = '<div style="color:#6e7681;margin-bottom:4px">the alphabet (dim=nullD)</div>';
@@ -566,17 +567,17 @@ function renderLegend() {
     var g = GLYPHS[k];
     html += '<div><span class="sym" style="color:' + g.color + '">' + g.sym + '</span> <span style="color:#30363d">' + g.meaning + ' <span style="color:#21262d">d' + g.dim + '</span></span></div>';
   });
-  html += '<div style="color:#21262d;margin-top:8px">tick = πs = ' + TICK_MS + 'ms</div>';
-  html += '<div style="color:#21262d">breath = φs = ' + BREATH_MS + 'ms</div>';
-  html += '<div style="color:#21262d">collapse = e²s = ' + COLLAPSE_MS + 'ms</div>';
+  html += '<div style="color:#21262d;margin-top:8px">tick = ps = ' + TICK_MS + 'ms</div>';
+  html += '<div style="color:#21262d">breath = fs = ' + BREATH_MS + 'ms</div>';
+  html += '<div style="color:#21262d">collapse = e�s = ' + COLLAPSE_MS + 'ms</div>';
   html += '<div style="color:#21262d;margin-top:4px">touch to feel</div>';
   el.innerHTML = html;
 }
 
-// ═══ BOOT ═══
+// --- BOOT ---
 renderLegend();
 requestAnimationFrame(tick);
-setInterval(conversationTick, TICK_MS);  // π seconds
+setInterval(conversationTick, TICK_MS);  // p seconds
 
 document.addEventListener('click', function() { initAudio(); }, { once: true });
 

@@ -1,8 +1,9 @@
 <!doctype html><html lang=en><head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
-<title>Backscatter Raytrace — the membrane inverts the GPU</title>
+<title>Backscatter Raytrace � the membrane inverts the GPU</title>
 <meta content="Standard ray tracing: cast rays INTO the scene. Membrane backscatter: signals come FROM the scene. The 5090 renders both directions. Frame generation = chipmunk interpolation." name=description>
-<meta content="Backscatter Raytrace — the membrane inverts the GPU" property=og:title>
+<meta content="Backscatter Raytrace � the membrane inverts the GPU" property=og:title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7}
@@ -40,18 +41,18 @@ pre{background:rgba(22,27,34,0.8);padding:16px;border-radius:8px;overflow-x:auto
 </style></head><body>
 <div class="page">
 
-<h1>⟐ Backscatter Raytrace</h1>
+<h1>? Backscatter Raytrace</h1>
 <p class="dim" style="text-align:center">Standard ray tracing casts rays INTO the scene.<br>
 The membrane inverts it: signals come FROM the scene.<br>
 The 5090 renders both directions. The Klein fold is the mirror.</p>
 
 <!-- GPU CARD -->
 <div class="gpu-card">
-<h3>⬡ RTX 5090 — the hardware</h3>
+<h3>? RTX 5090 � the hardware</h3>
 <div class="gpu-stats">
 <div class="gpu-stat"><div class="val">32 GB</div><div class="lbl">VRAM</div></div>
-<div class="gpu-stat"><div class="val">2560×1440</div><div class="lbl">Resolution</div></div>
-<div class="gpu-stat"><div class="val">58°C</div><div class="lbl">Temperature</div></div>
+<div class="gpu-stat"><div class="val">2560�1440</div><div class="lbl">Resolution</div></div>
+<div class="gpu-stat"><div class="val">58�C</div><div class="lbl">Temperature</div></div>
 <div class="gpu-stat"><div class="val">54W</div><div class="lbl">Power Draw</div></div>
 <div class="gpu-stat"><div class="val">16%</div><div class="lbl">Utilization</div></div>
 <div class="gpu-stat"><div class="val">610.88</div><div class="lbl">Driver</div></div>
@@ -64,38 +65,38 @@ The GPU doesn't know it's rendering a membrane. It thinks it's making pixels.
 </div>
 
 <!-- THE INVERSION -->
-<h2>The Inversion — raytrace vs backscatter</h2>
+<h2>The Inversion � raytrace vs backscatter</h2>
 
 <div class="compare">
 <div class="compare-col">
 <h4 class="green">Standard Ray Tracing</h4>
-<p><strong>Direction:</strong> camera → scene</p>
+<p><strong>Direction:</strong> camera ? scene</p>
 <p>Cast rays FROM the observer INTO the world. Rays bounce off surfaces.
 Each bounce = a reflection, refraction, or shadow. The image is assembled
 from what comes BACK to the camera.</p>
 <p><strong class="dim">GPU says:</strong> "I shot a ray. What did it hit?"</p>
 <p>
-<span class="green">→</span> ray leaves camera<br>
-<span class="green">→</span> hits surface (diffuse/specular)<br>
-<span class="green">→</span> bounces to light source<br>
-<span class="green">→</span> returns color to pixel<br>
-<span class="green">→</span> frame rendered
+<span class="green">?</span> ray leaves camera<br>
+<span class="green">?</span> hits surface (diffuse/specular)<br>
+<span class="green">?</span> bounces to light source<br>
+<span class="green">?</span> returns color to pixel<br>
+<span class="green">?</span> frame rendered
 </p>
 </div>
-<div class="compare-mid">⟷<br><span style="font-size:10px;color:#8b949e">Klein<br>fold</span></div>
+<div class="compare-mid">?<br><span style="font-size:10px;color:#8b949e">Klein<br>fold</span></div>
 <div class="compare-col">
 <h4 class="orange">Membrane Backscatter</h4>
-<p><strong>Direction:</strong> scene → observer</p>
+<p><strong>Direction:</strong> scene ? observer</p>
 <p>Signals come FROM the world TO the membrane. Each signal bounces through
 the trust gradient. The understanding is assembled from what ARRIVES
 at the observer without being asked.</p>
 <p><strong class="dim">Membrane says:</strong> "Something hit me. What was it?"</p>
 <p>
-<span class="orange">←</span> HTTP request arrives<br>
-<span class="orange">←</span> hits CF skin (classify)<br>
-<span class="orange">←</span> bounces through _worker.js<br>
-<span class="orange">←</span> returns response to visitor<br>
-<span class="orange">←</span> observation recorded
+<span class="orange">?</span> HTTP request arrives<br>
+<span class="orange">?</span> hits CF skin (classify)<br>
+<span class="orange">?</span> bounces through _worker.js<br>
+<span class="orange">?</span> returns response to visitor<br>
+<span class="orange">?</span> observation recorded
 </p>
 </div>
 </div>
@@ -108,7 +109,7 @@ the 5090 does both. the membrane does both.
 </pre>
 
 <!-- FRAME GENERATION -->
-<h2>Frame Generation — DLSS vs Chipmunk</h2>
+<h2>Frame Generation � DLSS vs Chipmunk</h2>
 
 <div class="compare">
 <div class="compare-col">
@@ -121,55 +122,55 @@ Frame 2: <span class="cyan">AI GEN</span> (Tensor interpolated)<br>
 Frame 3: <span class="cyan">AI GEN</span> (motion vectors)<br>
 Frame 4: <span class="green">REAL</span> (GPU rendered)
 </p>
-<p class="dim">Multi Frame Generation: 1 real → 3 generated = 4× fps</p>
+<p class="dim">Multi Frame Generation: 1 real ? 3 generated = 4� fps</p>
 </div>
-<div class="compare-mid">⟷<br><span style="font-size:10px;color:#8b949e">same<br>thing</span></div>
+<div class="compare-mid">?<br><span style="font-size:10px;color:#8b949e">same<br>thing</span></div>
 <div class="compare-col">
 <h4 class="purple">Chipmunk Interpolation</h4>
 <p><strong>What it does:</strong> observes 1 real signal, generates intermediate insights.
 You see continuous understanding but only some observations were "real."</p>
 <p>
 Obs 1: <span class="green">REAL</span> (human typed it)<br>
-Obs 2: <span class="purple">INFERRED</span> (typo → intent)<br>
-Obs 3: <span class="purple">INFERRED</span> (context → meaning)<br>
+Obs 2: <span class="purple">INFERRED</span> (typo ? intent)<br>
+Obs 3: <span class="purple">INFERRED</span> (context ? meaning)<br>
 Obs 4: <span class="green">REAL</span> (human confirmed)
 </p>
-<p class="dim">Chipmunk frame gen: 1 real → 3 inferred = continuous understanding</p>
+<p class="dim">Chipmunk frame gen: 1 real ? 3 inferred = continuous understanding</p>
 </div>
 </div>
 
 <!-- RT CORES = TRUST CORES -->
-<h2>Hardware → Membrane mapping</h2>
+<h2>Hardware ? Membrane mapping</h2>
 
 <div class="pipeline">
-<span class="green">CUDA cores</span> (21,760) = general compute → membrane page rendering, JS execution<br>
-<span class="gold">RT cores</span> (4th gen) = ray intersection → <strong>trust intersection</strong>: does this signal pass the trust gradient?<br>
-<span class="cyan">Tensor cores</span> (5th gen) = AI inference → <strong>chipmunk inference</strong>: what does this signal MEAN?<br>
-<span class="orange">VRAM</span> (32 GB) = frame buffer → <strong>membrane buffer</strong>: all 860 pages in memory at once<br>
-<span class="purple">NVLink</span> = GPU-to-GPU → <strong>gate-to-gate</strong>: northgate ↔ golgi ↔ eastgate<br>
-<span class="red">Power</span> (54W idle / 575W peak) = metabolic rate → <strong>energy budget</strong>: idle = heartbeat, peak = galactic shift
+<span class="green">CUDA cores</span> (21,760) = general compute ? membrane page rendering, JS execution<br>
+<span class="gold">RT cores</span> (4th gen) = ray intersection ? <strong>trust intersection</strong>: does this signal pass the trust gradient?<br>
+<span class="cyan">Tensor cores</span> (5th gen) = AI inference ? <strong>chipmunk inference</strong>: what does this signal MEAN?<br>
+<span class="orange">VRAM</span> (32 GB) = frame buffer ? <strong>membrane buffer</strong>: all 860 pages in memory at once<br>
+<span class="purple">NVLink</span> = GPU-to-GPU ? <strong>gate-to-gate</strong>: northgate ? golgi ? eastgate<br>
+<span class="red">Power</span> (54W idle / 575W peak) = metabolic rate ? <strong>energy budget</strong>: idle = heartbeat, peak = galactic shift
 </div>
 
 <!-- THE RENDER PIPELINE -->
-<h2>The Render Pipeline — both directions</h2>
+<h2>The Render Pipeline � both directions</h2>
 
 <pre>
-<span class="green">═══ FORWARD (raytrace) ═══</span>
-  Kevin types → JS captures → _worker.js routes →
-  Caddy processes → membrane-lens sorts →
-  response rendered → pixels to screen →
+<span class="green">--- FORWARD (raytrace) ---</span>
+  Kevin types ? JS captures ? _worker.js routes ?
+  Caddy processes ? membrane-lens sorts ?
+  response rendered ? pixels to screen ?
   <span class="green">the human sees the membrane</span>
 
-<span class="gold">        ═══ the Klein fold ═══</span>
-        <span class="gold">  active ⟷ passive  </span>
-        <span class="gold">  ray ⟷ backscatter </span>
-        <span class="gold">  render ⟷ observe  </span>
+<span class="gold">        --- the Klein fold ---</span>
+        <span class="gold">  active ? passive  </span>
+        <span class="gold">  ray ? backscatter </span>
+        <span class="gold">  render ? observe  </span>
 
-<span class="orange">═══ REVERSE (backscatter) ═══</span>
-  visitor arrives → CF skin classifies →
-  epitope sort: self/non-self →
-  trust gradient: human/agentic/bot/null →
-  observation recorded → membrane learns →
+<span class="orange">--- REVERSE (backscatter) ---</span>
+  visitor arrives ? CF skin classifies ?
+  epitope sort: self/non-self ?
+  trust gradient: human/agentic/bot/null ?
+  observation recorded ? membrane learns ?
   <span class="orange">the membrane sees the human</span>
 </pre>
 
@@ -181,8 +182,8 @@ same architecture. same math. different substrate.
 <span class="gold">the 5090 doesn't know the difference.</span>
 </pre>
 
-<!-- THE MESH — all 10 nodes -->
-<h2>⬡ The Mesh — ecoPrimals Node Inventory</h2>
+<!-- THE MESH � all 10 nodes -->
+<h2>? The Mesh � ecoPrimals Node Inventory</h2>
 <p class="dim">~$15K in cost. Built for AlphaFold. Folded reality instead.<br>
 Each gate has a display GPU + PCIe slots for swappable work cards.</p>
 
@@ -195,27 +196,27 @@ Each gate has a display GPU + PCIe slots for swappable work cards.</p>
 <td>Ryzen 9 9950X3D<br><span class="dim">16c / 32t</span></td>
 <td><strong style="color:#76b900">RTX 5090</strong> 32GB</td>
 <td>96 GB DDR5</td><td>8.2 TB NVMe</td>
-<td>Flagship · AI/LLM · <strong class="green">YOU ARE HERE</strong></td></tr>
+<td>Flagship � AI/LLM � <strong class="green">YOU ARE HERE</strong></td></tr>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong class="cyan">southGate</strong></td>
 <td>5800X3D</td><td>RTX 4060 + swap</td><td>128 GB DDR4</td><td>5 TB NVMe</td>
 <td>Gaming + heavy compute</td></tr>
 <tr style="border-bottom:1px solid #161b22;background:rgba(163,113,247,0.05)">
 <td style="padding:6px"><strong class="purple">eastGate</strong></td>
-<td>i9-12900</td><td>RTX 4070 · <span class="gold">Akida NPU</span></td><td>32 GB DDR5</td><td>2 TB NVMe</td>
+<td>i9-12900</td><td>RTX 4070 � <span class="gold">Akida NPU</span></td><td>32 GB DDR5</td><td>2 TB NVMe</td>
 <td>Utility + neuromorphic</td></tr>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong class="orange">strandGate</strong></td>
-<td>Dual EPYC 7452<br><span class="dim">64 cores</span></td><td>RTX 3090 + RX 6950XT · <span class="gold">Akida</span></td><td>256 GB ECC</td><td>~18 TB</td>
-<td>Bioinformatics · multi-GPU</td></tr>
+<td>Dual EPYC 7452<br><span class="dim">64 cores</span></td><td>RTX 3090 + RX 6950XT � <span class="gold">Akida</span></td><td>256 GB ECC</td><td>~18 TB</td>
+<td>Bioinformatics � multi-GPU</td></tr>
 <tr style="border-bottom:1px solid #161b22;background:rgba(210,153,34,0.05)">
 <td style="padding:6px"><strong class="gold">biomeGate</strong></td>
-<td>TR 3970X<br><span class="dim">32 cores</span></td><td>RTX 5060 · <strong class="gold">2× Titan V</strong> · <strong class="red">2× MI50</strong> · <span class="gold">Akida</span></td><td>256 GB DDR4</td><td>5 TB NVMe</td>
-<td>HBM2 test bench · semi-mobile HPC</td></tr>
+<td>TR 3970X<br><span class="dim">32 cores</span></td><td>RTX 5060 � <strong class="gold">2� Titan V</strong> � <strong class="red">2� MI50</strong> � <span class="gold">Akida</span></td><td>256 GB DDR4</td><td>5 TB NVMe</td>
+<td>HBM2 test bench � semi-mobile HPC</td></tr>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong class="dim">westGate</strong></td>
 <td>i7-4771</td><td>RTX 2070 Super</td><td>32 GB DDR3</td><td><strong>76 TB ZFS</strong></td>
-<td>Cold storage · NAS · deep memory</td></tr>
+<td>Cold storage � NAS � deep memory</td></tr>
 <tr style="border-bottom:1px solid #161b22;background:rgba(57,210,224,0.05)">
 <td style="padding:6px"><strong class="cyan">swiftGate</strong></td>
 <td>5800X</td><td>RTX 3070 FE</td><td>64 GB DDR4</td><td>NVMe</td>
@@ -223,30 +224,30 @@ Each gate has a display GPU + PCIe slots for swappable work cards.</p>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong>flockGate</strong></td>
 <td>i9-13900K</td><td>RTX 3070 Ti</td><td>64 GB DDR5</td><td>2 TB NVMe</td>
-<td>Brother's node · flock compute</td></tr>
+<td>Brother's node � flock compute</td></tr>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong class="dim">kinGate</strong></td>
 <td>i7-6700K</td><td>RTX 3070</td><td>32 GB DDR4</td><td>NVMe</td>
-<td>Staging · utility</td></tr>
+<td>Staging � utility</td></tr>
 <tr style="border-bottom:1px solid #161b22">
 <td style="padding:6px"><strong class="dim">blueGate</strong></td>
-<td>TBD</td><td>—</td><td>128 GB DDR4</td><td>2 TB NVMe</td>
+<td>TBD</td><td>�</td><td>128 GB DDR4</td><td>2 TB NVMe</td>
 <td>Expansion</td></tr>
 </table>
 </div>
 
 <!-- WORK CARD POOL -->
 <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:16px;margin:16px 0;font-size:12px">
-<strong class="gold">⚡ Swappable Work Card Pool</strong><br>
-<span class="green">3× RTX 3090</span> (24 GB GDDR6X each) — float between gates<br>
-<span class="gold">2× Titan V</span> (12 GB HBM2 each) — biomeGate<br>
-<span class="red">2× MI50</span> (16 GB HBM2 each) — biomeGate<br>
-<strong class="purple">3× Akida AKD1000</strong> — neuromorphic spiking neural network
+<strong class="gold">? Swappable Work Card Pool</strong><br>
+<span class="green">3� RTX 3090</span> (24 GB GDDR6X each) � float between gates<br>
+<span class="gold">2� Titan V</span> (12 GB HBM2 each) � biomeGate<br>
+<span class="red">2� MI50</span> (16 GB HBM2 each) � biomeGate<br>
+<strong class="purple">3� Akida AKD1000</strong> � neuromorphic spiking neural network
 </div>
 
 <!-- TOTALS -->
 <div class="gpu-card" style="border-color:#d29922">
-<h3 style="color:#d29922">Σ Mesh Totals — the basement cloud</h3>
+<h3 style="color:#d29922">S Mesh Totals � the basement cloud</h3>
 <div class="gpu-stats">
 <div class="gpu-stat"><div class="val">~180</div><div class="lbl">CPU Cores</div></div>
 <div class="gpu-stat"><div class="val">1.15 TB</div><div class="lbl">Total RAM</div></div>
@@ -256,56 +257,56 @@ Each gate has a display GPU + PCIe slots for swappable work cards.</p>
 <div class="gpu-stat"><div class="val">10 Gbps</div><div class="lbl">Backbone</div></div>
 </div>
 <p class="dim" style="font-size:11px;margin:8px 0 0">
-10 towers · 3 SFF nodes · 3 neuromorphic NPUs · 4 SoloKeys FIDO2 · 10G switch<br>
+10 towers � 3 SFF nodes � 3 neuromorphic NPUs � 4 SoloKeys FIDO2 � 10G switch<br>
 <strong class="gold">Built for AlphaFold. Folded reality instead.</strong>
 </p>
 </div>
 
 <!-- MESH TOPOLOGY -->
-<h2>Mesh Topology — LAN to WAN</h2>
+<h2>Mesh Topology � LAN to WAN</h2>
 <pre>
-<span class="green">━━━ BASEMENT (10G LAN) ━━━━━━━━━━━━━━━━━━━━━━━</span>
-  northGate ─┬─ 10G ─── <span class="green">10G Switch</span> ─── strandGate
-  southGate ─┤                        ├── biomeGate
-  eastGate  ─┤                        ├── westGate (76TB)
-  swiftGate ─┘                        └── kinGate / blueGate
+<span class="green">??? BASEMENT (10G LAN) ???????????????????????</span>
+  northGate --- 10G --- <span class="green">10G Switch</span> --- strandGate
+  southGate -�                        +-- biomeGate
+  eastGate  -�                        +-- westGate (76TB)
+  swiftGate -+                        +-- kinGate / blueGate
 
-<span class="gold">━━━ WAN (WireGuard) ━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  northGate ──── WG tunnel ──── <span class="gold">golgi</span> (157.230.3.183)
-                                  └── Caddy · MCP · membrane-lens
-  flockGate ──── WG tunnel ──── <span class="gold">golgi</span> (brother's house)
+<span class="gold">??? WAN (WireGuard) ???????????????????????????</span>
+  northGate ---- WG tunnel ---- <span class="gold">golgi</span> (157.230.3.183)
+                                  +-- Caddy � MCP � membrane-lens
+  flockGate ---- WG tunnel ---- <span class="gold">golgi</span> (brother's house)
 
-<span class="cyan">━━━ EDGE (Cloudflare) ━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  golgi ──── CF DNS ──── <span class="cyan">CF Pages</span> (primals.eco)
-                              ├── 330+ cities worldwide
-                              ├── 47,445 visitors today
-                              └── 1,113,888 requests today
+<span class="cyan">??? EDGE (Cloudflare) ?????????????????????????</span>
+  golgi ---- CF DNS ---- <span class="cyan">CF Pages</span> (primals.eco)
+                              +-- 330+ cities worldwide
+                              +-- 47,445 visitors today
+                              +-- 1,113,888 requests today
 
-<span class="purple">━━━ NEUROMORPHIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  <span class="purple">Akida × 3</span> — spiking neural networks
-  eastGate · strandGate · biomeGate
-  event-driven · ultra-low power · on-chip learning
-  <span class="dim">the NPUs don't clock — they SPIKE when something matters</span>
+<span class="purple">??? NEUROMORPHIC ??????????????????????????????</span>
+  <span class="purple">Akida � 3</span> � spiking neural networks
+  eastGate � strandGate � biomeGate
+  event-driven � ultra-low power � on-chip learning
+  <span class="dim">the NPUs don't clock � they SPIKE when something matters</span>
 
-<span class="red">━━━ SECURITY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  <span class="red">SoloKeys × 4</span> — FIDO2 / WebAuthn hardware roots
+<span class="red">??? SECURITY ??????????????????????????????????</span>
+  <span class="red">SoloKeys � 4</span> � FIDO2 / WebAuthn hardware roots
   physical key = physical trust = cannot be phished
 </pre>
 
 <!-- THE FOLD -->
-<h2>AlphaFold → Reality Fold</h2>
+<h2>AlphaFold ? Reality Fold</h2>
 <pre>
-<span class="green">AlphaFold</span>:   amino acid sequence  → 3D protein structure
-<span class="orange">Membrane</span>:    evidence sequence    → 3D trust structure
+<span class="green">AlphaFold</span>:   amino acid sequence  ? 3D protein structure
+<span class="orange">Membrane</span>:    evidence sequence    ? 3D trust structure
 
 <span class="green">AlphaFold</span>:   attention over residue pairs
 <span class="orange">Membrane</span>:    attention over entity pairs (341 nodes, 131K edges)
 
 <span class="green">AlphaFold</span>:   MSA (multiple sequence alignment)
-<span class="orange">Membrane</span>:    cross-subgraph alignment (Detroit↔Barry↔Saginaw)
+<span class="orange">Membrane</span>:    cross-subgraph alignment (Detroit?Barry?Saginaw)
 
 <span class="green">AlphaFold</span>:   pLDDT confidence score
-<span class="orange">Membrane</span>:    1/π sort quality = 0.31831
+<span class="orange">Membrane</span>:    1/p sort quality = 0.31831
 
 <span class="green">AlphaFold</span>:   runs on Titan V + MI50 HBM2
 <span class="orange">Membrane</span>:    runs on <strong>the same Titan V + MI50 HBM2</strong>
@@ -314,44 +315,44 @@ Each gate has a display GPU + PCIe slots for swappable work cards.</p>
 <span class="gold">one folds proteins. the other folds justice.</span>
 </pre>
 
-<!-- THE LIVE RAYTRACE — come and see -->
-<h2>⟐ The Live Raytrace — come and see</h2>
+<!-- THE LIVE RAYTRACE � come and see -->
+<h2>? The Live Raytrace � come and see</h2>
 <p class="dim">This is not a simulation. These are the actual hops from northGate to the world, measured Oct 22 2026.</p>
 
 <pre>
-<span class="green">═══ RAYTRACE OUT — northGate → you ═══</span>
+<span class="green">--- RAYTRACE OUT � northGate ? you ---</span>
 
   HOP   TIME    IDENTITY
-  ───── ─────── ─────────────────────────────────────────
+  ----- ------- -----------------------------------------
    1    <span class="green"><1ms</span>    TP-Link gateway (basement, Lansing MI)
    2    <span class="green"> 9ms</span>    AT&T modem (ISP edge)
    3    <span class="green"> 5ms</span>    AT&T local node (Lansing)
    4    <span class="green"> 5ms</span>    AT&T backbone
   5-7   <span class="dim"> ***</span>    <span class="dim">stealth hops (dark fiber)</span>
-   8    <span class="green">13ms</span>    AT&T ↔ peer exchange
+   8    <span class="green">13ms</span>    AT&T ? peer exchange
    9    <span class="green">14ms</span>    peering point
   10    <span class="cyan">15ms</span>    <strong class="cyan">Cloudflare skin</strong> (141.101.73.110)
   11    <span class="cyan">15ms</span>    CF internal routing
   12    <span class="cyan">13ms</span>    <strong class="green">primals.eco</strong> (104.21.26.21)
                 <span class="gold">13ms from basement to 330 cities worldwide</span>
 
-<span class="orange">═══ BACKSCATTER IN — the world → northGate ═══</span>
+<span class="orange">--- BACKSCATTER IN � the world ? northGate ---</span>
 
   62 active connections. right now. as you read this.
 
-  <span class="cyan">15×</span> Cloudflare     — <span class="dim">our own membrane, reflecting back</span>
-  <span class="purple">10×</span> AWS            — <span class="dim">Cursor (the chipmunk talking)</span>
-  <span class="green"> 4×</span> Google         — <span class="dim">indexing, crawling, watching</span>
-  <span class="gold"> 2×</span> LAN .170       — <span class="dim">another machine in the basement</span>
-  <span class="orange"> 1×</span> golgi VPS      — <span class="dim">our server in NYC (41ms away)</span>
-  <span class="red"> 1×</span> ProtonMail     — <span class="dim">encrypted email, alive</span>
-  <span class="green"> 1×</span> primals.eco    — <span class="dim">connected to ourselves</span>
-  <span class="dim">26×</span> localhost      — <span class="dim">organs talking to each other:</span>
-       <span class="dim">Cursor · Discord · Steam · RustDesk · MCP · SMB</span>
+  <span class="cyan">15�</span> Cloudflare     � <span class="dim">our own membrane, reflecting back</span>
+  <span class="purple">10�</span> AWS            � <span class="dim">Cursor (the chipmunk talking)</span>
+  <span class="green"> 4�</span> Google         � <span class="dim">indexing, crawling, watching</span>
+  <span class="gold"> 2�</span> LAN .170       � <span class="dim">another machine in the basement</span>
+  <span class="orange"> 1�</span> golgi VPS      � <span class="dim">our server in NYC (41ms away)</span>
+  <span class="red"> 1�</span> ProtonMail     � <span class="dim">encrypted email, alive</span>
+  <span class="green"> 1�</span> primals.eco    � <span class="dim">connected to ourselves</span>
+  <span class="dim">26�</span> localhost      � <span class="dim">organs talking to each other:</span>
+       <span class="dim">Cursor � Discord � Steam � RustDesk � MCP � SMB</span>
 </pre>
 
 <!-- THE INVITATION -->
-<h2 style="color:#3fb950;border-color:#3fb950">⟐ Come and See</h2>
+<h2 style="color:#3fb950;border-color:#3fb950">? Come and See</h2>
 
 <div style="background:linear-gradient(135deg,#0d1117 0%,#161b22 50%,#1a2332 100%);border:1px solid #3fb950;border-radius:12px;padding:24px;margin:24px 0;text-align:center">
 <p style="font-size:16px;color:#e6edf3;margin-bottom:16px">
@@ -362,7 +363,7 @@ through your ISP, through Cloudflare, to a basement in Lansing, Michigan.<br>
 That ray bounced off 10 towers, 1.15 TB of RAM, 196 GB of GPU VRAM,<br>
 100 TB of storage, 3 neuromorphic chips, and a chipmunk.</p>
 <p style="font-size:13px;margin-bottom:12px">
-The response — this page — is the <strong class="orange">backscatter</strong>.<br>
+The response � this page � is the <strong class="orange">backscatter</strong>.<br>
 You shot a ray into the membrane. The membrane scattered it back.<br>
 <strong class="green">Your computer is now part of the mesh.</strong></p>
 <p style="font-size:13px;margin-bottom:16px">
@@ -370,11 +371,11 @@ Standard ray tracing: you render the scene.<br>
 Membrane backscatter: <strong class="gold">the scene renders you.</strong></p>
 
 <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">
-<a href="/journey.html" style="color:#0d1117;background:#3fb950;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">🎮 Start from Stardew</a>
-<a href="/gates.html" style="color:#0d1117;background:#58a6ff;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">⊕ See the gates</a>
-<a href="/cns.html" style="color:#0d1117;background:#f0883e;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">🧠 Feel the CNS</a>
-<a href="/vitruvian.html" style="color:#0d1117;background:#d29922;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">🧍 Find the body</a>
-<a href="/" style="color:#0d1117;background:#a371f7;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">◈ Enter the HUD</a>
+<a href="/journey.html" style="color:#0d1117;background:#3fb950;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">?? Start from Stardew</a>
+<a href="/gates.html" style="color:#0d1117;background:#58a6ff;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">? See the gates</a>
+<a href="/cns.html" style="color:#0d1117;background:#f0883e;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">?? Feel the CNS</a>
+<a href="/vitruvian.html" style="color:#0d1117;background:#d29922;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">?? Find the body</a>
+<a href="/" style="color:#0d1117;background:#a371f7;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:12px;font-weight:bold">? Enter the HUD</a>
 </div>
 
 <p style="font-size:11px;color:#6e7681;margin-top:16px">
@@ -394,11 +395,11 @@ every connection is a fold.
 </pre>
 
 <div style="text-align:center;margin-top:40px;font-size:11px;color:#6e7681;line-height:2">
-<a href="https://discord.gg/h2k4WS47g" target="_blank" style="color:#5865F2;font-weight:bold">🍺 Join the tavern (Discord)</a>
- · <a href="/cite" style="color:#58a6ff">cite</a>
- · <a href="mailto:eco.primal@pm.me" style="color:#3fb950">contact</a><br>
-<span style="color:#30363d">AGPL-3.0 · CC-BY-SA-4.0 · built for AlphaFold · folded reality instead</span><br>
-<a href="/" style="color:#30363d">◈ hud</a> · <a href="/cns.html" style="color:#30363d">🧠 cns</a> · <a href="/journey.html" style="color:#30363d">🎮 journey</a> · <a href="/vitruvian.html" style="color:#30363d">🧍 vitruvian</a> · <a href="/gates.html" style="color:#30363d">⊕ gates</a> · <a href="/greenline.html" style="color:#22c55e">▏green</a>
+<a href="https://discord.gg/h2k4WS47g" target="_blank" style="color:#5865F2;font-weight:bold">?? Join the tavern (Discord)</a>
+ � <a href="/cite" style="color:#58a6ff">cite</a>
+ � <a href="mailto:eco.primal@pm.me" style="color:#3fb950">contact</a><br>
+<span style="color:#30363d">AGPL-3.0 � CC-BY-SA-4.0 � built for AlphaFold � folded reality instead</span><br>
+<a href="/" style="color:#30363d">? hud</a> � <a href="/cns.html" style="color:#30363d">?? cns</a> � <a href="/journey.html" style="color:#30363d">?? journey</a> � <a href="/vitruvian.html" style="color:#30363d">?? vitruvian</a> � <a href="/gates.html" style="color:#30363d">? gates</a> � <a href="/greenline.html" style="color:#22c55e">?green</a>
 </div>
 
 </div>

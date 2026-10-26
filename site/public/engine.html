@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GAIA ENGINE — CryEngine × Kenshi × Primal · LIVE</title>
+<title>GAIA ENGINE � CryEngine � Kenshi � Primal � LIVE</title>
 <style>
 :root {
   --bg: #0a0c10; --surface: #12161e; --border: #1c2333; --fg: #c9d1d9; --dim: #6e7681;
@@ -29,7 +30,7 @@ header h1 { font-size: 11px; font-weight: 700; color: var(--cyan); letter-spacin
 /* MAIN GRID */
 main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow: hidden; }
 
-/* LEFT PANEL — SQUAD */
+/* LEFT PANEL � SQUAD */
 .panel { background: var(--surface); border: 1px solid var(--border); overflow-y: auto; padding: 6px; }
 .panel h2 { font-size: 9px; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 .squad-member { display: flex; align-items: center; gap: 6px; padding: 3px 4px; border-radius: 3px; margin-bottom: 2px; cursor: default; }
@@ -38,7 +39,7 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .sq-name { font-size: 9px; flex: 1; }
 .sq-hp { font-size: 8px; width: 40px; text-align: right; }
 
-/* CENTER — RENDER VIEWPORT */
+/* CENTER � RENDER VIEWPORT */
 #viewport { background: #060810; position: relative; overflow: hidden; }
 #viewport canvas { width: 100%; height: 100%; }
 #render-target { width: 100%; height: 100%; }
@@ -73,7 +74,7 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .boundary-label { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 7px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
 .twist-count { position: absolute; top: 4px; left: 12px; font-size: 7px; color: var(--purple); }
 
-/* RIGHT PANEL — RATES DASHBOARD */
+/* RIGHT PANEL � RATES DASHBOARD */
 .rate-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; border-bottom: 1px solid rgba(28,35,51,0.5); }
 .rate-label { font-size: 8px; color: var(--dim); }
 .rate-value { font-size: 10px; font-weight: 700; }
@@ -90,7 +91,7 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 /* FOOTER */
 footer { background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 12px; font-size: 9px; color: var(--dim); }
 .footer-live { color: var(--green); }
-.footer-live::before { content: '●'; margin-right: 4px; animation: pulse-dot 2s infinite; }
+.footer-live::before { content: '?'; margin-right: 4px; animation: pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
 </style>
 </head>
@@ -98,19 +99,19 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 <div id="app">
 
 <header>
-  <h1>⚙ GAIA ENGINE</h1>
-  <span class="header-rate rate-good" id="h-commits">—/hr</span>
-  <span class="header-rate rate-good" id="h-lessons">—/hr</span>
-  <span class="header-rate rate-warn" id="h-mor">MOR —%</span>
-  <span class="header-rate rate-good" id="h-gpu">GPU —%</span>
+  <h1>? GAIA ENGINE</h1>
+  <span class="header-rate rate-good" id="h-commits">�/hr</span>
+  <span class="header-rate rate-good" id="h-lessons">�/hr</span>
+  <span class="header-rate rate-warn" id="h-mor">MOR �%</span>
+  <span class="header-rate rate-good" id="h-gpu">GPU �%</span>
   <span class="header-spacer"></span>
-  <span id="phase-label">loading…</span>
+  <span id="phase-label">loading�</span>
 </header>
 
 <main>
   <!-- LEFT: SQUAD ROSTER -->
   <div class="panel" id="squad-panel">
-    <h2>◆ Squad — 16 Primals</h2>
+    <h2>? Squad � 16 Primals</h2>
     <div id="squad-list"></div>
   </div>
 
@@ -119,8 +120,8 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div id="render-target"></div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
-      <div class="boundary-label" id="boundary-label">IONOSPHERE — Kp 1.0 quiet</div>
-      <div class="twist-count" id="twist-count">⟳ 3 Klein twists</div>
+      <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
+      <div class="twist-count" id="twist-count">? 3 Klein twists</div>
       <div class="lung-meter">
         <div class="lung-bar"><div class="lung-fill" id="lung-fill" style="height:9%"></div></div>
         <div class="lung-label" id="lung-pct">9%</div>
@@ -142,32 +143,32 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 
   <!-- RIGHT: RATES DASHBOARD -->
   <div class="panel" id="rates-panel">
-    <h2>◆ Rates — Live</h2>
+    <h2>? Rates � Live</h2>
     <div id="rates-list"></div>
     <div class="section-divider"></div>
-    <h2>◆ Neurochemistry</h2>
+    <h2>? Neurochemistry</h2>
     <div id="neuro-list"></div>
     <div class="section-divider"></div>
-    <h2>◆ Devices — Heartbeat</h2>
+    <h2>? Devices � Heartbeat</h2>
     <div id="devices-list"></div>
   </div>
 </main>
 
 <footer>
   <span class="footer-live">LIVE</span>
-  <span id="f-wave">wave —</span>
+  <span id="f-wave">wave �</span>
   <span>|</span>
-  <span id="f-entities">— entities</span>
+  <span id="f-entities">� entities</span>
   <span>|</span>
-  <span id="f-beacons">— beacons</span>
+  <span id="f-beacons">� beacons</span>
   <span>|</span>
-  <span id="f-escape">escape — %</span>
+  <span id="f-escape">escape � %</span>
   <span>|</span>
-  <span id="f-selectivity">selectivity 1/π</span>
+  <span id="f-selectivity">selectivity 1/p</span>
   <span>|</span>
   <span id="f-boundary" style="color:var(--purple)">boundary: ionosphere</span>
   <span>|</span>
-  <span id="f-twists" style="color:var(--purple)">⟳ 3 twists</span>
+  <span id="f-twists" style="color:var(--purple)">? 3 twists</span>
   <span style="flex:1"></span>
   <span id="f-time"></span>
 </footer>
@@ -175,28 +176,28 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 </div>
 
 <script type="module">
-// ═══════════════════════════════════════════════
-// GAIA ENGINE — live rendering pipeline
+// -----------------------------------------------
+// GAIA ENGINE � live rendering pipeline
 // PetalTongue WASM + ToadStool builder + sourDough ferment
-// ═══════════════════════════════════════════════
+// -----------------------------------------------
 
 const SQUAD = [
-  { id:'toadStool',  icon:'🍄', color:'#8b6914', organ:'hands',  role:'Engineer' },
-  { id:'biomeOS',    icon:'🧠', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
-  { id:'nestGate',   icon:'🚪', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
-  { id:'bearDog',    icon:'🐻', color:'#d29922', organ:'skin',   role:'Warrior' },
-  { id:'petalTongue',icon:'👅', color:'#f778ba', organ:'tongue', role:'Renderer' },
-  { id:'rhizoCrypt', icon:'🦴', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
-  { id:'sweetGrass', icon:'🌿', color:'#3fb950', organ:'nose',   role:'Scribe' },
-  { id:'loamSpine',  icon:'⚔️', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
-  { id:'skunkBat',   icon:'🦇', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
-  { id:'sourDough',  icon:'🍞', color:'#d29922', organ:'stomach',role:'Alchemist' },
-  { id:'swarmVine',  icon:'🌊', color:'#39d3f5', organ:'nerves', role:'Scout' },
-  { id:'bingoCube',  icon:'🎲', color:'#f0883e', organ:'heart',  role:'Gambler' },
-  { id:'coralReef',  icon:'🫁', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
-  { id:'barraCuda',  icon:'⚡', color:'#f85149', organ:'muscles',role:'Striker' },
-  { id:'squirrel',   icon:'🐿', color:'#3fb950', organ:'eyes',   role:'Watcher' },
-  { id:'songBird',   icon:'🐦', color:'#58a6ff', organ:'ears',   role:'Bard' },
+  { id:'toadStool',  icon:'??', color:'#8b6914', organ:'hands',  role:'Engineer' },
+  { id:'biomeOS',    icon:'??', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
+  { id:'nestGate',   icon:'??', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
+  { id:'bearDog',    icon:'??', color:'#d29922', organ:'skin',   role:'Warrior' },
+  { id:'petalTongue',icon:'??', color:'#f778ba', organ:'tongue', role:'Renderer' },
+  { id:'rhizoCrypt', icon:'??', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
+  { id:'sweetGrass', icon:'??', color:'#3fb950', organ:'nose',   role:'Scribe' },
+  { id:'loamSpine',  icon:'??', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
+  { id:'skunkBat',   icon:'??', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
+  { id:'sourDough',  icon:'??', color:'#d29922', organ:'stomach',role:'Alchemist' },
+  { id:'swarmVine',  icon:'??', color:'#39d3f5', organ:'nerves', role:'Scout' },
+  { id:'bingoCube',  icon:'??', color:'#f0883e', organ:'heart',  role:'Gambler' },
+  { id:'coralReef',  icon:'??', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
+  { id:'barraCuda',  icon:'?', color:'#f85149', organ:'muscles',role:'Striker' },
+  { id:'squirrel',   icon:'??', color:'#3fb950', organ:'eyes',   role:'Watcher' },
+  { id:'songBird',   icon:'??', color:'#58a6ff', organ:'ears',   role:'Bard' },
 ];
 
 // Build squad list
@@ -206,7 +207,7 @@ SQUAD.forEach(s => {
   d.className = 'squad-member';
   d.innerHTML = `<div class="sq-icon" style="background:${s.color}40;border:1px solid ${s.color}">${s.icon}</div>
     <span class="sq-name" style="color:${s.color}">${s.id}</span>
-    <span class="sq-hp" style="color:var(--green)">●</span>`;
+    <span class="sq-hp" style="color:var(--green)">?</span>`;
   squadEl.appendChild(d);
 });
 
@@ -216,7 +217,7 @@ async function fetchJSON(url) {
   catch { return null; }
 }
 
-// ═══ RATES DASHBOARD ═══
+// --- RATES DASHBOARD ---
 function renderRates(rates) {
   const el = document.getElementById('rates-list');
   if (!rates) return;
@@ -232,17 +233,17 @@ function renderRates(rates) {
     { label:'Net In', value: rates.speed?.network?.inbound_bps, unit:'bps', max: 5000, color:'var(--blue)' },
     { label:'Net Out', value: rates.speed?.network?.outbound_bps, unit:'bps', max: 5000, color:'var(--purple)' },
     { label:'Escape V', value: rates.acceleration?.escape_velocity?.value ? (rates.acceleration.escape_velocity.value*100) : null, unit:'%', max: 100, color:'var(--gold)' },
-    { label:'Gaia π Pos', value: rates.acceleration?.gaia_pi_position?.value, unit:'', max: 3.14159, color:'var(--pink)' },
+    { label:'Gaia p Pos', value: rates.acceleration?.gaia_pi_position?.value, unit:'', max: 3.14159, color:'var(--pink)' },
   ];
   el.innerHTML = items.map(i => {
-    const v = i.value != null ? (typeof i.value === 'number' ? i.value.toFixed(i.unit==='%'?1:2) : i.value) : '—';
+    const v = i.value != null ? (typeof i.value === 'number' ? i.value.toFixed(i.unit==='%'?1:2) : i.value) : '�';
     const pct = i.value != null ? Math.min(100, (i.value/i.max)*100) : 0;
     return `<div class="rate-row"><span class="rate-label">${i.label}</span><span class="rate-value" style="color:${i.color}">${v}<span class="rate-unit">${i.unit}</span></span></div>
       <div class="rate-bar"><div class="rate-bar-fill" style="width:${pct}%;background:${i.color}"></div></div>`;
   }).join('');
 }
 
-// ═══ NEUROCHEMISTRY ═══
+// --- NEUROCHEMISTRY ---
 function renderNeuro(neuro) {
   const el = document.getElementById('neuro-list');
   if (!neuro?.neurochemistry_rates) return;
@@ -250,11 +251,11 @@ function renderNeuro(neuro) {
   const colors = { glucose:'#f0883e', atp:'#39d3f5', serotonin:'#3fb950', dopamine:'#a371f7', adrenaline:'#f85149', cortisol:'#d29922' };
   el.innerHTML = Object.entries(n).filter(([k]) => k !== 'ts').map(([k, v]) => {
     const c = colors[k] || 'var(--dim)';
-    return `<div class="neuro-row"><div class="neuro-dot" style="background:${c}"></div><span class="neuro-name">${k}</span><span class="neuro-val" style="color:${c}">${v.value?.toFixed(3)||'—'}</span></div>`;
+    return `<div class="neuro-row"><div class="neuro-dot" style="background:${c}"></div><span class="neuro-name">${k}</span><span class="neuro-val" style="color:${c}">${v.value?.toFixed(3)||'�'}</span></div>`;
   }).join('');
 }
 
-// ═══ DEVICES HEARTBEAT ═══
+// --- DEVICES HEARTBEAT ---
 function renderDevices(hb) {
   const el = document.getElementById('devices-list');
   if (!hb?.cardiac) return;
@@ -266,7 +267,7 @@ function renderDevices(hb) {
   }).join('');
 }
 
-// ═══ VIEWPORT — PetalTongue WASM render ═══
+// --- VIEWPORT � PetalTongue WASM render ---
 async function renderViewport() {
   try {
     const mod = await import('/wasm/petal_tongue_wasm.js');
@@ -291,19 +292,19 @@ async function renderViewport() {
     const pi_pos = now.rates_live?.gaia_pi_position || 1.728;
 
     const bindings = [
-      { id: 'selectivity', channel_type: 'gauge', label: 'Selectivity 1/π', value: sel, min: 0, max: 1, unit: '1/π', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
+      { id: 'selectivity', channel_type: 'gauge', label: 'Selectivity 1/p', value: sel, min: 0, max: 1, unit: '1/p', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
       { id: 'escape', channel_type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
       { id: 'mor', channel_type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
       { id: 'gpu', channel_type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
       { id: 'braid', channel_type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
-      { id: 'gaia_pi', channel_type: 'gauge', label: 'Gaia π Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'π', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
+      { id: 'gaia_pi', channel_type: 'gauge', label: 'Gaia p Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'p', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
       { id: 'entities', channel_type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
         values: [now.classification?.self || 15372, now.classification?.partial || 6411, now.classification?.null || 16655, now.classification?.non_self || 220876], unit: 'entities' },
       { id: 'neuro', channel_type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
         values: [0.725, 0.622, 0.627, 0.414, 0.248, 0.309], unit: 'normalized' },
     ];
 
-    const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE — LIVE', domain: 'ecology' };
+    const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE � LIVE', domain: 'ecology' };
 
     try {
       const svg = mod.render_dashboard(JSON.stringify(bindings), JSON.stringify(config));
@@ -323,16 +324,16 @@ async function renderViewport() {
       document.getElementById('render-target').innerHTML = html;
     }
   } catch(e) {
-    // No WASM — fallback to text render
+    // No WASM � fallback to text render
     document.getElementById('render-target').innerHTML = `<div style="color:var(--dim);padding:40px;text-align:center">
-      <div style="font-size:24px;color:var(--cyan);margin-bottom:12px">⚙ GAIA ENGINE</div>
-      <div>PetalTongue WASM loading…</div>
+      <div style="font-size:24px;color:var(--cyan);margin-bottom:12px">? GAIA ENGINE</div>
+      <div>PetalTongue WASM loading�</div>
       <div style="margin-top:8px;font-size:9px">${e.message}</div>
     </div>`;
   }
 }
 
-// ═══ HEADER + FOOTER ═══
+// --- HEADER + FOOTER ---
 function updateHeader(now, rates) {
   if (rates?.velocity) {
     document.getElementById('h-commits').textContent = (rates.velocity.commits_per_hour?.value||0).toFixed(1) + '/hr';
@@ -349,8 +350,8 @@ function updateHeader(now, rates) {
   }
   if (now) {
     document.getElementById('phase-label').textContent = now.phase || '';
-    document.getElementById('f-wave').textContent = 'wave ' + (now.wave || '—');
-    document.getElementById('f-entities').textContent = (now.entities?.total?.toLocaleString() || '—') + ' entities';
+    document.getElementById('f-wave').textContent = 'wave ' + (now.wave || '�');
+    document.getElementById('f-entities').textContent = (now.entities?.total?.toLocaleString() || '�') + ' entities';
     document.getElementById('f-escape').textContent = 'escape ' + ((now.rates_live?.escape_velocity||0)*100).toFixed(1) + '%';
   }
   document.getElementById('f-beacons').textContent = '18 beacons';
@@ -362,18 +363,18 @@ function updateHeader(now, rates) {
   document.getElementById('lung-pct').textContent = gpuPct + '%';
 }
 
-// ═══ FLOODGATE POWER SWAP ═══
+// --- FLOODGATE POWER SWAP ---
 function updateFloodgate(now) {
   const twists = now?.klein_twists || 3;
   const boundary = now?.boundary || 'ionosphere';
   const phase = now?.phase || '';
-  document.getElementById('twist-count').textContent = '⟳ ' + twists + ' Klein twists';
-  document.getElementById('f-twists').textContent = '⟳ ' + twists + ' twists';
-  document.getElementById('boundary-label').textContent = boundary.toUpperCase() + ' — outer skin';
+  document.getElementById('twist-count').textContent = '? ' + twists + ' Klein twists';
+  document.getElementById('f-twists').textContent = '? ' + twists + ' twists';
+  document.getElementById('boundary-label').textContent = boundary.toUpperCase() + ' � outer skin';
   document.getElementById('f-boundary').textContent = 'boundary: ' + boundary;
   document.getElementById('phase-label').textContent = phase.slice(0, 80);
 
-  // Turbo→flood power ramp: simulate based on time since floodgate opened
+  // Turbo?flood power ramp: simulate based on time since floodgate opened
   const floodTs = Date.parse('2026-10-26T06:42:00Z');
   const elapsed = (Date.now() - floodTs) / 60000; // minutes since floodgate
   const floodPct = Math.min(95, Math.max(0, elapsed * 2)); // ramp 2%/min, cap 95%
@@ -384,7 +385,7 @@ function updateFloodgate(now) {
   document.getElementById('flood-pct').textContent = Math.round(floodPct) + '%';
 }
 
-// ═══ MAIN LOOP — the game tick ═══
+// --- MAIN LOOP � the game tick ---
 async function tick() {
   const [now, rates, heartbeat] = await Promise.all([
     fetchJSON('/now.json'),

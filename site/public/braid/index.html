@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>your braid — primals.eco</title>
+<title>your braid � primals.eco</title>
 <style>
 :root {
   --bg: #0d1117; --fg: #c9d1d9; --dim: #8b949e; --accent: #58a6ff;
@@ -74,9 +75,9 @@ header nav a { margin-left:12px; }
   <header>
     <h1>your braid</h1>
     <nav>
-      <a href="https://hud.primals.eco">↑ hud</a>
-      <a href="https://tuebor.primals.eco/braid/">↔ braids</a>
-      <a href="https://sporeprint.primals.eco">→ sporePrint</a>
+      <a href="https://hud.primals.eco">? hud</a>
+      <a href="https://tuebor.primals.eco/braid/">? braids</a>
+      <a href="https://sporeprint.primals.eco">? sporePrint</a>
     </nav>
   </header>
 
@@ -91,7 +92,7 @@ header nav a { margin-left:12px; }
       <button class="btn-dim" onclick="importBraid()">resume from file</button>
     </div>
     <p style="font-size:11px; margin-top:24px;">
-      or <a href="#" onclick="enterAnon(); return false;">walk without a name</a> — your braid
+      or <a href="#" onclick="enterAnon(); return false;">walk without a name</a> � your braid
       lives only in this tab
     </p>
   </div>
@@ -104,8 +105,8 @@ header nav a { margin-left:12px; }
       <div class="stats">
         <div class="stat"><div class="val" id="s-pages">0</div><div class="label">pages</div></div>
         <div class="stat"><div class="val" id="s-entropy">0</div><div class="label">H (entropy)</div></div>
-        <div class="stat"><div class="val" id="s-position">—</div><div class="label">position</div></div>
-        <div class="stat"><div class="val" id="s-sharewear">—</div><div class="label">shareWear</div></div>
+        <div class="stat"><div class="val" id="s-position">�</div><div class="label">position</div></div>
+        <div class="stat"><div class="val" id="s-sharewear">�</div><div class="label">shareWear</div></div>
       </div>
       <div class="mountain" id="mountain"></div>
       <p style="font-size:11px; color:var(--dim); text-align:center;">
@@ -127,9 +128,9 @@ header nav a { margin-left:12px; }
     <div class="card">
       <h2>golgi</h2>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn-green" onclick="exportBraid()">↓ take it with you</button>
-        <button class="btn-yellow" onclick="shareBraid()">↔ share braid</button>
-        <button class="btn-red" onclick="leaveBraid()">✕ leave it behind</button>
+        <button class="btn-green" onclick="exportBraid()">? take it with you</button>
+        <button class="btn-yellow" onclick="shareBraid()">? share braid</button>
+        <button class="btn-red" onclick="leaveBraid()">? leave it behind</button>
       </div>
       <textarea id="export-area" class="hidden" readonly></textarea>
     </div>
@@ -138,7 +139,7 @@ header nav a { margin-left:12px; }
       <h2>shareWear</h2>
       <p style="font-size:12px; color:var(--dim); margin-bottom:8px;">
         Where your braid intersects with the evidence braids.
-        Jaccard similarity — shared pages ÷ total unique pages across both braids.
+        Jaccard similarity � shared pages � total unique pages across both braids.
       </p>
       <div id="sharewear-list"></div>
     </div>
@@ -150,9 +151,9 @@ header nav a { margin-left:12px; }
 (function(){
 'use strict';
 
-// ═══════════════════════════════════════════════════════
-// EPITOPE TAXONOMY — same as hud-pt.js and epitope_sort.py
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
+// EPITOPE TAXONOMY � same as hud-pt.js and epitope_sort.py
+// -------------------------------------------------------
 var EPITOPE_MAP = {
   // PHYSICS
   'anderson': 'PHYSICS', 'localization': 'PHYSICS', 'permeability': 'PHYSICS',
@@ -197,9 +198,9 @@ var EP_COLORS = {
   SCIENCE: '#e8e8e8', SIGNAL: '#4a8fb8',
 };
 
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 // BRAID CORE
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 var BRAID_KEY_PREFIX = 'eco_braid_';
 var braidId = null;
 var braid = null; // { id, created, visits:[], ephemeral:bool }
@@ -254,9 +255,9 @@ function classifyUrl(url) {
   return best;
 }
 
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 // ENTROPY & MOUNTAIN POSITION
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 function computeEntropy(visits) {
   if (!visits.length) return 0;
   var counts = {};
@@ -280,9 +281,9 @@ function mountainPosition(H, nPages) {
   return { pos: 'descending', label: 'descending \u2014 making', color: '#3fb950' };
 }
 
-// ═══════════════════════════════════════════════════════
-// SHAREWEAR — Jaccard similarity with tuebor braids
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
+// SHAREWEAR � Jaccard similarity with tuebor braids
+// -------------------------------------------------------
 var TUEBOR_BRAIDS = [
   { name: 'banks', pages: ['graph','network','infrastructure','payment','board','funding','management'] },
   { name: 'barrett', pages: ['appoints','board','litigation','charter','school'] },
@@ -312,9 +313,9 @@ function computeShareWear(visits) {
   }).filter(function(s) { return s.jaccard > 0; }).sort(function(a,b) { return b.jaccard - a.jaccard; });
 }
 
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 // RENDER
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 function render() {
   if (!braid) return;
   var visits = braid.visits;
@@ -324,11 +325,11 @@ function render() {
 
   document.getElementById('s-pages').textContent = visits.length;
   document.getElementById('s-entropy').textContent = H.toFixed(2);
-  document.getElementById('s-position').textContent = pos.pos === 'base' ? '—' :
-    pos.pos === 'ascending' ? '↑' : pos.pos === 'summit' ? '◉' : '↓';
+  document.getElementById('s-position').textContent = pos.pos === 'base' ? '�' :
+    pos.pos === 'ascending' ? '?' : pos.pos === 'summit' ? '?' : '?';
   document.getElementById('s-position').style.color = pos.color;
   document.getElementById('pos-explain').textContent = pos.label;
-  document.getElementById('s-sharewear').textContent = sw.length ? sw[0].jaccard.toFixed(2) : '—';
+  document.getElementById('s-sharewear').textContent = sw.length ? sw[0].jaccard.toFixed(2) : '�';
 
   // Epitope bar
   var epCounts = {};
@@ -350,7 +351,7 @@ function render() {
   bd.innerHTML = Object.keys(epCounts).sort(function(a,b) { return (epCounts[b]||0) - (epCounts[a]||0); })
     .map(function(e) {
       return '<span style="color:' + EP_COLORS[e] + '">' + e + '</span>: ' + epCounts[e];
-    }).join(' · ');
+    }).join(' � ');
 
   // Mountain visualization
   var mt = document.getElementById('mountain');
@@ -400,9 +401,9 @@ function render() {
 
 function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 // GATE ACTIONS
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 window.enterBraid = function() {
   var phrase = document.getElementById('passphrase').value.trim();
   if (!phrase) return;
@@ -487,11 +488,11 @@ function showBraid() {
   render();
 }
 
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 // CROSS-SITE BRAID TRACKER
 // Listen for navigation via postMessage from other sites
 // and record visits from the braid tracker snippet
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
 window.addEventListener('message', function(e) {
   if (!braid) return;
   try {

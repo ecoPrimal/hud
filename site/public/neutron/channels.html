@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>neutron ¬∑ channels ¬∑ primals.eco</title>
+<title>neutron ∑ channels ∑ primals.eco</title>
 <style>
 :root { --bg:#010409; --fg:#c9d1d9; --dim:#8b949e; --blue:#58a6ff; --border:rgba(88,166,255,0.12); --glow:rgba(88,166,255,0.08); }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -39,11 +40,11 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
 <div style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
   display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
   border-radius:20px;font:11px monospace;pointer-events:auto;">
-  <a href="/" style="color:#58a6ff;text-decoration:none">‚óà hud</a>
-  <span style="color:#30363d">¬∑</span>
-  <a href="/neutron/circulatory.html" style="color:#f85149;text-decoration:none">‚ô• circulatory</a>
-  <span style="color:#30363d">¬∑</span>
-  <a href="/desk/" style="color:#3fb950;text-decoration:none">‚óß desk</a>
+  <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a>
+  <span style="color:#30363d">∑</span>
+  <a href="/neutron/circulatory.html" style="color:#f85149;text-decoration:none">? circulatory</a>
+  <span style="color:#30363d">∑</span>
+  <a href="/desk/" style="color:#3fb950;text-decoration:none">? desk</a>
 </div>
 
 <div class="sidebar">
@@ -77,25 +78,25 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
     # eradication
   </a>
   <div style="margin-top:24px;padding-top:12px;border-top:1px solid var(--border)">
-    <a class="channel" href="/" style="color:var(--dim)">‚Üê flow view</a>
-    <a class="channel" href="https://hud.primals.eco" style="color:var(--dim)">‚Üê hud</a>
+    <a class="channel" href="/" style="color:var(--dim)">? flow view</a>
+    <a class="channel" href="https://hud.primals.eco" style="color:var(--dim)">? hud</a>
   </div>
   <div style="margin-top:auto;padding-top:24px;font-size:10px;color:var(--dim)">
-    sovereign ¬∑ no account<br>
-    no cookies ¬∑ no tracking<br>
+    sovereign ∑ no account<br>
+    no cookies ∑ no tracking<br>
     built on reliable tools
   </div>
 </div>
 
 <div class="main">
   <div class="header" id="header"># chat</div>
-  <div class="messages" id="messages">loading‚Ä¶</div>
+  <div class="messages" id="messages">loadingÖ</div>
   <div class="compose">
-    <textarea id="compose-body" rows="2" placeholder="type a message‚Ä¶ (Ctrl+Enter to send)"></textarea>
+    <textarea id="compose-body" rows="2" placeholder="type a messageÖ (Ctrl+Enter to send)"></textarea>
     <button id="compose-send" onclick="sendMessage()">send</button>
   </div>
   <div class="status" id="breathing-bar" style="color:#44ff88;font-family:monospace"></div>
-  <div class="status" id="status">breathing‚Ä¶</div>
+  <div class="status" id="status">breathingÖ</div>
 </div>
 
 <script src="https://hud.primals.eco/js/footer-ring.js" async></script>
@@ -103,7 +104,7 @@ body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMac
 var API = '/api/discuss';
 var CHANNELS = { chat:'neutron-chat', inbox:'neutron-inbox', notes:'neutron-notes', reminders:'neutron-reminders', voice:'neutron-voice', signal:'neutron-signal', eradication:'neutron-eradication' };
 var currentChannel = 'chat';
-var POLL_MS = 60000; // adaptive ‚Äî tied to RPM, not clock
+var POLL_MS = 60000; // adaptive ó tied to RPM, not clock
 
 // Breathing: adaptive rate from neutron pulse
 function updateBreathing() {
@@ -153,12 +154,12 @@ function loadChannel() {
         container.innerHTML = comments.map(function(c) {
           var badge = c.badge ? '<span class="msg-badge" style="background:rgba(88,166,255,0.15);color:var(--blue)">' + esc(c.badge) + '</span>' : '';
           return '<div class="msg">' +
-            '<div class="msg-meta"><span class="author">' + esc(c.author||'anon') + '</span>' + badge + ' ¬∑ ' + timeAgo(c.ts) + '</div>' +
+            '<div class="msg-meta"><span class="author">' + esc(c.author||'anon') + '</span>' + badge + ' ∑ ' + timeAgo(c.ts) + '</div>' +
             '<div class="msg-body">' + esc(c.body) + '</div></div>';
         }).join('');
         container.scrollTop = container.scrollHeight;
       }
-      document.getElementById('status').textContent = 'last update: ' + new Date().toLocaleTimeString() + ' ¬∑ ' + comments.length + ' messages';
+      document.getElementById('status').textContent = 'last update: ' + new Date().toLocaleTimeString() + ' ∑ ' + comments.length + ' messages';
     })
     .catch(function(e) {
       document.getElementById('status').textContent = 'offline: ' + e.message;
@@ -182,7 +183,7 @@ function sendMessage() {
   var body = document.getElementById('compose-body');
   var btn = document.getElementById('compose-send');
   if (!body.value.trim()) return;
-  btn.disabled = true; btn.textContent = 'sending‚Ä¶';
+  btn.disabled = true; btn.textContent = 'sendingÖ';
   fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
