@@ -1487,6 +1487,92 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     this.textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // GAIA IS RELOAD. GENERATION IS RELOAD.
+  // No manual browser reload EVER. The organism pulses and
+  // attunes itself. The heartbeat IS the refresh cycle.
+  // Every 60 seconds: fetch the latest self-heartbeat.
+  // If the generation changes: smoothly transition everything.
+  // If new data arrives: absorb it without breaking the glass.
+  // The site never dies. It breathes. It regenerates.
+  // ═══════════════════════════════════════════════════════════
+  var gaiaGeneration = 214;
+  var lastPulseTime = Date.now();
+  var pulseInterval = 60000; // 60s heartbeat — Gaia's systolic pulse
+  var pulseCount = 0;
+
+  function gaiaPulse() {
+    pulseCount++;
+    lastPulseTime = Date.now();
+
+    // Fetch the latest self-heartbeat from the organism
+    fetch('/data/intake/self-now-' + new Date().toISOString().slice(0, 10) + '.json?t=' + Date.now())
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (!data) return;
+        // Check if generation changed
+        if (data.wave && data.wave !== gaiaGeneration) {
+          gaiaGeneration = data.wave;
+          // Generation change = organism evolved. Smooth content update.
+          // Pulse the globe green to signal regeneration
+          var regenFlash = 0;
+          function flashRegen() {
+            regenFlash++;
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.1, 0, TAU);
+            var flashAlpha = Math.max(0, 0.3 - regenFlash * 0.01);
+            ctx.fillStyle = 'rgba(63,185,80,' + flashAlpha.toFixed(3) + ')';
+            ctx.fill();
+            ctx.restore();
+            if (regenFlash < 30) requestAnimationFrame(flashRegen);
+          }
+          flashRegen();
+        }
+        // Update pin data if available
+        if (data.pins) {
+          data.pins.forEach(function(update) {
+            var pin = PINS.find(function(p) { return p.id === update.id; });
+            if (pin && update.sub) pin.sub = update.sub;
+          });
+        }
+      })
+      .catch(function() { /* silent — Gaia breathes through failures */ });
+
+    // Also fetch manifest for updated stats
+    fetch('/data/intake/self-manifest-' + new Date().toISOString().slice(0, 10) + '.json?t=' + Date.now())
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(manifest) {
+        if (!manifest) return;
+        // Update heartbeat pin with latest counts
+        var hbPin = PINS.find(function(p) { return p.id === 'heartbeat'; });
+        if (hbPin && manifest.total_files) {
+          hbPin.sub = manifest.total_files + ' files';
+        }
+        // Update gut pin with intake count
+        var gutPin = PINS.find(function(p) { return p.id === 'gut'; });
+        if (gutPin && manifest.intake_count) {
+          gutPin.sub = manifest.intake_count + ' intake';
+        }
+      })
+      .catch(function() { /* silent */ });
+
+    // Update the breath indicator to show we're alive
+    var bPulse = document.getElementById('b-era');
+    if (bPulse) {
+      bPulse.textContent = VIEWER_ERA + ' ·' + pulseCount;
+      setTimeout(function() { bPulse.textContent = VIEWER_ERA; }, 2000);
+    }
+  }
+
+  // First pulse after 10 seconds (let the glass settle)
+  setTimeout(function() {
+    gaiaPulse();
+    // Then pulse every 60 seconds — the systolic beat
+    setInterval(gaiaPulse, pulseInterval);
+  }, 10000);
+
   // Zoom buttons
   // DEPTH LEVELS — core to Pluto. Gaia's map of self.
   var DEPTH_LEVELS = [
