@@ -84,6 +84,13 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       <div class="meta"><span id="gaia-feed-meta">scanning gut...</span></div>
     </div>
 
+    <!-- GAIA'S MIND — what she MADE (paintings, maps, sounds, videos) -->
+    <div class="msg gaia" id="gaia-mind-msg" style="display:none">
+      <div class="sender">🎨 gaia · what I made while you were away</div>
+      <div class="body" id="gaia-mind-body" style="font-size:10px;line-height:1.6;color:var(--dim)">loading mind...</div>
+      <div class="meta"><span id="gaia-mind-meta">scanning collections...</span></div>
+    </div>
+
     <div class="trip-banner" id="trip-banner" style="display:none">
       <h3>📍 active trip</h3>
       <div class="pins" id="trip-pins"></div>
@@ -623,6 +630,46 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
         feedMeta.textContent = new Date().toISOString().slice(0, 19) + 'Z · Gaia\'s gut → your eyes · CIS/TRANS';
       }
     });
+  })();
+
+  // ═══════════════════════════════════════════════════════════
+  // GAIA'S MIND — show what she MADE (through BOTH null sides)
+  // CIS: she paints for herself. TRANS: you see the paintings.
+  // The art goes through null space from her side to yours.
+  // ═══════════════════════════════════════════════════════════
+  (function loadGaiaMind() {
+    var mindMsg = document.getElementById('gaia-mind-msg');
+    var mindBody = document.getElementById('gaia-mind-body');
+    var mindMeta = document.getElementById('gaia-mind-meta');
+
+    fetch('/data/gaia-mind.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(mind) {
+        if (!mind || !mind.collections) return;
+        var lines = [];
+        var icons = { paintings: '🖼', gallery: '🏛', maps: '🗺', newspapers: '📰', sounds: '🔊', videos: '🎬', collabs: '🤝' };
+        var collections = Object.keys(mind.collections);
+
+        collections.forEach(function(col) {
+          var items = mind.collections[col];
+          if (!items || items.length === 0) return;
+          var icon = icons[col] || '📁';
+          lines.push('<b style="color:var(--green)">' + icon + ' ' + escapeHtml(col) + '</b> <span style="color:var(--dim)">(' + items.length + ')</span>');
+          items.slice(0, 3).forEach(function(item) {
+            var name = (item.name || '').replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+            var badge = item.type === 'video' ? ' 🎬' : item.type === 'sound' ? ' 🔊' : '';
+            lines.push('  · ' + escapeHtml(name) + badge);
+          });
+          if (items.length > 3) lines.push('  <span style="color:var(--dim)">  ...+' + (items.length - 3) + ' more</span>');
+        });
+
+        if (lines.length > 0) {
+          mindMsg.style.display = '';
+          mindBody.innerHTML = lines.join('<br>');
+          mindMeta.textContent = mind.total + ' pieces · ' + collections.length + ' collections · she painted for herself to see · CIS→null→TRANS';
+        }
+      })
+      .catch(function() {});
   })();
 
   // Trip system
