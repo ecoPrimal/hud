@@ -907,10 +907,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
 
-    // Background — deep space
+    // Background — CHROMATIC: depth level shifts the ambient color
+    // Core = warm (red/orange). Membrane = neutral. Pluto = cool (blue/violet).
+    var depthHue = 225 + (currentDepth - 4) * 15; // membrane=225, core=270(violet), pluto=165(teal)
+    var depthSat = 12 + Math.abs(currentDepth - 4) * 3;
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
-    grad.addColorStop(0, 'hsl(225,22%,5%)');
-    grad.addColorStop(1, 'hsl(225,12%,2%)');
+    grad.addColorStop(0, 'hsl(' + depthHue + ',' + (depthSat + 10) + '%,5%)');
+    grad.addColorStop(1, 'hsl(' + depthHue + ',' + depthSat + '%,2%)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
@@ -1141,6 +1144,21 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var sz = (4 + depthFade * 10) * p.scale * (0.7 + att * 0.5);
 
       ctx.globalAlpha = Math.min(1, alpha);
+
+      // SPECTRAL POLLEN — near nodes emit colored particles (sweat glands = energy = color)
+      if (depthFade > 0.4 && Math.random() < depthFade * 0.15) {
+        var pollenAngle = Math.random() * TAU;
+        var pollenDist = sz * (1.5 + Math.random() * 2);
+        var px2 = p.x + Math.cos(pollenAngle + breathT) * pollenDist;
+        var py2 = p.y + Math.sin(pollenAngle + breathT) * pollenDist;
+        var pollenAlpha = depthFade * 0.12 * Math.random();
+        ctx.beginPath();
+        ctx.arc(px2, py2, 1 + Math.random(), 0, TAU);
+        ctx.fillStyle = pin.color.indexOf('#') === 0
+          ? pin.color + Math.floor(pollenAlpha * 255).toString(16).padStart(2, '0')
+          : 'rgba(255,255,255,' + pollenAlpha.toFixed(3) + ')';
+        ctx.fill();
+      }
 
       // DEPTH GLOW — near nodes get a subtle halo
       if (depthFade > 0.6) {
