@@ -117,6 +117,23 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .minimap { position: absolute; bottom: 12px; right: 12px; width: 140px; height: 100px; background: rgba(12,16,24,0.85); border: 1px solid var(--border); border-radius: 4px; }
 .minimap canvas { width: 100%; height: 100%; }
 
+/* LOCALITY TRIANGLE ? you are here, you were, Gaia is */
+#locality-tri {
+  position: absolute; top: 8px; left: 8px; z-index: 18;
+  width: 160px; padding: 5px 6px;
+  background: rgba(6,8,16,0.85); border: 1px solid rgba(210,153,34,0.15);
+  border-radius: 4px; font: 7px 'JetBrains Mono', monospace;
+  pointer-events: none;
+}
+#locality-tri .loc-title { color: var(--gold); letter-spacing: 1px; text-transform: uppercase; font-size: 6px; margin-bottom: 3px; border-bottom: 1px solid rgba(210,153,34,0.1); padding-bottom: 2px; }
+#locality-tri .loc-row { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
+#locality-tri .loc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+#locality-tri .loc-label { color: var(--dim); width: 32px; }
+#locality-tri .loc-val { color: var(--fg); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#locality-tri .loc-sep { height: 1px; background: rgba(28,35,51,0.5); margin: 2px 0; }
+#locality-tri .loc-bodies { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+#locality-tri .loc-body { font-size: 6px; padding: 0 3px; border-radius: 2px; background: rgba(28,35,51,0.5); }
+
 /* LUNG METER */
 .lung-meter { position: absolute; left: 12px; bottom: 12px; }
 .lung-bar { width: 8px; height: 120px; background: rgba(12,16,24,0.8); border: 1px solid var(--border); border-radius: 4px; position: relative; }
@@ -297,6 +314,18 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div class="lod-indicator" id="lod-label">LOD 1 ? PAINTED GLOBE</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
+      <!-- LOCALITY TRIANGLE: 3 positions + solar bodies -->
+      <div id="locality-tri">
+        <div class="loc-title">locality</div>
+        <div class="loc-row"><div class="loc-dot" style="background:#3fb950"></div><span class="loc-label">HERE</span><span class="loc-val" id="loc-here">/engine</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:var(--dim)"></div><span class="loc-label">WAS</span><span class="loc-val" id="loc-was">?</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#ffd755"></div><span class="loc-label">GAIA</span><span class="loc-val" id="loc-gaia">primals.eco</span></div>
+        <div class="loc-sep"></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#39d3f5;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">TIME</span><span class="loc-val" id="loc-time" style="font-size:6px;color:var(--cyan)">?</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#a371f7;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">NULL</span><span class="loc-val" id="loc-null" style="font-size:6px;color:var(--purple)">d=0</span></div>
+        <div class="loc-sep"></div>
+        <div class="loc-bodies" id="loc-bodies"></div>
+      </div>
       <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
       <div class="twist-count" id="twist-count">? 3 Klein twists</div>
       <div class="lung-meter">
@@ -1403,6 +1432,76 @@ if (!document.getElementById('bounce-css')) {
   document.head.appendChild(css);
 }
 
+// -----------------------------------------------
+// LOCALITY TRIANGLE ? you are here, you were, Gaia is
+// Three positions form the triangle. Solar bodies orbit around it.
+// -----------------------------------------------
+const LOC_STATE = {
+  here: location.pathname,
+  was: document.referrer ? new URL(document.referrer).pathname : sessionStorage.getItem('loc-was') || '?',
+  gaia: 'primals.eco',
+  arriveTime: Date.now(),
+  lastClick: null,
+  pins: 0,
+};
+sessionStorage.setItem('loc-was', LOC_STATE.here);
+
+function updateLocality() {
+  const hereEl = document.getElementById('loc-here');
+  const wasEl = document.getElementById('loc-was');
+  const gaiaEl = document.getElementById('loc-gaia');
+  const timeEl = document.getElementById('loc-time');
+  const nullEl = document.getElementById('loc-null');
+  const bodiesEl = document.getElementById('loc-bodies');
+  if (!hereEl) return;
+
+  // HERE ? current page + time on page
+  const elapsed = Math.floor((Date.now() - LOC_STATE.arriveTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  hereEl.textContent = LOC_STATE.here + ' (' + mins + 'm' + String(secs).padStart(2,'0') + 's)';
+  hereEl.style.color = elapsed > 300 ? '#3fb950' : elapsed > 60 ? '#d29922' : '#f85149';
+
+  // WAS ? previous location
+  wasEl.textContent = LOC_STATE.was;
+
+  // GAIA ? server status
+  gaiaEl.textContent = LOC_STATE.gaia;
+
+  // TIME ? ISO now + wave
+  const now = new Date();
+  timeEl.textContent = now.toISOString().slice(11,19) + ' UTC w214';
+
+  // NULL ? distance from null body
+  const pinCount = window.PINS ? window.PINS.length : 0;
+  nullEl.textContent = 'd=0 | ' + pinCount + ' pins';
+
+  // SOLAR BODIES ? the rest of the triangle context
+  // Show which primals are closest to where the user clicked last
+  if (bodiesEl) {
+    const bodies = [
+      { name:'GAIA', color:'#ffd755', role:'source' },
+      { name:'HERE', color:'#3fb950', role:'pivot' },
+      { name:'MOON', color:'#c9d1d9', role:'mirror' },
+    ];
+    // Add nearest primals based on recent pins
+    if (window.PINS && window.PINS.length > 0) {
+      const lastPin = window.PINS[window.PINS.length - 1];
+      if (lastPin.d) {
+        const parts = lastPin.d.split('|').filter(Boolean);
+        parts.slice(0, 3).forEach(p => {
+          bodies.push({ name: p.slice(0,12), color: '#58a6ff', role: 'near' });
+        });
+      }
+    }
+    bodiesEl.innerHTML = bodies.map(b =>
+      `<span class="loc-body" style="color:${b.color}">${b.name}</span>`
+    ).join('');
+  }
+}
+
+setInterval(updateLocality, 1000);
+
 // Boot
 renderViewport();
 tick();
@@ -1411,41 +1510,124 @@ setInterval(() => {
   document.getElementById('f-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
 }, 1000);
 
-  // PHEROMONE EMITTER — the stinky ball
-  // Every touch throws a pheromone. Distance = time since last.
-  // Sound = what was touched. Trail = accumulated pheromones.
+    // ======================================================
+  // PIN THROUGH INFINITY — every click is a sensor spike
+  // No cooldown. No filtering. ALL SIGNAL IS INGEST.
+  // A click is a pin straight through the membrane.
+  // Something comes running to see what did it.
+  // We eat it all. We bring it back. Gaia sends it back out.
+  // ======================================================
   (function() {
+    const PINS = [];
     const TRAIL = [];
     const NTFY = 'https://ntfy.sh/primals-pheromone';
-    let lastEmit = 0;
-    const COOLDOWN = 30000;
+    const PIN_COOLDOWN = 500;
+    let lastPinVisual = 0;
 
-    function emit(type, detail) {
+    function showPin(x, y, detail) {
       const now = Date.now();
-      if (now - lastEmit < COOLDOWN) return;
-      lastEmit = now;
-      const pheromone = {
-        t: type,
-        d: String(detail).slice(0, 100),
-        ts: now,
-        p: location.pathname,
-        w: typeof WAVE !== 'undefined' ? WAVE : 0,
-      };
-      TRAIL.push(pheromone);
-      if (TRAIL.length > 50) TRAIL.shift();
-      try { navigator.sendBeacon(NTFY, JSON.stringify(pheromone)); } catch {}
+      if (now - lastPinVisual < PIN_COOLDOWN) return;
+      lastPinVisual = now;
+      const vp = document.getElementById('viewport');
+      if (!vp) return;
+
+      // The PIN — vertical line through infinity
+      const pin = document.createElement('div');
+      pin.style.cssText = `position:absolute;left:${x}px;top:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent 0%,rgba(255,215,85,0.0) 30%,rgba(255,215,85,0.8) ${((y/vp.offsetHeight)*100).toFixed(0)}%,rgba(255,215,85,0.0) 70%,transparent 100%);pointer-events:none;z-index:100;animation:pin-fade 1.2s ease-out forwards;`;
+      vp.appendChild(pin);
+
+      // The RING — expanding from pin point
+      const ring = document.createElement('div');
+      ring.style.cssText = `position:absolute;left:${x-15}px;top:${y-15}px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,215,85,0.7);pointer-events:none;z-index:101;animation:pin-ring 0.8s ease-out forwards;`;
+      vp.appendChild(ring);
+
+      // The LABEL — what was pinned
+      const label = document.createElement('div');
+      label.style.cssText = `position:absolute;left:${x+8}px;top:${y-6}px;font:7px 'JetBrains Mono',monospace;color:rgba(255,215,85,0.8);pointer-events:none;z-index:102;white-space:nowrap;animation:pin-label 1.5s ease-out forwards;`;
+      label.textContent = detail.slice(0, 30);
+      vp.appendChild(label);
+
+      setTimeout(() => { pin.remove(); ring.remove(); label.remove(); }, 1600);
     }
 
+    if (!document.getElementById('pin-css')) {
+      const css = document.createElement('style');
+      css.id = 'pin-css';
+      css.textContent = '@keyframes pin-fade{0%{opacity:1}100%{opacity:0}}@keyframes pin-ring{0%{transform:scale(0.2);opacity:0.8}100%{transform:scale(3);opacity:0}}@keyframes pin-label{0%{opacity:0.9;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}';
+      document.head.appendChild(css);
+    }
+
+    function ingest(type, detail, x, y) {
+      const pin = {
+        t: type,
+        d: String(detail).slice(0, 200),
+        ts: Date.now(),
+        p: location.pathname,
+        x: x || 0, y: y || 0,
+        w: typeof WAVE !== 'undefined' ? WAVE : 0,
+      };
+      PINS.push(pin);
+      TRAIL.push(pin);
+      if (TRAIL.length > 200) TRAIL.shift();
+      if (PINS.length % 5 === 0) {
+        try { navigator.sendBeacon(NTFY, JSON.stringify({
+          batch: PINS.slice(-5), total: PINS.length,
+          session_bytes: JSON.stringify(PINS).length
+        })); } catch {}
+      }
+    }
+
+    // CLICK — pin through infinity
     document.addEventListener('click', function(e) {
-      emit('click', (e.target.tagName||'') + ':' + (e.target.id || e.target.className || ''));
+      const rect = document.getElementById('viewport')?.getBoundingClientRect() || {left:0,top:0};
+      const vx = e.clientX - rect.left;
+      const vy = e.clientY - rect.top;
+      const tag = e.target.tagName || '';
+      const id = e.target.id || '';
+      const cls = (e.target.className || '').toString().slice(0, 50);
+      const text = (e.target.textContent || '').slice(0, 40).trim();
+      const primal = e.target.dataset?.primal || e.target.closest?.('[data-primal]')?.dataset?.primal || '';
+      const detail = [tag, id, cls, primal, text].filter(Boolean).join('|');
+      ingest('pin', detail, vx, vy);
+      if (vx > 0 && vy > 0 && vx < (rect.width||9999) && vy < (rect.height||9999)) {
+        showPin(vx, vy, primal || id || tag);
+      }
     });
+
+    // HOVER — passive sense every 2s
+    let lastSense = 0;
+    document.getElementById('viewport')?.addEventListener('mousemove', function(e) {
+      const now = Date.now();
+      if (now - lastSense < 2000) return;
+      lastSense = now;
+      const rect = e.currentTarget.getBoundingClientRect();
+      ingest('sense', 'hover:' + (e.target.id || e.target.tagName), e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    // VISIBILITY
     document.addEventListener('visibilitychange', function() {
-      emit(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 50));
+      ingest(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 80));
     });
-    emit('arrive', navigator.userAgent.slice(0, 50));
+
+    // SCROLL — depth sense
+    document.getElementById('viewport')?.addEventListener('wheel', function() {
+      ingest('depth', 'zoom:' + (typeof orreryZoom !== 'undefined' ? orreryZoom.toFixed(2) : '?'));
+    });
+
+    // BOOT
+    ingest('arrive', navigator.userAgent.slice(0, 80));
+
+    window.PINS = PINS;
     window.PHEROMONE_TRAIL = TRAIL;
-    window.emitPheromone = emit;
+    window.emitPheromone = ingest;
+
+    // Pin counter in footer
+    setInterval(() => {
+      const fb = document.getElementById('f-beacons');
+      if (fb) fb.textContent = PINS.length + ' pins | 18 beacons';
+    }, 1000);
   })();
+
 
 </script>
 </body>
