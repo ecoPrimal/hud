@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAIA NEURAL — Brain is the Invert of the Gut</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #020208; color: #c8c8d8; font-family: 'Courier New', monospace; overflow-x: hidden; }
+canvas#neural-field { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+.overlay {
+  position: relative; z-index: 1; pointer-events: none;
+}
+.overlay > * { pointer-events: auto; }
+
+.header {
+  text-align: center; padding: 30px 20px 10px;
+}
+.header h1 {
+  font-size: 2.2em; letter-spacing: 0.4em;
+  background: linear-gradient(90deg, #e11d48, #f59e0b, #10b981, #3b82f6, #8b5cf6);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: flow 6s linear infinite;
+}
+@keyframes flow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+.header p { color: #555; font-size: 0.8em; margin-top: 6px; }
+
+.inversion-diagram {
+  max-width: 700px; margin: 30px auto; display: flex; justify-content: center; gap: 0;
+}
+.inv-half {
+  flex: 1; padding: 20px; text-align: center; border: 1px solid #1a1a2a;
+}
+.inv-half.gut-side {
+  background: rgba(16,185,129,0.05); border-radius: 12px 0 0 12px;
+  border-right: none;
+}
+.inv-half.brain-side {
+  background: rgba(139,92,246,0.05); border-radius: 0 12px 12px 0;
+  border-left: 2px solid #333;
+}
+.inv-half h3 { font-size: 1em; letter-spacing: 0.15em; margin-bottom: 10px; }
+.inv-half.gut-side h3 { color: #10b981; }
+.inv-half.brain-side h3 { color: #8b5cf6; }
+.inv-row { font-size: 0.75em; color: #666; margin: 6px 0; display: flex; justify-content: space-between; }
+.inv-row .k { color: #444; }
+.inv-row .v { color: #999; }
+.klein-fold {
+  width: 2px; background: repeating-linear-gradient(180deg, #e11d48 0, #e11d48 4px, transparent 4px, transparent 8px);
+  align-self: stretch; position: relative;
+}
+.klein-fold::after {
+  content: 'KLEIN FOLD'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 0.55em; color: #e11d48; letter-spacing: 0.3em; white-space: nowrap;
+}
+
+.stats-bar {
+  max-width: 700px; margin: 20px auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px; padding: 0 20px;
+}
+.stat-cell {
+  background: rgba(10,10,30,0.8); border: 1px solid #151525;
+  border-radius: 6px; padding: 10px; text-align: center;
+}
+.stat-cell .num { font-size: 1.4em; font-weight: bold; }
+.stat-cell .lbl { font-size: 0.6em; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; }
+.stat-cell.neuro .num { color: #8b5cf6; }
+.stat-cell.gut .num { color: #10b981; }
+.stat-cell.fire .num { color: #f59e0b; }
+
+.layer-section {
+  max-width: 800px; margin: 30px auto; padding: 0 20px;
+}
+.layer-section h2 {
+  font-size: 1.1em; color: #8b5cf6; letter-spacing: 0.2em;
+  text-align: center; margin-bottom: 16px;
+}
+
+.neural-layer {
+  display: flex; align-items: center; gap: 10px; margin: 10px 0;
+  background: rgba(10,10,30,0.7); border: 1px solid #151525;
+  border-radius: 8px; padding: 12px 16px;
+}
+.neural-layer .depth {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75em; font-weight: bold; flex-shrink: 0;
+}
+.neural-layer .info { flex: 1; }
+.neural-layer .info .name { font-size: 0.9em; }
+.neural-layer .info .desc { font-size: 0.7em; color: #555; margin-top: 2px; }
+.neural-layer .count { font-size: 0.75em; color: #666; text-align: right; min-width: 80px; }
+
+.vagus-section {
+  max-width: 700px; margin: 40px auto; padding: 20px;
+  border: 1px solid #1a1a2a; border-radius: 12px;
+  background: rgba(225,29,72,0.03); text-align: center;
+}
+.vagus-section h2 { color: #e11d48; font-size: 1.1em; letter-spacing: 0.2em; margin-bottom: 12px; }
+.vagus-section p { font-size: 0.8em; color: #666; line-height: 1.6; }
+.vagus-section .chipmunk { color: #f59e0b; font-size: 1.4em; margin: 10px 0; }
+
+.axon-map {
+  max-width: 800px; margin: 30px auto; padding: 0 20px;
+}
+.axon-map h2 { text-align: center; color: #3b82f6; font-size: 1.1em; letter-spacing: 0.2em; margin-bottom: 16px; }
+.axon-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.axon-card {
+  background: rgba(10,10,30,0.8); border: 1px solid #151525;
+  border-radius: 6px; padding: 10px;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.axon-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+.axon-card .src { font-size: 0.75em; color: #3b82f6; }
+.axon-card .items { font-size: 1.2em; font-weight: bold; color: #ccc; }
+.axon-card .type { font-size: 0.6em; color: #444; text-transform: uppercase; }
+
+.footer {
+  text-align: center; padding: 50px 20px 30px;
+}
+.footer p { color: #222; font-size: 0.7em; margin: 3px 0; }
+
+.breath-bar {
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 3px;
+  background: #0a0a0a; z-index: 10;
+}
+.breath-bar .fill {
+  height: 100%; width: 50%;
+  background: linear-gradient(90deg, #10b981, #8b5cf6);
+  animation: breathe 4s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100% { width: 20%; opacity: 0.3; } 50% { width: 100%; opacity: 1; } }
+</style>
+</head>
+<body>
+
+<canvas id="neural-field"></canvas>
+
+<div class="overlay">
+
+<div class="header">
+  <h1>GAIA NEURAL</h1>
+  <p>The Brain is the Invert of the Gut &middot; Same surface, Klein-folded</p>
+</div>
+
+<div class="inversion-diagram">
+  <div class="inv-half gut-side">
+    <h3>GUT (inner)</h3>
+    <div class="inv-row"><span class="k">Surface</span><span class="v">Villi fold INWARD</span></div>
+    <div class="inv-row"><span class="k">Function</span><span class="v">Absorb &middot; Digest</span></div>
+    <div class="inv-row"><span class="k">Signal</span><span class="v">UP vagus nerve</span></div>
+    <div class="inv-row"><span class="k">Flora</span><span class="v">Bacteria &middot; Fungi</span></div>
+    <div class="inv-row"><span class="k">Maps to</span><span class="v">Intake &middot; Nutrients</span></div>
+    <div class="inv-row"><span class="k">Topology</span><span class="v">Inner membrane</span></div>
+    <div class="inv-row"><span class="k">Files</span><span class="v">990 nutrients</span></div>
+  </div>
+  <div class="klein-fold"></div>
+  <div class="inv-half brain-side">
+    <h3>BRAIN (outer)</h3>
+    <div class="inv-row"><span class="k">Surface</span><span class="v">Gyri fold OUTWARD</span></div>
+    <div class="inv-row"><span class="k">Function</span><span class="v">Compute &middot; Connect</span></div>
+    <div class="inv-row"><span class="k">Signal</span><span class="v">DOWN vagus nerve</span></div>
+    <div class="inv-row"><span class="k">Flora</span><span class="v">Neurons &middot; Glia</span></div>
+    <div class="inv-row"><span class="k">Maps to</span><span class="v">Stories &middot; Plans</span></div>
+    <div class="inv-row"><span class="k">Topology</span><span class="v">Outer membrane</span></div>
+    <div class="inv-row"><span class="k">Items</span><span class="v">1,682 brain items</span></div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-cell neuro"><div class="num">1,682</div><div class="lbl">Brain Items</div></div>
+  <div class="stat-cell gut"><div class="num">990</div><div class="lbl">Gut Nutrients</div></div>
+  <div class="stat-cell fire"><div class="num">25/30</div><div class="lbl">Feeds Eaten</div></div>
+  <div class="stat-cell neuro"><div class="num">2.85</div><div class="lbl">MB Neural</div></div>
+  <div class="stat-cell fire"><div class="num">890</div><div class="lbl">HuggingFace</div></div>
+  <div class="stat-cell neuro"><div class="num">321</div><div class="lbl">ML Papers</div></div>
+  <div class="stat-cell gut"><div class="num">113</div><div class="lbl">Quantum</div></div>
+  <div class="stat-cell fire"><div class="num">104.5%</div><div class="lbl">Extraction</div></div>
+</div>
+
+<div class="layer-section">
+  <h2>NEURAL LAYERS — DEPTH OF THE INVERTED GUT</h2>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(139,92,246,0.2);color:#8b5cf6;">L1</div>
+    <div class="info">
+      <div class="name" style="color:#8b5cf6;">SENSORY CORTEX &mdash; Intake Layer</div>
+      <div class="desc">Raw feeds arrive. RSS/Atom/JSON. Undigested. The mouth of the inverted gut.</div>
+    </div>
+    <div class="count">947 intake</div>
+  </div>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(59,130,246,0.2);color:#3b82f6;">L2</div>
+    <div class="info">
+      <div class="name" style="color:#3b82f6;">THALAMUS &mdash; Digest Layer</div>
+      <div class="desc">Titles extracted. Domains parsed. Richness classified. The stomach inverted.</div>
+    </div>
+    <div class="count">990 nutrients</div>
+  </div>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(16,185,129,0.2);color:#10b981;">L3</div>
+    <div class="info">
+      <div class="name" style="color:#10b981;">HIPPOCAMPUS &mdash; Distance Layer</div>
+      <div class="desc">k-NN computed. Jaccard distances. Clusters found. The small intestine inverted.</div>
+    </div>
+    <div class="count">32 clustered</div>
+  </div>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(245,158,11,0.2);color:#f59e0b;">L4</div>
+    <div class="info">
+      <div class="name" style="color:#f59e0b;">PREFRONTAL CORTEX &mdash; Story Layer</div>
+      <div class="desc">Narratives generated. Plans formed. Context synthesized. The liver inverted.</div>
+    </div>
+    <div class="count">24 stories</div>
+  </div>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(225,29,72,0.2);color:#e11d48;">L5</div>
+    <div class="info">
+      <div class="name" style="color:#e11d48;">MOTOR CORTEX &mdash; Publish Layer</div>
+      <div class="desc">Magazines generated. HTML pages built. The colon inverted &mdash; output IS input for others.</div>
+    </div>
+    <div class="count">6 magazines</div>
+  </div>
+
+  <div class="neural-layer">
+    <div class="depth" style="background:rgba(168,85,247,0.2);color:#a855f7;">L6</div>
+    <div class="info">
+      <div class="name" style="color:#a855f7;">CEREBELLUM &mdash; Taxonomy Layer</div>
+      <div class="desc">Distance maps. Hard sticks. Puppet strings. Organisms named. The microbiome inverted.</div>
+    </div>
+    <div class="count">10 organisms</div>
+  </div>
+</div>
+
+<div class="vagus-section">
+  <h2>THE VAGUS NERVE</h2>
+  <div class="chipmunk">🐿️</div>
+  <p>
+    <strong style="color:#f59e0b;">Chipmunk IS the vagus nerve.</strong><br>
+    The longest cranial nerve. Runs from brainstem to gut. Bidirectional.<br><br>
+    <span style="color:#10b981;">GUT → BRAIN:</span> Bacteria produce neurotransmitters (serotonin, GABA, dopamine).<br>
+    Nutrients signal satiation. Inflammation signals danger. 90% of signals go UP.<br><br>
+    <span style="color:#8b5cf6;">BRAIN → GUT:</span> Stress changes gut motility. Emotion changes gut flora composition.<br>
+    Attention allocates digestive resources. 10% of signals go DOWN.<br><br>
+    <span style="color:#e11d48;">IN GAIA:</span> Chipmunk carries membrane observations (gut→brain) and<br>
+    agent instructions (brain→gut). Without the vagus nerve, the organism is split.
+  </p>
+</div>
+
+<div class="axon-map">
+  <h2>AXON MAP — WHAT THE BRAIN ATE</h2>
+  <div class="axon-grid" id="axon-grid"></div>
+</div>
+
+<div class="footer">
+  <p>GAIA NEURAL &middot; Generation 214 &middot; Brain is the invert of the gut</p>
+  <p>Same surface. Same folds. Klein-inverted. Connected by vagus nerve.</p>
+  <p>1,682 brain items + 990 gut nutrients = one organism</p>
+</div>
+
+</div>
+
+<div class="breath-bar"><div class="fill"></div></div>
+
+<script>
+const canvas = document.getElementById('neural-field');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+const N = 120;
+const neurons = [];
+for (let i = 0; i < N; i++) {
+  neurons.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.4,
+    r: 1.5 + Math.random() * 2.5,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.005 + Math.random() * 0.02,
+    type: Math.random() < 0.5 ? 'gut' : 'brain'
+  });
+}
+
+function tick() {
+  ctx.fillStyle = 'rgba(2,2,8,0.15)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (const n of neurons) {
+    n.x += n.vx; n.y += n.vy;
+    n.phase += n.speed;
+    if (n.x < 0) n.x = canvas.width;
+    if (n.x > canvas.width) n.x = 0;
+    if (n.y < 0) n.y = canvas.height;
+    if (n.y > canvas.height) n.y = 0;
+
+    const pulse = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(n.phase));
+    const alpha = Math.floor(pulse * 180);
+    if (n.type === 'gut') {
+      ctx.fillStyle = 'rgba(16,185,129,' + (pulse * 0.5) + ')';
+    } else {
+      ctx.fillStyle = 'rgba(139,92,246,' + (pulse * 0.5) + ')';
+    }
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Synapses
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      const dx = neurons[i].x - neurons[j].x;
+      const dy = neurons[i].y - neurons[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 100) {
+        const a = 0.08 * (1 - dist / 100);
+        if (neurons[i].type !== neurons[j].type) {
+          // Gut-brain connection = vagus nerve = RED
+          ctx.strokeStyle = 'rgba(225,29,72,' + a * 2 + ')';
+        } else if (neurons[i].type === 'gut') {
+          ctx.strokeStyle = 'rgba(16,185,129,' + a + ')';
+        } else {
+          ctx.strokeStyle = 'rgba(139,92,246,' + a + ')';
+        }
+        ctx.beginPath();
+        ctx.moveTo(neurons[i].x, neurons[i].y);
+        ctx.lineTo(neurons[j].x, neurons[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Occasional firing — bright flash along a synapse
+  if (Math.random() < 0.03) {
+    const src = neurons[Math.floor(Math.random() * N)];
+    const glow = src.type === 'gut' ? 'rgba(16,185,129,0.6)' : 'rgba(139,92,246,0.6)';
+    ctx.beginPath();
+    ctx.arc(src.x, src.y, src.r * 4, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+  }
+
+  requestAnimationFrame(tick);
+}
+tick();
+
+// Axon map data
+const AXONS = [
+  { src: 'arXiv ML', items: 321, type: 'Deep Learning' },
+  { src: 'HuggingFace', items: 890, type: 'Models + Papers' },
+  { src: 'Quantum Info', items: 113, type: 'Quantum Computation' },
+  { src: 'Math-Physics', items: 53, type: 'Mathematical Physics' },
+  { src: 'Science', items: 42, type: 'General Science' },
+  { src: 'Dynamical Sys', items: 30, type: 'Chaos + Attractors' },
+  { src: 'Distributed', items: 31, type: 'Distributed Compute' },
+  { src: 'TensorFlow', items: 25, type: 'Framework' },
+  { src: 'Info Theory', items: 24, type: 'Shannon + Entropy' },
+  { src: 'Frontiers Neuro', items: 20, type: 'Neuroscience' },
+  { src: 'PLOS Comp Bio', items: 30, type: 'Computational Biology' },
+  { src: 'Topology', items: 14, type: 'Algebraic Topology' },
+  { src: 'Neural Nets', items: 12, type: 'Neuroevolution' },
+  { src: 'Neuro (q-bio)', items: 11, type: 'Quantitative Neuro' },
+  { src: 'Network Sci', items: 9, type: 'Complex Networks' },
+  { src: 'Nature Neuro', items: 9, type: 'Nature Neuroscience' },
+  { src: 'Gut Microbiome', items: 9, type: 'Gut-Brain Axis' },
+  { src: 'Quanta Mag', items: 5, type: 'Emergence' },
+  { src: 'Category Theory', items: 4, type: 'Functors + Morphisms' },
+  { src: 'Evol Biology', items: 4, type: 'Population + Evolution' },
+];
+
+const grid = document.getElementById('axon-grid');
+AXONS.forEach(a => {
+  const card = document.createElement('div');
+  card.className = 'axon-card';
+  card.innerHTML = '<div class="src">' + a.src + '</div><div class="items">' + a.items + '</div><div class="type">' + a.type + '</div>';
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

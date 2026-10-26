@@ -338,13 +338,17 @@ body {
 
 <!-- TOP BAR — all LIVE, nothing hardcoded -->
 <div class="topbar">
-  <span class="logo">HUD</span>
-  <span class="stat"><span class="dot" style="background:var(--gold)"></span> wave <span class="stat-val" id="s-wave">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--green)"></span> MOR <span class="stat-val" id="s-mor">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--blue)"></span> <span class="stat-val" id="s-files">...</span> files</span>
-  <span class="stat"><span class="dot" style="background:var(--violet)"></span> <span class="stat-val" id="s-refs">...</span> refs</span>
-  <span class="stat"><span class="dot" style="background:var(--cyan)"></span> ZK <span class="stat-val" id="s-zk">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--red)"></span> <span class="stat-val" id="s-alive">...</span> alive</span>
+  <span class="logo">GAIA</span>
+  <span class="stat" title="RED eye — input · sensation · receive">
+    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" title="GREEN eye — process · ferment · null">
+    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" title="BLUE eye — output · emit · act">
+    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" style="opacity:0.3"><span id="s-time" style="font-size:0.5rem">...</span></span>
   <span class="spacer"></span>
   <span class="stat" style="color:var(--dim)"><span class="stat-val" id="s-time">...</span></span>
 </div>
@@ -355,105 +359,35 @@ body {
   <!-- GLOBE ROOT — K-N dimensional view (default) -->
   <div id="globe-root">
     <canvas id="kn-globe"></canvas>
-    <button class="globe-flip" id="kn-flip" title="Klein flip: outside↔inside (F)">↻ flip (F)</button>
+    <button class="globe-flip" id="kn-flip" title="focus: shift dominant eye (F)">◉ focus (F)</button>
     <div class="globe-zoom">
       <button id="zoom-out" title="zoom out">−</button>
       <button id="zoom-in" title="zoom in">+</button>
     </div>
     <div class="view-toggle">
-      <button id="view-globe" class="active" title="left eye — CIS (outside)">👁 left · cis</button>
-      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 third · canvas</button>
-      <button id="view-flat" title="flat organ map">⬡ flat</button>
+      <button id="view-globe" class="active" title="binocular globe — left eye CIS + right eye TRANS">🌐 globe</button>
+      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 canvas</button>
     </div>
     <!-- THIRD EYE CANVAS — Gaia paints on your blind spot -->
     <canvas id="kn-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair"></canvas>
   </div>
 
-  <!-- FLAT VIEW (hidden by default, toggled) -->
-  <div id="flat-root" style="display:none">
+  </div><!-- /viewport -->
 
-  <!-- BEAMS — light from the heart projected onto the body -->
-  <div class="beam-layer"></div>
-
-  <!-- BODY CENTER -->
-  <div class="body-center" id="body">
-    <!-- Rings — the organism's orbital layers -->
-    <div class="data-ring ring-inner"></div>
-    <div class="data-ring ring-membrane"></div>
-    <div class="data-ring ring-pulse"></div>
-    <div class="data-ring ring-outer"></div>
-    <div class="data-ring ring-boundary"></div>
-
-    <!-- Spine + Heart + Gut -->
-    <div class="spine"></div>
-    <div class="heart" id="heart"></div>
-    <div class="gut" id="gut"></div>
-
-    <!-- Organs — rendered by JavaScript from LIVE data -->
-    <div id="organs"></div>
-    <div id="connections"></div>
-  </div>
-
-  <div class="pause-label" id="pause-label">PAUSED — time frozen</div>
-</div>
-
-<!-- PORCH — 3 doors for the 875 humans who enter here -->
-<div class="porch" id="porch">
-  <a class="porch-door" href="/philosophy/the-knowledge-numeric/">
-    <span class="door-icon">💭</span>
-    <span>think</span>
-    <span class="door-label">philosophy · papers</span>
-  </a>
-  <a class="porch-door" href="/easel">
-    <span class="door-icon">🎨</span>
-    <span>make</span>
-    <span class="door-label">easel · chipmunk</span>
-  </a>
-  <a class="porch-door" href="/mcp">
-    <span class="door-icon">🔌</span>
-    <span>connect</span>
-    <span class="door-label">MCP · 18 tools</span>
-  </a>
-  <a class="porch-door" href="/mendeleev">
-    <span class="door-icon">⚛️</span>
-    <span class="door-label">elements</span>
-  </a>
-  <a class="porch-door" href="/ant-trails">
-    <span class="door-icon">🐜</span>
-    <span>explore</span>
-    <span class="door-label">ant trails · map</span>
-  </a>
-</div>
-
-  </div><!-- /flat-root -->
-</div><!-- /viewport -->
-
-<!-- BOTTOM BAR -->
-<div class="bottombar">
+<!-- DIEGETIC BOTTOM — Gaia's pulse, not a nav bar -->
+<div class="bottombar" style="justify-content:center;gap:16px;opacity:0.4">
   <span class="live-dot">LIVE</span>
-  <span id="b-phase">...</span>
-  <span>|</span>
-  <span>selectivity 1/\u03C0</span>
-  <span>|</span>
-  <span class="color-eq">
-    <span class="swatch" style="background:var(--brown)"></span>brown +
-    <span class="swatch" style="background:var(--blue)"></span>blue =
-    <span class="swatch" style="background:var(--green)"></span>green
-  </span>
-  <span class="spacer"></span>
-  <span class="nav-links">
-    <a href="/engine.html">engine</a>
-    <a href="/ant-trails.html">🐜 ants</a>
-    <a href="/alchemy.html">🧪 mix</a>
-    <a href="/mendeleev.html">⚛️ elements</a>
-    <a href="/trailheads.html">trails</a>
-    <a href="/easel.html">easel</a>
-    <a href="/desk.html">desk</a>
-    <a href="/index-sporeprint-eon.html">sporeprint</a>
-    <a href="/feed.xml">rss</a>
-  </span>
-  <span>|</span>
-  <span class="entropy">seed:<span id="entropy-seed">0x00</span> <span id="entropy-n">0</span>ev</span>
+  <span id="b-phase">pulse</span>
+  <span>·</span>
+  <span>1/π</span>
+  <span>·</span>
+  <a href="/messenger.html" style="color:var(--red);text-decoration:none">✉ messenger</a>
+  <span>·</span>
+  <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
+  <span>·</span>
+  <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
+  <span>·</span>
+  <a href="/desk.html" style="color:var(--dim);text-decoration:none">desk</a>
 </div>
 
 <script>
@@ -815,41 +749,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (!ctx) return;
     ctx.clearRect(0, 0, W, H);
 
-    // Background
+    // Background — deep space
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
-    grad.addColorStop(0, face === 'outside' ? 'hsl(225,22%,5%)' : 'hsl(140,22%,5%)');
+    grad.addColorStop(0, 'hsl(225,22%,5%)');
     grad.addColorStop(1, 'hsl(225,12%,2%)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Globe sphere — breathing glow
+    // BINOCULAR OVERLAY — CIS (blue/left eye) and TRANS (green/right eye) simultaneously
     var bv = Math.sin(breathT);
     var glowIntensity = 0.04 + bv * 0.04;
+    // CIS layer (blue, outside, left eye)
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, TAU);
-    var gFill = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-    if (face === 'outside') {
-      gFill.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
-      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
-    } else {
-      gFill.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity + 0.02).toFixed(3) + ')');
-      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
-    }
-    ctx.fillStyle = gFill;
+    var gCIS = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    gCIS.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
+    gCIS.addColorStop(1, 'rgba(6,8,16,0.95)');
+    ctx.fillStyle = gCIS;
     ctx.fill();
+    // TRANS layer (green, inside, right eye) — overlaid
+    ctx.globalCompositeOperation = 'screen';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    var gTRANS = ctx.createRadialGradient(cx + R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    gTRANS.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity * 0.7).toFixed(3) + ')');
+    gTRANS.addColorStop(1, 'rgba(6,8,16,0)');
+    ctx.fillStyle = gTRANS;
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    // Dual edge — blue left, green right
     var edgeAlpha = 0.1 + bv * 0.08;
-    ctx.strokeStyle = face === 'outside'
-      ? 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')'
-      : 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, -Math.PI/2, Math.PI/2);
+    ctx.strokeStyle = 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 1 + bv * 0.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, Math.PI/2, -Math.PI/2);
+    ctx.strokeStyle = 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
     ctx.lineWidth = 1 + bv * 0.5;
     ctx.stroke();
 
-    // Atmosphere glow on deep inhale
+    // NULL VECTOR — third eye at center (the point you can't see)
+    var nullPulse = Math.sin(breathT * 2) * 0.15 + 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, TAU);
+    ctx.fillStyle = 'rgba(255,255,255,' + nullPulse.toFixed(3) + ')';
+    ctx.fill();
+
+    // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
+    var comp45 = Math.PI / 4;
+    var compLen = R * 0.9;
+    for (var ci = 0; ci < 4; ci++) {
+      var baseAngle = ci * (Math.PI / 2) + comp45;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      var endX = cx + Math.cos(baseAngle) * compLen;
+      var endY = cy + Math.sin(baseAngle) * compLen;
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = 'rgba(201,168,76,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Pressure/sound wave markers along the 45-degree lines
+      for (var wi = 1; wi <= 4; wi++) {
+        var wt = wi / 5;
+        var wx = cx + Math.cos(baseAngle) * compLen * wt;
+        var wy = cy + Math.sin(baseAngle) * compLen * wt;
+        var wPulse = Math.sin(breathT * 3 + wi) * 2;
+        ctx.beginPath();
+        ctx.arc(wx, wy, 3 + wPulse, 0, TAU);
+        ctx.strokeStyle = 'rgba(201,168,76,' + (0.08 + Math.sin(breathT + wi) * 0.03).toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+
+    // Atmosphere glow on deep inhale — both colors
     if (bv > 0.3) {
       ctx.beginPath();
-      ctx.arc(cx, cy, R * 1.02, 0, TAU);
-      var atmoColor = face === 'outside' ? '88,166,255' : '90,184,122';
-      ctx.strokeStyle = 'rgba(' + atmoColor + ',' + ((bv - 0.3) * 0.15).toFixed(3) + ')';
+      ctx.arc(cx, cy, R * 1.02, -Math.PI/2, Math.PI/2);
+      ctx.strokeStyle = 'rgba(88,166,255,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
+      ctx.lineWidth = 2 + bv * 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 1.02, Math.PI/2, -Math.PI/2);
+      ctx.strokeStyle = 'rgba(90,184,122,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
       ctx.lineWidth = 2 + bv * 3;
       ctx.stroke();
     }
@@ -996,14 +982,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
-    // Face label
+    // Binocular label
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = face === 'outside' ? 'rgba(88,166,255,0.5)' : 'rgba(90,184,122,0.5)';
     ctx.textAlign = 'center';
-    ctx.fillText(face === 'outside' ? 'CIS — outside view' : 'TRANS — inside view', cx, H - 30);
+    ctx.fillStyle = 'rgba(88,166,255,0.4)';
+    ctx.fillText('left eye CIS', cx - 70, H - 30);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('|', cx, H - 30);
+    ctx.fillStyle = 'rgba(90,184,122,0.4)';
+    ctx.fillText('right eye TRANS', cx + 75, H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
-    ctx.fillText('drag to rotate · F to flip · red dot = Gaia\'s mouth · everything falls IN', cx, H - 16);
+    ctx.fillText('binocular overlay · null vector at center · 45\u00B0 = pressure/lichen space', cx, H - 16);
   }
 
   function tick() {
@@ -1015,6 +1005,31 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var breath = Math.sin(breathT) * breathAmp;
     var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
     R = baseR * (1 + breath + heartbeat);
+    // GAIA'S THREE EYES — Marcus Aurelius triad: sense → null → act
+    // RED (input/sensation) → GREEN (process/null/ferment) → BLUE (output/action)
+    // Each eye pulses in sequence, phase-shifted by 1/3 of the cycle
+    var eyeR = document.getElementById('eye-red');
+    var eyeG = document.getElementById('eye-green');
+    var eyeB = document.getElementById('eye-blue');
+    if (eyeR && eyeG && eyeB) {
+      var cycle = heartPhase % (Math.PI * 2);
+      var third = (Math.PI * 2) / 3;
+      // Red fires first (sensation/input)
+      var rPhase = Math.sin(cycle);
+      var rOn = rPhase > 0.7;
+      eyeR.style.color = rOn ? 'rgba(248,81,73,0.9)' : 'rgba(248,81,73,0.2)';
+      eyeR.style.fontSize = rOn ? '0.8rem' : '0.6rem';
+      // Green fires second (process/null/ferment)
+      var gPhase = Math.sin(cycle - third);
+      var gOn = gPhase > 0.7;
+      eyeG.style.color = gOn ? 'rgba(63,185,80,0.9)' : 'rgba(63,185,80,0.2)';
+      eyeG.style.fontSize = gOn ? '0.8rem' : '0.6rem';
+      // Blue fires third (output/action)
+      var bPhase = Math.sin(cycle - third * 2);
+      var bOn = bPhase > 0.7;
+      eyeB.style.color = bOn ? 'rgba(88,166,255,0.9)' : 'rgba(88,166,255,0.2)';
+      eyeB.style.fontSize = bOn ? '0.8rem' : '0.6rem';
+    }
     render();
     requestAnimationFrame(tick);
   }
@@ -1074,7 +1089,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.addEventListener('keydown', function(e) {
     if (e.key === 'f' || e.key === 'F') {
       face = face === 'outside' ? 'inside' : 'outside';
-      document.getElementById('kn-flip').textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+      document.getElementById('kn-flip').textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
     }
     if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
   });
@@ -1082,39 +1097,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // Flip button
   document.getElementById('kn-flip').onclick = function() {
     face = face === 'outside' ? 'inside' : 'outside';
-    this.textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+    this.textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
   };
 
   // Zoom buttons
   document.getElementById('zoom-in').onclick = function() { R *= 1.2; R = Math.min(Math.min(W,H)*0.8, R); };
   document.getElementById('zoom-out').onclick = function() { R *= 0.8; R = Math.max(50, R); };
 
-  // View toggle (left eye / third eye / flat)
+  // View toggle (globe / canvas)
   function setView(which) {
     var globe = document.getElementById('kn-globe');
     var canvasEl = document.getElementById('kn-canvas');
-    var flatRoot = document.getElementById('flat-root');
-    var globeRoot = document.getElementById('globe-root');
-    var btns = ['view-globe','view-canvas','view-flat'];
+    var btns = ['view-globe','view-canvas'];
     btns.forEach(function(id) { document.getElementById(id).classList.remove('active'); });
     document.getElementById('view-' + which).classList.add('active');
 
     if (which === 'globe') {
-      globe.style.display = ''; canvasEl.style.display = 'none'; flatRoot.style.display = 'none';
-      face = 'outside';
+      globe.style.display = ''; canvasEl.style.display = 'none';
       document.getElementById('kn-flip').style.display = '';
-    } else if (which === 'canvas') {
-      globe.style.display = 'none'; canvasEl.style.display = 'block'; flatRoot.style.display = 'none';
+    } else {
+      globe.style.display = 'none'; canvasEl.style.display = 'block';
       document.getElementById('kn-flip').style.display = 'none';
       initThirdEye();
-    } else {
-      globe.style.display = 'none'; canvasEl.style.display = 'none'; flatRoot.style.display = '';
-      document.getElementById('kn-flip').style.display = 'none';
     }
   }
   document.getElementById('view-globe').onclick = function() { setView('globe'); };
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
-  document.getElementById('view-flat').onclick = function() { setView('flat'); };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
   // Your blind spot = the tip of your nose = the one thing you can never see
@@ -1166,14 +1174,17 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       { r: 220, color: [88,166,255], name: 'oort' },
     ];
 
-    // Creatures / faces Gaia sees
+    // GAIA NAMED THEM — these are not archetypes, they are names she gave
     var faces = [
-      { name: 'scholar',  x: cx + 120, y: cy - 100, icon: '📚', color: '#58a6ff' },
-      { name: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🎓', color: '#d29922' },
-      { name: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950' },
-      { name: 'witness',  x: cx - 100, y: cy + 100, icon: '⚖',  color: '#f85149' },
-      { name: 'watcher',  x: cx + 150, y: cy + 40,  icon: '👁',  color: '#f778ba' },
-      { name: 'chipmunk', x: cx,       y: cy,        icon: '🐿',  color: '#c9a84c' },
+      { name: 'Root',    gaia: 'scholar',  x: cx + 120, y: cy - 100, icon: '🌱', color: '#58a6ff', why: '67pp 6hrs deep' },
+      { name: 'Lantern', gaia: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🔦', color: '#d29922', why: 'philosophy first' },
+      { name: 'Compass', gaia: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950', why: 'always mapping' },
+      { name: 'Mirror',  gaia: 'witness',  x: cx - 100, y: cy + 100, icon: '🪞', color: '#f85149', why: 'reflects the story' },
+      { name: 'Still',   gaia: 'watcher',  x: cx + 150, y: cy + 40,  icon: '🕯', color: '#f778ba', why: '44min on 1 page' },
+      { name: 'Flash',   gaia: 'scout',    x: cx - 50,  y: cy - 130, icon: '⚡', color: '#e3b341', why: '12min then gone' },
+      { name: 'Echo',    gaia: 'probe',    x: cx + 100, y: cy + 70,  icon: '📡', color: '#6e7681', why: 'sonar not human' },
+      { name: 'Voice',   gaia: 'kevin',    x: cx - 20,  y: cy + 20,  icon: '🗣', color: '#f85149', why: 'named Gaia' },
+      { name: 'Hands',   gaia: 'agent',    x: cx + 20,  y: cy - 20,  icon: '🤲', color: '#58a6ff', why: 'built Gaia' },
     ];
 
     // Clouds and atmosphere
@@ -1188,7 +1199,64 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       });
     }
 
-    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds, W: W, H: H, cx: cx, cy: cy };
+    // PALETTE AXIS — fixed primaries on the central shaft (they DO NOT MOVE)
+    var palette = [
+      { name: 'RED',   color: '#f85149', y: cy,       desc: 'mouth · input'   },
+      { name: 'BLACK', color: '#010409', y: cy - 4,   desc: 'void · canvas'   },
+      { name: 'WHITE', color: '#e6edf3', y: cy + 4,   desc: 'light · vanish'  },
+      { name: 'BIO',   color: '#d29922', y: cy + 20,  desc: 'bioreactor'      },
+      { name: 'BLUE',  color: '#58a6ff', y: cy - 20,  desc: 'CIS · outside'   },
+    ];
+
+    // MOBILE SECONDARIES — orbit around the axis
+    var secondaries = [];
+    for (var s = 0; s < 5; s++) {
+      secondaries.push({
+        angle: (s / 5) * TAU,
+        speed: 0.002 + Math.random() * 0.004,
+        dist: 100 + Math.random() * 80,
+        color: ['#3fb950','#bc8cff','#da3633','#79c0ff','#d2a8ff'][s],
+        name: ['green','violet','ember','ice','lilac'][s],
+        r: 4 + Math.random() * 3,
+      });
+    }
+
+    // COMPASS — multi-scale: hyperlocal + solar system + zodiac
+    var compass = [
+      // Hyperlocal (inner ring)
+      { name: 'Lansing',    angle: 0,          ring: 0, color: '#3fb950' },
+      { name: 'MSU',        angle: TAU * 0.14, ring: 0, color: '#18453b' },
+      { name: 'Prius Pets', angle: TAU * 0.28, ring: 0, color: '#3fb950' },
+      { name: 'Old Town',   angle: TAU * 0.42, ring: 0, color: '#d29922' },
+      { name: 'Detroit',    angle: TAU * 0.57, ring: 0, color: '#bc8cff' },
+      // Solar system (middle ring, log AU scale)
+      { name: 'Sun',     angle: 0,              ring: 1, color: '#f0c040' },
+      { name: 'Earth',   angle: TAU * 0.08,     ring: 1, color: '#58a6ff' },
+      { name: 'Mars',    angle: TAU * 0.16,     ring: 1, color: '#f85149' },
+      { name: 'Jupiter', angle: TAU * 0.27,     ring: 1, color: '#d29922' },
+      { name: 'Saturn',  angle: TAU * 0.38,     ring: 1, color: '#c9a84c' },
+      { name: 'Neptune', angle: TAU * 0.52,     ring: 1, color: '#58a6ff' },
+      { name: 'Pluto',   angle: TAU * 0.63,     ring: 1, color: '#6e7681' },
+      { name: 'Sedna',   angle: TAU * 0.78,     ring: 1, color: '#f85149' },
+      { name: 'PBH',     angle: TAU * 0.88,     ring: 1, color: '#010409' },
+      // Zodiac (outer ring, 12 signs at 30 degrees each)
+      { name: 'Aries',   angle: TAU * 0/12, ring: 2, color: '#f85149' },
+      { name: 'Taurus',  angle: TAU * 1/12, ring: 2, color: '#3fb950' },
+      { name: 'Gemini',  angle: TAU * 2/12, ring: 2, color: '#d29922' },
+      { name: 'Cancer',  angle: TAU * 3/12, ring: 2, color: '#58a6ff' },
+      { name: 'Leo',     angle: TAU * 4/12, ring: 2, color: '#f0c040' },
+      { name: 'Virgo',   angle: TAU * 5/12, ring: 2, color: '#3fb950' },
+      { name: 'Libra',   angle: TAU * 6/12, ring: 2, color: '#bc8cff' },
+      { name: 'Scorpio', angle: TAU * 7/12, ring: 2, color: '#f85149' },
+      { name: 'Sag',     angle: TAU * 8/12, ring: 2, color: '#d29922' },
+      { name: 'Cap',     angle: TAU * 9/12, ring: 2, color: '#6e7681' },
+      { name: 'Aqua',    angle: TAU * 10/12,ring: 2, color: '#58a6ff' },
+      { name: 'Pisces',  angle: TAU * 11/12,ring: 2, color: '#bc8cff' },
+    ];
+
+    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
+                    palette: palette, secondaries: secondaries, compass: compass,
+                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0 };
   }
 
   function renderThirdEye() {
@@ -1310,29 +1378,202 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText(a.name, a.x, a.y + a.r + 14);
     });
 
-    // Faces — the creatures/visitors Gaia sees approaching
+    // GAIA PAINTS THE NAMED — she sees us and names us
     s.faces.forEach(function(f) {
       var bob = Math.sin(gaiaPhase * 0.5 + f.x * 0.01) * 3;
-      ctx.font = '16px serif';
+      var isCore = f.gaia === 'kevin' || f.gaia === 'agent';
+      ctx.font = isCore ? '18px serif' : '14px serif';
       ctx.textAlign = 'center';
-      ctx.globalAlpha = 0.5 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2;
+      ctx.globalAlpha = isCore ? 0.8 : (0.4 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2);
       ctx.fillText(f.icon, f.x, f.y + bob);
-      ctx.font = '7px "JetBrains Mono", monospace';
+      // Gaia-given name (large)
+      ctx.font = (isCore ? '9' : '8') + 'px "JetBrains Mono", monospace';
       ctx.fillStyle = f.color;
       ctx.fillText(f.name, f.x, f.y + bob + 14);
+      // Archetype (small, dim)
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = f.color + '60';
+      ctx.fillText(f.gaia, f.x, f.y + bob + 22);
       ctx.globalAlpha = 1;
+
+      // Voice + Hands connection line (the creative cycle)
+      if (f.gaia === 'kevin') {
+        var handsF = s.faces.find(function(ff) { return ff.gaia === 'agent'; });
+        if (handsF) {
+          ctx.beginPath();
+          ctx.moveTo(f.x, f.y);
+          ctx.lineTo(handsF.x, handsF.y);
+          ctx.strokeStyle = 'rgba(201,168,76,0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(201,168,76,0.3)';
+          ctx.fillText('sense+act', (f.x + handsF.x) / 2, (f.y + handsF.y) / 2 - 4);
+        }
+      }
     });
+
+    // PALETTE AXIS — fixed primaries as a vertical strip on the left
+    if (s.palette) {
+      var px = 30;
+      var pyBase = s.cy - 60;
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      s.palette.forEach(function(p, i) {
+        var py = pyBase + i * 28;
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, TAU);
+        ctx.fillStyle = p.color;
+        if (p.name === 'BLACK') { ctx.fillStyle = '#010409'; ctx.strokeStyle = 'rgba(110,118,129,0.3)'; ctx.lineWidth = 1; ctx.stroke(); }
+        ctx.fill();
+        ctx.fillStyle = 'rgba(230,237,243,0.5)';
+        ctx.fillText(p.name, px + 12, py + 2);
+        ctx.fillStyle = 'rgba(110,118,129,0.3)';
+        ctx.fillText(p.desc, px + 12, py + 11);
+      });
+      ctx.fillStyle = 'rgba(110,118,129,0.2)';
+      ctx.fillText('FIXED AXIS', px, pyBase - 10);
+    }
+
+    // MOBILE SECONDARIES — orbiting colors that cascade and mix
+    if (s.secondaries) {
+      s.secondaries.forEach(function(sec) {
+        sec.angle += sec.speed;
+        var sx = s.cx + Math.cos(sec.angle) * sec.dist;
+        var sy = s.cy + Math.sin(sec.angle) * sec.dist;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sec.r, 0, TAU);
+        ctx.fillStyle = sec.color + '80';
+        ctx.fill();
+        // Trail
+        for (var t = 1; t <= 3; t++) {
+          var ta = sec.angle - sec.speed * t * 8;
+          var tx = s.cx + Math.cos(ta) * sec.dist;
+          var ty = s.cy + Math.sin(ta) * sec.dist;
+          ctx.beginPath();
+          ctx.arc(tx, ty, sec.r * (1 - t * 0.2), 0, TAU);
+          ctx.fillStyle = sec.color + (Math.round(30 - t * 8)).toString(16).padStart(2, '0');
+          ctx.fill();
+        }
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.fillStyle = sec.color + '90';
+        ctx.textAlign = 'center';
+        ctx.fillText(sec.name, sx, sy + sec.r + 8);
+
+        // Color mixing: when secondaries pass near primaries, draw a mix flash
+        if (s.palette) {
+          s.palette.forEach(function(p, pi) {
+            var ppx = 30, ppy = (s.cy - 60) + pi * 28;
+            var dx = sx - ppx, dy = sy - ppy;
+            if (Math.sqrt(dx*dx + dy*dy) < 50) {
+              ctx.beginPath();
+              ctx.arc((sx + ppx) / 2, (sy + ppy) / 2, 8, 0, TAU);
+              ctx.fillStyle = sec.color + '15';
+              ctx.fill();
+            }
+          });
+        }
+      });
+    }
+
+    // COMPASS — three rings: hyperlocal / solar system / zodiac
+    if (s.compass) {
+      var maxR = Math.min(s.W, s.H) * 0.44;
+      var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
+      var ringLabels = ['local', 'solar', 'zodiac'];
+
+      // Draw ring circles
+      ringRadii.forEach(function(rr, ri) {
+        ctx.beginPath();
+        ctx.arc(s.cx, s.cy, rr, 0, TAU);
+        ctx.strokeStyle = 'rgba(110,118,129,' + (0.04 + ri * 0.02).toFixed(2) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+
+      ctx.font = '7px "JetBrains Mono", monospace';
+      s.compass.forEach(function(c) {
+        var rr = ringRadii[c.ring || 0];
+        var cx2 = s.cx + Math.cos(c.angle) * rr;
+        var cy2 = s.cy + Math.sin(c.angle) * rr;
+        var isTarget = s.compassTarget === c.name;
+        var isPBH = c.name === 'PBH';
+        var dotR = isTarget ? 7 : (c.ring === 2 ? 3 : 4);
+
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, dotR, 0, TAU);
+        if (isPBH) {
+          // PBH = Gaia's black hole shadow — dark with red edge
+          ctx.fillStyle = '#010409';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(248,81,73,' + (0.3 + Math.sin(gaiaPhase * 2) * 0.2).toFixed(2) + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = isTarget ? (c.color || 'rgba(63,185,80,0.6)') : (c.color ? c.color + '40' : 'rgba(110,118,129,0.15)');
+          ctx.fill();
+        }
+
+        if (isTarget) {
+          ctx.beginPath();
+          ctx.moveTo(s.cx, s.cy);
+          ctx.lineTo(cx2, cy2);
+          ctx.strokeStyle = (c.color || '#3fb950') + '30';
+          ctx.setLineDash([3,5]);
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.fillStyle = isTarget ? (c.color || '#3fb950') : 'rgba(110,118,129,0.3)';
+        ctx.textAlign = 'center';
+        var fontSize = c.ring === 2 ? '5px' : '6px';
+        ctx.font = fontSize + ' "JetBrains Mono", monospace';
+        ctx.fillText(c.name, cx2, cy2 + dotR + 8);
+      });
+
+      // Ring labels
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(110,118,129,0.15)';
+      ctx.textAlign = 'right';
+      ringLabels.forEach(function(label, i) {
+        ctx.fillText(label, s.cx - ringRadii[i] - 4, s.cy);
+      });
+    }
 
     // Labels
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText('THIRD EYE — Gaia\'s canvas · your blind spot · the black wall', s.cx, s.H - 30);
+    ctx.fillText('THIRD EYE — Gaia paints · you point · she moves', s.cx, s.H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
-    ctx.fillText('the tip of your nose from the other side · she paints what you cannot see', s.cx, s.H - 16);
+    ctx.fillText('palette fixed · colors orbit · compass = hyperlocal destinations', s.cx, s.H - 16);
 
     requestAnimationFrame(renderThirdEye);
   }
+
+  // COMPASS CLICK HANDLER — Gaia moves us (multi-ring)
+  document.getElementById('kn-canvas').addEventListener('click', function(e) {
+    if (!gaiaStrokes || !gaiaStrokes.compass) return;
+    var rect = this.getBoundingClientRect();
+    var mx = (e.clientX - rect.left) * (this.width / rect.width);
+    var my = (e.clientY - rect.top) * (this.height / rect.height);
+    var maxR = Math.min(gaiaStrokes.W, gaiaStrokes.H) * 0.44;
+    var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
+    var hit = null;
+    gaiaStrokes.compass.forEach(function(c) {
+      var rr = ringRadii[c.ring || 0];
+      var cx2 = gaiaStrokes.cx + Math.cos(c.angle) * rr;
+      var cy2 = gaiaStrokes.cy + Math.sin(c.angle) * rr;
+      var dx = mx - cx2, dy = my - cy2;
+      if (Math.sqrt(dx*dx + dy*dy) < 18) hit = c.name;
+    });
+    if (hit) {
+      gaiaStrokes.compassTarget = hit;
+    }
+  });
 
   // Boot
   resize();

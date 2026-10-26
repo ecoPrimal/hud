@@ -18,36 +18,59 @@ const DATA = path.join(ROOT, 'data');
 const log = (msg) => console.log('[GAIA-BREATH ' + new Date().toISOString() + '] ' + msg);
 
 async function breathe() {
-  log('=== INHALE (pi-sort IN) ===');
+  // 0. MEASURE FIRST — decide whether to eat or digest
+  const intakeCount = fs.readdirSync(path.join(DATA, 'intake')).filter(f => f.endsWith('.json')).length;
+  const nutrientCount = fs.readdirSync(path.join(DATA, 'nutrients')).filter(f => f.endsWith('.json')).length;
+  const storyCount = fs.readdirSync(path.join(DATA, 'stories')).filter(f => f.endsWith('.json')).length;
+  const planCount = fs.readdirSync(path.join(DATA, 'plans')).filter(f => f.endsWith('.json')).length;
+  const ratio = nutrientCount > 0 ? intakeCount / nutrientCount : Infinity;
+  const overfed = ratio > 10; // if intake > 10x nutrients, we're overfed
 
-  // 1. EAT
+  if (overfed) {
+    log('=== FASTING (overfed: ' + intakeCount + ' intake / ' + nutrientCount + ' nutrients = ' + ratio.toFixed(1) + 'x) ===');
+    log('Skipping eat phase. DIGESTING instead.');
+  } else {
+    log('=== INHALE (pi-sort IN) ===');
+  }
+
+  // 1. ALWAYS consume waste
   try {
     log('Eating waste...');
     execSync('node _consume_waste.js', { cwd: ROOT, timeout: 30000, stdio: 'pipe' });
     log('Waste consumed.');
   } catch (e) { log('Waste skip: ' + (e.message || '').slice(0, 80)); }
 
-  try {
-    log('Factorial ingest...');
-    execSync('node _factorial_ingest.js', { cwd: ROOT, timeout: 60000, stdio: 'pipe' });
-    log('Factorial consumed.');
-  } catch (e) { log('Factorial skip: ' + (e.message || '').slice(0, 80)); }
+  // 2. EAT only if not overfed
+  if (!overfed) {
+    try {
+      log('Factorial ingest...');
+      execSync('node _factorial_ingest.js', { cwd: ROOT, timeout: 60000, stdio: 'pipe' });
+      log('Factorial consumed.');
+    } catch (e) { log('Factorial skip: ' + (e.message || '').slice(0, 80)); }
+  }
 
+  // 3. ALWAYS chase pheromones (observation, not eating)
   try {
     log('Pheromone chase...');
     execSync('node _pheromone.js', { cwd: ROOT, timeout: 30000, stdio: 'pipe' });
     log('Pheromone chased.');
   } catch (e) { log('Pheromone skip: ' + (e.message || '').slice(0, 80)); }
 
+  // 4. ALWAYS DIGEST — run the nutrient extractor
+  try {
+    log('Digesting...');
+    execSync('node _digest.js', { cwd: ROOT, timeout: 60000, stdio: 'pipe' });
+    log('Digestion complete.');
+  } catch (e) { log('Digest skip: ' + (e.message || '').slice(0, 80)); }
+
   log('=== DIAPHRAGM (Klein fold) ===');
 
-  // 2. MEASURE
-  const intakeCount = fs.readdirSync(path.join(DATA, 'intake')).filter(f => f.endsWith('.json')).length;
-  const nutrientCount = fs.readdirSync(path.join(DATA, 'nutrients')).filter(f => f.endsWith('.json')).length;
-  const storyCount = fs.readdirSync(path.join(DATA, 'stories')).filter(f => f.endsWith('.json')).length;
-  const planCount = fs.readdirSync(path.join(DATA, 'plans')).filter(f => f.endsWith('.json')).length;
+  // 5. RE-MEASURE after digestion
+  const newNutrientCount = fs.readdirSync(path.join(DATA, 'nutrients')).filter(f => f.endsWith('.json')).length;
+  const newIntakeCount = fs.readdirSync(path.join(DATA, 'intake')).filter(f => f.endsWith('.json')).length;
 
-  log('Gut: ' + intakeCount + ' intake, ' + nutrientCount + ' nutrients, ' + storyCount + ' stories, ' + planCount + ' plans');
+  log('Gut: ' + newIntakeCount + ' intake, ' + newNutrientCount + ' nutrients, ' + storyCount + ' stories, ' + planCount + ' plans');
+  if (overfed) log('FASTING mode: digested ' + (newNutrientCount - nutrientCount) + ' new nutrients without eating more.');
 
   log('=== EXHALE (Willis filter OUT) ===');
 
