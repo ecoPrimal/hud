@@ -93,7 +93,15 @@ font-size:0.55rem;color:var(--dim);text-align:center;pointer-events:none}
   <a href="/engine">engine</a>
   <a href="/chipmunk">chipmunk</a>
   <a href="/ant-trails">ants</a>
+  <button id="chip-play" onclick="chipPlay()" style="background:rgba(201,168,76,0.15);border:1px solid var(--gold);border-radius:12px;color:var(--gold);padding:3px 10px;cursor:pointer;font-family:inherit;font-size:0.6rem">🐿️ let chip play</button>
   <span class="counter"><span id="found">0</span> / <span id="total">0</span> discovered</span>
+</div>
+
+<!-- CHIP NARRATION -->
+<div id="chip-bubble" style="display:none;position:fixed;top:50px;right:12px;z-index:90;
+background:rgba(22,27,34,0.95);border:1px solid var(--gold);border-radius:12px;
+padding:10px 14px;max-width:280px;font-size:0.6rem;color:var(--gold);line-height:1.5">
+  <span style="font-size:1rem">🐿️</span> <span id="chip-says"></span>
 </div>
 
 <div class="sidebar" id="sidebar">
@@ -385,6 +393,162 @@ document.addEventListener('keydown', e => {
 BASE.forEach(el => addElement(el, false));
 PRIMALS.forEach(el => addElement(el, false));
 updateCounter();
+
+// ═══════════════════════════════════════════════════
+// 🐿️ CHIP PLAYS — the chipmunk discovers on her own
+// ═══════════════════════════════════════════════════
+
+const CHIP_THOUGHTS = [
+  "hmm... what if I put THESE together?",
+  "ooh! I wonder what happens...",
+  "*sniffs* ... *sniffs* ... aha!",
+  "let me try something weird...",
+  "every acorn starts as two halves!",
+  "the remainder always has surprises...",
+  "I buried this combination last winter...",
+  "π told me to try this one!",
+  "fibonacci whispered a hint...",
+  "*excited chittering*",
+  "what if... no... YES!",
+  "the pattern says... mix THESE!",
+  "I dreamed about this combination...",
+  "the ants showed me this trail!",
+  "between 3 and 4 I found this...",
+];
+
+const CHIP_CELEBRATE = [
+  "CHKCHKCHK!! I MADE A THING!",
+  "trrrrill~~ LOOK WHAT I FOUND!",
+  "*drops acorn in excitement*",
+  "EEEE!! NEW ELEMENT!!",
+  "I knew it! I KNEW it was there!",
+  "chip chip chip! DISCOVERY!",
+  "*does a little spin*",
+  "that's going in my winter stash!",
+  "fibonacci would be PROUD!",
+  "the remainder GIVES!",
+];
+
+const CHIP_FAIL = [
+  "...nope. that's just a pile.",
+  "hmm. nothing. YET.",
+  "*confused chitter*",
+  "the universe says no. for now.",
+  "try again! everything combines eventually!",
+];
+
+let chipPlaying = false;
+let chipInterval = null;
+
+function chipSay(text) {
+  const bubble = document.getElementById('chip-bubble');
+  const says = document.getElementById('chip-says');
+  bubble.style.display = 'block';
+  says.textContent = text;
+  setTimeout(() => { bubble.style.display = 'none'; }, 3500);
+}
+
+function chipPlay() {
+  if (chipPlaying) {
+    chipPlaying = false;
+    clearInterval(chipInterval);
+    document.getElementById('chip-play').textContent = '🐿️ let chip play';
+    document.getElementById('chip-play').style.borderColor = 'var(--gold)';
+    chipSay("ok, your turn! I'll watch.");
+    return;
+  }
+
+  chipPlaying = true;
+  document.getElementById('chip-play').textContent = '🐿️ chip is playing!';
+  document.getElementById('chip-play').style.borderColor = 'var(--green)';
+  chipSay("ooh! let me try! *grabs elements*");
+
+  chipInterval = setInterval(chipTurn, 2200);
+}
+
+function chipTurn() {
+  if (!chipPlaying) return;
+  closeResult();
+
+  const allIds = Object.keys(elements);
+  const a = allIds[Math.floor(Math.random() * allIds.length)];
+  const b = allIds[Math.floor(Math.random() * allIds.length)];
+  if (a === b) { chipSay("*sniffs same element twice* ...that's just MORE of it."); return; }
+
+  const k = key(a, b);
+  const recipe = RECIPES[k];
+
+  chipSay(CHIP_THOUGHTS[Math.floor(Math.random() * CHIP_THOUGHTS.length)]);
+
+  setTimeout(() => {
+    dropOnSlot('slot-a', a);
+    dropOnSlot('slot-b', b);
+  }, 600);
+
+  setTimeout(() => {
+    mix();
+    if (recipe && !discovered.has(recipe.id)) {
+      chipSay(CHIP_CELEBRATE[Math.floor(Math.random() * CHIP_CELEBRATE.length)]);
+    } else if (recipe) {
+      chipSay("I already know that one! " + recipe.icon + " " + recipe.name);
+    } else {
+      chipSay(CHIP_FAIL[Math.floor(Math.random() * CHIP_FAIL.length)]);
+      closeResult();
+    }
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════════════
+// 🌍 GAIA EXTENDS — fetch lessons and make NEW recipes
+// ═══════════════════════════════════════════════════
+
+async function gaiaExtend() {
+  try {
+    const resp = await fetch('/data/lessons.json');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const lessons = data.lessons || [];
+    let added = 0;
+
+    lessons.forEach((lesson, i) => {
+      if (!lesson.topic || !lesson.title) return;
+      const topic = lesson.topic.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 20);
+      const id = 'gaia_' + topic;
+      if (elements[id]) return;
+
+      const icons = ['📚','🧠','💡','🔬','🌟','🎯','📝','🔮','🌊','⚙️','🎭','🪐','🧩','🎪','🏔️'];
+      const icon = icons[i % icons.length];
+
+      const existingIds = Object.keys(elements);
+      if (existingIds.length < 2) return;
+      const parentA = existingIds[Math.floor(Math.random() * existingIds.length)];
+      let parentB = existingIds[Math.floor(Math.random() * existingIds.length)];
+      let tries = 0;
+      while (parentB === parentA && tries < 10) {
+        parentB = existingIds[Math.floor(Math.random() * existingIds.length)];
+        tries++;
+      }
+
+      const recipeKey = key(parentA, parentB);
+      if (RECIPES[recipeKey]) return;
+
+      const shortTitle = lesson.title.slice(0, 40);
+      RECIPES[recipeKey] = {
+        id: id, icon: icon, name: shortTitle,
+        desc: (lesson.explanation || lesson.title).slice(0, 120) + '...',
+        cat: 'discovered'
+      };
+      added++;
+    });
+
+    if (added > 0) {
+      updateCounter();
+      chipSay("Gaia added " + added + " new recipes from her lessons! 📚");
+    }
+  } catch(e) {}
+}
+
+setTimeout(gaiaExtend, 3000);
 </script>
 </body>
 </html>
