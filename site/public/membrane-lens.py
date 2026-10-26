@@ -268,7 +268,14 @@ def fetch(url):
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "membrane-lens/1.0"})
         with urllib.request.urlopen(req, timeout=12) as resp:
-            return json.loads(resp.read().decode())
+            raw = resp.read()
+            # Try UTF-8 first, fall back to latin-1 (never fails, handles 0x97 em-dash etc)
+            for enc in ("utf-8", "utf-8-sig", "latin-1"):
+                try:
+                    return json.loads(raw.decode(enc))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    continue
+            return {"error": "decode failed after trying utf-8, utf-8-sig, latin-1"}
     except Exception as e:
         return {"error": str(e)}
 
@@ -325,11 +332,19 @@ def handle_counts(_args):
 
 def handle_observe(args):
     focus = args.get("focus", "all")
+    # PRIMARY SOURCE: now.json has LIVE data (259K entities, 15K humans)
+    # dashboard.json and negentropy.json are STALE (wave 179, all zeros)
+    now = fetch(FEEDS["now"])
     neg = fetch(FEEDS["negentropy"])
     dash = fetch(FEEDS["dashboard"])
     result = {}
 
     if focus in ("humans", "all"):
+        # Pull live data from now.json first, fall back to dashboard
+        entities = now.get("entities", {})
+        flow = now.get("flow", {})
+        clone = now.get("session_agglutinate", {}).get("clone_data", {})
+        rates = now.get("rates_live", {})
         cl = dash.get("collision_level2", {})
         dw = dash.get("membrane_delta", {}).get("dwell", {})
         traj = dash.get("trajectory", {})
@@ -342,6 +357,10 @@ def handle_observe(args):
                 "visitors": orb.get("ips", 0),
             })
         result["humans"] = {
+            "unique_visitors_14d": clone.get("unique_14d", 0),
+            "total_visitors_14d": clone.get("total_14d", 0),
+            "human_entities": entities.get("humans", 0),
+            "human_pct": flow.get("human_pct", 0),
             "unique_ips": dash.get("human_ips", 0),
             "genuine": cl.get("genuine", 0),
             "selectivity": f"{human_mode['p_observed']:.0%}" if human_mode else "unknown",
@@ -350,50 +369,41 @@ def handle_observe(args):
             "multi_host_visitors": traj.get("multi_host_ips", 0),
             "avg_breadth": round(traj.get("avg_breadth", 0), 1),
             "orbits": orbits,
+            "status": "LIVE from now.json" if entities.get("humans", 0) > 0 else "gastrulating",
         }
 
     if focus in ("fleet", "all"):
-        fleet = neg.get("fleet", {})
+        entities = now.get("entities", {})
+        classification = now.get("classification", {})
+        fleet_from_neg = neg.get("fleet", {})
         result["fleet"] = {
-            "total_requests": fleet.get("total_requests", 0),
-            "total_entities": fleet.get("total_entities", 0),
-            "deep_classified": fleet.get("deep_classified", 0),
-            "bytes_consumed_gb": round(fleet.get("bytes_consumed", 0) / 1e9, 2),
-            "real_content_served": fleet.get("real_content_served", 0),
+            "total_entities": entities.get("fleet", fleet_from_neg.get("total_entities", 0)),
+            "total_classified": entities.get("total", 0),
+            "deep_classified": classification.get("non_self", fleet_from_neg.get("deep_classified", 0)),
+            "self": classification.get("self", 0),
+            "non_self": classification.get("non_self", 0),
+            "partial": classification.get("partial", 0),
+            "null": classification.get("null", 0),
+            "fleet_pct": now.get("flow", {}).get("fleet_pct", 0),
+            "real_content_served": fleet_from_neg.get("real_content_served", 0),
+            "entities_per_minute": now.get("rates_live", {}).get("entities_per_minute", 0),
         }
 
     if focus in ("membrane", "all"):
-        mem = neg.get("membrane", {})
-        jitte = neg.get("jitte", {})
-        ext = neg.get("extraction", {})
         result["membrane"] = {
-            "opacity": f"{mem.get('opacity', 0):.1%}",
-            "selectivity": f"{mem.get('selectivity', 0):.0%}",
-            "reflection": f"{mem.get('reflection', 0):.1%}",
-            "tempo": round(jitte.get("tempo", 0), 4),
-            "perturbation": round(jitte.get("perturbation", 0), 4),
-            "bits_extracted": ext.get("total_bits_extracted", 0),
-            "wave": neg.get("wave", 0),
-        }
-
-    dlg_depth = fetch(f"{MEMBRANE}/dialogue-depth.json") or {}
-    if dlg_depth and dlg_depth.get("dialogue_depth") is not None:
-        result["dialogue"] = {
-            "depth": round(dlg_depth.get("dialogue_depth", 0), 4),
-            "scale": dlg_depth.get("scale", ""),
-            "direction": dlg_depth.get("direction", ""),
-            "bounce": dlg_depth.get("bounce_count", 0),
-        }
-
-    dlg = fetch(f"{MEMBRANE}/dialogue.json") or {}
-    dance = dlg.get("dance", {})
-    if dance and dance.get("total_dancers", 0) > 0:
-        passages_summary = []
-        for p in dance.get("passages", [])[:5]:
-            passages_summary.append(f"{p.get('move','?')}: {p.get('humans',0)} {p.get('from','?')}->{p.get('to','?')}")
-        result["epitope_dance"] = {
-            "total_dancers": dance["total_dancers"],
-            "passages": "; ".join(passages_summary),
+            "selectivity": now.get("sort_quality", 0),
+            "phase": now.get("phase", "unknown"),
+            "wave": now.get("wave", neg.get("wave", 0)),
+            "fold_rate": now.get("pi_body", {}).get("rate", "1/pi"),
+            "remainder": now.get("pi_body", {}).get("remainder", 0.14159),
+            "klein_twists": now.get("klein_twists", 0),
+            "services_active": sum(1 for s in now.get("services", {}).values() if s == "active"),
+            "services_total": len(now.get("services", {})),
+            "feeds_total": now.get("feeds", {}).get("total", 0),
+            "feeds_alive_pct": now.get("feeds", {}).get("feeds_alive_pct", 0),
+            "mor": now.get("rates_live", {}).get("mor", 0),
+            "escape_velocity": now.get("rates_live", {}).get("escape_velocity", 0),
+            "dag_fill": now.get("dag", {}).get("fill", "0%"),
         }
 
     return json.dumps(result, indent=2)
