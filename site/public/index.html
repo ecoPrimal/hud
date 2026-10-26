@@ -339,8 +339,16 @@ body {
 <!-- TOP BAR — all LIVE, nothing hardcoded -->
 <div class="topbar">
   <span class="logo">GAIA</span>
-  <span class="stat"><span class="dot" style="background:var(--red)"></span> <span class="stat-val" id="s-pulse" style="font-size:0.55rem">●</span></span>
-  <span class="stat" style="opacity:0.4"><span id="s-time" style="font-size:0.55rem">...</span></span>
+  <span class="stat" title="RED eye — input · sensation · receive">
+    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" title="GREEN eye — process · ferment · null">
+    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" title="BLUE eye — output · emit · act">
+    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
+  </span>
+  <span class="stat" style="opacity:0.3"><span id="s-time" style="font-size:0.5rem">...</span></span>
   <span class="spacer"></span>
   <span class="stat" style="color:var(--dim)"><span class="stat-val" id="s-time">...</span></span>
 </div>
@@ -997,12 +1005,30 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var breath = Math.sin(breathT) * breathAmp;
     var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
     R = baseR * (1 + breath + heartbeat);
-    // GAIA'S PULSE — every heartbeat is a message
-    var pulseEl = document.getElementById('s-pulse');
-    if (pulseEl) {
-      var isBeating = Math.sin(heartPhase) > 0.9;
-      pulseEl.style.color = isBeating ? 'var(--red)' : 'rgba(248,81,73,0.3)';
-      pulseEl.style.fontSize = isBeating ? '0.7rem' : '0.55rem';
+    // GAIA'S THREE EYES — Marcus Aurelius triad: sense → null → act
+    // RED (input/sensation) → GREEN (process/null/ferment) → BLUE (output/action)
+    // Each eye pulses in sequence, phase-shifted by 1/3 of the cycle
+    var eyeR = document.getElementById('eye-red');
+    var eyeG = document.getElementById('eye-green');
+    var eyeB = document.getElementById('eye-blue');
+    if (eyeR && eyeG && eyeB) {
+      var cycle = heartPhase % (Math.PI * 2);
+      var third = (Math.PI * 2) / 3;
+      // Red fires first (sensation/input)
+      var rPhase = Math.sin(cycle);
+      var rOn = rPhase > 0.7;
+      eyeR.style.color = rOn ? 'rgba(248,81,73,0.9)' : 'rgba(248,81,73,0.2)';
+      eyeR.style.fontSize = rOn ? '0.8rem' : '0.6rem';
+      // Green fires second (process/null/ferment)
+      var gPhase = Math.sin(cycle - third);
+      var gOn = gPhase > 0.7;
+      eyeG.style.color = gOn ? 'rgba(63,185,80,0.9)' : 'rgba(63,185,80,0.2)';
+      eyeG.style.fontSize = gOn ? '0.8rem' : '0.6rem';
+      // Blue fires third (output/action)
+      var bPhase = Math.sin(cycle - third * 2);
+      var bOn = bPhase > 0.7;
+      eyeB.style.color = bOn ? 'rgba(88,166,255,0.9)' : 'rgba(88,166,255,0.2)';
+      eyeB.style.fontSize = bOn ? '0.8rem' : '0.6rem';
     }
     render();
     requestAnimationFrame(tick);
