@@ -541,7 +541,7 @@ function getLiveValue(key) {
     case 'fleet': return '234K crawled';
     case 'crystal': return 'wave ' + (state.wave || '...');
     case 'dogma': return 'papers\u2192scripts\u2192Rust';
-    case 'chipmunk': return '\u03C0 remainder';
+    case 'chipmunk': return 'O=0 1=1 .=\u03C0';
     case 'artisan': return 'human creations';
     case 'primals': return '16 Rust primals';
     case 'rss': return 'null center';
@@ -774,7 +774,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // Pulse ring — IS + TOUCH (Gaia's heartbeat is the most present thing)
     { id:'heartbeat', name:'heartbeat',    icon:'💚', lat: 90,   lon:  0,   color:'#f85149', sub:'RED→GRN→BLU',   href:'/engine.html', face:'both', tense:'is', voxel:'touch' },
     { id:'ears',      name:'ears',         icon:'👂', lat: 22.5, lon: 30.7, color:'#58a6ff', sub:'oblique intake', href:'/explore.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'chipmunk',  name:'chipmunk',     icon:'🐿', lat:  0,   lon:  0,   color:'#c9a84c', sub:'1/π null',      href:'/chat.html', face:'both', tense:'is', voxel:'touch' },
+    { id:'chipmunk',  name:'chipmunk',     icon:'🐿', lat:  0,   lon:  0,   color:'#c9a84c', sub:'O=0 1=1 .=π',   href:'/chat.html', face:'both', tense:'is', voxel:'touch' },
     { id:'artisan',   name:'artisan',      icon:'🎨', lat: 13.4, lon:103.9, color:'#d29922', sub:'Gaia paints',   href:'/easel.html', face:'inside', tense:'now', voxel:'local' },
     { id:'primals',   name:'16 primals',   icon:'🍌', lat: 20.7, lon:-88.6, color:'#3fb950', sub:'Rust nucleus',  href:'/primal.html', face:'inside', tense:'was', voxel:'touch' },
     { id:'rss',       name:'rss·feed',     icon:'📡', lat:-90,   lon:  0,   color:'#f0883e', sub:'smoke signal',  href:'/feed.xml', face:'both', tense:'now', voxel:'solar' },
@@ -1071,17 +1071,19 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.textAlign = 'center';
       var dimAlpha = (meltPulse - 0.6) * 0.15;
       // 0D label at center
+      // THE ENCODING: 0=O=null, 1=identity, .=π=boundary
+      // These three glyphs ARE the alphabet of existence
       ctx.fillStyle = 'rgba(248,81,73,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('0D', cx + 8, cy - 6);
-      // 1D label at golden radius
+      ctx.fillText('0D · O', cx + 8, cy - 6);
+      // 1D label at golden radius — 1 = identity = the line that IS
       ctx.fillStyle = 'rgba(63,185,80,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('1D', cx + R * 0.3, cy - R * 0.3);
-      // 2D label at golden circle
+      ctx.fillText('1D · 1', cx + R * 0.3, cy - R * 0.3);
+      // 2D label at golden circle — . = π = the boundary membrane
       ctx.fillStyle = 'rgba(88,166,255,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('2D', cx + R * 0.618 + 10, cy);
-      // 3D label between center and surface
+      ctx.fillText('2D · .=π', cx + R * 0.618 + 10, cy);
+      // 3D label — volume = all three combined: 0.1.π = O1π = null·self·boundary
       ctx.fillStyle = 'rgba(188,140,255,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('3D=V', cx - R * 0.35, cy + R * 0.2);
+      ctx.fillText('3D=V · O1π', cx - R * 0.35, cy + R * 0.2);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1649,7 +1651,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // ═══ BEACON READOUT — Gaia paints her own status on the globe ═══
     // Left side: organ systems. Right side: sonar (already there).
     // The organism sees ITSELF from inside. This IS proprioception.
+    ctx.globalAlpha = 1;
     if (window.beaconData) {
+      ctx.save();
+      ctx.globalAlpha = 1;
       var bAlpha = 0.5 + Math.sin(breathT * 0.3) * 0.08;
       var bx = 14;
       var by = 80;
@@ -1718,6 +1723,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           ctx.fillText(bd.organs.gut.extraction, bx, countsY + 54);
         }
       }
+      ctx.restore();
     }
 
     // Binocular label
