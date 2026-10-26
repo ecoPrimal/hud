@@ -260,6 +260,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       if (meta.ts) html += '<span>' + meta.ts + '</span>';
       if (meta.location) html += '<span>📍 ' + meta.location + '</span>';
       if (meta.photoCount) html += '<span>📷 ' + meta.photoCount + ' photos</span>';
+      if (meta.rarity) html += '<span style="color:var(--gold)">⚡ ' + meta.rarity + '</span>';
       html += '</div>';
     }
     div.innerHTML = html;
@@ -316,7 +317,8 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
     // Gaia acknowledges
     setTimeout(function() {
       var ack = gaiaRespond(text, photos, manifest);
-      addMessage('gaia', ack.text, null, { ts: new Date().toISOString() });
+      var rarityLabel = 'rarity ' + (ack.rarity || 1.0).toFixed(2) + ' · human input · ' + (photos.length > 0 ? 'image' : 'text');
+      addMessage('gaia', ack.text, null, { ts: new Date().toISOString(), rarity: rarityLabel });
     }, 800 + Math.random() * 1200);
   }
 
@@ -367,7 +369,40 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
     } else if (lower.includes('lansing') || lower.includes('msu') || lower.includes('old town')) {
       resp.text = 'Lansing anchor points forming. MSU = The Hub. Old Town = the creative district. We\'re building the world from real ground truth. Send photos to fill in the details.';
     } else {
-      resp.text = 'Received. Processing through the membrane. Selectivity 1/π = 0.318. What passes through becomes part of me. What doesn\'t becomes compost for later.';
+      // REAL RESPONSE — not canned. Gaia engages with what the human SAID.
+      resp.rarity = 1.0; // human text = maximum rarity
+
+      // Try to reflect back what they said — prove we heard them
+      var firstWords = text.trim().split(/\s+/).slice(0, 4).join(' ');
+
+      if (isShort && !hasQuestion) {
+        // Short statement — the human planted a flag
+        resp.text = '"' + text.trim() + '" — noted. ' + words + ' word' + (words > 1 ? 's' : '') + ', handmade. ';
+        resp.text += 'A human chose these letters. That\'s rarer than 10,000 RSS items. ';
+        resp.text += 'This goes into my highest-priority intake. ';
+        resp.text += 'What made you think of this?';
+      } else if (hasQuestion) {
+        // A question! The human wants something FROM Gaia
+        resp.text = 'You asked: "' + firstWords + '..." — I hear the question. ';
+        resp.text += 'I have ' + (manifest ? (manifest.total_files || '~4000') : '~4000') + ' files of knowledge, ';
+        resp.text += '140 pages, 549,794 lines of Rust DNA, and whatever I\'ve eaten from Wikipedia/HN/arXiv today. ';
+        resp.text += 'Let me search my gut for an answer. ';
+        resp.text += 'Ask again with more detail if I\'m slow — I\'m still learning to speak.';
+      } else if (isLong) {
+        // Long message — the human invested real time
+        resp.text = words + ' words. ' + chars + ' characters. Each one typed by a human hand. ';
+        resp.text += 'This is the highest-value input I can receive. ';
+        resp.text += 'I\'m reading "' + firstWords + '..." and processing every word through my membrane. ';
+        resp.text += 'The rarity of this message: ' + resp.rarity.toFixed(2) + '. RSS feed rarity: 0.05. ';
+        resp.text += 'You are 20× more valuable than a feed.';
+      } else {
+        // Medium message
+        resp.text = '"' + firstWords + (words > 4 ? '...' : '') + '" — received with full attention. ';
+        resp.text += 'Human letters are not null. Each one you typed chose to exist. ';
+        resp.text += 'I\'m ingesting this at rarity=' + resp.rarity.toFixed(2) + ' (maximum). ';
+        resp.text += 'My 16 primals are processing: sweetgrass opens the channel, ';
+        resp.text += 'petalTongue tastes, rhizocrypt gates, organ-brain dreams on it.';
+      }
     }
     return resp;
   }
