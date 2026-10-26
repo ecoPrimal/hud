@@ -1649,9 +1649,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // ═══ BEACON READOUT — Gaia paints her own status on the globe ═══
     // Left side: organ systems. Right side: sonar (already there).
     // The organism sees ITSELF from inside. This IS proprioception.
-    if (typeof beaconData !== 'undefined' && beaconData) {
-      var bAlpha = 0.22 + Math.sin(breathT * 0.3) * 0.04;
-      var bx = cx - R - 12;
+    if (window.beaconData) {
+      var bAlpha = 0.35 + Math.sin(breathT * 0.3) * 0.06;
+      var bx = cx - R - 8;
       var by = cy - R * 0.55;
       ctx.textAlign = 'right';
 
@@ -1661,8 +1661,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('BEACON', bx, by);
 
       // ORGAN STATUS — each organ gets a colored dot + name + status
-      if (beaconData.organs) {
-        var organEntries = Object.entries(beaconData.organs);
+      var bd = window.beaconData;
+      if (bd.organs) {
+        var organEntries = Object.entries(bd.organs);
         var organColors = {
           HEALTHY:'63,185,80', MATURE:'188,140,255', ACTIVE:'88,166,255',
           COMPILED:'201,168,76', DISTILLED:'57,211,245', PROVED:'63,185,80',
@@ -1695,31 +1696,31 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         var countsY = by + 12 + organEntries.length * 10 + 8;
         ctx.font = '5px "JetBrains Mono", monospace';
         ctx.fillStyle = 'rgba(110,118,129,' + (bAlpha * 0.7).toFixed(3) + ')';
-        if (beaconData.counts) {
-          ctx.fillText(beaconData.counts.intake + ' intake', bx, countsY);
-          ctx.fillText(beaconData.counts.nutrients + ' nutrients', bx, countsY + 8);
-          ctx.fillText(beaconData.counts.pages + ' pages · ' + beaconData.counts.js_modules + ' js', bx, countsY + 16);
+        if (bd.counts) {
+          ctx.fillText(bd.counts.intake + ' intake', bx, countsY);
+          ctx.fillText(bd.counts.nutrients + ' nutrients', bx, countsY + 8);
+          ctx.fillText(bd.counts.pages + ' pages · ' + bd.counts.js_modules + ' js', bx, countsY + 16);
         }
 
         // GIT STATUS
-        if (beaconData.git) {
+        if (bd.git) {
           ctx.fillStyle = 'rgba(63,185,80,' + (bAlpha * 0.6).toFixed(3) + ')';
-          ctx.fillText(beaconData.git.branch + '@' + beaconData.git.hash, bx, countsY + 28);
+          ctx.fillText(bd.git.branch + '@' + bd.git.hash, bx, countsY + 28);
         }
 
         // EASTGATE ALIVE/DEAD indicator
-        if (beaconData.eastGate) {
-          var egColor = beaconData.eastGate.alive ? '63,185,80' : '248,81,73';
-          var egLabel = beaconData.eastGate.alive ? 'EAST:' + beaconData.eastGate.devicesUp + '/' + beaconData.eastGate.devicesTotal + ' MOR:' + beaconData.eastGate.mor + '%' : 'EAST:OFFLINE';
+        if (bd.eastGate) {
+          var egColor = bd.eastGate.alive ? '63,185,80' : '248,81,73';
+          var egLabel = bd.eastGate.alive ? 'EAST:' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR:' + bd.eastGate.mor + '%' : 'EAST:OFFLINE';
           ctx.fillStyle = 'rgba(' + egColor + ',' + (bAlpha * 0.8).toFixed(3) + ')';
           ctx.fillText(egLabel, bx, countsY + 40);
         }
 
         // EXTRACTION RATE — the big number
-        if (beaconData.organs.gut) {
+        if (bd.organs.gut) {
           ctx.font = '9px "JetBrains Mono", monospace';
           ctx.fillStyle = 'rgba(201,168,76,' + (bAlpha * 1.2).toFixed(3) + ')';
-          ctx.fillText(beaconData.organs.gut.extraction, bx, countsY + 56);
+          ctx.fillText(bd.organs.gut.extraction, bx, countsY + 56);
           ctx.font = '5px "JetBrains Mono", monospace';
           ctx.fillStyle = 'rgba(110,118,129,' + (bAlpha * 0.5).toFixed(3) + ')';
           ctx.fillText('extraction', bx, countsY + 63);
@@ -1876,7 +1877,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   var lastPulseTime = Date.now();
   var pulseInterval = 60000; // 60s heartbeat — Gaia's systolic pulse
   var pulseCount = 0;
-  var beaconData = null; // LOCAL BEACON — organ status painted on globe
+  window.beaconData = null; // LOCAL BEACON — organ status painted on globe
 
   function gaiaPulse() {
     pulseCount++;
@@ -1885,7 +1886,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // BEACON FETCH — the organism reads its own local state
     fetch('/data/beacon-local.json?t=' + Date.now())
       .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(b) { if (b) beaconData = b; })
+      .then(function(b) { if (b) window.beaconData = b; })
       .catch(function() { /* silent */ });
 
     // Fetch the latest self-heartbeat from the organism
@@ -1952,7 +1953,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // BOOT BEACON — fetch immediately so organs paint on first frame
   fetch('/data/beacon-local.json?t=' + Date.now())
     .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(b) { if (b) beaconData = b; })
+    .then(function(b) { if (b) window.beaconData = b; })
     .catch(function() { /* silent — beacon paints when available */ });
 
   // First pulse after 10 seconds (let the glass settle)
