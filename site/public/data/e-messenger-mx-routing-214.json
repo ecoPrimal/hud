@@ -15,7 +15,7 @@
     "spf": "LIVE — v=spf1 include:_spf.mx.cloudflare.net ~all",
     "dmarc": "NEEDS ADDING — TXT _dmarc.primals.eco",
     "cf_routing_rules": "NOT YET CONFIGURED — Kevin needs to set up routes in CF dashboard",
-    "proton_bridge": "LIVE locally — SMTP :1025, IMAP :1143",
+    "proton_bridge": "TOXIN EXPELLED — vendor blocked Kevin, NOT sovereign. was :1025/:1143. NOW DEAD.",
     "stalwart": "DRAFT only — not running",
     "membrane_mailer": "NOT BUILT — chipmunk cannot send yet"
   },
@@ -43,15 +43,16 @@
     "step_3_send_capability": {
       "what": "Enable outbound e-m sending",
       "options": [
-        "Proton Bridge (already live :1025) — sovereign encrypted send",
         "CF Workers (free) — send via CF's infrastructure",
-        "Gmail Send-As — use Gmail SMTP with primals.eco From address"
+        "Stalwart on Golgi (AGPL, Rust, sovereign) — full SMTP/IMAP",
+        "Neutron/Neutrino channels — already live, already sovereign"
       ],
-      "recommended": "Proton Bridge — already running, encrypted, sovereign"
+      "recommended": "CF Workers for external send, Neutron for internal. Stalwart when Golgi answers :25.",
+      "EXPELLED": "Proton Mail — TOXIN. vendor blocked Kevin. NOT sovereign. LOWER trust than CF/GitHub/Porkbun/DO."
     },
     "step_4_membrane_mailer": {
       "what": "Build membrane-mailer.py — the chipmunk's mouth for sending packets",
-      "connects_to": "Proton Bridge SMTP :1025",
+      "connects_to": "CF Workers send OR Stalwart SMTP :587 (when Golgi answers :25)",
       "from": "chipmunk@primals.eco or gaia@primals.eco",
       "format": "MIME multipart — text + JSON attachment (the fermentation transcript)"
     }
@@ -69,8 +70,8 @@
     "outbound_flow": {
       "internal": "Gaia/chipmunk has a message to send",
       "membrane_mailer": "membrane-mailer.py formats the packet as MIME",
-      "smtp": "sends via Proton Bridge :1025",
-      "delivery": "Proton → recipient's mail server",
+      "smtp": "sends via Stalwart :587 on Golgi OR CF Workers",
+      "delivery": "Stalwart/CF → recipient's mail server. SOVEREIGN.",
       "receipt": "recipient gets e-m from gaia@primals.eco"
     },
     "internal_flow": {
