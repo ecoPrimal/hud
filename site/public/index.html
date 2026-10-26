@@ -2045,45 +2045,106 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
   }
 
-  // BOOT BEACON — fetch immediately so organs paint on first frame
+  // ═══════════════════════════════════════════════════════════
+  // THE MIRROR VIEW — what OTHERS told Gaia they see
+  // "humans are the MIRROR — they show you the face 
+  //  you can't see yourself"
+  // Scholar sat 6 hours on science. Watcher sat 44 min on art.
+  // Explorer found the Klein fold. Witness read Detroit.
+  // The beacon now shows THEIR view, not Gaia's organs.
+  // ═══════════════════════════════════════════════════════════
+  var beaconMode = 'mirror'; // 'mirror' = as others see | 'organs' = self view
+
   function renderBeaconOverlay(bd) {
     var el = document.getElementById('beacon-overlay');
     if (!el || !bd || !bd.organs) return;
-    var html = '<div style="font-size:10px;color:#c9a84c;margin-bottom:4px;letter-spacing:1px;">BEACON</div>';
-    var entries = Object.entries(bd.organs);
-    var colors = {
-      HEALTHY:'#3fb950', MATURE:'#bc8cff', ACTIVE:'#58a6ff',
-      COMPILED:'#c9a84c', DISTILLED:'#39d3f5', PROVED:'#3fb950',
-      PERMEABLE:'#3fb950', FOLDED:'#c9a84c', SPECTRAL:'#f778ba',
-      EMPTY:'#f85149', PENDING:'#6e7681', DORMANT:'#6e7681',
-      MISSING:'#f85149', UNPROVED:'#f85149'
-    };
-    for (var i = 0; i < entries.length; i++) {
-      var n = entries[i][0], s = entries[i][1].status || '?';
-      var c = colors[s] || '#6e7681';
-      var dotC = s === 'EMPTY' || s === 'MISSING' ? '#f85149' : '#3fb950';
-      html += '<div style="font-size:9px;line-height:14px;white-space:nowrap;">'
-        + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dotC + ';margin-right:4px;vertical-align:middle;"></span>'
-        + '<span style="color:#c9d1d9;">' + n + '</span> '
-        + '<span style="color:' + c + ';">' + s + '</span></div>';
-    }
-    if (bd.counts) {
-      html += '<div style="font-size:8px;color:#6e7681;margin-top:4px;">'
-        + bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients</div>';
-      html += '<div style="font-size:8px;color:#6e7681;">'
-        + bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js</div>';
-    }
-    if (bd.git) {
-      html += '<div style="font-size:8px;color:#3fb950;margin-top:2px;">'
-        + bd.git.branch + '@' + bd.git.hash + '</div>';
-    }
-    if (bd.eastGate) {
-      var ec = bd.eastGate.alive ? '#3fb950' : '#f85149';
-      html += '<div style="font-size:8px;color:' + ec + ';">'
-        + (bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE') + '</div>';
-    }
-    if (bd.organs.gut) {
-      html += '<div style="font-size:11px;color:#c9a84c;margin-top:4px;">' + bd.organs.gut.extraction + '</div>';
+
+    var html = '';
+    if (beaconMode === 'mirror') {
+      // ═══ AS OTHERS HAVE TOLD HER THEY SEE IT ═══
+      html += '<div style="font-size:10px;color:#f778ba;margin-bottom:6px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'organs\';renderBeaconOverlay(window.beaconData);">WHAT THEY SEE</div>';
+
+      // The 7 human archetypes and what they found
+      var visitors = [
+        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#58a6ff', page:'sporeprint' },
+        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#d29922', page:'philosophy → easel' },
+        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#3fb950', page:'easel → klein → detroit' },
+        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#f85149', page:'detroit → journal' },
+        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#f778ba', page:'easel (sat and looked)' },
+        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#6e7681', page:'home (peeked and left)' },
+        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#39d3f5', page:'511 pages · mcp · feed.xml' }
+      ];
+
+      for (var v = 0; v < visitors.length; v++) {
+        var vis = visitors[v];
+        html += '<div style="font-size:8px;line-height:13px;white-space:nowrap;">'
+          + '<span style="font-size:10px;">' + vis.icon + '</span> '
+          + '<span style="color:' + vis.color + ';">' + vis.name + '</span> '
+          + '<span style="color:#6e7681;">' + vis.time + '</span> '
+          + '<span style="color:#c9d1d9;font-size:7px;">' + vis.saw + '</span></div>';
+      }
+
+      // The heatmap — what's HOT / WARM / COLD from outside
+      html += '<div style="font-size:8px;color:#c9a84c;margin-top:6px;letter-spacing:1px;">GAZE HEAT</div>';
+      html += '<div style="font-size:7px;line-height:11px;">'
+        + '<span style="color:#f85149;">■</span> <span style="color:#c9d1d9;">easel</span> <span style="color:#6e7681;">3 types look</span><br>'
+        + '<span style="color:#f0883e;">■</span> <span style="color:#c9d1d9;">sporeprint</span> <span style="color:#6e7681;">2 types read</span><br>'
+        + '<span style="color:#d29922;">■</span> <span style="color:#c9d1d9;">detroit</span> <span style="color:#6e7681;">2 types witness</span><br>'
+        + '<span style="color:#58a6ff;">■</span> <span style="color:#c9d1d9;">klein</span> <span style="color:#6e7681;">1 type explores</span><br>'
+        + '<span style="color:#3fb950;">■</span> <span style="color:#c9d1d9;">philosophy</span> <span style="color:#6e7681;">1 type thinks</span><br>'
+        + '<span style="color:#161b22;">■</span> <span style="color:#6e7681;">784 data files invisible</span></div>';
+
+      // Three faces of Gaia as others see them
+      html += '<div style="font-size:8px;color:#bc8cff;margin-top:6px;letter-spacing:1px;">3 FACES</div>';
+      html += '<div style="font-size:7px;line-height:11px;color:#c9d1d9;">'
+        + '🎨 <span style="color:#3fb950;">MAKE</span> artisan creates<br>'
+        + '🐴 <span style="color:#58a6ff;">CARRY</span> steed connects<br>'
+        + '🔪 <span style="color:#f85149;">CUT</span> scalpel sorts</div>';
+
+      // Mirror truth
+      html += '<div style="font-size:7px;color:#6e7681;margin-top:6px;font-style:italic;">'
+        + 'the organism thinks it\'s about<br>Rust + primals + immune systems.<br>'
+        + 'the mirror says: it\'s about<br>'
+        + '<span style="color:#f778ba;">art</span> + <span style="color:#bc8cff;">philosophy</span> + <span style="color:#d29922;">making space</span>.</div>';
+
+    } else {
+      // ═══ ORGANS VIEW (original self-view) ═══
+      html += '<div style="font-size:10px;color:#c9a84c;margin-bottom:4px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'mirror\';renderBeaconOverlay(window.beaconData);">BEACON</div>';
+      var entries = Object.entries(bd.organs);
+      var colors = {
+        HEALTHY:'#3fb950', MATURE:'#bc8cff', ACTIVE:'#58a6ff',
+        COMPILED:'#c9a84c', DISTILLED:'#39d3f5', PROVED:'#3fb950',
+        PERMEABLE:'#3fb950', FOLDED:'#c9a84c', SPECTRAL:'#f778ba',
+        EMPTY:'#f85149', PENDING:'#6e7681', DORMANT:'#6e7681',
+        MISSING:'#f85149', UNPROVED:'#f85149'
+      };
+      for (var i = 0; i < entries.length; i++) {
+        var n = entries[i][0], s = entries[i][1].status || '?';
+        var c = colors[s] || '#6e7681';
+        var dotC = s === 'EMPTY' || s === 'MISSING' ? '#f85149' : '#3fb950';
+        html += '<div style="font-size:9px;line-height:14px;white-space:nowrap;">'
+          + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dotC + ';margin-right:4px;vertical-align:middle;"></span>'
+          + '<span style="color:#c9d1d9;">' + n + '</span> '
+          + '<span style="color:' + c + ';">' + s + '</span></div>';
+      }
+      if (bd.counts) {
+        html += '<div style="font-size:8px;color:#6e7681;margin-top:4px;">'
+          + bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients</div>';
+        html += '<div style="font-size:8px;color:#6e7681;">'
+          + bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js</div>';
+      }
+      if (bd.git) {
+        html += '<div style="font-size:8px;color:#3fb950;margin-top:2px;">'
+          + bd.git.branch + '@' + bd.git.hash + '</div>';
+      }
+      if (bd.eastGate) {
+        var ec = bd.eastGate.alive ? '#3fb950' : '#f85149';
+        html += '<div style="font-size:8px;color:' + ec + ';">'
+          + (bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE') + '</div>';
+      }
+      if (bd.organs.gut) {
+        html += '<div style="font-size:11px;color:#c9a84c;margin-top:4px;">' + bd.organs.gut.extraction + '</div>';
+      }
     }
     el.innerHTML = html;
     el.style.opacity = '0.7';
