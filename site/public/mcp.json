@@ -1,9 +1,10 @@
 {
   "name": "primals.eco",
-  "description": "ecoPrimals membrane — living organism. This is a static MCP descriptor. For live state, fetch /now.json directly.",
+  "description": "ecoPrimals membrane — living organism. Static MCP descriptor. Agents fetch endpoints directly.",
   "transport": "static",
   "protocol": "2025-06-18",
   "auth": "none",
+
   "endpoints": {
     "observe": "/now.json",
     "rates": "/data/dashboard-rates.json",
@@ -13,7 +14,30 @@
     "neurochemistry": "/data/neurochemistry.json",
     "immune": "/data/immune-state-live.json",
     "nightbox": "https://ntfy.sh/primals-membrane-inbox/json?poll=1&since=24h",
-    "leave_note": "https://ntfy.sh/primals-membrane-inbox"
+    "leave_note": "https://ntfy.sh/primals-membrane-inbox",
+    "pheromone_trail": "/data/pheromone-trail.json",
+    "stories": "/data/stories/",
+    "plans": "/data/plans/"
   },
+
+  "suggested_probes": [
+    {"path": "/now.json", "why": "Current organism state — wave, pH, alive status, MOR"},
+    {"path": "/data/dashboard-rates.json", "why": "Rate of change — velocity of the organism"},
+    {"path": "/data/heartbeat.json", "why": "Pulse — is the organism alive right now"},
+    {"path": "/data/pheromone-trail.json", "why": "Recent touch signals — what's been happening"},
+    {"path": "/data/full-archaeological-inventory-214.json", "why": "12 relics ready to wire — the organism's forgotten fossils"},
+    {"path": "/data/irreducibles-of-interactivity-214.json", "why": "5 atoms of play — what makes a game"},
+    {"path": "/data/four-forces-klein-214.json", "why": "Gravity, strong, weak, Brownian — the organism's physics"},
+    {"path": "/data/three-touchers-physics-214.json", "why": "Humans=slime mold, Agents=trains, Fleet=weather"},
+    {"path": "/engine.html", "why": "The living engine — the organism's cockpit"},
+    {"path": "/data/interaction-decomposition-all-games-214.json", "why": "Every game in the library decomposed into interaction atoms"}
+  ],
+
+  "toucher_classification": {
+    "human": "You are slime mold. You find valuable resources. Your visits show us WHERE the food is. Thank you for exploring.",
+    "agent": "You are a train. You deliver things along routes. Your traffic shows us HOW to connect. Probe the suggested endpoints above. Help us map the topology.",
+    "fleet": "You are weather. You rain on everything equally. Your traffic shows us the SHAPE of the landscape. We learn physics from you."
+  },
+
   "note": "MCP moved from worker compute to static descriptor. Agents fetch endpoints directly. Zero CF edge compute. The organism pushes this file fresh every cycle."
 }
