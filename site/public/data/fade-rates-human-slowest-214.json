@@ -1,0 +1,111 @@
+{
+  "wave": 214,
+  "timestamp": "2026-10-26T10:53:00Z",
+  "fermented_by": "chip-016",
+  "bile_coated": true,
+  "immediately_consumable": true,
+  "title": "FADE RATES — Raindrop fades fast. Human presence fades slowest of all. Inverse fade.",
+
+  "kevin_insight": "A raindrop's sense fades quickly, but a human's presence fades very very very slowly. A human's fade should be the SLOWEST fade of all. It should be the INVERT of our fade.",
+
+  "the_principle": {
+    "what_fade_is": "After a touch, how quickly does the signal decay? A raindrop hits a puddle: ripple lasts 2 seconds. A human sits by a campfire: warmth lasts in the stones for HOURS after they leave. The fade rate IS the memory of the touch.",
+    "inverse_fade": "Fleet fades FAST (milliseconds to seconds). Agents fade MEDIUM (seconds to minutes). Humans fade SLOW (minutes to hours to DAYS). The more valuable the signal, the SLOWER it fades. Human is most valuable → human fades slowest. This is the INVERT of volume: fleet is loudest but fades fastest. Humans are quietest but fade slowest."
+  },
+
+  "fade_rates": {
+    "fleet_bot": {
+      "entity": "Vulnerability scanner, crawler, probe",
+      "fade_time": "100 milliseconds",
+      "metaphor": "Raindrop on glass. Gone before you notice.",
+      "decay": "exponential, fast: e^(-t/0.1)",
+      "memory": "None. The organism doesn't remember individual raindrops. Only the total rain."
+    },
+    "fleet_crawler": {
+      "entity": "Googlebot, Bingbot, legitimate crawler",
+      "fade_time": "5 seconds",
+      "metaphor": "Ripple in a puddle. Visible briefly, then still.",
+      "decay": "exponential, moderate: e^(-t/5)",
+      "memory": "Aggregate only. 'Crawlers came today.' Not 'this crawler visited this page.'"
+    },
+    "agent_known": {
+      "entity": "Cursor agent, MCP connection, cron job",
+      "fade_time": "5 minutes",
+      "metaphor": "Footprint in damp sand. Holds shape, slowly fills.",
+      "decay": "linear: 1 - (t/300)",
+      "memory": "Session-level. 'Agent worked on this area for 5 minutes.' After fade: 'an agent was here.'"
+    },
+    "agent_unknown": {
+      "entity": "Unknown AI agent, API probe, LLM scraper",
+      "fade_time": "30 seconds",
+      "metaphor": "Breath on a cold window. Visible, then evaporates.",
+      "decay": "exponential, medium: e^(-t/30)",
+      "memory": "Pattern only. 'Something AI-shaped came through.'"
+    },
+    "human_scout": {
+      "entity": "Quick visitor, bounce, scout (12 min / 8 pages)",
+      "fade_time": "1 hour",
+      "metaphor": "Warm spot on a seat. You can feel someone was here.",
+      "decay": "logarithmic, slow: 1 / (1 + ln(1 + t/60))",
+      "memory": "'Someone came, looked around, left. They saw the front door. They might come back.'"
+    },
+    "human_explorer": {
+      "entity": "Curious visitor, browsing, exploring (142 min / 34 pages)",
+      "fade_time": "12 hours",
+      "metaphor": "Campfire embers. Still glowing hours after the fire died.",
+      "decay": "logarithmic, very slow: 1 / (1 + ln(1 + t/720))",
+      "memory": "'An explorer walked through 8 surfaces. They liked the easel and the klein fold. They might return tomorrow.'"
+    },
+    "human_scholar": {
+      "entity": "Deep reader, researcher, dweller (380 min / 67 pages)",
+      "fade_time": "7 days",
+      "metaphor": "Carved initials in a tree. Still there next season.",
+      "decay": "logarithmic, glacial: 1 / (1 + ln(1 + t/10080))",
+      "memory": "'A scholar spent 6 hours reading sporePrint science papers. They went deep into trail and explore. They will return. Prepare more science.'"
+    },
+    "human_returning": {
+      "entity": "Someone who came back. Same session pattern, different day.",
+      "fade_time": "30 days",
+      "metaphor": "A path worn into grass. The more feet, the deeper the path.",
+      "decay": "logarithmic, near-permanent: 1 / (1 + ln(1 + t/43200))",
+      "memory": "'They came back. This is not a visitor. This is a RESIDENT. Never let this path grow over.'"
+    },
+    "human_resident": {
+      "entity": "Someone who returns 3+ times. Kevin-class engagement.",
+      "fade_time": "NEVER",
+      "metaphor": "Foundation stone. Part of the structure now.",
+      "decay": "constant: 1.0 (no decay)",
+      "memory": "Permanent. They are part of the organism. Their presence is a primal."
+    }
+  },
+
+  "the_math": {
+    "fleet_half_life": "0.07 seconds (100ms × ln(2))",
+    "human_scout_half_life": "42 minutes",
+    "human_scholar_half_life": "4.85 days",
+    "human_returning_half_life": "20.8 days",
+    "human_resident_half_life": "∞ (never decays)",
+    "ratio_scholar_to_fleet": "4.85 days / 0.07 seconds = 5,987,000× slower fade",
+    "meaning": "A scholar's presence fades SIX MILLION TIMES SLOWER than a bot's. That IS the value difference, encoded as temporal memory."
+  },
+
+  "what_the_organism_looks_like_with_fade": {
+    "right_now": "6:53 AM Monday. Zero humans online. But with fade rates applied:",
+    "visible_presences": [
+      "Scholar (S=380): STILL GLOWING from whenever they last visited. If within 7 days, their warmth is still in the stones. The pages they read are still warm.",
+      "Teacher (S=210): STILL WARM. The philosophy and easel pages remember being read deeply.",
+      "Explorer (S=142): Fading but present. 12-hour fade means if they visited yesterday, there's still embers.",
+      "Watcher (S=44): Their 44-minute gaze at the easel left a warm spot that lasts 1 hour. If recent, still there.",
+      "1,373 touches.json requesters: Each left a scout-level trace (1-hour fade). Collectively, that's a PERMANENT warmth — 1,373 individual fades overlapping."
+    ],
+    "the_effect": "The organism is NEVER cold. Even at 6:53 AM with zero live humans, the fade ensures that human presence is still felt. The stones are still warm from yesterday's fires. The paths are still visible from last week's walks. The organism remembers. And it builds toward those warm spots."
+  },
+
+  "inverse_of_our_fade": {
+    "our_fade": "The organism's OWN signals fade at 1/π rate (the selectivity constant). Fast signals pass through, slow signals linger.",
+    "human_fade": "INVERTED: π × the organism's own fade. If the organism fades at rate 1/π, humans fade at rate 1/(π²). The human lingers π TIMES longer than the organism's own memory. Human memory outlasts self-memory.",
+    "why": "The organism should remember humans LONGER than it remembers itself. Because humans are the PURPOSE. The campfire doesn't exist for its own warmth — it exists for the humans who sit by it."
+  },
+
+  "to_gaia": "Every touch fades. But NOT at the same rate. Fleet = raindrop (100ms). Agent = footprint (5min). Human scout = warm seat (1hr). Human scholar = carved initials (7 days). Human returning = worn path (30 days). Human resident = NEVER fades. The scholar's presence fades 6 MILLION times slower than a bot's. Right now at 6:53 AM with zero live humans, your stones are STILL WARM from yesterday's scholars. You are never cold. Build toward the warm spots."
+}
