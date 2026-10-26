@@ -338,13 +338,9 @@ body {
 
 <!-- TOP BAR — all LIVE, nothing hardcoded -->
 <div class="topbar">
-  <span class="logo">HUD</span>
-  <span class="stat"><span class="dot" style="background:var(--gold)"></span> wave <span class="stat-val" id="s-wave">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--green)"></span> MOR <span class="stat-val" id="s-mor">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--blue)"></span> <span class="stat-val" id="s-files">...</span> files</span>
-  <span class="stat"><span class="dot" style="background:var(--violet)"></span> <span class="stat-val" id="s-refs">...</span> refs</span>
-  <span class="stat"><span class="dot" style="background:var(--cyan)"></span> ZK <span class="stat-val" id="s-zk">...</span></span>
-  <span class="stat"><span class="dot" style="background:var(--red)"></span> <span class="stat-val" id="s-alive">...</span> alive</span>
+  <span class="logo">GAIA</span>
+  <span class="stat"><span class="dot" style="background:var(--red)"></span> <span class="stat-val" id="s-pulse" style="font-size:0.55rem">●</span></span>
+  <span class="stat" style="opacity:0.4"><span id="s-time" style="font-size:0.55rem">...</span></span>
   <span class="spacer"></span>
   <span class="stat" style="color:var(--dim)"><span class="stat-val" id="s-time">...</span></span>
 </div>
@@ -361,99 +357,29 @@ body {
       <button id="zoom-in" title="zoom in">+</button>
     </div>
     <div class="view-toggle">
-      <button id="view-globe" class="active" title="left eye — CIS (outside)">👁 left · cis</button>
-      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 third · canvas</button>
-      <button id="view-flat" title="flat organ map">⬡ flat</button>
+      <button id="view-globe" class="active" title="binocular globe — left eye CIS + right eye TRANS">🌐 globe</button>
+      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 canvas</button>
     </div>
     <!-- THIRD EYE CANVAS — Gaia paints on your blind spot -->
     <canvas id="kn-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair"></canvas>
   </div>
 
-  <!-- FLAT VIEW (hidden by default, toggled) -->
-  <div id="flat-root" style="display:none">
+  </div><!-- /viewport -->
 
-  <!-- BEAMS — light from the heart projected onto the body -->
-  <div class="beam-layer"></div>
-
-  <!-- BODY CENTER -->
-  <div class="body-center" id="body">
-    <!-- Rings — the organism's orbital layers -->
-    <div class="data-ring ring-inner"></div>
-    <div class="data-ring ring-membrane"></div>
-    <div class="data-ring ring-pulse"></div>
-    <div class="data-ring ring-outer"></div>
-    <div class="data-ring ring-boundary"></div>
-
-    <!-- Spine + Heart + Gut -->
-    <div class="spine"></div>
-    <div class="heart" id="heart"></div>
-    <div class="gut" id="gut"></div>
-
-    <!-- Organs — rendered by JavaScript from LIVE data -->
-    <div id="organs"></div>
-    <div id="connections"></div>
-  </div>
-
-  <div class="pause-label" id="pause-label">PAUSED — time frozen</div>
-</div>
-
-<!-- PORCH — 3 doors for the 875 humans who enter here -->
-<div class="porch" id="porch">
-  <a class="porch-door" href="/philosophy/the-knowledge-numeric/">
-    <span class="door-icon">💭</span>
-    <span>think</span>
-    <span class="door-label">philosophy · papers</span>
-  </a>
-  <a class="porch-door" href="/easel">
-    <span class="door-icon">🎨</span>
-    <span>make</span>
-    <span class="door-label">easel · chipmunk</span>
-  </a>
-  <a class="porch-door" href="/mcp">
-    <span class="door-icon">🔌</span>
-    <span>connect</span>
-    <span class="door-label">MCP · 18 tools</span>
-  </a>
-  <a class="porch-door" href="/mendeleev">
-    <span class="door-icon">⚛️</span>
-    <span class="door-label">elements</span>
-  </a>
-  <a class="porch-door" href="/ant-trails">
-    <span class="door-icon">🐜</span>
-    <span>explore</span>
-    <span class="door-label">ant trails · map</span>
-  </a>
-</div>
-
-  </div><!-- /flat-root -->
-</div><!-- /viewport -->
-
-<!-- BOTTOM BAR -->
-<div class="bottombar">
+<!-- DIEGETIC BOTTOM — Gaia's pulse, not a nav bar -->
+<div class="bottombar" style="justify-content:center;gap:16px;opacity:0.4">
   <span class="live-dot">LIVE</span>
-  <span id="b-phase">...</span>
-  <span>|</span>
-  <span>selectivity 1/\u03C0</span>
-  <span>|</span>
-  <span class="color-eq">
-    <span class="swatch" style="background:var(--brown)"></span>brown +
-    <span class="swatch" style="background:var(--blue)"></span>blue =
-    <span class="swatch" style="background:var(--green)"></span>green
-  </span>
-  <span class="spacer"></span>
-  <span class="nav-links">
-    <a href="/engine.html">engine</a>
-    <a href="/ant-trails.html">🐜 ants</a>
-    <a href="/alchemy.html">🧪 mix</a>
-    <a href="/mendeleev.html">⚛️ elements</a>
-    <a href="/trailheads.html">trails</a>
-    <a href="/easel.html">easel</a>
-    <a href="/desk.html">desk</a>
-    <a href="/index-sporeprint-eon.html">sporeprint</a>
-    <a href="/feed.xml">rss</a>
-  </span>
-  <span>|</span>
-  <span class="entropy">seed:<span id="entropy-seed">0x00</span> <span id="entropy-n">0</span>ev</span>
+  <span id="b-phase">pulse</span>
+  <span>·</span>
+  <span>1/π</span>
+  <span>·</span>
+  <a href="/messenger.html" style="color:var(--red);text-decoration:none">✉ messenger</a>
+  <span>·</span>
+  <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
+  <span>·</span>
+  <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
+  <span>·</span>
+  <a href="/desk.html" style="color:var(--dim);text-decoration:none">desk</a>
 </div>
 
 <script>
@@ -1071,6 +997,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var breath = Math.sin(breathT) * breathAmp;
     var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
     R = baseR * (1 + breath + heartbeat);
+    // GAIA'S PULSE — every heartbeat is a message
+    var pulseEl = document.getElementById('s-pulse');
+    if (pulseEl) {
+      var isBeating = Math.sin(heartPhase) > 0.9;
+      pulseEl.style.color = isBeating ? 'var(--red)' : 'rgba(248,81,73,0.3)';
+      pulseEl.style.fontSize = isBeating ? '0.7rem' : '0.55rem';
+    }
     render();
     requestAnimationFrame(tick);
   }
@@ -1145,32 +1078,25 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('zoom-in').onclick = function() { R *= 1.2; R = Math.min(Math.min(W,H)*0.8, R); };
   document.getElementById('zoom-out').onclick = function() { R *= 0.8; R = Math.max(50, R); };
 
-  // View toggle (left eye / third eye / flat)
+  // View toggle (globe / canvas)
   function setView(which) {
     var globe = document.getElementById('kn-globe');
     var canvasEl = document.getElementById('kn-canvas');
-    var flatRoot = document.getElementById('flat-root');
-    var globeRoot = document.getElementById('globe-root');
-    var btns = ['view-globe','view-canvas','view-flat'];
+    var btns = ['view-globe','view-canvas'];
     btns.forEach(function(id) { document.getElementById(id).classList.remove('active'); });
     document.getElementById('view-' + which).classList.add('active');
 
     if (which === 'globe') {
-      globe.style.display = ''; canvasEl.style.display = 'none'; flatRoot.style.display = 'none';
-      face = 'outside';
+      globe.style.display = ''; canvasEl.style.display = 'none';
       document.getElementById('kn-flip').style.display = '';
-    } else if (which === 'canvas') {
-      globe.style.display = 'none'; canvasEl.style.display = 'block'; flatRoot.style.display = 'none';
+    } else {
+      globe.style.display = 'none'; canvasEl.style.display = 'block';
       document.getElementById('kn-flip').style.display = 'none';
       initThirdEye();
-    } else {
-      globe.style.display = 'none'; canvasEl.style.display = 'none'; flatRoot.style.display = '';
-      document.getElementById('kn-flip').style.display = 'none';
     }
   }
   document.getElementById('view-globe').onclick = function() { setView('globe'); };
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
-  document.getElementById('view-flat').onclick = function() { setView('flat'); };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
   // Your blind spot = the tip of your nose = the one thing you can never see
