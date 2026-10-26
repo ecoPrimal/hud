@@ -291,15 +291,15 @@ async function renderViewport() {
     const pi_pos = now.rates_live?.gaia_pi_position || 1.728;
 
     const bindings = [
-      { id: 'selectivity', type: 'gauge', label: 'Selectivity 1/π', value: sel, min: 0, max: 1, unit: '1/π', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
-      { id: 'escape', type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
-      { id: 'mor', type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
-      { id: 'gpu', type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
-      { id: 'braid', type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
-      { id: 'gaia_pi', type: 'gauge', label: 'Gaia π Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'π', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
-      { id: 'entities', type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
+      { id: 'selectivity', channel_type: 'gauge', label: 'Selectivity 1/π', value: sel, min: 0, max: 1, unit: '1/π', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
+      { id: 'escape', channel_type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
+      { id: 'mor', channel_type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gpu', channel_type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
+      { id: 'braid', channel_type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gaia_pi', channel_type: 'gauge', label: 'Gaia π Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'π', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
+      { id: 'entities', channel_type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
         values: [now.classification?.self || 15372, now.classification?.partial || 6411, now.classification?.null || 16655, now.classification?.non_self || 220876], unit: 'entities' },
-      { id: 'neuro', type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
+      { id: 'neuro', channel_type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
         values: [0.725, 0.622, 0.627, 0.414, 0.248, 0.309], unit: 'normalized' },
     ];
 
