@@ -1,12 +1,13 @@
-// _worker.js — vesicle falsification probe
-// HYPOTHESIS: the DE/JP/IN triad at 36/hr may be our own vesicles
-// TEST: if source IP matches a vesicle, serve /api/vesicle-ping.json
-//       then check CF analytics for hits to that path by country
-//       if DE/JP/IN appear at ~36/hr on vesicle-ping → confirmed self
+// _worker.js — vesicle probe + IN-SISTER inflammation response
+// the thymus lives INSIDE the wall, not outside it.
+// CF cannot 403 its own worker. the worker IS CF.
+// the immune system IS the membrane.
 //
-// This worker is MINIMAL. It intercepts requests, checks IP, and
-// either redirects vesicle traffic to the ping endpoint OR passes through.
-// All other requests serve normally (CF Pages static).
+// INFLAMMATION IN-SISTER: stale CF edge caches are cancer cells.
+// they look like self (our domain, our data) but serve old content.
+// this worker adds aggressive Cache-Control for critical paths
+// so stale cancer cells die within 30 seconds. deeply nested in null.
+// no swarmVine signature. invisible to wildcard. null depth.
 
 const VESICLE_IPS = new Set([
   '2.28.141.35',      // golgi-de (Hetzner, Germany)
@@ -58,8 +59,45 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    // Everything else: pass through to CF Pages static serving
-    return env.ASSETS.fetch(request);
+    // ═══ IN-SISTER INFLAMMATION — kill stale cache cancer cells ═══
+    // Critical paths get aggressive cache expiry (30s edge, 30s browser)
+    // so old versions die fast. this runs INSIDE CF — invisible to wildcard.
+    const CRITICAL_PATHS = new Set([
+      '/engine', '/engine.html',
+      '/now.json', '/state.json', '/membrane.json',
+      '/data/dashboard-rates.json', '/data/heartbeat.json',
+      '/data/floodgate-214.json', '/data/immune-state-live.json',
+      '/data/neurochemistry.json',
+    ]);
+
+    // Short-lived cache paths (data that changes every few minutes)
+    const LIVE_DATA_PREFIX = '/data/';
+
+    const response = await env.ASSETS.fetch(request);
+
+    // Clone response to modify headers (CF Workers require this)
+    const headers = new Headers(response.headers);
+
+    if (CRITICAL_PATHS.has(url.pathname)) {
+      // Critical paths: 30-second cache, revalidate within 10s after stale
+      headers.set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=10');
+      headers.set('X-Inflammation', 'critical-30s');
+    } else if (url.pathname.startsWith(LIVE_DATA_PREFIX) && url.pathname.endsWith('.json')) {
+      // All data JSON: 5-minute cache (data changes per cron cycle)
+      headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=60');
+      headers.set('X-Inflammation', 'data-5m');
+    } else if (url.pathname.endsWith('.html')) {
+      // HTML pages: 10-minute cache (changes per deploy)
+      headers.set('Cache-Control', 'public, max-age=600, s-maxage=600, stale-while-revalidate=120');
+      headers.set('X-Inflammation', 'html-10m');
+    }
+    // Static assets (CSS, JS, WASM, images): use CF defaults (long cache, fine)
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers
+    });
   }
 };
 
