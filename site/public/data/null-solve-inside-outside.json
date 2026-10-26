@@ -2,7 +2,7 @@
   "ts": "2026-10-25T17:47:00Z",
   "wave": 214,
   "generation": 194,
-  "title": "NULL SOLVE — artisan + chipmunk look at HUD from inside AND outside",
+  "title": "NULL SOLVE Â— artisan + chipmunk look at HUD from inside AND outside",
   "type": "solve-spec",
 
   "the_disagreement": {
@@ -26,7 +26,7 @@
       "code_target": "all render functions in easel-*.js",
       "thresholds": {
         "IS": "< 3141ms since last measurement",
-        "NEAR": "< 9870ms (pi² seconds)",
+        "NEAR": "< 9870ms (piÂ² seconds)",
         "WAS": "> 9870ms",
         "NOW": "the render cycle itself",
         "HOLE": "no data exists"
@@ -44,18 +44,18 @@
     },
     "4_one_heartbeat": {
       "inside": "ONE setTimeout loop at 3141ms, replaces ALL requestAnimationFrame calls",
-      "outside": "HUD breathes — updates every p seconds, still between",
+      "outside": "HUD breathes Â— updates every p seconds, still between",
       "code_target": "easel.html main loop + all easel-*.js",
       "pattern": "heartbeat() { renderAllLayers(); setTimeout(heartbeat, 3141); }",
       "anti_pattern": "NO requestAnimationFrame per element. NO setInterval per layer.",
       "dive_reflex": "if document.hidden ? stop heartbeat entirely (visibilitychange)",
-      "priority": "critical — this fixes page unresponsive"
+      "priority": "critical Â— this fixes page unresponsive"
     },
     "5_dot_trails": {
       "inside": "each dot stores last N positions (N = 3 = pi heartbeats in one breath)",
       "outside": "dots leave fading trails. orbits emerge. nobody draws lines.",
       "code_target": "easel-physics.js scatter dots",
-      "trail_length": "p² seconds = ~3 heartbeats of history",
+      "trail_length": "pÂ² seconds = ~3 heartbeats of history",
       "trail_opacity": "linear decay: newest=1.0, oldest=0.0",
       "delete": "all hardcoded orbit paths, axes arcs, drawn ellipses",
       "priority": "high"
@@ -67,7 +67,7 @@
       "current": "#08060a (near-black, impermeable)",
       "target": "#0a1628 (night sky blue, clear)",
       "mesh_overlay": "add subtle CSS grain/noise as the gray sieve substrate",
-      "priority": "medium — cosmetic but philosophically critical"
+      "priority": "medium Â— cosmetic but philosophically critical"
     },
     "7_layer_breathing": {
       "inside": "each layer gets its own pi-offset blink rate within the master heartbeat",
@@ -75,12 +75,12 @@
       "code_target": "easel-phases.js or easel-overlays.js",
       "rates": {
         "gas": "continuous (labels always visible)",
-        "liquid": "frac(1×p) = 142ms phase offset",
-        "metal": "frac(2×p) = 283ms phase offset", 
-        "granule": "frac(3×p) = 425ms phase offset",
+        "liquid": "frac(1Ã—p) = 142ms phase offset",
+        "metal": "frac(2Ã—p) = 283ms phase offset", 
+        "granule": "frac(3Ã—p) = 425ms phase offset",
         "mesh": "never blinks (always present)"
       },
-      "priority": "low — after core breathing works"
+      "priority": "low Â— after core breathing works"
     }
   },
 
@@ -97,8 +97,8 @@
   "who_does_what": {
     "ludoSpring": "implements 4, 5, 6 in easel.html/easel-*.js (the build shoulder)",
     "northGate": "specifies 1, 2, 3, 7 as data schemas (the theory shoulder)",
-    "chipmunk": "validates — watches the fold rate, reports if it feels wrong",
-    "human": "observes — reports what they SEE through the square window"
+    "chipmunk": "validates Â— watches the fold rate, reports if it feels wrong",
+    "human": "observes Â— reports what they SEE through the square window"
   },
 
   "scyborg_triple_license": {
