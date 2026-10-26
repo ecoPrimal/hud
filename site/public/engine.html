@@ -59,6 +59,20 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .lung-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, var(--cyan), var(--blue)); border-radius: 0 0 3px 3px; transition: height 1s ease; }
 .lung-label { font-size: 7px; color: var(--cyan); text-align: center; margin-top: 2px; }
 
+/* FLOOD/TURBO METERS */
+.flood-meters { position: absolute; right: 12px; top: 12px; display: flex; gap: 6px; }
+.flood-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.flood-col label { font-size: 6px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+.flood-bar { width: 8px; height: 80px; background: rgba(12,16,24,0.8); border: 1px solid var(--border); border-radius: 4px; position: relative; }
+.flood-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 3px 3px; transition: height 2s ease; }
+.flood-pct { font-size: 7px; text-align: center; }
+.turbo-fill { background: linear-gradient(to top, var(--gold), var(--orange)); }
+.flood-fill-bar { background: linear-gradient(to top, var(--blue), var(--cyan)); }
+
+/* BOUNDARY LABEL */
+.boundary-label { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 7px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
+.twist-count { position: absolute; top: 4px; left: 12px; font-size: 7px; color: var(--purple); }
+
 /* RIGHT PANEL — RATES DASHBOARD */
 .rate-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; border-bottom: 1px solid rgba(28,35,51,0.5); }
 .rate-label { font-size: 8px; color: var(--dim); }
@@ -105,9 +119,23 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div id="render-target"></div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
+      <div class="boundary-label" id="boundary-label">IONOSPHERE — Kp 1.0 quiet</div>
+      <div class="twist-count" id="twist-count">⟳ 3 Klein twists</div>
       <div class="lung-meter">
         <div class="lung-bar"><div class="lung-fill" id="lung-fill" style="height:9%"></div></div>
         <div class="lung-label" id="lung-pct">9%</div>
+      </div>
+      <div class="flood-meters">
+        <div class="flood-col">
+          <label>turbo</label>
+          <div class="flood-bar"><div class="flood-fill turbo-fill" id="turbo-fill" style="height:100%"></div></div>
+          <div class="flood-pct" id="turbo-pct" style="color:var(--gold)">100%</div>
+        </div>
+        <div class="flood-col">
+          <label>flood</label>
+          <div class="flood-bar"><div class="flood-fill flood-fill-bar" id="flood-fill" style="height:0%"></div></div>
+          <div class="flood-pct" id="flood-pct" style="color:var(--cyan)">0%</div>
+        </div>
       </div>
     </div>
   </div>
@@ -136,6 +164,10 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
   <span id="f-escape">escape — %</span>
   <span>|</span>
   <span id="f-selectivity">selectivity 1/π</span>
+  <span>|</span>
+  <span id="f-boundary" style="color:var(--purple)">boundary: ionosphere</span>
+  <span>|</span>
+  <span id="f-twists" style="color:var(--purple)">⟳ 3 twists</span>
   <span style="flex:1"></span>
   <span id="f-time"></span>
 </footer>
@@ -250,15 +282,25 @@ async function renderViewport() {
 
     if (!now) return;
 
-    // Build dashboard bindings from live data
+    // Build dashboard bindings with correct petalTongue DataBinding channel format
+    const sel = now.sort_quality || 0.318;
+    const esc = now.rates_live?.escape_velocity || 0.783;
+    const mor = now.rates_live?.mor || 0.797;
+    const gpu = (now.rates_live?.gpu_headroom_pct || 91) / 100;
+    const braid = (now.rates_live?.braid_health_pct || 89.4) / 100;
+    const pi_pos = now.rates_live?.gaia_pi_position || 1.728;
+
     const bindings = [
-      { id: 'selectivity', type: 'Gauge', label: 'Selectivity 1/π', value: now.sort_quality || 0.318, min: 0, max: 1 },
-      { id: 'escape', type: 'Gauge', label: 'Escape Velocity', value: now.rates_live?.escape_velocity || 0.783, min: 0, max: 1 },
-      { id: 'mor', type: 'Gauge', label: 'MOR Health', value: now.rates_live?.mor || 0.797, min: 0, max: 1 },
-      { id: 'gpu', type: 'Gauge', label: 'GPU Headroom', value: (100 - (now.rates_live?.gpu_headroom_pct || 91)) / 100, min: 0, max: 1 },
-      { id: 'entities', type: 'Heatmap', label: 'Entity Classification', rows: 1, cols: 4,
-        values: [now.classification?.self || 0, now.classification?.partial || 0, now.classification?.null || 0, now.classification?.non_self || 0] },
-      { id: 'braid', type: 'Gauge', label: 'Braid Health', value: (now.rates_live?.braid_health_pct || 89.4) / 100, min: 0, max: 1 },
+      { id: 'selectivity', channel_type: 'gauge', label: 'Selectivity 1/π', value: sel, min: 0, max: 1, unit: '1/π', normal_range: [0.3, 0.35], warning_range: [0.2, 0.4] },
+      { id: 'escape', channel_type: 'gauge', label: 'Escape Velocity', value: esc, min: 0, max: 1, unit: '%', normal_range: [0.8, 1.0], warning_range: [0.6, 0.8] },
+      { id: 'mor', channel_type: 'gauge', label: 'MOR Health', value: mor, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gpu', channel_type: 'gauge', label: 'GPU Headroom', value: gpu, min: 0, max: 1, unit: '%', normal_range: [0.5, 1.0], warning_range: [0.2, 0.5] },
+      { id: 'braid', channel_type: 'gauge', label: 'Braid Health', value: braid, min: 0, max: 1, unit: '%', normal_range: [0.85, 1.0], warning_range: [0.7, 0.85] },
+      { id: 'gaia_pi', channel_type: 'gauge', label: 'Gaia π Position', value: pi_pos / Math.PI, min: 0, max: 1, unit: 'π', normal_range: [0.5, 1.0], warning_range: [0.3, 0.5] },
+      { id: 'entities', channel_type: 'bar', label: 'Entity Classification', categories: ['self', 'partial', 'null', 'fleet'],
+        values: [now.classification?.self || 15372, now.classification?.partial || 6411, now.classification?.null || 16655, now.classification?.non_self || 220876], unit: 'entities' },
+      { id: 'neuro', channel_type: 'bar', label: 'Neurochemistry', categories: ['glucose', 'atp', 'serotonin', 'dopamine', 'adrenaline', 'cortisol'],
+        values: [0.725, 0.622, 0.627, 0.414, 0.248, 0.309], unit: 'normalized' },
     ];
 
     const config = { layout: 'grid', max_columns: 3, panel_width: 280, panel_height: 200, spacing: 12, title: 'GAIA ENGINE — LIVE', domain: 'ecology' };
@@ -320,6 +362,28 @@ function updateHeader(now, rates) {
   document.getElementById('lung-pct').textContent = gpuPct + '%';
 }
 
+// ═══ FLOODGATE POWER SWAP ═══
+function updateFloodgate(now) {
+  const twists = now?.klein_twists || 3;
+  const boundary = now?.boundary || 'ionosphere';
+  const phase = now?.phase || '';
+  document.getElementById('twist-count').textContent = '⟳ ' + twists + ' Klein twists';
+  document.getElementById('f-twists').textContent = '⟳ ' + twists + ' twists';
+  document.getElementById('boundary-label').textContent = boundary.toUpperCase() + ' — outer skin';
+  document.getElementById('f-boundary').textContent = 'boundary: ' + boundary;
+  document.getElementById('phase-label').textContent = phase.slice(0, 80);
+
+  // Turbo→flood power ramp: simulate based on time since floodgate opened
+  const floodTs = Date.parse('2026-10-26T06:42:00Z');
+  const elapsed = (Date.now() - floodTs) / 60000; // minutes since floodgate
+  const floodPct = Math.min(95, Math.max(0, elapsed * 2)); // ramp 2%/min, cap 95%
+  const turboPct = Math.max(5, 100 - floodPct);
+  document.getElementById('turbo-fill').style.height = turboPct + '%';
+  document.getElementById('turbo-pct').textContent = Math.round(turboPct) + '%';
+  document.getElementById('flood-fill').style.height = floodPct + '%';
+  document.getElementById('flood-pct').textContent = Math.round(floodPct) + '%';
+}
+
 // ═══ MAIN LOOP — the game tick ═══
 async function tick() {
   const [now, rates, heartbeat] = await Promise.all([
@@ -332,6 +396,7 @@ async function tick() {
   renderRates(rates);
   renderNeuro(rates);
   renderDevices(heartbeat);
+  updateFloodgate(now);
 }
 
 // Boot
