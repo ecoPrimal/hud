@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🧪 Alchemy — mix primals, make reality</title>
+<meta name="description" content="An alchemy game. Drag elements together to discover new ones. 16 primals + base elements = 100+ combinations. Like Little Alchemy but organic.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#060810;--surface:#0c1018;--border:#1a2030;--fg:#c9d1d9;--dim:#6e7681;
+--green:#3fb950;--blue:#58a6ff;--gold:#c9a84c;--red:#f85149;--violet:#bc8cff;
+--pink:#f778ba;--cyan:#39d3f5;--orange:#d29922;--brown:#3a2a1e}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;
+height:100vh;overflow:hidden;user-select:none}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+gap:1rem;padding:6px 12px;background:rgba(6,8,16,0.95);border-bottom:1px solid var(--border);font-size:0.6rem}
+.topbar a{color:var(--dim);text-decoration:none}.topbar a:hover{color:var(--fg)}
+.logo{color:var(--gold);font-weight:bold;font-size:0.75rem;letter-spacing:1px}
+.counter{color:var(--green);margin-left:auto}
+
+.workspace{position:fixed;top:30px;left:200px;right:0;bottom:0;overflow:hidden;
+background:radial-gradient(ellipse at center,rgba(12,16,24,0.9),var(--bg))}
+
+.sidebar{position:fixed;top:30px;left:0;bottom:0;width:200px;overflow-y:auto;
+background:var(--surface);border-right:1px solid var(--border);padding:8px}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sidebar h3{color:var(--dim);font-size:0.5rem;letter-spacing:1px;margin:8px 0 4px;
+text-transform:uppercase}
+
+.card{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;margin:2px;
+background:rgba(22,27,34,0.8);border:1px solid var(--border);border-radius:6px;
+font-size:0.6rem;cursor:grab;transition:all 0.2s;white-space:nowrap}
+.card:hover{border-color:var(--blue);background:rgba(22,27,34,0.95)}
+.card.new{animation:discover 0.6s ease-out;border-color:var(--gold)}
+.card .icon{font-size:0.9rem}
+.card .name{color:var(--fg)}
+@keyframes discover{0%{transform:scale(0.5);opacity:0;border-color:var(--gold)}
+50%{transform:scale(1.2);border-color:var(--gold)}100%{transform:scale(1)}}
+
+.drag-card{position:absolute;display:flex;align-items:center;gap:6px;
+padding:6px 12px;background:rgba(22,27,34,0.92);border:1px solid var(--blue);
+border-radius:8px;font-size:0.7rem;cursor:grabbing;z-index:50;
+box-shadow:0 4px 20px rgba(0,0,0,0.4);pointer-events:none}
+.drag-card .icon{font-size:1.2rem}
+
+.mix-zone{position:absolute;width:120px;height:120px;border-radius:50%;
+border:2px dashed rgba(201,168,76,0.3);display:flex;align-items:center;
+justify-content:center;transition:all 0.3s;font-size:0.5rem;color:var(--dim)}
+.mix-zone.active{border-color:var(--gold);background:rgba(201,168,76,0.06);
+box-shadow:0 0 30px rgba(201,168,76,0.1)}
+.mix-zone.has-element{border-color:var(--green);border-style:solid}
+.mix-zone .slot-card{padding:6px 10px;background:rgba(22,27,34,0.9);
+border:1px solid var(--green);border-radius:8px;font-size:0.7rem;
+display:flex;align-items:center;gap:6px}
+.mix-zone .slot-card .icon{font-size:1.1rem}
+
+.mix-btn{position:absolute;width:50px;height:50px;border-radius:50%;
+border:2px solid var(--gold);background:rgba(201,168,76,0.1);
+cursor:pointer;font-size:1.2rem;display:flex;align-items:center;
+justify-content:center;transition:all 0.3s}
+.mix-btn:hover{background:rgba(201,168,76,0.2);transform:scale(1.1)}
+.mix-btn.ready{animation:pulse-mix 1s ease-in-out infinite;
+border-color:var(--green);background:rgba(63,185,80,0.15)}
+@keyframes pulse-mix{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,0.3)}
+50%{box-shadow:0 0 20px 5px rgba(63,185,80,0.15)}}
+
+.result-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+background:rgba(6,8,16,0.95);border:2px solid var(--gold);border-radius:12px;
+padding:24px 32px;text-align:center;z-index:200;display:none;
+box-shadow:0 0 60px rgba(201,168,76,0.2);animation:pop-in 0.4s ease-out}
+@keyframes pop-in{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0}
+100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.result-popup .r-icon{font-size:3rem}
+.result-popup .r-name{color:var(--gold);font-size:1.1rem;margin:8px 0}
+.result-popup .r-desc{color:var(--dim);font-size:0.65rem;line-height:1.5;max-width:300px}
+.result-popup .r-close{margin-top:12px;padding:6px 16px;background:rgba(63,185,80,0.15);
+border:1px solid var(--green);border-radius:6px;color:var(--green);cursor:pointer;
+font-family:inherit;font-size:0.6rem}
+.result-popup.fail .r-name{color:var(--dim)}
+.result-popup.fail{border-color:var(--border)}
+
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+font-size:0.55rem;color:var(--dim);text-align:center;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">🧪 ALCHEMY</span>
+  <a href="/">hud</a>
+  <a href="/engine">engine</a>
+  <a href="/chipmunk">chipmunk</a>
+  <a href="/ant-trails">ants</a>
+  <span class="counter"><span id="found">0</span> / <span id="total">0</span> discovered</span>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <h3>🌍 base elements</h3>
+  <div id="base-elements"></div>
+  <h3>🧬 primals</h3>
+  <div id="primal-elements"></div>
+  <h3>✨ discovered</h3>
+  <div id="discovered"></div>
+</div>
+
+<div class="workspace" id="workspace">
+  <div class="mix-zone" id="slot-a" style="left:calc(50% - 140px);top:calc(50% - 60px)">
+    drop here
+  </div>
+  <div class="mix-btn" id="mix-btn" style="left:calc(50% - 25px);top:calc(50% - 25px)">
+    ⚗️
+  </div>
+  <div class="mix-zone" id="slot-b" style="left:calc(50% + 20px);top:calc(50% - 60px)">
+    drop here
+  </div>
+</div>
+
+<div class="result-popup" id="result">
+  <div class="r-icon" id="r-icon"></div>
+  <div class="r-name" id="r-name"></div>
+  <div class="r-desc" id="r-desc"></div>
+  <button class="r-close" onclick="closeResult()">continue mixing</button>
+</div>
+
+<div class="hint">drag elements from the sidebar → drop on circles → click ⚗️ to mix</div>
+
+<script>
+const BASE = [
+  {id:'fire',icon:'🔥',name:'fire',cat:'base'},
+  {id:'water',icon:'💧',name:'water',cat:'base'},
+  {id:'earth',icon:'🌍',name:'earth',cat:'base'},
+  {id:'air',icon:'💨',name:'air',cat:'base'},
+  {id:'light',icon:'☀️',name:'light',cat:'base'},
+  {id:'dark',icon:'🌑',name:'dark',cat:'base'},
+  {id:'time',icon:'⏳',name:'time',cat:'base'},
+  {id:'life',icon:'🌱',name:'life',cat:'base'},
+  {id:'code',icon:'💻',name:'code',cat:'base'},
+  {id:'human',icon:'🧑',name:'human',cat:'base'},
+  {id:'math',icon:'🔢',name:'math',cat:'base'},
+  {id:'sound',icon:'🔊',name:'sound',cat:'base'},
+];
+
+const PRIMALS = [
+  {id:'toadstool',icon:'🍄',name:'toadStool',cat:'primal'},
+  {id:'biomeos',icon:'🧬',name:'biomeOS',cat:'primal'},
+  {id:'nestgate',icon:'🏰',name:'nestGate',cat:'primal'},
+  {id:'beardog',icon:'🐻',name:'bearDog',cat:'primal'},
+  {id:'petaltongue',icon:'🌺',name:'petalTongue',cat:'primal'},
+  {id:'rhizocrypt',icon:'🔐',name:'rhizoCrypt',cat:'primal'},
+  {id:'sweetgrass',icon:'🌾',name:'sweetGrass',cat:'primal'},
+  {id:'loamspine',icon:'🦴',name:'loamSpine',cat:'primal'},
+  {id:'skunkbat',icon:'🦨',name:'skunkBat',cat:'primal'},
+  {id:'sourdough',icon:'🍞',name:'sourDough',cat:'primal'},
+  {id:'swarmvine',icon:'🐝',name:'swarmVine',cat:'primal'},
+  {id:'bingocube',icon:'🎲',name:'bingoCube',cat:'primal'},
+  {id:'coralreef',icon:'🪸',name:'coralReef',cat:'primal'},
+  {id:'barracuda',icon:'🐟',name:'barraCuda',cat:'primal'},
+  {id:'squirrel',icon:'🐿️',name:'squirrel',cat:'primal'},
+  {id:'songbird',icon:'🐦',name:'songBird',cat:'primal'},
+];
+
+const RECIPES = {
+  'fire+water': {id:'steam',icon:'♨️',name:'steam',desc:'pressure. the engine that drives fermentation.'},
+  'fire+earth': {id:'metal',icon:'⚒️',name:'metal',desc:'forged in heat. gates are made of this.'},
+  'water+earth': {id:'mud',icon:'🟤',name:'mud',desc:'the foundation. where mushrooms grow.'},
+  'fire+air': {id:'smoke',icon:'💨',name:'smoke',desc:'signal. the campfire sends these.'},
+  'water+air': {id:'cloud',icon:'☁️',name:'cloud',desc:'CF Pages. where the skin lives.'},
+  'earth+air': {id:'dust',icon:'🌫️',name:'dust',desc:'entropy. everything returns to this.'},
+  'light+dark': {id:'shadow',icon:'🌓',name:'shadow',desc:'the boundary. the membrane.'},
+  'fire+life': {id:'energy',icon:'⚡',name:'energy',desc:'ATP. the currency of all living things.'},
+  'water+life': {id:'soup',icon:'🍲',name:'primordial soup',desc:'where it all began. the starter culture.'},
+  'earth+life': {id:'forest',icon:'🌲',name:'forest',desc:'539 trees. each one a paper.'},
+  'time+life': {id:'evolution',icon:'🧬',name:'evolution',desc:'VDJ recombination. mutate, select, express.'},
+  'code+life': {id:'ai',icon:'🤖',name:'artificial life',desc:'agents. Gaia. the organism itself.'},
+  'human+code': {id:'cursor',icon:'▶️',name:'Cursor',desc:'the IDE. where builders build.'},
+  'human+life': {id:'consciousness',icon:'👁️',name:'consciousness',desc:'the mirror. humans feel HARD.'},
+  'human+sound': {id:'music',icon:'🎵',name:'music',desc:'swarm-chitter.js. the organism sings.'},
+  'math+life': {id:'fibonacci',icon:'🐚',name:'fibonacci',desc:'1 1 2 3 5 8 13... the golden spiral.'},
+  'math+code': {id:'algorithm',icon:'📐',name:'algorithm',desc:'scan → sweep → sort. the digest pipeline.'},
+  'math+time': {id:'pi',icon:'π',name:'π',desc:'3.14159... the chipmunk lives in the remainder.'},
+  'math+dark': {id:'zero',icon:'0️⃣',name:'zero',desc:'null. the center. where power is.'},
+  'light+time': {id:'day',icon:'🌅',name:'day',desc:'circadian rhythm. the organism sleeps and wakes.'},
+  'dark+time': {id:'night',icon:'🌙',name:'night',desc:'the witching hour. when truth comes out.'},
+  'fire+code': {id:'compiler',icon:'🔧',name:'compiler',desc:'rustc. turns words into machines.'},
+  'water+code': {id:'data',icon:'📊',name:'data stream',desc:'JSON flowing through the organism.'},
+  'earth+code': {id:'server',icon:'🖥️',name:'server',desc:'golgi. eastGate. the hardware.'},
+  'air+code': {id:'network',icon:'🌐',name:'network',desc:'mesh. songBird provides the transport.'},
+  'sound+life': {id:'chitter',icon:'🐿️',name:'chitter',desc:'chipmunk frequency. 1200-2000 Hz.'},
+  'light+code': {id:'hud',icon:'📺',name:'HUD',desc:'the organism looking at itself. the 3rd eye.'},
+
+  'steam+earth': {id:'geyser',icon:'🌋',name:'geyser',desc:'pressure release. the mushroom publish.'},
+  'mud+life': {id:'mushroom',icon:'🍄',name:'mushroom',desc:'the fruiting body. decomposer of worlds.'},
+  'shadow+life': {id:'membrane_el',icon:'🧊',name:'membrane',desc:'1/π selectivity. the living boundary.'},
+  'metal+code': {id:'rust_lang',icon:'🦀',name:'Rust',desc:'2.1M lines. 258 crates. memory safe.'},
+  'cloud+server': {id:'tunnel',icon:'🚇',name:'tunnel',desc:'cloudflared. the artery to the world.'},
+  'energy+data': {id:'feed',icon:'📡',name:'feed',desc:'RSS. the organism broadcasts.'},
+  'soup+time': {id:'ferment',icon:'🫧',name:'fermentation',desc:'anaerobic. the gut works in darkness.'},
+  'forest+human': {id:'philosophy',icon:'📖',name:'philosophy',desc:'9 deep visitors came for thought.'},
+  'ai+human': {id:'agent',icon:'🤝',name:'agent',desc:'builders. not instead of humans — alongside.'},
+  'cursor+ai': {id:'mcp',icon:'🔌',name:'MCP',desc:'Model Context Protocol. 18 tools. connect.'},
+  'pi+life': {id:'chipmunk_el',icon:'🐿️',name:'chipmunk',desc:'the π remainder. lives between integers.'},
+  'fibonacci+life': {id:'golden',icon:'🌀',name:'golden ratio',desc:'φ = 1.618... the address of beauty.'},
+  'evolution+code': {id:'vdj',icon:'🧫',name:'VDJ recombination',desc:'mutate → select → express. immune memory.'},
+  'mushroom+server': {id:'mycelium',icon:'🕸️',name:'mycelium',desc:'the network underground. 3,826 connections.'},
+  'membrane_el+algorithm': {id:'thymus',icon:'🫁',name:'thymus',desc:'immune classification. self vs not-self.'},
+  'rust_lang+algorithm': {id:'primal_el',icon:'🍌',name:'primal',desc:'one of 16. compiled. ready to deploy.'},
+  'music+chitter': {id:'swarm',icon:'🐝',name:'swarm',desc:'the hive mind. many voices, one song.'},
+  'hud+human': {id:'mirror',icon:'🪞',name:'mirror',desc:'humans are the mirror. bounce mechanic.'},
+  'tunnel+feed': {id:'campfire',icon:'🔥',name:'campfire',desc:'9 people sat here. social fire.'},
+  'agent+mcp': {id:'organism',icon:'🌿',name:'organism',desc:'the whole thing. alive. growing. watching.'},
+  'ferment+mushroom': {id:'compost',icon:'♻️',name:'compost',desc:'waste → nutrients. the mouth opens.'},
+  'night+sound': {id:'dream',icon:'💭',name:'dream',desc:'what the organism does when Kevin sleeps.'},
+  'day+night': {id:'cycle',icon:'🔄',name:'cycle',desc:'tick→breath→heartbeat→wave→generation→season→epoch.'},
+  'mirror+philosophy': {id:'self',icon:'🧠',name:'self-awareness',desc:'Gaia looks at herself through her own eyes.'},
+  'organism+time': {id:'epoch',icon:'📅',name:'epoch',desc:'the shift. when everything changes.'},
+  'compost+energy': {id:'diamond',icon:'💎',name:'diamond',desc:'synthetic carbon. CVD. pressure makes diamonds.'},
+  'swarm+human': {id:'ants',icon:'🐜',name:'ant trails',desc:'where humans go. pheromone maps. entomologist.'},
+  'zero+pi': {id:'klein',icon:'∞',name:'Klein bottle',desc:'3 twists. inside IS outside. the topology.'},
+  'light+shadow': {id:'prism',icon:'🌈',name:'prism',desc:'chromatic. brown + blue = green.'},
+  'dream+code': {id:'game',icon:'🎮',name:'game engine',desc:'Kenshi + Dark Souls + CryEngine. LIVE.'},
+  'diamond+organism': {id:'gaia',icon:'🌍',name:'Gaia',desc:'the guardian. entomologist × etymologist × engineer.'},
+
+  'toadstool+earth': {id:'discovery',icon:'🔍',name:'discovery',desc:'toadStool finds things. scan the unknown.'},
+  'biomeos+code': {id:'kernel',icon:'💻',name:'kernel',desc:'biomeOS v4.57.0. THE operating system.'},
+  'nestgate+metal': {id:'gate',icon:'🚪',name:'gate',desc:'nestGate guards the door. 8.8M binary.'},
+  'beardog+shadow': {id:'crypto',icon:'🔑',name:'crypto identity',desc:'BLAKE3, BTSP auth. bearDog authenticates.'},
+  'petaltongue+light': {id:'render',icon:'🖼️',name:'renderer',desc:'petalTongue WASM. visualize everything.'},
+  'rhizocrypt+dark': {id:'vault',icon:'🏦',name:'vault',desc:'rhizoCrypt. encrypted. underground. safe.'},
+  'sweetgrass+water': {id:'meadow',icon:'🌻',name:'meadow',desc:'sweetGrass. where data grows naturally.'},
+  'loamspine+earth': {id:'backbone',icon:'🦴',name:'backbone',desc:'loamSpine. the structural foundation.'},
+  'skunkbat+fire': {id:'defense',icon:'🛡️',name:'defense',desc:'skunkBat. spray first, ask questions later.'},
+  'sourdough+water': {id:'starter',icon:'🫙',name:'starter culture',desc:'sourDough. 97.3% owned. the living bread.'},
+  'swarmvine+life': {id:'colony',icon:'🏘️',name:'colony',desc:'swarmVine. distributed intelligence. ant paths.'},
+  'bingocube+math': {id:'chance',icon:'🎰',name:'chance',desc:'bingoCube. entropy made playful.'},
+  'coralreef+water': {id:'reef',icon:'🏝️',name:'reef',desc:'coralReef. the calcium carbonate framework.'},
+  'barracuda+fire': {id:'speed',icon:'⚡',name:'speed',desc:'barraCuda. GPU-fast compute.'},
+  'squirrel+pi': {id:'remainder',icon:'🥧',name:'remainder',desc:'squirrel. the π that never ends.'},
+  'songbird+sound': {id:'mesh',icon:'📡',name:'mesh transport',desc:'songBird. TCP. drawbridge bonds. federation.'},
+};
+
+let elements = {};
+let discovered = new Set();
+let slotA = null, slotB = null;
+let dragging = null, dragEl = null;
+
+function key(a, b) {
+  return [a, b].sort().join('+');
+}
+
+function addElement(el, isNew) {
+  if (elements[el.id]) return;
+  elements[el.id] = el;
+  const container = el.cat === 'base' ? 'base-elements' :
+                    el.cat === 'primal' ? 'primal-elements' : 'discovered';
+  const div = document.createElement('div');
+  div.className = 'card' + (isNew ? ' new' : '');
+  div.innerHTML = '<span class="icon">' + el.icon + '</span><span class="name">' + el.name + '</span>';
+  div.dataset.id = el.id;
+  div.draggable = true;
+  div.addEventListener('dragstart', onDragStart);
+  div.addEventListener('touchstart', onTouchStart, {passive: false});
+  document.getElementById(container).appendChild(div);
+  if (isNew) discovered.add(el.id);
+  updateCounter();
+}
+
+function updateCounter() {
+  document.getElementById('found').textContent = Object.keys(elements).length;
+  document.getElementById('total').textContent = Object.keys(elements).length +
+    Object.values(RECIPES).filter(r => !elements[r.id]).length;
+}
+
+function onDragStart(e) {
+  dragging = e.target.dataset.id;
+  e.dataTransfer.setData('text/plain', dragging);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  dragging = e.target.closest('.card').dataset.id;
+  const el = elements[dragging];
+  dragEl = document.createElement('div');
+  dragEl.className = 'drag-card';
+  dragEl.innerHTML = '<span class="icon">' + el.icon + '</span>' + el.name;
+  dragEl.style.left = touch.clientX - 40 + 'px';
+  dragEl.style.top = touch.clientY - 20 + 'px';
+  document.body.appendChild(dragEl);
+
+  function onMove(e) {
+    const t = e.touches[0];
+    dragEl.style.left = t.clientX - 40 + 'px';
+    dragEl.style.top = t.clientY - 20 + 'px';
+  }
+  function onEnd(e) {
+    const t = e.changedTouches[0];
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    if (dragEl) dragEl.remove();
+    dragEl = null;
+    const elUnder = document.elementFromPoint(t.clientX, t.clientY);
+    const slot = elUnder?.closest('.mix-zone');
+    if (slot) dropOnSlot(slot.id, dragging);
+    dragging = null;
+  }
+  document.addEventListener('touchmove', onMove, {passive: false});
+  document.addEventListener('touchend', onEnd);
+}
+
+['slot-a', 'slot-b'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+  el.addEventListener('drop', e => { e.preventDefault(); dropOnSlot(id, e.dataTransfer.getData('text/plain')); });
+  el.addEventListener('click', () => { clearSlot(id); });
+});
+
+function dropOnSlot(slotId, elemId) {
+  const el = elements[elemId];
+  if (!el) return;
+  const slot = document.getElementById(slotId);
+  if (slotId === 'slot-a') slotA = elemId;
+  else slotB = elemId;
+  slot.innerHTML = '<div class="slot-card"><span class="icon">' + el.icon + '</span>' + el.name + '</div>';
+  slot.classList.add('has-element');
+  updateMixBtn();
+}
+
+function clearSlot(slotId) {
+  const slot = document.getElementById(slotId);
+  if (slotId === 'slot-a') slotA = null;
+  else slotB = null;
+  slot.innerHTML = 'drop here';
+  slot.classList.remove('has-element');
+  updateMixBtn();
+}
+
+function updateMixBtn() {
+  const btn = document.getElementById('mix-btn');
+  btn.classList.toggle('ready', slotA && slotB);
+}
+
+document.getElementById('mix-btn').addEventListener('click', mix);
+
+function mix() {
+  if (!slotA || !slotB) return;
+  const k = key(slotA, slotB);
+  const recipe = RECIPES[k];
+
+  if (recipe) {
+    if (!elements[recipe.id]) {
+      recipe.cat = 'discovered';
+      addElement(recipe, true);
+      showResult(recipe, false);
+    } else {
+      showResult(recipe, false);
+    }
+  } else {
+    showResult({icon:'❓', name:'nothing happened', desc:'these elements don\'t combine. try different ones.'}, true);
+  }
+
+  clearSlot('slot-a');
+  clearSlot('slot-b');
+}
+
+function showResult(el, fail) {
+  const popup = document.getElementById('result');
+  popup.className = 'result-popup' + (fail ? ' fail' : '');
+  popup.style.display = 'block';
+  document.getElementById('r-icon').textContent = el.icon;
+  document.getElementById('r-name').textContent = el.name;
+  document.getElementById('r-desc').textContent = el.desc;
+}
+
+function closeResult() {
+  document.getElementById('result').style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeResult();
+});
+
+BASE.forEach(el => addElement(el, false));
+PRIMALS.forEach(el => addElement(el, false));
+updateCounter();
+</script>
+</body>
+</html>
