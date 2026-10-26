@@ -135,7 +135,26 @@ const FEEDS = [
   ['cat-fact',           'https://catfact.ninja/facts?limit=5'],
   ['useless-facts',      'https://uselessfacts.jsph.pl/api/v2/facts/random?language=en'],
 
-  // TIER 7: Our own organism (the ouroboros — eating self to grow)
+  // TIER 7: PERSONALITY FEEDS — randomize exploration via human curiosity engines
+  // Randall Munroe / XKCD — random comic (new comic every M/W/F, 3315 total)
+  ['xkcd-latest',        'https://xkcd.com/info.0.json'],
+  ['xkcd-random-1',      `https://xkcd.com/${Math.floor(Math.random() * 3315) + 1}/info.0.json`],
+  ['xkcd-random-2',      `https://xkcd.com/${Math.floor(Math.random() * 3315) + 1}/info.0.json`],
+  ['xkcd-random-3',      `https://xkcd.com/${Math.floor(Math.random() * 3315) + 1}/info.0.json`],
+  // 99% Invisible / Roman Mars — design, architecture, vexillology (RSS)
+  ['99pi-feed',          'https://feeds.simplecast.com/BqbsxVfO'],
+  // Kerbal Space Program — orbital mechanics wiki (random page)
+  ['ksp-wiki-random',    'https://en.wikipedia.org/api/rest_v1/page/summary/Kerbal_Space_Program'],
+  // What If? — Randall Munroe's science answers
+  ['xkcd-whatif',        'https://what-if.xkcd.com/feed.atom'],
+  // Numberphile / 3Blue1Brown / math visualization
+  ['arxiv-math-popular', 'http://export.arxiv.org/api/query?search_query=cat:math.HO&sortBy=submittedDate&sortOrder=descending&max_results=5'],
+  // Vexillology (flags — Roman Mars' passion)
+  ['reddit-vexillology', 'https://old.reddit.com/r/vexillology/.rss'],
+  // Space/KSP community
+  ['reddit-ksp',         'https://old.reddit.com/r/KerbalSpaceProgram/.rss'],
+
+  // TIER 8: Our own organism (the ouroboros — eating self to grow)
   ['self-now',           'https://primals.eco/now.json'],
   ['self-rates',         'https://primals.eco/data/dashboard-rates.json'],
   ['self-heartbeat',     'https://primals.eco/data/heartbeat.json'],
