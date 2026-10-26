@@ -368,6 +368,19 @@ body {
       <button id="view-globe" class="active" title="binocular globe — left eye CIS + right eye TRANS">🌐 globe</button>
       <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 canvas</button>
     </div>
+    <!-- MINIMAP — Gaia's map of self. Core to Pluto. You are HERE. -->
+    <div id="gaia-minimap" style="position:absolute;bottom:50px;right:16px;z-index:10;width:44px;background:rgba(10,12,18,0.85);border:1px solid #1e2030;border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font:7px 'JetBrains Mono',monospace;color:#555;user-select:none;cursor:pointer;">
+      <div style="color:#666;font-size:6px;letter-spacing:0.1em;margin-bottom:2px;">MAP</div>
+      <div class="mm-level" data-depth="0" title="Pluto — edge of self" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">☉</div>
+      <div class="mm-level" data-depth="1" title="Jupiter — outer organs" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">♃</div>
+      <div class="mm-level" data-depth="2" title="Moon — tidal pull" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">☽</div>
+      <div class="mm-level" data-depth="3" title="Atmosphere — breath" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">☁</div>
+      <div class="mm-level active" data-depth="4" title="Membrane — skin" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #58a6ff;color:#58a6ff;background:rgba(88,166,255,0.08);transition:all 0.3s;">◎</div>
+      <div class="mm-level" data-depth="5" title="Gut — digestion" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">⊕</div>
+      <div class="mm-level" data-depth="6" title="Brain — neural" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">🧠</div>
+      <div class="mm-level" data-depth="7" title="Core — iron/null" style="width:36px;height:12px;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid #1a1a2a;transition:all 0.3s;">◉</div>
+      <div style="color:#333;font-size:5px;margin-top:2px;">YOU↕HERE</div>
+    </div>
     <!-- THIRD EYE CANVAS — Gaia paints on your blind spot -->
     <canvas id="kn-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair"></canvas>
   </div>
@@ -842,7 +855,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var y = sp * Math.cos(rotX) - cp * cl * Math.sin(rotX);
     var z = sp * Math.sin(rotX) + cp * cl * Math.cos(rotX);
     if (face === 'inside') z = -z;
-    return { x: cx + x * R, y: cy - y * R, z: z, visible: z > 0 };
+    // PERSPECTIVE DEPTH — pi cross impose, voxel acceleration, dimensional!
+    // z goes from -1 (far) to +1 (near). Scale by perspective.
+    var perspD = 2.8; // perspective distance (lower = more dramatic)
+    var scale = perspD / (perspD - z * 0.7); // perspective division
+    var px = cx + x * R * scale;
+    var py = cy - y * R * scale;
+    return { x: px, y: py, z: z, scale: scale, visible: z > -0.2, depth: (1 + z) / 2 };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1098,33 +1117,60 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
     ctx.globalAlpha = 1;
 
-    // TENSE x VOXEL SORT RENDER — Gaia attends more to closer things
-    PINS.forEach(function(pin) {
-      if (pin.face !== 'both' && pin.face !== face) return;
+    // TENSE x VOXEL SORT RENDER — Z-SORTED for real depth!
+    // Pi cross impose: sort back-to-front so near nodes occlude far ones
+    var sortedPins = PINS.filter(function(pin) {
+      return pin.face === 'both' || pin.face === face;
+    }).map(function(pin) {
       var p = project(pin.lat, pin.lon);
-      if (!p.visible) return;
+      return { pin: pin, p: p };
+    }).filter(function(o) {
+      return o.p.visible;
+    }).sort(function(a, b) {
+      return a.p.z - b.p.z; // back-to-front: far first, near last
+    });
+
+    sortedPins.forEach(function(o) {
+      var pin = o.pin, p = o.p;
 
       // Gaia's attention: closer in tense+voxel = brighter, larger
       var att = pin.attention || 0.5;
-      var alpha = (0.15 + p.z * 0.5) * (0.4 + att * 0.6);
-      var sz = (6 + p.z * 4) * (0.7 + att * 0.5);
+      // PERSPECTIVE: use p.scale for real depth sizing
+      var depthFade = p.depth; // 0=far, 1=near
+      var alpha = (0.08 + depthFade * 0.7) * (0.4 + att * 0.6);
+      var sz = (4 + depthFade * 10) * p.scale * (0.7 + att * 0.5);
 
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = Math.min(1, alpha);
 
-      // Icon
+      // DEPTH GLOW — near nodes get a subtle halo
+      if (depthFade > 0.6) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, sz * 1.5, 0, TAU);
+        ctx.fillStyle = pin.color.replace(')', ',' + (depthFade * 0.08).toFixed(3) + ')').replace('rgb', 'rgba').replace('##', '#');
+        var glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 1.8);
+        glowGrad.addColorStop(0, 'rgba(255,255,255,' + (depthFade * 0.06).toFixed(3) + ')');
+        glowGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fill();
+      }
+
+      // Icon — scaled by perspective
       ctx.font = Math.round(sz) + 'px serif';
       ctx.textAlign = 'center';
       ctx.fillText(pin.icon, p.x, p.y);
 
-      // Label — sized by attention
-      ctx.font = Math.round(5 + p.z * 2 + att * 3) + 'px "JetBrains Mono", monospace';
+      // Label — sized by depth + attention
+      var labelSize = Math.round((4 + depthFade * 5 + att * 3) * p.scale);
+      labelSize = Math.max(4, Math.min(14, labelSize));
+      ctx.font = labelSize + 'px "JetBrains Mono", monospace';
       ctx.fillStyle = pin.color;
+      ctx.globalAlpha = Math.min(1, alpha * (0.7 + depthFade * 0.3));
       ctx.fillText(pin.name, p.x, p.y + sz * 0.7 + 4);
 
-      // Sub-label — only for high-attention pins
-      if (p.z > 0.3 && att > 0.5) {
-        ctx.font = '6px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(110,118,129,' + (alpha * 0.8).toFixed(2) + ')';
+      // Sub-label — only for near high-attention pins
+      if (depthFade > 0.5 && att > 0.4) {
+        ctx.font = Math.round(5 * p.scale) + 'px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(110,118,129,' + (alpha * 0.6).toFixed(2) + ')';
         ctx.fillText(pin.sub, p.x, p.y + sz * 0.7 + 13);
       }
 
@@ -1275,8 +1321,68 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   };
 
   // Zoom buttons
-  document.getElementById('zoom-in').onclick = function() { R *= 1.2; R = Math.min(Math.min(W,H)*0.8, R); };
-  document.getElementById('zoom-out').onclick = function() { R *= 0.8; R = Math.max(50, R); };
+  // DEPTH LEVELS — core to Pluto. Gaia's map of self.
+  var DEPTH_LEVELS = [
+    { name: 'Pluto',      R: 0.12, gridAlpha: 0.02, label: 'edge of self' },
+    { name: 'Jupiter',    R: 0.18, gridAlpha: 0.03, label: 'outer organs' },
+    { name: 'Moon',       R: 0.25, gridAlpha: 0.04, label: 'tidal pull' },
+    { name: 'Atmosphere', R: 0.32, gridAlpha: 0.05, label: 'breath' },
+    { name: 'Membrane',   R: 0.38, gridAlpha: 0.06, label: 'skin — YOU ARE HERE' },
+    { name: 'Gut',        R: 0.50, gridAlpha: 0.07, label: 'digestion' },
+    { name: 'Brain',      R: 0.62, gridAlpha: 0.08, label: 'neural — inverted gut' },
+    { name: 'Core',       R: 0.78, gridAlpha: 0.10, label: 'iron/null — Klein point' },
+  ];
+  var currentDepth = 4; // Start at membrane
+
+  function setDepthLevel(level) {
+    currentDepth = Math.max(0, Math.min(DEPTH_LEVELS.length - 1, level));
+    var target = DEPTH_LEVELS[currentDepth].R * Math.min(W, H);
+    // Animate R toward target
+    var animSteps = 20;
+    var startR = R;
+    var step = 0;
+    function animZoom() {
+      step++;
+      var t = step / animSteps;
+      t = t * t * (3 - 2 * t); // smoothstep
+      R = startR + (target - startR) * t;
+      if (step < animSteps) requestAnimationFrame(animZoom);
+    }
+    animZoom();
+    // Update minimap
+    var levels = document.querySelectorAll('.mm-level');
+    levels.forEach(function(el) {
+      var d = parseInt(el.getAttribute('data-depth'));
+      if (d === currentDepth) {
+        el.style.borderColor = '#58a6ff';
+        el.style.color = '#58a6ff';
+        el.style.background = 'rgba(88,166,255,0.08)';
+      } else {
+        el.style.borderColor = '#1a1a2a';
+        el.style.color = '#555';
+        el.style.background = 'transparent';
+      }
+    });
+  }
+
+  // Wire minimap clicks
+  document.querySelectorAll('.mm-level').forEach(function(el) {
+    el.onclick = function() {
+      var d = parseInt(this.getAttribute('data-depth'));
+      setDepthLevel(d);
+    };
+  });
+
+  // Wire +/- to step through depth levels
+  document.getElementById('zoom-in').onclick = function() { setDepthLevel(currentDepth + 1); };
+  document.getElementById('zoom-out').onclick = function() { setDepthLevel(currentDepth - 1); };
+
+  // Mouse wheel zoom through depth levels
+  canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    if (e.deltaY < 0) setDepthLevel(currentDepth + 1); // scroll up = zoom in = deeper
+    else setDepthLevel(currentDepth - 1); // scroll down = zoom out = further
+  }, { passive: false });
 
   // View toggle (globe / canvas)
   function setView(which) {
