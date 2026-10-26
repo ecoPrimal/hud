@@ -54,9 +54,15 @@ https://thesis.primals.eco/*  https://sporeprint.primals.eco/thesis/:splat  302
 /.well-known/nodeinfo  https://nestgate.io/.well-known/nodeinfo  302
 /.well-known/webfinger  https://nestgate.io/.well-known/webfinger  302
 
-# MCP endpoint → golgi MCP server (already running on port 8314)
-/mcp    https://connect.primals.eco/mcp    302
-/mcp/   https://connect.primals.eco/mcp    302
+# MCP endpoint — serve welcome page (auto-redirects to nestgate.io/mcp after 3s)
+# The mcp.html page shows connection instructions, tool list, and then redirects
+# Old: /mcp → connect.primals.eco/mcp (cold 302, no welcome)
+# New: /mcp → mcp.html (warm welcome, then auto-redirect to nestgate.io/mcp)
+/mcp    /mcp.html    200
+/mcp/   /mcp.html    200
+
+# Raw MCP endpoint for tools/clients (bypass welcome page)
+/mcp/raw    https://nestgate.io/mcp    302
 
 # Beacon/RSS → golgi signal endpoint
 /beacon      https://signal.primals.eco/beacon     302
