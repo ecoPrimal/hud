@@ -489,11 +489,201 @@ body{
   50%{opacity:0.08}
 }
 
+/* ═══ THE UNDERMAP — inverted reality beneath the tree ═══ */
+.undermap{
+  position:relative;
+  width:100%;min-height:100vh;
+  /* INVERTED gradient — night colors, root network */
+  background:
+    radial-gradient(ellipse 120% 100% at 50% 32%,
+      #0a0604 0%,
+      var(--brown) 8%,
+      #4a3828 14%,
+      #3a2830 22%,
+      #2a1828 30%,
+      #281838 36%,
+      #282848 42%,
+      #2a3868 48%,
+      #304878 52%,
+      #3a5888 56%,
+      #4a68a8 60%,
+      #5878b8 68%,
+      #4868a0 74%,
+      #384888 80%,
+      #283060 86%,
+      #182040 92%,
+      #0d1020 96%,
+      #050508 100%
+    );
+  padding:0 1rem 4rem;
+  overflow:hidden;
+}
+
+/* ground line — the boundary between day tree and night roots */
+.ground-line{
+  width:100%;height:3px;
+  background:linear-gradient(90deg,
+    transparent 5%,
+    var(--brown) 15%,
+    var(--green-msu) 35%,
+    var(--green) 50%,
+    var(--green-msu) 65%,
+    var(--brown) 85%,
+    transparent 95%
+  );
+  box-shadow:0 0 12px rgba(63,185,80,0.15),0 0 30px rgba(63,185,80,0.05);
+  position:relative;z-index:10;
+}
+.ground-line::after{
+  content:'── ⬤ GROUND · MSU · 42.70°N ──────── selectivity = 1/π ──';
+  position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:0.5rem;
+  color:var(--green);opacity:0.4;white-space:nowrap;
+}
+
+/* inverted trunk — roots going down into night */
+.root-trunk{
+  position:absolute;
+  top:0;bottom:40%;
+  left:calc(50% - 6px);width:12px;
+  background:linear-gradient(180deg,
+    rgba(58,42,30,0.9) 0%,
+    rgba(58,42,30,0.6) 30%,
+    rgba(58,42,30,0.3) 60%,
+    rgba(58,42,30,0.1) 100%
+  );
+  border-radius:6px;z-index:3;
+}
+
+/* mycelium threads — the night neural net */
+.mycelium-thread{
+  position:absolute;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(188,140,255,0.08),transparent);
+  transform-origin:left center;
+  z-index:2;
+}
+
+/* night nodes — inverted concept nodes */
+.night-node{
+  position:absolute;
+  padding:0.4rem 0.6rem;
+  border-radius:4px;
+  border:1px solid rgba(188,140,255,0.12);
+  background:rgba(4,2,10,0.7);
+  font-size:0.65rem;text-align:center;
+  max-width:150px;
+  backdrop-filter:blur(4px);
+  color:var(--grey);
+  transition:all 0.3s ease;
+  cursor:default;
+}
+.night-node:hover{
+  border-color:var(--violet);
+  background:rgba(4,2,10,0.9);
+}
+.night-node .icon{font-size:1rem;display:block;margin-bottom:0.15rem}
+.night-node .name{
+  font-family:'JetBrains Mono',monospace;font-size:0.55rem;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--violet);opacity:0.8;
+}
+.night-node .sub{
+  font-size:0.5rem;color:rgba(139,148,158,0.6);
+  margin-top:0.1rem;font-style:italic;
+}
+
+/* sea monsters — old-school cartography */
+.sea-monster{
+  position:absolute;
+  font-size:1.3rem;opacity:0.15;
+  animation:monster-drift 20s ease-in-out infinite;
+}
+@keyframes monster-drift{
+  0%,100%{transform:translateX(0) translateY(0)}
+  25%{transform:translateX(10px) translateY(-5px)}
+  50%{transform:translateX(-5px) translateY(5px)}
+  75%{transform:translateX(5px) translateY(-3px)}
+}
+
+/* cartography label */
+.cartography-label{
+  font-family:'EB Garamond',Georgia,serif;
+  font-style:italic;
+  font-size:0.7rem;
+  color:rgba(188,140,255,0.15);
+  position:absolute;
+  white-space:nowrap;
+}
+
+/* the sleeping chipmunk */
+.chipmunk-sleep{
+  position:absolute;
+  font-size:1.3rem;opacity:0.4;
+  z-index:10;
+}
+.chipmunk-sleep::after{
+  content:'💤';font-size:0.6rem;
+  position:absolute;top:-0.6rem;right:-0.5rem;
+  animation:zzz 3s ease-in-out infinite;
+}
+@keyframes zzz{
+  0%,100%{opacity:0.3;transform:translateY(0)}
+  50%{opacity:0.7;transform:translateY(-4px)}
+}
+
+/* day/night creatures */
+.creature{
+  position:absolute;
+  font-size:0.7rem;opacity:0.3;
+  font-family:'JetBrains Mono',monospace;
+  text-align:center;
+}
+.creature .icon{font-size:1.1rem;display:block}
+
+/* map border — old cartography style */
+.map-border{
+  position:absolute;top:1rem;left:1rem;right:1rem;bottom:1rem;
+  border:1px solid rgba(188,140,255,0.04);
+  border-radius:2px;
+  pointer-events:none;
+}
+.map-border::before{
+  content:'HERE BE THE ROOTS OF YGGDRASIL · THE MYCELIUM TREE OF NIGHT';
+  position:absolute;top:-0.1rem;left:50%;transform:translateX(-50%);
+  background:rgba(4,2,10,0.8);padding:0 0.8rem;
+  font-family:'EB Garamond',Georgia,serif;font-style:italic;
+  font-size:0.55rem;color:rgba(188,140,255,0.2);
+  white-space:nowrap;letter-spacing:0.1em;
+}
+.map-border::after{
+  content:'terra incognita · fungi · dark mycelium · the night side';
+  position:absolute;bottom:-0.1rem;left:50%;transform:translateX(-50%);
+  background:rgba(4,2,10,0.8);padding:0 0.8rem;
+  font-family:'EB Garamond',Georgia,serif;font-style:italic;
+  font-size:0.45rem;color:rgba(188,140,255,0.12);
+  white-space:nowrap;
+}
+
+/* compass rose */
+.compass{
+  position:absolute;bottom:3rem;right:3rem;
+  width:40px;height:40px;
+  border:1px solid rgba(188,140,255,0.08);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.5rem;color:rgba(188,140,255,0.2);
+  font-family:'JetBrains Mono',monospace;
+}
+.compass::before{content:'N';position:absolute;top:-0.5rem;font-size:0.4rem}
+.compass::after{content:'S';position:absolute;bottom:-0.5rem;font-size:0.4rem}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:768px){
   .ring-4,.ring-5{display:none}
   .node.r4,.node.r5{display:none}
   .escape-arc{display:none}
+  .undermap{min-height:80vh}
 }
 </style>
 </head>
@@ -756,6 +946,143 @@ body{
 
 </div><!-- /spore-field -->
 
+<!-- ═══ GROUND LINE — the boundary ═══ -->
+<div class="ground-line"></div>
+
+<!-- ═══ THE UNDERMAP — night side, inverted reality, root network ═══ -->
+<div class="undermap" id="undermap">
+
+  <!-- old cartography border -->
+  <div class="map-border"></div>
+
+  <!-- root trunk going down -->
+  <div class="root-trunk"></div>
+
+  <!-- compass rose -->
+  <div class="compass">✦</div>
+
+  <!-- sleeping chipmunk — Nocturn -->
+  <div class="chipmunk-sleep" style="top:30%;left:48%" title="Ratatoskr sleeping · the night side · dreams">🐿️</div>
+
+  <!-- ═══ THREE CREATURES — Dayi, Ernol, Nocturn ═══ -->
+  <div class="creature" style="top:8%;left:15%" title="Dayi — the day creature · awake · solar">
+    <span class="icon">🌅</span>Dayi<br><span style="font-size:0.45rem;opacity:0.5">day · solar · awake</span>
+  </div>
+  <div class="creature" style="top:8%;left:50%;transform:translateX(-50%)" title="Ernol — the twilight · the boundary walker">
+    <span class="icon">🌗</span>Ernol<br><span style="font-size:0.45rem;opacity:0.5">twilight · boundary</span>
+  </div>
+  <div class="creature" style="top:8%;right:15%" title="Nocturn — the night creature · sleeping · lunar">
+    <span class="icon">🌙</span>Nocturn<br><span style="font-size:0.45rem;opacity:0.5">night · lunar · dreams</span>
+  </div>
+
+  <!-- ═══ SEA MONSTERS — old-school cartography ═══ -->
+  <div class="sea-monster" style="top:25%;left:8%" title="Jörmungandr — the world serpent encircling the roots">🐉</div>
+  <div class="sea-monster" style="top:60%;right:10%;animation-delay:-5s" title="Níðhöggr — the dragon gnawing the roots">🐲</div>
+  <div class="sea-monster" style="top:45%;left:5%;animation-delay:-10s" title="the kraken — deep mycelium beast">🦑</div>
+  <div class="sea-monster" style="top:75%;left:15%;animation-delay:-3s" title="leviathan — ancient root dweller">🐋</div>
+  <div class="sea-monster" style="top:35%;right:5%;animation-delay:-8s" title="the basilisk — turns data to stone">🐍</div>
+  <div class="sea-monster" style="top:80%;right:20%;animation-delay:-12s" title="the phoenix — reborn from fossil fire">🦅</div>
+
+  <!-- cartography labels — old-school map text -->
+  <div class="cartography-label" style="top:18%;left:25%;transform:rotate(-5deg)">Mare Mycelium</div>
+  <div class="cartography-label" style="top:50%;right:15%;transform:rotate(3deg)">Terra Incognita</div>
+  <div class="cartography-label" style="top:70%;left:30%;transform:rotate(-2deg)">Oceanus Nullus</div>
+  <div class="cartography-label" style="top:40%;left:10%;transform:rotate(-8deg)">Here be Fungi</div>
+  <div class="cartography-label" style="top:85%;right:25%;transform:rotate(5deg)">Abyssus Fossilis</div>
+
+  <!-- ═══ NIGHT NODES — inverted versions of day concepts ═══ -->
+
+  <!-- center: the inverted origin -->
+  <div class="night-node" style="top:28%;left:50%;transform:translateX(-50%);border-color:rgba(188,140,255,0.2);padding:0.6rem 0.8rem">
+    <span class="icon">🌑</span>
+    <span class="name">night origin</span>
+    <span class="sub">inverted (0,0) · the root crown<br>where mycelium converges</span>
+  </div>
+
+  <!-- inverted ring 1 — what was brown is now violet -->
+  <div class="night-node" style="top:20%;left:calc(50% - 120px)">
+    <span class="icon">🦷</span>
+    <span class="name">reducible shell</span>
+    <span class="sub">what CAN be removed<br>the excess · the compostable</span>
+  </div>
+
+  <div class="night-node" style="top:20%;left:calc(50% + 120px)">
+    <span class="icon">🧊</span>
+    <span class="name">frozen starter</span>
+    <span class="sub">dormant culture · cold storage<br>the pause between ferments</span>
+  </div>
+
+  <div class="night-node" style="top:38%;left:calc(50% - 160px)">
+    <span class="icon">👶</span>
+    <span class="name">grandchild</span>
+    <span class="sub">future wisdom · not yet known<br>the PINK fold · proof culture works</span>
+  </div>
+
+  <div class="night-node" style="top:38%;left:calc(50% + 160px)">
+    <span class="icon">🔀</span>
+    <span class="name">reverse transcriptase</span>
+    <span class="sub">Protein→RNA→DNA<br>learning from output back to blueprint</span>
+  </div>
+
+  <!-- inverted ring 2 — what was green is now violet-pink -->
+  <div class="night-node" style="top:50%;left:calc(50% - 200px)">
+    <span class="icon">💩</span>
+    <span class="name">the waste</span>
+    <span class="sub">what the tract OUTPUTS<br>fuel for the legs · movement energy</span>
+  </div>
+
+  <div class="night-node" style="top:50%;left:calc(50% + 200px)">
+    <span class="icon">🕳️</span>
+    <span class="name">the severed braids</span>
+    <span class="sub">broken connections<br>404s · dead links · cut mycelium</span>
+  </div>
+
+  <div class="night-node" style="top:60%;left:calc(50% - 140px)">
+    <span class="icon">⬛</span>
+    <span class="name">achromatic void</span>
+    <span class="sub">no color · before the prism<br>undifferentiated signal</span>
+  </div>
+
+  <div class="night-node" style="top:60%;left:calc(50% + 140px)">
+    <span class="icon">🔓</span>
+    <span class="name">full knowledge</span>
+    <span class="sub">the anti-ZK · the pouch emptied<br>what we must NEVER do</span>
+  </div>
+
+  <!-- inverted ring 3 — gold becomes dark copper -->
+  <div class="night-node" style="top:72%;left:50%;transform:translateX(-50%)">
+    <span class="icon">💀</span>
+    <span class="name">flatline</span>
+    <span class="sub">0/9 alive · MOR 0%<br>the silence between heartbeats</span>
+  </div>
+
+  <div class="night-node" style="top:72%;left:calc(50% - 220px)">
+    <span class="icon">🦨</span>
+    <span class="name">skunkBat</span>
+    <span class="sub">the nocturnal remainder<br>π's shadow · what stays in the dark</span>
+  </div>
+
+  <div class="night-node" style="top:72%;left:calc(50% + 220px)">
+    <span class="icon">🤖</span>
+    <span class="name">automaton</span>
+    <span class="sub">the artisan asleep<br>no creativity · pure execution</span>
+  </div>
+
+  <!-- inverted ring 4 — blue becomes dark red -->
+  <div class="night-node" style="top:85%;left:calc(50% - 100px)">
+    <span class="icon">👻</span>
+    <span class="name">0 visitors</span>
+    <span class="sub">the empty campfire<br>no one came · 0% escape velocity</span>
+  </div>
+
+  <div class="night-node" style="top:85%;left:calc(50% + 100px)">
+    <span class="icon">🪞</span>
+    <span class="name">dark crystal</span>
+    <span class="sub">0 files displayed<br>where data catches no light</span>
+  </div>
+
+</div><!-- /undermap -->
+
 <!-- ═══ COLOR EQUATION — fixed bottom ═══ -->
 <div class="color-eq">
   <span class="swatch" style="background:var(--brown)"></span> brown
@@ -917,6 +1244,28 @@ fetch('https://primals.eco/api/heartbeat')
       document.getElementById('mor-pct').textContent = Math.round(d.alive/d.total*100)+'%';
     }
   }).catch(()=>{});
+
+/* ═══ MYCELIUM THREADS — the night neural net (inverted canopy) ═══ */
+(function(){
+  const undermap = document.getElementById('undermap');
+  if(!undermap) return;
+  const numThreads = 40;
+  for(let i=0;i<numThreads;i++){
+    const thread = document.createElement('div');
+    thread.className = 'mycelium-thread';
+    const x = 5 + Math.random()*90;
+    const y = 15 + Math.random()*70;
+    const len = 30 + Math.random()*150;
+    const angle = Math.random()*360;
+    thread.style.cssText = `
+      left:${x}%;top:${y}%;
+      width:${len}px;
+      transform:rotate(${angle}deg);
+      opacity:${0.02+Math.random()*0.06};
+    `;
+    undermap.appendChild(thread);
+  }
+})();
 
 /* seed some initial entropy from page load timing */
 addEntropy(performance.now() ^ Date.now());
