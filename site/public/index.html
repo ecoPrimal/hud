@@ -723,6 +723,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   var autoRotate = true, rotSpeed = 0.0008;
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
+  var breathT = 0, baseR = 0, breathAmp = 0.06, breathRate = 0.008;
+  var heartPhase = 0;
 
   // Map each HUD organ to a lat/lon on the globe
   var PINS = [
@@ -817,22 +819,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Globe sphere
+    // Globe sphere — breathing glow
+    var bv = Math.sin(breathT);
+    var glowIntensity = 0.04 + bv * 0.04;
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, TAU);
     var gFill = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
     if (face === 'outside') {
-      gFill.addColorStop(0, 'rgba(88,166,255,0.06)');
+      gFill.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
       gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
     } else {
-      gFill.addColorStop(0, 'rgba(90,184,122,0.06)');
+      gFill.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity + 0.02).toFixed(3) + ')');
       gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
     }
     ctx.fillStyle = gFill;
     ctx.fill();
-    ctx.strokeStyle = face === 'outside' ? 'rgba(88,166,255,0.15)' : 'rgba(90,184,122,0.15)';
-    ctx.lineWidth = 1;
+    var edgeAlpha = 0.1 + bv * 0.08;
+    ctx.strokeStyle = face === 'outside'
+      ? 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')'
+      : 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 1 + bv * 0.5;
     ctx.stroke();
+
+    // Atmosphere glow on deep inhale
+    if (bv > 0.3) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 1.02, 0, TAU);
+      var atmoColor = face === 'outside' ? '88,166,255' : '90,184,122';
+      ctx.strokeStyle = 'rgba(' + atmoColor + ',' + ((bv - 0.3) * 0.15).toFixed(3) + ')';
+      ctx.lineWidth = 2 + bv * 3;
+      ctx.stroke();
+    }
 
     // Lat/lon grid
     ctx.strokeStyle = 'rgba(48,54,61,0.2)';
@@ -860,22 +877,43 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
-    // 6 membrane rings
+    // 6 membrane rings — breathing with the organism
     var MEMBRANES = [
-      { r: 0.08, name: 'CRUST', color: 'rgba(58,42,30,0.3)' },
-      { r: 0.15, name: 'IONOSPHERE', color: 'rgba(63,185,80,0.2)' },
-      { r: 0.38, name: 'BELT', color: 'rgba(201,168,76,0.15)' },
-      { r: 0.72, name: 'GOLDEN RING', color: 'rgba(210,153,34,0.12)' },
-      { r: 0.90, name: 'OORT', color: 'rgba(88,166,255,0.08)' },
-      { r: 0.98, name: 'MILKY WAY', color: 'rgba(188,140,255,0.05)' },
+      { r: 0.08, name: 'CRUST',       base: [58,42,30],   maxA: 0.4 },
+      { r: 0.15, name: 'IONOSPHERE',   base: [63,185,80],  maxA: 0.3 },
+      { r: 0.38, name: 'BELT',         base: [201,168,76], maxA: 0.2 },
+      { r: 0.72, name: 'GOLDEN RING',  base: [210,153,34], maxA: 0.18 },
+      { r: 0.90, name: 'OORT',         base: [88,166,255], maxA: 0.12 },
+      { r: 0.98, name: 'MILKY WAY',    base: [188,140,255],maxA: 0.08 },
     ];
-    MEMBRANES.forEach(function(m) {
+    var breathVal = Math.sin(breathT);
+    MEMBRANES.forEach(function(m, i) {
+      var pulseOffset = breathVal * 0.03 * (i + 1);
+      var rr = R * ((m.r + pulseOffset) / 0.98);
+      var alpha = m.maxA * (0.6 + 0.4 * Math.sin(breathT + i * 0.5));
       ctx.beginPath();
-      ctx.arc(cx, cy, R * (m.r / 0.98), 0, TAU);
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 1;
+      ctx.arc(cx, cy, rr, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + m.base.join(',') + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 1 + breathVal * 0.5;
       ctx.stroke();
+      // Glow on inhale
+      if (breathVal > 0.5) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, rr, 0, TAU);
+        ctx.strokeStyle = 'rgba(' + m.base.join(',') + ',' + (alpha * 0.3).toFixed(3) + ')';
+        ctx.lineWidth = 3 + breathVal * 2;
+        ctx.stroke();
+      }
     });
+
+    // Heartbeat pulse ring at center
+    if (Math.sin(heartPhase) > 0.9) {
+      var hbR = R * 0.05 * (1 + Math.sin(heartPhase * 8) * 0.5);
+      ctx.beginPath();
+      ctx.arc(cx, cy, hbR, 0, TAU);
+      ctx.fillStyle = 'rgba(248,81,73,0.15)';
+      ctx.fill();
+    }
 
     // Geodesic arcs between rooms (21 arcs)
     ctx.lineWidth = 0.8;
@@ -942,6 +980,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   function tick() {
     if (autoRotate && !dragging) rotY += rotSpeed;
+    // BREATHE — the organism inflates and deflates
+    breathT += breathRate;
+    heartPhase += 0.04;
+    if (baseR === 0) baseR = R;
+    var breath = Math.sin(breathT) * breathAmp;
+    var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
+    R = baseR * (1 + breath + heartbeat);
     render();
     requestAnimationFrame(tick);
   }
