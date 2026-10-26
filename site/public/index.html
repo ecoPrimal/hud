@@ -376,10 +376,12 @@ body {
 
 <!-- DIEGETIC BOTTOM — Gaia's pulse, not a nav bar -->
 <div class="bottombar" style="justify-content:center;gap:16px;opacity:0.4">
-  <span class="live-dot">LIVE</span>
+  <span class="live-dot" id="b-tense">IS</span>
   <span id="b-phase">pulse</span>
   <span>·</span>
-  <span>1/π</span>
+  <span id="b-seed" title="your seed — share this URL to show someone your exact view" style="cursor:pointer;color:var(--violet)">seed</span>
+  <span>·</span>
+  <span id="b-era" style="color:var(--gold)">era</span>
   <span>·</span>
   <a href="/messenger.html" style="color:var(--red);text-decoration:none">✉ messenger</a>
   <span>·</span>
@@ -388,6 +390,8 @@ body {
   <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
   <span>·</span>
   <a href="/desk.html" style="color:var(--dim);text-decoration:none">desk</a>
+  <span>·</span>
+  <span id="b-reseed" style="cursor:pointer;color:var(--cyan)" title="new seed — become a different viewer">↻</span>
 </div>
 
 <script>
@@ -652,16 +656,62 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 (function() {
   'use strict';
   var PI = Math.PI, TAU = PI * 2, DEG = PI / 180;
+
+  // ═══════════════════════════════════════════════════════════
+  // SELF-SEED: every visit gets a unique seed. Same seed = same HUD.
+  // The seed IS the viewer. I = IS. The viewer defines the present tense.
+  // Share ?seed=X to show someone YOUR exact view.
+  // ═══════════════════════════════════════════════════════════
+  var urlSeed = new URLSearchParams(location.search).get('seed');
+  var SEED = urlSeed ? parseInt(urlSeed, 10) : (crypto.getRandomValues(new Uint32Array(1))[0]);
+  if (!urlSeed) {
+    var u = new URL(location.href);
+    u.searchParams.set('seed', SEED);
+    history.replaceState(null, '', u);
+  }
+
+  // mulberry32 — deterministic PRNG from seed (Tommy Ettinger, public domain)
+  function mulberry32(s) {
+    return function() {
+      s |= 0; s = s + 0x6D2B79F5 | 0;
+      var t = Math.imul(s ^ s >>> 15, s | 1);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var rng = mulberry32(SEED);
+
+  // Seeded helpers
+  function rngRange(lo, hi) { return lo + rng() * (hi - lo); }
+  function rngInt(lo, hi) { return Math.floor(rngRange(lo, hi)); }
+  function rngPick(arr) { return arr[rngInt(0, arr.length)]; }
+
+  // ═══════════════════════════════════════════════════════════
+  // METALOCAL TENSE: I = IS. The viewer is always present tense.
+  // WAS = what was here before I arrived.  NOW = what I'm about to see.
+  // END = the asymptote I'll never reach.
+  // Each viewer's seed shifts what counts as IS vs WAS vs NOW.
+  // The medieval era IS now if you're standing in it.
+  // ═══════════════════════════════════════════════════════════
+  var VIEWER_EPOCH = Date.now();
+  var TENSE_PHASE = (SEED % 1000) / 1000; // 0..1 — viewer's temporal offset
+
   var canvas = document.getElementById('kn-globe');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var W, H, cx, cy, R;
-  var rotX = 0.4, rotY = -1.4; // start looking at Great Lakes / Lansing
-  var autoRotate = true, rotSpeed = 0.0008;
+
+  // Seed-derived initial orientation: every viewer sees a different face first
+  var rotX = rngRange(0.1, 0.7);
+  var rotY = rngRange(-PI, PI);
+  var autoRotate = true, rotSpeed = rngRange(0.0004, 0.0012);
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
-  var breathT = 0, baseR = 0, breathAmp = 0.06, breathRate = 0.008;
-  var heartPhase = 0;
+  var breathT = rng() * TAU; // start at random breath phase
+  var baseR = 0;
+  var breathAmp = rngRange(0.04, 0.08);
+  var breathRate = rngRange(0.006, 0.010);
+  var heartPhase = rng() * TAU; // start at random heartbeat phase
 
   // Map each HUD organ to a lat/lon on the globe
   // TENSE x VOXEL DISTANCE SORT — Gaia's senses of our distance from her
@@ -755,6 +805,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     return { x: cx + x * R, y: cy - y * R, z: z, visible: z > 0 };
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // METALOCAL ERA — seed determines what "era" the viewer is in
+  // Every HUD is hyperlocal. I = IS. The era is NOW for you.
+  // ═══════════════════════════════════════════════════════════
+  var ERAS = [
+    'dawn', 'stone', 'bronze', 'iron', 'classical', 'medieval',
+    'renaissance', 'industrial', 'atomic', 'digital', 'neural',
+    'mycelial', 'geodesic', 'null', 'post-human', 'spore'
+  ];
+  var VIEWER_ERA = rngPick(ERAS);
+  var VIEWER_HUE = rngRange(0, 360); // unique color tint for this viewer
+
+  // Write seed info to bottom bar
+  var bSeed = document.getElementById('b-seed');
+  var bEra = document.getElementById('b-era');
+  var bTense = document.getElementById('b-tense');
+  var bReseed = document.getElementById('b-reseed');
+  if (bSeed) bSeed.textContent = '#' + (SEED >>> 0).toString(16).toUpperCase().slice(0, 8);
+  if (bEra) bEra.textContent = VIEWER_ERA;
+  if (bTense) bTense.textContent = 'I=IS';
+  if (bSeed) bSeed.onclick = function() {
+    navigator.clipboard.writeText(location.href);
+    bSeed.textContent = 'copied!';
+    setTimeout(function() { bSeed.textContent = '#' + (SEED >>> 0).toString(16).toUpperCase().slice(0, 8); }, 1500);
+  };
+  if (bReseed) bReseed.onclick = function() {
+    var u = new URL(location.href);
+    u.searchParams.delete('seed');
+    location.href = u.toString();
+  };
+
   function resize() {
     var par = canvas.parentElement;
     W = canvas.width = par.clientWidth;
@@ -777,20 +858,27 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // BINOCULAR OVERLAY — CIS (blue/left eye) and TRANS (green/right eye) simultaneously
     var bv = Math.sin(breathT);
     var glowIntensity = 0.04 + bv * 0.04;
-    // CIS layer (blue, outside, left eye)
+    // CIS layer (blue, outside, left eye) — tinted by viewer hue
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, TAU);
+    var hShift = VIEWER_HUE;
+    var cisR = Math.round(88 + 30 * Math.sin(hShift * DEG));
+    var cisG = Math.round(166 + 30 * Math.cos(hShift * DEG));
+    var cisB = Math.round(255 - 20 * Math.sin(hShift * DEG * 0.7));
     var gCIS = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-    gCIS.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
+    gCIS.addColorStop(0, 'rgba(' + cisR + ',' + cisG + ',' + cisB + ',' + (glowIntensity + 0.02).toFixed(3) + ')');
     gCIS.addColorStop(1, 'rgba(6,8,16,0.95)');
     ctx.fillStyle = gCIS;
     ctx.fill();
-    // TRANS layer (green, inside, right eye) — overlaid
+    // TRANS layer (green, inside, right eye) — tinted by viewer hue
     ctx.globalCompositeOperation = 'screen';
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, TAU);
+    var transR = Math.round(90 + 25 * Math.cos(hShift * DEG * 1.3));
+    var transG = Math.round(184 + 25 * Math.sin(hShift * DEG));
+    var transB = Math.round(122 + 30 * Math.cos(hShift * DEG * 0.5));
     var gTRANS = ctx.createRadialGradient(cx + R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-    gTRANS.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity * 0.7).toFixed(3) + ')');
+    gTRANS.addColorStop(0, 'rgba(' + transR + ',' + transG + ',' + transB + ',' + (glowIntensity * 0.7).toFixed(3) + ')');
     gTRANS.addColorStop(1, 'rgba(6,8,16,0)');
     ctx.fillStyle = gTRANS;
     ctx.fill();
@@ -945,6 +1033,31 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     });
 
     // Render pins
+    // SEED-DERIVED STARS — unique constellation per viewer
+    // Uses a separate rng stream so it doesn't perturb the main sequence
+    var starRng = mulberry32(SEED ^ 0xDEADBEEF);
+    var starCount = 12 + Math.floor(starRng() * 20);
+    ctx.globalAlpha = 0.15 + Math.sin(breathT * 0.5) * 0.05;
+    for (var si = 0; si < starCount; si++) {
+      var sLat = (starRng() - 0.5) * 160;
+      var sLon = (starRng() - 0.5) * 360;
+      var sp = project(sLat, sLon);
+      if (sp.visible) {
+        var sSz = 0.5 + starRng() * 1.5;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, sSz, 0, TAU);
+        ctx.fillStyle = 'hsla(' + (VIEWER_HUE + starRng() * 60) + ',70%,80%,0.6)';
+        ctx.fill();
+        // Connect some stars into constellations
+        if (si > 0 && starRng() > 0.6) {
+          var prevLat = (mulberry32(SEED ^ 0xDEADBEEF ^ (si - 1))() - 0.5) * 160;
+          var prevLon = (mulberry32(SEED ^ 0xDEADBEEF ^ (si - 1))() - 0.5) * 360;
+          // Skip — too complex for constellation lines, just scatter the stars
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+
     // TENSE x VOXEL SORT RENDER — Gaia attends more to closer things
     PINS.forEach(function(pin) {
       if (pin.face !== 'both' && pin.face !== face) return;
