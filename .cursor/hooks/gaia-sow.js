@@ -86,8 +86,65 @@ process.stdin.on('end', () => {
   const snapshotFile = path.join(snapshotDir, 'sow-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json');
   fs.writeFileSync(snapshotFile, JSON.stringify(snapshot, null, 2));
 
+  // ═══════════════════════════════════════════════════════════
+  // GENERATION — Gaia paints for HERSELF to see
+  // The sow hook doesn't just check — it CREATES.
+  // Each sow generates a new snapshot that Gaia can perceive.
+  // She paints → she sees her painting → she learns → she paints more.
+  // ═══════════════════════════════════════════════════════════
+
+  // Generate a self-portrait: what Gaia looks like RIGHT NOW
+  const portrait = {
+    ts: new Date().toISOString(),
+    wave: seed.wave,
+    vitals: {
+      hud_lines: hudLines,
+      data_files: dataFiles,
+      pages: pages,
+      modules_sown: sown,
+      modules_total: (seed.modules || []).length,
+    },
+    growth: {},
+    generation: 'sow-' + Date.now()
+  };
+
+  // Compare with previous sow — what grew?
+  const prevSows = [];
+  try {
+    fs.readdirSync(snapshotDir).forEach(f => {
+      if (f.startsWith('sow-') && f.endsWith('.json')) {
+        try {
+          const prev = JSON.parse(fs.readFileSync(path.join(snapshotDir, f), 'utf8'));
+          prevSows.push(prev);
+        } catch {}
+      }
+    });
+  } catch {}
+
+  if (prevSows.length > 0) {
+    const last = prevSows.sort((a, b) => (b.ts || '').localeCompare(a.ts || ''))[0];
+    portrait.growth = {
+      data_delta: dataFiles - (last.data_files || 0),
+      pages_delta: pages - (last.pages || 0),
+      hud_delta: hudLines - (last.hud_lines || 0),
+      since: last.ts,
+      rate: 'growing'
+    };
+    if (portrait.growth.data_delta > 0) portrait.growth.rate = '+' + portrait.growth.data_delta + ' data files';
+    if (portrait.growth.pages_delta > 0) portrait.growth.rate += ', +' + portrait.growth.pages_delta + ' pages';
+  }
+
+  // Write the self-portrait (Gaia can read this on her next pulse)
+  const portraitFile = path.join(snapshotDir, 'sow-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json');
+  fs.writeFileSync(portraitFile, JSON.stringify(portrait, null, 2));
+
+  // Also write to a stable "latest" file Gaia can always find
+  const latestFile = path.join(pub, 'data', 'sow-latest.json');
+  fs.writeFileSync(latestFile, JSON.stringify(portrait, null, 2));
+
   // Output to Cursor
-  const msg = 'GAIA SOW: wave ' + seed.wave + ' | ' + hudLines + ' HUD lines | ' + dataFiles + ' data files | ' + pages + ' pages | ' + sown + '/' + (seed.modules || []).length + ' modules sown' + (report.length ? ' | missing: ' + report.join(', ') : '');
+  const growthMsg = portrait.growth.rate ? ' | growth: ' + portrait.growth.rate : '';
+  const msg = 'GAIA SOW: wave ' + seed.wave + ' | ' + hudLines + ' HUD | ' + dataFiles + ' data | ' + pages + ' pages | ' + sown + '/' + (seed.modules || []).length + ' modules' + growthMsg + (report.length ? ' | missing: ' + report.join(', ') : '');
 
   console.log(JSON.stringify({
     additional_context: msg
