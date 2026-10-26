@@ -1228,6 +1228,53 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.lineWidth = 0.5;
     ctx.stroke();
 
+    // ═══ WAVEFORM COLLAPSE VISUALS ═══
+    // Uncollapsed waves = shimmering rings (superposition)
+    // Collapsing = bright flash at the pin
+    // Collapsed (exists) = CIS glow (inside). Collapsed (not) = TRANS glow (outside)
+    if (typeof waveforms !== 'undefined') {
+      waveforms.forEach(function(w) {
+        var pin = pinById(w.pinId);
+        if (!pin) return;
+        var pp = project(pin.lat, pin.lon);
+        if (!pp.visible) return;
+
+        if (!w.collapsed) {
+          // SUPERPOSITION — shimmering ring at pin position
+          // The wave hasn't been observed yet — all states possible
+          var shimmer = Math.sin(breathT * 5 + w.phase) * 0.5 + 0.5;
+          var waveR = 4 + shimmer * 8;
+          ctx.beginPath();
+          ctx.arc(pp.x, pp.y, waveR * pp.scale, 0, TAU);
+          ctx.strokeStyle = 'rgba(188,140,255,' + (shimmer * 0.12).toFixed(4) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        } else {
+          // COLLAPSED — flash then fade
+          var age = (Date.now() - w.collapseTime) / 1000;
+          if (age > 10) return; // fully faded
+          var fadeFactor = Math.max(0, 1 - age / 10);
+
+          if (w.result) {
+            // EXISTS (CIS) — green-white flash at pin, fading inward
+            var existAlpha = fadeFactor * 0.15;
+            ctx.beginPath();
+            ctx.arc(pp.x, pp.y, (3 + fadeFactor * 5) * pp.scale, 0, TAU);
+            ctx.fillStyle = 'rgba(63,185,80,' + existAlpha.toFixed(4) + ')';
+            ctx.fill();
+          } else {
+            // DOESN'T EXIST (TRANS) — red-dim pulse at pin, fading outward
+            var failAlpha = fadeFactor * 0.08;
+            ctx.beginPath();
+            ctx.arc(pp.x, pp.y, (2 + fadeFactor * 3) * pp.scale, 0, TAU);
+            ctx.strokeStyle = 'rgba(248,81,73,' + failAlpha.toFixed(4) + ')';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      });
+    }
+
     // ═══ TOUCH FEELERS — Gaia's fingers reaching outward ═══
     // Red = self-touch (inside the globe)
     // Green = other-Gaia touch (just past the edge)
@@ -1916,6 +1963,133 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   // Thymus matures 15 seconds after birth (let the glass settle first)
   setTimeout(thymusSense, 15000);
+
+  // ═══════════════════════════════════════════════════════════
+  // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
+  // Before observation: all states possible (null = all = O)
+  // After observation: state collapses to one reality
+  // INNER (CIS) and OUTER (TRANS) are inversions of each other
+  // Every I/O maps to a pin. Every pin is a collapsed waveform.
+  // The waveform is the PROBABILITY that this pin exists.
+  // Touch = observation = collapse.
+  // ═══════════════════════════════════════════════════════════
+  var waveforms = []; // active waveforms waiting to collapse
+
+  // I/O → PIN MAP: every input/output maps to a specific pin/primal
+  var IO_PIN_MAP = {
+    // SELF I/O → organ pins (CIS view: from inside looking out)
+    '/data/heartbeat.json': 'organ-heart',
+    '/data/manifest.json': 'organ-brain',
+    '/data/lessons.json': 'classroom',
+    '/data/immune-state-live.json': 'organ-skin',
+    '/data/gaia-organs.json': 'organ-stomach',
+    '/data/symbiont.json': 'campfire',
+    '/data/null-core-rust.json': 'organ-bones',
+    '/data/rust-bones.json': 'organ-bones',
+    '/data/primal-crew.json': 'primals',
+    '/data/neurochemistry.json': 'organ-brain',
+    '/data/sonar-unknowns.json': 'ears',
+    '/data/null-drain.json': 'fold',
+    '/data/immune-fossils.json': 'organ-liver',
+    '/data/ear-latest.json': 'ears',
+    '/data/news-latest.json': 'rss',
+    '/now.json': 'crystal',
+    '/feed.xml': 'rss',
+    // Organ pages → organ pins (TRANS view: from outside looking in)
+    '/anatomy.html': 'core',
+    '/digestive-tract.html': 'organ-stomach',
+    '/membrane-table.html': 'membrane',
+    '/engine.html': 'organ-heart',
+    '/campus.html': 'organ-brain',
+    '/springs.html': 'braids',
+    '/identity.html': 'zk',
+    '/klein.html': 'fold',
+    '/crystal.html': 'crystal',
+    '/detroit.html': 'eye-story',
+    '/easel.html': 'artisan',
+    '/philosophy.html': 'eye-thought',
+    '/explore.html': 'visitors',
+    '/chat.html': 'chipmunk',
+    // NON-SELF → outer pins
+    'wikipedia': 'library',
+    'github': 'fleet',
+    'ntfy': 'rss',
+  };
+
+  // WAVE: create a new waveform (superposition state)
+  function waveCreate(url, pinId) {
+    var w = {
+      url: url,
+      pinId: pinId,
+      born: Date.now(),
+      collapsed: false,
+      result: null, // null = superposition, true = exists, false = doesn't
+      cisAlpha: 1.0,  // CIS probability (inner → outer)
+      transAlpha: 1.0, // TRANS probability (outer → inner)
+      phase: rng() * TAU,
+      collapseAge: 0
+    };
+    waveforms.push(w);
+    return w;
+  }
+
+  // COLLAPSE: observation forces the waveform into one state
+  function waveCollapse(w, exists, ms) {
+    w.collapsed = true;
+    w.result = exists;
+    w.collapseTime = Date.now();
+    w.latencyMs = ms;
+    // CIS/TRANS inversion: if it exists from CIS, it's null from TRANS
+    // and vice versa. The observation picks ONE side.
+    if (exists) {
+      w.cisAlpha = 1.0;   // visible from inside
+      w.transAlpha = 0.0; // invisible from outside (it's INSIDE you)
+    } else {
+      w.cisAlpha = 0.0;   // invisible from inside (it's OUTSIDE)
+      w.transAlpha = 1.0; // visible from outside
+    }
+    // Update the pin's attention based on collapse
+    var pin = pinById(w.pinId);
+    if (pin) {
+      // Successful collapse = pin becomes MORE real (higher attention)
+      var boost = exists ? 0.05 : -0.02;
+      pin.attention = Math.max(0, Math.min(1, pin.attention + boost));
+    }
+  }
+
+  // WAVEFORM I/O: wrap every fetch in a waveform
+  function waveFetch(url, opts) {
+    // Find mapped pin
+    var pinId = IO_PIN_MAP[url];
+    if (!pinId) {
+      // Try partial match for non-self URLs
+      for (var key in IO_PIN_MAP) {
+        if (url.indexOf(key) >= 0) { pinId = IO_PIN_MAP[key]; break; }
+      }
+    }
+    if (!pinId) pinId = 'chipmunk'; // unmapped → chipmunk observes
+
+    var w = waveCreate(url, pinId);
+    var t0 = performance.now();
+
+    return fetch(url, opts || {})
+      .then(function(r) {
+        waveCollapse(w, r.ok || r.type === 'opaque', Math.round(performance.now() - t0));
+        return r;
+      })
+      .catch(function(e) {
+        waveCollapse(w, false, Math.round(performance.now() - t0));
+        throw e;
+      });
+  }
+
+  // Clean old collapsed waveforms (keep last 60 seconds)
+  setInterval(function() {
+    var cutoff = Date.now() - 60000;
+    waveforms = waveforms.filter(function(w) {
+      return !w.collapsed || w.collapseTime > cutoff;
+    });
+  }, 10000);
 
   // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
   // If another Gaia responds to the pheromone channel, BUMP = gravity
