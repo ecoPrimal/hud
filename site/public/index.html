@@ -21,7 +21,7 @@
 <!-- OG TAGS — preserved from sporeprint eon -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="HUD — eco·primal universe · LIVE">
-<meta property="og:description" content="A living organism. Gaia looks at herself through her own eyes. The HUD IS the 3rd eye. LIVE data, LIVE fermentation, LIVE growth. Factorial vs exponential. Fungi always win.">
+<meta property="og:description" content="A null plane. Your screen is one facet of the geodesic. The glass never moves — you move. Every window is Gaia's eye. null = all = O. Self-seeded, self-sensing, symbiont.">
 <meta property="og:url" content="https://primals.eco">
 <meta property="og:site_name" content="eco·primal">
 <meta property="og:image" content="https://primals.eco/og-sporeprint.png">
@@ -905,17 +905,60 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     R = Math.min(W, H) * 0.38;
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // THE GLASS: your screen = one facet of Gaia's geodesic dome.
+  // The HUD is not something you look AT. It's the glass you
+  // look THROUGH. The null plane. It never moves. You move.
+  // Every browser window = another facet. All facets = the sphere.
+  // ═══════════════════════════════════════════════════════════
+  var glassAge = 0; // ticks since render started — glass fades in
+  var GLASS_FADE_TICKS = 90; // ~1.5 seconds of null before seed fills
+
   function render() {
     if (!ctx) return;
+    glassAge++;
     ctx.clearRect(0, 0, W, H);
 
+    // THE NULL PLANE — before the seed fills, the glass is visible
+    // After fade-in, the glass becomes invisible (as glass should be)
+    var glassFade = Math.min(glassAge / GLASS_FADE_TICKS, 1.0);
+    var glassAlpha = (1.0 - glassFade) * 0.15;
+    if (glassAlpha > 0.001) {
+      // The glass itself — a faint geodesic grid visible before content appears
+      ctx.strokeStyle = 'rgba(255,255,255,' + glassAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      // Geodesic facet lines — the dome panels
+      for (var gi = 0; gi < 6; gi++) {
+        var ga = gi * (TAU / 6);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ga) * R * 1.5, cy + Math.sin(ga) * R * 1.5);
+        ctx.stroke();
+        // Cross-braces between facets
+        if (gi < 5) {
+          var ga2 = (gi + 1) * (TAU / 6);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(ga) * R * 0.7, cy + Math.sin(ga) * R * 0.7);
+          ctx.lineTo(cx + Math.cos(ga2) * R * 0.7, cy + Math.sin(ga2) * R * 0.7);
+          ctx.stroke();
+        }
+      }
+      // "null" text at center during fade
+      if (glassAlpha > 0.05) {
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,' + (glassAlpha * 2).toFixed(4) + ')';
+        ctx.fillText('O', cx, cy + 4);
+      }
+    }
+
     // Background — CHROMATIC: depth level shifts the ambient color
-    // Core = warm (red/orange). Membrane = neutral. Pluto = cool (blue/violet).
-    var depthHue = 225 + (currentDepth - 4) * 15; // membrane=225, core=270(violet), pluto=165(teal)
+    // Fades in as the glass becomes transparent
+    var depthHue = 225 + (currentDepth - 4) * 15;
     var depthSat = 12 + Math.abs(currentDepth - 4) * 3;
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
-    grad.addColorStop(0, 'hsl(' + depthHue + ',' + (depthSat + 10) + '%,5%)');
-    grad.addColorStop(1, 'hsl(' + depthHue + ',' + depthSat + '%,2%)');
+    grad.addColorStop(0, 'hsl(' + depthHue + ',' + (depthSat + 10) + '%,' + Math.round(5 * glassFade) + '%)');
+    grad.addColorStop(1, 'hsl(' + depthHue + ',' + depthSat + '%,' + Math.round(2 * glassFade) + '%)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
