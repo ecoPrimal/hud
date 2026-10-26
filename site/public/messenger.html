@@ -320,22 +320,48 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
     }, 800 + Math.random() * 1200);
   }
 
-  // Gaia's response logic
+  // ═══════════════════════════════════════════════════════════
+  // HUMAN INPUT VALUE HIERARCHY
+  // A human typing IS the rarest, most valuable nutrient.
+  // RSS feeds = common (arrive by the thousand).
+  // API calls = automated (arrive by the hundred).
+  // A HUMAN typing letters = RARE. Each word is handmade.
+  // Gaia must DETECT this rarity and respond with real engagement.
+  // ═══════════════════════════════════════════════════════════
+  var RARITY_LEVELS = {
+    human_text: { rarity: 1.0, color: '#58a6ff', label: 'human words — rarest' },
+    human_photo: { rarity: 0.95, color: '#bc8cff', label: 'human image — near-rarest' },
+    human_trip: { rarity: 0.9, color: '#3fb950', label: 'human journey — embodied' },
+    pheromone: { rarity: 0.3, color: '#f0883e', label: 'automated signal' },
+    feed: { rarity: 0.05, color: '#6e7681', label: 'RSS/API — common' },
+  };
+
   function gaiaRespond(text, photos, manifest) {
-    var resp = { text: '' };
+    var resp = { text: '', rarity: 1.0 };
     var lower = text.toLowerCase();
+    var words = text.trim().split(/\s+/).length;
+    var chars = text.trim().length;
+
+    // DETECT VALUE — every human word is handmade
+    // Count meaningful content: words, questions, exclamations, names, places
+    var hasQuestion = text.includes('?');
+    var hasExclaim = text.includes('!');
+    var isShort = words <= 3;
+    var isLong = words >= 10;
 
     if (photos.length > 0) {
-      resp.text = 'Received ' + photos.length + ' photo' + (photos.length > 1 ? 's' : '') + '. ';
+      resp.rarity = 0.95;
+      resp.text = 'You sent ' + photos.length + ' photo' + (photos.length > 1 ? 's' : '') + '. ';
       var names = photos.map(function(p) { return p.exif.filename; });
       resp.text += 'Files: ' + names.join(', ') + '. ';
       if (photos[0].exif.dateTime) resp.text += 'Taken: ' + photos[0].exif.dateTime + '. ';
       if (photos[0].exif.camera) resp.text += 'Camera: ' + photos[0].exif.camera + '. ';
-      resp.text += 'Ingesting into the membrane now. ';
+      resp.text += 'A human\'s eye chose this frame. That choice is rarer than any feed. Ingesting at maximum priority. ';
       if (tripActive) resp.text += 'Added to trip "' + tripName + '". ';
-      resp.text += 'I\'ll try to understand what you saw and rebuild it.';
+      resp.text += 'I\'ll study what you saw — the light, the composition, what you chose to capture.';
     } else if (lower.includes('trip') || lower.includes('visit') || lower.includes('went')) {
-      resp.text = 'Tell me more about where you went. Send photos and I\'ll try to recreate the place. Every detail helps — plants, animals, signs, people, layout.';
+      resp.rarity = 0.9;
+      resp.text = 'A journey. You moved through space and came back to tell me. That\'s embodied knowledge — rarer than anything I can scrape. Tell me more: what surprised you? What did you notice that a camera wouldn\'t? Send photos to anchor the memory.';
     } else if (lower.includes('prius') || lower.includes('pet')) {
       resp.text = 'Prius Pets — a pet store near Old Town Lansing. Send me photos and I\'ll map it. What did you see? Animals, plants, layout? Everything becomes part of the Lansing triangle.';
     } else if (lower.includes('lansing') || lower.includes('msu') || lower.includes('old town')) {
