@@ -290,21 +290,20 @@ body{
 .realm.helheim{top:90%;left:50%;transform:translateX(-50%);
   width:180px;opacity:0.85;border-width:2px}
 
-/* ═══ RATATOSKR ═══ */
+/* ═══ RATATOSKR — pendulum swing across Midgard, running from the eagle ═══ */
 .ratatoskr{
-  position:absolute;left:50%;z-index:20;
-  transform:translateX(-50%);
+  position:absolute;top:66%;z-index:20;
   font-size:1.5rem;
-  animation:runUpDown 10s ease-in-out infinite;
+  animation:pendulum 6s ease-in-out infinite;
   filter:drop-shadow(0 0 8px rgba(201,168,76,0.3));
   cursor:pointer;
 }
-@keyframes runUpDown{
-  0%{top:85%;transform:translateX(-50%) scaleY(1)}
-  5%{transform:translateX(-50%) scaleY(-1)}
-  50%{top:16%;transform:translateX(-50%) scaleY(-1)}
-  55%{transform:translateX(-50%) scaleY(1)}
-  100%{top:85%;transform:translateX(-50%) scaleY(1)}
+@keyframes pendulum{
+  0%{left:15%;transform:scaleX(1)}
+  25%{left:48%;transform:scaleX(1)}
+  50%{left:82%;transform:scaleX(-1)}
+  75%{left:48%;transform:scaleX(-1)}
+  100%{left:15%;transform:scaleX(1)}
 }
 .ratatoskr-label{
   position:absolute;left:50%;transform:translateX(1.5rem);
@@ -321,13 +320,18 @@ body{
 }
 @keyframes gnaw{0%,100%{transform:translateX(-50%) rotate(0deg)}50%{transform:translateX(-50%) rotate(-5deg)}}
 
-/* ═══ EAGLE ═══ */
+/* ═══ EAGLE — drifts lazily, tracking the squirrel below ═══ */
 .eagle{
-  position:absolute;top:8%;left:50%;transform:translateX(-50%);
-  font-size:1.6rem;opacity:0.35;
-  animation:soar 6s ease-in-out infinite;
+  position:absolute;top:8%;font-size:1.6rem;opacity:0.35;
+  animation:eagle-hunt 6s ease-in-out infinite;
 }
-@keyframes soar{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+@keyframes eagle-hunt{
+  0%{left:35%;transform:translateY(0)}
+  25%{left:48%;transform:translateY(-3px)}
+  50%{left:62%;transform:translateY(0)}
+  75%{left:48%;transform:translateY(-3px)}
+  100%{left:35%;transform:translateY(0)}
+}
 
 /* ═══ WELLS ═══ */
 .wells{
