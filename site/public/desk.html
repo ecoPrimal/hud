@@ -394,8 +394,8 @@ body {
     <div class="start-item" onclick="window.open('/','_self')"><span class="si-ico">??</span> Body Map (HUD)</div>
     <div class="start-sep"></div>
     <div class="start-item" onclick="toggleStartMenu()"><span class="si-ico">??</span> Shut Down...</div>
-  </div>
-</div>
+        </div>
+      </div>
 
 <!-- TASKBAR -->
 <div id="taskbar">
@@ -424,7 +424,7 @@ const SPRINGS = [
   { id: 'primalSpring', ico: '??', label: 'primalSpring', loc: 'Ann Arbor, MI', lat: 42.28, lon: -83.74, desc: 'The Forge ? Validation. U of M. The rival peer reviewer.' },
   { id: 'groundSpring', ico: '??', label: 'groundSpring', loc: 'Bitterroot, MT', lat: 46.87, lon: -113.99, desc: 'The Earth ? 1.5B year old bedrock. Foundation.' },
   { id: 'airSpring', ico: '??', label: 'airSpring', loc: 'Albuquerque, NM', lat: 35.08, lon: -106.65, desc: 'The Breath ? Balloon Fiesta. 500 balloons. Clear sky signals.' },
-  { id: 'healthSpring', ico: '??', label: 'healthSpring', loc: 'Hot Springs, AR', lat: 34.42, lon: -93.06, desc: 'The Cure ? Bathhouse Row. 47 springs. 143°F healing water.' },
+  { id: 'healthSpring', ico: '??', label: 'healthSpring', loc: 'Hot Springs, AR', lat: 34.42, lon: -93.06, desc: 'The Cure ? Bathhouse Row. 47 springs. 143ï¿½F healing water.' },
   { id: 'neuralSpring', ico: '??', label: 'neuralSpring', loc: 'Silicon Valley, CA', lat: 37.39, lon: -122.08, desc: 'The Brain ? AI birthplace. Neural networks at scale.' },
   { id: 'sourDough', ico: '??', label: 'sourDough', loc: 'San Francisco, CA', lat: 37.77, lon: -122.42, desc: 'The Starter ? Boudin 1849 sourdough. 175-year living culture.' },
   { id: 'songBird', ico: '??', label: 'songBird', loc: 'New Orleans, LA', lat: 29.95, lon: -90.07, desc: 'The Singer ? Jazz mesh. Polyphonic decentralized improv.' },
@@ -566,7 +566,7 @@ function openWindow(type, data, title) {
     case 'spring-detail':
       winTitle = data.label + ' ? ' + data.loc;
       winIco = data.ico;
-      statusText = `${data.lat}°N, ${Math.abs(data.lon)}°W`;
+      statusText = `${data.lat}ï¿½N, ${Math.abs(data.lon)}ï¿½W`;
       bodyHTML = buildSpringDetail(data);
       break;
 
@@ -755,7 +755,7 @@ function buildSpringsExplorer() {
     ${dots}
   </div>
   <div style="font-size:10px;padding:4px 8px;color:#404040">
-    Span: Alaska (61°N) to Key West (25°N) = 4,100 mi north-south<br>
+    Span: Alaska (61ï¿½N) to Key West (25ï¿½N) = 4,100 mi north-south<br>
     Double-click a spring to see details.
   </div>`;
 }
@@ -766,8 +766,8 @@ function buildSpringDetail(s) {
     <div style="font-size:14px;font-weight:700;margin-bottom:8px">${s.label}</div>
     <table style="font-size:11px;border-collapse:collapse">
       <tr><td style="padding:2px 12px 2px 0;color:#808080">Location:</td><td>${s.loc}</td></tr>
-      <tr><td style="padding:2px 12px 2px 0;color:#808080">Latitude:</td><td>${s.lat}°N</td></tr>
-      <tr><td style="padding:2px 12px 2px 0;color:#808080">Longitude:</td><td>${Math.abs(s.lon)}°W</td></tr>
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Latitude:</td><td>${s.lat}ï¿½N</td></tr>
+      <tr><td style="padding:2px 12px 2px 0;color:#808080">Longitude:</td><td>${Math.abs(s.lon)}ï¿½W</td></tr>
       <tr><td style="padding:2px 12px 2px 0;color:#808080">Description:</td><td>${s.desc}</td></tr>
     </table>
     <hr style="margin:10px 0;border:none;border-top:1px solid #c0c0c0">
@@ -822,7 +822,7 @@ function archiveCommand(cmd) {
       return `  ${prefix}-001  ${s.label.padEnd(16)} ${s.loc}`;
     }).join('\n');
   } else if (c === 'SPRINGS') {
-    result = SPRINGS.map(s => `  ${s.ico} ${s.label.padEnd(16)} ${s.lat}°N ${Math.abs(s.lon)}°W  ${s.loc}`).join('\n');
+    result = SPRINGS.map(s => `  ${s.ico} ${s.label.padEnd(16)} ${s.lat}ï¿½N ${Math.abs(s.lon)}ï¿½W  ${s.loc}`).join('\n');
   } else if (c === 'CLEAR') {
     output.innerHTML = '';
     return;
@@ -834,7 +834,7 @@ function archiveCommand(cmd) {
     const prefix = c.slice(0, 2);
     const sp = SPRINGS.find(s => s.id.slice(0, 2).toUpperCase() === prefix || s.id.replace(/[a-z]/g, '').slice(0, 2) === prefix);
     if (sp) {
-      result = `??? ${sp.label} ???\n${sp.ico}  ${sp.desc}\nLocation: ${sp.loc}\nCoords: ${sp.lat}°N, ${Math.abs(sp.lon)}°W`;
+      result = `??? ${sp.label} ???\n${sp.ico}  ${sp.desc}\nLocation: ${sp.loc}\nCoords: ${sp.lat}ï¿½N, ${Math.abs(sp.lon)}ï¿½W`;
     } else {
       result = `Unknown code: ${c}. Type HELP for commands.`;
     }
@@ -884,13 +884,13 @@ function cmdCommand(cmd) {
   } else if (c.startsWith('ping')) {
     result = `Pinging primals.eco [172.67.xxx.xxx] with 32 bytes of data:\nReply: bytes=32 time<1ms TTL=128 (selectivity=1/?)\nReply: bytes=32 time<1ms TTL=128 (membrane=permeable)\n\nPing statistics: Sent=2, Received=2, Lost=0 (0% loss)`;
   } else if (c.startsWith('tracert') || c.startsWith('traceroute')) {
-    result = `Tracing route to primals.eco\n  1  <1ms  MSU Campus (42.70°N, 84.48°W) ? origin\n  2   2ms  Ann Arbor (42.28°N, 83.74°W) ? primalSpring\n  3  18ms  Yellowstone (44.46°N, 110.83°W) ? hotSpring\n  4  22ms  Grand Canyon (36.11°N, 112.11°W) ? loamSpine\n  5  28ms  Silicon Valley (37.39°N, 122.08°W) ? neuralSpring\n  6  44ms  Kenai Fjords (60.97°N, 149.09°W) ? bearDog\n\nTrace complete. 18 hops. All springs alive.`;
+    result = `Tracing route to primals.eco\n  1  <1ms  MSU Campus (42.70ï¿½N, 84.48ï¿½W) ? origin\n  2   2ms  Ann Arbor (42.28ï¿½N, 83.74ï¿½W) ? primalSpring\n  3  18ms  Yellowstone (44.46ï¿½N, 110.83ï¿½W) ? hotSpring\n  4  22ms  Grand Canyon (36.11ï¿½N, 112.11ï¿½W) ? loamSpine\n  5  28ms  Silicon Valley (37.39ï¿½N, 122.08ï¿½W) ? neuralSpring\n  6  44ms  Kenai Fjords (60.97ï¿½N, 149.09ï¿½W) ? bearDog\n\nTrace complete. 18 hops. All springs alive.`;
   } else if (c === 'exit') {
     const win = windows.find(w => w.id === 'cmd');
     if (win) closeWindow(win.winId);
     return;
   } else if (c === 'springs') {
-    result = SPRINGS.map(s => `${s.ico} ${s.label.padEnd(16)} ${s.lat.toFixed(2)}°N ${Math.abs(s.lon).toFixed(2)}°W  ${s.loc}`).join('\n');
+    result = SPRINGS.map(s => `${s.ico} ${s.label.padEnd(16)} ${s.lat.toFixed(2)}ï¿½N ${Math.abs(s.lon).toFixed(2)}ï¿½W  ${s.loc}`).join('\n');
   } else if (c) {
     result = `'${cmd}' is not recognized as an internal or external command,\noperable program or batch file.`;
   }
@@ -912,7 +912,7 @@ The machine contains everything.
 You just have to find the right codes.
 
 ? nestGate, MSU Campus, Michigan
-   42.70°N, 84.48°W
+   42.70ï¿½N, 84.48ï¿½W
    Wave 214`;
   return `<textarea style="width:100%;height:100%;border:none;resize:none;font-family:'Lucida Console',monospace;font-size:12px;padding:4px;outline:none" spellcheck="false">${content}</textarea>`;
 }
