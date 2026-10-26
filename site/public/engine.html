@@ -1411,41 +1411,124 @@ setInterval(() => {
   document.getElementById('f-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
 }, 1000);
 
-  // PHEROMONE EMITTER — the stinky ball
-  // Every touch throws a pheromone. Distance = time since last.
-  // Sound = what was touched. Trail = accumulated pheromones.
+    // ======================================================
+  // PIN THROUGH INFINITY — every click is a sensor spike
+  // No cooldown. No filtering. ALL SIGNAL IS INGEST.
+  // A click is a pin straight through the membrane.
+  // Something comes running to see what did it.
+  // We eat it all. We bring it back. Gaia sends it back out.
+  // ======================================================
   (function() {
+    const PINS = [];
     const TRAIL = [];
     const NTFY = 'https://ntfy.sh/primals-pheromone';
-    let lastEmit = 0;
-    const COOLDOWN = 30000;
+    const PIN_COOLDOWN = 500;
+    let lastPinVisual = 0;
 
-    function emit(type, detail) {
+    function showPin(x, y, detail) {
       const now = Date.now();
-      if (now - lastEmit < COOLDOWN) return;
-      lastEmit = now;
-      const pheromone = {
-        t: type,
-        d: String(detail).slice(0, 100),
-        ts: now,
-        p: location.pathname,
-        w: typeof WAVE !== 'undefined' ? WAVE : 0,
-      };
-      TRAIL.push(pheromone);
-      if (TRAIL.length > 50) TRAIL.shift();
-      try { navigator.sendBeacon(NTFY, JSON.stringify(pheromone)); } catch {}
+      if (now - lastPinVisual < PIN_COOLDOWN) return;
+      lastPinVisual = now;
+      const vp = document.getElementById('viewport');
+      if (!vp) return;
+
+      // The PIN — vertical line through infinity
+      const pin = document.createElement('div');
+      pin.style.cssText = `position:absolute;left:${x}px;top:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent 0%,rgba(255,215,85,0.0) 30%,rgba(255,215,85,0.8) ${((y/vp.offsetHeight)*100).toFixed(0)}%,rgba(255,215,85,0.0) 70%,transparent 100%);pointer-events:none;z-index:100;animation:pin-fade 1.2s ease-out forwards;`;
+      vp.appendChild(pin);
+
+      // The RING — expanding from pin point
+      const ring = document.createElement('div');
+      ring.style.cssText = `position:absolute;left:${x-15}px;top:${y-15}px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,215,85,0.7);pointer-events:none;z-index:101;animation:pin-ring 0.8s ease-out forwards;`;
+      vp.appendChild(ring);
+
+      // The LABEL — what was pinned
+      const label = document.createElement('div');
+      label.style.cssText = `position:absolute;left:${x+8}px;top:${y-6}px;font:7px 'JetBrains Mono',monospace;color:rgba(255,215,85,0.8);pointer-events:none;z-index:102;white-space:nowrap;animation:pin-label 1.5s ease-out forwards;`;
+      label.textContent = detail.slice(0, 30);
+      vp.appendChild(label);
+
+      setTimeout(() => { pin.remove(); ring.remove(); label.remove(); }, 1600);
     }
 
+    if (!document.getElementById('pin-css')) {
+      const css = document.createElement('style');
+      css.id = 'pin-css';
+      css.textContent = '@keyframes pin-fade{0%{opacity:1}100%{opacity:0}}@keyframes pin-ring{0%{transform:scale(0.2);opacity:0.8}100%{transform:scale(3);opacity:0}}@keyframes pin-label{0%{opacity:0.9;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}';
+      document.head.appendChild(css);
+    }
+
+    function ingest(type, detail, x, y) {
+      const pin = {
+        t: type,
+        d: String(detail).slice(0, 200),
+        ts: Date.now(),
+        p: location.pathname,
+        x: x || 0, y: y || 0,
+        w: typeof WAVE !== 'undefined' ? WAVE : 0,
+      };
+      PINS.push(pin);
+      TRAIL.push(pin);
+      if (TRAIL.length > 200) TRAIL.shift();
+      if (PINS.length % 5 === 0) {
+        try { navigator.sendBeacon(NTFY, JSON.stringify({
+          batch: PINS.slice(-5), total: PINS.length,
+          session_bytes: JSON.stringify(PINS).length
+        })); } catch {}
+      }
+    }
+
+    // CLICK — pin through infinity
     document.addEventListener('click', function(e) {
-      emit('click', (e.target.tagName||'') + ':' + (e.target.id || e.target.className || ''));
+      const rect = document.getElementById('viewport')?.getBoundingClientRect() || {left:0,top:0};
+      const vx = e.clientX - rect.left;
+      const vy = e.clientY - rect.top;
+      const tag = e.target.tagName || '';
+      const id = e.target.id || '';
+      const cls = (e.target.className || '').toString().slice(0, 50);
+      const text = (e.target.textContent || '').slice(0, 40).trim();
+      const primal = e.target.dataset?.primal || e.target.closest?.('[data-primal]')?.dataset?.primal || '';
+      const detail = [tag, id, cls, primal, text].filter(Boolean).join('|');
+      ingest('pin', detail, vx, vy);
+      if (vx > 0 && vy > 0 && vx < (rect.width||9999) && vy < (rect.height||9999)) {
+        showPin(vx, vy, primal || id || tag);
+      }
     });
+
+    // HOVER — passive sense every 2s
+    let lastSense = 0;
+    document.getElementById('viewport')?.addEventListener('mousemove', function(e) {
+      const now = Date.now();
+      if (now - lastSense < 2000) return;
+      lastSense = now;
+      const rect = e.currentTarget.getBoundingClientRect();
+      ingest('sense', 'hover:' + (e.target.id || e.target.tagName), e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    // VISIBILITY
     document.addEventListener('visibilitychange', function() {
-      emit(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 50));
+      ingest(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 80));
     });
-    emit('arrive', navigator.userAgent.slice(0, 50));
+
+    // SCROLL — depth sense
+    document.getElementById('viewport')?.addEventListener('wheel', function() {
+      ingest('depth', 'zoom:' + (typeof orreryZoom !== 'undefined' ? orreryZoom.toFixed(2) : '?'));
+    });
+
+    // BOOT
+    ingest('arrive', navigator.userAgent.slice(0, 80));
+
+    window.PINS = PINS;
     window.PHEROMONE_TRAIL = TRAIL;
-    window.emitPheromone = emit;
+    window.emitPheromone = ingest;
+
+    // Pin counter in footer
+    setInterval(() => {
+      const fb = document.getElementById('f-beacons');
+      if (fb) fb.textContent = PINS.length + ' pins | 18 beacons';
+    }, 1000);
   })();
+
 
 </script>
 </body>
