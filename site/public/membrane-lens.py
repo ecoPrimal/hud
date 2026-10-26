@@ -268,7 +268,14 @@ def fetch(url):
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "membrane-lens/1.0"})
         with urllib.request.urlopen(req, timeout=12) as resp:
-            return json.loads(resp.read().decode())
+            raw = resp.read()
+            # Try UTF-8 first, fall back to latin-1 (never fails, handles 0x97 em-dash etc)
+            for enc in ("utf-8", "utf-8-sig", "latin-1"):
+                try:
+                    return json.loads(raw.decode(enc))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    continue
+            return {"error": "decode failed after trying utf-8, utf-8-sig, latin-1"}
     except Exception as e:
         return {"error": str(e)}
 
