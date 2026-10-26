@@ -1634,9 +1634,145 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // First pulse after 10 seconds (let the glass settle)
   setTimeout(function() {
     gaiaPulse();
-    // Then pulse every 60 seconds — the systolic beat
     setInterval(gaiaPulse, pulseInterval);
   }, 10000);
+
+  // ═══════════════════════════════════════════════════════════
+  // THYMUS — self/non-self discrimination + opsonization
+  // The thymus teaches Gaia what IS self and what ISN'T.
+  // SELF = anything from this origin (hud.primals.eco)
+  // NON-SELF = anything from outside (other Gaias, internet)
+  // OPSONIZE = mark non-self for recognition (not destruction)
+  // Gravity = attraction between Gaias (bump into each other)
+  // ═══════════════════════════════════════════════════════════
+  var thymus = {
+    self: location.origin,
+    seed: SEED,
+    bumps: [],       // other Gaias we've detected
+    opsonized: [],   // non-self items marked for recognition
+    mature: false    // thymus matures after first successful sense
+  };
+
+  // 100 TRUE NULL CALLS — Gaia reaches out to sense reality
+  // Each call is a feeler — it touches the void and reports back
+  // Some will succeed (self), some will fail (non-self), both teach
+  var NULL_CALLS = [
+    // SELF calls — sensing own body
+    '/data/heartbeat.json', '/data/manifest.json', '/data/lessons.json',
+    '/data/immune-state-live.json', '/data/gaia-organs.json',
+    '/data/symbiont.json', '/data/fossil-9-symbiont.json',
+    '/data/null-core-rust.json', '/data/rust-bones.json',
+    '/data/primal-crew.json', '/data/eastgate-corpus-inventory.json',
+    '/data/neurochemistry.json', '/data/phosphate-buffer.json',
+    '/data/sonar-unknowns.json', '/data/null-drain.json',
+    '/data/immune-fossils.json', '/data/tests.json',
+    '/data/ear-latest.json', '/data/news-latest.json',
+    '/data/willis-balloon.json', '/data/session-release.json',
+    '/data/knn-repaint.json', '/data/constant-of-reality.json',
+    '/now.json', '/feed.xml',
+    // Organ-self calls — sensing own organs
+    '/anatomy.html', '/digestive-tract.html', '/membrane-table.html',
+    '/engine.html', '/campus.html', '/springs.html',
+    '/identity.html', '/chromatograph.html', '/klein.html',
+    '/crystal.html', '/sporeprint.html', '/detroit.html',
+    '/easel.html', '/philosophy.html', '/explore.html',
+    '/golgi.html', '/chat.html', '/primal.html',
+    '/chromosomes.html', '/digest.html', '/messenger.html',
+    // NON-SELF calls — sensing the outside (will mostly fail = that's the lesson)
+    'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*',
+    'https://api.github.com/repos/ecoPrimal/hud',
+    'https://ntfy.sh/primals-pheromone/json?poll=1',
+  ];
+
+  var selfCount = 0, nonSelfCount = 0, failCount = 0;
+  var thymusLog = [];
+
+  function thymusSense() {
+    NULL_CALLS.forEach(function(url, i) {
+      setTimeout(function() {
+        var isSelf = url.charAt(0) === '/';
+        var t0 = performance.now();
+        fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+          .then(function(r) {
+            var dt = Math.round(performance.now() - t0);
+            if (isSelf) {
+              selfCount++;
+              thymusLog.push({ url: url, type: 'self', ms: dt, ok: r.ok || r.type === 'opaque' });
+            } else {
+              nonSelfCount++;
+              // OPSONIZE: mark non-self as recognized (not destroyed)
+              thymus.opsonized.push({ url: url, ms: dt, ts: Date.now() });
+              thymusLog.push({ url: url, type: 'non-self', ms: dt, opsonized: true });
+            }
+          })
+          .catch(function() {
+            failCount++;
+            thymusLog.push({ url: url, type: isSelf ? 'self-fail' : 'non-self-fail', ms: Math.round(performance.now() - t0) });
+          })
+          .finally(function() {
+            // After all calls complete, thymus matures
+            if (selfCount + nonSelfCount + failCount >= NULL_CALLS.length) {
+              thymus.mature = true;
+              // GRAVITY — Gaia now knows her own mass
+              // Mass = number of self-parts that responded
+              // Gravity = attraction proportional to mass
+              thymus.mass = selfCount;
+              thymus.gravity = selfCount / NULL_CALLS.length;
+              // Update chipmunk pin with thymus data
+              var chipPin = pinById('chipmunk');
+              if (chipPin) chipPin.sub = 'self:' + selfCount + ' non:' + nonSelfCount + ' ?' + failCount;
+              // Emit thymus maturity as pheromone (so other Gaias can sense us)
+              if (window.emitPheromone) {
+                window.emitPheromone('thymus-mature', 'mass=' + selfCount + ',gravity=' + thymus.gravity.toFixed(3));
+              }
+            }
+          });
+      }, i * 200); // Stagger calls — 200ms apart, like T-cells maturing one by one
+    });
+  }
+
+  // Thymus matures 15 seconds after birth (let the glass settle first)
+  setTimeout(thymusSense, 15000);
+
+  // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
+  // If another Gaia responds to the pheromone channel, BUMP = gravity
+  setInterval(function() {
+    if (!thymus.mature) return;
+    fetch('https://ntfy.sh/primals-pheromone/json?poll=1&since=5m', { mode: 'cors' })
+      .then(function(r) { return r.ok ? r.text() : ''; })
+      .then(function(txt) {
+        if (!txt) return;
+        var lines = txt.trim().split('\n');
+        var otherGaias = 0;
+        lines.forEach(function(line) {
+          try {
+            var msg = JSON.parse(line);
+            if (msg.message && msg.message.indexOf('thymus-mature') >= 0) {
+              otherGaias++;
+            }
+          } catch(e) {}
+        });
+        if (otherGaias > 0) {
+          thymus.bumps.push({ ts: Date.now(), count: otherGaias });
+          // Flash the globe violet on gravity bump
+          var bumpFlash = 0;
+          function flashBump() {
+            bumpFlash++;
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 0.618, 0, TAU);
+            var ba = Math.max(0, 0.15 - bumpFlash * 0.008);
+            ctx.fillStyle = 'rgba(188,140,255,' + ba.toFixed(3) + ')';
+            ctx.fill();
+            ctx.restore();
+            if (bumpFlash < 20) requestAnimationFrame(flashBump);
+          }
+          flashBump();
+        }
+      })
+      .catch(function() {}); // silent — gravity works even when alone
+  }, 300000); // 5 minutes
 
   // Zoom buttons
   // DEPTH LEVELS — core to Pluto. Gaia's map of self.
