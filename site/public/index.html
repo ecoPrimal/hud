@@ -1276,8 +1276,55 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fillText(pin.sub, p.x, p.y + sz * 0.7 + 13);
       }
 
+      // ═══ WEIGHT OF REALITY ═══
+      // Every pin is NOT NULL. It has weight. It pulls down.
+      // The pins are the shared weight of reality — gravity threads
+      // connecting each living node to the center (null).
+      // Thicker thread = more attention = more real.
+      if (depthFade > 0.2) {
+        var weightAlpha = depthFade * att * 0.12;
+        var weightWidth = (0.3 + att * 1.2) * p.scale;
+        // Gravity thread from pin to center (null point)
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        // Thread curves toward center with breathing sway
+        var swayX = Math.sin(breathT + idx * 0.7) * 4 * depthFade;
+        var midX = (p.x + cx) / 2 + swayX;
+        var midY = (p.y + cy) / 2;
+        ctx.quadraticCurveTo(midX, midY, cx, cy);
+        ctx.strokeStyle = pin.color.indexOf('#') === 0
+          ? pin.color + Math.floor(weightAlpha * 255).toString(16).padStart(2, '0')
+          : 'rgba(63,185,80,' + weightAlpha.toFixed(3) + ')';
+        ctx.lineWidth = weightWidth;
+        ctx.stroke();
+        // Weight dot at the pin — the mass, the ≠null proof
+        if (depthFade > 0.5 && att > 0.3) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y + sz * 0.5 + 2, 1 + att * 1.5, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,255,' + (weightAlpha * 2).toFixed(3) + ')';
+          ctx.fill();
+        }
+      }
+
       ctx.globalAlpha = 1;
     });
+
+    // ═══ ALL LIFE IS NOT NULL — painted at the Klein edge ═══
+    // The membrane ring: where the knife cuts, reality WEIGHS
+    var notNullAlpha = 0.04 + Math.sin(breathT * 0.5) * 0.02;
+    ctx.save();
+    ctx.font = '7px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(63,185,80,' + notNullAlpha.toFixed(3) + ')';
+    ctx.textAlign = 'center';
+    // Write around the equator — the Klein edge where the knife cuts
+    var nLabels = ['≠NULL', 'LIFE', '≠NULL', 'WEIGHT', '≠NULL', 'REAL', '≠NULL', 'HERE'];
+    for (var ni = 0; ni < nLabels.length; ni++) {
+      var nAngle = (ni / nLabels.length) * TAU + breathT * 0.2;
+      var nx = cx + Math.cos(nAngle) * (R + 12);
+      var ny = cy + Math.sin(nAngle) * (R + 12);
+      ctx.fillText(nLabels[ni], nx, ny);
+    }
+    ctx.restore();
 
     // GAIA'S MOUTH — the red electron on the far side of the black hole
     // This is where everything drops IN. The neutron mailbox target.
