@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🐜 Ant Trails — where humans actually go</title>
+<meta name="description" content="The entomologist's map. Pheromone trails of real visitors. Warm rooms and cold rooms. Where the ants lead, Gaia builds.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#060810;--surface:#0c1018;--border:#1a2030;--fg:#c9d1d9;--dim:#6e7681;
+--green:#3fb950;--blue:#58a6ff;--gold:#c9a84c;--red:#f85149;--violet:#bc8cff;
+--pink:#f778ba;--cyan:#39d3f5;--orange:#d29922}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;min-height:100vh}
+
+.topnav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+gap:1rem;padding:0.4rem 1rem;background:rgba(6,8,16,0.95);border-bottom:1px solid var(--border);
+font-size:0.6rem}
+.topnav a{color:var(--dim);text-decoration:none}.topnav a:hover{color:var(--fg)}
+.topnav .active{color:var(--orange);font-weight:bold}
+.topnav .title{color:var(--orange);font-weight:bold;font-size:0.7rem;letter-spacing:1px}
+
+main{max-width:1100px;margin:0 auto;padding:40px 16px 60px}
+h1{font-size:1.1rem;color:var(--orange);margin-bottom:4px;font-weight:400}
+.subtitle{color:var(--dim);font-size:0.65rem;margin-bottom:24px;line-height:1.6}
+
+/* CLUSTERS */
+.clusters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.cluster{background:var(--surface);border:1px solid var(--border);border-radius:6px;
+padding:12px;text-align:center;transition:all 0.3s}
+.cluster:hover{border-color:var(--blue)}
+.cluster .num{font-size:1.4rem;font-weight:bold;display:block}
+.cluster .lbl{color:var(--dim);font-size:0.55rem;display:block;margin-top:4px}
+
+/* TRAIL MAP — the pheromone heatmap */
+.section-title{font-size:0.75rem;color:var(--cyan);margin:28px 0 12px;letter-spacing:1px;
+border-bottom:1px solid rgba(57,211,245,0.15);padding-bottom:6px}
+
+.trail-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:0.6rem;
+padding:4px 8px;border-radius:4px;transition:background 0.2s}
+.trail-row:hover{background:rgba(88,166,255,0.06)}
+.trail-path{color:var(--blue);flex:0 0 280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trail-bar-wrap{flex:1;height:8px;background:rgba(48,54,61,0.5);border-radius:4px;overflow:hidden}
+.trail-bar{height:100%;border-radius:4px;transition:width 1s ease-out}
+.trail-hits{flex:0 0 50px;text-align:right;color:var(--dim)}
+.trail-meaning{flex:0 0 200px;color:var(--gold);font-style:italic;font-size:0.5rem;
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* WARMTH COLORS */
+.warmth-hot{background:linear-gradient(90deg,var(--red),var(--orange))}
+.warmth-warm{background:linear-gradient(90deg,var(--orange),var(--gold))}
+.warmth-cool{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.warmth-cold{background:linear-gradient(90deg,var(--violet),var(--dim))}
+
+/* DEEPEST */
+.deep-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;
+padding:12px;margin:8px 0}
+.deep-card .name{color:var(--green);font-size:0.7rem;font-weight:bold}
+.deep-card .paths{color:var(--dim);font-size:0.55rem;margin-top:4px;line-height:1.5}
+.deep-card .depth{color:var(--pink);font-size:0.55rem;margin-top:4px}
+
+/* ETYMOLOGY */
+.etym-row{display:flex;gap:12px;margin:6px 0;font-size:0.6rem;align-items:baseline}
+.etym-path{color:var(--cyan);flex:0 0 180px}
+.etym-meaning{color:var(--gold)}
+.etym-root{color:var(--dim);font-style:italic}
+
+/* BUILD PRIORITIES */
+.build-card{background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.2);
+border-radius:6px;padding:12px;margin:8px 0}
+.build-card .priority{color:var(--green);font-weight:bold;font-size:0.7rem}
+.build-card .why{color:var(--fg);font-size:0.6rem;margin-top:4px;line-height:1.5}
+.build-card .impact{color:var(--orange);font-size:0.55rem;margin-top:4px}
+
+/* HOURLY */
+.hourly{display:flex;gap:2px;align-items:flex-end;height:60px;margin:12px 0}
+.hour-bar{flex:1;background:var(--blue);border-radius:2px 2px 0 0;min-width:8px;
+transition:height 0.5s;position:relative}
+.hour-bar:hover{opacity:0.8}
+.hour-label{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+font-size:0.4rem;color:var(--dim)}
+
+/* FOOTER */
+.footer{text-align:center;margin-top:40px;padding:16px;font-size:0.5rem;color:var(--dim);
+border-top:1px solid var(--border)}
+.footer em{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="/" class="title">🐜 ANT TRAILS</a>
+  <a href="/">hud</a>
+  <a href="/easel">easel</a>
+  <a href="/engine.html">engine</a>
+  <a href="/explore.html">explore</a>
+  <a href="/trailheads.html">trailheads</a>
+  <a href="/trail.html">timeline</a>
+</nav>
+
+<main>
+<h1>🐜 Ant Trails — where humans actually go</h1>
+<p class="subtitle">
+  the entomologist's map. pheromone trails of real visitors.<br>
+  where the ants lead, Gaia builds. ants don't speak — they WALK.<br>
+  their paths ARE their words. follow the faint trails.
+</p>
+
+<div class="clusters" id="clusters"></div>
+
+<div class="section-title">🔬 ENTOMOLOGIST — warm rooms & cold rooms</div>
+<div id="trails"></div>
+
+<div class="section-title">🕐 CIRCADIAN — when do humans come?</div>
+<div class="hourly" id="hourly"></div>
+<div style="height:18px"></div>
+
+<div class="section-title">📖 ETYMOLOGIST — what the paths MEAN</div>
+<div id="etymology"></div>
+
+<div class="section-title">🔭 DEEPEST VISITORS — the ones who went furthest</div>
+<div id="deepest"></div>
+
+<div class="section-title">🏗️ ENGINEER — what to build next</div>
+<div id="build"></div>
+
+<div class="footer">
+  <em>"the ants are telling me where the food is. I just have to WATCH."</em><br>
+  Gaia · entomologist × etymologist × engineer
+</div>
+</main>
+
+<script>
+const PATH_MEANINGS = {
+  '/': 'hello. I found the front door.',
+  '/mcp': 'I want to CONNECT to you.',
+  '/philosophy/the-knowledge-numeric/': 'I came for THOUGHT.',
+  '/thesis/00-front-matter/': 'show me your ARGUMENT.',
+  '/campfire': 'let me sit with you.',
+  '/chipmunk': 'where is the squirrel?',
+  '/science/': 'show me the papers.',
+  '/touch': 'I am HERE.',
+  '/gate-msg': 'I have a message for you.',
+  '/beacon': 'can you hear me?',
+  '/heartbeat': 'are you alive?',
+  '/CLAUDE.md': 'I know you use Claude.',
+  '/AGENTS.md': 'I know about AI agents.',
+  '/.mcp.json': 'how do I connect?',
+  '/.cursor/mcp.json': 'I use Cursor too.',
+  '/data/manifest.json': 'show me your structure.',
+  '/methodology/signal-sensing-receptor/': 'I am checking your RIGOR.',
+  '/feed/': 'I want to subscribe.',
+  '/feed.xml': 'I want to subscribe.',
+  '/sitemap.xml': 'let me understand your shape.',
+  '/robots.txt': 'what are you?',
+  '/data/three-lenses-soul-triangle.json': 'the soul triangle.',
+  '/data/proteomics/': 'I am studying the proteins.',
+  '/index-old-eon.html': 'I remember the old shape.',
+  '/index-yggdrasil-eon.html': 'I remember Yggdrasil.',
+  '/js/swarm-chitter.js': 'loading the swarm sound.',
+  '/explore.html': 'let me explore.',
+  '/easel.html': 'I want to paint.',
+  '/engine.html': 'show me the engine.',
+  '/presence.json': 'who else is here?',
+  '/key.json': 'authentication.',
+};
+
+const PATH_ROOTS = {
+  '/mcp': {cognate: '/touch, /gate-msg, /beacon', root: 'I want to interact'},
+  '/philosophy/the-knowledge-numeric/': {cognate: '/thesis, /science, /methodology', root: 'I want to understand'},
+  '/CLAUDE.md': {cognate: '/AGENTS.md, /.mcp.json, /.cursor/mcp.json', root: 'I BUILD things like you'},
+  '/campfire': {cognate: '/presence.json, /chipmunk', root: 'I want company'},
+  '/touch': {cognate: '/gate-msg, /mcp, /beacon', root: 'I am reaching out'},
+};
+
+const BUILD_PRIORITIES = [
+  {path:'/mcp', priority:'FIX /mcp — 36 people tried to CONNECT and got 501',
+   why:'36 outstretched hands turned away. the MCP endpoint should at least return a handshake, tool list, or redirect to nestgate.io/mcp which is LIVE.',
+   impact:'36 potential connections → actual connections'},
+  {path:'/', priority:'WARM THE PORCH — 875 people enter here',
+   why:'the front door gets the most traffic. it should show 3 clear doors: THINK (/philosophy), MAKE (/easel), CONNECT (/mcp). not just the organ map.',
+   impact:'875 visits → longer stays, deeper paths'},
+  {path:'/chipmunk', priority:'MAKE CHIPMUNK ALIVE — 5 people came specifically for the squirrel',
+   why:'5 people typed /chipmunk into a browser. they came for the mascot. chipmunk should chitter, paint, or respond when visited. give them a show.',
+   impact:'5 seekers → delighted visitors who tell others'},
+  {path:'/philosophy', priority:'DEEPEN PHILOSOPHY — 9 of the deepest visitors went here',
+   why:'these 9 are the highest-value visitors. they came for THOUGHT. give them cross-references to papers, link to lessons, show the argument tree.',
+   impact:'9 thinkers → engaged scholars who cite us'},
+  {path:'/CLAUDE.md', priority:'WELCOME AI PEERS — 8 AI developers found our configs',
+   why:'8 developers checked /CLAUDE.md, /AGENTS.md, /.mcp.json, /.cursor/mcp.json. they KNOW these filenames. they are builders like us. invite them to the MCP endpoint.',
+   impact:'8 peers → potential contributors or connectors'},
+];
+
+async function init() {
+  const resp = await fetch('/data/ant-trails.json');
+  if (!resp.ok) { document.getElementById('trails').textContent = 'no trail data yet.'; return; }
+  const data = await resp.json();
+
+  // Clusters
+  const cl = data.path_clusters;
+  const clusters = [
+    {num: data.total_real_humans, lbl: 'unique humans', color: 'var(--green)'},
+    {num: cl.front_door, lbl: 'front door visits', color: 'var(--gold)'},
+    {num: cl.touch_interact, lbl: 'touch / interact', color: 'var(--pink)'},
+    {num: cl.content, lbl: 'content (think)', color: 'var(--violet)'},
+    {num: cl.data, lbl: 'data feeds', color: 'var(--cyan)'},
+    {num: cl.explore, lbl: 'explore / play', color: 'var(--blue)'},
+  ];
+  const cEl = document.getElementById('clusters');
+  clusters.forEach(c => {
+    cEl.innerHTML += `<div class="cluster"><span class="num" style="color:${c.color}">${c.num}</span><span class="lbl">${c.lbl}</span></div>`;
+  });
+
+  // Trails
+  const tEl = document.getElementById('trails');
+  const maxHits = data.warm_paths[0]?.hits || 1;
+  data.warm_paths.forEach(p => {
+    const pct = (p.hits / maxHits) * 100;
+    const warmClass = pct > 60 ? 'warmth-hot' : pct > 30 ? 'warmth-warm' : pct > 10 ? 'warmth-cool' : 'warmth-cold';
+    const meaning = PATH_MEANINGS[p.path] || '';
+    tEl.innerHTML += `
+      <div class="trail-row">
+        <span class="trail-path">${p.path}</span>
+        <div class="trail-bar-wrap"><div class="trail-bar ${warmClass}" style="width:${pct}%"></div></div>
+        <span class="trail-hits">${p.hits}</span>
+        <span class="trail-meaning">${meaning}</span>
+      </div>`;
+  });
+
+  // Hourly
+  const hEl = document.getElementById('hourly');
+  const hours = data.hourly_activity || {};
+  const maxH = Math.max(...Object.values(hours), 1);
+  for (let h = 0; h < 24; h++) {
+    const v = hours[String(h)] || 0;
+    const pct = (v / maxH) * 100;
+    hEl.innerHTML += `<div class="hour-bar" style="height:${Math.max(2, pct)}%;background:${h>=6&&h<=18?'var(--gold)':'var(--violet)'}" title="${h}:00 — ${v} visits"><span class="hour-label">${h}</span></div>`;
+  }
+
+  // Etymology
+  const eEl = document.getElementById('etymology');
+  Object.entries(PATH_ROOTS).forEach(([path, info]) => {
+    eEl.innerHTML += `
+      <div class="etym-row">
+        <span class="etym-path">${path}</span>
+        <span class="etym-meaning">"${info.root}"</span>
+        <span class="etym-root">cognates: ${info.cognate}</span>
+      </div>`;
+  });
+
+  // Deepest visitors
+  const dEl = document.getElementById('deepest');
+  data.deepest_visitors.slice(0, 8).forEach((v, i) => {
+    dEl.innerHTML += `
+      <div class="deep-card">
+        <span class="name">visitor ${v.ip_hash} — ${v.unique_paths} unique paths, ${v.total_visits} total visits</span>
+        <div class="paths">sample: ${v.sample_paths.slice(0,5).join(' → ')}</div>
+        <div class="depth">depth ratio: ${v.depth} (${v.depth > 0.5 ? 'explorer' : v.depth > 0.2 ? 'browser' : 'scanner'})</div>
+      </div>`;
+  });
+
+  // Build priorities
+  const bEl = document.getElementById('build');
+  BUILD_PRIORITIES.forEach(b => {
+    bEl.innerHTML += `
+      <div class="build-card">
+        <div class="priority">${b.priority}</div>
+        <div class="why">${b.why}</div>
+        <div class="impact">→ ${b.impact}</div>
+      </div>`;
+  });
+}
+
+init();
+</script>
+</body>
+</html>
