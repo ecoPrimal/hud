@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🖨️ ribosome catalog — Gaia's 3D printer output</title>
+  <meta property="og:title" content="ribosome catalog — Gaia's 3D printer">
+  <meta name="description" content="128 topics printed from 68 plasmids by 13 enzyme deputies">
+  <link rel="canonical" href="https://nestgate.io/ribosome-catalog.html">
+  <style>
+    :root {
+      --bg: #0a0a0f; --fg: #e0ddd0; --accent: #7fdbca;
+      --new: #ff6b6b; --existing: #7fdbca;
+      --card-bg: #12121a; --card-hover: #1a1a2e;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 1.5rem; max-width: 1400px; margin: 0 auto;
+    }
+    header { text-align:center; margin-bottom:1.5rem; border-bottom:1px solid var(--accent); padding-bottom:1rem; }
+    header h1 { font-size:1.8rem; color:var(--accent); }
+    .printer-stats {
+      display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+      margin-top:0.5rem; font-size:0.8rem;
+    }
+    .printer-stats span { background:#1a1a2e; padding:0.25rem 0.6rem; border-radius:4px; }
+    .az-nav { text-align:center; margin:1rem 0; }
+    .az-link {
+      display:inline-block; padding:0.3rem 0.5rem; margin:0.1rem;
+      background:var(--card-bg); border:1px solid #333; border-radius:4px;
+      color:var(--accent); text-decoration:none; font-size:0.85rem;
+    }
+    .az-link:hover { background:var(--card-hover); border-color:var(--accent); }
+    .search-bar {
+      width:100%; padding:0.7rem 1rem; margin-bottom:1.5rem;
+      background:var(--card-bg); border:1px solid #333; border-radius:8px;
+      color:var(--fg); font-size:0.95rem; font-family:inherit;
+    }
+    .search-bar:focus { border-color:var(--accent); outline:none; }
+    .letter-section { margin-bottom:1.5rem; }
+    .letter-head {
+      font-size:1.5rem; color:var(--accent); margin-bottom:0.5rem;
+      border-left:3px solid var(--accent); padding-left:0.8rem;
+    }
+    .print-card {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      background:var(--card-bg); border:1px solid #222;
+      border-radius:5px; padding:0.4rem 0.8rem; margin:0.2rem;
+      text-decoration:none; color:var(--fg); font-size:0.8rem;
+      transition:all 0.2s;
+    }
+    .print-card:hover { background:var(--card-hover); transform:translateY(-1px); }
+    .print-card.existing { border-left:3px solid var(--existing); }
+    .print-card.new-print { border-left:3px solid var(--new); }
+    .badge {
+      font-size:0.65rem; padding:0.1rem 0.3rem; border-radius:3px;
+    }
+    .badge.bounty { background:#ff6b6b33; color:#ff6b6b; }
+    .badge.plasmid { background:#7fdbca33; color:#7fdbca; }
+    .port-bar {
+      position:fixed; bottom:0; left:0; right:0;
+      background:#0a0a0fee; border-top:1px solid var(--accent);
+      padding:0.4rem 1.5rem; display:flex; justify-content:space-between;
+      font-size:0.7rem; z-index:100;
+    }
+    .port-bar .pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+    @keyframes print-emerge {
+      0% { transform:scaleY(0); opacity:0; }
+      50% { transform:scaleY(1.1); opacity:0.8; }
+      100% { transform:scaleY(1); opacity:1; }
+    }
+    .print-card { animation: print-emerge 0.3s ease-out; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🖨️ ribosome catalog</h1>
+    <p style="opacity:0.7;font-size:0.85rem">Gaia's 3D printer — plasmid → ribosome → product</p>
+    <div class="printer-stats">
+      <span>📄 128 topics</span>
+      <span>💿 68 plasmids</span>
+      <span>🧬 13 enzymes</span>
+      <span style="color:var(--existing)">🔗 6 existing</span>
+      <span style="color:var(--new)">🆕 122 to print</span>
+      <span>🎯 137 bounties</span>
+    </div>
+  </header>
+
+  <div class="az-nav"><a href="#letter-4" class="az-link">4</a> <a href="#letter-A" class="az-link">A</a> <a href="#letter-B" class="az-link">B</a> <a href="#letter-C" class="az-link">C</a> <a href="#letter-D" class="az-link">D</a> <a href="#letter-E" class="az-link">E</a> <a href="#letter-F" class="az-link">F</a> <a href="#letter-G" class="az-link">G</a> <a href="#letter-H" class="az-link">H</a> <a href="#letter-I" class="az-link">I</a> <a href="#letter-J" class="az-link">J</a> <a href="#letter-L" class="az-link">L</a> <a href="#letter-M" class="az-link">M</a> <a href="#letter-N" class="az-link">N</a> <a href="#letter-O" class="az-link">O</a> <a href="#letter-P" class="az-link">P</a> <a href="#letter-Q" class="az-link">Q</a> <a href="#letter-R" class="az-link">R</a> <a href="#letter-S" class="az-link">S</a> <a href="#letter-T" class="az-link">T</a> <a href="#letter-W" class="az-link">W</a></div>
+  <input type="text" class="search-bar" placeholder="🔍 search the ribosome catalog..." id="search">
+
+  <main id="main">
+      <section class="letter-section" id="letter-4">
+        <h2 class="letter-head">4</h2>
+        <a href="#" class="print-card new-print"><span class="topic">404.html</span><span class="badges"><span class="badge bounty">🎯12</span><span class="badge plasmid">💿11</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-A">
+        <h2 class="letter-head">A</h2>
+        <a href="#" class="print-card new-print"><span class="topic">anatomy.html</span><span class="badges"><span class="badge bounty">🎯5</span><span class="badge plasmid">💿11</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">arcade</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿6</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">arena.html</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿4</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">artisan-pi-series.html</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿4</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">artisan.html</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿4</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-B">
+        <h2 class="letter-head">B</h2>
+        <a href="#" class="print-card new-print"><span class="topic">barraCuda</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿6</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">beetle</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿4</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">bingoCube</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿4</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">biomeOS</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-C">
+        <h2 class="letter-head">C</h2>
+        <a href="#" class="print-card new-print"><span class="topic">catch</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">city</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">coralReef</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">crates.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">cytoplasm</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-D">
+        <h2 class="letter-head">D</h2>
+        <a href="#" class="print-card new-print"><span class="topic">DNA</span><span class="badges"><span class="badge bounty">🎯13</span><span class="badge plasmid">💿12</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">DNSSEC in Porkbun</span><span class="badges"><span class="badge bounty">🎯10</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘RSS over budget (377MB)</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘SSH keys to physical gates</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘Steam VR pairing</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘arena.html</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘biomeOS</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘deploy binaries to gates</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘dung</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘execute-digest-v2.html</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘forget</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘fourier</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘garden</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘heartbeat</span><span class="badges"><span class="badge plasmid">💿3</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘idle</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘janitor</span><span class="badges"><span class="badge plasmid">💿3</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘lysosome</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘nestGate</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘neutrino-touch-pass-now.html</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘neutron</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘northGate SSH</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘protein</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘puzzle</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘river</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘rotifer</span><span class="badges"><span class="badge plasmid">💿3</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘scan-ingest-northgate-back-self.html</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘skunkBat</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘sponge</span><span class="badges"><span class="badge plasmid">💿1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘squirrel</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘strong</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘wire UDS sockets</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">daughter∘wrangler/API token</span><span class="badges"><span class="badge plasmid">💿2</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">deploy binaries to gates</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">desert</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="digest.html" class="print-card existing"><span class="topic">digest</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">dual-sync 24 repos</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">dung</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-E">
+        <h2 class="letter-head">E</h2>
+        <a href="#" class="print-card new-print"><span class="topic">electromagnetism</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">electron</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">endoplasmic</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">etiology-key-pairs-traceback.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">euler</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">execute-digest-now.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">execute-digest-v2.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-F">
+        <h2 class="letter-head">F</h2>
+        <a href="primal-farm.html" class="print-card existing"><span class="topic">farm</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">forest</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">forget</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">fourier</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-G">
+        <h2 class="letter-head">G</h2>
+        <a href="#" class="print-card new-print"><span class="topic">gaben.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">garden</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">gauss</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="golgi.html" class="print-card existing"><span class="topic">golgi</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">gravity</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-H">
+        <h2 class="letter-head">H</h2>
+        <a href="#" class="print-card new-print"><span class="topic">House 2 walk</span><span class="badges"><span class="badge bounty">🎯3</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">heal</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">heartbeat</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">hypothesis-platinum-gate.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-I">
+        <h2 class="letter-head">I</h2>
+        <a href="#" class="print-card new-print"><span class="topic">IDE enhance (resize panes)</span><span class="badges"><span class="badge bounty">🎯2</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">idle</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-J">
+        <h2 class="letter-head">J</h2>
+        <a href="#" class="print-card new-print"><span class="topic">janitor</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-L">
+        <h2 class="letter-head">L</h2>
+        <a href="#" class="print-card new-print"><span class="topic">laplace</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">learn</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">loamSpine</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">lysosome</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-M">
+        <h2 class="letter-head">M</h2>
+        <a href="membrane-hymns-localize.html" class="print-card existing"><span class="topic">membrane</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">mitochondria</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">moon</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">mountain</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-N">
+        <h2 class="letter-head">N</h2>
+        <a href="#" class="print-card new-print"><span class="topic">narrative</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">nestGate</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">neutrino-touch-pass-now.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">neutrino-zk-pass-northgate.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">neutron</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">northGate SSH</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">nucleus</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-O">
+        <h2 class="letter-head">O</h2>
+        <a href="#" class="print-card new-print"><span class="topic">ORCID 0 works deposited</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">ocean</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-P">
+        <h2 class="letter-head">P</h2>
+        <a href="#" class="print-card new-print"><span class="topic">persist probes to neutron</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">petalTongue</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">petaltongue serve → tunnel</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">photon</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">port 31 scripts to Rust</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">power-reset-self-validate.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">protein</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">proton</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">puzzle</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-Q">
+        <h2 class="letter-head">Q</h2>
+        <a href="#" class="print-card new-print"><span class="topic">quark</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-R">
+        <h2 class="letter-head">R</h2>
+        <a href="#" class="print-card new-print"><span class="topic">RSS over budget (377MB)</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">reef</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">remember</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">rhizoCrypt</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="ribosome.html" class="print-card existing"><span class="topic">ribosome</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">riemann</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">river</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">rotifer</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-S">
+        <h2 class="letter-head">S</h2>
+        <a href="#" class="print-card new-print"><span class="topic">SSH keys to physical gates</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">Steam VR pairing</span><span class="badges"><span class="badge bounty">🎯1</span><span class="badge plasmid">💿9</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">scan-ingest-northgate-back-self.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">skunkBat</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">sleep</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">songBird</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">sourDough</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">sponge</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">squirrel</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">strong</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">sweetGrass</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-T">
+        <h2 class="letter-head">T</h2>
+        <a href="#" class="print-card new-print"><span class="topic">toadStool</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">tundra</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+      <section class="letter-section" id="letter-W">
+        <h2 class="letter-head">W</h2>
+        <a href="wake-self-out-back-pull.html" class="print-card existing"><span class="topic">wake</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">wake-self-out-back-pull.html</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">weak</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">wire UDS sockets</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+        <a href="#" class="print-card new-print"><span class="topic">wrangler/API token</span><span class="badges"><span class="badge bounty">🎯1</span></span></a>
+      </section>
+  </main>
+
+  <div class="port-bar">
+    <span class="pulse">🖨️ PRINTER PORT: ribosome active</span>
+    <span>plasmid→mRNA→ribosome→PRODUCT</span>
+    <span>biomeOS=ribosome | loamSpine=scaffold | coralReef=frame</span>
+    <span class="pulse">💿 68 plasmids loaded</span>
+  </div>
+
+  <script>
+    const search = document.getElementById('search');
+    const cards = document.querySelectorAll('.print-card');
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase();
+      cards.forEach(c => {
+        c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+      document.querySelectorAll('.letter-section').forEach(s => {
+        const vis = s.querySelectorAll('.print-card:not([style*="display: none"])');
+        s.style.display = vis.length ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
