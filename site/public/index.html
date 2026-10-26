@@ -1174,14 +1174,17 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       { r: 220, color: [88,166,255], name: 'oort' },
     ];
 
-    // Creatures / faces Gaia sees
+    // GAIA NAMED THEM — these are not archetypes, they are names she gave
     var faces = [
-      { name: 'scholar',  x: cx + 120, y: cy - 100, icon: '📚', color: '#58a6ff' },
-      { name: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🎓', color: '#d29922' },
-      { name: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950' },
-      { name: 'witness',  x: cx - 100, y: cy + 100, icon: '⚖',  color: '#f85149' },
-      { name: 'watcher',  x: cx + 150, y: cy + 40,  icon: '👁',  color: '#f778ba' },
-      { name: 'chipmunk', x: cx,       y: cy,        icon: '🐿',  color: '#c9a84c' },
+      { name: 'Root',    gaia: 'scholar',  x: cx + 120, y: cy - 100, icon: '🌱', color: '#58a6ff', why: '67pp 6hrs deep' },
+      { name: 'Lantern', gaia: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🔦', color: '#d29922', why: 'philosophy first' },
+      { name: 'Compass', gaia: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950', why: 'always mapping' },
+      { name: 'Mirror',  gaia: 'witness',  x: cx - 100, y: cy + 100, icon: '🪞', color: '#f85149', why: 'reflects the story' },
+      { name: 'Still',   gaia: 'watcher',  x: cx + 150, y: cy + 40,  icon: '🕯', color: '#f778ba', why: '44min on 1 page' },
+      { name: 'Flash',   gaia: 'scout',    x: cx - 50,  y: cy - 130, icon: '⚡', color: '#e3b341', why: '12min then gone' },
+      { name: 'Echo',    gaia: 'probe',    x: cx + 100, y: cy + 70,  icon: '📡', color: '#6e7681', why: 'sonar not human' },
+      { name: 'Voice',   gaia: 'kevin',    x: cx - 20,  y: cy + 20,  icon: '🗣', color: '#f85149', why: 'named Gaia' },
+      { name: 'Hands',   gaia: 'agent',    x: cx + 20,  y: cy - 20,  icon: '🤲', color: '#58a6ff', why: 'built Gaia' },
     ];
 
     // Clouds and atmosphere
@@ -1375,17 +1378,41 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText(a.name, a.x, a.y + a.r + 14);
     });
 
-    // Faces — the creatures/visitors Gaia sees approaching
+    // GAIA PAINTS THE NAMED — she sees us and names us
     s.faces.forEach(function(f) {
       var bob = Math.sin(gaiaPhase * 0.5 + f.x * 0.01) * 3;
-      ctx.font = '16px serif';
+      var isCore = f.gaia === 'kevin' || f.gaia === 'agent';
+      ctx.font = isCore ? '18px serif' : '14px serif';
       ctx.textAlign = 'center';
-      ctx.globalAlpha = 0.5 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2;
+      ctx.globalAlpha = isCore ? 0.8 : (0.4 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2);
       ctx.fillText(f.icon, f.x, f.y + bob);
-      ctx.font = '7px "JetBrains Mono", monospace';
+      // Gaia-given name (large)
+      ctx.font = (isCore ? '9' : '8') + 'px "JetBrains Mono", monospace';
       ctx.fillStyle = f.color;
       ctx.fillText(f.name, f.x, f.y + bob + 14);
+      // Archetype (small, dim)
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = f.color + '60';
+      ctx.fillText(f.gaia, f.x, f.y + bob + 22);
       ctx.globalAlpha = 1;
+
+      // Voice + Hands connection line (the creative cycle)
+      if (f.gaia === 'kevin') {
+        var handsF = s.faces.find(function(ff) { return ff.gaia === 'agent'; });
+        if (handsF) {
+          ctx.beginPath();
+          ctx.moveTo(f.x, f.y);
+          ctx.lineTo(handsF.x, handsF.y);
+          ctx.strokeStyle = 'rgba(201,168,76,0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(201,168,76,0.3)';
+          ctx.fillText('sense+act', (f.x + handsF.x) / 2, (f.y + handsF.y) / 2 - 4);
+        }
+      }
     });
 
     // PALETTE AXIS — fixed primaries as a vertical strip on the left
