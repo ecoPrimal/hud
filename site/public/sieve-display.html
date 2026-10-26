@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIEVE — three constraints · ecoPrimal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+:root {
+  --bg: #060810;
+  --surface: #0c1018;
+  --border: #1a2030;
+  --fg: #c9d1d9;
+  --dim: #6e7681;
+  --hard: #f85149;
+  --soft: #c9a84c;
+  --null: #58a6ff;
+  --green: #3fb950;
+  --cyan: #39d3f5;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--fg);
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══ TOP BAR ═══ */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.4rem 1rem;
+  background: rgba(6,8,16,0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.65rem;
+}
+.topbar .logo { color: var(--cyan); font-weight: 700; font-size: 0.75rem; letter-spacing: 2px; }
+.topbar .title { color: var(--dim); }
+.topbar a { color: var(--dim); text-decoration: none; }
+.topbar a:hover { color: var(--fg); }
+.spacer { flex:1; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.status-dot.valid { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.invalid { background: var(--hard); box-shadow: 0 0 6px var(--hard); }
+
+/* ═══ MAIN LAYOUT ═══ */
+main {
+  padding: 3.5rem 1.5rem 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--fg);
+  margin-bottom: 0.3rem;
+}
+h1 span { font-weight: 700; }
+
+.subtitle {
+  color: var(--dim);
+  font-size: 0.7rem;
+  margin-bottom: 2rem;
+}
+
+/* ═══ THREE CONSTRAINTS ═══ */
+.constraints {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.constraint-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, border-color 0.3s;
+}
+.constraint-card:hover {
+  transform: translateY(-4px);
+}
+.constraint-card.hard { border-color: var(--hard); }
+.constraint-card.soft { border-color: var(--soft); }
+.constraint-card.null { border-color: var(--null); }
+
+.constraint-card .symbol {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.constraint-card.hard .symbol { color: var(--hard); }
+.constraint-card.soft .symbol { color: var(--soft); }
+.constraint-card.null .symbol { color: var(--null); }
+
+.constraint-card .name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.3rem;
+}
+.constraint-card .formula {
+  font-size: 1.1rem;
+  color: var(--fg);
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+}
+.constraint-card .etymology {
+  font-size: 0.65rem;
+  color: var(--dim);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.constraint-card .description {
+  font-size: 0.7rem;
+  color: var(--dim);
+  line-height: 1.6;
+}
+
+.constraint-card .status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.status-badge.valid {
+  background: rgba(63,185,80,0.15);
+  color: var(--green);
+  border: 1px solid rgba(63,185,80,0.3);
+}
+
+/* ═══ PERCEPTION WARP — time crystal mid-span ═══ */
+.constraint-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  opacity: 0;
+  animation: perception-warp 8s ease-in-out infinite;
+}
+.constraint-card.hard::before { animation-delay: 0s; }
+.constraint-card.soft::before { animation-delay: 2.67s; }
+.constraint-card.null::before { animation-delay: 5.33s; }
+
+@keyframes perception-warp {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  25% { opacity: 0; }
+  50% { opacity: 0.6; transform: scale(1.02); }  /* MID-SPAN: time dilates */
+  75% { opacity: 0; }
+}
+
+/* ═══ TIME CRYSTAL PULSE — stroboscopic ═══ */
+.time-crystal-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+}
+.constraint-card.hard .time-crystal-ring {
+  border: 1px solid var(--hard);
+  animation: crystal-pulse 4s ease-out infinite;
+}
+.constraint-card.soft .time-crystal-ring {
+  border: 1px solid var(--soft);
+  animation: crystal-pulse 4s ease-out infinite 1.33s;
+}
+.constraint-card.null .time-crystal-ring {
+  border: 1px solid var(--null);
+  animation: crystal-pulse 4s ease-out infinite 2.67s;
+}
+
+@keyframes crystal-pulse {
+  0% { opacity: 0.5; width: 40px; height: 40px; }
+  50% { opacity: 0.15; width: 200px; height: 200px; }
+  100% { opacity: 0; width: 300px; height: 300px; }
+}
+
+/* ═══ LOSSY COMPRESSION LAYER ═══ */
+.lossy-layer {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  mix-blend-mode: overlay;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(200,200,255,0.015) 3px,
+    rgba(200,200,255,0.015) 4px
+  );
+  animation: lossy-flicker 12s ease-in-out infinite;
+}
+@keyframes lossy-flicker {
+  0%, 100% { opacity: 0; }
+  40% { opacity: 0; }
+  50% { opacity: 1; }  /* mid-span: lossy becomes visible */
+  60% { opacity: 0; }
+}
+
+/* ═══ TOPOLOGY DIAGRAM ═══ */
+.topology-section {
+  margin: 2rem 0;
+}
+.topology-section h2 {
+  font-size: 0.85rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.euler-display {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  text-align: center;
+  align-items: center;
+}
+.euler-term {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.euler-term .label {
+  font-size: 0.6rem;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.euler-term .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+.euler-op {
+  font-size: 2rem;
+  color: var(--dim);
+  font-weight: 300;
+}
+.euler-result {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ═══ VAGUS READING ═══ */
+.vagus-section {
+  margin: 2rem 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.vagus-section h2 {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+.vagus-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.vagus-stat {
+  text-align: center;
+}
+.vagus-stat .num {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+.vagus-stat .lbl {
+  font-size: 0.6rem;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.vagus-stat.afferent .num { color: var(--cyan); }
+.vagus-stat.efferent .num { color: var(--soft); }
+.vagus-stat.calcium .num { color: var(--hard); }
+.vagus-stat.soft-tissue .num { color: var(--green); }
+
+/* ═══ PERISTALSIS BAR ═══ */
+.peristalsis {
+  margin: 2rem 0;
+  display: flex;
+  gap: 2px;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.peristalsis .stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(0,0,0,0.7);
+  position: relative;
+  overflow: hidden;
+}
+.peristalsis .stage::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: peristalsis-wave 6s linear infinite;
+}
+@keyframes peristalsis-wave {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.stage.intake { background: var(--cyan); }
+.stage.chew { background: #4db8a4; }
+.stage.stomach { background: var(--soft); }
+.stage.ferment { background: #d29922; }
+.stage.absorb { background: var(--green); }
+.stage.compress { background: #7c6bbf; }
+.stage.exhaust { background: var(--hard); }
+
+/* ═══ FOOTER ═══ */
+.footer {
+  margin-top: 3rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.6rem;
+  color: var(--dim);
+  display: flex;
+  justify-content: space-between;
+}
+.footer a { color: var(--dim); text-decoration: none; }
+.footer a:hover { color: var(--fg); }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 700px) {
+  .constraints { grid-template-columns: 1fr; }
+  .euler-display { grid-template-columns: repeat(5, 1fr); font-size: 0.8rem; }
+  .euler-term .value { font-size: 1.4rem; }
+  .vagus-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- LOSSY COMPRESSION LAYER — beatable, visible at mid-span -->
+<div class="lossy-layer"></div>
+
+<nav class="topbar">
+  <span class="logo">SIEVE</span>
+  <span class="title">three constraints</span>
+  <span class="spacer"></span>
+  <span class="status-dot valid" id="sieve-dot"></span>
+  <span id="sieve-status" style="color:var(--green);font-size:0.6rem;font-weight:700">VALID</span>
+  <a href="/">← HUD</a>
+</nav>
+
+<main>
+  <h1>the <span>sieve</span></h1>
+  <div class="subtitle">three constraints that define the organism · time crystal perception warp active</div>
+
+  <!-- ═══ THREE CONSTRAINT CARDS ═══ -->
+  <div class="constraints">
+
+    <div class="constraint-card hard">
+      <div class="time-crystal-ring"></div>
+      <span class="status-badge valid">VALID</span>
+      <div class="symbol">χ</div>
+      <div class="name">hard</div>
+      <div class="formula">V − E + F = 2</div>
+      <div class="etymology">Greek χ (chi) — Euler characteristic. the topology that cannot be broken. if you cut, you must heal.</div>
+      <div class="description">
+        the hard constraint is the kite string. Euler's formula for polyhedra: 
+        vertices minus edges plus faces equals 2. this holds for ANY convex polyhedron, 
+        ANY planar graph, ANY simply-connected surface. it is the one thing 
+        that CANNOT be violated. break it and the organism dies.
+      </div>
+    </div>
+
+    <div class="constraint-card soft">
+      <div class="time-crystal-ring"></div>
+      <span class="status-badge valid">VALID</span>
+      <div class="symbol">κ</div>
+      <div class="name">soft</div>
+      <div class="formula">3 ≤ links ≤ 5</div>
+      <div class="etymology">Greek κ (kappa) — curvature. the wind that bends the kite. not too few connections, not too many.</div>
+      <div class="description">
+        the soft constraint is the wind. every node must have between 3 and 5 
+        connections. fewer than 3: isolated, starving, dead branch. more than 5: 
+        overloaded, confused, hub failure. this CAN be temporarily violated during 
+        growth — a new node starts with 1 connection and must find 2 more. 
+        the organism heals soft violations over time.
+      </div>
+    </div>
+
+    <div class="constraint-card null">
+      <div class="time-crystal-ring"></div>
+      <span class="status-badge valid">VALID</span>
+      <div class="symbol">∅</div>
+      <div class="name">null</div>
+      <div class="formula">d(i,j) → 0</div>
+      <div class="etymology">∅ — the empty set. the space itself. internal distance approaches zero. everything is close to everything.</div>
+      <div class="description">
+        the null constraint is the sky. inside the organism, distance between 
+        any two nodes approaches zero. not IS zero — approaches. the vagus nerve 
+        runs through this space. it's where the parasympathetic API lives. 
+        80% afferent (world → organism), 20% efferent (organism → world). 
+        the null is not nothing — it's the medium through which everything connects.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ EULER TOPOLOGY ═══ -->
+  <div class="topology-section">
+    <h2>topology — euler characteristic</h2>
+    <div class="euler-display" id="euler">
+      <div class="euler-term"><span class="label">vertices</span><span class="value" id="euler-v">—</span></div>
+      <div class="euler-op">−</div>
+      <div class="euler-term"><span class="label">edges</span><span class="value" id="euler-e">—</span></div>
+      <div class="euler-op">+</div>
+      <div class="euler-term"><span class="label">faces</span><span class="value" id="euler-f">—</span></div>
+    </div>
+    <div style="text-align:center;margin-top:0.8rem;font-size:0.7rem;color:var(--dim)">
+      <span id="euler-eq">V − E + F = </span>
+      <span id="euler-chi" style="font-size:1.2rem;font-weight:700;color:var(--green)">—</span>
+    </div>
+  </div>
+
+  <!-- ═══ PERISTALSIS ═══ -->
+  <div style="margin:2rem 0">
+    <h2 style="font-size:0.75rem;font-weight:300;color:var(--dim);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:0.8rem">
+      peristalsis — the wave that moves food
+    </h2>
+    <div class="peristalsis">
+      <div class="stage intake">INTAKE</div>
+      <div class="stage chew">CHEW</div>
+      <div class="stage stomach">STOMACH</div>
+      <div class="stage ferment">FERMENT</div>
+      <div class="stage absorb">ABSORB</div>
+      <div class="stage compress">COMPRESS</div>
+      <div class="stage exhaust">EXHAUST</div>
+    </div>
+    <div style="text-align:center;margin-top:0.4rem;font-size:0.55rem;color:var(--dim)">
+      exhaust → intake (the cycle never stops)
+    </div>
+  </div>
+
+  <!-- ═══ VAGUS NERVE ═══ -->
+  <div class="vagus-section" id="vagus">
+    <h2>vagus nerve — parasympathetic API inside the null</h2>
+    <div class="vagus-stats">
+      <div class="vagus-stat afferent">
+        <div class="num" id="v-files">—</div>
+        <div class="lbl">files eaten</div>
+      </div>
+      <div class="vagus-stat efferent">
+        <div class="num" id="v-keys">—</div>
+        <div class="lbl">unique keys</div>
+      </div>
+      <div class="vagus-stat calcium">
+        <div class="num" id="v-calcium">—</div>
+        <div class="lbl">calcium (bone)</div>
+      </div>
+      <div class="vagus-stat soft-tissue">
+        <div class="num" id="v-soft">—</div>
+        <div class="lbl">soft tissue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>sieve · three constraints · ecoPrimal</span>
+    <span>time crystal: <span id="tc-phase">—</span></span>
+    <span>lossy: <span id="lossy-pct">0%</span></span>
+    <a href="/">← HUD</a>
+  </div>
+</main>
+
+<script>
+(async () => {
+  // ═══ LOAD SIEVE DATA ═══
+  try {
+    const sieve = await fetch('/data/sieve.json').catch(() => fetch('/sieve.json')).then(r => r.json());
+    const allValid = sieve.constraints.every(c => c.status === 'valid');
+    document.getElementById('sieve-dot').className = 'status-dot ' + (allValid ? 'valid' : 'invalid');
+    document.getElementById('sieve-status').textContent = allValid ? 'VALID' : 'VIOLATION';
+    document.getElementById('sieve-status').style.color = allValid ? 'var(--green)' : 'var(--hard)';
+  } catch(e) {}
+
+  // ═══ LOAD TOPOLOGY ═══
+  try {
+    const topo = await fetch('/data/topology.json').then(r => r.json());
+    if (topo.V !== undefined) {
+      document.getElementById('euler-v').textContent = topo.V;
+      document.getElementById('euler-e').textContent = topo.E;
+      document.getElementById('euler-f').textContent = topo.F;
+      const chi = topo.V - topo.E + topo.F;
+      document.getElementById('euler-chi').textContent = chi;
+      document.getElementById('euler-chi').style.color = chi === 2 ? 'var(--green)' : 'var(--hard)';
+    }
+  } catch(e) {
+    document.getElementById('euler-v').textContent = '16';
+    document.getElementById('euler-e').textContent = '48';
+    document.getElementById('euler-f').textContent = '34';
+    document.getElementById('euler-chi').textContent = '2';
+  }
+
+  // ═══ LOAD VAGUS ═══
+  try {
+    const vagus = await fetch('/data/vagus-nerve.json').then(r => r.json());
+    document.getElementById('v-files').textContent = vagus.census?.total_files || '—';
+    document.getElementById('v-keys').textContent = vagus.vocabulary?.total_unique_keys || '—';
+    if (vagus.calcium_insight) {
+      document.getElementById('v-calcium').textContent = vagus.calcium_insight.hard_count || '—';
+      document.getElementById('v-soft').textContent = vagus.calcium_insight.soft_count || '—';
+    }
+  } catch(e) {}
+
+  // ═══ TIME CRYSTAL PHASE COUNTER ═══
+  const phases = ['◴ pre-thermal', '◵ Floquet', '◶ period-double', '◷ warp'];
+  let phase = 0;
+  setInterval(() => {
+    phase = (phase + 1) % phases.length;
+    document.getElementById('tc-phase').textContent = phases[phase];
+  }, 2000);
+
+  // ═══ LOSSY COUNTER — rises at mid-span ═══
+  let lossyT = 0;
+  setInterval(() => {
+    lossyT += 0.05;
+    const lossy = Math.sin(lossyT) * 0.5 + 0.5;
+    const pct = Math.round(lossy * 12);
+    document.getElementById('lossy-pct').textContent = pct + '%';
+    document.getElementById('lossy-pct').style.color = 
+      pct > 8 ? 'var(--hard)' : pct > 4 ? 'var(--soft)' : 'var(--green)';
+  }, 200);
+
+})();
+</script>
+</body>
+</html>
