@@ -1,0 +1,282 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
+<title>Crystal Ball — the shared viewing surface</title>
+<meta name=description content="975 data files rendered as a navigable sphere. The synapse between data and display. Everyone sees the same crystal ball at null center.">
+<link href=/css/hud.css?v=4 rel=stylesheet>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'Courier New',monospace;overflow-x:hidden}
+.crystal-header{text-align:center;padding:24px 16px 12px;border-bottom:1px solid rgba(88,166,255,0.15)}
+.crystal-header h1{font-size:18px;color:#5ab87a;font-weight:normal;letter-spacing:2px}
+.crystal-header .sub{font-size:11px;color:#484f58;margin-top:4px}
+.crystal-header .count{font-size:13px;color:#58a6ff;margin-top:6px}
+.back-link{position:fixed;top:8px;left:12px;color:#58a6ff;text-decoration:none;font-size:12px;z-index:10}
+.back-link:hover{color:#5ab87a}
+
+/* Time scales */
+.time-bar{display:flex;justify-content:center;gap:4px;padding:8px 16px;background:rgba(22,27,34,0.8);border-bottom:1px solid rgba(33,38,45,0.5);flex-wrap:wrap}
+.time-btn{background:rgba(33,38,45,0.6);border:1px solid rgba(48,54,61,0.5);color:#8b949e;padding:4px 10px;border-radius:12px;cursor:pointer;font:10px monospace;transition:all .2s}
+.time-btn:hover,.time-btn.active{border-color:#5ab87a;color:#5ab87a;background:rgba(35,134,54,0.15)}
+
+/* Filters */
+.filter-bar{display:flex;gap:6px;padding:8px 16px;justify-content:center;flex-wrap:wrap}
+.filter-btn{background:none;border:1px solid rgba(48,54,61,0.5);color:#6e7681;padding:3px 8px;border-radius:10px;cursor:pointer;font:9px monospace;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{border-color:#a371f7;color:#a371f7}
+
+/* The ball — central viewing area */
+.ball{max-width:900px;margin:0 auto;padding:12px 16px}
+.gen-group{margin-bottom:16px}
+.gen-label{font-size:10px;color:#484f58;text-transform:uppercase;letter-spacing:1px;padding:4px 0;border-bottom:1px solid rgba(33,38,45,0.4);margin-bottom:6px}
+.entry{display:block;padding:8px 12px;margin:3px 0;border-radius:6px;background:rgba(22,27,34,0.5);border:1px solid rgba(33,38,45,0.4);cursor:pointer;transition:all .2s;text-decoration:none;color:inherit}
+.entry:hover{border-color:rgba(88,166,255,0.3);background:rgba(22,27,34,0.8);transform:translateX(2px)}
+.entry .title{font-size:12px;color:#c9d1d9;line-height:1.4;display:block}
+.entry .meta{font-size:9px;color:#484f58;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.entry .meta .type{color:#a371f7}
+.entry .meta .size{color:#6e7681}
+.entry .meta .gen-num{color:#f0883e}
+.entry .meta .wave-num{color:#3fb950}
+
+/* Detail panel */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(1,4,9,0.9);z-index:100;overflow-y:auto}
+.detail-overlay.show{display:block}
+.detail-panel{max-width:800px;margin:40px auto;padding:20px;background:rgba(22,27,34,0.95);border:1px solid rgba(88,166,255,0.15);border-radius:8px}
+.detail-panel .close-btn{float:right;background:none;border:none;color:#484f58;font-size:18px;cursor:pointer;font-family:monospace}
+.detail-panel .close-btn:hover{color:#c9d1d9}
+.detail-panel .dtitle{font-size:14px;color:#5ab87a;margin-bottom:12px;line-height:1.4}
+.detail-panel pre{font-size:11px;color:#8b949e;white-space:pre-wrap;word-break:break-word;line-height:1.5;max-height:70vh;overflow-y:auto}
+
+/* Floodlight — items ahead glow brighter */
+.entry.floodlit{border-left:3px solid rgba(90,184,122,0.6);background:rgba(35,134,54,0.08)}
+
+/* Images */
+.img-entry{display:inline-block;width:140px;margin:4px;vertical-align:top;text-align:center}
+.img-entry img{width:136px;height:100px;object-fit:cover;border-radius:4px;border:1px solid rgba(33,38,45,0.6)}
+.img-entry .img-name{font-size:8px;color:#484f58;margin-top:2px;word-break:break-all}
+.img-gallery{padding:8px 16px;text-align:center;border-bottom:1px solid rgba(33,38,45,0.3)}
+
+/* Stats footer */
+.stats{text-align:center;padding:16px;font-size:10px;color:#30363d;border-top:1px solid rgba(33,38,45,0.3);margin-top:20px}
+.stats span{color:#484f58}
+</style>
+</head><body>
+<a class=back-link href="/">◈ hud</a>
+
+<div class=crystal-header>
+  <h1>🔮 CRYSTAL BALL</h1>
+  <div class=sub>the shared viewing surface at null center — everyone sees the same sphere</div>
+  <div class=count id=totalCount>loading...</div>
+</div>
+
+<div class=time-bar id=timeBar>
+  <button class="time-btn active" data-scale="session" title="this session">● session</button>
+  <button class=time-btn data-scale="day" title="Earth rotation — 24h">🌍 day</button>
+  <button class=time-btn data-scale="week" title="quarter moon cycle">🌙 week</button>
+  <button class=time-btn data-scale="month" title="full moon cycle — 27.3d">☽ moon</button>
+  <button class=time-btn data-scale="season" title="Earth tilt quarter — 91d">🍂 season</button>
+  <button class=time-btn data-scale="year" title="Earth orbit — 365.25d">☀ orbit</button>
+  <button class=time-btn data-scale="all" title="all time — 19 months">∞ all</button>
+</div>
+
+<div class=filter-bar id=filterBar></div>
+
+<div class=img-gallery id=imgGallery></div>
+
+<div class=ball id=ball>
+  <div style="text-align:center;padding:40px;color:#30363d">loading manifest...</div>
+</div>
+
+<div class=stats id=stats></div>
+
+<div class=detail-overlay id=detailOverlay>
+  <div class=detail-panel>
+    <button class=close-btn onclick="closeDetail()">✕</button>
+    <div class=dtitle id=detailTitle></div>
+    <pre id=detailContent></pre>
+  </div>
+</div>
+
+<script>
+let allFiles = [];
+let allTypes = new Set();
+let activeScale = 'session';
+let activeType = null;
+
+async function init() {
+  try {
+    const res = await fetch('/data/manifest.json');
+    const manifest = await res.json();
+    allFiles = manifest.files || [];
+    document.getElementById('totalCount').textContent =
+      allFiles.length + ' files · ' + (allFiles.reduce((a,f)=>a+f.bytes,0)/1024/1024).toFixed(1) + ' MB · the synapse is live';
+    allFiles.forEach(f => { if (f.type) allTypes.add(f.type) });
+    buildFilters();
+    renderImages();
+    render();
+  } catch(e) {
+    document.getElementById('ball').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#f85149">manifest not found — synapse still wiring</div>';
+  }
+}
+
+function buildFilters() {
+  const bar = document.getElementById('filterBar');
+  const btn0 = document.createElement('button');
+  btn0.className = 'filter-btn active';
+  btn0.textContent = 'all';
+  btn0.onclick = () => { activeType = null; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn0.classList.add('active'); render(); };
+  bar.appendChild(btn0);
+  const sorted = [...allTypes].sort();
+  sorted.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn';
+    b.textContent = t;
+    b.onclick = () => { activeType = t; document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); };
+    bar.appendChild(b);
+  });
+}
+
+function renderImages() {
+  const gallery = document.getElementById('imgGallery');
+  const jpgs = allFiles.filter(f => f.name.endsWith('.jpg'));
+  // images are in the manifest as json entries but actual images are .jpg files
+  // we'll scan for .jpg files separately
+  fetch('/data/').catch(()=>{});
+  // For now, list known image files from the manifest title patterns
+  const knownImages = [
+    'artisan-surveys-gaia.jpg','gallery-01-zk-pi-modesty.jpg','gallery-02-yggdrasil-all-trees.jpg',
+    'gallery-03-five-brains.jpg','gallery-04-phase-barrier-intelligence.jpg','gallery-05-chemistry-gates.jpg',
+    'gallery-06-only-null-moves.jpg','brown-plus-blue-equals-green.jpg','taxonomy-intelligence-ladder.jpg',
+    'the-moor.jpg','drive-it-down.jpg'
+  ];
+  knownImages.forEach(img => {
+    const d = document.createElement('div');
+    d.className = 'img-entry';
+    d.innerHTML = `<img src="/data/${img}" alt="${img}" onerror="this.parentElement.style.display='none'"><div class=img-name>${img.replace('.jpg','')}</div>`;
+    gallery.appendChild(d);
+  });
+}
+
+function getSessionCutoff(scale) {
+  const now = new Date();
+  switch(scale) {
+    case 'session': return new Date(now - 6*60*60*1000); // last 6 hours
+    case 'day': return new Date(now - 24*60*60*1000);
+    case 'week': return new Date(now - 7*24*60*60*1000);
+    case 'month': return new Date(now - 27.3*24*60*60*1000); // moon cycle
+    case 'season': return new Date(now - 91*24*60*60*1000);
+    case 'year': return new Date(now - 365.25*24*60*60*1000);
+    case 'all': return new Date(0);
+    default: return new Date(0);
+  }
+}
+
+function render() {
+  const ball = document.getElementById('ball');
+  let filtered = allFiles;
+  if (activeType) filtered = filtered.filter(f => f.type === activeType);
+
+  // Group by gen (if available) or ungrouped
+  const genned = filtered.filter(f => f.gen);
+  const ungenned = filtered.filter(f => !f.gen);
+
+  // Sort genned by gen descending
+  genned.sort((a,b) => (parseInt(b.gen)||0) - (parseInt(a.gen)||0));
+
+  let html = '';
+  const maxGen = genned.length ? parseInt(genned[0].gen) : 0;
+
+  // Floodlight: most recent 5 gens get highlighted
+  if (genned.length) {
+    // Group by gen
+    const byGen = {};
+    genned.forEach(f => {
+      const g = f.gen;
+      if (!byGen[g]) byGen[g] = [];
+      byGen[g].push(f);
+    });
+    const gens = Object.keys(byGen).sort((a,b) => parseInt(b) - parseInt(a));
+    gens.forEach((g, i) => {
+      const floodlit = i < 5;
+      html += `<div class=gen-group><div class=gen-label>gen ${g}${byGen[g][0].wave ? ' · wave '+byGen[g][0].wave : ''}</div>`;
+      byGen[g].forEach(f => {
+        const cls = floodlit ? 'entry floodlit' : 'entry';
+        const titleText = f.title || f.name.replace('.json','').replace(/-/g,' ');
+        html += `<a class="${cls}" href="#" onclick="showDetail('${f.name}');return false">
+          <span class=title>${titleText}</span>
+          <span class=meta>
+            ${f.type ? '<span class=type>'+f.type+'</span>' : ''}
+            <span class=size>${(f.bytes/1024).toFixed(1)}k</span>
+            <span class=gen-num>gen ${f.gen}</span>
+          </span></a>`;
+      });
+      html += '</div>';
+    });
+  }
+
+  // Ungrouped files
+  if (ungenned.length) {
+    html += `<div class=gen-group><div class=gen-label>membrane archive · ${ungenned.length} files</div>`;
+    // Show first 50 ungrouped
+    ungenned.slice(0, activeScale === 'all' ? 200 : 50).forEach(f => {
+      const titleText = f.title || f.name.replace('.json','').replace(/-/g,' ');
+      html += `<a class=entry href="#" onclick="showDetail('${f.name}');return false">
+        <span class=title>${titleText}</span>
+        <span class=meta>
+          ${f.type ? '<span class=type>'+f.type+'</span>' : ''}
+          <span class=size>${(f.bytes/1024).toFixed(1)}k</span>
+        </span></a>`;
+    });
+    if (ungenned.length > (activeScale === 'all' ? 200 : 50)) {
+      html += `<div style="text-align:center;padding:8px;color:#30363d;font-size:10px">... ${ungenned.length - (activeScale === 'all' ? 200 : 50)} more in archive</div>`;
+    }
+    html += '</div>';
+  }
+
+  ball.innerHTML = html || '<div style="text-align:center;padding:40px;color:#30363d">no files match filter</div>';
+
+  // Stats
+  const types = {};
+  filtered.forEach(f => { const t = f.type || 'untyped'; types[t] = (types[t]||0)+1 });
+  const totalBytes = filtered.reduce((a,f) => a+f.bytes, 0);
+  document.getElementById('stats').innerHTML =
+    `<span>${filtered.length} files</span> · <span>${(totalBytes/1024/1024).toFixed(1)} MB</span> · ` +
+    Object.entries(types).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([t,c])=>`<span>${t}:${c}</span>`).join(' · ');
+}
+
+async function showDetail(name) {
+  try {
+    const res = await fetch('/data/' + name);
+    const text = await res.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) { parsed = text; }
+    const title = parsed.title || name.replace('.json','').replace(/-/g,' ');
+    document.getElementById('detailTitle').textContent = title;
+    document.getElementById('detailContent').textContent =
+      typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2);
+    document.getElementById('detailOverlay').classList.add('show');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('show');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+});
+
+// Time scale buttons
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeScale = btn.dataset.scale;
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+init();
+</script>
+</body></html>
