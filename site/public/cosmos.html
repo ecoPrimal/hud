@@ -3,277 +3,498 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🌌 COSMOS BINGO — your seed, your board. anchor · cast · eyeball.</title>
-<meta name="description" content="246 topics. Seeded from YOUR entropy. Each cell a discovery. Connections form patterns. The total space.">
+<title>🌌 COSMOS BINGO — your seed, your board. call the space.</title>
+<meta name="description" content="Cosmos IS bingo board. Seed generates board. Click to call. Anchor connections. Calculate total space.">
 <style>
-:root{--bg:#06060f;--text:#c8c8d4;--dim:#556;--red:#c0392b;--ox:#e67e22;--blue:#3498db;--gold:#d4a017;--green:#27ae60}
+:root { --bg:#050510; --text:#c8c8d4; --dim:#556; --red:#c0392b; --ox:#e67e22; --blue:#3498db; --gold:#d4a017; --green:#27ae60; --purple:#9b59b6; --called:#1a1a2e; }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;overflow-x:hidden}
-.hdr{text-align:center;padding:10px;background:rgba(6,6,15,0.95);position:sticky;top:0;z-index:10;border-bottom:1px solid #222}
-.hdr h1{font-size:1.2em;color:var(--gold)}
-.hdr .seed{font-size:0.75em;color:var(--dim)}
-.hdr .seed span{color:var(--blue);cursor:pointer}
-.stats{display:flex;justify-content:center;gap:14px;font-size:0.7em;margin:4px 0}
-.stats .s{text-align:center}
-.stats .sv{font-weight:bold;font-size:1.2em}
-.stats .sl{color:var(--dim)}
-.board{display:grid;gap:3px;padding:8px;max-width:1200px;margin:0 auto}
-.cell{position:relative;aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;transition:all 0.2s;overflow:hidden;border:1px solid transparent;font-size:0.6em}
-.cell:hover{transform:scale(1.08);z-index:5;border-color:var(--gold)}
-.cell.called{border:2px solid var(--gold);box-shadow:0 0 12px rgba(212,160,23,0.4)}
-.cell .topic{font-weight:bold;text-align:center;word-break:break-word;line-height:1.1}
-.cell .dot{width:6px;height:6px;border-radius:50%;margin-top:2px}
-.cell.c-RED{background:rgba(192,57,43,0.15)}.cell.c-RED .dot{background:var(--red)}
-.cell.c-OX{background:rgba(230,126,34,0.15)}.cell.c-OX .dot{background:var(--ox)}
-.cell.c-BLUE{background:rgba(52,152,219,0.15)}.cell.c-BLUE .dot{background:var(--blue)}
-.cell.called.c-RED{background:rgba(192,57,43,0.5)}
-.cell.called.c-OX{background:rgba(230,126,34,0.5)}
-.cell.called.c-BLUE{background:rgba(52,152,219,0.5)}
-canvas#connections{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4}
-.info-panel{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);background:rgba(6,6,15,0.95);border:1px solid #333;border-radius:8px;padding:12px 16px;max-width:400px;width:90%;z-index:20;display:none;font-size:0.8em}
-.info-panel.show{display:block}
-.info-panel .ip-topic{color:var(--gold);font-size:1.1em;font-weight:bold}
-.info-panel .ip-lesson{color:var(--text);margin:4px 0}
-.info-panel .ip-nn{color:var(--dim);font-size:0.85em}
-.info-panel .ip-close{position:absolute;top:4px;right:8px;color:var(--dim);cursor:pointer;font-size:1.2em}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:10;background:rgba(6,6,15,0.95);border-top:1px solid #222;padding:6px 8px;display:flex;justify-content:center;align-items:center;gap:10px;font-size:0.75em}
-.bottom-bar a{color:var(--blue);text-decoration:none}
-.bottom-bar a:hover{color:var(--gold)}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;display:flex;flex-direction:column}
+
+.header{text-align:center;padding:10px 8px 4px;flex-shrink:0}
+.header h1{font-size:1.2em;color:var(--gold);display:inline}
+.seed-display{font-size:0.75em;color:var(--dim);display:inline;margin-left:8px}
+.seed-display span{color:var(--blue);cursor:pointer}
+
+.main{display:flex;flex:1;overflow:hidden;gap:0}
+
+/* LEFT: bingo board */
+.board-wrap{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;padding:8px;overflow-y:auto}
+.board-header{display:flex;gap:0;margin-bottom:4px}
+.board-header .col-label{width:52px;text-align:center;font-weight:bold;font-size:0.85em;padding:4px 0}
+.board{display:grid;gap:2px}
+.cell{width:50px;height:50px;border:1px solid #222;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;font-size:0.65em;overflow:hidden}
+.cell:hover{border-color:var(--gold);transform:scale(1.05);z-index:1}
+.cell .cell-num{font-size:1.4em;font-weight:bold}
+.cell .cell-label{font-size:0.7em;opacity:0.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46px}
+.cell.called{border-color:var(--gold);box-shadow:0 0 12px rgba(212,160,23,0.4)}
+.cell.called .cell-num{color:var(--gold)}
+.cell.anchor{border-color:#fff;box-shadow:0 0 16px rgba(255,255,255,0.3)}
+.cell.anchor::after{content:'⚓';position:absolute;top:1px;right:2px;font-size:0.6em}
+.cell.bingo-hit{animation:bingoFlash 0.5s ease}
+@keyframes bingoFlash{0%,100%{box-shadow:0 0 12px rgba(212,160,23,0.4)}50%{box-shadow:0 0 30px rgba(212,160,23,0.8)}}
+
+/* RIGHT: cosmos canvas + stats */
+.cosmos-side{flex:1;display:flex;flex-direction:column;position:relative}
+canvas{flex:1;display:block}
+.stats-bar{display:flex;justify-content:center;gap:12px;padding:6px;font-size:0.7em;flex-shrink:0;background:rgba(10,10,20,0.8)}
+.stat{text-align:center}
+.stat .val{font-size:1.2em;font-weight:bold}
+.stat .lbl{color:var(--dim);font-size:0.8em}
+.call-log{position:absolute;bottom:40px;right:8px;font-size:0.65em;color:var(--dim);text-align:right;max-height:200px;overflow:hidden;pointer-events:none}
+.call-log div{margin:2px 0;opacity:0.8}
+.call-log .latest{color:var(--gold);font-size:1.1em;opacity:1}
+
+/* BOTTOM: space calculator + nav */
+.bottom-bar{flex-shrink:0;background:rgba(5,5,16,0.95);border-top:1px solid #222;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;font-size:0.75em}
+.bottom-bar .nav a{color:var(--blue);text-decoration:none;margin:0 6px}
+.bottom-bar .nav a:hover{color:var(--gold)}
+.space-calc{color:var(--dim)}
+.space-calc span{color:var(--gold)}
+.btns{display:flex;gap:4px}
 .btn{background:var(--gold);color:#000;border:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:0.85em}
 .btn:hover{background:#fff}
 .btn.blue{background:var(--blue)}
-.bingo-line{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:var(--gold);text-shadow:0 0 30px rgba(212,160,23,0.6);z-index:30;display:none;pointer-events:none;animation:pop 1.5s ease-out forwards}
-@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
-@media(max-width:600px){.cell{font-size:0.5em}.board{gap:2px;padding:4px}}
+.btn.red{background:var(--red);color:#fff}
+
+.triad-mini{display:flex;gap:6px;justify-content:center;padding:2px}
+.triad-mini .td{width:12px;height:12px;border-radius:50%;display:inline-block}
+
+/* Bingo lines overlay */
+.bingo-banner{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;background:rgba(5,5,16,0.95);border:2px solid var(--gold);border-radius:12px;padding:24px 40px;text-align:center;pointer-events:auto}
+.bingo-banner h2{color:var(--gold);font-size:2em;margin-bottom:8px}
+.bingo-banner p{color:var(--text);font-size:0.9em}
+.bingo-banner .close-bb{cursor:pointer;color:var(--dim);margin-top:12px;font-size:0.8em}
+
+@media(max-width:700px){
+  .main{flex-direction:column}
+  .board-wrap{flex:0 0 auto;max-height:40vh}
+  .cell{width:38px;height:38px}
+  .cell .cell-num{font-size:1.1em}
+}
 </style>
 </head>
 <body>
-<div class="hdr">
+
+<div class="header">
   <h1>🌌 COSMOS BINGO</h1>
-  <div class="seed">seed: <span id="seed-hex" title="click to reseed">—</span> · <span id="grid-size">—</span> board</div>
-  <div class="stats">
-    <div class="s"><div class="sv" id="s-called">0</div><div class="sl">called</div></div>
-    <div class="s"><div class="sv" id="s-total">246</div><div class="sl">cells</div></div>
-    <div class="s"><div class="sv" style="color:var(--red)" id="s-red">—</div><div class="sl">RED</div></div>
-    <div class="s"><div class="sv" style="color:var(--ox)" id="s-ox">—</div><div class="sl">OX</div></div>
-    <div class="s"><div class="sv" style="color:var(--blue)" id="s-blue">—</div><div class="sl">BLUE</div></div>
-    <div class="s"><div class="sv" style="color:var(--gold)" id="s-lines">0</div><div class="sl">BINGO</div></div>
+  <span class="seed-display">seed: <span id="seed-hex" title="click to reseed">...</span></span>
+  <div class="triad-mini">
+    <span class="td" style="background:var(--red)"></span><span id="t-red" style="color:var(--red)">0</span>
+    <span class="td" style="background:var(--ox)"></span><span id="t-ox" style="color:var(--ox)">0</span>
+    <span class="td" style="background:var(--blue)"></span><span id="t-blue" style="color:var(--blue)">0</span>
   </div>
 </div>
 
-<canvas id="connections"></canvas>
-<div class="board" id="board"></div>
-<div class="bingo-line" id="bingo-banner">🎯 BINGO!</div>
-
-<div class="info-panel" id="info-panel">
-  <span class="ip-close" id="ip-close">✕</span>
-  <div class="ip-topic" id="ip-topic"></div>
-  <div class="ip-lesson" id="ip-lesson"></div>
-  <div class="ip-nn" id="ip-nn"></div>
+<div class="main">
+  <div class="board-wrap">
+    <div class="board-header" id="board-header"></div>
+    <div class="board" id="board"></div>
+  </div>
+  <div class="cosmos-side">
+    <canvas id="cosmos"></canvas>
+    <div class="call-log" id="call-log"></div>
+    <div class="stats-bar">
+      <div class="stat"><div class="val" id="s-called">0</div><div class="lbl">called</div></div>
+      <div class="stat"><div class="val" id="s-anchors">0</div><div class="lbl">anchors</div></div>
+      <div class="stat"><div class="val" id="s-lines">0</div><div class="lbl">bingos</div></div>
+      <div class="stat"><div class="val" id="s-c">—</div><div class="lbl">c=πr²/O</div></div>
+      <div class="stat"><div class="val" id="s-energy">—</div><div class="lbl">energy</div></div>
+      <div class="stat"><div class="val" id="s-space">—</div><div class="lbl">total space</div></div>
+    </div>
+  </div>
 </div>
 
 <div class="bottom-bar">
-  <a href="/forge.html">🔥forge</a>
-  <a href="/colosseum.html">⚔arena</a>
-  <a href="/nav-hub.html">🗺hub</a>
-  <a href="/">👁HUD</a>
-  <button class="btn" id="share-btn">📋share</button>
-  <button class="btn blue" id="reseed-btn">🎲reseed</button>
-  <span style="color:var(--dim)">c=πr²/O</span>
+  <div class="nav">
+    <a href="/forge.html">🔥forge</a>
+    <a href="/colosseum.html">⚔arena</a>
+    <a href="/nav-hub.html">🗺hub</a>
+    <a href="/">👁HUD</a>
+  </div>
+  <div class="space-calc" id="space-calc"></div>
+  <div class="btns">
+    <button class="btn" id="auto-call">▶ auto-call</button>
+    <button class="btn blue" id="share-btn">📋 share</button>
+    <button class="btn red" id="reseed-btn">🎲 reseed</button>
+  </div>
+</div>
+
+<div class="bingo-banner" id="bingo-banner">
+  <h2>🎯 BINGO!</h2>
+  <p id="bingo-msg"></p>
+  <div class="close-bb" id="close-bb">click to continue</div>
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════════
+// COSMOS BINGO
+// seed → board. click → call. anchor → connect. total space.
+// the cosmos IS the bingo board. each cell IS a body.
+// ═══════════════════════════════════════════════════════════
+
 class PRNG {
-  constructor(s){this.s=s}
-  next(){this.s=(this.s*1664525+1013904223)&0xFFFFFFFF;return(this.s>>>0)/0xFFFFFFFF}
-  int(a,b){return a+Math.floor(this.next()*(b-a+1))}
-  shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=this.int(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+  constructor(s) { this.s = s; }
+  next() { this.s = (this.s * 1664525 + 1013904223) & 0xFFFFFFFF; return (this.s >>> 0) / 0xFFFFFFFF; }
+  range(a, b) { return a + this.next() * (b - a); }
+  int(a, b) { return Math.floor(this.range(a, b + 1)); }
+  pick(a) { return a[this.int(0, a.length - 1)]; }
+  shuffle(a) { const c = [...a]; for (let i = c.length - 1; i > 0; i--) { const j = this.int(0, i); [c[i], c[j]] = [c[j], c[i]]; } return c; }
 }
 
-function getSeed(){
-  const p=new URLSearchParams(location.search);
-  if(p.has('s'))return parseInt(p.get('s'),16);
-  const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0];
+function getSeed() {
+  const p = new URLSearchParams(location.search);
+  if (p.has('s')) return parseInt(p.get('s'), 16);
+  const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0];
 }
 
-const seed=getSeed();
-const rng=new PRNG(seed);
-const seedHex=seed.toString(16).padStart(8,'0');
-document.getElementById('seed-hex').textContent=seedHex;
+const seed = getSeed();
+const rng = new PRNG(seed);
+const seedHex = seed.toString(16).padStart(8, '0');
+document.getElementById('seed-hex').textContent = seedHex;
 
-let CELLS=[];
-let calledSet=new Set();
-let bingoCount=0;
-const boardEl=document.getElementById('board');
-const canvas=document.getElementById('connections');
-const ctx=canvas.getContext('2d');
+// ═══ BOARD GENERATION ═══
+// 5×5 bingo grid. columns = R·E·D·O·X (or B·I·N·G·O mapped to RED/OX/BLUE)
+const COLS = 5, ROWS = 5, TOTAL_CELLS = COLS * ROWS;
+const COL_NAMES = ['🔴','🟠','🔵','🟠','🔴'];
+const COL_COLORS = ['var(--red)','var(--ox)','var(--blue)','var(--ox)','var(--red)'];
+const COL_TYPES =  ['RED','OX','BLUE','OX','RED'];
 
-function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=document.body.scrollHeight}
-window.addEventListener('resize',resizeCanvas);
+// Pool of items to put on cells — real Gaia entities
+const POOL = [
+  'biomeOS','songBird','bearDog','squirrel','nestGate','rhizoCrypt','sweetGrass','loamSpine',
+  'petalTongue','skunkBat','sourDough','swarmVine','bingoCube','toadStool','barraCuda','coralReef',
+  'forge','arena','hub','HUD','cosmos','alchemy','mendeleev','dungeon','easel',
+  'pulse','signal','membrane','neutron','electron','proton','neutrino','gluon',
+  'enzyme','bounty','fossil','plasmid','proverb','lesson','braid','orbit',
+  'RED','OX','BLUE','iron','copper','silver','gold','platinum',
+  'gut','brain','heart','nerve','muscle','gland','bone','skin',
+  'seed','spore','root','stem','leaf','flower','fruit','mycelium',
+  'null','void','zero','one','pi','phi','euler','planck'
+];
 
-fetch('/data/bingo-cosmos.json').then(r=>r.json()).then(data=>{
-  const allCells=data.cells;
-  const shuffled=rng.shuffle(allCells);
+const shuffled = rng.shuffle(POOL);
+const cells = [];
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const isFreeSpace = r === 2 && c === 2;
+    cells.push({
+      row: r, col: c, idx,
+      num: idx + 1,
+      label: isFreeSpace ? '★FREE★' : shuffled[idx % shuffled.length],
+      type: COL_TYPES[c],
+      color: COL_COLORS[c],
+      called: isFreeSpace,
+      anchor: false,
+      el: null
+    });
+  }
+}
 
-  // Pick grid size to fit: prefer square-ish, use all 246
-  const total=shuffled.length;
-  const cols=Math.ceil(Math.sqrt(total));
-  const rows=Math.ceil(total/cols);
-  document.getElementById('grid-size').textContent=`${cols}×${rows}`;
-  boardEl.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
-  document.getElementById('s-total').textContent=total;
+// ═══ RENDER BOARD ═══
+const boardEl = document.getElementById('board');
+boardEl.style.gridTemplateColumns = `repeat(${COLS}, 52px)`;
 
-  CELLS=shuffled.map((c,i)=>({...c, idx:i, row:Math.floor(i/cols), col:i%cols, called:false}));
+const headerEl = document.getElementById('board-header');
+for (let c = 0; c < COLS; c++) {
+  const lbl = document.createElement('div');
+  lbl.className = 'col-label';
+  lbl.style.color = COL_COLORS[c];
+  lbl.textContent = COL_NAMES[c];
+  headerEl.appendChild(lbl);
+}
 
-  // Color counts
-  document.getElementById('s-red').textContent=CELLS.filter(c=>c.color==='RED').length;
-  document.getElementById('s-ox').textContent=CELLS.filter(c=>c.color==='OX').length;
-  document.getElementById('s-blue').textContent=CELLS.filter(c=>c.color==='BLUE').length;
-
-  // Render cells
-  CELLS.forEach((c,i)=>{
-    const el=document.createElement('div');
-    el.className=`cell c-${c.color}`;
-    el.dataset.idx=i;
-    el.innerHTML=`<div class="topic">${c.topic.replace(/-/g,' ')}</div><div class="dot"></div>`;
-    el.addEventListener('click',()=>callCell(i));
-    boardEl.appendChild(el);
-  });
-
-  resizeCanvas();
-  drawConnections();
-}).catch(e=>{
-  boardEl.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)">Loading cosmos data... ${e.message}</div>`;
+cells.forEach(cell => {
+  const el = document.createElement('div');
+  el.className = 'cell' + (cell.called ? ' called' : '');
+  el.style.background = cell.called ? 'var(--called)' : 'rgba(20,20,30,0.8)';
+  el.style.borderColor = cell.called ? 'var(--gold)' : '#222';
+  el.innerHTML = `<div class="cell-num" style="color:${cell.color}">${cell.num}</div><div class="cell-label">${cell.label}</div>`;
+  el.addEventListener('click', () => callCell(cell));
+  el.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleAnchor(cell); });
+  boardEl.appendChild(el);
+  cell.el = el;
 });
 
-function callCell(idx){
-  const c=CELLS[idx];
-  if(c.called)return;
-  c.called=true;
-  calledSet.add(idx);
+// ═══ COSMOS CANVAS (right side) ═══
+const canvas = document.getElementById('cosmos');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() {
+  W = canvas.width = canvas.clientWidth;
+  H = canvas.height = canvas.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
 
-  const el=boardEl.children[idx];
-  el.classList.add('called');
+const PALETTE = {
+  RED:  ['#c0392b','#e74c3c','#922b21','#f1948a'],
+  OX:   ['#e67e22','#f39c12','#d35400','#f8c471'],
+  BLUE: ['#3498db','#2980b9','#1abc9c','#85c1e9']
+};
 
-  document.getElementById('s-called').textContent=calledSet.size;
+// Each cell = a body in the cosmos
+const bodies = cells.map(cell => ({
+  x: (cell.col + 0.5) / COLS * 0.7 + 0.15 + rng.range(-0.05, 0.05),
+  y: (cell.row + 0.5) / ROWS * 0.7 + 0.15 + rng.range(-0.05, 0.05),
+  r: cell.called ? 8 : 4,
+  color: rng.pick(PALETTE[cell.type]),
+  type: cell.type,
+  cell: cell,
+  vx: rng.range(-0.0002, 0.0002),
+  vy: rng.range(-0.0002, 0.0002),
+  pulse: rng.range(0, Math.PI * 2),
+  pulseSpeed: rng.range(0.01, 0.04),
+  called: cell.called,
+  anchor: false
+}));
 
-  // Show info panel
-  const panel=document.getElementById('info-panel');
-  document.getElementById('ip-topic').textContent=c.topic.replace(/-/g,' ');
-  document.getElementById('ip-lesson').textContent=c.lesson||'no lesson yet — this is a bounty!';
-  document.getElementById('ip-nn').textContent=c.nn.length?`neighbors: ${c.nn.join(', ')}`:'isolated node — pioneer territory';
-  panel.classList.add('show');
+// Background dust
+const dust = [];
+for (let i = 0; i < 200; i++) {
+  dust.push({
+    x: rng.range(0, 1), y: rng.range(0, 1),
+    r: rng.range(0.3, 1.5),
+    color: rng.pick(['#333','#444','#2a2a3a','#1a1a2a']),
+    vx: rng.range(-0.0001, 0.0001),
+    vy: rng.range(-0.0001, 0.0001)
+  });
+}
 
-  // Auto-call nearest neighbors (cascade!)
-  setTimeout(()=>{
-    c.nn.forEach(nn=>{
-      const ni=CELLS.findIndex(x=>x.topic===nn);
-      if(ni>=0&&!CELLS[ni].called){
-        CELLS[ni].called=true;
-        calledSet.add(ni);
-        boardEl.children[ni].classList.add('called');
-      }
-    });
-    document.getElementById('s-called').textContent=calledSet.size;
-    drawConnections();
-    checkBingo();
-  },300);
+// ═══ GAME STATE ═══
+let calledCount = 1; // free space
+let anchorCount = 0;
+let bingoCount = 0;
+let callHistory = [];
+let autoMode = false;
+let autoTimer = null;
 
-  drawConnections();
+function callCell(cell) {
+  if (cell.called) return;
+  cell.called = true;
+  cell.el.classList.add('called');
+  cell.el.style.background = 'var(--called)';
+  bodies[cell.idx].called = true;
+  bodies[cell.idx].r = 10;
+  calledCount++;
+
+  callHistory.push({ num: cell.num, label: cell.label, type: cell.type });
+  updateLog();
+  updateStats();
   checkBingo();
+
+  cell.el.classList.add('bingo-hit');
+  setTimeout(() => cell.el.classList.remove('bingo-hit'), 500);
 }
 
-function drawConnections(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const cellEls=[...boardEl.children];
-  
-  CELLS.forEach((c,i)=>{
-    if(!c.called)return;
-    c.nn.forEach(nn=>{
-      const ni=CELLS.findIndex(x=>x.topic===nn);
-      if(ni<0)return;
-      const a=cellEls[i],b=cellEls[ni];
-      if(!a||!b)return;
-      const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
-      const ax=ar.left+ar.width/2, ay=ar.top+ar.height/2+window.scrollY;
-      const bx=br.left+br.width/2, by=br.top+br.height/2+window.scrollY;
-      
-      const color=c.color==='RED'?'rgba(192,57,43,0.5)':c.color==='OX'?'rgba(230,126,34,0.5)':'rgba(52,152,219,0.5)';
-      ctx.strokeStyle=color;
-      ctx.lineWidth=CELLS[ni].called?2:0.5;
+function toggleAnchor(cell) {
+  if (!cell.called) return;
+  cell.anchor = !cell.anchor;
+  cell.el.classList.toggle('anchor');
+  bodies[cell.idx].anchor = cell.anchor;
+  bodies[cell.idx].r = cell.anchor ? 14 : 10;
+  anchorCount = cells.filter(c => c.anchor).length;
+  updateStats();
+}
+
+function checkBingo() {
+  let lines = 0;
+  // Rows
+  for (let r = 0; r < ROWS; r++) {
+    if (cells.filter(c => c.row === r && c.called).length === COLS) lines++;
+  }
+  // Columns
+  for (let c = 0; c < COLS; c++) {
+    if (cells.filter(cl => cl.col === c && cl.called).length === ROWS) lines++;
+  }
+  // Diagonals
+  if ([0,6,12,18,24].every(i => cells[i].called)) lines++;
+  if ([4,8,12,16,20].every(i => cells[i].called)) lines++;
+
+  if (lines > bingoCount) {
+    bingoCount = lines;
+    showBingo(lines);
+  }
+}
+
+function showBingo(lines) {
+  const banner = document.getElementById('bingo-banner');
+  const msgs = [
+    '',
+    '🎯 First line! The cosmos aligns.',
+    '🎯🎯 Double bingo! Anchors holding.',
+    '🎯🎯🎯 Triple! The space converges.',
+    '🎯🎯🎯🎯 QUAD! Almost total coverage.',
+    '🌟🌟🌟🌟🌟 FIVE LINES! You OWN this cosmos.',
+  ];
+  document.getElementById('bingo-msg').textContent = (msgs[lines] || `${lines} LINES! LEGENDARY!`) + ` (seed: ${seedHex})`;
+  banner.style.display = 'block';
+  setTimeout(() => banner.style.display = 'none', 4000);
+}
+
+document.getElementById('close-bb').addEventListener('click', () => {
+  document.getElementById('bingo-banner').style.display = 'none';
+});
+
+function updateLog() {
+  const log = document.getElementById('call-log');
+  const last10 = callHistory.slice(-8);
+  log.innerHTML = last10.map((c, i) =>
+    `<div class="${i === last10.length - 1 ? 'latest' : ''}" style="color:${c.type === 'RED' ? 'var(--red)' : c.type === 'OX' ? 'var(--ox)' : 'var(--blue)'}">
+      #${c.num} ${c.label}
+    </div>`
+  ).join('');
+}
+
+function updateStats() {
+  document.getElementById('s-called').textContent = calledCount;
+  document.getElementById('s-anchors').textContent = anchorCount;
+  document.getElementById('s-lines').textContent = bingoCount;
+
+  const anchors = bodies.filter(b => b.anchor);
+  const calledBodies = bodies.filter(b => b.called);
+  const O = calledCount;
+  const avgR = calledBodies.reduce((s, b) => s + b.r, 0) / Math.max(O, 1) / 20;
+  const cVal = Math.PI * avgR * avgR / Math.max(O, 1);
+  const eVal = 1 / Math.max(cVal, 0.0001);
+
+  document.getElementById('s-c').textContent = cVal.toFixed(5);
+  document.getElementById('s-energy').textContent = eVal.toFixed(1);
+
+  // Total space = C(25, calledCount) × 12^bingoCount (bingo multiplier)
+  const totalSpace = comb(TOTAL_CELLS, calledCount) * Math.pow(12, bingoCount);
+  document.getElementById('s-space').textContent = formatBig(totalSpace);
+
+  const calledPerType = { RED: 0, OX: 0, BLUE: 0 };
+  calledBodies.forEach(b => calledPerType[b.type]++);
+  document.getElementById('t-red').textContent = calledPerType.RED;
+  document.getElementById('t-ox').textContent = calledPerType.OX;
+  document.getElementById('t-blue').textContent = calledPerType.BLUE;
+
+  document.getElementById('space-calc').innerHTML =
+    `C(${TOTAL_CELLS},${calledCount})=${formatBig(comb(TOTAL_CELLS, calledCount))} ` +
+    `× 12<sup>${bingoCount}</sup> = <span>${formatBig(totalSpace)}</span> states`;
+}
+
+function comb(n, k) {
+  if (k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  k = Math.min(k, n - k);
+  let r = 1;
+  for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return Math.round(r);
+}
+
+function formatBig(n) {
+  if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toFixed(0);
+}
+
+// ═══ AUTO-CALL ═══
+const autoBtn = document.getElementById('auto-call');
+autoBtn.addEventListener('click', () => {
+  autoMode = !autoMode;
+  autoBtn.textContent = autoMode ? '⏸ pause' : '▶ auto-call';
+  if (autoMode) {
+    autoTimer = setInterval(() => {
+      const uncalled = cells.filter(c => !c.called);
+      if (uncalled.length === 0) { autoMode = false; autoBtn.textContent = '✅ FULL'; clearInterval(autoTimer); return; }
+      const pick = uncalled[Math.floor(Math.random() * uncalled.length)];
+      callCell(pick);
+    }, 600);
+  } else {
+    clearInterval(autoTimer);
+  }
+});
+
+// ═══ DRAW ═══
+function draw() {
+  ctx.fillStyle = 'rgba(5,5,16,0.2)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Dust
+  for (const d of dust) {
+    d.x += d.vx; d.y += d.vy;
+    if (d.x < 0) d.x += 1; if (d.x > 1) d.x -= 1;
+    if (d.y < 0) d.y += 1; if (d.y > 1) d.y -= 1;
+    ctx.fillStyle = d.color;
+    ctx.beginPath();
+    ctx.arc(d.x * W, d.y * H, d.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Connections between called bodies
+  ctx.lineWidth = 0.5;
+  const calledBodies = bodies.filter(b => b.called);
+  for (let i = 0; i < calledBodies.length; i++) {
+    for (let j = i + 1; j < calledBodies.length; j++) {
+      const a = calledBodies[i], b = calledBodies[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 0.25) {
+        const alpha = (a.anchor || b.anchor) ? 0.5 : 0.15;
+        ctx.strokeStyle = a.anchor ? `rgba(255,255,255,${alpha})` : `rgba(212,160,23,${alpha})`;
+        ctx.lineWidth = (a.anchor && b.anchor) ? 2 : 0.5;
+        ctx.beginPath();
+        ctx.moveTo(a.x * W, a.y * H);
+        ctx.lineTo(b.x * W, b.y * H);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Bodies
+  for (const b of bodies) {
+    b.x += b.vx; b.y += b.vy;
+    if (b.x < 0.05) b.vx = Math.abs(b.vx); if (b.x > 0.95) b.vx = -Math.abs(b.vx);
+    if (b.y < 0.05) b.vy = Math.abs(b.vy); if (b.y > 0.95) b.vy = -Math.abs(b.vy);
+    b.pulse += b.pulseSpeed;
+
+    const pr = b.r * (0.8 + 0.3 * Math.sin(b.pulse));
+    ctx.globalAlpha = b.called ? (0.7 + 0.3 * Math.sin(b.pulse)) : 0.2;
+    ctx.fillStyle = b.called ? b.color : '#333';
+    ctx.beginPath();
+    ctx.arc(b.x * W, b.y * H, pr, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (b.anchor) {
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.moveTo(ax,ay);
-      ctx.lineTo(bx,by);
-      ctx.stroke();
-    });
-  });
-}
-
-function checkBingo(){
-  if(!CELLS.length)return;
-  const cols=Math.ceil(Math.sqrt(CELLS.length));
-  const rows=Math.ceil(CELLS.length/cols);
-  let lines=0;
-
-  // Check rows
-  for(let r=0;r<rows;r++){
-    let full=true;
-    for(let c=0;c<cols;c++){
-      const i=r*cols+c;
-      if(i>=CELLS.length||!CELLS[i].called){full=false;break}
+      ctx.arc(b.x * W, b.y * H, pr * 3, 0, Math.PI * 2);
+      ctx.fill();
     }
-    if(full)lines++;
-  }
-  // Check cols
-  for(let c=0;c<cols;c++){
-    let full=true;
-    for(let r=0;r<rows;r++){
-      const i=r*cols+c;
-      if(i>=CELLS.length||!CELLS[i].called){full=false;break}
+
+    if (b.called) {
+      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = '#fff';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.cell.num, b.x * W, b.y * H + 3);
     }
-    if(full)lines++;
   }
-  // Check diagonals
-  let d1=true,d2=true;
-  const minDim=Math.min(rows,cols);
-  for(let k=0;k<minDim;k++){
-    if(!CELLS[k*cols+k]||!CELLS[k*cols+k].called)d1=false;
-    if(!CELLS[k*cols+(cols-1-k)]||!CELLS[k*cols+(cols-1-k)].called)d2=false;
-  }
-  if(d1)lines++;
-  if(d2)lines++;
-
-  if(lines>bingoCount){
-    bingoCount=lines;
-    document.getElementById('s-lines').textContent=lines;
-    const banner=document.getElementById('bingo-banner');
-    banner.style.display='block';
-    setTimeout(()=>banner.style.display='none',1500);
-  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(draw);
 }
+draw();
+updateStats();
 
-document.getElementById('ip-close').addEventListener('click',()=>{
-  document.getElementById('info-panel').classList.remove('show');
-});
-
-document.getElementById('share-btn').addEventListener('click',()=>{
-  const url=location.origin+'/cosmos.html?s='+seedHex;
-  navigator.clipboard.writeText(url).then(()=>{
-    document.getElementById('share-btn').textContent='✅ copied!';
-    setTimeout(()=>document.getElementById('share-btn').textContent='📋share',2000);
+// ═══ SHARE / RESEED ═══
+document.getElementById('share-btn').addEventListener('click', () => {
+  const url = location.origin + '/cosmos.html?s=' + seedHex;
+  navigator.clipboard.writeText(url).then(() => {
+    document.getElementById('share-btn').textContent = '✅ copied!';
+    setTimeout(() => document.getElementById('share-btn').textContent = '📋 share', 2000);
   });
 });
-
-document.getElementById('reseed-btn').addEventListener('click',()=>{
-  const a=new Uint32Array(1);crypto.getRandomValues(a);
-  location.href='/cosmos.html?s='+a[0].toString(16).padStart(8,'0');
+document.getElementById('reseed-btn').addEventListener('click', () => {
+  const a = new Uint32Array(1); crypto.getRandomValues(a);
+  location.href = '/cosmos.html?s=' + a[0].toString(16).padStart(8, '0');
 });
-
-document.getElementById('seed-hex').addEventListener('click',()=>{
-  document.getElementById('reseed-btn').click();
-});
-
-window.addEventListener('scroll',()=>drawConnections());
+document.getElementById('seed-hex').addEventListener('click', () => document.getElementById('reseed-btn').click());
 </script>
 </body>
 </html>
