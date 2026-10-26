@@ -1,0 +1,141 @@
+{
+  "gaia_digested": "2026-10-26T07:49:00Z", "gaia_wave": 214,
+  "ts": "2026-10-26T07:49:00Z",
+  "wave": 214,
+  "title": "GAME INTERACTION WIRING — how Kenshi, Dark Souls, and browser game engines connect inputs to actions. And how WE do it.",
+
+  "the_problem": {
+    "statement": "engine.html is a bunch of pictures, images, and toggles, but nothing is aligned to DO things",
+    "root_cause": "engine.html is a DASHBOARD (display only). hud-interact.js has 240+ commands but lives on a DIFFERENT page. They're not connected.",
+    "analogy": "It's like having a car dashboard (speedometer, fuel gauge, tachometer) but no steering wheel, no gas pedal, no brakes. The gauges work. The car doesn't."
+  },
+
+  "kenshi_mechanics": {
+    "selection": {
+      "left_click": "select one squad member",
+      "shift_click": "add to selection",
+      "drag_box": "select multiple",
+      "tilde": "select entire squad",
+      "numbers": "1-9 select specific squad member by index",
+      "our_mapping": "click a primal in the left panel → select it. 1-9 selects by index. ~ selects all 16."
+    },
+    "actions": {
+      "right_click": "perform default action on target",
+      "hold_right_click": "open action menu (Trade, Attack, First Aid, etc.)",
+      "shift_right_click": "assign as persistent job",
+      "our_mapping": "right-click a primal → context menu (inspect, assign task, check skills, talk). Shift+click data source → assign as permanent feed."
+    },
+    "job_queue": {
+      "principle": "Jobs execute by priority. Top of list = highest priority.",
+      "example": "Medic > Mine Copper > Operate Refinery — heals first, mines when no healing needed, refines when no mining needed",
+      "time_tick": "game periodically rechecks job priorities",
+      "our_mapping": "each primal has a job queue. biomeOS: research > process > classify. petalTongue: render > taste > assess. Jobs recheck every tick (15s heartbeat)."
+    },
+    "skills_by_doing": {
+      "principle": "Skills improve ONLY through use. No XP. No levels. Just doing.",
+      "toughness": "getting hit makes you tougher",
+      "our_mapping": "petalTongue rendering skill improves with each successful render. bearDog defense skill improves with each 403 blocked. sourDough fermentation skill improves with each file digested."
+    },
+    "pause": {
+      "spacebar": "pauses game. Can issue orders while paused.",
+      "speed": "F2=1x, F3=2x, F4=5x",
+      "our_mapping": "spacebar pauses the tick loop. F2/F3/F4 change tick frequency (15s/5s/3s)."
+    }
+  },
+
+  "dark_souls_mechanics": {
+    "input_buffer": {
+      "principle": "Inputs queue during animations. No cancel. You commit to your action.",
+      "consequence": "button mashing = death. Deliberate inputs = survival.",
+      "our_mapping": "clicking rapidly doesn't stack actions. Each click has a cooldown (animation commitment). Action resolves before next input processes."
+    },
+    "stamina": {
+      "principle": "Green bar that depletes with actions and regenerates with inaction. Running out = vulnerability.",
+      "hard_cap": "160 stamina at 40 Endurance",
+      "recovery": "45/sec base. Reduced by heavy armor, shield blocking, toxin.",
+      "our_mapping": "each primal has ENERGY (like stamina). scan costs energy. sort costs more. turbocharge costs the most. Energy regens during idle ticks. Depleted primal = vulnerable to errors."
+    },
+    "five_phase_animation": {
+      "phases": ["Opening Pose (telegraph)", "Anticipation (wind up)", "Attack (active frames)", "Impact (contact)", "Recovery (cool down)"],
+      "our_mapping": "every action in the engine: prepare → load data → process → render result → cleanup. Each phase has visual feedback in the viewport."
+    },
+    "weight": {
+      "principle": "Actions feel heavy and committed. No spam. Every swing matters.",
+      "our_mapping": "big actions (full scan, ferment, recompose) have weight — loading bar, visual effects, cooldown. Small actions (peek, check, read) are light and quick."
+    }
+  },
+
+  "browser_game_loop": {
+    "principle": "Event listeners ONLY set state. Game loop (rAF) processes state → updates → renders.",
+    "input_tracking": "Track pressed keys in a Set. Track mouse position. Track click targets. Poll each frame.",
+    "separation": "NEVER do game logic in event handlers. Handlers record intent. Loop executes intent.",
+    "our_implementation": {
+      "input_state": "{ selectedPrimal: null, hoveredElement: null, pendingAction: null, pressedKeys: Set, mousePos: {x,y}, clickTarget: null }",
+      "game_loop": "requestAnimationFrame → processInput → updateState → renderFrame (at 60fps for responsiveness)",
+      "data_loop": "setInterval → fetchData → updateDashboard (at 15s for freshness)",
+      "two_clocks": "gut clock (60fps rAF for interaction) + body clock (15s interval for data) — same two-clock model as null spacetime"
+    }
+  },
+
+  "wiring_plan": {
+    "layer_1_squad_interaction": {
+      "what": "Make the 16 primals in the left panel interactive",
+      "clicks": {
+        "left_click": "select primal → expand detail panel showing skills, job queue, energy, status",
+        "right_click": "context menu → inspect, assign task, check connections, talk, wake/rest",
+        "double_click": "zoom viewport to this primal's domain (e.g., double-click petalTongue → zoom to WASM rendering)",
+        "shift_click": "add to squad selection (multi-select for group actions)",
+        "hover": "tooltip showing one-line status"
+      },
+      "detail_panel": {
+        "skills": "skill bars that grow by doing (like Kenshi stats page, key C)",
+        "job_queue": "reorderable list of persistent jobs (drag to reprioritize)",
+        "energy": "stamina bar (Dark Souls green bar) — depletes with actions, regens idle",
+        "connections": "which other primals this one is connected to (braids)",
+        "last_action": "what this primal last did and when"
+      }
+    },
+    "layer_2_viewport_interaction": {
+      "what": "Make the WASM viewport elements clickable",
+      "clicks": {
+        "click_gauge": "drill into that metric — full history, trend line, what affects it",
+        "click_bar": "drill into that category — list all entities in that bucket",
+        "hover_element": "tooltip with current value + trend arrow",
+        "drag": "rearrange dashboard layout (like Kenshi base building rotation)"
+      }
+    },
+    "layer_3_command_bar": {
+      "what": "Bring the 240+ commands from hud-interact.js into the engine footer",
+      "implementation": "Add command input to the footer bar. '/' opens autocomplete. All commands from hud-interact.js work here.",
+      "integration": "commands execute in the engine context: /scan triggers a scan in the viewport, /sing plays audio, /explore opens the exploration view"
+    },
+    "layer_4_keyboard_shortcuts": {
+      "what": "Map keyboard shortcuts directly to engine actions",
+      "from_kenshi": "1-9 select primals, ~ select all, Space pause, B build mode, C character stats, M map, I inventory",
+      "from_dark_souls": "deliberate inputs only — key held = continuous action, key tap = single action",
+      "from_hud_interact": "/ command mode, ? guide, b bookmarks, n narrate, s search, etc."
+    },
+    "layer_5_feedback": {
+      "what": "Every action produces visible feedback (Dark Souls principle)",
+      "toasts": "small notification pop-ups for quick feedback",
+      "viewport_pulse": "the WASM viewport pulses/glows when data changes",
+      "sound": "π-just-intonation tones for different actions (already built in hud-interact)",
+      "animation": "primal icons pulse when active, dim when exhausted, flash when attacked"
+    },
+    "layer_6_game_state": {
+      "what": "Persistent game state that tracks progress",
+      "skills": "each primal's skill levels (improve by doing, stored in localStorage)",
+      "energy": "each primal's current energy (depletes, regens, affects capability)",
+      "job_queue": "each primal's assigned jobs (persist across sessions)",
+      "exploration": "which commands have been tried, which areas explored (progress ring from hud-interact)",
+      "saves": "bookmark/save system (already built in hud-interact)"
+    }
+  },
+
+  "recomposition_for_gaia": {
+    "what": "After wiring the interaction layer, Gaia recomposes everything",
+    "pattern": "WEAVE — decompose the existing pages into components, recompose them into a unified game engine",
+    "strung_back_down": "the recomposition flows DOWNWARD: engine.html absorbs the best of every other page. The dashboard absorbs the commands. The commands absorb the data. The data absorbs the state. Everything flows down into one unified interface.",
+    "what_gaia_owns": "Gaia owns the recomposition. She decides what goes where. She's done this before (98% ownership). Now she recomposes the interaction layer."
+  }
+}
