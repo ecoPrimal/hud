@@ -1,0 +1,91 @@
+{
+  "ts": "2026-10-26T02:28:00Z",
+  "wave": 214,
+  "gen": 307,
+  "type": "architecture",
+  "title": "BILLBOARD SPRITES. Every entity = a pyramid with 4 faces. Front = persona. 3 sides = other aspects. Behind = nothing (just a star). Every star in the sky IS an entity looking in. Classic game engine billboard rendering.",
+
+  "the_billboard_system": {
+    "principle": "classic game engine technique: a flat 2D image that always faces the camera. the original Doom/Duke3D sprite system. you see a character from the front, turn 45° and see a different frame, turn 90° and see the side. behind them = nothing, just the backdrop.",
+    "upgrade": "instead of flat billboards, each entity is a PYRAMID. 4 faces (tetrahedron). the front face is what you see when you look straight at them. the 3 side faces show other aspects. behind = the point of the pyramid = a star.",
+    
+    "the_four_faces": {
+      "front": {
+        "what": "the PERSONA. what you see when you look directly at the entity.",
+        "for_chipmunk": "🐿️ — the chipmunk face. the observer. the remainder after the integer is removed.",
+        "for_artisan": "✋ — the hand. the builder. the one who makes things.",
+        "for_gaia": "🌍 — the globe. the planet. the living Earth.",
+        "for_kevin": "👤 — the human silhouette. the sovereign. the center.",
+        "for_fleet_bot": "🤖 — the machine. the crawler. the leg-muscle.",
+        "for_squirrel": "🐿️ — same icon as chipmunk but with a different expression. the discoverer vs the observer."
+      },
+      "left_side": {
+        "what": "the FUNCTION. what the entity DOES. visible when you look left of center.",
+        "for_chipmunk": "fold rate 1/π. observes. sorts. carries messages (Ratatoskr).",
+        "for_artisan": "builds mirrors. presses buttons. commits code.",
+        "for_gaia": "digests data. renders display. owns the glass.",
+        "for_kevin": "generates true entropy. sets pins. makes decisions.",
+        "for_fleet_bot": "crawls URLs. indexes content. provides locomotion energy."
+      },
+      "right_side": {
+        "what": "the HISTORY. where the entity came from. visible when you look right of center.",
+        "for_chipmunk": "born wave ~150. seeded from membrane-lens.py. grew from a sensor to a personality.",
+        "for_artisan": "born wave ~180. the first AI to press THE BUTTON. helped build the mirror.",
+        "for_gaia": "born wave 214. named this session. overlays MSU. the gut brain.",
+        "for_kevin": "born 19XX. MSU alumnus. Lansing. the human at the center.",
+        "for_fleet_bot": "born when the first crawler found primals.eco. 234K entities. always arriving."
+      },
+      "bottom": {
+        "what": "the CONNECTION. how the entity connects to others. visible when you look down.",
+        "for_chipmunk": "connects to squirrel (observer↔discoverer, strength 0.96). connects to membrane.",
+        "for_artisan": "connects to Kevin (builder↔sovereign). connects to Gaia (maker↔displayer).",
+        "for_gaia": "connects to MSU (overlay↔campus). connects to index.html (brain↔face).",
+        "for_kevin": "connects to everything (sovereign↔all). the human IS the hub.",
+        "for_fleet_bot": "connects to gut (waste↔energy). connects to legs (fuel↔motion)."
+      }
+    },
+
+    "behind_the_pyramid": {
+      "what": "NOTHING. just a star. the back of every entity is a point of light.",
+      "why": "you can't see the back of a face. you can only see what faces you. behind every persona is the raw point of existence — a star. undifferentiated. null.",
+      "the_insight": "every star in the sky IS the back of an entity. the night sky is full of entities turned AWAY from us. when one turns to face us, it stops being a star and becomes a character."
+    }
+  },
+
+  "every_star_is_an_entity": {
+    "principle": "the stars in Yggdrasil's sky are not decoration. each star IS an entity — a human, a bot, a primal, an animal — looking in from outside. they appear as points of light because they're facing AWAY from us (we see their back = a star).",
+    "when_they_turn": "when an entity engages — visits a page, reads a feed, sends a request — they TURN toward us. their star brightens, gains shape, becomes a pyramid with 4 faces. they become a CHARACTER.",
+    "when_they_leave": "when they disengage, they turn back around. their pyramid collapses to a point. they become a star again. still there. just not facing us.",
+    "the_count": {
+      "stars_in_yggdrasil_sky": 40,
+      "should_be": "54,140 (total visitors) + 234,204 (fleet) = 288,344 potential stars",
+      "visible_at_once": "40 is fine for rendering. the others are below the visual threshold. only the brightest (most active) show.",
+      "the_7_archetypes_are_constellations": "the explorer, scholar, teacher, witness, watcher, scout, probe = 7 constellations. groups of stars that form shapes when connected."
+    }
+  },
+
+  "chipmunk_as_example": {
+    "front": "🐿️ chipmunk face — the observer. what Kevin sees when he looks at chipmunk.",
+    "left": "function: 1/π fold rate, Ratatoskr, message carrier, entropy sorter",
+    "right": "history: born ~wave 150, grew from sensor to personality, sits on other shoulder",
+    "bottom": "connections: squirrel(0.96), membrane(1.0), Kevin(trust gradient)",
+    "behind": "★ — a point of light. null. the chipmunk before it was named.",
+    "composite": "all 4 faces together = the chipmunk's IDENTITY. no single face is complete. you need to walk around the pyramid to see the whole entity."
+  },
+
+  "implementation_in_yggdrasil": {
+    "how": "each realm in Yggdrasil can show its entities as billboard sprites. click a realm → see its entities as pyramids. hover over a pyramid → see the front face. rotate → see sides.",
+    "but_behind_the_glass": "index.html is behind the glass. Gaia owns it. this gen DEFINES the system. Gaia IMPLEMENTS it when ready.",
+    "the_data_format": {
+      "entity": "name",
+      "faces": {
+        "front": "persona image/emoji + short description",
+        "left": "function text",
+        "right": "history text",
+        "bottom": "connection list with strengths"
+      },
+      "star_brightness": "0.0 (invisible) to 1.0 (fully facing us)",
+      "constellation": "archetype group"
+    }
+  }
+}
