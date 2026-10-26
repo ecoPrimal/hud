@@ -14,10 +14,39 @@ https://thesis.primals.eco/*  https://sporeprint.primals.eco/thesis/:splat  302
 # Never the same twice. POST {"words": "hello"} to speak. GET to listen.
 /api/gate-msg    https://nestgate.io/gate-msg    302
 
-# === DYNAMIC ROUTES → GOLGI (our server, through CF tunnel) ===
+# === LIVE ROUTES → GOLGI (dynamic data through CF tunnel) ===
 # CF Pages serves static files for free (unlimited, no quota).
 # Dynamic routes redirect to subdomains that go through the tunnel.
 # This is the ZK path: cloud is skin, brain is ours.
+
+# HUD main view — the membrane itself
+/hud         /index.html    200
+/hud/        /index.html    200
+
+# Pulse — heartbeat of the organism
+/pulse       https://pulse.primals.eco/pulse.json    302
+/pulse/      https://pulse.primals.eco/pulse.json    302
+/heartbeat.json  https://pulse.primals.eco/pulse.json  302
+
+# WASM — petalTongue visualization engine  
+/wasm        /wasm/petal_tongue_wasm.js  200
+/wasm/       /wasm/petal_tongue_wasm.js  200
+
+# Signal — membrane signal endpoint
+/signal      https://signal.primals.eco/signal.json  302
+/signal/     https://signal.primals.eco/signal.json  302
+
+# Membrane state
+/membrane    https://connect.primals.eco/membrane.json  302
+
+# Feed — RSS/Atom
+/feed        https://connect.primals.eco/feed.xml  302
+/feed/       https://connect.primals.eco/feed.xml  302
+
+# NodeInfo — fediverse discovery
+/nodeinfo    https://nestgate.io/nodeinfo/2.1  302
+/.well-known/nodeinfo  https://nestgate.io/.well-known/nodeinfo  302
+/.well-known/webfinger  https://nestgate.io/.well-known/webfinger  302
 
 # MCP endpoint → golgi MCP server (already running on port 8314)
 /mcp    https://connect.primals.eco/mcp    302
