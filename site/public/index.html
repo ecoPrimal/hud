@@ -971,6 +971,31 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.globalAlpha = 1;
     });
 
+    // GAIA'S MOUTH — the red electron on the far side of the black hole
+    // This is where everything drops IN. The neutron mailbox target.
+    var mouthPulse = Math.sin(breathT * 3) * 0.3 + 0.7;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4 + mouthPulse * 2, 0, TAU);
+    ctx.fillStyle = 'rgba(248,81,73,' + (mouthPulse * 0.6).toFixed(3) + ')';
+    ctx.fill();
+    // Event horizon ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8 + mouthPulse * 4, 0, TAU);
+    ctx.strokeStyle = 'rgba(248,81,73,' + (mouthPulse * 0.2).toFixed(3) + ')';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Gravity well lines — things falling IN
+    for (var gi = 0; gi < 6; gi++) {
+      var ga = (gi / 6) * TAU + breathT * 0.3;
+      var gr = 15 + Math.sin(breathT * 2 + gi) * 5;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ga) * gr, cy + Math.sin(ga) * gr);
+      ctx.lineTo(cx + Math.cos(ga) * 5, cy + Math.sin(ga) * 5);
+      ctx.strokeStyle = 'rgba(248,81,73,0.1)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
     // Face label
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = face === 'outside' ? 'rgba(88,166,255,0.5)' : 'rgba(90,184,122,0.5)';
@@ -978,7 +1003,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillText(face === 'outside' ? 'CIS — outside view' : 'TRANS — inside view', cx, H - 30);
     ctx.font = '8px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(110,118,129,0.4)';
-    ctx.fillText('drag to rotate · F to flip · scroll to zoom · click pin to open', cx, H - 16);
+    ctx.fillText('drag to rotate · F to flip · red dot = Gaia\'s mouth · everything falls IN', cx, H - 16);
   }
 
   function tick() {
@@ -1176,14 +1201,43 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillStyle = '#010409';
     ctx.fillRect(0, 0, s.W, s.H);
 
-    // Vanishing point — where your z-axis pierces the canvas
-    // A tiny dot of light — the tip of your nose from the other side
-    var vpGlow = 0.15 + Math.sin(gaiaPhase * 2) * 0.05;
-    var vpR = 3 + Math.sin(gaiaPhase) * 1;
+    // GAIA'S MOUTH — the red electron — the receiving end of the black hole
+    // From this side, it's where everything ARRIVES after falling through
+    var mouthPulse = Math.sin(gaiaPhase * 3) * 0.3 + 0.7;
+    // Gravity well — things being pulled IN
+    for (var gi = 0; gi < 8; gi++) {
+      var ga = (gi / 8) * TAU + gaiaPhase * 0.5;
+      var outerR = 60 + Math.sin(gaiaPhase + gi) * 10;
+      ctx.beginPath();
+      ctx.moveTo(s.cx + Math.cos(ga) * outerR, s.cy + Math.sin(ga) * outerR);
+      // Spiral inward
+      for (var sp = 0; sp <= 20; sp++) {
+        var t = sp / 20;
+        var r = outerR * (1 - t * 0.9);
+        var a = ga + t * 1.5;
+        ctx.lineTo(s.cx + Math.cos(a) * r, s.cy + Math.sin(a) * r);
+      }
+      ctx.strokeStyle = 'rgba(248,81,73,' + (0.04 + mouthPulse * 0.03).toFixed(3) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+    // The red dot — Gaia's mouth
+    var vpR = 5 + mouthPulse * 3;
     ctx.beginPath();
     ctx.arc(s.cx, s.cy, vpR, 0, TAU);
-    ctx.fillStyle = 'rgba(255,255,255,' + vpGlow.toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(248,81,73,' + (mouthPulse * 0.7).toFixed(3) + ')';
     ctx.fill();
+    // Glow
+    ctx.beginPath();
+    ctx.arc(s.cx, s.cy, vpR + 6, 0, TAU);
+    ctx.strokeStyle = 'rgba(248,81,73,' + (mouthPulse * 0.15).toFixed(3) + ')';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Label
+    ctx.font = '7px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(248,81,73,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Gaia\'s mouth', s.cx, s.cy + vpR + 14);
     // Perspective lines radiating from vanishing point
     for (var i = 0; i < 8; i++) {
       var angle = (i / 8) * TAU + gaiaPhase * 0.1;
