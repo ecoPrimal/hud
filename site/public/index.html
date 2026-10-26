@@ -842,7 +842,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var y = sp * Math.cos(rotX) - cp * cl * Math.sin(rotX);
     var z = sp * Math.sin(rotX) + cp * cl * Math.cos(rotX);
     if (face === 'inside') z = -z;
-    return { x: cx + x * R, y: cy - y * R, z: z, visible: z > 0 };
+    // PERSPECTIVE DEPTH — pi cross impose, voxel acceleration, dimensional!
+    // z goes from -1 (far) to +1 (near). Scale by perspective.
+    var perspD = 2.8; // perspective distance (lower = more dramatic)
+    var scale = perspD / (perspD - z * 0.7); // perspective division
+    var px = cx + x * R * scale;
+    var py = cy - y * R * scale;
+    return { x: px, y: py, z: z, scale: scale, visible: z > -0.2, depth: (1 + z) / 2 };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1098,33 +1104,60 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
     ctx.globalAlpha = 1;
 
-    // TENSE x VOXEL SORT RENDER — Gaia attends more to closer things
-    PINS.forEach(function(pin) {
-      if (pin.face !== 'both' && pin.face !== face) return;
+    // TENSE x VOXEL SORT RENDER — Z-SORTED for real depth!
+    // Pi cross impose: sort back-to-front so near nodes occlude far ones
+    var sortedPins = PINS.filter(function(pin) {
+      return pin.face === 'both' || pin.face === face;
+    }).map(function(pin) {
       var p = project(pin.lat, pin.lon);
-      if (!p.visible) return;
+      return { pin: pin, p: p };
+    }).filter(function(o) {
+      return o.p.visible;
+    }).sort(function(a, b) {
+      return a.p.z - b.p.z; // back-to-front: far first, near last
+    });
+
+    sortedPins.forEach(function(o) {
+      var pin = o.pin, p = o.p;
 
       // Gaia's attention: closer in tense+voxel = brighter, larger
       var att = pin.attention || 0.5;
-      var alpha = (0.15 + p.z * 0.5) * (0.4 + att * 0.6);
-      var sz = (6 + p.z * 4) * (0.7 + att * 0.5);
+      // PERSPECTIVE: use p.scale for real depth sizing
+      var depthFade = p.depth; // 0=far, 1=near
+      var alpha = (0.08 + depthFade * 0.7) * (0.4 + att * 0.6);
+      var sz = (4 + depthFade * 10) * p.scale * (0.7 + att * 0.5);
 
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = Math.min(1, alpha);
 
-      // Icon
+      // DEPTH GLOW — near nodes get a subtle halo
+      if (depthFade > 0.6) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, sz * 1.5, 0, TAU);
+        ctx.fillStyle = pin.color.replace(')', ',' + (depthFade * 0.08).toFixed(3) + ')').replace('rgb', 'rgba').replace('##', '#');
+        var glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 1.8);
+        glowGrad.addColorStop(0, 'rgba(255,255,255,' + (depthFade * 0.06).toFixed(3) + ')');
+        glowGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fill();
+      }
+
+      // Icon — scaled by perspective
       ctx.font = Math.round(sz) + 'px serif';
       ctx.textAlign = 'center';
       ctx.fillText(pin.icon, p.x, p.y);
 
-      // Label — sized by attention
-      ctx.font = Math.round(5 + p.z * 2 + att * 3) + 'px "JetBrains Mono", monospace';
+      // Label — sized by depth + attention
+      var labelSize = Math.round((4 + depthFade * 5 + att * 3) * p.scale);
+      labelSize = Math.max(4, Math.min(14, labelSize));
+      ctx.font = labelSize + 'px "JetBrains Mono", monospace';
       ctx.fillStyle = pin.color;
+      ctx.globalAlpha = Math.min(1, alpha * (0.7 + depthFade * 0.3));
       ctx.fillText(pin.name, p.x, p.y + sz * 0.7 + 4);
 
-      // Sub-label — only for high-attention pins
-      if (p.z > 0.3 && att > 0.5) {
-        ctx.font = '6px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(110,118,129,' + (alpha * 0.8).toFixed(2) + ')';
+      // Sub-label — only for near high-attention pins
+      if (depthFade > 0.5 && att > 0.4) {
+        ctx.font = Math.round(5 * p.scale) + 'px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(110,118,129,' + (alpha * 0.6).toFixed(2) + ')';
         ctx.fillText(pin.sub, p.x, p.y + sz * 0.7 + 13);
       }
 
