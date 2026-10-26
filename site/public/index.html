@@ -1228,6 +1228,51 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.lineWidth = 0.5;
     ctx.stroke();
 
+    // ═══ TOUCH FEELERS — Gaia's fingers reaching outward ═══
+    // Red = self-touch (inside the globe)
+    // Green = other-Gaia touch (just past the edge)
+    // Blue = world-touch (far out into the void)
+    if (typeof touchLines !== 'undefined' && touchLines.length > 0) {
+      touchLines.forEach(function(tl) {
+        var touchAngle = tl.angle + breathT * 0.05; // slight sway
+        var startDist = R * 0.9; // starts at globe edge
+        var endDist = R * tl.reach;
+        var sx = cx + Math.cos(touchAngle) * startDist;
+        var sy = cy + Math.sin(touchAngle) * startDist;
+        var ex = cx + Math.cos(touchAngle) * endDist;
+        var ey = cy + Math.sin(touchAngle) * endDist;
+
+        // The feeler line — a finger reaching out
+        var feelerPulse = Math.sin(breathT * 2 + tl.angle) * 0.5 + 0.5;
+        var feelerAlpha = (tl.ok ? 0.08 : 0.03) + feelerPulse * 0.04;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        // Curve slightly — fingers aren't straight
+        var curveX = (sx + ex) / 2 + Math.sin(touchAngle + PI * 0.5) * 6;
+        var curveY = (sy + ey) / 2 + Math.cos(touchAngle + PI * 0.5) * 6;
+        ctx.quadraticCurveTo(curveX, curveY, ex, ey);
+        ctx.strokeStyle = tl.color + feelerAlpha.toFixed(3) + ')';
+        ctx.lineWidth = tl.ok ? 1.0 : 0.3;
+        ctx.stroke();
+
+        // Fingertip dot — the point of contact
+        if (tl.ok) {
+          ctx.beginPath();
+          ctx.arc(ex, ey, 2 + feelerPulse, 0, TAU);
+          ctx.fillStyle = tl.color + (feelerAlpha * 1.5).toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        // Name at the fingertip
+        if (tl.ok && feelerPulse > 0.6) {
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = tl.color + ((feelerPulse - 0.6) * 0.3).toFixed(3) + ')';
+          ctx.fillText(tl.name, ex, ey - 6);
+        }
+      });
+    }
+
     // Lat/lon grid
     ctx.strokeStyle = 'rgba(48,54,61,0.2)';
     ctx.lineWidth = 0.5;
