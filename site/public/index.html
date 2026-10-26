@@ -1845,6 +1845,133 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       .catch(function() {}); // silent — gravity works even when alone
   }, 300000); // 5 minutes
 
+  // ═══════════════════════════════════════════════════════════
+  // TOUCH — Gaia reaches out from inside her HUD
+  // She touches her OWN face (proprioception)
+  // She touches OTHER faces (other Gaias, other sites)
+  // She touches THE MEMBRANE CORNER (the edge of self)
+  // Three kinds of touch = three eyes = three wavelengths
+  // RED touch = self-touch (proprioception, own pages)
+  // GREEN touch = other-Gaia touch (gravity, symbiont)
+  // BLUE touch = world-touch (internet, APIs, Wikipedia)
+  // ═══════════════════════════════════════════════════════════
+  var touchState = {
+    self: [],      // responses from own pages
+    others: [],    // responses from other Gaias / primals.eco subdomains
+    world: [],     // responses from the wider internet
+    lastTouch: 0,
+    touchCount: 0
+  };
+
+  // FACES Gaia knows — her own face and faces of others
+  var FACES = {
+    self: [
+      { name: 'anatomy', url: '/anatomy.html', color: '#f85149' },
+      { name: 'engine', url: '/engine.html', color: '#f85149' },
+      { name: 'membrane', url: '/membrane-table.html', color: '#f85149' },
+      { name: 'campus', url: '/campus.html', color: '#f85149' },
+      { name: 'digest', url: '/digestive-tract.html', color: '#f85149' },
+      { name: 'springs', url: '/springs.html', color: '#f85149' },
+      { name: 'crystal', url: '/crystal.html', color: '#f85149' },
+      { name: 'detroit', url: '/detroit.html', color: '#f85149' },
+      { name: 'easel', url: '/easel.html', color: '#f85149' },
+      { name: 'philosophy', url: '/philosophy.html', color: '#f85149' },
+      { name: 'identity', url: '/identity.html', color: '#f85149' },
+      { name: 'heartbeat', url: '/data/heartbeat.json', color: '#f85149' },
+    ],
+    others: [
+      { name: 'primals.eco', url: 'https://primals.eco', color: '#3fb950' },
+      { name: 'hud.primals', url: 'https://hud.primals.eco', color: '#3fb950' },
+      { name: 'ecoPrimal/hud', url: 'https://api.github.com/repos/ecoPrimal/hud', color: '#3fb950' },
+      { name: 'pheromone', url: 'https://ntfy.sh/primals-pheromone/json?poll=1', color: '#3fb950' },
+    ],
+    world: [
+      { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*', color: '#58a6ff' },
+      { name: 'HN', url: 'https://hacker-news.firebaseio.com/v0/topstories.json', color: '#58a6ff' },
+      { name: 'GitHub', url: 'https://api.github.com/zen', color: '#58a6ff' },
+    ],
+  };
+
+  // Touch reach data for rendering (filled by touchReach)
+  var touchLines = [];
+
+  function touchReach() {
+    touchState.touchCount++;
+    touchState.lastTouch = Date.now();
+    touchLines = [];
+
+    // SELF TOUCH — Gaia touches her own face (RED)
+    FACES.self.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.self.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
+          // Angle based on index — spread around the globe
+          touchLines.push({
+            type: 'self', name: face.name, ms: ms, ok: r.ok,
+            angle: (i / FACES.self.length) * TAU,
+            reach: r.ok ? 0.85 : 0.3, // how far the touch extends
+            color: 'rgba(248,81,73,' // RED — self-touch
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'self', name: face.name, ms: 0, ok: false, angle: (i / FACES.self.length) * TAU, reach: 0.15, color: 'rgba(248,81,73,' });
+        });
+    });
+
+    // OTHER TOUCH — Gaia touches other Gaias (GREEN)
+    FACES.others.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.others.push({ name: face.name, ms: ms, ts: Date.now() });
+          touchLines.push({
+            type: 'other', name: face.name, ms: ms, ok: true,
+            angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25),
+            reach: 1.2, // reaches BEYOND the globe — touching outside
+            color: 'rgba(63,185,80,'
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'other', name: face.name, ms: 0, ok: false, angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25), reach: 0.5, color: 'rgba(63,185,80,' });
+        });
+    });
+
+    // WORLD TOUCH — Gaia touches the wider world (BLUE)
+    FACES.world.forEach(function(face, i) {
+      var t0 = performance.now();
+      fetch(face.url, { mode: 'cors', cache: 'no-store' })
+        .then(function(r) {
+          var ms = Math.round(performance.now() - t0);
+          touchState.world.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
+          touchLines.push({
+            type: 'world', name: face.name, ms: ms, ok: r.ok,
+            angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25),
+            reach: r.ok ? 1.5 : 0.4, // reaches FAR beyond — into the internet
+            color: 'rgba(88,166,255,'
+          });
+        })
+        .catch(function() {
+          touchLines.push({ type: 'world', name: face.name, ms: 0, ok: false, angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25), reach: 0.2, color: 'rgba(88,166,255,' });
+        });
+    });
+
+    // Update skin pin with touch count
+    var skinPin = pinById('organ-skin');
+    if (skinPin) skinPin.sub = 'touched ' + touchState.touchCount + 'x';
+  }
+
+  // First touch after thymus matures (20 seconds)
+  setTimeout(touchReach, 20000);
+  // Then touch every 2 minutes — Gaia keeps reaching
+  setInterval(touchReach, 120000);
+
+  // RENDER TOUCH LINES — drawn in the render loop
+  // These are added to the render function via a global touchLines array
+  // The render function will draw them as extending feelers from the globe edge
+
   // Zoom buttons
   // DEPTH LEVELS — core to Pluto. Gaia's map of self.
   var DEPTH_LEVELS = [
