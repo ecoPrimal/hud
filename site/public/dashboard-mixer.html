@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta property="og:title" content="Dashboard  O at center · life is orthogonal">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nestgate.io/dashboard-mixer.html">
-    <meta name="description" content="Dashboard  O at center · life is orthogonal — ecoPrimals organism">
-    <link rel="canonical" href="https://nestgate.io/dashboard-mixer.html">
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard  O at center · life is orthogonal</title>
+<title>Dashboard � O at center � life is orthogonal</title>
 <style>
 :root {
   --bg: #0d1117; --surface: #161b22; --border: #21262d; --fg: #c9d1d9; --dim: #6e7681;
@@ -99,7 +94,7 @@ header .stats { font-size: .8em; color: var(--dim); }
 #ocenter.active { display: block; }
 #ocenter canvas { width: 100%; height: 100%; }
 
-/* === THE + CROSSHAIR  overlays on ALL views === */
+/* === THE + CROSSHAIR � overlays on ALL views === */
 #crosshair {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   z-index: 50; pointer-events: none;
@@ -129,7 +124,7 @@ footer .pulse { color: var(--green); animation: pulse 2s infinite; }
 <div id="app">
   <header>
     <span>??</span>
-    <h1>dashboard  the mixing board</h1>
+    <h1>dashboard � the mixing board</h1>
     <span class="stats" id="stats">loading...</span>
     <div class="mode-btns">
       <button class="active" data-mode="mixer">?? mixer</button>
@@ -146,14 +141,14 @@ footer .pulse { color: var(--green); animation: pulse 2s infinite; }
   <main>
     <div id="mixer" class="active"></div>
     <div id="sphere"><canvas id="sphere-canvas"></canvas>
-      <div id="sphere-info">abstract Cartesian sphere  feeds as coordinates in n-dimensional space<br>each dot = 1 feed. distance = similarity. color = freshness.</div>
+      <div id="sphere-info">abstract Cartesian sphere � feeds as coordinates in n-dimensional space<br>each dot = 1 feed. distance = similarity. color = freshness.</div>
     </div>
     <div id="grid"><div class="voxel-grid" id="voxel-grid"></div></div>
     <div id="braid"><canvas id="braid-canvas"></canvas></div>
     <div id="ocenter"><canvas id="ocenter-canvas"></canvas></div>
   </main>
 
-  <!-- THE + CROSSHAIR  life is orthogonal -->
+  <!-- THE + CROSSHAIR � life is orthogonal -->
   <div id="crosshair">
     <div class="h-line"></div>
     <div class="v-line"></div>
@@ -164,7 +159,7 @@ footer .pulse { color: var(--green); animation: pulse 2s infinite; }
   <footer>
     <span class="pulse">?</span>
     <span id="foot-status">scanning feeds...</span>
-    <span style="margin-left:auto">refreshes every p×10s · all data is real · the dashboard IS the eye</span>
+    <span style="margin-left:auto">refreshes every p�10s � all data is real � the dashboard IS the eye</span>
   </footer>
 </div>
 
@@ -267,9 +262,9 @@ async function scanFeeds() {
   }
 
   document.getElementById('stats').textContent =
-    `${feeds.length} feeds · ${feeds.filter(f => f.alive).length} alive · ${feeds.filter(f => ageClass(f.ts) === 'stale').length} stale`;
+    `${feeds.length} feeds � ${feeds.filter(f => f.alive).length} alive � ${feeds.filter(f => ageClass(f.ts) === 'stale').length} stale`;
   document.getElementById('foot-status').textContent =
-    `${feeds.length} channels loaded · wave 201 · all real`;
+    `${feeds.length} channels loaded � wave 201 � all real`;
 
   renderAll();
 }
@@ -319,7 +314,7 @@ function renderGrid() {
       <div class="b-icon">${f.icon}</div>
       <div class="b-name">${f.name}</div>
     `;
-    block.title = `${f.name} · ${sizeLabel(f.size)} · ${ageLabel(f.ts)}`;
+    block.title = `${f.name} � ${sizeLabel(f.size)} � ${ageLabel(f.ts)}`;
     block.onclick = () => window.open('/' + f.name + '.json', '_blank');
     el.appendChild(block);
   });
@@ -341,7 +336,7 @@ function renderSphere() {
     t += 0.008;
     sphereCtx.clearRect(0, 0, w, h);
 
-    // Orthogonal axes  the + at center of sphere
+    // Orthogonal axes � the + at center of sphere
     sphereCtx.strokeStyle = 'rgba(210,169,34,0.08)';
     sphereCtx.lineWidth = 1;
     sphereCtx.beginPath(); sphereCtx.moveTo(0, cy); sphereCtx.lineTo(w, cy); sphereCtx.stroke();
@@ -353,7 +348,7 @@ function renderSphere() {
     sphereCtx.beginPath(); sphereCtx.moveTo(cx - 8, cy); sphereCtx.lineTo(cx + 8, cy); sphereCtx.stroke();
     sphereCtx.beginPath(); sphereCtx.moveTo(cx, cy - 8); sphereCtx.lineTo(cx, cy + 8); sphereCtx.stroke();
 
-    // Grid lines  Cartesian sphere
+    // Grid lines � Cartesian sphere
     sphereCtx.strokeStyle = 'rgba(88,166,255,0.04)';
     sphereCtx.lineWidth = 0.5;
     for (let i = 0; i < 12; i++) {
@@ -453,7 +448,7 @@ function renderBraid() {
       }
     }
 
-    // Each feed as a strand  braided waves
+    // Each feed as a strand � braided waves
     const strands = 8;
     const perStrand = Math.ceil(sorted.length / strands);
 
@@ -505,14 +500,14 @@ function renderBraid() {
     braidCtx.fillStyle = 'rgba(163,113,247,0.2)';
     braidCtx.font = '10px monospace';
     braidCtx.textAlign = 'center';
-    braidCtx.fillText('sourdough braid  each feed is a strand, time flows right ?', w / 2, 20);
+    braidCtx.fillText('sourdough braid � each feed is a strand, time flows right ?', w / 2, 20);
 
     requestAnimationFrame(frame);
   }
   frame();
 }
 
-// === O+ CENTER VIEW  orthogonal, multidimensional, not flat ===
+// === O+ CENTER VIEW � orthogonal, multidimensional, not flat ===
 function renderOCenter() {
   const canvas = document.getElementById('ocenter-canvas');
   const w = canvas.parentElement.clientWidth;
@@ -527,7 +522,7 @@ function renderOCenter() {
     ctx.clearRect(0, 0, w, h);
     const n = feeds.length || 1;
 
-    // === ORTHOGONAL AXES  the + at center ===
+    // === ORTHOGONAL AXES � the + at center ===
     // X-axis (horizontal) = TIME (fresh left ? stale right)
     // Y-axis (vertical)   = SIZE (small top ? big bottom)
     // Z-axis (depth/color) = CATEGORY (type of feed)
@@ -539,23 +534,23 @@ function renderOCenter() {
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
 
-    // Diagonal axes  the other two dimensions projected
+    // Diagonal axes � the other two dimensions projected
     ctx.strokeStyle = 'rgba(163,113,247,0.04)';
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w, h); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(w, 0); ctx.lineTo(0, h); ctx.stroke();
 
-    // The O  the membrane at center
+    // The O � the membrane at center
     const oR = 30 + Math.sin(t * 0.5) * 3;
     ctx.strokeStyle = 'rgba(210,169,34,' + (0.12 + Math.sin(t * 0.3) * 0.04) + ')';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(cx, cy, oR, 0, Math.PI * 2); ctx.stroke();
 
-    // Inner O  the Klein fold
+    // Inner O � the Klein fold
     ctx.strokeStyle = 'rgba(163,113,247,0.06)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(cx, cy, oR * 0.4, 0, Math.PI * 2); ctx.stroke();
 
-    // Concentric rings  dimensional shells
+    // Concentric rings � dimensional shells
     for (let r = 1; r <= 6; r++) {
       ctx.strokeStyle = 'rgba(88,166,255,' + (0.03 / r) + ')';
       ctx.beginPath(); ctx.arc(cx, cy, oR + r * 45, 0, Math.PI * 2); ctx.stroke();
@@ -565,10 +560,10 @@ function renderOCenter() {
     ctx.fillStyle = 'rgba(88,166,255,0.15)';
     ctx.font = '8px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('? fresh · TIME · stale ?', cx, cy - oR - 50);
+    ctx.fillText('? fresh � TIME � stale ?', cx, cy - oR - 50);
     ctx.save(); ctx.translate(cx + oR + 50, cy);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText('? small · SIZE · big ?', 0, 0);
+    ctx.fillText('? small � SIZE � big ?', 0, 0);
     ctx.restore();
 
     // Plot feeds orthogonally from center
@@ -581,7 +576,7 @@ function renderOCenter() {
 
       // X = age (fresh near center, stale far out)
       // Y = size (small near center, big far out)
-      // Angle based on index  spread around all quadrants
+      // Angle based on index � spread around all quadrants
       const baseAngle = (i / n) * Math.PI * 2;
       const ageDist = oR + 20 + fAge * 30;
       const sizeDist = oR + 20 + sizeNorm * 200;
@@ -595,7 +590,7 @@ function renderOCenter() {
       const alpha = f.alive ? (0.3 + sizeNorm * 0.4) : 0.08;
       const dotR = 2 + sizeNorm * 6;
 
-      // Spoke from center  the orthogonal ray
+      // Spoke from center � the orthogonal ray
       ctx.strokeStyle = col + Math.floor(alpha * 30).toString(16).padStart(2, '0');
       ctx.lineWidth = 0.3;
       ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
@@ -615,24 +610,24 @@ function renderOCenter() {
       }
     });
 
-    // Quadrant labels  the 4 dimensions visible
+    // Quadrant labels � the 4 dimensions visible
     ctx.fillStyle = 'rgba(201,209,217,0.08)';
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Q1: science · fresh · small', cx + w * 0.25, cy - h * 0.35);
-    ctx.fillText('Q2: history · stale · small', cx - w * 0.25, cy - h * 0.35);
-    ctx.fillText('Q3: horror · stale · big', cx - w * 0.25, cy + h * 0.35);
-    ctx.fillText('Q4: green · fresh · big', cx + w * 0.25, cy + h * 0.35);
+    ctx.fillText('Q1: science � fresh � small', cx + w * 0.25, cy - h * 0.35);
+    ctx.fillText('Q2: history � stale � small', cx - w * 0.25, cy - h * 0.35);
+    ctx.fillText('Q3: horror � stale � big', cx - w * 0.25, cy + h * 0.35);
+    ctx.fillText('Q4: green � fresh � big', cx + w * 0.25, cy + h * 0.35);
 
-    // The + at center  always visible
+    // The + at center � always visible
     ctx.strokeStyle = 'rgba(210,169,34,0.2)';
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(cx - 8, cy); ctx.lineTo(cx + 8, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 8); ctx.stroke();
 
-    // === INNER ENGINES  the processors at the heart of the O ===
+    // === INNER ENGINES � the processors at the heart of the O ===
     const engines = [
-      { name: 'scan', icon: '??', angle: 0,           color: '#3fb950', desc: 'sweep · sort' },
+      { name: 'scan', icon: '??', angle: 0,           color: '#3fb950', desc: 'sweep � sort' },
       { name: 'ferment', icon: '??', angle: Math.PI/2,    color: '#d29922', desc: 'sourdough' },
       { name: 'weave', icon: '??', angle: Math.PI,        color: '#a371f7', desc: 'braid' },
       { name: '??', icon: '??', angle: Math.PI*1.5,     color: '#58a6ff', desc: 'painter' },
@@ -691,7 +686,7 @@ function renderOCenter() {
     ctx.fillStyle = 'rgba(163,113,247,0.12)';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('life is orthogonal · multidimensional · not flat', cx, h - 16);
+    ctx.fillText('life is orthogonal � multidimensional � not flat', cx, h - 16);
 
     // The O at dead center
     ctx.fillStyle = 'rgba(210,169,34,0.3)';
@@ -721,14 +716,5 @@ document.querySelector('.mode-btns').addEventListener('click', e => {
 scanFeeds();
 setInterval(scanFeeds, Math.PI * 10000);
 </script>
-
-<!-- GAIA BEACON — the null middle -->
-<div style="position:fixed;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(10,10,15,0.95);border-top:1px solid #222;font-family:monospace;font-size:11px;display:flex;justify-content:center;gap:12px;z-index:9999">
-<a href="/forge.html" style="color:#d4a017;text-decoration:none">🔥 forge</a>
-<a href="/colosseum.html" style="color:#c0392b;text-decoration:none">⚔ arena</a>
-<a href="/nav-hub.html" style="color:#27ae60;text-decoration:none">🗺 hub</a>
-<a href="/" style="color:#3498db;text-decoration:none">👁 HUD</a>
-<span style="color:#666">c=πr²/O</span>
-</div>
 </body>
 </html>

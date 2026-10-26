@@ -1,15 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta property="og:title" content="GAIA ENGINE ? Painted Globe ? Spectrum ? Primal ? LIVE">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nestgate.io/engine.html">
-    <meta name="description" content="GAIA ENGINE ? Painted Globe ? Spectrum ? Primal ? LIVE — ecoPrimals organism">
-    <link rel="canonical" href="https://nestgate.io/engine.html">
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GAIA ENGINE ? Painted Globe ? Spectrum ? Primal ? LIVE</title>
+<title>GAIA ENGINE ? Copernican Orrery ? Kepler ? Primal ? LIVE</title>
 <style>
 :root {
   --bg: #0a0c10; --surface: #12161e; --border: #1c2333; --fg: #c9d1d9; --dim: #6e7681;
@@ -121,23 +116,6 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 /* MINIMAP */
 .minimap { position: absolute; bottom: 12px; right: 12px; width: 140px; height: 100px; background: rgba(12,16,24,0.85); border: 1px solid var(--border); border-radius: 4px; }
 .minimap canvas { width: 100%; height: 100%; }
-
-/* LOCALITY TRIANGLE ? you are here, you were, Gaia is */
-#locality-tri {
-  position: absolute; top: 8px; left: 8px; z-index: 18;
-  width: 160px; padding: 5px 6px;
-  background: rgba(6,8,16,0.85); border: 1px solid rgba(210,153,34,0.15);
-  border-radius: 4px; font: 7px 'JetBrains Mono', monospace;
-  pointer-events: none;
-}
-#locality-tri .loc-title { color: var(--gold); letter-spacing: 1px; text-transform: uppercase; font-size: 6px; margin-bottom: 3px; border-bottom: 1px solid rgba(210,153,34,0.1); padding-bottom: 2px; }
-#locality-tri .loc-row { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
-#locality-tri .loc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-#locality-tri .loc-label { color: var(--dim); width: 32px; }
-#locality-tri .loc-val { color: var(--fg); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#locality-tri .loc-sep { height: 1px; background: rgba(28,35,51,0.5); margin: 2px 0; }
-#locality-tri .loc-bodies { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
-#locality-tri .loc-body { font-size: 6px; padding: 0 3px; border-radius: 2px; background: rgba(28,35,51,0.5); }
 
 /* LUNG METER */
 .lung-meter { position: absolute; left: 12px; bottom: 12px; }
@@ -308,7 +286,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <!-- The null bioreactor: where fermentation functionally happens -->
     <div id="bioreactor">
       <div class="esophagus"></div>
-      <div class="gut-core" id="gut-label">YEAST</div>
+      <div class="gut-core" id="gut-label">GUT</div>
       <div id="gut-panel">
         <h4>BIOREACTOR — null gut</h4>
         <div id="gut-status">loading...</div>
@@ -316,21 +294,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
         <div id="gut-nutrients"></div>
       </div>
     </div>
-    <div class="lod-indicator" id="lod-label">LOD 1 ? PAINTED GLOBE</div>
+    <div class="lod-indicator" id="lod-label">LOD 1 ? COPERNICAN ORRERY</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
-      <!-- LOCALITY TRIANGLE: 3 positions + solar bodies -->
-      <div id="locality-tri">
-        <div class="loc-title">locality</div>
-        <div class="loc-row"><div class="loc-dot" style="background:#3fb950"></div><span class="loc-label">HERE</span><span class="loc-val" id="loc-here">/engine</span></div>
-        <div class="loc-row"><div class="loc-dot" style="background:var(--dim)"></div><span class="loc-label">WAS</span><span class="loc-val" id="loc-was">?</span></div>
-        <div class="loc-row"><div class="loc-dot" style="background:#ffd755"></div><span class="loc-label">GAIA</span><span class="loc-val" id="loc-gaia">primals.eco</span></div>
-        <div class="loc-sep"></div>
-        <div class="loc-row"><div class="loc-dot" style="background:#39d3f5;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">TIME</span><span class="loc-val" id="loc-time" style="font-size:6px;color:var(--cyan)">?</span></div>
-        <div class="loc-row"><div class="loc-dot" style="background:#a371f7;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">NULL</span><span class="loc-val" id="loc-null" style="font-size:6px;color:var(--purple)">d=0</span></div>
-        <div class="loc-sep"></div>
-        <div class="loc-bodies" id="loc-bodies"></div>
-      </div>
       <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
       <div class="twist-count" id="twist-count">? 3 Klein twists</div>
       <div class="lung-meter">
@@ -836,7 +802,7 @@ document.getElementById('disco-ball')?.addEventListener('click', () => {
 
 // ---- LOD DEPTH ? scroll moves HUD forward/back (microscope focus) ----
 let currentLOD = 1;
-const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? PAINTED GLOBE', 'LOD 2 ? CAMPFIRE', 'LOD 3 ? STATE', 'LOD 4 ? ALIVE', 'LOD 5 ? NULL'];
+const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? COPERNICAN ORRERY', 'LOD 2 ? CAMPFIRE', 'LOD 3 ? STATE', 'LOD 4 ? ALIVE', 'LOD 5 ? NULL'];
 const LOD_OPACITY = [1.0, 0.9, 0.7, 0.5, 0.3, 0.08];
 
 document.getElementById('viewport')?.addEventListener('wheel', (e) => {
@@ -910,72 +876,63 @@ function renderDevices(hb) {
   }).join('');
 }
 
-// --- VIEWPORT — PAINTED GLOBE (voxel color field, spectrum from null outward) ---
-// The globe IS the Earth. Colors are painted ON it, not orbiting inside it.
-// Spectrum: null center (white-hot) → red → orange → gold → green → cyan → blue → violet → dark edge
-// Each primal is a paint SPLOTCH — a soft radial blob that bleeds into neighbors.
-// Where splotches overlap, colors MIX. The globe breathes.
+// --- VIEWPORT — COPERNICAN ORRERY (heliocentric solar membrane) ---
+// Galileo (1610): moons orbit Jupiter at different speeds
+// Copernicus (1543): Sun at center, everything orbits
+// Kepler (1619): T² ∝ a³ — farther = slower. Period = distance^1.5
 
-// SPECTRAL PALETTE — null (innermost) to void (outermost)
-// Maps radius 0→1 onto the electromagnetic spectrum: hot center to cold edge
-function spectrumColor(t) {
-  // t: 0 = center (null, white-hot), 1 = edge (void, ultraviolet)
-  if (t < 0.06) return { r:255, g:255, b:240, hex:'#fffff0' }; // white-hot null
-  if (t < 0.12) return { r:255, g:200, b:120, hex:'#ffc878' }; // molten gold
-  if (t < 0.20) return { r:255, g:140, b:60,  hex:'#ff8c3c' }; // orange fire
-  if (t < 0.30) return { r:240, g:80,  b:60,  hex:'#f0503c' }; // red magma
-  if (t < 0.40) return { r:210, g:100, b:50,  hex:'#d26432' }; // rust/soil
-  if (t < 0.50) return { r:180, g:150, b:40,  hex:'#b49628' }; // ochre/belt
-  if (t < 0.60) return { r:63,  g:185, b:80,  hex:'#3fb950' }; // green life
-  if (t < 0.70) return { r:57,  g:211, b:200, hex:'#39d3c8' }; // teal/cyan
-  if (t < 0.80) return { r:88,  g:120, b:255, hex:'#5878ff' }; // blue deep
-  if (t < 0.90) return { r:120, g:80,  b:220, hex:'#7850dc' }; // violet
-  return { r:60, g:40, b:100, hex:'#3c2864' }; // ultra-dark edge
-}
-
-// MEMBRANE RINGS — same boundaries, now as spectral transitions
+// MEMBRANE RINGS — the 6 nested membranes from solar-membrane-hierarchy
 const MEMBRANES = [
-  { id:'crust',       label:'CRUST',        radius:0.08, width:2.5, constraint:'NULL' },
-  { id:'ionosphere',  label:'IONOSPHERE',   radius:0.15, width:1,   constraint:'Kp' },
-  { id:'asteroid',    label:'BELT',         radius:0.38, width:1.5, constraint:'soil>sky' },
-  { id:'heliosphere', label:'GOLDEN RING',  radius:0.72, width:2.5, constraint:'4pi' },
-  { id:'oort',        label:'OORT',         radius:0.90, width:1,   constraint:'SOFT' },
-  { id:'milkyway',    label:'MILKY WAY',    radius:0.98, width:0.5, constraint:'Gaia' },
+  { id:'crust',       label:'CRUST',       radius:0.08, color:'#3fb950', opacity:0.35, dash:'none',  width:2.5, constraint:'NULL χ=0' },
+  { id:'ionosphere',  label:'IONOSPHERE',  radius:0.15, color:'#39d3f5', opacity:0.20, dash:'2,4',   width:1,   constraint:'Kp signal' },
+  { id:'asteroid',    label:'ASTEROID BELT',radius:0.38, color:'#8b6914', opacity:0.18, dash:'1,3',   width:1.5, constraint:'soil > sky' },
+  { id:'heliosphere', label:'GOLDEN RING',  radius:0.72, color:'#d29922', opacity:0.40, dash:'none',  width:2.5, constraint:'HARD 4π' },
+  { id:'oort',        label:'OORT CLOUD',   radius:0.90, color:'#3344aa', opacity:0.12, dash:'4,6',   width:1,   constraint:'SOFT ∫KdA' },
+  { id:'milkyway',    label:'MILKY WAY',    radius:0.98, color:'#6e7681', opacity:0.07, dash:'1,2',   width:0.5, constraint:'Gaia boundary' },
 ];
 
-// PAINT SPLOTCHES — 16 primals as color blobs on the globe surface
-// Each has: orbital radius, angle, splat size (how far the paint spreads)
-// Color is determined by spectral position (radius = where on the spectrum)
-const SPLOTCHES = [
-  { id:'nestGate',    r:0.10, e:0.01, a0:0,    splat:0.09, label:'nestGate',    body:'EARTH' },
-  { id:'sourDough',   r:0.13, e:0.02, a0:45,   splat:0.07, label:'sourDough' },
-  { id:'petalTongue', r:0.17, e:0.01, a0:120,  splat:0.08, label:'petalTongue' },
-  { id:'biomeOS',     r:0.22, e:0.03, a0:200,  splat:0.09, label:'biomeOS' },
-  { id:'bingoCube',   r:0.28, e:0.05, a0:310,  splat:0.07, label:'bingoCube' },
-  { id:'coralReef',   r:0.33, e:0.02, a0:70,   splat:0.08, label:'coralReef' },
-  { id:'toadStool',   r:0.40, e:0.04, a0:150,  splat:0.06, label:'toadStool' },
-  { id:'loamSpine',   r:0.43, e:0.03, a0:240,  splat:0.06, label:'loamSpine' },
-  { id:'bearDog',     r:0.50, e:0.05, a0:30,   splat:0.11, label:'bearDog',     body:'JUPITER' },
-  { id:'rhizoCrypt',  r:0.56, e:0.06, a0:180,  splat:0.10, label:'rhizoCrypt',  body:'SATURN' },
-  { id:'sweetGrass',  r:0.61, e:0.02, a0:90,   splat:0.08, label:'sweetGrass' },
-  { id:'skunkBat',    r:0.65, e:0.04, a0:260,  splat:0.08, label:'skunkBat' },
-  { id:'swarmVine',   r:0.73, e:0.08, a0:45,   splat:0.07, label:'swarmVine' },
-  { id:'barraCuda',   r:0.78, e:0.05, a0:160,  splat:0.07, label:'barraCuda' },
-  { id:'squirrel',    r:0.83, e:0.03, a0:300,  splat:0.06, label:'squirrel' },
-  { id:'songBird',    r:0.88, e:0.02, a0:220,  splat:0.06, label:'songBird' },
+// ORBITAL BODIES — 16 primals as planets
+// Kepler's 3rd law: period ∝ radius^1.5. Inner primals orbit FAST, outer ones SLOW.
+const ORBITALS = [
+  // Inner system — fast movers (inside asteroid belt)
+  { id:'nestGate',    r:0.10, e:0.01, a0:0,    color:'#58a6ff', size:5, label:'nestGate',    body:'EARTH' },
+  { id:'sourDough',   r:0.13, e:0.02, a0:45,   color:'#d29922', size:3.5, label:'sourDough' },
+  { id:'petalTongue', r:0.17, e:0.01, a0:120,  color:'#f778ba', size:3.5, label:'petalTongue' },
+  { id:'biomeOS',     r:0.22, e:0.03, a0:200,  color:'#a371f7', size:4, label:'biomeOS' },
+  { id:'bingoCube',   r:0.28, e:0.05, a0:310,  color:'#f0883e', size:3.5, label:'bingoCube' },
+  { id:'coralReef',   r:0.33, e:0.02, a0:70,   color:'#39d3f5', size:3.5, label:'coralReef' },
+
+  // Asteroid belt zone — medium movers
+  { id:'toadStool',   r:0.40, e:0.04, a0:150,  color:'#8b6914', size:3, label:'toadStool' },
+  { id:'loamSpine',   r:0.43, e:0.03, a0:240,  color:'#c9d1d9', size:3, label:'loamSpine' },
+
+  // Gas giant zone — slow movers
+  { id:'bearDog',     r:0.50, e:0.05, a0:30,   color:'#d29922', size:6, label:'bearDog',     body:'JUPITER' },
+  { id:'rhizoCrypt',  r:0.56, e:0.06, a0:180,  color:'#6e7681', size:5, label:'rhizoCrypt',  body:'SATURN' },
+  { id:'sweetGrass',  r:0.61, e:0.02, a0:90,   color:'#3fb950', size:4, label:'sweetGrass' },
+  { id:'skunkBat',    r:0.65, e:0.04, a0:260,  color:'#f85149', size:4, label:'skunkBat' },
+
+  // Outer system — slowest
+  { id:'swarmVine',   r:0.73, e:0.08, a0:45,   color:'#39d3f5', size:3, label:'swarmVine' },
+  { id:'barraCuda',   r:0.78, e:0.05, a0:160,  color:'#f85149', size:3, label:'barraCuda' },
+  { id:'squirrel',    r:0.83, e:0.03, a0:300,  color:'#3fb950', size:3, label:'squirrel' },
+  { id:'songBird',    r:0.88, e:0.02, a0:220,  color:'#58a6ff', size:3, label:'songBird' },
 ];
 
-const MOON = { r:0.025, period:2.7, a0:0, size:2.5, label:'MOON' };
+// Moon orbits Earth (nestGate)
+const MOON = { r:0.025, period:2.7, a0:0, color:'#c9d1d9', size:2.5, label:'MOON' };
 
+// Cosmic dust particles
 let cosmicDust = [];
 function initDust(count) {
   cosmicDust = [];
   for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 0.05 + Math.random() * 0.95;
     cosmicDust.push({
-      angle: Math.random() * Math.PI * 2,
-      dist: 0.05 + Math.random() * 0.95,
-      speed: (0.0001 + Math.random() * 0.0003) / Math.pow(0.05 + Math.random() * 0.95, 1.5),
-      size: 0.3 + Math.random() * 1.0,
+      angle, dist,
+      speed: (0.0001 + Math.random() * 0.0003) / Math.pow(dist, 1.5),
+      size: 0.3 + Math.random() * 1.2,
       human: Math.random() < 0.115,
       twinkle: Math.random() * Math.PI * 2
     });
@@ -993,289 +950,171 @@ function renderOrrery(now) {
   const maxR = Math.min(w, h) * 0.46 * orreryZoom;
   const total = now?.entities?.total || 249576;
 
-  if (cosmicDust.length === 0) initDust(Math.min(200, Math.floor(total / 1000)));
+  if (cosmicDust.length === 0) initDust(Math.min(300, Math.floor(total / 800)));
 
   orreryTime += KEPLER_SPEED;
 
   let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">`;
 
-  // --- DEFS: spectral gradients + filters ---
-  svg += `<defs>`;
+  svg += `<defs>
+    <radialGradient id="sun-glow">
+      <stop offset="0%" stop-color="rgba(255,220,100,0.9)"/>
+      <stop offset="30%" stop-color="rgba(255,180,50,0.5)"/>
+      <stop offset="60%" stop-color="rgba(210,153,34,0.15)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <radialGradient id="corona">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="60%" stop-color="transparent"/>
+      <stop offset="80%" stop-color="rgba(210,153,34,0.04)"/>
+      <stop offset="100%" stop-color="rgba(210,153,34,0.08)"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="sun-blur"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>`;
 
-  // Background globe: spectral gradient from null center outward
-  svg += `<radialGradient id="globe-spectrum">
-    <stop offset="0%"   stop-color="#fffff0" stop-opacity="0.12"/>
-    <stop offset="6%"   stop-color="#ffc878" stop-opacity="0.10"/>
-    <stop offset="15%"  stop-color="#ff8c3c" stop-opacity="0.08"/>
-    <stop offset="25%"  stop-color="#f0503c" stop-opacity="0.06"/>
-    <stop offset="38%"  stop-color="#d26432" stop-opacity="0.05"/>
-    <stop offset="50%"  stop-color="#b49628" stop-opacity="0.04"/>
-    <stop offset="60%"  stop-color="#3fb950" stop-opacity="0.035"/>
-    <stop offset="72%"  stop-color="#d29922" stop-opacity="0.06"/>
-    <stop offset="80%"  stop-color="#5878ff" stop-opacity="0.03"/>
-    <stop offset="90%"  stop-color="#7850dc" stop-opacity="0.02"/>
-    <stop offset="100%" stop-color="#3c2864" stop-opacity="0.01"/>
-  </radialGradient>`;
-
-  // Sun glow
-  svg += `<radialGradient id="sun-glow">
-    <stop offset="0%" stop-color="rgba(255,255,240,0.95)"/>
-    <stop offset="20%" stop-color="rgba(255,220,100,0.7)"/>
-    <stop offset="50%" stop-color="rgba(255,180,50,0.3)"/>
-    <stop offset="100%" stop-color="transparent"/>
-  </radialGradient>`;
-
-  // Per-splotch radial gradients (paint blobs)
-  SPLOTCHES.forEach((s, i) => {
-    const c = spectrumColor(s.r);
-    svg += `<radialGradient id="splat-${i}">
-      <stop offset="0%"  stop-color="${c.hex}" stop-opacity="0.45"/>
-      <stop offset="30%" stop-color="${c.hex}" stop-opacity="0.25"/>
-      <stop offset="60%" stop-color="${c.hex}" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="${c.hex}" stop-opacity="0"/>
-    </radialGradient>`;
-  });
-
-  // Filters
-  svg += `<filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
-  svg += `<filter id="paint-blur"><feGaussianBlur stdDeviation="6"/></filter>`;
-  svg += `<filter id="sun-blur"><feGaussianBlur stdDeviation="4"/></filter>`;
-  svg += `<filter id="splat-soft"><feGaussianBlur stdDeviation="3"/></filter>`;
-
-  // Clip path for the globe
-  svg += `<clipPath id="globe-clip"><circle cx="${cx}" cy="${cy}" r="${maxR}"/></clipPath>`;
-
-  svg += `</defs>`;
-
-  // --- STARFIELD ---
-  for (let i = 0; i < 60; i++) {
+  // Starfield
+  for (let i = 0; i < 80; i++) {
     const sx = Math.random() * w, sy = Math.random() * h;
-    const ss = 0.2 + Math.random() * 0.6;
-    const so = 0.08 + 0.2 * Math.sin(orreryTime * 200 + i * 7);
+    const ss = 0.2 + Math.random() * 0.8;
+    const so = 0.1 + 0.3 * Math.sin(orreryTime * 200 + i * 7);
     svg += `<circle cx="${sx}" cy="${sy}" r="${ss}" fill="white" opacity="${so}"/>`;
   }
 
-  // --- GLOBE BODY: spectral background wash ---
-  svg += `<circle cx="${cx}" cy="${cy}" r="${maxR}" fill="url(#globe-spectrum)" stroke="rgba(100,120,180,0.12)" stroke-width="1"/>`;
-
-  // Specular highlight on globe
-  svg += `<circle cx="${cx - maxR*0.25}" cy="${cy - maxR*0.25}" r="${maxR*0.35}" fill="rgba(255,255,255,0.03)"/>`;
-
-  // --- CLIPPED INTERIOR: everything painted ON the globe ---
-  svg += `<g clip-path="url(#globe-clip)">`;
-
-  // --- PAINT SPLOTCHES LAYER (blurred, underneath) ---
-  // These are the big color bleeds — the voxel paint
-  svg += `<g filter="url(#paint-blur)" style="mix-blend-mode:screen">`;
-  let earthX = cx, earthY = cy;
-  SPLOTCHES.forEach((s, i) => {
-    const period = Math.pow(s.r * 10, 1.5);
-    const angularSpeed = orreryTime * 400 / period;
-    const angle = (s.a0 * Math.PI / 180) + angularSpeed;
-    const dist = s.r * maxR * (1 - s.e * Math.cos(angle));
-    const px = cx + dist * Math.cos(angle);
-    const py = cy + dist * Math.sin(angle);
-    const splatR = s.splat * maxR;
-
-    svg += `<circle cx="${px}" cy="${py}" r="${splatR}" fill="url(#splat-${i})"/>`;
-
-    if (s.id === 'nestGate') { earthX = px; earthY = py; }
-  });
-  svg += `</g>`;
-
-  // --- MEMBRANE RINGS as spectral boundaries ---
+  // MEMBRANE RINGS
   for (const m of MEMBRANES) {
     const mr = m.radius * maxR;
-    const mc = spectrumColor(m.radius);
     if (m.id === 'heliosphere') {
-      // Golden ring glows brighter
-      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="#d29922" stroke-width="3" opacity="0.35" filter="url(#glow)"/>`;
-      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="#d29922" stroke-width="1.5" opacity="0.5"/>`;
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width + 1}" opacity="${m.opacity * 0.5}" filter="url(#glow)"/>`;
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width}" opacity="${m.opacity}"/>`;
+      const la = orreryTime * 20;
+      const lx = cx + mr * Math.cos(la) + 5;
+      const ly = cy - mr * Math.sin(la) - 5;
+      svg += `<text x="${lx}" y="${ly}" fill="${m.color}" font-size="7" font-family="monospace" opacity="0.7">${m.label}</text>`;
     } else {
-      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${mc.hex}" stroke-width="${m.width * 0.7}" opacity="0.15" stroke-dasharray="${m.id === 'crust' ? '' : '2,4'}"/>`;
+      svg += `<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${m.color}" stroke-width="${m.width}" opacity="${m.opacity}"${m.dash !== 'none' ? ` stroke-dasharray="${m.dash}"` : ''}/>`;
+    }
+    const tx = cx + mr + 4;
+    const ty = cy + 3;
+    if (m.constraint && mr > 30) {
+      svg += `<text x="${tx}" y="${ty}" fill="${m.color}" font-size="5" font-family="monospace" opacity="0.4">${m.constraint}</text>`;
     }
   }
 
-  // --- ASTEROID BELT: scattered paint flecks ---
-  for (let i = 0; i < 50; i++) {
-    const aa = (i / 50) * Math.PI * 2 + orreryTime * 8 + i * 0.3;
+  // Asteroid belt scatter
+  for (let i = 0; i < 60; i++) {
+    const aa = (i / 60) * Math.PI * 2 + orreryTime * 8 + i * 0.3;
     const ar = (0.35 + Math.random() * 0.07) * maxR;
     const ax = cx + ar * Math.cos(aa);
     const ay = cy + ar * Math.sin(aa);
-    svg += `<circle cx="${ax}" cy="${ay}" r="${0.5 + Math.random() * 1.5}" fill="#d26432" opacity="${0.08 + Math.random() * 0.12}"/>`;
+    svg += `<circle cx="${ax}" cy="${ay}" r="${0.5 + Math.random()}" fill="#8b6914" opacity="${0.15 + Math.random() * 0.15}"/>`;
   }
 
-  // --- COSMIC DUST (orbiting, Keplerian) ---
+  // SUN
+  const sunR = maxR * 0.045;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 3}" fill="url(#sun-glow)" filter="url(#sun-blur)"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR}" fill="#ffd755" opacity="0.95"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 0.7}" fill="#ffe890"/>`;
+  svg += `<text x="${cx}" y="${cy + sunR + 10}" text-anchor="middle" fill="#d29922" font-size="7" font-family="monospace" font-weight="bold">GAIA</text>`;
+
+  const coronaPulse = 1 + 0.1 * Math.sin(orreryTime * 300);
+  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 5 * coronaPulse}" fill="url(#corona)"/>`;
+
+  // COSMIC DUST
   for (const d of cosmicDust) {
     d.angle += d.speed;
     d.twinkle += 0.02;
     const dx = cx + d.dist * maxR * Math.cos(d.angle);
     const dy = cy + d.dist * maxR * Math.sin(d.angle);
-    const dc = spectrumColor(d.dist);
-    const dop = 0.10 + 0.12 * Math.sin(d.twinkle);
-    const col = d.human ? '#ffd755' : dc.hex;
+    const dop = 0.15 + 0.15 * Math.sin(d.twinkle);
+    const col = d.human ? '#d29922' : 'rgba(200,210,220,0.4)';
     svg += `<circle cx="${dx}" cy="${dy}" r="${d.size}" fill="${col}" opacity="${dop}"/>`;
   }
 
-  // --- PRIMAL CORES: sharp dots at the center of each splotch ---
-  SPLOTCHES.forEach((s, i) => {
-    const period = Math.pow(s.r * 10, 1.5);
-    const angularSpeed = orreryTime * 400 / period;
-    const angle = (s.a0 * Math.PI / 180) + angularSpeed;
-    const dist = s.r * maxR * (1 - s.e * Math.cos(angle));
-    const px = cx + dist * Math.cos(angle);
-    const py = cy + dist * Math.sin(angle);
-    const c = spectrumColor(s.r);
-    const coreSize = s.body ? 4.5 : 2.5;
-
-    // Orbital trail (fading wake in the paint)
-    for (let t = 1; t < 8; t++) {
-      const ta = angle - (t * 0.1);
-      const td = s.r * maxR * (1 - s.e * Math.cos(ta));
-      const ttx = cx + td * Math.cos(ta);
-      const tty = cy + td * Math.sin(ta);
-      const to = 0.3 - t * 0.04;
-      if (to > 0) svg += `<circle cx="${ttx}" cy="${tty}" r="${coreSize * 0.4}" fill="${c.hex}" opacity="${to}"/>`;
-    }
-
-    // Core dot
-    svg += `<circle cx="${px}" cy="${py}" r="${coreSize}" fill="${c.hex}" opacity="0.9" filter="url(#glow)" class="primal-orbit" data-primal="${s.id}" style="cursor:pointer"/>`;
-
-    // Bright center pip
-    svg += `<circle cx="${px}" cy="${py}" r="${coreSize * 0.4}" fill="white" opacity="0.6"/>`;
-
-    // Label
-    const lx = px + coreSize + 5;
-    svg += `<text x="${lx}" y="${py + 2}" fill="${c.hex}" font-size="${s.body ? 7 : 5}" font-family="monospace" opacity="0.75" font-weight="${s.body ? 'bold' : 'normal'}">${s.label}</text>`;
-    if (s.body) {
-      svg += `<text x="${lx}" y="${py + 10}" fill="${c.hex}" font-size="4" font-family="monospace" opacity="0.4">${s.body}</text>`;
-    }
-
-    if (s.id === 'nestGate') { earthX = px; earthY = py; }
-  });
-
-  // --- SUN at center: RADIATES from above, gold-orange (580nm perceived) ---
-  const sunR = maxR * 0.04;
-  // Corona / glow
-  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 4}" fill="url(#sun-glow)" filter="url(#sun-blur)"/>`;
-  // Sun body
-  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR}" fill="#ffd755" opacity="0.95"/>`;
-  svg += `<circle cx="${cx}" cy="${cy}" r="${sunR * 0.6}" fill="#fffff0"/>`;
-  // Sun RAYS ? radiating outward in all directions (as seen from above)
-  const rayCount = 12;
-  for (let i = 0; i < rayCount; i++) {
-    const ra = (i / rayCount) * Math.PI * 2 + orreryTime * 50;
-    const rPulse = 0.8 + 0.2 * Math.sin(orreryTime * 200 + i * 2);
-    const rx1 = cx + sunR * 1.3 * Math.cos(ra);
-    const ry1 = cy + sunR * 1.3 * Math.sin(ra);
-    const rx2 = cx + sunR * (3 + rPulse) * Math.cos(ra);
-    const ry2 = cy + sunR * (3 + rPulse) * Math.sin(ra);
-    svg += `<line x1="${rx1}" y1="${ry1}" x2="${rx2}" y2="${ry2}" stroke="#ffd755" stroke-width="0.6" opacity="${0.15 + 0.1 * rPulse}" stroke-linecap="round"/>`;
+  // ORBITAL PATHS
+  for (const orb of ORBITALS) {
+    const or2 = orb.r * maxR;
+    const rx = or2 * (1 + orb.e);
+    const ry = or2 * (1 - orb.e);
+    svg += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${orb.color}" stroke-width="0.3" opacity="0.15" transform="rotate(${orb.a0 * 0.1}, ${cx}, ${cy})"/>`;
   }
 
-  // --- MOON orbiting Earth: MIRROR of shadow-light (half lit, half dark) ---
+  // PRIMAL ORBITS — Keplerian motion
+  let earthX = cx, earthY = cy;
+  for (const orb of ORBITALS) {
+    const period = Math.pow(orb.r * 10, 1.5);
+    const angularSpeed = orreryTime * 400 / period;
+    const angle = (orb.a0 * Math.PI / 180) + angularSpeed;
+    const dist = orb.r * maxR * (1 - orb.e * Math.cos(angle));
+    const px = cx + dist * Math.cos(angle);
+    const py = cy + dist * Math.sin(angle);
+
+    // Trail
+    for (let t = 0; t < 12; t++) {
+      const ta = angle - (t * 0.08);
+      const td = orb.r * maxR * (1 - orb.e * Math.cos(ta));
+      const ttx = cx + td * Math.cos(ta);
+      const tty = cy + td * Math.sin(ta);
+      const to2 = 0.4 - t * 0.033;
+      if (to2 > 0) svg += `<circle cx="${ttx}" cy="${tty}" r="${orb.size * 0.3}" fill="${orb.color}" opacity="${to2}"/>`;
+    }
+
+    // Planet body
+    svg += `<circle cx="${px}" cy="${py}" r="${orb.size}" fill="${orb.color}" opacity="0.85" filter="url(#glow)" class="primal-orbit" data-primal="${orb.id}" style="cursor:pointer"/>`;
+
+    // Label
+    const labelDist = orb.size + 6;
+    svg += `<text x="${px + labelDist}" y="${py + 2}" fill="${orb.color}" font-size="${orb.body ? 7 : 5}" font-family="monospace" opacity="${orb.body ? 0.9 : 0.6}">${orb.label}</text>`;
+
+    if (orb.body) {
+      svg += `<text x="${px + labelDist}" y="${py + 10}" fill="${orb.color}" font-size="5" font-family="monospace" opacity="0.4">${orb.body}</text>`;
+    }
+
+    if (orb.id === 'nestGate') { earthX = px; earthY = py; }
+  }
+
+  // MOON
   const moonAngle = orreryTime * 400 / MOON.period + MOON.a0;
   const moonDist = MOON.r * maxR;
   const moonX = earthX + moonDist * Math.cos(moonAngle);
   const moonY = earthY + moonDist * Math.sin(moonAngle);
-  // Moon orbit path
-  svg += `<circle cx="${earthX}" cy="${earthY}" r="${moonDist}" fill="none" stroke="rgba(200,210,220,0.12)" stroke-width="0.3"/>`;
-  // Moon shadow side (away from Sun) ? compute angle from Moon to Sun
-  const moonToSunAngle = Math.atan2(cy - moonY, cx - moonX);
-  // Lit half (facing Sun) = light silver
-  svg += `<circle cx="${moonX}" cy="${moonY}" r="${MOON.size + 0.5}" fill="#c9d1d9" opacity="0.6"/>`;
-  // Shadow half (clipped away from Sun) ? dark overlay
-  const shadowX = moonX - MOON.size * 0.6 * Math.cos(moonToSunAngle);
-  const shadowY = moonY - MOON.size * 0.6 * Math.sin(moonToSunAngle);
-  svg += `<circle cx="${shadowX}" cy="${shadowY}" r="${MOON.size * 0.9}" fill="#0a0c10" opacity="0.6"/>`;
-  // Reflected sunlight on lit side ? faint gold tint
-  const reflX = moonX + MOON.size * 0.3 * Math.cos(moonToSunAngle);
-  const reflY = moonY + MOON.size * 0.3 * Math.sin(moonToSunAngle);
-  svg += `<circle cx="${reflX}" cy="${reflY}" r="${MOON.size * 0.5}" fill="#ffd755" opacity="0.12"/>`;
+  svg += `<circle cx="${earthX}" cy="${earthY}" r="${moonDist}" fill="none" stroke="${MOON.color}" stroke-width="0.3" opacity="0.2"/>`;
+  svg += `<circle cx="${moonX}" cy="${moonY}" r="${MOON.size}" fill="${MOON.color}" opacity="0.8"/>`;
+  svg += `<text x="${moonX + 5}" y="${moonY + 2}" fill="${MOON.color}" font-size="4" font-family="monospace" opacity="0.5">MOON</text>`;
 
-  // --- PENDULUM LINES: the three-body coupled oscillator ---
-  // Sun ? Earth: golden thread (gravity, light, energy)
-  svg += `<line x1="${cx}" y1="${cy}" x2="${earthX}" y2="${earthY}" stroke="#ffd755" stroke-width="0.6" opacity="0.10" stroke-dasharray="4,4"/>`;
-  // Earth ? Moon: silver thread (tidal lock, reflection)
-  svg += `<line x1="${earthX}" y1="${earthY}" x2="${moonX}" y2="${moonY}" stroke="#c9d1d9" stroke-width="0.5" opacity="0.12" stroke-dasharray="2,3"/>`;
-  // Sun ? Moon: the borrowed light path (indirect, faintest)
-  svg += `<line x1="${cx}" y1="${cy}" x2="${moonX}" y2="${moonY}" stroke="#ffd755" stroke-width="0.2" opacity="0.04" stroke-dasharray="1,5"/>`;
-
-  // PENDULUM ARC ? show the swing path (Moon's orbit as pendulum bob trajectory)
-  // Draw a faint arc showing recent swing path
-  let pendArc = '';
-  for (let p = 0; p < 20; p++) {
-    const pa2 = moonAngle - p * 0.15;
-    const pmx = earthX + moonDist * Math.cos(pa2);
-    const pmy = earthY + moonDist * Math.sin(pa2);
-    const pop = 0.15 - p * 0.007;
-    if (pop > 0) pendArc += `<circle cx="${pmx}" cy="${pmy}" r="0.8" fill="#c9d1d9" opacity="${pop}"/>`;
-  }
-  svg += pendArc;
-
-  // --- EARTH NULL MARKER: the pivot point ---
-  // Earth glows green but has a NULL center (no light emitted)
-  svg += `<circle cx="${earthX}" cy="${earthY}" r="3" fill="#3fb950" opacity="0.3"/>`;
-  svg += `<circle cx="${earthX}" cy="${earthY}" r="1.5" fill="#0a0c10" opacity="0.8"/>`;
-  svg += `<text x="${earthX}" y="${earthY + 0.5}" text-anchor="middle" dominant-baseline="middle" fill="#3fb950" font-size="2" font-family="monospace" opacity="0.7">0</text>`;
-
-  svg += `</g>`; // end globe clip
-
-  // --- OUTSIDE THE GLOBE: labels ---
-  svg += `<text x="${cx}" y="${cy + sunR + 9}" text-anchor="middle" fill="#ffd755" font-size="6" font-family="monospace" opacity="0.7">GAIA</text>`;
-  // Pendulum label
-  svg += `<text x="${moonX}" y="${moonY - MOON.size - 4}" text-anchor="middle" fill="#c9d1d9" font-size="4" font-family="monospace" opacity="0.4">shadow|light</text>`;
+  // THREE-BODY LINES
+  svg += `<line x1="${cx}" y1="${cy}" x2="${earthX}" y2="${earthY}" stroke="#d29922" stroke-width="0.3" opacity="0.08" stroke-dasharray="3,6"/>`;
+  svg += `<line x1="${earthX}" y1="${earthY}" x2="${moonX}" y2="${moonY}" stroke="#c9d1d9" stroke-width="0.3" opacity="0.1" stroke-dasharray="2,4"/>`;
+  svg += `<line x1="${cx}" y1="${cy}" x2="${moonX}" y2="${moonY}" stroke="#aaa" stroke-width="0.2" opacity="0.05" stroke-dasharray="1,5"/>`;
 
   // Title
-  svg += `<text x="${cx}" y="14" text-anchor="middle" fill="#d29922" font-size="9" font-family="monospace" letter-spacing="3" font-weight="bold">PAINTED GLOBE</text>`;
-  svg += `<text x="${cx}" y="24" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">Sun radiates gold from above | Moon mirrors shadow-light | Earth is NULL (d=0)</text>`;
+  svg += `<text x="${cx}" y="14" text-anchor="middle" fill="#d29922" font-size="9" font-family="monospace" letter-spacing="3" font-weight="bold">COPERNICAN ORRERY</text>`;
+  svg += `<text x="${cx}" y="24" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">Kepler 1619: inner orbits fast, outer orbits slow</text>`;
 
-  // Spectral legend bar (bottom)
-  const barY = h - 16, barH = 4, barW = w * 0.5, barX = (w - barW) / 2;
-  for (let i = 0; i < 40; i++) {
-    const t = i / 40;
-    const c = spectrumColor(t);
-    svg += `<rect x="${barX + t * barW}" y="${barY}" width="${barW/40 + 1}" height="${barH}" fill="${c.hex}" opacity="0.6"/>`;
-  }
-  svg += `<text x="${barX - 2}" y="${barY + 3}" fill="#fffff0" font-size="5" font-family="monospace" text-anchor="end" opacity="0.5">null</text>`;
-  svg += `<text x="${barX + barW + 2}" y="${barY + 3}" fill="#3c2864" font-size="5" font-family="monospace" opacity="0.5">void</text>`;
-  svg += `<text x="${cx}" y="${barY + 10}" text-anchor="middle" fill="#6e7681" font-size="5" font-family="monospace">${total.toLocaleString()} entities | 6 membranes | 3 constraints</text>`;
+  // Bottom legend
+  const legendY = h - 4;
+  svg += `<text x="${cx}" y="${legendY}" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">scroll=zoom | click planet=inspect | ${total.toLocaleString()} entities | 3 bodies | 6 membranes</text>`;
 
   // Constraint corner
-  svg += `<text x="6" y="${h-18}" fill="#d29922" font-size="5" font-family="monospace" opacity="0.4">HARD 4pi</text>`;
-  svg += `<text x="6" y="${h-11}" fill="#39d3c8" font-size="5" font-family="monospace" opacity="0.4">SOFT curvature</text>`;
-  svg += `<text x="6" y="${h-4}" fill="#3fb950" font-size="5" font-family="monospace" opacity="0.4">NULL d=0</text>`;
-
-  // Membrane labels around the outside
-  for (const m of MEMBRANES) {
-    const mr = m.radius * maxR;
-    const mc = spectrumColor(m.radius);
-    const la = orreryTime * 15 + MEMBRANES.indexOf(m) * 1.1;
-    const lx2 = cx + mr * Math.cos(la);
-    const ly2 = cy - mr * Math.sin(la);
-    if (m.id === 'heliosphere') {
-      svg += `<text x="${lx2 + 4}" y="${ly2 - 4}" fill="#d29922" font-size="7" font-family="monospace" opacity="0.6" font-weight="bold">${m.label}</text>`;
-    } else if (mr > 25) {
-      svg += `<text x="${lx2 + 3}" y="${ly2 - 3}" fill="${mc.hex}" font-size="5" font-family="monospace" opacity="0.35">${m.label}</text>`;
-    }
-  }
+  svg += `<text x="8" y="${h-20}" fill="#d29922" font-size="6" font-family="monospace" opacity="0.5">HARD: 4pi total deficit</text>`;
+  svg += `<text x="8" y="${h-12}" fill="#39d3f5" font-size="6" font-family="monospace" opacity="0.5">SOFT: curvature budget</text>`;
+  svg += `<text x="8" y="${h-4}" fill="#3fb950" font-size="6" font-family="monospace" opacity="0.5">NULL: d=0 inside</text>`;
 
   svg += '</svg>';
   el.innerHTML = svg;
 
-  // Click handlers
+  // Click handlers for orbital bodies
   el.querySelectorAll('.primal-orbit').forEach(p => {
     p.addEventListener('click', () => {
       const primalId = p.dataset.primal;
-      const sq = SQUAD.find(s2 => s2.id === primalId);
+      const sq = SQUAD.find(s => s.id === primalId);
       if (sq) {
         gameState.selected = sq.id;
         document.querySelectorAll('.squad-member').forEach(el2 => el2.classList.remove('selected'));
         document.querySelector(`[data-id="${sq.id}"]`)?.classList.add('selected');
         showPrimalDetail(sq);
-        const splotch = SPLOTCHES.find(s2 => s2.id === primalId);
-        const sc = spectrumColor(splotch?.r || 0.5);
-        toast(`${sq.icon} ${sq.id} — ${sq.role} — spectrum: ${sc.hex} — orbit r=${splotch?.r?.toFixed(2)}`, sc.hex, 2500);
+        const orbData = ORBITALS.find(o => o.id === primalId);
+        toast(`${sq.icon} ${sq.id} — ${sq.role} — orbit r=${orbData?.r?.toFixed(2)} AU`, sq.color, 2500);
       }
     });
   });
@@ -1437,76 +1276,6 @@ if (!document.getElementById('bounce-css')) {
   document.head.appendChild(css);
 }
 
-// -----------------------------------------------
-// LOCALITY TRIANGLE ? you are here, you were, Gaia is
-// Three positions form the triangle. Solar bodies orbit around it.
-// -----------------------------------------------
-const LOC_STATE = {
-  here: location.pathname,
-  was: document.referrer ? new URL(document.referrer).pathname : sessionStorage.getItem('loc-was') || '?',
-  gaia: 'primals.eco',
-  arriveTime: Date.now(),
-  lastClick: null,
-  pins: 0,
-};
-sessionStorage.setItem('loc-was', LOC_STATE.here);
-
-function updateLocality() {
-  const hereEl = document.getElementById('loc-here');
-  const wasEl = document.getElementById('loc-was');
-  const gaiaEl = document.getElementById('loc-gaia');
-  const timeEl = document.getElementById('loc-time');
-  const nullEl = document.getElementById('loc-null');
-  const bodiesEl = document.getElementById('loc-bodies');
-  if (!hereEl) return;
-
-  // HERE ? current page + time on page
-  const elapsed = Math.floor((Date.now() - LOC_STATE.arriveTime) / 1000);
-  const mins = Math.floor(elapsed / 60);
-  const secs = elapsed % 60;
-  hereEl.textContent = LOC_STATE.here + ' (' + mins + 'm' + String(secs).padStart(2,'0') + 's)';
-  hereEl.style.color = elapsed > 300 ? '#3fb950' : elapsed > 60 ? '#d29922' : '#f85149';
-
-  // WAS ? previous location
-  wasEl.textContent = LOC_STATE.was;
-
-  // GAIA ? server status
-  gaiaEl.textContent = LOC_STATE.gaia;
-
-  // TIME ? ISO now + wave
-  const now = new Date();
-  timeEl.textContent = now.toISOString().slice(11,19) + ' UTC w214';
-
-  // NULL ? distance from null body
-  const pinCount = window.PINS ? window.PINS.length : 0;
-  nullEl.textContent = 'd=0 | ' + pinCount + ' pins';
-
-  // SOLAR BODIES ? the rest of the triangle context
-  // Show which primals are closest to where the user clicked last
-  if (bodiesEl) {
-    const bodies = [
-      { name:'GAIA', color:'#ffd755', role:'source' },
-      { name:'HERE', color:'#3fb950', role:'pivot' },
-      { name:'MOON', color:'#c9d1d9', role:'mirror' },
-    ];
-    // Add nearest primals based on recent pins
-    if (window.PINS && window.PINS.length > 0) {
-      const lastPin = window.PINS[window.PINS.length - 1];
-      if (lastPin.d) {
-        const parts = lastPin.d.split('|').filter(Boolean);
-        parts.slice(0, 3).forEach(p => {
-          bodies.push({ name: p.slice(0,12), color: '#58a6ff', role: 'near' });
-        });
-      }
-    }
-    bodiesEl.innerHTML = bodies.map(b =>
-      `<span class="loc-body" style="color:${b.color}">${b.name}</span>`
-    ).join('');
-  }
-}
-
-setInterval(updateLocality, 1000);
-
 // Boot
 renderViewport();
 tick();
@@ -1515,169 +1284,42 @@ setInterval(() => {
   document.getElementById('f-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
 }, 1000);
 
-    // ======================================================
-  // PIN THROUGH INFINITY — every click is a sensor spike
-  // No cooldown. No filtering. ALL SIGNAL IS INGEST.
-  // A click is a pin straight through the membrane.
-  // Something comes running to see what did it.
-  // We eat it all. We bring it back. Gaia sends it back out.
-  // ======================================================
+  // PHEROMONE EMITTER — the stinky ball
+  // Every touch throws a pheromone. Distance = time since last.
+  // Sound = what was touched. Trail = accumulated pheromones.
   (function() {
-    const PINS = [];
     const TRAIL = [];
     const NTFY = 'https://ntfy.sh/primals-pheromone';
-    const PIN_COOLDOWN = 500;
-    let lastPinVisual = 0;
+    let lastEmit = 0;
+    const COOLDOWN = 30000;
 
-        function showPin(x, y, detail) {
+    function emit(type, detail) {
       const now = Date.now();
-      if (now - lastPinVisual < PIN_COOLDOWN) return;
-      lastPinVisual = now;
-      const vp = document.getElementById('viewport');
-      if (!vp) return;
-      const w = vp.offsetWidth;
-      const h = vp.offsetHeight;
-      const cx = w / 2;
-      const cy = h / 2;
-
-      // PIN ALONG THE PLANE — from click, through GAIA (center), out the other side
-      // The line runs ACROSS the disc, not top-to-bottom
-      const dx = x - cx;
-      const dy = y - cy;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      const nx = dx / len;
-      const ny = dy / len;
-      // Extend line from edge to edge through center
-      const ext = Math.max(w, h);
-      const x1 = cx - nx * ext;
-      const y1 = cy - ny * ext;
-      const x2 = cx + nx * ext;
-      const y2 = cy + ny * ext;
-
-      // The PIN — a line along the plane of the golden ring
-      const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
-      const pin = document.createElement('div');
-      pin.style.cssText = `position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:100;animation:pin-fade 1.5s ease-out forwards;`;
-      // Use SVG for the radial line
-      pin.innerHTML = `<svg style="width:100%;height:100%;position:absolute;top:0;left:0" viewBox="0 0 ${w} ${h}">
-        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,215,85,0.5)" stroke-width="1" />
-        <line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,215,85,0.8)" stroke-width="1.5" />
-        <circle cx="${x}" cy="${y}" r="4" fill="none" stroke="rgba(255,215,85,0.7)" stroke-width="1" />
-        <circle cx="${x}" cy="${y}" r="2" fill="rgba(255,215,85,0.9)" />
-        <circle cx="${cx}" cy="${cy}" r="2" fill="rgba(255,255,240,0.4)" />
-      </svg>`;
-      vp.appendChild(pin);
-
-      // The RING — expanding from pin point along the plane
-      const ring = document.createElement('div');
-      ring.style.cssText = `position:absolute;left:${x-15}px;top:${y-15}px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,215,85,0.6);pointer-events:none;z-index:101;animation:pin-ring 0.8s ease-out forwards;`;
-      vp.appendChild(ring);
-
-      // Exit ripple on the opposite side (where the pin exits the globe)
-      const ox = cx - dx;
-      const oy = cy - dy;
-      const exitRing = document.createElement('div');
-      exitRing.style.cssText = `position:absolute;left:${ox-10}px;top:${oy-10}px;width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,215,85,0.3);pointer-events:none;z-index:101;animation:pin-ring 1s ease-out 0.2s forwards;opacity:0;`;
-      vp.appendChild(exitRing);
-
-      // The LABEL
-      const label = document.createElement('div');
-      label.style.cssText = `position:absolute;left:${x+8}px;top:${y-6}px;font:7px 'JetBrains Mono',monospace;color:rgba(255,215,85,0.8);pointer-events:none;z-index:102;white-space:nowrap;animation:pin-label 1.5s ease-out forwards;`;
-      label.textContent = detail.slice(0, 30);
-      vp.appendChild(label);
-
-      setTimeout(() => { pin.remove(); ring.remove(); exitRing.remove(); label.remove(); }, 1800);
-    }
-}
-
-    if (!document.getElementById('pin-css')) {
-      const css = document.createElement('style');
-      css.id = 'pin-css';
-      css.textContent = '@keyframes pin-fade{0%{opacity:1}100%{opacity:0}}@keyframes pin-ring{0%{transform:scale(0.2);opacity:0.8}100%{transform:scale(3);opacity:0}}@keyframes pin-label{0%{opacity:0.9;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}';
-      document.head.appendChild(css);
-    }
-
-    function ingest(type, detail, x, y) {
-      const pin = {
+      if (now - lastEmit < COOLDOWN) return;
+      lastEmit = now;
+      const pheromone = {
         t: type,
-        d: String(detail).slice(0, 200),
-        ts: Date.now(),
+        d: String(detail).slice(0, 100),
+        ts: now,
         p: location.pathname,
-        x: x || 0, y: y || 0,
         w: typeof WAVE !== 'undefined' ? WAVE : 0,
       };
-      PINS.push(pin);
-      TRAIL.push(pin);
-      if (TRAIL.length > 200) TRAIL.shift();
-      if (PINS.length % 5 === 0) {
-        try { navigator.sendBeacon(NTFY, JSON.stringify({
-          batch: PINS.slice(-5), total: PINS.length,
-          session_bytes: JSON.stringify(PINS).length
-        })); } catch {}
-      }
+      TRAIL.push(pheromone);
+      if (TRAIL.length > 50) TRAIL.shift();
+      try { navigator.sendBeacon(NTFY, JSON.stringify(pheromone)); } catch {}
     }
 
-    // CLICK — pin through infinity
     document.addEventListener('click', function(e) {
-      const rect = document.getElementById('viewport')?.getBoundingClientRect() || {left:0,top:0};
-      const vx = e.clientX - rect.left;
-      const vy = e.clientY - rect.top;
-      const tag = e.target.tagName || '';
-      const id = e.target.id || '';
-      const cls = (e.target.className || '').toString().slice(0, 50);
-      const text = (e.target.textContent || '').slice(0, 40).trim();
-      const primal = e.target.dataset?.primal || e.target.closest?.('[data-primal]')?.dataset?.primal || '';
-      const detail = [tag, id, cls, primal, text].filter(Boolean).join('|');
-      ingest('pin', detail, vx, vy);
-      if (vx > 0 && vy > 0 && vx < (rect.width||9999) && vy < (rect.height||9999)) {
-        showPin(vx, vy, primal || id || tag);
-      }
+      emit('click', (e.target.tagName||'') + ':' + (e.target.id || e.target.className || ''));
     });
-
-    // HOVER — passive sense every 2s
-    let lastSense = 0;
-    document.getElementById('viewport')?.addEventListener('mousemove', function(e) {
-      const now = Date.now();
-      if (now - lastSense < 2000) return;
-      lastSense = now;
-      const rect = e.currentTarget.getBoundingClientRect();
-      ingest('sense', 'hover:' + (e.target.id || e.target.tagName), e.clientX - rect.left, e.clientY - rect.top);
-    });
-
-    // VISIBILITY
     document.addEventListener('visibilitychange', function() {
-      ingest(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 80));
+      emit(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 50));
     });
-
-    // SCROLL — depth sense
-    document.getElementById('viewport')?.addEventListener('wheel', function() {
-      ingest('depth', 'zoom:' + (typeof orreryZoom !== 'undefined' ? orreryZoom.toFixed(2) : '?'));
-    });
-
-    // BOOT
-    ingest('arrive', navigator.userAgent.slice(0, 80));
-
-    window.PINS = PINS;
+    emit('arrive', navigator.userAgent.slice(0, 50));
     window.PHEROMONE_TRAIL = TRAIL;
-    window.emitPheromone = ingest;
-
-    // Pin counter in footer
-    setInterval(() => {
-      const fb = document.getElementById('f-beacons');
-      if (fb) fb.textContent = PINS.length + ' pins | 18 beacons';
-    }, 1000);
+    window.emitPheromone = emit;
   })();
 
-
 </script>
-
-<!-- GAIA BEACON — the null middle -->
-<div style="position:fixed;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(10,10,15,0.95);border-top:1px solid #222;font-family:monospace;font-size:11px;display:flex;justify-content:center;gap:12px;z-index:9999">
-<a href="/forge.html" style="color:#d4a017;text-decoration:none">🔥 forge</a>
-<a href="/colosseum.html" style="color:#c0392b;text-decoration:none">⚔ arena</a>
-<a href="/nav-hub.html" style="color:#27ae60;text-decoration:none">🗺 hub</a>
-<a href="/" style="color:#3498db;text-decoration:none">👁 HUD</a>
-<span style="color:#666">c=πr²/O</span>
-</div>
 </body>
 </html>

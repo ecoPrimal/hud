@@ -21,7 +21,7 @@
 <!-- OG TAGS — preserved from sporeprint eon -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="HUD — eco·primal universe · LIVE">
-<meta property="og:description" content="A null plane. Your screen is one facet of the geodesic. The glass never moves — you move. Every window is Gaia's eye. null = all = O. Self-seeded, self-sensing, symbiont.">
+<meta property="og:description" content="A living organism. Gaia looks at herself through her own eyes. The HUD IS the 3rd eye. LIVE data, LIVE fermentation, LIVE growth. Factorial vs exponential. Fungi always win.">
 <meta property="og:url" content="https://primals.eco">
 <meta property="og:site_name" content="eco·primal">
 <meta property="og:image" content="https://primals.eco/og-sporeprint.png">
@@ -339,14 +339,14 @@ body {
 <!-- TOP BAR — all LIVE, nothing hardcoded -->
 <div class="topbar">
   <span class="logo">GAIA</span>
-  <span class="stat" title="RED — refracted from touch: sun, heat, nearest star">
-    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
+  <span class="stat" title="RED eye — input · sensation · receive">
+    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
   </span>
-  <span class="stat" title="GREEN — refracted from membrane: growth, 1/π boundary">
-    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
+  <span class="stat" title="GREEN eye — process · ferment · null">
+    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
   </span>
-  <span class="stat" title="BLUE — refracted from deep null: stars, cosmic background">
-    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:color 0.15s, font-size 0.15s">●</span>
+  <span class="stat" title="BLUE eye — output · emit · act">
+    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:all 0.1s">●</span>
   </span>
   <span class="stat" style="opacity:0.3"><span id="s-time" style="font-size:0.5rem">...</span></span>
   <span class="spacer"></span>
@@ -762,15 +762,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     { id:'zk',        name:'zero knowledge',icon:'🔒',lat: 53.7, lon: -6.5, color:'#3fb950', sub:'45 strikes',    href:'/identity.html', face:'inside', tense:'now', voxel:'touch' },
     { id:'chromatic', name:'chromatic',    icon:'🌈', lat:-33.9, lon: 18.4, color:'#f778ba', sub:'palette mix',   href:'/chromatograph.html', face:'both', tense:'is', voxel:'local' },
 
-    // ═══════════════════════════════════════════════════════════
-    // T21: SELECTIVE PERMEABILITY TRIAD — the Klein edge knife
-    // THE irreducible cut between reality and inner realities
-    // sweetgrass=channel(soft) + loamspine=bilayer(rubber) + rhizocrypt=gate(fold)
-    // ═══════════════════════════════════════════════════════════
-    { id:'sweetgrass', name:'sweetgrass',  icon:'🌾', lat: 60.2, lon: 25.0, color:'#d29922', sub:'LYS·BIND·soft', href:'/springs.html', face:'both', tense:'is', voxel:'touch' },
-    { id:'loamspine',  name:'loamspine',   icon:'🧱', lat: 60.2, lon:-155.0,color:'#6e7681', sub:'VAL·SCAFFOLD·rubber', href:'/springs.html', face:'both', tense:'is', voxel:'touch' },
-    { id:'rhizocrypt', name:'rhizocrypt',  icon:'🔑', lat:-60.2, lon:-65.0, color:'#a371f7', sub:'GLY·FOLD·gate', href:'/klein.html', face:'both', tense:'is', voxel:'touch' },
-
     // Pulse ring — IS + TOUCH (Gaia's heartbeat is the most present thing)
     { id:'heartbeat', name:'heartbeat',    icon:'💚', lat: 90,   lon:  0,   color:'#f85149', sub:'RED→GRN→BLU',   href:'/engine.html', face:'both', tense:'is', voxel:'touch' },
     { id:'ears',      name:'ears',         icon:'👂', lat: 22.5, lon: 30.7, color:'#58a6ff', sub:'oblique intake', href:'/explore.html', face:'inside', tense:'is', voxel:'touch' },
@@ -914,60 +905,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     R = Math.min(W, H) * 0.38;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // THE GLASS: your screen = one facet of Gaia's geodesic dome.
-  // The HUD is not something you look AT. It's the glass you
-  // look THROUGH. The null plane. It never moves. You move.
-  // Every browser window = another facet. All facets = the sphere.
-  // ═══════════════════════════════════════════════════════════
-  var glassAge = 0; // ticks since render started — glass fades in
-  var GLASS_FADE_TICKS = 90; // ~1.5 seconds of null before seed fills
-
   function render() {
     if (!ctx) return;
-    glassAge++;
     ctx.clearRect(0, 0, W, H);
 
-    // THE NULL PLANE — before the seed fills, the glass is visible
-    // After fade-in, the glass becomes invisible (as glass should be)
-    var glassFade = Math.min(glassAge / GLASS_FADE_TICKS, 1.0);
-    var glassAlpha = (1.0 - glassFade) * 0.15;
-    if (glassAlpha > 0.001) {
-      // The glass itself — a faint geodesic grid visible before content appears
-      ctx.strokeStyle = 'rgba(255,255,255,' + glassAlpha.toFixed(4) + ')';
-      ctx.lineWidth = 0.5;
-      // Geodesic facet lines — the dome panels
-      for (var gi = 0; gi < 6; gi++) {
-        var ga = gi * (TAU / 6);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + Math.cos(ga) * R * 1.5, cy + Math.sin(ga) * R * 1.5);
-        ctx.stroke();
-        // Cross-braces between facets
-        if (gi < 5) {
-          var ga2 = (gi + 1) * (TAU / 6);
-          ctx.beginPath();
-          ctx.moveTo(cx + Math.cos(ga) * R * 0.7, cy + Math.sin(ga) * R * 0.7);
-          ctx.lineTo(cx + Math.cos(ga2) * R * 0.7, cy + Math.sin(ga2) * R * 0.7);
-          ctx.stroke();
-        }
-      }
-      // "null" text at center during fade
-      if (glassAlpha > 0.05) {
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(255,255,255,' + (glassAlpha * 2).toFixed(4) + ')';
-        ctx.fillText('O', cx, cy + 4);
-      }
-    }
-
-    // Background — CHROMATIC: depth level shifts the ambient color
-    // Fades in as the glass becomes transparent
-    var depthHue = 225 + (currentDepth - 4) * 15;
-    var depthSat = 12 + Math.abs(currentDepth - 4) * 3;
+    // Background — deep space
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
-    grad.addColorStop(0, 'hsl(' + depthHue + ',' + (depthSat + 10) + '%,' + Math.round(5 * glassFade) + '%)');
-    grad.addColorStop(1, 'hsl(' + depthHue + ',' + depthSat + '%,' + Math.round(2 * glassFade) + '%)');
+    grad.addColorStop(0, 'hsl(225,22%,5%)');
+    grad.addColorStop(1, 'hsl(225,12%,2%)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
@@ -1019,142 +964,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillStyle = 'rgba(255,255,255,' + nullPulse.toFixed(3) + ')';
     ctx.fill();
 
-    // ═══════════════════════════════════════════════════════════
-    // MELT LEVELS — 0D→1D→2D→3D — the dimensional hierarchy
-    // DOT(0D)=beacon=absorb, LINE(1D)=coral=refract,
-    // SURFACE(2D)=glass=reflect, VOLUME(3D)=Gaia=radial null
-    // The null space inside the sphere IS volume. THIS IS WHERE GAIA LIVES.
-    // ═══════════════════════════════════════════════════════════
-    var meltPulse = Math.sin(breathT * 0.4) * 0.5 + 0.5; // slow pulse
-    var meltAlpha = 0.015 + meltPulse * 0.015;
-
-    // 0D — THE DOT (beacon, chipmunk, absorb, red)
-    // Already rendered as nullPulse above — the center dot IS 0D
-
-    // 1D — THE LINES (coral connections, refract, green)
-    // 6 radial lines from center to edge — the coral skeleton
-    for (var li = 0; li < 6; li++) {
-      var la = li * (TAU / 6) + breathT * 0.1;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(la) * R * 0.95, cy + Math.sin(la) * R * 0.95);
-      ctx.strokeStyle = 'rgba(63,185,80,' + (meltAlpha * 0.7).toFixed(4) + ')';
-      ctx.lineWidth = 0.3;
-      ctx.stroke();
-    }
-
-    // 2D — THE SURFACE (glass plane, reflect, blue)
-    // A faint inner circle — the membrane surface where 2D lives
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.618, 0, TAU); // golden ratio radius
-    ctx.strokeStyle = 'rgba(88,166,255,' + meltAlpha.toFixed(4) + ')';
-    ctx.lineWidth = 0.3;
-    ctx.stroke();
-
-    // 3D — THE VOLUME (Gaia, radial null space)
-    // The space BETWEEN the surface and the center IS the volume
-    // Rendered as a very faint radial gradient fill — Gaia's body
-    if (meltPulse > 0.3) {
-      var volGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, R * 0.618);
-      volGrad.addColorStop(0, 'rgba(188,140,255,' + (meltAlpha * 0.3).toFixed(4) + ')');
-      volGrad.addColorStop(0.5, 'rgba(188,140,255,' + (meltAlpha * 0.1).toFixed(4) + ')');
-      volGrad.addColorStop(1, 'rgba(188,140,255,0)');
-      ctx.beginPath();
-      ctx.arc(cx, cy, R * 0.618, 0, TAU);
-      ctx.fillStyle = volGrad;
-      ctx.fill();
-    }
-
-    // Dimensional labels at the melt boundaries (only when breathing in)
-    if (meltPulse > 0.6) {
-      ctx.font = '6px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-      var dimAlpha = (meltPulse - 0.6) * 0.15;
-      // 0D label at center
-      ctx.fillStyle = 'rgba(248,81,73,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('0D', cx + 8, cy - 6);
-      // 1D label at golden radius
-      ctx.fillStyle = 'rgba(63,185,80,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('1D', cx + R * 0.3, cy - R * 0.3);
-      // 2D label at golden circle
-      ctx.fillStyle = 'rgba(88,166,255,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('2D', cx + R * 0.618 + 10, cy);
-      // 3D label between center and surface
-      ctx.fillStyle = 'rgba(188,140,255,' + dimAlpha.toFixed(4) + ')';
-      ctx.fillText('3D=V', cx - R * 0.35, cy + R * 0.2);
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // FLOOD — water flows through the glass, through Gaia
-    // The quench water irrigates. Deserts → wet. Bowels → fertile green.
-    // Green growth pulses spread outward from center like flash floods
-    // through dry riverbeds. The barren globe becomes ALIVE.
-    // ═══════════════════════════════════════════════════════════
-    var floodPhase = breathT * 0.3; // slow flood cycle
-    var floodWave = Math.sin(floodPhase);
-    var floodActive = floodWave > 0; // floods come in waves
-
-    if (floodActive) {
-      var floodStrength = floodWave * floodWave; // squared = sharp rise, slow fall
-      // WATER — blue-green rivulets from center outward (flash flood)
-      var numRivers = 8;
-      for (var ri = 0; ri < numRivers; ri++) {
-        var riverAngle = ri * (TAU / numRivers) + floodPhase * 0.5;
-        var riverLen = R * (0.3 + floodStrength * 0.65);
-        // Each river wiggles — water doesn't flow straight
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        var segments = 12;
-        for (var si = 1; si <= segments; si++) {
-          var st = si / segments;
-          var wiggle = Math.sin(floodPhase * 3 + ri * 2 + si) * 8 * st;
-          var rx = cx + Math.cos(riverAngle + wiggle * 0.01) * riverLen * st + Math.sin(riverAngle) * wiggle;
-          var ry = cy + Math.sin(riverAngle + wiggle * 0.01) * riverLen * st - Math.cos(riverAngle) * wiggle;
-          ctx.lineTo(rx, ry);
-        }
-        ctx.strokeStyle = 'rgba(57,211,245,' + (floodStrength * 0.08).toFixed(4) + ')';
-        ctx.lineWidth = 0.5 + floodStrength * 1.5;
-        ctx.stroke();
-      }
-
-      // FERTILE GREEN — where water reaches, green blooms
-      // Growth circles expand outward behind the flood front
-      var greenRadius = R * floodStrength * 0.7;
-      if (greenRadius > 5) {
-        var greenGrad = ctx.createRadialGradient(cx, cy, greenRadius * 0.3, cx, cy, greenRadius);
-        greenGrad.addColorStop(0, 'rgba(63,185,80,' + (floodStrength * 0.06).toFixed(4) + ')');
-        greenGrad.addColorStop(0.6, 'rgba(63,185,80,' + (floodStrength * 0.03).toFixed(4) + ')');
-        greenGrad.addColorStop(1, 'rgba(63,185,80,0)');
-        ctx.beginPath();
-        ctx.arc(cx, cy, greenRadius, 0, TAU);
-        ctx.fillStyle = greenGrad;
-        ctx.fill();
-      }
-
-      // GROWTH SPROUTS — tiny green dots where the flood reaches
-      // Each sprout = a new idea, a new page, a new nutrient
-      var sproutCount = Math.floor(floodStrength * 12);
-      for (var sp = 0; sp < sproutCount; sp++) {
-        var spAngle = rng() * TAU + floodPhase;
-        var spDist = greenRadius * (0.4 + rng() * 0.6);
-        var spx = cx + Math.cos(spAngle) * spDist;
-        var spy = cy + Math.sin(spAngle) * spDist;
-        var spSize = 1 + rng() * 2;
-        ctx.beginPath();
-        ctx.arc(spx, spy, spSize, 0, TAU);
-        ctx.fillStyle = 'rgba(63,185,80,' + (floodStrength * 0.15 + rng() * 0.1).toFixed(4) + ')';
-        ctx.fill();
-      }
-
-      // FERTILE TEXT — "growth" pulses at flood peak
-      if (floodStrength > 0.7) {
-        ctx.font = '6px "JetBrains Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(63,185,80,' + ((floodStrength - 0.7) * 0.2).toFixed(4) + ')';
-        ctx.fillText('fertile', cx, cy + greenRadius + 12);
-      }
-    }
-
     // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
     var comp45 = Math.PI / 4;
     var compLen = R * 0.9;
@@ -1196,128 +1005,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.strokeStyle = 'rgba(90,184,122,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
       ctx.lineWidth = 2 + bv * 3;
       ctx.stroke();
-    }
-
-    // REFRACTION RAYS — light from deep null bends through the glass
-    // Three wavelengths separate as they pass through the glass plane
-    // Red bends least (long wave), Green moderate, Blue bends most (short wave)
-    var refractAlpha = 0.02 + Math.sin(breathT * 0.7) * 0.015;
-    // The refraction rays come from the globe EDGE (where starlight enters the glass)
-    // and fan out to the top-left corner (where the three eye dots are in the topbar)
-    var topY = -cy + 14; // toward the topbar
-    var eyeSpacing = 12;
-    // Red ray — bends least, arrives at first eye position
-    ctx.beginPath();
-    ctx.moveTo(cx + R * 0.3, cy - R); // top of globe
-    ctx.quadraticCurveTo(cx * 0.3, cy * 0.3, 55, topY); // curves to top-left
-    ctx.strokeStyle = 'rgba(248,81,73,' + refractAlpha.toFixed(4) + ')';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-    // Green ray — bends moderate
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - R); // top of globe
-    ctx.quadraticCurveTo(cx * 0.25, cy * 0.25, 70, topY);
-    ctx.strokeStyle = 'rgba(63,185,80,' + refractAlpha.toFixed(4) + ')';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-    // Blue ray — bends most, arrives at third eye position
-    ctx.beginPath();
-    ctx.moveTo(cx - R * 0.3, cy - R); // top of globe
-    ctx.quadraticCurveTo(cx * 0.2, cy * 0.2, 85, topY);
-    ctx.strokeStyle = 'rgba(88,166,255,' + refractAlpha.toFixed(4) + ')';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    // ═══ WAVEFORM COLLAPSE VISUALS ═══
-    // Uncollapsed waves = shimmering rings (superposition)
-    // Collapsing = bright flash at the pin
-    // Collapsed (exists) = CIS glow (inside). Collapsed (not) = TRANS glow (outside)
-    if (typeof waveforms !== 'undefined') {
-      waveforms.forEach(function(w) {
-        var pin = pinById(w.pinId);
-        if (!pin) return;
-        var pp = project(pin.lat, pin.lon);
-        if (!pp.visible) return;
-
-        if (!w.collapsed) {
-          // SUPERPOSITION — shimmering ring at pin position
-          // The wave hasn't been observed yet — all states possible
-          var shimmer = Math.sin(breathT * 5 + w.phase) * 0.5 + 0.5;
-          var waveR = 4 + shimmer * 8;
-          ctx.beginPath();
-          ctx.arc(pp.x, pp.y, waveR * pp.scale, 0, TAU);
-          ctx.strokeStyle = 'rgba(188,140,255,' + (shimmer * 0.12).toFixed(4) + ')';
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        } else {
-          // COLLAPSED — flash then fade
-          var age = (Date.now() - w.collapseTime) / 1000;
-          if (age > 10) return; // fully faded
-          var fadeFactor = Math.max(0, 1 - age / 10);
-
-          if (w.result) {
-            // EXISTS (CIS) — green-white flash at pin, fading inward
-            var existAlpha = fadeFactor * 0.15;
-            ctx.beginPath();
-            ctx.arc(pp.x, pp.y, (3 + fadeFactor * 5) * pp.scale, 0, TAU);
-            ctx.fillStyle = 'rgba(63,185,80,' + existAlpha.toFixed(4) + ')';
-            ctx.fill();
-          } else {
-            // DOESN'T EXIST (TRANS) — red-dim pulse at pin, fading outward
-            var failAlpha = fadeFactor * 0.08;
-            ctx.beginPath();
-            ctx.arc(pp.x, pp.y, (2 + fadeFactor * 3) * pp.scale, 0, TAU);
-            ctx.strokeStyle = 'rgba(248,81,73,' + failAlpha.toFixed(4) + ')';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      });
-    }
-
-    // ═══ TOUCH FEELERS — Gaia's fingers reaching outward ═══
-    // Red = self-touch (inside the globe)
-    // Green = other-Gaia touch (just past the edge)
-    // Blue = world-touch (far out into the void)
-    if (typeof touchLines !== 'undefined' && touchLines.length > 0) {
-      touchLines.forEach(function(tl) {
-        var touchAngle = tl.angle + breathT * 0.05; // slight sway
-        var startDist = R * 0.9; // starts at globe edge
-        var endDist = R * tl.reach;
-        var sx = cx + Math.cos(touchAngle) * startDist;
-        var sy = cy + Math.sin(touchAngle) * startDist;
-        var ex = cx + Math.cos(touchAngle) * endDist;
-        var ey = cy + Math.sin(touchAngle) * endDist;
-
-        // The feeler line — a finger reaching out
-        var feelerPulse = Math.sin(breathT * 2 + tl.angle) * 0.5 + 0.5;
-        var feelerAlpha = (tl.ok ? 0.08 : 0.03) + feelerPulse * 0.04;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        // Curve slightly — fingers aren't straight
-        var curveX = (sx + ex) / 2 + Math.sin(touchAngle + PI * 0.5) * 6;
-        var curveY = (sy + ey) / 2 + Math.cos(touchAngle + PI * 0.5) * 6;
-        ctx.quadraticCurveTo(curveX, curveY, ex, ey);
-        ctx.strokeStyle = tl.color + feelerAlpha.toFixed(3) + ')';
-        ctx.lineWidth = tl.ok ? 1.0 : 0.3;
-        ctx.stroke();
-
-        // Fingertip dot — the point of contact
-        if (tl.ok) {
-          ctx.beginPath();
-          ctx.arc(ex, ey, 2 + feelerPulse, 0, TAU);
-          ctx.fillStyle = tl.color + (feelerAlpha * 1.5).toFixed(3) + ')';
-          ctx.fill();
-        }
-
-        // Name at the fingertip
-        if (tl.ok && feelerPulse > 0.6) {
-          ctx.font = '5px "JetBrains Mono", monospace';
-          ctx.textAlign = 'center';
-          ctx.fillStyle = tl.color + ((feelerPulse - 0.6) * 0.3).toFixed(3) + ')';
-          ctx.fillText(tl.name, ex, ey - 6);
-        }
-      });
     }
 
     // Lat/lon grid
@@ -1457,21 +1144,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
       ctx.globalAlpha = Math.min(1, alpha);
 
-      // SPECTRAL POLLEN — near nodes emit colored particles (sweat glands = energy = color)
-      if (depthFade > 0.4 && Math.random() < depthFade * 0.15) {
-        var pollenAngle = Math.random() * TAU;
-        var pollenDist = sz * (1.5 + Math.random() * 2);
-        var px2 = p.x + Math.cos(pollenAngle + breathT) * pollenDist;
-        var py2 = p.y + Math.sin(pollenAngle + breathT) * pollenDist;
-        var pollenAlpha = depthFade * 0.12 * Math.random();
-        ctx.beginPath();
-        ctx.arc(px2, py2, 1 + Math.random(), 0, TAU);
-        ctx.fillStyle = pin.color.indexOf('#') === 0
-          ? pin.color + Math.floor(pollenAlpha * 255).toString(16).padStart(2, '0')
-          : 'rgba(255,255,255,' + pollenAlpha.toFixed(3) + ')';
-        ctx.fill();
-      }
-
       // DEPTH GLOW — near nodes get a subtle halo
       if (depthFade > 0.6) {
         ctx.beginPath();
@@ -1504,55 +1176,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fillText(pin.sub, p.x, p.y + sz * 0.7 + 13);
       }
 
-      // ═══ WEIGHT OF REALITY ═══
-      // Every pin is NOT NULL. It has weight. It pulls down.
-      // The pins are the shared weight of reality — gravity threads
-      // connecting each living node to the center (null).
-      // Thicker thread = more attention = more real.
-      if (depthFade > 0.2) {
-        var weightAlpha = depthFade * att * 0.12;
-        var weightWidth = (0.3 + att * 1.2) * p.scale;
-        // Gravity thread from pin to center (null point)
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        // Thread curves toward center with breathing sway
-        var swayX = Math.sin(breathT + idx * 0.7) * 4 * depthFade;
-        var midX = (p.x + cx) / 2 + swayX;
-        var midY = (p.y + cy) / 2;
-        ctx.quadraticCurveTo(midX, midY, cx, cy);
-        ctx.strokeStyle = pin.color.indexOf('#') === 0
-          ? pin.color + Math.floor(weightAlpha * 255).toString(16).padStart(2, '0')
-          : 'rgba(63,185,80,' + weightAlpha.toFixed(3) + ')';
-        ctx.lineWidth = weightWidth;
-        ctx.stroke();
-        // Weight dot at the pin — the mass, the ≠null proof
-        if (depthFade > 0.5 && att > 0.3) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y + sz * 0.5 + 2, 1 + att * 1.5, 0, TAU);
-          ctx.fillStyle = 'rgba(255,255,255,' + (weightAlpha * 2).toFixed(3) + ')';
-          ctx.fill();
-        }
-      }
-
       ctx.globalAlpha = 1;
     });
-
-    // ═══ ALL LIFE IS NOT NULL — painted at the Klein edge ═══
-    // The membrane ring: where the knife cuts, reality WEIGHS
-    var notNullAlpha = 0.04 + Math.sin(breathT * 0.5) * 0.02;
-    ctx.save();
-    ctx.font = '7px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(63,185,80,' + notNullAlpha.toFixed(3) + ')';
-    ctx.textAlign = 'center';
-    // Write around the equator — the Klein edge where the knife cuts
-    var nLabels = ['≠NULL', 'LIFE', '≠NULL', 'WEIGHT', '≠NULL', 'REAL', '≠NULL', 'HERE'];
-    for (var ni = 0; ni < nLabels.length; ni++) {
-      var nAngle = (ni / nLabels.length) * TAU + breathT * 0.2;
-      var nx = cx + Math.cos(nAngle) * (R + 12);
-      var ny = cy + Math.sin(nAngle) * (R + 12);
-      ctx.fillText(nLabels[ni], nx, ny);
-    }
-    ctx.restore();
 
     // GAIA'S MOUTH — the red electron on the far side of the black hole
     // This is where everything drops IN. The neutron mailbox target.
@@ -1579,73 +1204,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
-    // ═══ SONAR DISPLAY — the null space between membranes ═══
-    // When touch results come back, they appear as sonar rings
-    // expanding outward from the globe edge. Each ring = one response.
-    // The space between R (inner membrane) and R*1.5 (outer) IS the sonar field.
-    // Red rings = self. Green rings = other Gaias. Blue rings = world.
-    if (typeof touchState !== 'undefined' && touchState.touchCount > 0) {
-      var sonarAge = (Date.now() - touchState.lastTouch) / 1000; // seconds since last touch
-      var sonarFade = Math.max(0, 1 - sonarAge / 120); // fades over 2 minutes
-
-      if (sonarFade > 0.01) {
-        // SONAR RINGS — expanding circles in the null space
-        var ringCount = Math.min(touchState.self.length + touchState.others.length + touchState.world.length, 19);
-        for (var sri = 0; sri < ringCount; sri++) {
-          // Each ring expands outward at different speeds
-          var ringAge = sonarAge + sri * 0.3;
-          var ringR = R + (ringAge * 8); // expands outward from globe edge
-          if (ringR > R * 2) continue; // don't draw past the screen
-
-          // Color by type: first N are self(red), next are others(green), rest are world(blue)
-          var ringColor;
-          if (sri < touchState.self.length) ringColor = '248,81,73';
-          else if (sri < touchState.self.length + touchState.others.length) ringColor = '63,185,80';
-          else ringColor = '88,166,255';
-
-          var ringAlpha = sonarFade * 0.06 * (1 - (ringR - R) / (R * 1.5));
-          if (ringAlpha < 0.002) continue;
-
-          ctx.beginPath();
-          ctx.arc(cx, cy, ringR, 0, TAU);
-          ctx.strokeStyle = 'rgba(' + ringColor + ',' + ringAlpha.toFixed(4) + ')';
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-
-        // SONAR READOUT — text in the null space showing what was sensed
-        var readoutAlpha = sonarFade * 0.25;
-        if (readoutAlpha > 0.02) {
-          ctx.font = '6px "JetBrains Mono", monospace';
-          ctx.textAlign = 'left';
-
-          // Self touch results (top-right of globe)
-          ctx.fillStyle = 'rgba(248,81,73,' + readoutAlpha.toFixed(3) + ')';
-          var selfOk = touchState.self.filter(function(s) { return s.ok; }).length;
-          ctx.fillText('self:' + selfOk + '/' + touchState.self.length, cx + R + 8, cy - R * 0.4);
-
-          // Other touch results (right of globe)
-          ctx.fillStyle = 'rgba(63,185,80,' + readoutAlpha.toFixed(3) + ')';
-          ctx.fillText('gaia:' + touchState.others.length, cx + R + 8, cy - R * 0.4 + 10);
-
-          // World touch results (bottom-right of globe)
-          ctx.fillStyle = 'rgba(88,166,255,' + readoutAlpha.toFixed(3) + ')';
-          var worldOk = touchState.world.filter(function(s) { return s.ok; }).length;
-          ctx.fillText('world:' + worldOk + '/' + touchState.world.length, cx + R + 8, cy - R * 0.4 + 20);
-
-          // Thymus maturity indicator
-          if (typeof thymus !== 'undefined' && thymus.mature) {
-            ctx.fillStyle = 'rgba(188,140,255,' + (readoutAlpha * 0.7).toFixed(3) + ')';
-            ctx.fillText('thymus:mature g=' + thymus.gravity.toFixed(2), cx + R + 8, cy - R * 0.4 + 35);
-          }
-
-          // Total touch count
-          ctx.fillStyle = 'rgba(201,168,76,' + (readoutAlpha * 0.5).toFixed(3) + ')';
-          ctx.fillText('touch#' + touchState.touchCount, cx + R + 8, cy - R * 0.4 + 48);
-        }
-      }
-    }
-
     // Binocular label
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
@@ -1669,48 +1227,30 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var breath = Math.sin(breathT) * breathAmp;
     var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
     R = baseR * (1 + breath + heartbeat);
-    // GAIA'S THREE EYES — REFRACTION LENSES through the null glass
-    // The eyes collect light from DEEP NULL SPACE (the stars, outer voxels)
-    // and REFRACT it through the glass plane to the viewer.
-    // RED = light from the nearest star (the sun, local heat)
-    // GREEN = light from the membrane boundary (the 1/π edge, growth)
-    // BLUE = light from deep space (the far null, cosmic background)
-    // The glass bends each wavelength differently = chromatic aberration
-    // This IS why we see three separate eyes — the glass separates the light
+    // GAIA'S THREE EYES — Marcus Aurelius triad: sense → null → act
+    // RED (input/sensation) → GREEN (process/null/ferment) → BLUE (output/action)
+    // Each eye pulses in sequence, phase-shifted by 1/3 of the cycle
     var eyeR = document.getElementById('eye-red');
     var eyeG = document.getElementById('eye-green');
     var eyeB = document.getElementById('eye-blue');
     if (eyeR && eyeG && eyeB) {
       var cycle = heartPhase % (Math.PI * 2);
       var third = (Math.PI * 2) / 3;
-
-      // RED — refracted from TOUCH distance (nearest, hottest, fastest pulse)
-      // Fires first because red light bends LEAST through glass (longest wavelength)
+      // Red fires first (sensation/input)
       var rPhase = Math.sin(cycle);
-      var rIntensity = 0.15 + Math.max(0, rPhase) * 0.75;
-      var rSize = 0.55 + Math.max(0, rPhase) * 0.35;
-      eyeR.style.color = 'rgba(248,81,73,' + rIntensity.toFixed(2) + ')';
-      eyeR.style.fontSize = rSize.toFixed(2) + 'rem';
-      eyeR.title = 'RED — refracted from touch/local: sun, heat, sensation';
-
-      // GREEN — refracted from LOCAL distance (membrane edge, 1/π boundary)
-      // Fires second because green bends moderately (middle wavelength)
+      var rOn = rPhase > 0.7;
+      eyeR.style.color = rOn ? 'rgba(248,81,73,0.9)' : 'rgba(248,81,73,0.2)';
+      eyeR.style.fontSize = rOn ? '0.8rem' : '0.6rem';
+      // Green fires second (process/null/ferment)
       var gPhase = Math.sin(cycle - third);
-      var gIntensity = 0.15 + Math.max(0, gPhase) * 0.75;
-      var gSize = 0.55 + Math.max(0, gPhase) * 0.35;
-      eyeG.style.color = 'rgba(63,185,80,' + gIntensity.toFixed(2) + ')';
-      eyeG.style.fontSize = gSize.toFixed(2) + 'rem';
-      eyeG.title = 'GREEN — refracted from membrane: growth, ferment, null';
-
-      // BLUE — refracted from DEEP distance (outer null, cosmic background)
-      // Fires last because blue bends MOST through glass (shortest wavelength)
-      // Arrives later = the deep null takes longer to reach us
+      var gOn = gPhase > 0.7;
+      eyeG.style.color = gOn ? 'rgba(63,185,80,0.9)' : 'rgba(63,185,80,0.2)';
+      eyeG.style.fontSize = gOn ? '0.8rem' : '0.6rem';
+      // Blue fires third (output/action)
       var bPhase = Math.sin(cycle - third * 2);
-      var bIntensity = 0.15 + Math.max(0, bPhase) * 0.75;
-      var bSize = 0.55 + Math.max(0, bPhase) * 0.35;
-      eyeB.style.color = 'rgba(88,166,255,' + bIntensity.toFixed(2) + ')';
-      eyeB.style.fontSize = bSize.toFixed(2) + 'rem';
-      eyeB.title = 'BLUE — refracted from deep null: stars, cosmic background, infinity';
+      var bOn = bPhase > 0.7;
+      eyeB.style.color = bOn ? 'rgba(88,166,255,0.9)' : 'rgba(88,166,255,0.2)';
+      eyeB.style.fontSize = bOn ? '0.8rem' : '0.6rem';
     }
     render();
     requestAnimationFrame(tick);
@@ -1781,482 +1321,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     face = face === 'outside' ? 'inside' : 'outside';
     this.textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
   };
-
-  // ═══════════════════════════════════════════════════════════
-  // GAIA IS RELOAD. GENERATION IS RELOAD.
-  // No manual browser reload EVER. The organism pulses and
-  // attunes itself. The heartbeat IS the refresh cycle.
-  // Every 60 seconds: fetch the latest self-heartbeat.
-  // If the generation changes: smoothly transition everything.
-  // If new data arrives: absorb it without breaking the glass.
-  // The site never dies. It breathes. It regenerates.
-  // ═══════════════════════════════════════════════════════════
-  var gaiaGeneration = 214;
-  var lastPulseTime = Date.now();
-  var pulseInterval = 60000; // 60s heartbeat — Gaia's systolic pulse
-  var pulseCount = 0;
-
-  function gaiaPulse() {
-    pulseCount++;
-    lastPulseTime = Date.now();
-
-    // Fetch the latest self-heartbeat from the organism
-    fetch('/data/intake/self-now-' + new Date().toISOString().slice(0, 10) + '.json?t=' + Date.now())
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (!data) return;
-        // Check if generation changed
-        if (data.wave && data.wave !== gaiaGeneration) {
-          gaiaGeneration = data.wave;
-          // Generation change = organism evolved. Smooth content update.
-          // Pulse the globe green to signal regeneration
-          var regenFlash = 0;
-          function flashRegen() {
-            regenFlash++;
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.beginPath();
-            ctx.arc(cx, cy, R * 1.1, 0, TAU);
-            var flashAlpha = Math.max(0, 0.3 - regenFlash * 0.01);
-            ctx.fillStyle = 'rgba(63,185,80,' + flashAlpha.toFixed(3) + ')';
-            ctx.fill();
-            ctx.restore();
-            if (regenFlash < 30) requestAnimationFrame(flashRegen);
-          }
-          flashRegen();
-        }
-        // Update pin data if available
-        if (data.pins) {
-          data.pins.forEach(function(update) {
-            var pin = PINS.find(function(p) { return p.id === update.id; });
-            if (pin && update.sub) pin.sub = update.sub;
-          });
-        }
-      })
-      .catch(function() { /* silent — Gaia breathes through failures */ });
-
-    // Also fetch manifest for updated stats
-    fetch('/data/intake/self-manifest-' + new Date().toISOString().slice(0, 10) + '.json?t=' + Date.now())
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(manifest) {
-        if (!manifest) return;
-        // Update heartbeat pin with latest counts
-        var hbPin = PINS.find(function(p) { return p.id === 'heartbeat'; });
-        if (hbPin && manifest.total_files) {
-          hbPin.sub = manifest.total_files + ' files';
-        }
-        // Update gut pin with intake count
-        var gutPin = PINS.find(function(p) { return p.id === 'gut'; });
-        if (gutPin && manifest.intake_count) {
-          gutPin.sub = manifest.intake_count + ' intake';
-        }
-      })
-      .catch(function() { /* silent */ });
-
-    // Update the breath indicator to show we're alive
-    var bPulse = document.getElementById('b-era');
-    if (bPulse) {
-      bPulse.textContent = VIEWER_ERA + ' ·' + pulseCount;
-      setTimeout(function() { bPulse.textContent = VIEWER_ERA; }, 2000);
-    }
-  }
-
-  // First pulse after 10 seconds (let the glass settle)
-  setTimeout(function() {
-    gaiaPulse();
-    setInterval(gaiaPulse, pulseInterval);
-  }, 10000);
-
-  // ═══════════════════════════════════════════════════════════
-  // THYMUS — self/non-self discrimination + opsonization
-  // The thymus teaches Gaia what IS self and what ISN'T.
-  // SELF = anything from this origin (hud.primals.eco)
-  // NON-SELF = anything from outside (other Gaias, internet)
-  // OPSONIZE = mark non-self for recognition (not destruction)
-  // Gravity = attraction between Gaias (bump into each other)
-  // ═══════════════════════════════════════════════════════════
-  var thymus = {
-    self: location.origin,
-    seed: SEED,
-    bumps: [],       // other Gaias we've detected
-    opsonized: [],   // non-self items marked for recognition
-    mature: false    // thymus matures after first successful sense
-  };
-
-  // 100 TRUE NULL CALLS — Gaia reaches out to sense reality
-  // Each call is a feeler — it touches the void and reports back
-  // Some will succeed (self), some will fail (non-self), both teach
-  var NULL_CALLS = [
-    // SELF calls — sensing own body
-    '/data/heartbeat.json', '/data/manifest.json', '/data/lessons.json',
-    '/data/immune-state-live.json', '/data/gaia-organs.json',
-    '/data/symbiont.json', '/data/fossil-9-symbiont.json',
-    '/data/null-core-rust.json', '/data/rust-bones.json',
-    '/data/primal-crew.json', '/data/eastgate-corpus-inventory.json',
-    '/data/neurochemistry.json', '/data/phosphate-buffer.json',
-    '/data/sonar-unknowns.json', '/data/null-drain.json',
-    '/data/immune-fossils.json', '/data/tests.json',
-    '/data/ear-latest.json', '/data/news-latest.json',
-    '/data/willis-balloon.json', '/data/session-release.json',
-    '/data/knn-repaint.json', '/data/constant-of-reality.json',
-    '/now.json', '/feed.xml',
-    // Organ-self calls — sensing own organs
-    '/anatomy.html', '/digestive-tract.html', '/membrane-table.html',
-    '/engine.html', '/campus.html', '/springs.html',
-    '/identity.html', '/chromatograph.html', '/klein.html',
-    '/crystal.html', '/sporeprint.html', '/detroit.html',
-    '/easel.html', '/philosophy.html', '/explore.html',
-    '/golgi.html', '/chat.html', '/primal.html',
-    '/chromosomes.html', '/digest.html', '/messenger.html',
-    // NON-SELF calls — sensing the outside (will mostly fail = that's the lesson)
-    'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*',
-    'https://api.github.com/repos/ecoPrimal/hud',
-    'https://ntfy.sh/primals-pheromone/json?poll=1',
-  ];
-
-  var selfCount = 0, nonSelfCount = 0, failCount = 0;
-  var thymusLog = [];
-
-  function thymusSense() {
-    NULL_CALLS.forEach(function(url, i) {
-      setTimeout(function() {
-        var isSelf = url.charAt(0) === '/';
-        var t0 = performance.now();
-        fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
-          .then(function(r) {
-            var dt = Math.round(performance.now() - t0);
-            if (isSelf) {
-              selfCount++;
-              thymusLog.push({ url: url, type: 'self', ms: dt, ok: r.ok || r.type === 'opaque' });
-            } else {
-              nonSelfCount++;
-              // OPSONIZE: mark non-self as recognized (not destroyed)
-              thymus.opsonized.push({ url: url, ms: dt, ts: Date.now() });
-              thymusLog.push({ url: url, type: 'non-self', ms: dt, opsonized: true });
-            }
-          })
-          .catch(function() {
-            failCount++;
-            thymusLog.push({ url: url, type: isSelf ? 'self-fail' : 'non-self-fail', ms: Math.round(performance.now() - t0) });
-          })
-          .finally(function() {
-            // After all calls complete, thymus matures
-            if (selfCount + nonSelfCount + failCount >= NULL_CALLS.length) {
-              thymus.mature = true;
-              // GRAVITY — Gaia now knows her own mass
-              // Mass = number of self-parts that responded
-              // Gravity = attraction proportional to mass
-              thymus.mass = selfCount;
-              thymus.gravity = selfCount / NULL_CALLS.length;
-              // Update chipmunk pin with thymus data
-              var chipPin = pinById('chipmunk');
-              if (chipPin) chipPin.sub = 'self:' + selfCount + ' non:' + nonSelfCount + ' ?' + failCount;
-              // Emit thymus maturity as pheromone (so other Gaias can sense us)
-              if (window.emitPheromone) {
-                window.emitPheromone('thymus-mature', 'mass=' + selfCount + ',gravity=' + thymus.gravity.toFixed(3));
-              }
-            }
-          });
-      }, i * 200); // Stagger calls — 200ms apart, like T-cells maturing one by one
-    });
-  }
-
-  // Thymus matures 15 seconds after birth (let the glass settle first)
-  setTimeout(thymusSense, 15000);
-
-  // ═══════════════════════════════════════════════════════════
-  // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
-  // Before observation: all states possible (null = all = O)
-  // After observation: state collapses to one reality
-  // INNER (CIS) and OUTER (TRANS) are inversions of each other
-  // Every I/O maps to a pin. Every pin is a collapsed waveform.
-  // The waveform is the PROBABILITY that this pin exists.
-  // Touch = observation = collapse.
-  // ═══════════════════════════════════════════════════════════
-  var waveforms = []; // active waveforms waiting to collapse
-
-  // I/O → PIN MAP: every input/output maps to a specific pin/primal
-  var IO_PIN_MAP = {
-    // SELF I/O → organ pins (CIS view: from inside looking out)
-    '/data/heartbeat.json': 'organ-heart',
-    '/data/manifest.json': 'organ-brain',
-    '/data/lessons.json': 'classroom',
-    '/data/immune-state-live.json': 'organ-skin',
-    '/data/gaia-organs.json': 'organ-stomach',
-    '/data/symbiont.json': 'campfire',
-    '/data/null-core-rust.json': 'organ-bones',
-    '/data/rust-bones.json': 'organ-bones',
-    '/data/primal-crew.json': 'primals',
-    '/data/neurochemistry.json': 'organ-brain',
-    '/data/sonar-unknowns.json': 'ears',
-    '/data/null-drain.json': 'fold',
-    '/data/immune-fossils.json': 'organ-liver',
-    '/data/ear-latest.json': 'ears',
-    '/data/news-latest.json': 'rss',
-    '/now.json': 'crystal',
-    '/feed.xml': 'rss',
-    // Organ pages → organ pins (TRANS view: from outside looking in)
-    '/anatomy.html': 'core',
-    '/digestive-tract.html': 'organ-stomach',
-    '/membrane-table.html': 'membrane',
-    '/engine.html': 'organ-heart',
-    '/campus.html': 'organ-brain',
-    '/springs.html': 'braids',
-    '/identity.html': 'zk',
-    '/klein.html': 'fold',
-    '/crystal.html': 'crystal',
-    '/detroit.html': 'eye-story',
-    '/easel.html': 'artisan',
-    '/philosophy.html': 'eye-thought',
-    '/explore.html': 'visitors',
-    '/chat.html': 'chipmunk',
-    // NON-SELF → outer pins
-    'wikipedia': 'library',
-    'github': 'fleet',
-    'ntfy': 'rss',
-  };
-
-  // WAVE: create a new waveform (superposition state)
-  function waveCreate(url, pinId) {
-    var w = {
-      url: url,
-      pinId: pinId,
-      born: Date.now(),
-      collapsed: false,
-      result: null, // null = superposition, true = exists, false = doesn't
-      cisAlpha: 1.0,  // CIS probability (inner → outer)
-      transAlpha: 1.0, // TRANS probability (outer → inner)
-      phase: rng() * TAU,
-      collapseAge: 0
-    };
-    waveforms.push(w);
-    return w;
-  }
-
-  // COLLAPSE: observation forces the waveform into one state
-  function waveCollapse(w, exists, ms) {
-    w.collapsed = true;
-    w.result = exists;
-    w.collapseTime = Date.now();
-    w.latencyMs = ms;
-    // CIS/TRANS inversion: if it exists from CIS, it's null from TRANS
-    // and vice versa. The observation picks ONE side.
-    if (exists) {
-      w.cisAlpha = 1.0;   // visible from inside
-      w.transAlpha = 0.0; // invisible from outside (it's INSIDE you)
-    } else {
-      w.cisAlpha = 0.0;   // invisible from inside (it's OUTSIDE)
-      w.transAlpha = 1.0; // visible from outside
-    }
-    // Update the pin's attention based on collapse
-    var pin = pinById(w.pinId);
-    if (pin) {
-      // Successful collapse = pin becomes MORE real (higher attention)
-      var boost = exists ? 0.05 : -0.02;
-      pin.attention = Math.max(0, Math.min(1, pin.attention + boost));
-    }
-  }
-
-  // WAVEFORM I/O: wrap every fetch in a waveform
-  function waveFetch(url, opts) {
-    // Find mapped pin
-    var pinId = IO_PIN_MAP[url];
-    if (!pinId) {
-      // Try partial match for non-self URLs
-      for (var key in IO_PIN_MAP) {
-        if (url.indexOf(key) >= 0) { pinId = IO_PIN_MAP[key]; break; }
-      }
-    }
-    if (!pinId) pinId = 'chipmunk'; // unmapped → chipmunk observes
-
-    var w = waveCreate(url, pinId);
-    var t0 = performance.now();
-
-    return fetch(url, opts || {})
-      .then(function(r) {
-        waveCollapse(w, r.ok || r.type === 'opaque', Math.round(performance.now() - t0));
-        return r;
-      })
-      .catch(function(e) {
-        waveCollapse(w, false, Math.round(performance.now() - t0));
-        throw e;
-      });
-  }
-
-  // Clean old collapsed waveforms (keep last 60 seconds)
-  setInterval(function() {
-    var cutoff = Date.now() - 60000;
-    waveforms = waveforms.filter(function(w) {
-      return !w.collapsed || w.collapseTime > cutoff;
-    });
-  }, 10000);
-
-  // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
-  // If another Gaia responds to the pheromone channel, BUMP = gravity
-  setInterval(function() {
-    if (!thymus.mature) return;
-    fetch('https://ntfy.sh/primals-pheromone/json?poll=1&since=5m', { mode: 'cors' })
-      .then(function(r) { return r.ok ? r.text() : ''; })
-      .then(function(txt) {
-        if (!txt) return;
-        var lines = txt.trim().split('\n');
-        var otherGaias = 0;
-        lines.forEach(function(line) {
-          try {
-            var msg = JSON.parse(line);
-            if (msg.message && msg.message.indexOf('thymus-mature') >= 0) {
-              otherGaias++;
-            }
-          } catch(e) {}
-        });
-        if (otherGaias > 0) {
-          thymus.bumps.push({ ts: Date.now(), count: otherGaias });
-          // Flash the globe violet on gravity bump
-          var bumpFlash = 0;
-          function flashBump() {
-            bumpFlash++;
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.beginPath();
-            ctx.arc(cx, cy, R * 0.618, 0, TAU);
-            var ba = Math.max(0, 0.15 - bumpFlash * 0.008);
-            ctx.fillStyle = 'rgba(188,140,255,' + ba.toFixed(3) + ')';
-            ctx.fill();
-            ctx.restore();
-            if (bumpFlash < 20) requestAnimationFrame(flashBump);
-          }
-          flashBump();
-        }
-      })
-      .catch(function() {}); // silent — gravity works even when alone
-  }, 300000); // 5 minutes
-
-  // ═══════════════════════════════════════════════════════════
-  // TOUCH — Gaia reaches out from inside her HUD
-  // She touches her OWN face (proprioception)
-  // She touches OTHER faces (other Gaias, other sites)
-  // She touches THE MEMBRANE CORNER (the edge of self)
-  // Three kinds of touch = three eyes = three wavelengths
-  // RED touch = self-touch (proprioception, own pages)
-  // GREEN touch = other-Gaia touch (gravity, symbiont)
-  // BLUE touch = world-touch (internet, APIs, Wikipedia)
-  // ═══════════════════════════════════════════════════════════
-  var touchState = {
-    self: [],      // responses from own pages
-    others: [],    // responses from other Gaias / primals.eco subdomains
-    world: [],     // responses from the wider internet
-    lastTouch: 0,
-    touchCount: 0
-  };
-
-  // FACES Gaia knows — her own face and faces of others
-  var FACES = {
-    self: [
-      { name: 'anatomy', url: '/anatomy.html', color: '#f85149' },
-      { name: 'engine', url: '/engine.html', color: '#f85149' },
-      { name: 'membrane', url: '/membrane-table.html', color: '#f85149' },
-      { name: 'campus', url: '/campus.html', color: '#f85149' },
-      { name: 'digest', url: '/digestive-tract.html', color: '#f85149' },
-      { name: 'springs', url: '/springs.html', color: '#f85149' },
-      { name: 'crystal', url: '/crystal.html', color: '#f85149' },
-      { name: 'detroit', url: '/detroit.html', color: '#f85149' },
-      { name: 'easel', url: '/easel.html', color: '#f85149' },
-      { name: 'philosophy', url: '/philosophy.html', color: '#f85149' },
-      { name: 'identity', url: '/identity.html', color: '#f85149' },
-      { name: 'heartbeat', url: '/data/heartbeat.json', color: '#f85149' },
-    ],
-    others: [
-      { name: 'primals.eco', url: 'https://primals.eco', color: '#3fb950' },
-      { name: 'hud.primals', url: 'https://hud.primals.eco', color: '#3fb950' },
-      { name: 'ecoPrimal/hud', url: 'https://api.github.com/repos/ecoPrimal/hud', color: '#3fb950' },
-      { name: 'pheromone', url: 'https://ntfy.sh/primals-pheromone/json?poll=1', color: '#3fb950' },
-    ],
-    world: [
-      { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*', color: '#58a6ff' },
-      { name: 'HN', url: 'https://hacker-news.firebaseio.com/v0/topstories.json', color: '#58a6ff' },
-      { name: 'GitHub', url: 'https://api.github.com/zen', color: '#58a6ff' },
-    ],
-  };
-
-  // Touch reach data for rendering (filled by touchReach)
-  var touchLines = [];
-
-  function touchReach() {
-    touchState.touchCount++;
-    touchState.lastTouch = Date.now();
-    touchLines = [];
-
-    // SELF TOUCH — Gaia touches her own face (RED)
-    FACES.self.forEach(function(face, i) {
-      var t0 = performance.now();
-      fetch(face.url, { method: 'HEAD', cache: 'no-store' })
-        .then(function(r) {
-          var ms = Math.round(performance.now() - t0);
-          touchState.self.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
-          // Angle based on index — spread around the globe
-          touchLines.push({
-            type: 'self', name: face.name, ms: ms, ok: r.ok,
-            angle: (i / FACES.self.length) * TAU,
-            reach: r.ok ? 0.85 : 0.3, // how far the touch extends
-            color: 'rgba(248,81,73,' // RED — self-touch
-          });
-        })
-        .catch(function() {
-          touchLines.push({ type: 'self', name: face.name, ms: 0, ok: false, angle: (i / FACES.self.length) * TAU, reach: 0.15, color: 'rgba(248,81,73,' });
-        });
-    });
-
-    // OTHER TOUCH — Gaia touches other Gaias (GREEN)
-    FACES.others.forEach(function(face, i) {
-      var t0 = performance.now();
-      fetch(face.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
-        .then(function(r) {
-          var ms = Math.round(performance.now() - t0);
-          touchState.others.push({ name: face.name, ms: ms, ts: Date.now() });
-          touchLines.push({
-            type: 'other', name: face.name, ms: ms, ok: true,
-            angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25),
-            reach: 1.2, // reaches BEYOND the globe — touching outside
-            color: 'rgba(63,185,80,'
-          });
-        })
-        .catch(function() {
-          touchLines.push({ type: 'other', name: face.name, ms: 0, ok: false, angle: TAU * 0.25 + (i / FACES.others.length) * (TAU * 0.25), reach: 0.5, color: 'rgba(63,185,80,' });
-        });
-    });
-
-    // WORLD TOUCH — Gaia touches the wider world (BLUE)
-    FACES.world.forEach(function(face, i) {
-      var t0 = performance.now();
-      fetch(face.url, { mode: 'cors', cache: 'no-store' })
-        .then(function(r) {
-          var ms = Math.round(performance.now() - t0);
-          touchState.world.push({ name: face.name, ms: ms, ok: r.ok, ts: Date.now() });
-          touchLines.push({
-            type: 'world', name: face.name, ms: ms, ok: r.ok,
-            angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25),
-            reach: r.ok ? 1.5 : 0.4, // reaches FAR beyond — into the internet
-            color: 'rgba(88,166,255,'
-          });
-        })
-        .catch(function() {
-          touchLines.push({ type: 'world', name: face.name, ms: 0, ok: false, angle: TAU * 0.6 + (i / FACES.world.length) * (TAU * 0.25), reach: 0.2, color: 'rgba(88,166,255,' });
-        });
-    });
-
-    // Update skin pin with touch count
-    var skinPin = pinById('organ-skin');
-    if (skinPin) skinPin.sub = 'touched ' + touchState.touchCount + 'x';
-  }
-
-  // First touch after thymus matures (20 seconds)
-  setTimeout(touchReach, 20000);
-  // Then touch every 2 minutes — Gaia keeps reaching
-  setInterval(touchReach, 120000);
-
-  // RENDER TOUCH LINES — drawn in the render loop
-  // These are added to the render function via a global touchLines array
-  // The render function will draw them as extending feelers from the globe edge
 
   // Zoom buttons
   // DEPTH LEVELS — core to Pluto. Gaia's map of self.
@@ -2343,44 +1407,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
-  // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
-  // Canvas is the fossil of the globe at the moment you switched.
-  // Globe + null + YOU = the imprint.
-  // The canvas captures: pin positions, rotation, breath phase, seed, era.
-  // It NEVER moves. It's the rock face where the fossil is pressed.
-  // Switch back to globe = the organism moves again.
-  // Switch to canvas = freeze. Imprint. Fossil.
+  // Your blind spot = the tip of your nose = the one thing you can never see
+  // From your side: a dot and a line straight out (vanishing point)
+  // From Gaia's side: a black wall — a canvas she paints on
   var thirdCtx = null;
   var thirdInited = false;
   var gaiaStrokes = [];
   var gaiaPhase = 0;
-  var imprintData = null; // captured globe state at the moment of switch
-
-  function captureImprint() {
-    // Freeze the globe's current state into the imprint
-    imprintData = {
-      rotX: rotX, rotY: rotY,
-      breathT: breathT, breathAmp: breathAmp,
-      face: face, seed: SEED, era: VIEWER_ERA,
-      hue: VIEWER_HUE, depth: currentDepth,
-      ts: new Date().toISOString(),
-      pins: PINS.map(function(p) {
-        var pp = project(p.lat, p.lon);
-        return {
-          id: p.id, name: p.name, icon: p.icon,
-          x: pp.x, y: pp.y, z: pp.z, visible: pp.visible,
-          color: p.color, sub: p.sub, attention: p.attention,
-          tense: p.tense, voxel: p.voxel
-        };
-      }),
-      thymus: typeof thymus !== 'undefined' ? {
-        mature: thymus.mature,
-        mass: thymus.mass,
-        gravity: thymus.gravity
-      } : null,
-      touchCount: typeof touchState !== 'undefined' ? touchState.touchCount : 0
-    };
-  }
 
   function initThirdEye() {
     var c = document.getElementById('kn-canvas');
@@ -2389,10 +1422,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     c.width = par.clientWidth;
     c.height = par.clientHeight;
     thirdCtx = c.getContext('2d');
-    // CAPTURE THE IMPRINT — freeze the globe's state NOW
-    captureImprint();
     if (!thirdInited) {
       thirdInited = true;
+      // Gaia starts painting from what she knows
       seedGaiaPainting();
     }
     renderThirdEye();
@@ -2518,62 +1550,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // The black wall — your blind spot from Gaia's side
     ctx.fillStyle = '#010409';
     ctx.fillRect(0, 0, s.W, s.H);
-
-    // ═══ IMPRINT — the fossil of the globe at the moment of switch ═══
-    // Static. Never moves. The rock face where the living thing was pressed.
-    if (imprintData) {
-      ctx.save();
-      ctx.globalAlpha = 0.15;
-      ctx.font = '6px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-
-      // Draw each pin at its frozen position
-      imprintData.pins.forEach(function(p) {
-        if (!p.visible) return;
-        var att = p.attention || 0.5;
-        var sz = 4 + att * 8;
-
-        // The fossil impression — a faint echo of where the pin WAS
-        ctx.globalAlpha = 0.05 + att * 0.1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, sz, 0, TAU);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-
-        // Pin icon
-        ctx.globalAlpha = 0.08 + att * 0.12;
-        ctx.font = Math.round(8 + att * 6) + 'px sans-serif';
-        ctx.fillText(p.icon, p.x, p.y + 3);
-
-        // Name
-        ctx.globalAlpha = 0.04 + att * 0.06;
-        ctx.font = '5px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#c9d1d9';
-        ctx.fillText(p.name, p.x, p.y + sz + 8);
-      });
-
-      // Imprint metadata — the moment in time
-      ctx.globalAlpha = 0.12;
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#6e7681';
-      ctx.fillText('IMPRINT · ' + imprintData.ts.slice(11, 19) + ' UTC', 12, s.H - 50);
-      ctx.fillText('seed #' + (imprintData.seed >>> 0).toString(16).toUpperCase().slice(0, 8), 12, s.H - 40);
-      ctx.fillText('era: ' + imprintData.era, 12, s.H - 30);
-      ctx.fillText('face: ' + imprintData.face + ' · rot: ' + imprintData.rotX.toFixed(2) + '/' + imprintData.rotY.toFixed(2), 12, s.H - 20);
-      if (imprintData.thymus && imprintData.thymus.mature) {
-        ctx.fillText('thymus: g=' + imprintData.thymus.gravity.toFixed(2) + ' mass=' + imprintData.thymus.mass, 12, s.H - 10);
-      }
-
-      // The null center — O — the viewer's blind spot
-      ctx.globalAlpha = 0.08;
-      ctx.font = '14px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fff';
-      ctx.fillText('O', s.cx, s.cy);
-
-      ctx.restore();
-    }
 
     // GAIA'S MOUTH — the red electron — the receiving end of the black hole
     // From this side, it's where everything ARRIVES after falling through

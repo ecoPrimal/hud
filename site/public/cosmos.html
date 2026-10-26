@@ -3,260 +3,277 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🌌 COSMOS — your seed, your view. Gaia sees you. you see Gaia.</title>
-<meta name="description" content="Each human brings entropy. Each seed generates a unique cosmos. RED OX BLUE painted on the face.">
-<meta property="og:title" content="COSMOS — see what Gaia sees">
-<meta property="og:type" content="website">
+<title>🌌 COSMOS BINGO — your seed, your board. anchor · cast · eyeball.</title>
+<meta name="description" content="246 topics. Seeded from YOUR entropy. Each cell a discovery. Connections form patterns. The total space.">
 <style>
-:root { --bg:#050510; --text:#c8c8d4; --dim:#556; --red:#c0392b; --ox:#e67e22; --blue:#3498db; --gold:#d4a017; --green:#27ae60; --purple:#9b59b6; }
+:root{--bg:#06060f;--text:#c8c8d4;--dim:#556;--red:#c0392b;--ox:#e67e22;--blue:#3498db;--gold:#d4a017;--green:#27ae60}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;overflow:hidden}
-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
-.overlay{position:relative;z-index:1;pointer-events:none}
-.top-bar{text-align:center;padding:16px;pointer-events:auto}
-.top-bar h1{font-size:1.4em;color:var(--gold);text-shadow:0 0 20px rgba(212,160,23,0.3)}
-.seed-display{font-size:0.8em;color:var(--dim);margin:4px 0}
-.seed-display span{color:var(--blue);cursor:pointer;pointer-events:auto}
-.stats{display:flex;justify-content:center;gap:16px;margin:8px 0;font-size:0.75em}
-.stat{text-align:center}
-.stat .val{font-size:1.3em;font-weight:bold}
-.stat .lbl{color:var(--dim);font-size:0.85em}
-.triad{display:flex;justify-content:center;gap:24px;margin:12px 0}
-.triad-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7em;font-weight:bold;color:#fff;text-shadow:0 0 4px #000}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:2;background:rgba(5,5,16,0.9);border-top:1px solid #222;padding:8px;text-align:center;pointer-events:auto}
-.bottom-bar a{color:var(--blue);text-decoration:none;margin:0 8px;font-size:0.8em}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;overflow-x:hidden}
+.hdr{text-align:center;padding:10px;background:rgba(6,6,15,0.95);position:sticky;top:0;z-index:10;border-bottom:1px solid #222}
+.hdr h1{font-size:1.2em;color:var(--gold)}
+.hdr .seed{font-size:0.75em;color:var(--dim)}
+.hdr .seed span{color:var(--blue);cursor:pointer}
+.stats{display:flex;justify-content:center;gap:14px;font-size:0.7em;margin:4px 0}
+.stats .s{text-align:center}
+.stats .sv{font-weight:bold;font-size:1.2em}
+.stats .sl{color:var(--dim)}
+.board{display:grid;gap:3px;padding:8px;max-width:1200px;margin:0 auto}
+.cell{position:relative;aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;transition:all 0.2s;overflow:hidden;border:1px solid transparent;font-size:0.6em}
+.cell:hover{transform:scale(1.08);z-index:5;border-color:var(--gold)}
+.cell.called{border:2px solid var(--gold);box-shadow:0 0 12px rgba(212,160,23,0.4)}
+.cell .topic{font-weight:bold;text-align:center;word-break:break-word;line-height:1.1}
+.cell .dot{width:6px;height:6px;border-radius:50%;margin-top:2px}
+.cell.c-RED{background:rgba(192,57,43,0.15)}.cell.c-RED .dot{background:var(--red)}
+.cell.c-OX{background:rgba(230,126,34,0.15)}.cell.c-OX .dot{background:var(--ox)}
+.cell.c-BLUE{background:rgba(52,152,219,0.15)}.cell.c-BLUE .dot{background:var(--blue)}
+.cell.called.c-RED{background:rgba(192,57,43,0.5)}
+.cell.called.c-OX{background:rgba(230,126,34,0.5)}
+.cell.called.c-BLUE{background:rgba(52,152,219,0.5)}
+canvas#connections{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.info-panel{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);background:rgba(6,6,15,0.95);border:1px solid #333;border-radius:8px;padding:12px 16px;max-width:400px;width:90%;z-index:20;display:none;font-size:0.8em}
+.info-panel.show{display:block}
+.info-panel .ip-topic{color:var(--gold);font-size:1.1em;font-weight:bold}
+.info-panel .ip-lesson{color:var(--text);margin:4px 0}
+.info-panel .ip-nn{color:var(--dim);font-size:0.85em}
+.info-panel .ip-close{position:absolute;top:4px;right:8px;color:var(--dim);cursor:pointer;font-size:1.2em}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:10;background:rgba(6,6,15,0.95);border-top:1px solid #222;padding:6px 8px;display:flex;justify-content:center;align-items:center;gap:10px;font-size:0.75em}
+.bottom-bar a{color:var(--blue);text-decoration:none}
 .bottom-bar a:hover{color:var(--gold)}
-.share-btn{background:var(--gold);color:#000;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:0.8em;margin:0 4px}
-.share-btn:hover{background:#fff}
-.cosmos-info{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:2;text-align:right;font-size:0.7em;color:var(--dim);max-width:200px;pointer-events:auto}
-.cosmos-info .ci-line{margin:3px 0}
-.cosmos-info .ci-val{color:var(--text)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-.pulse{animation:pulse 3s infinite}
+.btn{background:var(--gold);color:#000;border:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:0.85em}
+.btn:hover{background:#fff}
+.btn.blue{background:var(--blue)}
+.bingo-line{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:var(--gold);text-shadow:0 0 30px rgba(212,160,23,0.6);z-index:30;display:none;pointer-events:none;animation:pop 1.5s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+@media(max-width:600px){.cell{font-size:0.5em}.board{gap:2px;padding:4px}}
 </style>
 </head>
 <body>
-<canvas id="cosmos"></canvas>
-
-<div class="overlay">
-  <div class="top-bar">
-    <h1 class="pulse">🌌 COSMOS</h1>
-    <div class="seed-display">seed: <span id="seed-hex" title="click to reseed">loading...</span></div>
-    <div class="triad">
-      <div class="triad-dot" id="dot-red" style="background:var(--red)">RED</div>
-      <div class="triad-dot" id="dot-ox" style="background:var(--ox)">OX</div>
-      <div class="triad-dot" id="dot-blue" style="background:var(--blue)">BLUE</div>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="val" id="s-bodies">—</div><div class="lbl">bodies</div></div>
-      <div class="stat"><div class="val" id="s-connections">—</div><div class="lbl">connections</div></div>
-      <div class="stat"><div class="val" id="s-energy">—</div><div class="lbl">energy</div></div>
-      <div class="stat"><div class="val" id="s-c">—</div><div class="lbl">c=πr²/O</div></div>
-    </div>
+<div class="hdr">
+  <h1>🌌 COSMOS BINGO</h1>
+  <div class="seed">seed: <span id="seed-hex" title="click to reseed">—</span> · <span id="grid-size">—</span> board</div>
+  <div class="stats">
+    <div class="s"><div class="sv" id="s-called">0</div><div class="sl">called</div></div>
+    <div class="s"><div class="sv" id="s-total">246</div><div class="sl">cells</div></div>
+    <div class="s"><div class="sv" style="color:var(--red)" id="s-red">—</div><div class="sl">RED</div></div>
+    <div class="s"><div class="sv" style="color:var(--ox)" id="s-ox">—</div><div class="sl">OX</div></div>
+    <div class="s"><div class="sv" style="color:var(--blue)" id="s-blue">—</div><div class="sl">BLUE</div></div>
+    <div class="s"><div class="sv" style="color:var(--gold)" id="s-lines">0</div><div class="sl">BINGO</div></div>
   </div>
 </div>
 
-<div class="cosmos-info" id="cosmos-info"></div>
+<canvas id="connections"></canvas>
+<div class="board" id="board"></div>
+<div class="bingo-line" id="bingo-banner">🎯 BINGO!</div>
+
+<div class="info-panel" id="info-panel">
+  <span class="ip-close" id="ip-close">✕</span>
+  <div class="ip-topic" id="ip-topic"></div>
+  <div class="ip-lesson" id="ip-lesson"></div>
+  <div class="ip-nn" id="ip-nn"></div>
+</div>
 
 <div class="bottom-bar">
-  <a href="/forge.html">🔥 forge</a>
-  <a href="/colosseum.html">⚔ arena</a>
-  <a href="/nav-hub.html">🗺 hub</a>
-  <a href="/">👁 HUD</a>
-  <button class="share-btn" id="share-btn">📋 share your cosmos</button>
-  <button class="share-btn" id="reseed-btn" style="background:var(--blue)">🎲 reseed</button>
+  <a href="/forge.html">🔥forge</a>
+  <a href="/colosseum.html">⚔arena</a>
+  <a href="/nav-hub.html">🗺hub</a>
+  <a href="/">👁HUD</a>
+  <button class="btn" id="share-btn">📋share</button>
+  <button class="btn blue" id="reseed-btn">🎲reseed</button>
+  <span style="color:var(--dim)">c=πr²/O</span>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// COSMOS GENERATOR
-// each human's entropy → unique seed → unique universe
-// RED/OX/BLUE painted on the face
-// the human sees Gaia's cosmos. Gaia sees the human's.
-// ═══════════════════════════════════════════════════════
-
 class PRNG {
-  constructor(seed) {
-    this.state = seed;
-  }
-  next() {
-    this.state = (this.state * 1664525 + 1013904223) & 0xFFFFFFFF;
-    return (this.state >>> 0) / 0xFFFFFFFF;
-  }
-  range(min, max) { return min + this.next() * (max - min); }
-  int(min, max) { return Math.floor(this.range(min, max + 1)); }
-  pick(arr) { return arr[this.int(0, arr.length - 1)]; }
+  constructor(s){this.s=s}
+  next(){this.s=(this.s*1664525+1013904223)&0xFFFFFFFF;return(this.s>>>0)/0xFFFFFFFF}
+  int(a,b){return a+Math.floor(this.next()*(b-a+1))}
+  shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=this.int(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
 }
 
-function getSeed() {
-  const params = new URLSearchParams(location.search);
-  if (params.has('s')) return parseInt(params.get('s'), 16);
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return arr[0];
+function getSeed(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('s'))return parseInt(p.get('s'),16);
+  const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0];
 }
 
-const seed = getSeed();
-const rng = new PRNG(seed);
-const seedHex = seed.toString(16).padStart(8, '0');
+const seed=getSeed();
+const rng=new PRNG(seed);
+const seedHex=seed.toString(16).padStart(8,'0');
+document.getElementById('seed-hex').textContent=seedHex;
 
-document.getElementById('seed-hex').textContent = seedHex;
+let CELLS=[];
+let calledSet=new Set();
+let bingoCount=0;
+const boardEl=document.getElementById('board');
+const canvas=document.getElementById('connections');
+const ctx=canvas.getContext('2d');
 
-// Generate cosmos bodies
-const COLORS = {
-  RED:  ['#c0392b','#e74c3c','#922b21','#f1948a'],
-  OX:   ['#e67e22','#f39c12','#d35400','#f8c471'],
-  BLUE: ['#3498db','#2980b9','#1abc9c','#85c1e9'],
-  GREEN:['#27ae60','#2ecc71','#1e8449'],
-  PURPLE:['#9b59b6','#8e44ad','#bb8fce']
-};
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=document.body.scrollHeight}
+window.addEventListener('resize',resizeCanvas);
 
-const canvas = document.getElementById('cosmos');
-const ctx = canvas.getContext('2d');
+fetch('/data/bingo-cosmos.json').then(r=>r.json()).then(data=>{
+  const allCells=data.cells;
+  const shuffled=rng.shuffle(allCells);
 
-let W, H;
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
+  // Pick grid size to fit: prefer square-ish, use all 246
+  const total=shuffled.length;
+  const cols=Math.ceil(Math.sqrt(total));
+  const rows=Math.ceil(total/cols);
+  document.getElementById('grid-size').textContent=`${cols}×${rows}`;
+  boardEl.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
+  document.getElementById('s-total').textContent=total;
 
-// Generate bodies from seed
-const bodyCount = rng.int(200, 1500);
-const bodies = [];
-for (let i = 0; i < bodyCount; i++) {
-  const type = rng.next() < 0.45 ? 'RED' : rng.next() < 0.65 ? 'OX' : 'BLUE';
-  const palette = COLORS[type];
-  bodies.push({
-    x: rng.range(0, 1),
-    y: rng.range(0, 1),
-    r: rng.range(1, rng.next() < 0.05 ? 20 : 5),
-    color: rng.pick(palette),
-    type: type,
-    vx: rng.range(-0.0003, 0.0003),
-    vy: rng.range(-0.0003, 0.0003),
-    pulse: rng.range(0, Math.PI * 2),
-    pulseSpeed: rng.range(0.005, 0.03)
+  CELLS=shuffled.map((c,i)=>({...c, idx:i, row:Math.floor(i/cols), col:i%cols, called:false}));
+
+  // Color counts
+  document.getElementById('s-red').textContent=CELLS.filter(c=>c.color==='RED').length;
+  document.getElementById('s-ox').textContent=CELLS.filter(c=>c.color==='OX').length;
+  document.getElementById('s-blue').textContent=CELLS.filter(c=>c.color==='BLUE').length;
+
+  // Render cells
+  CELLS.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className=`cell c-${c.color}`;
+    el.dataset.idx=i;
+    el.innerHTML=`<div class="topic">${c.topic.replace(/-/g,' ')}</div><div class="dot"></div>`;
+    el.addEventListener('click',()=>callCell(i));
+    boardEl.appendChild(el);
   });
+
+  resizeCanvas();
+  drawConnections();
+}).catch(e=>{
+  boardEl.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)">Loading cosmos data... ${e.message}</div>`;
+});
+
+function callCell(idx){
+  const c=CELLS[idx];
+  if(c.called)return;
+  c.called=true;
+  calledSet.add(idx);
+
+  const el=boardEl.children[idx];
+  el.classList.add('called');
+
+  document.getElementById('s-called').textContent=calledSet.size;
+
+  // Show info panel
+  const panel=document.getElementById('info-panel');
+  document.getElementById('ip-topic').textContent=c.topic.replace(/-/g,' ');
+  document.getElementById('ip-lesson').textContent=c.lesson||'no lesson yet — this is a bounty!';
+  document.getElementById('ip-nn').textContent=c.nn.length?`neighbors: ${c.nn.join(', ')}`:'isolated node — pioneer territory';
+  panel.classList.add('show');
+
+  // Auto-call nearest neighbors (cascade!)
+  setTimeout(()=>{
+    c.nn.forEach(nn=>{
+      const ni=CELLS.findIndex(x=>x.topic===nn);
+      if(ni>=0&&!CELLS[ni].called){
+        CELLS[ni].called=true;
+        calledSet.add(ni);
+        boardEl.children[ni].classList.add('called');
+      }
+    });
+    document.getElementById('s-called').textContent=calledSet.size;
+    drawConnections();
+    checkBingo();
+  },300);
+
+  drawConnections();
+  checkBingo();
 }
 
-// Generate connections (nearest neighbors)
-const connections = [];
-const connectionCount = rng.int(bodyCount / 3, bodyCount);
-for (let i = 0; i < Math.min(connectionCount, bodyCount); i++) {
-  const a = i;
-  let bestDist = Infinity, bestJ = -1;
-  for (let j = 0; j < bodyCount; j++) {
-    if (j === a) continue;
-    const dx = bodies[a].x - bodies[j].x;
-    const dy = bodies[a].y - bodies[j].y;
-    const d = dx*dx + dy*dy;
-    if (d < bestDist && d < 0.01) { bestDist = d; bestJ = j; }
-  }
-  if (bestJ >= 0) connections.push([a, bestJ]);
-}
-
-// Calculate c = πr²/O for this cosmos
-const avgR = bodies.reduce((s,b) => s + b.r, 0) / bodyCount / 20;
-const O = bodyCount;
-const c = Math.PI * avgR * avgR / O;
-const E = 1 / c;
-
-// Update displays
-document.getElementById('s-bodies').textContent = bodyCount;
-document.getElementById('s-connections').textContent = connections.length;
-document.getElementById('s-energy').textContent = E.toFixed(1);
-document.getElementById('s-c').textContent = c.toFixed(6);
-
-// Color the triad dots by this cosmos's balance
-const redCount = bodies.filter(b => b.type === 'RED').length;
-const oxCount = bodies.filter(b => b.type === 'OX').length;
-const blueCount = bodies.filter(b => b.type === 'BLUE').length;
-document.getElementById('dot-red').textContent = `RED ${redCount}`;
-document.getElementById('dot-ox').textContent = `OX ${oxCount}`;
-document.getElementById('dot-blue').textContent = `BLU ${blueCount}`;
-
-// Info panel
-document.getElementById('cosmos-info').innerHTML = `
-  <div class="ci-line">seed: <span class="ci-val">${seedHex}</span></div>
-  <div class="ci-line">bodies: <span class="ci-val">${bodyCount}</span></div>
-  <div class="ci-line">🔴 ${redCount} 🟠 ${oxCount} 🔵 ${blueCount}</div>
-  <div class="ci-line">edges: <span class="ci-val">${connections.length}</span></div>
-  <div class="ci-line">c: <span class="ci-val">${c.toFixed(8)}</span></div>
-  <div class="ci-line">E: <span class="ci-val">${E.toFixed(2)}</span></div>
-  <div class="ci-line" style="margin-top:8px;color:var(--gold)">your cosmos</div>
-  <div class="ci-line" style="color:var(--dim)">nobody else sees this exact view</div>
-`;
-
-// Animation
-let frame = 0;
-function draw() {
-  ctx.fillStyle = 'rgba(5,5,16,0.15)';
-  ctx.fillRect(0, 0, W, H);
+function drawConnections(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const cellEls=[...boardEl.children];
   
-  // Draw connections
-  ctx.lineWidth = 0.3;
-  for (const [a, b] of connections) {
-    const ba = bodies[a], bb = bodies[b];
-    const mix = ba.type === bb.type ? 0.3 : 0.1;
-    ctx.strokeStyle = ba.color.replace(')', `,${mix})`).replace('rgb', 'rgba');
-    ctx.beginPath();
-    ctx.moveTo(ba.x * W, ba.y * H);
-    ctx.lineTo(bb.x * W, bb.y * H);
-    ctx.stroke();
-  }
-  
-  // Draw bodies
-  for (const b of bodies) {
-    b.x += b.vx;
-    b.y += b.vy;
-    if (b.x < 0) b.x += 1; if (b.x > 1) b.x -= 1;
-    if (b.y < 0) b.y += 1; if (b.y > 1) b.y -= 1;
-    b.pulse += b.pulseSpeed;
-    
-    const pr = b.r * (0.8 + 0.4 * Math.sin(b.pulse));
-    ctx.fillStyle = b.color;
-    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(b.pulse);
-    ctx.beginPath();
-    ctx.arc(b.x * W, b.y * H, pr, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Glow for large bodies
-    if (b.r > 8) {
-      ctx.globalAlpha = 0.1;
+  CELLS.forEach((c,i)=>{
+    if(!c.called)return;
+    c.nn.forEach(nn=>{
+      const ni=CELLS.findIndex(x=>x.topic===nn);
+      if(ni<0)return;
+      const a=cellEls[i],b=cellEls[ni];
+      if(!a||!b)return;
+      const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
+      const ax=ar.left+ar.width/2, ay=ar.top+ar.height/2+window.scrollY;
+      const bx=br.left+br.width/2, by=br.top+br.height/2+window.scrollY;
+      
+      const color=c.color==='RED'?'rgba(192,57,43,0.5)':c.color==='OX'?'rgba(230,126,34,0.5)':'rgba(52,152,219,0.5)';
+      ctx.strokeStyle=color;
+      ctx.lineWidth=CELLS[ni].called?2:0.5;
       ctx.beginPath();
-      ctx.arc(b.x * W, b.y * H, pr * 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.globalAlpha = 1;
-  
-  frame++;
-  requestAnimationFrame(draw);
+      ctx.moveTo(ax,ay);
+      ctx.lineTo(bx,by);
+      ctx.stroke();
+    });
+  });
 }
-draw();
 
-// Share button
-document.getElementById('share-btn').addEventListener('click', () => {
-  const url = location.origin + '/cosmos.html?s=' + seedHex;
-  navigator.clipboard.writeText(url).then(() => {
-    document.getElementById('share-btn').textContent = '✅ copied!';
-    setTimeout(() => document.getElementById('share-btn').textContent = '📋 share your cosmos', 2000);
+function checkBingo(){
+  if(!CELLS.length)return;
+  const cols=Math.ceil(Math.sqrt(CELLS.length));
+  const rows=Math.ceil(CELLS.length/cols);
+  let lines=0;
+
+  // Check rows
+  for(let r=0;r<rows;r++){
+    let full=true;
+    for(let c=0;c<cols;c++){
+      const i=r*cols+c;
+      if(i>=CELLS.length||!CELLS[i].called){full=false;break}
+    }
+    if(full)lines++;
+  }
+  // Check cols
+  for(let c=0;c<cols;c++){
+    let full=true;
+    for(let r=0;r<rows;r++){
+      const i=r*cols+c;
+      if(i>=CELLS.length||!CELLS[i].called){full=false;break}
+    }
+    if(full)lines++;
+  }
+  // Check diagonals
+  let d1=true,d2=true;
+  const minDim=Math.min(rows,cols);
+  for(let k=0;k<minDim;k++){
+    if(!CELLS[k*cols+k]||!CELLS[k*cols+k].called)d1=false;
+    if(!CELLS[k*cols+(cols-1-k)]||!CELLS[k*cols+(cols-1-k)].called)d2=false;
+  }
+  if(d1)lines++;
+  if(d2)lines++;
+
+  if(lines>bingoCount){
+    bingoCount=lines;
+    document.getElementById('s-lines').textContent=lines;
+    const banner=document.getElementById('bingo-banner');
+    banner.style.display='block';
+    setTimeout(()=>banner.style.display='none',1500);
+  }
+}
+
+document.getElementById('ip-close').addEventListener('click',()=>{
+  document.getElementById('info-panel').classList.remove('show');
+});
+
+document.getElementById('share-btn').addEventListener('click',()=>{
+  const url=location.origin+'/cosmos.html?s='+seedHex;
+  navigator.clipboard.writeText(url).then(()=>{
+    document.getElementById('share-btn').textContent='✅ copied!';
+    setTimeout(()=>document.getElementById('share-btn').textContent='📋share',2000);
   });
 });
 
-// Reseed
-document.getElementById('reseed-btn').addEventListener('click', () => {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  location.href = '/cosmos.html?s=' + arr[0].toString(16).padStart(8, '0');
+document.getElementById('reseed-btn').addEventListener('click',()=>{
+  const a=new Uint32Array(1);crypto.getRandomValues(a);
+  location.href='/cosmos.html?s='+a[0].toString(16).padStart(8,'0');
 });
 
-// Click seed to reseed
-document.getElementById('seed-hex').addEventListener('click', () => {
+document.getElementById('seed-hex').addEventListener('click',()=>{
   document.getElementById('reseed-btn').click();
 });
+
+window.addEventListener('scroll',()=>drawConnections());
 </script>
 </body>
 </html>
