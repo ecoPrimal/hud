@@ -115,7 +115,7 @@ body{
   padding-top:3rem;
 }
 
-/* ═══ TRUNK ═══ */
+/* ═══ TRUNK — FAT at Earth, thin at sky ═══ */
 .trunk{
   position:absolute;top:14%;bottom:20%;left:50%;
   width:8px;transform:translateX(-50%);
@@ -123,6 +123,36 @@ body{
     var(--leaf-light) 0%,var(--leaf) 20%,var(--bark-light) 50%,var(--bark) 75%,var(--root) 100%);
   border-radius:4px;z-index:1;
   box-shadow:0 0 30px rgba(26,71,42,0.15),0 0 10px rgba(201,168,76,0.05);
+  clip-path:polygon(42% 0%, 58% 0%, 75% 50%, 90% 70%, 95% 80%, 95% 100%, 5% 100%, 5% 80%, 10% 70%, 25% 50%);
+  width:60px;
+}
+
+/* ═══ NORSE ENTITIES ═══ */
+.norse-entity{
+  position:absolute;z-index:3;pointer-events:none;
+  text-align:center;
+}
+.norse-entity .icon{display:block;filter:drop-shadow(0 0 4px rgba(0,0,0,0.5))}
+.norse-entity .label{font-size:0.4rem;color:rgba(201,168,76,0.3);letter-spacing:0.1em;margin-top:0.15rem}
+
+/* Jörmungandr — world serpent wrapping Midgard */
+.jormungandr{
+  position:absolute;top:60%;left:50%;transform:translateX(-50%);
+  width:85%;height:18%;z-index:2;pointer-events:none;
+  border:1px solid rgba(127,184,212,0.08);
+  border-radius:50%;
+  animation:serpent-pulse 12s ease-in-out infinite;
+}
+@keyframes serpent-pulse{
+  0%,100%{border-color:rgba(127,184,212,0.06);transform:translateX(-50%) scale(1)}
+  50%{border-color:rgba(127,184,212,0.15);transform:translateX(-50%) scale(1.01)}
+}
+.jormungandr::after{
+  content:'🐍';position:absolute;top:-0.6rem;left:10%;font-size:0.8rem;
+  animation:serpent-crawl 20s linear infinite;
+}
+@keyframes serpent-crawl{
+  0%{left:10%}50%{left:85%}100%{left:10%}
 }
 .trunk::before,.trunk::after{
   content:'';position:absolute;left:50%;transform:translateX(-50%);
@@ -131,34 +161,49 @@ body{
 .trunk::before{top:-25px;background:radial-gradient(circle,rgba(45,107,63,0.4),transparent 70%)}
 .trunk::after{bottom:-25px;background:radial-gradient(circle,rgba(26,14,10,0.5),transparent 70%)}
 
-/* ═══ CANOPY ═══ */
+/* ═══ CANOPY — wider than tall ═══ */
 .canopy{
-  position:absolute;top:10%;left:50%;transform:translateX(-50%);
-  width:300px;height:120px;border-radius:50%;z-index:0;
-  background:radial-gradient(ellipse,rgba(26,71,42,0.12),transparent 70%);
+  position:absolute;top:8%;left:50%;transform:translateX(-50%);
+  width:500px;height:140px;border-radius:50%;z-index:0;
+  background:radial-gradient(ellipse,rgba(26,71,42,0.15),transparent 65%);
+}
+/* ═══ EARTH GIRTH — the fat belt around Midgard ═══ */
+.earth-girth{
+  position:absolute;top:58%;left:50%;transform:translateX(-50%);
+  width:92%;height:22%;z-index:0;
+  background:radial-gradient(ellipse at 50% 50%,rgba(24,69,59,0.08),transparent 70%);
+  border-radius:50%;
 }
 
-/* ═══ ROOTS ═══ */
+/* ═══ ROOTS — thick, heavy, gripping the earth ═══ */
 .root-line{
-  position:absolute;bottom:14%;height:2px;z-index:0;
+  position:absolute;bottom:14%;z-index:0;
   background:linear-gradient(90deg,transparent,var(--bark),transparent);
 }
-.root-1{left:20%;right:50%;transform:rotate(12deg)}
-.root-2{left:50%;right:20%;transform:rotate(-12deg)}
-.root-3{left:35%;right:35%;bottom:10%;transform:rotate(0deg)}
+.root-1{left:15%;right:50%;height:3px;transform:rotate(10deg)}
+.root-2{left:50%;right:15%;height:3px;transform:rotate(-10deg)}
+.root-3{left:30%;right:30%;bottom:10%;height:4px;transform:rotate(0deg);
+  background:linear-gradient(90deg,transparent 10%,var(--bark-light) 40%,var(--bark-light) 60%,transparent 90%)}
+.root-4{left:10%;right:55%;bottom:8%;height:2px;transform:rotate(18deg)}
+.root-5{left:55%;right:10%;bottom:8%;height:2px;transform:rotate(-18deg)}
 
-/* ═══ BRANCHES ═══ */
+/* ═══ BRANCHES — thicker near ground (hyperlocality) ═══ */
 .branch{
-  position:absolute;height:1px;z-index:0;
+  position:absolute;z-index:0;
   background:linear-gradient(90deg,transparent,var(--leaf),transparent);
-  opacity:0.4;
 }
-.branch-l1{top:22%;left:18%;right:52%;transform:rotate(-6deg)}
-.branch-r1{top:22%;left:52%;right:18%;transform:rotate(6deg)}
-.branch-l2{top:35%;left:28%;right:53%;transform:rotate(-4deg)}
-.branch-r2{top:35%;left:53%;right:28%;transform:rotate(4deg)}
-.branch-l3{top:50%;left:30%;right:54%;transform:rotate(-3deg)}
-.branch-r3{top:50%;left:54%;right:30%;transform:rotate(3deg)}
+.branch-l1{top:22%;left:12%;right:52%;height:1px;opacity:0.3;transform:rotate(-6deg)}
+.branch-r1{top:22%;left:52%;right:12%;height:1px;opacity:0.3;transform:rotate(6deg)}
+.branch-l2{top:35%;left:15%;right:52%;height:1px;opacity:0.4;transform:rotate(-4deg)}
+.branch-r2{top:35%;left:52%;right:15%;height:1px;opacity:0.4;transform:rotate(4deg)}
+.branch-l3{top:48%;left:12%;right:53%;height:2px;opacity:0.5;transform:rotate(-3deg);
+  background:linear-gradient(90deg,transparent,var(--bark-light),transparent)}
+.branch-r3{top:48%;left:53%;right:12%;height:2px;opacity:0.5;transform:rotate(3deg);
+  background:linear-gradient(90deg,transparent,var(--bark-light),transparent)}
+.branch-l4{top:58%;left:8%;right:54%;height:3px;opacity:0.35;transform:rotate(-2deg);
+  background:linear-gradient(90deg,transparent,var(--bark),transparent)}
+.branch-r4{top:58%;left:54%;right:8%;height:3px;opacity:0.35;transform:rotate(2deg);
+  background:linear-gradient(90deg,transparent,var(--bark),transparent)}
 
 /* ═══ REALM NODES ═══ */
 .realm{
@@ -221,20 +266,29 @@ body{
 .realm.helheim{border-color:#553344}
 .realm.helheim h3{color:#886677}
 
-/* realm positions — EARTH SCALE
-   ionosphere ~15%, mesosphere ~28%, stratosphere ~40%,
-   troposphere ~52%, ground ~69%, crust ~82%, mantle ~92% */
-.realm.asgard{top:12%;left:50%;transform:translateX(-50%)}
-.realm.alfheim{top:28%;right:6%}
-.realm.vanaheim{top:28%;left:6%}
-.realm.jotunheim{top:42%;right:4%}
-.realm.muspelheim{top:42%;left:4%}
-.realm.midgard{top:63%;left:50%;transform:translateX(-50%);width:220px;
-  border-color:var(--green-msu);border-width:2px;
-  box-shadow:0 0 20px rgba(24,69,59,0.3)}
-.realm.svartalfheim{top:78%;right:8%}
-.realm.niflheim{top:78%;left:8%}
-.realm.helheim{top:90%;left:50%;transform:translateX(-50%)}
+/* realm positions — HYPERLOCALITY: heavier=closer, lighter=farther
+   near Earth = wide, bold, opaque. far from Earth = narrow, thin, transparent */
+.realm.asgard{top:12%;left:50%;transform:translateX(-50%);
+  width:130px;opacity:0.7;border-width:1px;font-size:0.85em}
+.realm.alfheim{top:28%;right:6%;
+  width:140px;opacity:0.8}
+.realm.vanaheim{top:28%;left:6%;
+  width:140px;opacity:0.8}
+.realm.jotunheim{top:42%;right:4%;
+  width:155px;opacity:0.85}
+.realm.muspelheim{top:42%;left:4%;
+  width:155px;opacity:0.85}
+.realm.midgard{top:63%;left:50%;transform:translateX(-50%);
+  width:260px;padding:1rem;opacity:1;
+  border-color:var(--green-msu);border-width:3px;
+  box-shadow:0 0 30px rgba(24,69,59,0.4),0 0 60px rgba(24,69,59,0.1);
+  font-size:1.05em}
+.realm.svartalfheim{top:78%;right:8%;
+  width:170px;opacity:0.9;border-width:2px}
+.realm.niflheim{top:78%;left:8%;
+  width:170px;opacity:0.9;border-width:2px}
+.realm.helheim{top:90%;left:50%;transform:translateX(-50%);
+  width:180px;opacity:0.85;border-width:2px}
 
 /* ═══ RATATOSKR ═══ */
 .ratatoskr{
@@ -387,6 +441,8 @@ body{
   <div class="root-line root-1"></div>
   <div class="root-line root-2"></div>
   <div class="root-line root-3"></div>
+  <div class="root-line root-4"></div>
+  <div class="root-line root-5"></div>
 
   <!-- branches (in atmosphere) -->
   <div class="branch branch-l1"></div>
@@ -395,6 +451,60 @@ body{
   <div class="branch branch-r2"></div>
   <div class="branch branch-l3"></div>
   <div class="branch branch-r3"></div>
+  <div class="branch branch-l4"></div>
+  <div class="branch branch-r4"></div>
+
+  <!-- earth girth glow -->
+  <div class="earth-girth"></div>
+
+  <!-- Jörmungandr — world serpent encircling Midgard -->
+  <div class="jormungandr" title="Jörmungandr — the world serpent. bites its own tail around Midgard."></div>
+
+  <!-- ═══ NORSE ENTITIES ═══ -->
+
+  <!-- Odin — above Asgard, one-eyed, with ravens -->
+  <div class="norse-entity" style="top:7%;left:50%;transform:translateX(-50%);font-size:1.2rem" title="Odin Allfather — traded an eye for wisdom">
+    <span class="icon">👁</span>
+    <span class="label">Odin</span>
+  </div>
+
+  <!-- Huginn & Muninn — Odin's ravens, thought & memory -->
+  <div class="norse-entity" style="top:9%;left:38%;font-size:0.7rem;opacity:0.5" title="Huginn — thought">
+    <span class="icon">🐦‍⬛</span><span class="label">Huginn</span>
+  </div>
+  <div class="norse-entity" style="top:9%;right:38%;font-size:0.7rem;opacity:0.5" title="Muninn — memory">
+    <span class="icon">🐦‍⬛</span><span class="label">Muninn</span>
+  </div>
+
+  <!-- Iðunn's golden apples — near Alfheim -->
+  <div class="norse-entity" style="top:24%;right:18%;font-size:0.7rem;opacity:0.6" title="Iðunn's golden apples — eternal youth">
+    <span class="icon">🍎</span><span class="label">Iðunn</span>
+  </div>
+
+  <!-- Fenrir — chained near Svartalfheim -->
+  <div class="norse-entity" style="top:82%;left:30%;font-size:0.9rem;opacity:0.3" title="Fenrir — the wolf, bound in chains until Ragnarök">
+    <span class="icon">🐺</span><span class="label">Fenrir</span>
+  </div>
+
+  <!-- Bifröst — rainbow bridge from Midgard to Asgard -->
+  <div style="position:absolute;top:15%;left:50%;transform:translateX(-50%) rotate(-2deg);width:4px;height:52%;z-index:0;
+    background:linear-gradient(180deg,rgba(201,168,76,0.15),rgba(200,100,100,0.08) 20%,rgba(100,200,100,0.06) 40%,rgba(100,100,200,0.06) 60%,rgba(24,69,59,0.1) 80%,transparent);
+    opacity:0.4;border-radius:2px" title="Bifröst — the rainbow bridge"></div>
+
+  <!-- Mímir's head — near Mímisbrunnr well -->
+  <div class="norse-entity" style="top:95%;left:50%;transform:translateX(-50%);font-size:0.7rem;opacity:0.35" title="Mímir — the wise head that speaks from the well">
+    <span class="icon">💀</span><span class="label">Mímir</span>
+  </div>
+
+  <!-- Norns — three fates at Urðarbrunnr -->
+  <div class="norse-entity" style="top:95%;left:18%;font-size:0.5rem;opacity:0.3" title="Urðr, Verðandi, Skuld — past, present, future">
+    <span class="icon">🕸️</span><span class="label">Norns</span>
+  </div>
+
+  <!-- Surtr — fire giant in Muspelheim -->
+  <div class="norse-entity" style="top:44%;left:18%;font-size:0.7rem;opacity:0.4" title="Surtr — fire giant with flaming sword">
+    <span class="icon">🔥</span><span class="label">Surtr</span>
+  </div>
 
   <!-- eagle in ionosphere -->
   <div class="eagle" title="The eagle sees from the ionosphere">🦅</div>
