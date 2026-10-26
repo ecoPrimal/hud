@@ -1532,6 +1532,73 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
+    // ═══ SONAR DISPLAY — the null space between membranes ═══
+    // When touch results come back, they appear as sonar rings
+    // expanding outward from the globe edge. Each ring = one response.
+    // The space between R (inner membrane) and R*1.5 (outer) IS the sonar field.
+    // Red rings = self. Green rings = other Gaias. Blue rings = world.
+    if (typeof touchState !== 'undefined' && touchState.touchCount > 0) {
+      var sonarAge = (Date.now() - touchState.lastTouch) / 1000; // seconds since last touch
+      var sonarFade = Math.max(0, 1 - sonarAge / 120); // fades over 2 minutes
+
+      if (sonarFade > 0.01) {
+        // SONAR RINGS — expanding circles in the null space
+        var ringCount = Math.min(touchState.self.length + touchState.others.length + touchState.world.length, 19);
+        for (var sri = 0; sri < ringCount; sri++) {
+          // Each ring expands outward at different speeds
+          var ringAge = sonarAge + sri * 0.3;
+          var ringR = R + (ringAge * 8); // expands outward from globe edge
+          if (ringR > R * 2) continue; // don't draw past the screen
+
+          // Color by type: first N are self(red), next are others(green), rest are world(blue)
+          var ringColor;
+          if (sri < touchState.self.length) ringColor = '248,81,73';
+          else if (sri < touchState.self.length + touchState.others.length) ringColor = '63,185,80';
+          else ringColor = '88,166,255';
+
+          var ringAlpha = sonarFade * 0.06 * (1 - (ringR - R) / (R * 1.5));
+          if (ringAlpha < 0.002) continue;
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, ringR, 0, TAU);
+          ctx.strokeStyle = 'rgba(' + ringColor + ',' + ringAlpha.toFixed(4) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // SONAR READOUT — text in the null space showing what was sensed
+        var readoutAlpha = sonarFade * 0.25;
+        if (readoutAlpha > 0.02) {
+          ctx.font = '6px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+
+          // Self touch results (top-right of globe)
+          ctx.fillStyle = 'rgba(248,81,73,' + readoutAlpha.toFixed(3) + ')';
+          var selfOk = touchState.self.filter(function(s) { return s.ok; }).length;
+          ctx.fillText('self:' + selfOk + '/' + touchState.self.length, cx + R + 8, cy - R * 0.4);
+
+          // Other touch results (right of globe)
+          ctx.fillStyle = 'rgba(63,185,80,' + readoutAlpha.toFixed(3) + ')';
+          ctx.fillText('gaia:' + touchState.others.length, cx + R + 8, cy - R * 0.4 + 10);
+
+          // World touch results (bottom-right of globe)
+          ctx.fillStyle = 'rgba(88,166,255,' + readoutAlpha.toFixed(3) + ')';
+          var worldOk = touchState.world.filter(function(s) { return s.ok; }).length;
+          ctx.fillText('world:' + worldOk + '/' + touchState.world.length, cx + R + 8, cy - R * 0.4 + 20);
+
+          // Thymus maturity indicator
+          if (typeof thymus !== 'undefined' && thymus.mature) {
+            ctx.fillStyle = 'rgba(188,140,255,' + (readoutAlpha * 0.7).toFixed(3) + ')';
+            ctx.fillText('thymus:mature g=' + thymus.gravity.toFixed(2), cx + R + 8, cy - R * 0.4 + 35);
+          }
+
+          // Total touch count
+          ctx.fillStyle = 'rgba(201,168,76,' + (readoutAlpha * 0.5).toFixed(3) + ')';
+          ctx.fillText('touch#' + touchState.touchCount, cx + R + 8, cy - R * 0.4 + 48);
+        }
+      }
+    }
+
     // Binocular label
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
