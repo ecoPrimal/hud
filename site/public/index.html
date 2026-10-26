@@ -606,6 +606,68 @@ body{
   });
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOverlay()});
 
+  /* ═══ ENTROPY SEED COLLECTOR ═══
+     Every human interaction = true RNG seed.
+     Accumulates entropy from mouse, keyboard, clicks, scroll.
+     Displays live seed hash + event count.
+     This is the spore system — each interaction starts a fresh sourdough iteration. */
+
+  const entropy = { events:0, pool:[], hash:'0000000000000000', lastSeed:null };
+  const seedEl = document.createElement('div');
+  seedEl.id = 'entropy-seed';
+  seedEl.style.cssText = 'position:fixed;bottom:2.2rem;left:50%;transform:translateX(-50%);z-index:101;font-size:0.5rem;color:rgba(201,168,76,0.4);font-family:monospace;letter-spacing:0.1em;pointer-events:none;text-align:center;transition:color 0.3s';
+  seedEl.textContent = '🌱 seed: waiting for human entropy…';
+  document.body.appendChild(seedEl);
+
+  function addEntropy(val){
+    entropy.pool.push(val);
+    if(entropy.pool.length>256) entropy.pool.shift();
+    entropy.events++;
+    const raw = entropy.pool.join(',') + Date.now();
+    let h = 0x811c9dc5;
+    for(let i=0;i<raw.length;i++){
+      h ^= raw.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    h = (h>>>0).toString(16).padStart(8,'0');
+    const h2 = entropy.pool.reduce((a,v)=>{
+      a ^= (typeof v==='number'? v : v.toString().charCodeAt(0)||0);
+      return Math.imul(a, 0x5bd1e995)>>>0;
+    },0xdeadbeef).toString(16).padStart(8,'0');
+    entropy.hash = h + h2;
+    entropy.lastSeed = Date.now();
+    seedEl.textContent = '🌱 seed: '+entropy.hash+' · '+entropy.events+' events · HUMAN TRUE';
+    seedEl.style.color = 'rgba(63,185,80,0.6)';
+    clearTimeout(entropy._dim);
+    entropy._dim = setTimeout(()=>{seedEl.style.color='rgba(201,168,76,0.3)'},3000);
+  }
+
+  document.addEventListener('mousemove',function(e){
+    addEntropy(e.clientX ^ e.clientY ^ (e.timeStamp|0));
+  },{passive:true});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape') return;
+    addEntropy(e.keyCode ^ (e.timeStamp|0));
+  });
+  document.addEventListener('click',function(e){
+    addEntropy((e.clientX * e.clientY) ^ (e.timeStamp|0) ^ 0xcafe);
+  });
+  document.addEventListener('scroll',function(){
+    addEntropy(window.scrollY ^ (Date.now()));
+  },{passive:true});
+  document.addEventListener('touchstart',function(e){
+    if(e.touches[0]) addEntropy(e.touches[0].clientX ^ e.touches[0].clientY ^ (e.timeStamp|0) ^ 0xbeef);
+  },{passive:true});
+
+  /* nuclei count display */
+  const nucleiEl = document.createElement('div');
+  nucleiEl.style.cssText = 'position:fixed;bottom:2.8rem;left:50%;transform:translateX(-50%);z-index:101;font-size:0.45rem;color:rgba(122,109,85,0.35);font-family:monospace;letter-spacing:0.1em;pointer-events:none;text-align:center';
+  document.body.appendChild(nucleiEl);
+  fetch('/data/manifest.json').then(r=>r.json()).then(d=>{
+    const genes = (d.total||0) + 3817 + 234204 + 9 + 10;
+    nucleiEl.textContent = '⚛ 9 realm nuclei · '+genes.toLocaleString()+' genes · every pin = a null for triangulation';
+  }).catch(()=>{});
+
 })();
 </script>
 
