@@ -23,7 +23,8 @@ const path = require('path');
 
 const ROOT = __dirname;
 const DATA = path.join(ROOT, 'data');
-const ECO = path.resolve(ROOT, '..', '..', '..', '..');
+// ROOT = hud/site/public → ../../.. = hud → ../../../.. = ecoPrimals
+const ECO = path.resolve(ROOT, '..', '..', '..');
 const log = (msg) => console.log('[REPO ' + new Date().toISOString() + '] ' + msg);
 
 // ═══ THE 14 PRIMALS — mapped to amino acids ═══
