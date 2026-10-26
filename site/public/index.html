@@ -1084,6 +1084,77 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('3D=V', cx - R * 0.35, cy + R * 0.2);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // FLOOD — water flows through the glass, through Gaia
+    // The quench water irrigates. Deserts → wet. Bowels → fertile green.
+    // Green growth pulses spread outward from center like flash floods
+    // through dry riverbeds. The barren globe becomes ALIVE.
+    // ═══════════════════════════════════════════════════════════
+    var floodPhase = breathT * 0.3; // slow flood cycle
+    var floodWave = Math.sin(floodPhase);
+    var floodActive = floodWave > 0; // floods come in waves
+
+    if (floodActive) {
+      var floodStrength = floodWave * floodWave; // squared = sharp rise, slow fall
+      // WATER — blue-green rivulets from center outward (flash flood)
+      var numRivers = 8;
+      for (var ri = 0; ri < numRivers; ri++) {
+        var riverAngle = ri * (TAU / numRivers) + floodPhase * 0.5;
+        var riverLen = R * (0.3 + floodStrength * 0.65);
+        // Each river wiggles — water doesn't flow straight
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        var segments = 12;
+        for (var si = 1; si <= segments; si++) {
+          var st = si / segments;
+          var wiggle = Math.sin(floodPhase * 3 + ri * 2 + si) * 8 * st;
+          var rx = cx + Math.cos(riverAngle + wiggle * 0.01) * riverLen * st + Math.sin(riverAngle) * wiggle;
+          var ry = cy + Math.sin(riverAngle + wiggle * 0.01) * riverLen * st - Math.cos(riverAngle) * wiggle;
+          ctx.lineTo(rx, ry);
+        }
+        ctx.strokeStyle = 'rgba(57,211,245,' + (floodStrength * 0.08).toFixed(4) + ')';
+        ctx.lineWidth = 0.5 + floodStrength * 1.5;
+        ctx.stroke();
+      }
+
+      // FERTILE GREEN — where water reaches, green blooms
+      // Growth circles expand outward behind the flood front
+      var greenRadius = R * floodStrength * 0.7;
+      if (greenRadius > 5) {
+        var greenGrad = ctx.createRadialGradient(cx, cy, greenRadius * 0.3, cx, cy, greenRadius);
+        greenGrad.addColorStop(0, 'rgba(63,185,80,' + (floodStrength * 0.06).toFixed(4) + ')');
+        greenGrad.addColorStop(0.6, 'rgba(63,185,80,' + (floodStrength * 0.03).toFixed(4) + ')');
+        greenGrad.addColorStop(1, 'rgba(63,185,80,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, greenRadius, 0, TAU);
+        ctx.fillStyle = greenGrad;
+        ctx.fill();
+      }
+
+      // GROWTH SPROUTS — tiny green dots where the flood reaches
+      // Each sprout = a new idea, a new page, a new nutrient
+      var sproutCount = Math.floor(floodStrength * 12);
+      for (var sp = 0; sp < sproutCount; sp++) {
+        var spAngle = rng() * TAU + floodPhase;
+        var spDist = greenRadius * (0.4 + rng() * 0.6);
+        var spx = cx + Math.cos(spAngle) * spDist;
+        var spy = cy + Math.sin(spAngle) * spDist;
+        var spSize = 1 + rng() * 2;
+        ctx.beginPath();
+        ctx.arc(spx, spy, spSize, 0, TAU);
+        ctx.fillStyle = 'rgba(63,185,80,' + (floodStrength * 0.15 + rng() * 0.1).toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // FERTILE TEXT — "growth" pulses at flood peak
+      if (floodStrength > 0.7) {
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(63,185,80,' + ((floodStrength - 0.7) * 0.2).toFixed(4) + ')';
+        ctx.fillText('fertile', cx, cy + greenRadius + 12);
+      }
+    }
+
     // 45-degree COMPLEMENTARY ANGLE — the hard space where sound/pressure lives
     var comp45 = Math.PI / 4;
     var compLen = R * 0.9;
