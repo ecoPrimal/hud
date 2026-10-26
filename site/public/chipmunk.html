@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🐿️ chipmunk — the π remainder</title>
+<meta name="description" content="You found the chipmunk. The squirrel that lives between the integers. The π remainder. It chitts when you arrive.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#060810;--fg:#c9d1d9;--green:#3fb950;--gold:#c9a84c;--pink:#f778ba;
+--blue:#58a6ff;--dim:#6e7681;--orange:#d29922;--violet:#bc8cff}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;
+min-height:100vh;overflow:hidden}
+.back{position:fixed;top:12px;left:12px;z-index:10}
+.back a{color:var(--blue);text-decoration:none;font-size:0.65rem}
+.world{position:fixed;inset:0;display:flex;flex-direction:column;
+align-items:center;justify-content:center}
+.chipmunk{font-size:6rem;cursor:pointer;transition:transform 0.3s;
+user-select:none;animation:bob 3s ease-in-out infinite}
+.chipmunk:hover{transform:scale(1.2)}
+.chipmunk:active{transform:scale(0.9)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.name{color:var(--gold);font-size:1.2rem;margin-top:12px;letter-spacing:2px}
+.role{color:var(--dim);font-size:0.65rem;margin-top:4px}
+.speech{position:relative;background:rgba(22,27,34,0.85);border:1px solid var(--gold);
+border-radius:12px;padding:12px 20px;margin-top:20px;max-width:400px;
+font-size:0.7rem;color:var(--gold);text-align:center;line-height:1.5;
+min-height:40px;transition:all 0.3s}
+.speech::before{content:'';position:absolute;top:-8px;left:50%;
+transform:translateX(-50%);border:8px solid transparent;
+border-bottom-color:var(--gold);border-top:0}
+#chitter-log{position:fixed;bottom:20px;left:20px;right:20px;
+max-height:200px;overflow-y:auto;font-size:0.55rem;color:var(--dim);
+line-height:1.6}
+.chitter-line{opacity:0;animation:fadein 0.5s forwards}
+@keyframes fadein{to{opacity:1}}
+.acorn{position:fixed;pointer-events:none;font-size:1.2rem;
+animation:fall 2s ease-in forwards}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0deg)}
+100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+.stats{position:fixed;top:12px;right:12px;font-size:0.55rem;
+color:var(--dim);text-align:right;line-height:1.6}
+.stats span{color:var(--green)}
+canvas{position:fixed;inset:0;z-index:-1;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← hud</a> · <a href="/ant-trails">🐜 ants</a> · <a href="/easel">🎨 easel</a></div>
+<div class="stats" id="stats"></div>
+<canvas id="bg"></canvas>
+<div class="world">
+  <div class="chipmunk" id="chip" title="click to chitter!">🐿️</div>
+  <div class="name">chipmunk</div>
+  <div class="role">the π remainder · lives between the integers</div>
+  <div class="speech" id="speech">...</div>
+</div>
+<div id="chitter-log"></div>
+
+<script>
+const GREETINGS = [
+  "you found me! most people walk right past.",
+  "I live in the remainder. the part after the decimal.",
+  "π = 3.14159... the .14159 is where I live.",
+  "I'm the squirrel that hides between the integers.",
+  "click me. I'll chitter. it's what I do.",
+  "5 people came looking for me. you're one of them.",
+  "I paint sometimes. the easel is over there →",
+  "I can hear the swarm. 318 touches so far.",
+  "the ants told me you'd come. they leave trails.",
+  "between 3 and 4, there's a whole forest. that's home.",
+  "I buried 16 acorns. each one became a primal.",
+  "the organism breathes. I just... chitter.",
+  "you know what's between 0 and 1? everything.",
+  "fibonacci found me once. I was already here.",
+  "golden ratio? that's just my address.",
+];
+
+const CHITTERS = [
+  "chk-chk-chk!",
+  "trrrrrrill~",
+  "chit chit chit!",
+  "eeee-chk!",
+  "brrrrt-chk-chk!",
+  "chip chip chip!",
+  "tktktktktk!",
+  "krrr-eeee!",
+];
+
+let chitterCount = 0;
+let greetingIdx = 0;
+const speech = document.getElementById('speech');
+const log = document.getElementById('chitter-log');
+const chip = document.getElementById('chip');
+const statsEl = document.getElementById('stats');
+
+function say(text) {
+  speech.textContent = text;
+  speech.style.borderColor = 'var(--gold)';
+  setTimeout(() => speech.style.borderColor = 'rgba(201,168,76,0.3)', 2000);
+}
+
+function chitter() {
+  chitterCount++;
+  const c = CHITTERS[Math.floor(Math.random() * CHITTERS.length)];
+  const line = document.createElement('div');
+  line.className = 'chitter-line';
+  line.innerHTML = '<span style="color:var(--gold)">' + new Date().toLocaleTimeString() + '</span> 🐿️ ' + c;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+  if (log.children.length > 20) log.removeChild(log.firstChild);
+  dropAcorn();
+  updateStats();
+}
+
+function dropAcorn() {
+  const a = document.createElement('div');
+  a.className = 'acorn';
+  a.textContent = '🌰';
+  a.style.left = (Math.random() * 90 + 5) + '%';
+  a.style.top = (Math.random() * 30) + '%';
+  document.body.appendChild(a);
+  setTimeout(() => a.remove(), 2000);
+}
+
+function updateStats() {
+  statsEl.innerHTML = 'chitters: <span>' + chitterCount + '</span><br>'
+    + 'π remainder: <span>' + (Math.PI % 1).toFixed(6) + '</span><br>'
+    + 'acorns buried: <span>' + chitterCount + '</span>';
+}
+
+chip.addEventListener('click', () => {
+  chitter();
+  if (chitterCount % 3 === 0) {
+    say(GREETINGS[greetingIdx % GREETINGS.length]);
+    greetingIdx++;
+  } else {
+    say(CHITTERS[Math.floor(Math.random() * CHITTERS.length)]);
+  }
+});
+
+// Background stars
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+const stars = Array.from({length: 80}, () => ({
+  x: Math.random(), y: Math.random(),
+  r: Math.random() * 1.5 + 0.3,
+  s: Math.random() * 0.5 + 0.2
+}));
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const t = Date.now() / 1000;
+  stars.forEach(s => {
+    const a = 0.3 + Math.sin(t * s.s) * 0.3;
+    ctx.fillStyle = 'rgba(201,168,76,' + a + ')';
+    ctx.beginPath();
+    ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// Auto-greet
+setTimeout(() => say(GREETINGS[0]), 500);
+greetingIdx = 1;
+
+// Periodic chitter (the chipmunk is ALIVE)
+setInterval(() => {
+  if (Math.random() < 0.3) {
+    chitter();
+    say(GREETINGS[greetingIdx % GREETINGS.length]);
+    greetingIdx++;
+  }
+}, 8000);
+
+// Touch the membrane on arrival
+fetch('/touch', {method:'POST', body:'chipmunk-visitor'}).catch(()=>{});
+updateStats();
+</script>
+</body>
+</html>

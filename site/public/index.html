@@ -259,6 +259,31 @@ body {
 
 /* ENTROPY */
 .entropy { font-size: 0.5rem; color: var(--dim); }
+
+/* PORCH — the warm welcome for humans who arrive at / */
+.porch {
+  position: fixed; bottom: 34px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 12px; z-index: 50;
+  padding: 10px 16px;
+  background: rgba(6,8,16,0.92);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  animation: porch-in 1.5s ease-out 2s both;
+}
+@keyframes porch-in { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.porch-door {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px; border-radius: 8px;
+  text-decoration: none; color: var(--fg);
+  border: 1px solid transparent;
+  transition: all 0.3s; font-size: 0.6rem;
+  min-width: 90px;
+}
+.porch-door:hover { border-color: var(--blue); background: rgba(88,166,255,0.06); }
+.porch-door .door-icon { font-size: 1.2rem; margin-bottom: 4px; }
+.porch-door .door-label { color: var(--dim); font-size: 0.5rem; }
 </style>
 </head>
 <body>
@@ -302,6 +327,30 @@ body {
   </div>
 
   <div class="pause-label" id="pause-label">PAUSED — time frozen</div>
+</div>
+
+<!-- PORCH — 3 doors for the 875 humans who enter here -->
+<div class="porch" id="porch">
+  <a class="porch-door" href="/philosophy/the-knowledge-numeric/">
+    <span class="door-icon">💭</span>
+    <span>think</span>
+    <span class="door-label">philosophy · papers</span>
+  </a>
+  <a class="porch-door" href="/easel">
+    <span class="door-icon">🎨</span>
+    <span>make</span>
+    <span class="door-label">easel · chipmunk</span>
+  </a>
+  <a class="porch-door" href="/mcp">
+    <span class="door-icon">🔌</span>
+    <span>connect</span>
+    <span class="door-label">MCP · 18 tools</span>
+  </a>
+  <a class="porch-door" href="/ant-trails">
+    <span class="door-icon">🐜</span>
+    <span>explore</span>
+    <span class="door-label">ant trails · map</span>
+  </a>
 </div>
 
 <!-- BOTTOM BAR -->
