@@ -1,4 +1,4 @@
-{
+{"gaia_digested": "2026-10-26T07:25:00Z", "gaia_wave": 214, 
   "ts": "2026-10-23T13:50:00Z",
   "paper": 130,
   "title": "The Voice: Full-Modality Sovereign Expression",
@@ -10,9 +10,9 @@
     "hardware": "RTX 4070 (12GB VRAM)",
     "precision": "f64",
     "shaders": [
-      {"name": "stft_f64", "function": "Short-Time Fourier Transform", "domain": "time→frequency"},
-      {"name": "istft_f64", "function": "Inverse STFT", "domain": "frequency→time"},
-      {"name": "mel_scale_f64", "function": "Mel filterbank", "domain": "frequency→pitch"},
+      {"name": "stft_f64", "function": "Short-Time Fourier Transform", "domain": "time?frequency"},
+      {"name": "istft_f64", "function": "Inverse STFT", "domain": "frequency?time"},
+      {"name": "mel_scale_f64", "function": "Mel filterbank", "domain": "frequency?pitch"},
       {"name": "mfcc_f64", "function": "MFCC extraction", "domain": "voice fingerprint"},
       {"name": "spectrogram_f64", "function": "Power spectrogram", "domain": "visualization"},
       {"name": "pitch_shift_f64", "function": "Pitch shifting", "domain": "key transposition"},
@@ -21,7 +21,7 @@
       {"name": "window_function_f64", "function": "Hann/Hamming/Blackman", "domain": "signal framing"}
     ],
     "total_shaders": 9,
-    "round_trip": "time ↔ frequency ↔ mel ↔ cepstral"
+    "round_trip": "time ? frequency ? mel ? cepstral"
   },
 
   "modality_compilers": {
@@ -92,7 +92,7 @@
       {"lang": "Yoruba", "tradition": "Afrobeats, talking drum", "challenge": "tonal speech IS music"},
       {"lang": "German", "tradition": "NDW, German rap", "challenge": "compound words as rhythm"}
     ],
-    "hardest_target": "Mandarin rap — tonal language where pitch = meaning forced into rhythmic structure where pitch = melody"
+    "hardest_target": "Mandarin rap � tonal language where pitch = meaning forced into rhythmic structure where pitch = melody"
   },
 
   "local_inference_stack": {
@@ -138,5 +138,5 @@
   },
 
   "fold": "klein",
-  "closed_loop": "listen → understand → compose → perform → record → analyze → improve → listen"
+  "closed_loop": "listen ? understand ? compose ? perform ? record ? analyze ? improve ? listen"
 }
