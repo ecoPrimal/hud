@@ -95,6 +95,43 @@ body {
   overflow: hidden;
 }
 
+/* === GLOBE ROOT — K-N dimensional view === */
+#globe-root {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  cursor: grab; z-index: 1;
+}
+#globe-root:active { cursor: grabbing; }
+#globe-root canvas { width: 100%; height: 100%; display: block; }
+.globe-flip {
+  position: absolute; top: 12px; left: 16px; z-index: 10;
+  background: rgba(22,27,34,0.9); border: 1px solid #30363d;
+  color: #58a6ff; padding: 6px 14px; border-radius: 8px;
+  cursor: pointer; font: 11px 'JetBrains Mono', monospace;
+}
+.globe-flip:hover { border-color: #58a6ff; }
+.globe-zoom {
+  position: absolute; top: 12px; right: 16px; z-index: 10;
+  display: flex; gap: 6px;
+}
+.globe-zoom button {
+  background: rgba(22,27,34,0.9); border: 1px solid #30363d;
+  color: var(--dim); padding: 6px 10px; border-radius: 8px;
+  cursor: pointer; font: 11px 'JetBrains Mono', monospace;
+}
+.globe-zoom button:hover { color: var(--fg); border-color: var(--blue); }
+.globe-zoom button.active { color: var(--green); border-color: var(--green); }
+.view-toggle {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 10;
+  display: flex; gap: 8px;
+}
+.view-toggle button {
+  background: rgba(22,27,34,0.9); border: 1px solid #30363d;
+  color: var(--dim); padding: 6px 14px; border-radius: 8px;
+  cursor: pointer; font: 11px 'JetBrains Mono', monospace;
+}
+.view-toggle button:hover { color: var(--fg); }
+.view-toggle button.active { color: var(--cyan); border-color: var(--cyan); }
+
 /* === CENTRAL BODY — the organism looking at itself === */
 .body-center {
   position: absolute;
@@ -315,6 +352,23 @@ body {
 <!-- VIEWPORT — the organism looking at itself -->
 <div class="viewport" id="viewport">
 
+  <!-- GLOBE ROOT — K-N dimensional view (default) -->
+  <div id="globe-root">
+    <canvas id="kn-globe"></canvas>
+    <button class="globe-flip" id="kn-flip" title="Klein flip: outside↔inside (F)">↻ flip (F)</button>
+    <div class="globe-zoom">
+      <button id="zoom-out" title="zoom out">−</button>
+      <button id="zoom-in" title="zoom in">+</button>
+    </div>
+    <div class="view-toggle">
+      <button id="view-globe" class="active" title="3D globe">🌐 globe</button>
+      <button id="view-flat" title="flat organ map">⬡ flat</button>
+    </div>
+  </div>
+
+  <!-- FLAT VIEW (hidden by default, toggled) -->
+  <div id="flat-root" style="display:none">
+
   <!-- BEAMS — light from the heart projected onto the body -->
   <div class="beam-layer"></div>
 
@@ -367,6 +421,9 @@ body {
     <span class="door-label">ant trails · map</span>
   </a>
 </div>
+
+  </div><!-- /flat-root -->
+</div><!-- /viewport -->
 
 <!-- BOTTOM BAR -->
 <div class="bottombar">
@@ -651,6 +708,378 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     window.emitPheromone = emit;
   })();
 
+</script>
+
+<!-- K-N GLOBE ENGINE — dimensional view, all angles, crossover -->
+<script>
+(function() {
+  'use strict';
+  var PI = Math.PI, TAU = PI * 2, DEG = PI / 180;
+  var canvas = document.getElementById('kn-globe');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, cx, cy, R;
+  var rotX = 0.4, rotY = -1.4; // start looking at Great Lakes / Lansing
+  var autoRotate = true, rotSpeed = 0.0008;
+  var face = 'outside';
+  var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
+  var breathT = 0, baseR = 0, breathAmp = 0.06, breathRate = 0.008;
+  var heartPhase = 0;
+
+  // Map each HUD organ to a lat/lon on the globe
+  var PINS = [
+    // Core organs (brown ring → equatorial band)
+    { id:'core',      name:'core',         icon:'🌰', lat: 42.7, lon:-84.5, color:'#3a2a1e', sub:'249,576 files', href:'/anatomy.html', face:'both' },
+    { id:'gut',       name:'bioreactor',   icon:'🧫', lat: 30.0, lon: 31.1, color:'#c9a84c', sub:'fermenting',    href:'/digestive-tract.html', face:'both' },
+    { id:'starter',   name:'starter',      icon:'🍞', lat: 48.9, lon: 2.4,  color:'#5a4030', sub:'97.3% owned',   href:'/digest.html', face:'inside' },
+    { id:'dogma',     name:'dogma',        icon:'🧬', lat: 52.5, lon:13.4,  color:'#3fb950', sub:'papers→Rust',   href:'/chromosomes.html', face:'inside' },
+
+    // Membrane ring (green → mid-latitudes)
+    { id:'membrane',  name:'membrane',     icon:'🧊', lat: 42.7, lon:-84.5, color:'#3fb950', sub:'1/π = 0.318',   href:'/membrane-table.html', face:'both' },
+    { id:'digest',    name:'digest',       icon:'🔬', lat:-27.1, lon:-109.3,color:'#39d3f5', sub:'scan→sweep→sort',href:'/digestive-tract.html', face:'inside' },
+    { id:'braids',    name:'braids',       icon:'🍄', lat: 35.7, lon:139.7, color:'#a371f7', sub:'12 connections', href:'/springs.html', face:'inside' },
+    { id:'fold',      name:'fold·turn',    icon:'🌀', lat: 64.1, lon:-21.9, color:'#bc8cff', sub:'3 Klein twists', href:'/klein.html', face:'both' },
+    { id:'zk',        name:'zero knowledge',icon:'🔒',lat: 53.7, lon: -6.5, color:'#3fb950', sub:'28 strikes',    href:'/identity.html', face:'inside' },
+    { id:'chromatic', name:'chromatic',    icon:'🌈', lat:-33.9, lon: 18.4, color:'#f778ba', sub:'brown+blue=green',href:'/chromatograph.html', face:'both' },
+
+    // Pulse ring (gold → polar regions)
+    { id:'heartbeat', name:'heartbeat',    icon:'💚', lat: 90,   lon:  0,   color:'#f85149', sub:'8/9 alive',     href:'/engine.html', face:'both' },
+    { id:'ears',      name:'ears',         icon:'👂', lat: 22.5, lon: 30.7, color:'#58a6ff', sub:'listening',     href:'/explore.html', face:'inside' },
+    { id:'chipmunk',  name:'chipmunk',     icon:'🐿', lat:  0,   lon:  0,   color:'#c9a84c', sub:'π remainder',   href:'/chat.html', face:'both' },
+    { id:'artisan',   name:'artisan',      icon:'🎨', lat: 13.4, lon:103.9, color:'#d29922', sub:'human creations',href:'/easel.html', face:'inside' },
+    { id:'primals',   name:'16 primals',   icon:'🍌', lat: 20.7, lon:-88.6, color:'#3fb950', sub:'16 Rust primals',href:'/primal.html', face:'inside' },
+    { id:'rss',       name:'rss·feed',     icon:'📡', lat:-90,   lon:  0,   color:'#f0883e', sub:'null center',   href:'/feed.xml', face:'both' },
+
+    // Outer ring (blue → scattered worldwide)
+    { id:'visitors',  name:'visitors',     icon:'👁', lat: 51.2, lon: -1.8, color:'#f778ba', sub:'human eyes',    href:'/explore.html', face:'outside' },
+    { id:'intake',    name:'intake',       icon:'📥', lat: 29.9, lon: 31.1, color:'#39d3f5', sub:'consuming waste',href:'/engine.html', face:'inside' },
+    { id:'fleet',     name:'fleet',        icon:'🛸', lat: 37.8, lon:-122.4,color:'#6e7681', sub:'234K crawled',  href:'/golgi.html', face:'outside' },
+    { id:'crystal',   name:'crystal ball', icon:'🔮', lat: 47.6, lon:-122.3,color:'#bc8cff', sub:'wave 214',      href:'/crystal.html', face:'both' },
+
+    // 4 EYES — the sight system
+    { id:'eye-art',   name:'ART (right eye)',   icon:'🎨', lat: 35.7, lon:139.7, color:'#3fb950', sub:'easel — HOTTEST', href:'/easel.html', face:'outside' },
+    { id:'eye-sci',   name:'SCIENCE (left eye)', icon:'🔬', lat: 52.5, lon:13.4,  color:'#58a6ff', sub:'sporeprint',     href:'/index-sporeprint-eon.html', face:'outside' },
+    { id:'eye-story', name:'STORY (3rd eye)',    icon:'⚖',  lat: 42.3, lon:-83.0, color:'#bc8cff', sub:'detroit',        href:'/detroit.html', face:'outside' },
+    { id:'eye-thought',name:'THOUGHT (inner)',   icon:'💭', lat: 48.9, lon: 2.4,  color:'#d29922', sub:'philosophy',     href:'/philosophy.html', face:'inside' },
+
+    // 7 ROOMS — geodesic sphere
+    { id:'library',   name:'Library',      icon:'📚', lat: 52.4, lon: 4.9,  color:'#58a6ff', sub:'scholar',      href:'/sporeprint.html', face:'inside' },
+    { id:'classroom', name:'Classroom',    icon:'🎓', lat: 22.5, lon: 30.7, color:'#d29922', sub:'teacher',      href:'/campus.html', face:'inside' },
+    { id:'maproom',   name:'Map Room',     icon:'🧭', lat:-27.1, lon:-109.3,color:'#3fb950', sub:'explorer',     href:'/crystal.html', face:'inside' },
+    { id:'courtroom', name:'Courtroom',    icon:'⚖',  lat: 42.3, lon:-83.0, color:'#f85149', sub:'witness',      href:'/detroit.html', face:'inside' },
+    { id:'window',    name:'Window',       icon:'🪟', lat: 35.7, lon:139.7, color:'#f778ba', sub:'watcher',      href:'/easel.html', face:'inside' },
+    { id:'door',      name:'Door',         icon:'🚪', lat: 42.7, lon:-84.5, color:'#c9a84c', sub:'scout',        href:'/', face:'both' },
+    { id:'terminal',  name:'Terminal',     icon:'💻', lat:  0,   lon:  0,   color:'#39d3f5', sub:'probe',        href:'/mcp', face:'both' },
+
+    // Campfire
+    { id:'campfire',  name:'campfire',     icon:'🔥', lat:-13.2, lon:-72.5, color:'#f0883e', sub:'WE ARE HERE',  href:'/engine.html', face:'both' },
+  ];
+
+  // Geodesic arcs between the 7 rooms
+  var ROOM_IDS = ['library','classroom','maproom','courtroom','window','door','terminal'];
+  var ARCS = [];
+  for (var i = 0; i < ROOM_IDS.length; i++) {
+    for (var j = i + 1; j < ROOM_IDS.length; j++) {
+      ARCS.push([ROOM_IDS[i], ROOM_IDS[j]]);
+    }
+  }
+
+  function pinById(id) {
+    for (var k = 0; k < PINS.length; k++) if (PINS[k].id === id) return PINS[k];
+    return null;
+  }
+
+  function project(lat, lon) {
+    var phi = lat * DEG, lam = lon * DEG;
+    var cp = Math.cos(phi), sp = Math.sin(phi);
+    var cl = Math.cos(lam + rotY), sl = Math.sin(lam + rotY);
+    var x = cp * sl;
+    var y = sp * Math.cos(rotX) - cp * cl * Math.sin(rotX);
+    var z = sp * Math.sin(rotX) + cp * cl * Math.cos(rotX);
+    if (face === 'inside') z = -z;
+    return { x: cx + x * R, y: cy - y * R, z: z, visible: z > 0 };
+  }
+
+  function resize() {
+    var par = canvas.parentElement;
+    W = canvas.width = par.clientWidth;
+    H = canvas.height = par.clientHeight;
+    cx = W / 2; cy = H / 2;
+    R = Math.min(W, H) * 0.38;
+  }
+
+  function render() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
+    grad.addColorStop(0, face === 'outside' ? 'hsl(225,22%,5%)' : 'hsl(140,22%,5%)');
+    grad.addColorStop(1, 'hsl(225,12%,2%)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Globe sphere — breathing glow
+    var bv = Math.sin(breathT);
+    var glowIntensity = 0.04 + bv * 0.04;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    var gFill = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+    if (face === 'outside') {
+      gFill.addColorStop(0, 'rgba(88,166,255,' + (glowIntensity + 0.02).toFixed(3) + ')');
+      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
+    } else {
+      gFill.addColorStop(0, 'rgba(90,184,122,' + (glowIntensity + 0.02).toFixed(3) + ')');
+      gFill.addColorStop(1, 'rgba(6,8,16,0.95)');
+    }
+    ctx.fillStyle = gFill;
+    ctx.fill();
+    var edgeAlpha = 0.1 + bv * 0.08;
+    ctx.strokeStyle = face === 'outside'
+      ? 'rgba(88,166,255,' + edgeAlpha.toFixed(3) + ')'
+      : 'rgba(90,184,122,' + edgeAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 1 + bv * 0.5;
+    ctx.stroke();
+
+    // Atmosphere glow on deep inhale
+    if (bv > 0.3) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 1.02, 0, TAU);
+      var atmoColor = face === 'outside' ? '88,166,255' : '90,184,122';
+      ctx.strokeStyle = 'rgba(' + atmoColor + ',' + ((bv - 0.3) * 0.15).toFixed(3) + ')';
+      ctx.lineWidth = 2 + bv * 3;
+      ctx.stroke();
+    }
+
+    // Lat/lon grid
+    ctx.strokeStyle = 'rgba(48,54,61,0.2)';
+    ctx.lineWidth = 0.5;
+    for (var lat = -60; lat <= 60; lat += 30) {
+      ctx.beginPath();
+      for (var lon = -180; lon <= 180; lon += 5) {
+        var p = project(lat, lon);
+        if (p.visible) {
+          if (lon === -180 || !project(lat, lon - 5).visible) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.stroke();
+    }
+    for (var lon = -180; lon < 180; lon += 30) {
+      ctx.beginPath();
+      for (var lat = -90; lat <= 90; lat += 5) {
+        var p = project(lat, lon);
+        if (p.visible) {
+          if (lat === -90 || !project(lat - 5, lon).visible) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.stroke();
+    }
+
+    // 6 membrane rings — breathing with the organism
+    var MEMBRANES = [
+      { r: 0.08, name: 'CRUST',       base: [58,42,30],   maxA: 0.4 },
+      { r: 0.15, name: 'IONOSPHERE',   base: [63,185,80],  maxA: 0.3 },
+      { r: 0.38, name: 'BELT',         base: [201,168,76], maxA: 0.2 },
+      { r: 0.72, name: 'GOLDEN RING',  base: [210,153,34], maxA: 0.18 },
+      { r: 0.90, name: 'OORT',         base: [88,166,255], maxA: 0.12 },
+      { r: 0.98, name: 'MILKY WAY',    base: [188,140,255],maxA: 0.08 },
+    ];
+    var breathVal = Math.sin(breathT);
+    MEMBRANES.forEach(function(m, i) {
+      var pulseOffset = breathVal * 0.03 * (i + 1);
+      var rr = R * ((m.r + pulseOffset) / 0.98);
+      var alpha = m.maxA * (0.6 + 0.4 * Math.sin(breathT + i * 0.5));
+      ctx.beginPath();
+      ctx.arc(cx, cy, rr, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + m.base.join(',') + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 1 + breathVal * 0.5;
+      ctx.stroke();
+      // Glow on inhale
+      if (breathVal > 0.5) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, rr, 0, TAU);
+        ctx.strokeStyle = 'rgba(' + m.base.join(',') + ',' + (alpha * 0.3).toFixed(3) + ')';
+        ctx.lineWidth = 3 + breathVal * 2;
+        ctx.stroke();
+      }
+    });
+
+    // Heartbeat pulse ring at center
+    if (Math.sin(heartPhase) > 0.9) {
+      var hbR = R * 0.05 * (1 + Math.sin(heartPhase * 8) * 0.5);
+      ctx.beginPath();
+      ctx.arc(cx, cy, hbR, 0, TAU);
+      ctx.fillStyle = 'rgba(248,81,73,0.15)';
+      ctx.fill();
+    }
+
+    // Geodesic arcs between rooms (21 arcs)
+    ctx.lineWidth = 0.8;
+    ARCS.forEach(function(arc) {
+      var a = pinById(arc[0]), b = pinById(arc[1]);
+      if (!a || !b) return;
+      var pa = project(a.lat, a.lon), pb = project(b.lat, b.lon);
+      if (!pa.visible && !pb.visible) return;
+      ctx.beginPath();
+      // Draw great-circle segments
+      var steps = 20;
+      for (var s = 0; s <= steps; s++) {
+        var t = s / steps;
+        var lat = a.lat + (b.lat - a.lat) * t;
+        var lon = a.lon + (b.lon - a.lon) * t;
+        var p = project(lat, lon);
+        if (s === 0 || !p.visible) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = 'rgba(188,140,255,0.12)';
+      ctx.stroke();
+    });
+
+    // Render pins
+    PINS.forEach(function(pin) {
+      if (pin.face !== 'both' && pin.face !== face) return;
+      var p = project(pin.lat, pin.lon);
+      if (!p.visible) return;
+
+      var alpha = 0.3 + p.z * 0.7;
+      var sz = 8 + p.z * 6;
+
+      ctx.globalAlpha = alpha;
+
+      // Icon
+      ctx.font = sz + 'px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(pin.icon, p.x, p.y);
+
+      // Label
+      ctx.font = (7 + p.z * 2) + 'px "JetBrains Mono", monospace';
+      ctx.fillStyle = pin.color;
+      ctx.fillText(pin.name, p.x, p.y + sz * 0.7 + 4);
+
+      // Sub-label
+      if (p.z > 0.3) {
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(110,118,129,' + (alpha * 0.8) + ')';
+        ctx.fillText(pin.sub, p.x, p.y + sz * 0.7 + 13);
+      }
+
+      ctx.globalAlpha = 1;
+    });
+
+    // Face label
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = face === 'outside' ? 'rgba(88,166,255,0.5)' : 'rgba(90,184,122,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText(face === 'outside' ? 'CIS — outside view' : 'TRANS — inside view', cx, H - 30);
+    ctx.font = '8px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(110,118,129,0.4)';
+    ctx.fillText('drag to rotate · F to flip · scroll to zoom · click pin to open', cx, H - 16);
+  }
+
+  function tick() {
+    if (autoRotate && !dragging) rotY += rotSpeed;
+    // BREATHE — the organism inflates and deflates
+    breathT += breathRate;
+    heartPhase += 0.04;
+    if (baseR === 0) baseR = R;
+    var breath = Math.sin(breathT) * breathAmp;
+    var heartbeat = Math.sin(heartPhase) > 0.9 ? 0.02 * Math.sin(heartPhase * 8) : 0;
+    R = baseR * (1 + breath + heartbeat);
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  // Mouse/touch events
+  canvas.addEventListener('mousedown', function(e) {
+    dragging = true; autoRotate = false;
+    dragX = e.clientX; dragY = e.clientY;
+    dragRX = rotX; dragRY = rotY;
+  });
+  canvas.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    rotY = dragRY + (e.clientX - dragX) * 0.005;
+    rotX = dragRX - (e.clientY - dragY) * 0.005;
+    rotX = Math.max(-PI / 2, Math.min(PI / 2, rotX));
+  });
+  canvas.addEventListener('mouseup', function() { dragging = false; });
+  canvas.addEventListener('mouseleave', function() { dragging = false; });
+  canvas.addEventListener('wheel', function(e) {
+    R *= e.deltaY > 0 ? 0.95 : 1.05;
+    R = Math.max(50, Math.min(Math.min(W, H) * 0.8, R));
+  }, { passive: true });
+
+  canvas.addEventListener('touchstart', function(e) {
+    var t = e.touches[0]; dragging = true; autoRotate = false;
+    dragX = t.clientX; dragY = t.clientY; dragRX = rotX; dragRY = rotY;
+  }, { passive: true });
+  canvas.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    var t = e.touches[0];
+    rotY = dragRY + (t.clientX - dragX) * 0.005;
+    rotX = dragRX - (t.clientY - dragY) * 0.005;
+    rotX = Math.max(-PI / 2, Math.min(PI / 2, rotX));
+  }, { passive: true });
+  canvas.addEventListener('touchend', function() { dragging = false; });
+
+  // Click to navigate
+  canvas.addEventListener('click', function(e) {
+    if (Math.abs(e.clientX - dragX) > 5 || Math.abs(e.clientY - dragY) > 5) return;
+    var rect = canvas.getBoundingClientRect();
+    var mx = (e.clientX - rect.left) * (W / rect.width);
+    var my = (e.clientY - rect.top) * (H / rect.height);
+    for (var i = 0; i < PINS.length; i++) {
+      var pin = PINS[i];
+      if (pin.face !== 'both' && pin.face !== face) continue;
+      var p = project(pin.lat, pin.lon);
+      if (!p.visible) continue;
+      var dx = mx - p.x, dy = my - p.y;
+      if (dx * dx + dy * dy < 400) {
+        window.location.href = pin.href;
+        return;
+      }
+    }
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'f' || e.key === 'F') {
+      face = face === 'outside' ? 'inside' : 'outside';
+      document.getElementById('kn-flip').textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+    }
+    if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
+  });
+
+  // Flip button
+  document.getElementById('kn-flip').onclick = function() {
+    face = face === 'outside' ? 'inside' : 'outside';
+    this.textContent = face === 'outside' ? '↻ flip (F) — CIS' : '↻ flip (F) — TRANS';
+  };
+
+  // Zoom buttons
+  document.getElementById('zoom-in').onclick = function() { R *= 1.2; R = Math.min(Math.min(W,H)*0.8, R); };
+  document.getElementById('zoom-out').onclick = function() { R *= 0.8; R = Math.max(50, R); };
+
+  // View toggle (globe ↔ flat)
+  document.getElementById('view-globe').onclick = function() {
+    document.getElementById('globe-root').style.display = '';
+    document.getElementById('flat-root').style.display = 'none';
+    this.classList.add('active');
+    document.getElementById('view-flat').classList.remove('active');
+  };
+  document.getElementById('view-flat').onclick = function() {
+    document.getElementById('globe-root').style.display = 'none';
+    document.getElementById('flat-root').style.display = '';
+    this.classList.add('active');
+    document.getElementById('view-globe').classList.remove('active');
+  };
+
+  // Boot
+  resize();
+  window.addEventListener('resize', resize);
+  tick();
+})();
 </script>
 </body>
 </html>

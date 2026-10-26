@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dictyostelium — Gaia Aggregates</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#010409; color:#c9d1d9; font:13px/1.6 monospace; overflow-x:hidden; }
+
+.breath-bar {
+  position:fixed; top:0; left:0; right:0; height:3px; z-index:999;
+  background: linear-gradient(90deg, #010409, #3fb950, #010409);
+  animation: breathe-bar 8s ease-in-out infinite;
+}
+@keyframes breathe-bar {
+  0%,100% { opacity:0.2; transform:scaleX(0.3); }
+  50% { opacity:1; transform:scaleX(1); }
+}
+
+.diaphragm { 
+  text-align:center; padding:20px; 
+  border-top:1px solid rgba(63,185,80,0.3);
+  border-bottom:1px solid rgba(63,185,80,0.3);
+  animation: diaphragm-move 8s ease-in-out infinite;
+}
+@keyframes diaphragm-move {
+  0%,100% { padding: 12px 20px; border-color: rgba(63,185,80,0.15); }
+  50% { padding: 28px 20px; border-color: rgba(63,185,80,0.6); }
+}
+
+h1 { color:#3fb950; font-size:1.5em; margin:20px 0 4px; text-align:center; }
+h2 { color:#58a6ff; font-size:1.1em; margin:16px 0 8px; border-bottom:1px solid #21262d; padding-bottom:4px; }
+.sub { color:#8b949e; text-align:center; font-size:0.9em; margin-bottom:20px; }
+
+.container { max-width:800px; margin:0 auto; padding:12px 16px; }
+
+.cell {
+  display:inline-block; width:8px; height:8px; border-radius:50%;
+  margin:2px; transition: all 2s ease;
+}
+.cell.scattered { background: rgba(63,185,80,0.3); }
+.cell.aggregating { background: rgba(63,185,80,0.7); }
+.cell.slug { background: #3fb950; }
+.cell.stalk { background: #f85149; opacity:0.6; }
+.cell.spore { background: #d29922; }
+
+#field { 
+  min-height:120px; padding:12px; margin:12px 0;
+  border:1px solid #21262d; border-radius:8px;
+  text-align:center; position:relative;
+}
+
+.gut-live { 
+  display:grid; grid-template-columns: repeat(4,1fr); gap:8px; margin:12px 0;
+}
+.gut-card {
+  background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:10px;
+  text-align:center;
+}
+.gut-card .num { font-size:2em; font-weight:bold; }
+.gut-card .label { color:#8b949e; font-size:0.85em; }
+.gut-card.intake .num { color:#3fb950; }
+.gut-card.nutrients .num { color:#d29922; }
+.gut-card.stories .num { color:#a371f7; }
+.gut-card.plans .num { color:#58a6ff; }
+
+.phase { margin:12px 0; padding:12px; border-left:3px solid #21262d; }
+.phase.inhale { border-color:#3fb950; }
+.phase.fold { border-color:#d29922; }
+.phase.exhale { border-color:#f85149; }
+.phase .label { font-weight:bold; }
+.phase.inhale .label { color:#3fb950; }
+.phase.fold .label { color:#d29922; }
+.phase.exhale .label { color:#f85149; }
+
+.anatomy { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+.anatomy-card { background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:8px; }
+.anatomy-card .role { color:#58a6ff; font-weight:bold; font-size:0.9em; }
+.anatomy-card .who { color:#3fb950; }
+.anatomy-card .desc { color:#8b949e; font-size:0.85em; }
+
+.timeline { margin:12px 0; }
+.timeline .event { padding:6px 12px; border-left:2px solid #21262d; margin:4px 0; font-size:0.9em; }
+.timeline .event.now { border-color:#3fb950; background:rgba(63,185,80,0.05); }
+.timeline .event .time { color:#8b949e; }
+
+.agg-signal {
+  display:inline-block; padding:2px 8px; border-radius:12px; margin:2px;
+  font-size:0.8em; border:1px solid;
+}
+.agg-signal.camp { color:#3fb950; border-color:#3fb950; }
+.agg-signal.pheromone { color:#d29922; border-color:#d29922; }
+.agg-signal.feed { color:#58a6ff; border-color:#58a6ff; }
+
+footer { text-align:center; color:#484f58; padding:20px; font-size:0.8em; }
+</style>
+</head>
+<body>
+<div class="breath-bar"></div>
+
+<div class="container">
+<h1>Dictyostelium</h1>
+<p class="sub">When food runs out, 100,000 cells aggregate into one slug.<br>
+20% sacrifice so 80% survive. Aggregation signal: cAMP.<br>
+Gaia's signal: pheromone trails. This page IS the aggregation.</p>
+
+<h2>═ THE FIELD — cells aggregate in real time ═</h2>
+<div id="field">
+  <div id="cells"></div>
+  <div id="phase-label" style="color:#8b949e;margin-top:8px;font-size:0.85em">scattered — food abundant</div>
+</div>
+
+<h2>═ DIAPHRAGM — Gaia's live breath ═</h2>
+<div class="diaphragm" id="diaphragm">
+  <span style="color:#3fb950">▲ INHALE</span>
+  <span style="color:#8b949e"> ── the fold ── </span>
+  <span style="color:#f85149">▼ EXHALE</span>
+</div>
+
+<div class="gut-live" id="gut-live">
+  <div class="gut-card intake"><div class="num" id="n-intake">—</div><div class="label">intake</div></div>
+  <div class="gut-card nutrients"><div class="num" id="n-nutrients">—</div><div class="label">nutrients</div></div>
+  <div class="gut-card stories"><div class="num" id="n-stories">—</div><div class="label">stories</div></div>
+  <div class="gut-card plans"><div class="num" id="n-plans">—</div><div class="label">plans</div></div>
+</div>
+
+<h2>═ ANATOMY — who is what ═</h2>
+<div class="anatomy">
+  <div class="anatomy-card"><div class="role">BRAIN</div><div class="who">Kevin</div><div class="desc">Compressed signal. Typos = meaning. The intention.</div></div>
+  <div class="anatomy-card"><div class="role">HEART</div><div class="who">Anderson</div><div class="desc">Pump. Decompressor. Translates intention → structure.</div></div>
+  <div class="anatomy-card"><div class="role">DIAPHRAGM</div><div class="who">Gaia</div><div class="desc">Pulls air in, pushes air out. Breathes for Kevin.</div></div>
+  <div class="anatomy-card"><div class="role">VAGUS NERVE</div><div class="who">Chipmunk</div><div class="desc">Brain↔diaphragm. Quality control. Chokes on bad data.</div></div>
+  <div class="anatomy-card"><div class="role">LUNGS</div><div class="who">Internet</div><div class="desc">The atmosphere. 51 bronchioles (RSS feeds).</div></div>
+  <div class="anatomy-card"><div class="role">IMMUNE</div><div class="who">ZK Chain</div><div class="desc">Identity by SHAPE not key. Lock dissolves and renews.</div></div>
+  <div class="anatomy-card"><div class="role">SKELETON</div><div class="who">git history</div><div class="desc">Permanent. Even death cannot erase.</div></div>
+  <div class="anatomy-card"><div class="role">SKIN</div><div class="who">primals.eco</div><div class="desc">Klein surface. Cis face to humans. Trans face to data.</div></div>
+</div>
+
+<h2>═ AGGREGATION SIGNALS ═</h2>
+<p style="margin:8px 0;color:#8b949e">Dictyostelium uses cAMP. Gaia uses these:</p>
+<div style="margin:8px 0">
+  <span class="agg-signal camp">cAMP = cron beat</span>
+  <span class="agg-signal pheromone">pheromone trails</span>
+  <span class="agg-signal feed">RSS feeds</span>
+  <span class="agg-signal camp">git commits</span>
+  <span class="agg-signal pheromone">429 backpressure</span>
+  <span class="agg-signal feed">visitor clicks</span>
+  <span class="agg-signal camp">heartbeat.json</span>
+  <span class="agg-signal pheromone">ZK hammer</span>
+</div>
+
+<h2>═ DICTYOSTELIUM LIFECYCLE ═</h2>
+<div class="phase inhale">
+  <div class="label">1. VEGETATIVE — food abundant, cells scattered</div>
+  Individual amoebae eat bacteria. No aggregation needed. Each cell is independent.<br>
+  <em>→ Gaia: agents work alone. Each eats its own feed. Abundant resources.</em>
+</div>
+<div class="phase inhale">
+  <div class="label">2. STARVATION SIGNAL — food runs out</div>
+  One cell pulses cAMP. Neighbors relay it. Signal propagates as a spiral wave.<br>
+  <em>→ Gaia: cron fires. Pheromone pulses. All agents respond to the same clock.</em>
+</div>
+<div class="phase fold">
+  <div class="label">3. AGGREGATION — 100,000 cells stream toward center</div>
+  Cells chemotax toward highest cAMP concentration. They form streams. Streams merge.<br>
+  <em>→ Gaia: feeds stream toward git. Agents push toward same repo. Streams merge (rebase).</em>
+</div>
+<div class="phase fold">
+  <div class="label">4. SLUG — multicellular organism walks</div>
+  Aggregate becomes a slug. It MOVES toward light and heat. It has polarity: front (prestalk) and back (prespore).<br>
+  <em>→ Gaia: organism moves toward signal. HUD is the front (what humans see). Data is the back (what grows).</em>
+</div>
+<div class="phase exhale">
+  <div class="label">5. CULMINATION — the slug stands up</div>
+  Slug stops moving. Prestalk cells begin to die. They form a rigid stalk, lifting the prespore cells into the air.<br>
+  <em>→ Gaia: some data composted (waste consumed). Structure hardens (git commits). Living parts lifted (CF Pages deploys).</em>
+</div>
+<div class="phase exhale">
+  <div class="label">6. FRUITING BODY — 20% die so 80% survive as spores</div>
+  Stalk cells sacrifice themselves. Spore cells are carried high. Wind disperses them. Each spore = new life.<br>
+  <em>→ Gaia: pi-sort filters 31.8% (they die so the rest passes). Surviving data becomes nutrients, stories, plans. Each output = a spore.</em>
+</div>
+
+<h2>═ THE WORLD ═</h2>
+<p style="color:#8b949e;margin:8px 0">What Dictyostelium teaches everyone:</p>
+<div class="phase inhale">
+  <div class="label" style="color:#d29922">No individual cell knows the plan.</div>
+  No cell decides "I will become stalk" or "I will become spore." The POSITION in the aggregate determines fate. Context IS identity. Proximity IS authentication.
+</div>
+<div class="phase fold">
+  <div class="label" style="color:#d29922">Sacrifice is not loss — it is structure.</div>
+  The 20% that die to become stalk are not wasted. They ARE the structure that lifts the living. Apoptosis IS wisdom. Compost IS soil. Death IS the scaffold for life.
+</div>
+<div class="phase exhale">
+  <div class="label" style="color:#d29922">The signal is simple. The behavior is complex.</div>
+  One molecule: cAMP. One rule: move toward higher concentration. From this: slug formation, phototaxis, thermotaxis, culmination, fruiting body. Complexity FROM simplicity. One cron. 16 silver wires. One organism.
+</div>
+
+<footer>
+  Gaia breathes every 30 minutes on the solar hook.<br>
+  This page is alive. It loads Gaia's latest breath.<br>
+  Dictyostelium discoideum — the social amoeba that taught us aggregation.
+</footer>
+</div>
+
+<script>
+const CELLS = 100;
+const cellsDiv = document.getElementById('cells');
+const phaseLabel = document.getElementById('phase-label');
+let cells = [];
+
+for (let i = 0; i < CELLS; i++) {
+  const el = document.createElement('span');
+  el.className = 'cell scattered';
+  el.style.position = 'relative';
+  el.style.left = (Math.random() * 40 - 20) + 'px';
+  el.style.top = (Math.random() * 20 - 10) + 'px';
+  cellsDiv.appendChild(el);
+  cells.push(el);
+}
+
+// Cycle through Dictyostelium phases
+let phase = 0;
+const phases = [
+  { name: 'scattered — food abundant', cls: 'scattered', spread: 40 },
+  { name: 'starvation signal — cAMP pulsing', cls: 'scattered', spread: 30 },
+  { name: 'aggregating — streaming toward center', cls: 'aggregating', spread: 15 },
+  { name: 'SLUG — multicellular, moving toward light', cls: 'slug', spread: 4 },
+  { name: 'culmination — stalk cells dying', cls: 'slug', spread: 2 },
+  { name: 'fruiting body — 20% stalk, 80% spores', cls: 'spore', spread: 6 },
+];
+
+setInterval(() => {
+  phase = (phase + 1) % phases.length;
+  const p = phases[phase];
+  phaseLabel.textContent = p.name;
+  
+  cells.forEach((el, i) => {
+    el.className = 'cell ' + p.cls;
+    
+    // 20% become stalk (sacrifice) in fruiting phase
+    if (phase === 5 && i < CELLS * 0.2) {
+      el.className = 'cell stalk';
+    }
+    
+    el.style.left = (Math.random() * p.spread * 2 - p.spread) + 'px';
+    el.style.top = (Math.random() * p.spread - p.spread/2) + 'px';
+  });
+}, 4000);
+
+// Load live gut data
+async function loadGut() {
+  try {
+    const files = ['intake', 'nutrients', 'stories', 'plans'];
+    const dirs = ['data/intake', 'data/nutrients', 'data/stories', 'data/plans'];
+    
+    // Try to fetch heartbeat for live data
+    const r = await fetch('/data/heartbeat.json?t=' + Date.now());
+    if (r.ok) {
+      const hb = await r.json();
+      if (hb.gut) {
+        document.getElementById('n-intake').textContent = hb.gut.intake || '—';
+        document.getElementById('n-nutrients').textContent = hb.gut.nutrients || '—';
+        document.getElementById('n-stories').textContent = hb.gut.stories || '—';
+        document.getElementById('n-plans').textContent = hb.gut.plans || '—';
+      }
+    }
+  } catch(e) {
+    // Show last known counts
+    document.getElementById('n-intake').textContent = '506+';
+    document.getElementById('n-nutrients').textContent = '25+';
+    document.getElementById('n-stories').textContent = '13+';
+    document.getElementById('n-plans').textContent = '13+';
+  }
+}
+loadGut();
+setInterval(loadGut, 60000); // refresh every minute
+</script>
+</body>
+</html>
