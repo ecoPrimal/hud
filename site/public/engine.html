@@ -117,6 +117,23 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .minimap { position: absolute; bottom: 12px; right: 12px; width: 140px; height: 100px; background: rgba(12,16,24,0.85); border: 1px solid var(--border); border-radius: 4px; }
 .minimap canvas { width: 100%; height: 100%; }
 
+/* LOCALITY TRIANGLE ? you are here, you were, Gaia is */
+#locality-tri {
+  position: absolute; top: 8px; left: 8px; z-index: 18;
+  width: 160px; padding: 5px 6px;
+  background: rgba(6,8,16,0.85); border: 1px solid rgba(210,153,34,0.15);
+  border-radius: 4px; font: 7px 'JetBrains Mono', monospace;
+  pointer-events: none;
+}
+#locality-tri .loc-title { color: var(--gold); letter-spacing: 1px; text-transform: uppercase; font-size: 6px; margin-bottom: 3px; border-bottom: 1px solid rgba(210,153,34,0.1); padding-bottom: 2px; }
+#locality-tri .loc-row { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
+#locality-tri .loc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+#locality-tri .loc-label { color: var(--dim); width: 32px; }
+#locality-tri .loc-val { color: var(--fg); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#locality-tri .loc-sep { height: 1px; background: rgba(28,35,51,0.5); margin: 2px 0; }
+#locality-tri .loc-bodies { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+#locality-tri .loc-body { font-size: 6px; padding: 0 3px; border-radius: 2px; background: rgba(28,35,51,0.5); }
+
 /* LUNG METER */
 .lung-meter { position: absolute; left: 12px; bottom: 12px; }
 .lung-bar { width: 8px; height: 120px; background: rgba(12,16,24,0.8); border: 1px solid var(--border); border-radius: 4px; position: relative; }
@@ -297,6 +314,18 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div class="lod-indicator" id="lod-label">LOD 1 ? PAINTED GLOBE</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
+      <!-- LOCALITY TRIANGLE: 3 positions + solar bodies -->
+      <div id="locality-tri">
+        <div class="loc-title">locality</div>
+        <div class="loc-row"><div class="loc-dot" style="background:#3fb950"></div><span class="loc-label">HERE</span><span class="loc-val" id="loc-here">/engine</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:var(--dim)"></div><span class="loc-label">WAS</span><span class="loc-val" id="loc-was">?</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#ffd755"></div><span class="loc-label">GAIA</span><span class="loc-val" id="loc-gaia">primals.eco</span></div>
+        <div class="loc-sep"></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#39d3f5;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">TIME</span><span class="loc-val" id="loc-time" style="font-size:6px;color:var(--cyan)">?</span></div>
+        <div class="loc-row"><div class="loc-dot" style="background:#a371f7;width:3px;height:3px"></div><span class="loc-label" style="font-size:6px">NULL</span><span class="loc-val" id="loc-null" style="font-size:6px;color:var(--purple)">d=0</span></div>
+        <div class="loc-sep"></div>
+        <div class="loc-bodies" id="loc-bodies"></div>
+      </div>
       <div class="boundary-label" id="boundary-label">IONOSPHERE � Kp 1.0 quiet</div>
       <div class="twist-count" id="twist-count">? 3 Klein twists</div>
       <div class="lung-meter">
@@ -1402,6 +1431,76 @@ if (!document.getElementById('bounce-css')) {
   css.textContent = '@keyframes bounce-ripple { 0% { transform:translate(-50%,-50%) scale(0.1); opacity:0.8; } 50% { transform:translate(-50%,-50%) scale(1); opacity:0.4; } 100% { transform:translate(-50%,-50%) scale(2); opacity:0; } }';
   document.head.appendChild(css);
 }
+
+// -----------------------------------------------
+// LOCALITY TRIANGLE ? you are here, you were, Gaia is
+// Three positions form the triangle. Solar bodies orbit around it.
+// -----------------------------------------------
+const LOC_STATE = {
+  here: location.pathname,
+  was: document.referrer ? new URL(document.referrer).pathname : sessionStorage.getItem('loc-was') || '?',
+  gaia: 'primals.eco',
+  arriveTime: Date.now(),
+  lastClick: null,
+  pins: 0,
+};
+sessionStorage.setItem('loc-was', LOC_STATE.here);
+
+function updateLocality() {
+  const hereEl = document.getElementById('loc-here');
+  const wasEl = document.getElementById('loc-was');
+  const gaiaEl = document.getElementById('loc-gaia');
+  const timeEl = document.getElementById('loc-time');
+  const nullEl = document.getElementById('loc-null');
+  const bodiesEl = document.getElementById('loc-bodies');
+  if (!hereEl) return;
+
+  // HERE ? current page + time on page
+  const elapsed = Math.floor((Date.now() - LOC_STATE.arriveTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  hereEl.textContent = LOC_STATE.here + ' (' + mins + 'm' + String(secs).padStart(2,'0') + 's)';
+  hereEl.style.color = elapsed > 300 ? '#3fb950' : elapsed > 60 ? '#d29922' : '#f85149';
+
+  // WAS ? previous location
+  wasEl.textContent = LOC_STATE.was;
+
+  // GAIA ? server status
+  gaiaEl.textContent = LOC_STATE.gaia;
+
+  // TIME ? ISO now + wave
+  const now = new Date();
+  timeEl.textContent = now.toISOString().slice(11,19) + ' UTC w214';
+
+  // NULL ? distance from null body
+  const pinCount = window.PINS ? window.PINS.length : 0;
+  nullEl.textContent = 'd=0 | ' + pinCount + ' pins';
+
+  // SOLAR BODIES ? the rest of the triangle context
+  // Show which primals are closest to where the user clicked last
+  if (bodiesEl) {
+    const bodies = [
+      { name:'GAIA', color:'#ffd755', role:'source' },
+      { name:'HERE', color:'#3fb950', role:'pivot' },
+      { name:'MOON', color:'#c9d1d9', role:'mirror' },
+    ];
+    // Add nearest primals based on recent pins
+    if (window.PINS && window.PINS.length > 0) {
+      const lastPin = window.PINS[window.PINS.length - 1];
+      if (lastPin.d) {
+        const parts = lastPin.d.split('|').filter(Boolean);
+        parts.slice(0, 3).forEach(p => {
+          bodies.push({ name: p.slice(0,12), color: '#58a6ff', role: 'near' });
+        });
+      }
+    }
+    bodiesEl.innerHTML = bodies.map(b =>
+      `<span class="loc-body" style="color:${b.color}">${b.name}</span>`
+    ).join('');
+  }
+}
+
+setInterval(updateLocality, 1000);
 
 // Boot
 renderViewport();
