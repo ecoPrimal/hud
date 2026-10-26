@@ -83,6 +83,47 @@ font-family:inherit;font-size:0.6rem}
 
 .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
 font-size:0.55rem;color:var(--dim);text-align:center;pointer-events:none}
+
+/* NFT RECIPE BOOK */
+.book-overlay{position:fixed;inset:0;z-index:300;background:rgba(6,8,16,0.95);
+overflow-y:auto;display:none;padding:40px 20px}
+.book-overlay.open{display:block}
+.book-header{text-align:center;margin-bottom:24px}
+.book-header h2{color:var(--violet);font-size:1rem;font-weight:400}
+.book-header .sub{color:var(--dim);font-size:0.6rem;margin-top:4px}
+.book-close{position:fixed;top:12px;right:16px;z-index:310;color:var(--dim);
+background:none;border:1px solid var(--border);border-radius:8px;padding:4px 12px;
+cursor:pointer;font-family:inherit;font-size:0.6rem}
+.book-close:hover{color:var(--fg);border-color:var(--blue)}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:12px;max-width:1000px;margin:0 auto}
+
+/* NFT CARD */
+.nft{background:linear-gradient(135deg,rgba(12,16,24,0.95),rgba(22,27,34,0.9));
+border:1px solid var(--border);border-radius:12px;padding:14px;
+transition:all 0.3s;position:relative;overflow:hidden}
+.nft:hover{border-color:var(--violet);transform:translateY(-2px);
+box-shadow:0 8px 30px rgba(188,140,255,0.1)}
+.nft::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--violet),var(--pink),var(--gold))}
+.nft .nft-num{position:absolute;top:8px;right:10px;font-size:0.45rem;
+color:var(--dim);font-style:italic}
+.nft .nft-icon{font-size:2rem;text-align:center;margin:8px 0}
+.nft .nft-name{text-align:center;color:var(--gold);font-size:0.75rem;font-weight:bold}
+.nft .nft-recipe{text-align:center;margin:8px 0;font-size:0.6rem;color:var(--cyan)}
+.nft .nft-desc{color:var(--dim);font-size:0.5rem;line-height:1.5;margin-top:8px;
+text-align:center;font-style:italic}
+.nft .nft-zk{margin-top:8px;padding-top:6px;border-top:1px solid rgba(63,185,80,0.15);
+font-size:0.4rem;color:rgba(63,185,80,0.5);font-family:monospace;word-break:break-all;text-align:center}
+.nft .nft-rarity{display:inline-block;padding:1px 6px;border-radius:8px;
+font-size:0.4rem;margin-top:4px}
+.rarity-common{background:rgba(110,118,129,0.2);color:var(--dim)}
+.rarity-uncommon{background:rgba(63,185,80,0.15);color:var(--green)}
+.rarity-rare{background:rgba(88,166,255,0.15);color:var(--blue)}
+.rarity-epic{background:rgba(188,140,255,0.15);color:var(--violet)}
+.rarity-legendary{background:rgba(201,168,76,0.2);color:var(--gold)}
+.book-stats{text-align:center;margin:20px 0;font-size:0.55rem;color:var(--dim)}
+.book-stats span{color:var(--green)}
 </style>
 </head>
 <body>
@@ -93,6 +134,7 @@ font-size:0.55rem;color:var(--dim);text-align:center;pointer-events:none}
   <a href="/engine">engine</a>
   <a href="/chipmunk">chipmunk</a>
   <a href="/ant-trails">ants</a>
+  <button id="book-btn" onclick="toggleBook()" style="background:rgba(188,140,255,0.15);border:1px solid var(--violet);border-radius:12px;color:var(--violet);padding:3px 10px;cursor:pointer;font-family:inherit;font-size:0.6rem">📖 recipe book</button>
   <button id="chip-play" onclick="chipPlay()" style="background:rgba(201,168,76,0.15);border:1px solid var(--gold);border-radius:12px;color:var(--gold);padding:3px 10px;cursor:pointer;font-family:inherit;font-size:0.6rem">🐿️ let chip play</button>
   <span class="counter"><span id="found">0</span> / <span id="total">0</span> discovered</span>
 </div>
@@ -130,6 +172,17 @@ padding:10px 14px;max-width:280px;font-size:0.6rem;color:var(--gold);line-height
   <div class="r-name" id="r-name"></div>
   <div class="r-desc" id="r-desc"></div>
   <button class="r-close" onclick="closeResult()">continue mixing</button>
+</div>
+
+<!-- NFT RECIPE BOOK -->
+<div class="book-overlay" id="book">
+  <button class="book-close" onclick="toggleBook()">✕ close</button>
+  <div class="book-header">
+    <h2>📖 Recipe Book — NFT Collection</h2>
+    <div class="sub">each discovery is a unique card. ZK proof of creation. nominal and irreducible.</div>
+  </div>
+  <div class="book-stats" id="book-stats"></div>
+  <div class="book-grid" id="book-grid"></div>
 </div>
 
 <div class="hint">drag elements from the sidebar → drop on circles → click ⚗️ to mix</div>
@@ -393,6 +446,87 @@ document.addEventListener('keydown', e => {
 BASE.forEach(el => addElement(el, false));
 PRIMALS.forEach(el => addElement(el, false));
 updateCounter();
+
+// ═══════════════════════════════════════════════════
+// 📖 NFT RECIPE BOOK
+// ═══════════════════════════════════════════════════
+
+function zkHash(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return '0x' + (h >>> 0).toString(16).padStart(8, '0');
+}
+
+function getRarity(recipe) {
+  const parts = recipe.split('+');
+  const depth = parts.reduce((d, p) => {
+    const el = elements[p];
+    return d + (el?.cat === 'base' ? 0 : el?.cat === 'primal' ? 1 : 2);
+  }, 0);
+  if (depth >= 4) return {cls: 'rarity-legendary', name: 'legendary'};
+  if (depth >= 3) return {cls: 'rarity-epic', name: 'epic'};
+  if (depth >= 2) return {cls: 'rarity-rare', name: 'rare'};
+  if (depth >= 1) return {cls: 'rarity-uncommon', name: 'uncommon'};
+  return {cls: 'rarity-common', name: 'common'};
+}
+
+function toggleBook() {
+  const book = document.getElementById('book');
+  book.classList.toggle('open');
+  if (book.classList.contains('open')) renderBook();
+}
+
+function renderBook() {
+  const grid = document.getElementById('book-grid');
+  const stats = document.getElementById('book-stats');
+  grid.innerHTML = '';
+
+  const recipes = [];
+  let nftNum = 0;
+
+  Object.entries(RECIPES).forEach(([recipeKey, result]) => {
+    if (!elements[result.id]) return;
+    nftNum++;
+    const [a, b] = recipeKey.split('+');
+    const elA = elements[a];
+    const elB = elements[b];
+    if (!elA || !elB) return;
+
+    const rarity = getRarity(recipeKey);
+    const zk = zkHash(recipeKey + result.id + Date.now().toString(36));
+    const ts = new Date().toISOString().slice(0, 10);
+
+    const card = document.createElement('div');
+    card.className = 'nft';
+    card.innerHTML = `
+      <span class="nft-num">#${String(nftNum).padStart(3, '0')}</span>
+      <div class="nft-icon">${result.icon}</div>
+      <div class="nft-name">${result.name}</div>
+      <div class="nft-recipe">${elA.icon} ${elA.name} + ${elB.icon} ${elB.name}</div>
+      <div style="text-align:center"><span class="nft-rarity ${rarity.cls}">${rarity.name}</span></div>
+      <div class="nft-desc">${result.desc}</div>
+      <div class="nft-zk">ZK: ${zk} · minted ${ts}</div>`;
+    grid.appendChild(card);
+  });
+
+  const total = Object.keys(RECIPES).length;
+  const common = grid.querySelectorAll('.rarity-common').length;
+  const uncommon = grid.querySelectorAll('.rarity-uncommon').length;
+  const rare = grid.querySelectorAll('.rarity-rare').length;
+  const epic = grid.querySelectorAll('.rarity-epic').length;
+  const legendary = grid.querySelectorAll('.rarity-legendary').length;
+
+  stats.innerHTML = `<span>${nftNum}</span> / ${total} NFTs minted · ` +
+    `common: ${common} · uncommon: ${uncommon} · rare: ${rare} · epic: ${epic} · ` +
+    `<span style="color:var(--gold)">legendary: ${legendary}</span>`;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'b' && !e.ctrlKey && !e.metaKey) toggleBook();
+});
 
 // ═══════════════════════════════════════════════════
 // 🐿️ CHIP PLAYS — the chipmunk discovers on her own
