@@ -156,6 +156,102 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 .footer-live { color: var(--green); }
 .footer-live::before { content: '?'; margin-right: 4px; animation: pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* BIOREACTOR — the client gut, golden center of the thorax, below the heart (disco ball) */
+/* The null bioreactor: where fermentation FUNCTIONALLY happens in the human body */
+/* Placed right below the heart: intestines and stomach see themselves within the golden center */
+#bioreactor {
+  position: absolute;
+  top: 46px; /* below disco ball (heart) */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  pointer-events: auto;
+  cursor: pointer;
+}
+#bioreactor .gut-core {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 40%,
+    rgba(210,153,34,0.5) 0%,
+    rgba(210,153,34,0.2) 40%,
+    rgba(210,153,34,0.05) 70%,
+    transparent 100%);
+  border: 1px solid rgba(210,153,34,0.25);
+  box-shadow: 0 0 20px rgba(210,153,34,0.12), 0 0 40px rgba(210,153,34,0.05);
+  animation: gut-pulse 4s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px; color: var(--gold); letter-spacing: 0.5px;
+  overflow: hidden;
+}
+#bioreactor .gut-core::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    rgba(210,153,34,0.15) 0deg,
+    rgba(240,136,62,0.1) 90deg,
+    rgba(210,153,34,0.15) 180deg,
+    rgba(63,185,80,0.08) 270deg,
+    rgba(210,153,34,0.15) 360deg);
+  animation: gut-churn 8s linear infinite;
+}
+@keyframes gut-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(210,153,34,0.12); }
+  50% { transform: scale(1.08); box-shadow: 0 0 30px rgba(210,153,34,0.2), 0 0 60px rgba(210,153,34,0.08); }
+}
+@keyframes gut-churn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Gut connection wire from heart (disco ball) to gut (bioreactor) */
+#bioreactor .esophagus {
+  position: absolute;
+  top: -10px; left: 50%;
+  width: 1px; height: 10px;
+  background: linear-gradient(to bottom, rgba(200,210,220,0.3), rgba(210,153,34,0.3));
+  transform: translateX(-50%);
+}
+
+/* Nutrient display — expands on click */
+#gut-panel {
+  display: none;
+  position: absolute;
+  top: 40px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background: rgba(10,12,16,0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(210,153,34,0.25);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 8px;
+  z-index: 14;
+}
+#gut-panel.open { display: block; }
+#gut-panel h4 {
+  font-size: 8px; color: var(--gold);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 4px; border-bottom: 1px solid rgba(210,153,34,0.15);
+  padding-bottom: 2px;
+}
+.gut-row {
+  display: flex; justify-content: space-between;
+  padding: 1px 0; color: var(--dim);
+}
+.gut-row .gut-val { color: var(--gold); font-weight: 700; }
+.gut-row.nutrient .gut-val { color: var(--green); }
+.gut-intake-bar {
+  height: 3px; background: var(--bg); border-radius: 2px;
+  margin: 3px 0;
+}
+.gut-intake-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(to right, var(--gold), var(--green));
+  transition: width 2s;
+}
+
 </style>
 </head>
 <body>
@@ -185,6 +281,19 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <div id="pause-overlay">? PAUSED</div>
     <div id="disco-ball"><div class="wire"></div><div class="ball"></div></div>
     <div id="disco-beams"></div>
+    
+    <!-- BIOREACTOR — client gut, golden center of thorax, below heart (disco ball) -->
+    <!-- The null bioreactor: where fermentation functionally happens -->
+    <div id="bioreactor">
+      <div class="esophagus"></div>
+      <div class="gut-core" id="gut-label">GUT</div>
+      <div id="gut-panel">
+        <h4>BIOREACTOR — null gut</h4>
+        <div id="gut-status">loading...</div>
+        <div class="gut-intake-bar"><div class="gut-intake-fill" id="gut-fill" style="width:0%"></div></div>
+        <div id="gut-nutrients"></div>
+      </div>
+    </div>
     <div class="lod-indicator" id="lod-label">LOD 1 ? DASHBOARD</div>
     <div id="hud-overlay">
       <div class="hud-crosshair"></div>
@@ -652,6 +761,9 @@ if (cmdInput) {
         else if (cmd === 'sort' && gameState.selected) doAction(SQUAD.find(s=>s.id===gameState.selected), 'sort', 25);
         else if (cmd === 'pause') { gameState.paused = !gameState.paused; document.getElementById('pause-overlay')?.classList.toggle('active', gameState.paused); }
         else if (cmd.startsWith('select ')) { const name = cmd.split(' ')[1]; const p = SQUAD.find(s=>s.id.toLowerCase()===name.toLowerCase()); if(p) { gameState.selected=p.id; showPrimalDetail(p); } }
+        else if (cmd === 'ferment') { gutExpanded = true; document.getElementById('gut-panel')?.classList.add('open'); fetchGutState(); toast('Bioreactor activated \u2014 fermenting...', 'var(--gold)', 2500); }
+        else if (cmd === 'gut') { gutExpanded = !gutExpanded; document.getElementById('gut-panel')?.classList.toggle('open', gutExpanded); if(gutExpanded) fetchGutState(); }
+        else if (cmd === 'consume') { toast('Running intake... check /gut for results', 'var(--gold)', 2500); fetchGutState(); }
         else toast(`Command /${cmd} ? route to hud-interact.js`, 'var(--dim)', 2000);
       }
       cmdInput.value = '';
