@@ -90,18 +90,31 @@ const FEEDS = [
   ['freetokeep-weekends','https://freetokeep.gg/api/v1/free-weekends?status=current'],
   ['streamerclips-live', 'https://streamerclips.com/api/twitch-streams'],
 
-  // TIER 2: Reddit — raw community waste (JSON feeds, no key)
-  ['reddit-gaming',      'https://www.reddit.com/r/gaming/hot.json?limit=25'],
-  ['reddit-indiegaming', 'https://www.reddit.com/r/IndieGaming/hot.json?limit=25'],
-  ['reddit-gamedev',     'https://www.reddit.com/r/gamedev/hot.json?limit=25'],
-  ['reddit-linux',       'https://www.reddit.com/r/linux/hot.json?limit=25'],
-  ['reddit-rust',        'https://www.reddit.com/r/rust/hot.json?limit=25'],
-  ['reddit-webdev',      'https://www.reddit.com/r/webdev/hot.json?limit=25'],
-  ['reddit-dataisbeautiful', 'https://www.reddit.com/r/dataisbeautiful/hot.json?limit=25'],
-  ['reddit-science',     'https://www.reddit.com/r/science/hot.json?limit=25'],
-  ['reddit-biology',     'https://www.reddit.com/r/biology/hot.json?limit=10'],
-  ['reddit-mycology',    'https://www.reddit.com/r/mycology/hot.json?limit=10'],
-  ['reddit-fermentation','https://www.reddit.com/r/fermentation/hot.json?limit=10'],
+  // TIER 2: Reddit — RSS feeds (JSON endpoints 403'd, RSS still works)
+  ['reddit-fermentation','https://old.reddit.com/r/fermentation/.rss'],
+  ['reddit-mycology',    'https://old.reddit.com/r/mycology/.rss'],
+  ['reddit-gamedev',     'https://old.reddit.com/r/gamedev/.rss'],
+  ['reddit-rust',        'https://old.reddit.com/r/rust/.rss'],
+  ['reddit-science',     'https://old.reddit.com/r/science/.rss'],
+  ['reddit-sourdough',   'https://old.reddit.com/r/Sourdough/.rss'],
+  ['reddit-brewing',     'https://old.reddit.com/r/Homebrewing/.rss'],
+  ['reddit-biology',     'https://old.reddit.com/r/biology/.rss'],
+  ['reddit-astronomy',   'https://old.reddit.com/r/astronomy/.rss'],
+  ['reddit-dataisbeautiful', 'https://old.reddit.com/r/dataisbeautiful/.rss'],
+
+  // TIER 2B: arXiv — the freshest science papers (no key needed)
+  ['arxiv-cs-AI',        'http://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=20'],
+  ['arxiv-q-bio',        'http://export.arxiv.org/api/query?search_query=cat:q-bio&sortBy=submittedDate&sortOrder=descending&max_results=20'],
+  ['arxiv-astro-ph',     'http://export.arxiv.org/api/query?search_query=cat:astro-ph&sortBy=submittedDate&sortOrder=descending&max_results=10'],
+  ['arxiv-math-GR',      'http://export.arxiv.org/api/query?search_query=cat:math.GR&sortBy=submittedDate&sortOrder=descending&max_results=10'],
+
+  // TIER 2C: NASA + NOAA — space and atmosphere (free, no key)
+  ['nasa-apod',          'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY'],
+  ['noaa-kp-index',      'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json'],
+  ['noaa-solar-wind',    'https://services.swpc.noaa.gov/products/solar-wind/mag-1-day.json'],
+
+  // TIER 2D: lobste.rs — quality tech signal
+  ['lobsters-hot',       'https://lobste.rs/hottest.json'],
 
   // TIER 3: Hacker News — tech waste
   ['hn-top',             'https://hacker-news.firebaseio.com/v0/topstories.json'],
