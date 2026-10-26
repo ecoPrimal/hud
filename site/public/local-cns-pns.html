@@ -4,8 +4,8 @@
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Local CNS/PNS — ecoPrimals</title>
-<meta name="description" content="Sense SELF: local computer CNS and PNS — this keyboard, that mouse. Presence only.">
+<title>Local CNS/PNS Â— ecoPrimals</title>
+<meta name="description" content="Sense SELF: local computer CNS and PNS Â— this keyboard, that mouse. Presence only.">
 <link rel="alternate" type="application/json" href="/local-cns-pns.json">
 <style>
   :root { --ink:#1a1814; --paper:#f2efe8; --cns:#2a4a6b; --pns:#6b3a2a; --mute:#6a6560; }
@@ -31,25 +31,25 @@
 <body>
 <main>
   <h1>Local CNS / PNS</h1>
-  <p class="tag">sense SELF · AC/DC stable · presence only</p>
+  <p class="tag">sense SELF Â· AC/DC stable Â· presence only</p>
   <p>This machine has a cortex and extremities. We feel them without reading what you type.</p>
   <div class="grid">
     <div class="card pns"><strong>THIS keyboard</strong>Logitech Wireless Keyboard PID:4023<br><span id="kbbat">battery: 55%</span></div>
     <div class="card pns"><strong>THAT mouse</strong>Logitech Wireless Mouse</div>
-    <div class="card"><strong>CNS cortex</strong><span id="cpu">…</span></div>
+    <div class="card"><strong>CNS cortex</strong><span id="cpu">Â…</span></div>
   </div>
   <p id="live"></p>
-  <p><a href="/local-cns-pns.json">JSON</a> · <a href="/homunculus.html">code homunculus</a> · <a href="/pi-rate-set.html">p-rate</a></p>
-  <footer>ecoPrimals · no keylogging · PNS = extremities · CNS = board/CPU/ACPI</footer>
+  <p><a href="/local-cns-pns.json">JSON</a> Â· <a href="/homunculus.html">code homunculus</a> Â· <a href="/pi-rate-set.html">p-rate</a></p>
+  <footer>ecoPrimals Â· no keylogging Â· PNS = extremities Â· CNS = board/CPU/ACPI</footer>
 </main>
 <script>
 fetch('/local-cns-pns.json').then(r=>r.json()).then(d=>{
   const c=d.host&&d.host.cpu||{};
-  document.getElementById('cpu').textContent=(c.model||'?')+' · '+(c.cpus||'?')+' threads';
+  document.getElementById('cpu').textContent=(c.model||'?')+' Â· '+(c.cpus||'?')+' threads';
   const p=d.power_ac_dc||{};
-  document.getElementById('kbbat').textContent='battery: '+(p.keyboard_battery_pct??'?')+'% · '+(p.keyboard_battery_state||'');
+  document.getElementById('kbbat').textContent='battery: '+(p.keyboard_battery_pct??'?')+'% Â· '+(p.keyboard_battery_state||'');
   document.getElementById('live').textContent=
-    `CNS ${d.counts.cns} · PNS ${d.counts.pns} · load ${d.host.loadavg['1m']} · ${d.host.hostname}`;
+    `CNS ${d.counts.cns} Â· PNS ${d.counts.pns} Â· load ${d.host.loadavg['1m']} Â· ${d.host.hostname}`;
 }).catch(e=>{ document.getElementById('live').textContent=String(e); });
 </script>
 </body>

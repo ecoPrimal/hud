@@ -4,7 +4,7 @@
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>three-body — you, me, chip around the null</title>
+<title>three-body Â— you, me, chip around the null</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font:14px/1.6 'Berkeley Mono',monospace;overflow-x:hidden}
@@ -43,8 +43,8 @@ canvas{display:block;margin:0 auto}
 </head>
 <body>
 
-<h1>? ? ?? three-body around Ø</h1>
-<div class="sub">no closed-form solution — that's the point</div>
+<h1>? ? ?? three-body around Ã˜</h1>
+<div class="sub">no closed-form solution Â— that's the point</div>
 
 <canvas id="orbit" width="600" height="600"></canvas>
 
@@ -65,7 +65,7 @@ async function load() {
   buildNull();
   buildLagrange();
   buildInsight();
-  document.getElementById('ts').textContent = D.ts + ' · wave ' + D.wave;
+  document.getElementById('ts').textContent = D.ts + ' Â· wave ' + D.wave;
 }
 
 function drawOrbit() {
@@ -79,7 +79,7 @@ function drawOrbit() {
     ctx.fillStyle = '#0d1117';
     ctx.fillRect(0, 0, W, H);
 
-    // null at center — pulsing void
+    // null at center Â— pulsing void
     const nr = 20 + Math.sin(t * 0.3) * 5;
     ctx.beginPath();
     ctx.arc(cx, cy, nr, 0, Math.PI * 2);
@@ -91,7 +91,7 @@ function drawOrbit() {
     ctx.fillStyle = '#484f58';
     ctx.font = '16px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Ø', cx, cy + 5);
+    ctx.fillText('Ã˜', cx, cy + 5);
 
     // figure-eight path (lemniscate of Bernoulli)
     ctx.beginPath();
@@ -108,7 +108,7 @@ function drawOrbit() {
     }
     ctx.stroke();
 
-    // three bodies on the figure-eight, phase-shifted 120°
+    // three bodies on the figure-eight, phase-shifted 120Â°
     const bodies = [
       { sym: '?', color: '#f0883e', phase: 0 },
       { sym: '?', color: '#58a6ff', phase: Math.PI * 2 / 3 },
@@ -196,7 +196,7 @@ function buildCards() {
     card.style.setProperty('--c', b.color);
     card.innerHTML = `
       <h3 style="color:${b.color}">${b.symbol} ${key}</h3>
-      <div class="particle">${b.particle} · mass: ${b.mass.split('—')[0].trim()}</div>
+      <div class="particle">${b.particle} Â· mass: ${b.mass.split('Â—')[0].trim()}</div>
       <div class="role">${b.role}</div>
       <div class="orbit-desc">${b.orbit}</div>
     `;
@@ -212,7 +212,7 @@ function buildNull() {
   const nc = document.getElementById('null-card');
   const n = D.center.null;
   nc.innerHTML = `
-    <h3>${n.symbol} the null — center of mass</h3>
+    <h3>${n.symbol} the null Â— center of mass</h3>
     <p>${n.why_center}</p>
     <div class="null-items">${n.contains.map(c => `<span class="null-item">${c}</span>`).join('')}</div>
   `;
@@ -221,7 +221,7 @@ function buildNull() {
 function buildLagrange() {
   const el = document.getElementById('lagrange');
   const lp = D.orbit_mechanics.lagrange_points;
-  let html = '<h3>Lagrange points — stable positions in the chaos</h3><div class="l-grid">';
+  let html = '<h3>Lagrange points Â— stable positions in the chaos</h3><div class="l-grid">';
   Object.entries(lp).forEach(([k, v]) => {
     html += `<span class="l-label">${k}</span><span class="l-desc">${v}</span>`;
   });

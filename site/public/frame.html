@@ -4,7 +4,7 @@
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Steam Frame — membrane on the big screen</title>
+<title>Steam Frame Â— membrane on the big screen</title>
 <meta name="description" content="The HUD on your TV. Steam Frame streams games AND the membrane. HADR distortion correction for display surfaces.">
 <style>
 :root { --bg: #0d1117; --card: #161b22; --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --purple: #a371f7; --blue: #58a6ff; --gold: #f0e68c; --border: #30363d; --orange: #f0883e; --pink: #f778ba; }
@@ -38,12 +38,12 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.3); }
 <body>
 
 <div class="nav">
-  <a href="/springs">? me</a> · <a href="/">? hud</a> · <a href="/play#library">?? library</a> · <a href="/vitruvian">?? vitruvian</a>
+  <a href="/springs">? me</a> Â· <a href="/">? hud</a> Â· <a href="/play#library">?? library</a> Â· <a href="/vitruvian">?? vitruvian</a>
 </div>
 
 <div class="page">
 
-<h1>?? Steam Frame × Membrane</h1>
+<h1>?? Steam Frame Ã— Membrane</h1>
 <p style="text-align:center;color:var(--orange)">the HUD on your TV. games + membrane + HADR. 1TB of play.</p>
 
 <div class="grid">
@@ -61,7 +61,7 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.3); }
   </div>
 </div>
 
-<h2>?? play together — invite Tamison & friends</h2>
+<h2>?? play together Â— invite Tamison & friends</h2>
 
 <div class="card card-green">
 <h3>Steam Family Sharing setup</h3>
@@ -80,7 +80,7 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.3); }
 
 <div class="card card-green">
 <h3>Steam Remote Play Together</h3>
-<p>Play local co-op games over the internet — your PC streams, friends join:</p>
+<p>Play local co-op games over the internet Â— your PC streams, friends join:</p>
 <ol>
   <li>Launch a co-op game (Stardew, Satisfactory, Golf...)</li>
   <li>Open Steam Overlay (Shift+Tab)</li>
@@ -147,7 +147,7 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.3); }
                      ? the Klein fold, live on your TV</pre>
 </div>
 
-<h2>?? HADR — fixing the distortion</h2>
+<h2>?? HADR Â— fixing the distortion</h2>
 
 <div class="card card-purple">
 <h3>the problem</h3>
@@ -159,12 +159,12 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.3); }
   <li>Motion near edges <strong>smears</strong> more than center motion</li>
   <li>Color accuracy <strong>shifts</strong> at viewing angles (IPS glow, VA contrast shift)</li>
 </ul>
-<p style="color:var(--purple)">Valve already solves this for VR — SteamVR lens distortion correction IS a metric tensor transformation. The Frame needs the same math, adapted for flat screens at distance.</p>
+<p style="color:var(--purple)">Valve already solves this for VR Â— SteamVR lens distortion correction IS a metric tensor transformation. The Frame needs the same math, adapted for flat screens at distance.</p>
 </div>
 
 <div class="card card-purple">
 <h3>the HADR correction</h3>
-<p>Human-Augmented Digital Reality — adapt content to the display surface's geometry:</p>
+<p>Human-Augmented Digital Reality Â— adapt content to the display surface's geometry:</p>
 
 <pre>
 DISPLAY SURFACE TYPES:
@@ -181,7 +181,7 @@ DISPLAY SURFACE TYPES:
   ? golden ratio adapts to viewing frustum
 
   Sphere (VR headset):
-  ? Fibonacci spirals at golden angle 137.5°
+  ? Fibonacci spirals at golden angle 137.5Â°
   ? barrel distortion at edges (SteamVR already fixes this)
 
   Curved visor (underwater):
@@ -195,8 +195,8 @@ THE MATH:
   
   For flat rectangle at distance d, viewing angle ?:
   
-  g_11 = 1 / cos²(?_x)    (horizontal stretch at edges)
-  g_22 = 1 / cos²(?_y)    (vertical stretch at edges)  
+  g_11 = 1 / cosÂ²(?_x)    (horizontal stretch at edges)
+  g_22 = 1 / cosÂ²(?_y)    (vertical stretch at edges)  
   g_12 = g_21 = 0          (no shear for axis-aligned screens)
   
   Correction transform:
@@ -204,7 +204,7 @@ THE MATH:
   y' = y * cos(?_y(y))    
   
   Sharpness boost at edges:
-  s(x,y) = s_base * (1 + k * (r/R)²)
+  s(x,y) = s_base * (1 + k * (r/R)Â²)
   where r = distance from center, R = max radius
   
   For streaming codec (H.264/H.265):
@@ -216,14 +216,14 @@ f LAYOUT for TV viewing:
 ???????????????????????
 
   At 10ft viewing distance on 55" TV:
-  Visual angle subtended: ~28°
+  Visual angle subtended: ~28Â°
   
   Golden ratio divides the VISUAL FIELD, not the pixels:
   
   +------------------------------------------+
-  ¦  14.6%  ¦         61.8%         ¦ 23.6%  ¦
-  ¦  status ¦       primary         ¦  info   ¦
-  ¦  dim    ¦       bright          ¦  dim    ¦
+  Â¦  14.6%  Â¦         61.8%         Â¦ 23.6%  Â¦
+  Â¦  status Â¦       primary         Â¦  info   Â¦
+  Â¦  dim    Â¦       bright          Â¦  dim    Â¦
   +------------------------------------------+
   
   But from the couch at angle, the PERCEIVED widths shift.
@@ -260,7 +260,7 @@ THE HADR CORRECTION SHADER (WGSL):
 <ol>
   <li>Write the WGSL shader (we have 88,000 lines of WGSL experience)</li>
   <li>Test on the Frame with the membrane HUD as test pattern</li>
-  <li>Measure: perceived distortion before/after at 5°, 15°, 30° angles</li>
+  <li>Measure: perceived distortion before/after at 5Â°, 15Â°, 30Â° angles</li>
   <li>Package as a Steam Frame firmware feature request + working prototype</li>
   <li>Submit to Valve: <a href="https://partner.steamgames.com/doc/steamdeck">Steam hardware feedback</a></li>
 </ol>
@@ -292,10 +292,10 @@ THE HADR CORRECTION SHADER (WGSL):
 </div>
 
 <div class="footer">
-  Steam Frame × Membrane — HADR distortion correction<br>
-  93 games · 1TB · family sharing · remote play · metric tensor display<br>
+  Steam Frame Ã— Membrane Â— HADR distortion correction<br>
+  93 games Â· 1TB Â· family sharing Â· remote play Â· metric tensor display<br>
   the display has a shape. the shape has a correction. the correction has a name: HADR.<br>
-  <a href="/play#library">?? library</a> · <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank">Steam profile</a><br>
+  <a href="/play#library">?? library</a> Â· <a href="https://steamcommunity.com/profiles/76561198002558137" target="_blank">Steam profile</a><br>
   ??????
 </div>
 

@@ -4,7 +4,7 @@
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name=viewport>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>swarmVine — all media, all mediums, live and mixing</title>
+<title>swarmVine Â— all media, all mediums, live and mixing</title>
 <meta content="Vine is dead. Long live swarmVine. 6-second loops of everything: canvas, audio, camera, text. The chipmunk watches, learns, remixes. So can you." name=description>
 <link href=/css/hud.css?v=4 rel=stylesheet>
 <style>
@@ -44,9 +44,9 @@ body{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-s
 <div id="vine-label">
   <span style="color:#22c55e;font-weight:bold">swarmVine</span><br>
   Vine is dead. We pick it up.<br>
-  6 sec · all media · all mediums<br>
-  <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a> ·
-  <a href="/easel.html" style="color:#d2a8ff;text-decoration:none">?? easel</a> ·
+  6 sec Â· all media Â· all mediums<br>
+  <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a> Â·
+  <a href="/easel.html" style="color:#d2a8ff;text-decoration:none">?? easel</a> Â·
   <a href="/gates.html" style="color:#3fb950;text-decoration:none">?? gates</a>
 </div>
 
@@ -67,13 +67,13 @@ body{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-s
 </div>
 
 <script>
-// --- swarmVine — the gossip agent primal ---
+// --- swarmVine Â— the gossip agent primal ---
 // swarmVine is primal #14. Genus cnidaria, species solidus, phenotype: SYMBIONT.
 // 7,965 lines of Rust. The gossip mesh protocol.
 // Twitter killed Vine in 2017. We're picking it up.
 //
-// ZK EPHEMERALS — anti-secret null bubbles:
-// Every clip is an ephemeral — it exists, is witnessed, and can vanish.
+// ZK EPHEMERALS Â— anti-secret null bubbles:
+// Every clip is an ephemeral Â— it exists, is witnessed, and can vanish.
 // The ZK property: you can PROVE a clip existed without revealing its content.
 // The anti-secret: while it exists, EVERYTHING is visible. No hidden state.
 // The null bubble: when it's gone, it collapses to null. No trace. No residue.
@@ -94,7 +94,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-s
 // 6-second looping clips of ALL media mixed together:
 //   Canvas painting, text, audio, camera, live easel feed.
 // The chipmunk watches, learns, makes its own clips.
-// Humans make clips too — the chipmunk learns from them.
+// Humans make clips too Â— the chipmunk learns from them.
 // No login. No algorithm. No upload to someone else's server.
 
 var canvas = document.getElementById('vine-stage');
@@ -129,7 +129,7 @@ var vineState = {
     camera: false,
     easel: false,
   },
-  clips: [],          // saved vine clips (ephemeral — can vanish)
+  clips: [],          // saved vine clips (ephemeral Â— can vanish)
   chipmunkClips: [],  // clips the chipmunk has made
   nullBubbles: [],    // ZK commitments of vanished clips (hash persists, content gone)
   currentClip: -1,
@@ -143,13 +143,13 @@ var vineState = {
   cameraVideo: null,
 };
 
-// --- ZK EPHEMERALS — anti-secret null bubbles ---
+// --- ZK EPHEMERALS Â— anti-secret null bubbles ---
 // Each clip gets a hash at birth. While alive: anti-secret (everything visible).
 // When ephemeral expires: content vanishes, hash remains = null bubble.
 // You can prove "this existed" without showing what it was.
 
 function zkHash(clip) {
-  // Simple hash of clip content — in production this would be a real ZK commitment
+  // Simple hash of clip content Â— in production this would be a real ZK commitment
   var raw = JSON.stringify({
     id: clip.id,
     author: clip.author,
@@ -195,7 +195,7 @@ function tickEphemeral(clip) {
   }
 }
 
-// Gossip indicator — show ZK state in the label
+// Gossip indicator Â— show ZK state in the label
 function updateGossipLabel() {
   var label = document.getElementById('vine-label');
   var alive = vineState.clips.filter(function(c) { return !c._nullified; }).length;
@@ -203,17 +203,17 @@ function updateGossipLabel() {
   var chipmunkCount = vineState.chipmunkClips.length;
   label.innerHTML =
     '<span style="color:#22c55e;font-weight:bold">swarmVine</span>' +
-    ' <span style="color:#6e7681;font-size:10px">primal #14 · cnidaria · symbiont</span><br>' +
+    ' <span style="color:#6e7681;font-size:10px">primal #14 Â· cnidaria Â· symbiont</span><br>' +
     '<span style="color:#8b949e;font-size:10px">' +
-    alive + ' alive · ' + nulled + ' null bubbles · ' +
+    alive + ' alive Â· ' + nulled + ' null bubbles Â· ' +
     chipmunkCount + ' by chipmunk</span><br>' +
-    '<span style="color:#6e7681;font-size:9px">ZK ephemerals · anti-secret while alive · null when gone</span><br>' +
-    '<a href="/" style="color:#58a6ff;text-decoration:none;font-size:10px">? hud</a> · ' +
-    '<a href="/easel.html" style="color:#d2a8ff;text-decoration:none;font-size:10px">?? easel</a> · ' +
+    '<span style="color:#6e7681;font-size:9px">ZK ephemerals Â· anti-secret while alive Â· null when gone</span><br>' +
+    '<a href="/" style="color:#58a6ff;text-decoration:none;font-size:10px">? hud</a> Â· ' +
+    '<a href="/easel.html" style="color:#d2a8ff;text-decoration:none;font-size:10px">?? easel</a> Â· ' +
     '<a href="/gates.html" style="color:#3fb950;text-decoration:none;font-size:10px">?? gates</a>';
 }
 
-// --- PAINT MODE — finger/mouse painting on canvas ---
+// --- PAINT MODE Â— finger/mouse painting on canvas ---
 var painting = false;
 var lastX = 0, lastY = 0;
 var paintStrokes = []; // stored during recording
@@ -367,7 +367,7 @@ function recordFrame() {
     ctx.globalAlpha = 1;
   }
 
-  // Easel layer — pull live painting
+  // Easel layer Â— pull live painting
   if (vineState.activeMedia.easel) {
     drawEaselFrame(t);
   }
@@ -402,7 +402,7 @@ function recordFrame() {
   }
 
   // Capture frame for playback
-  if (vineState.frames.length < 180) { // max 30fps × 6s
+  if (vineState.frames.length < 180) { // max 30fps Ã— 6s
     vineState.frames.push({
       t: elapsed,
       strokes: paintStrokes.slice(),
@@ -416,7 +416,7 @@ function recordFrame() {
 }
 
 function drawEaselFrame(t) {
-  // Mini easel simulation — stars and nebula
+  // Mini easel simulation Â— stars and nebula
   ctx.globalAlpha = 0.3;
   for (var s = 0; s < 3; s++) {
     var sx = (Math.sin(t * 7 + s * 2.1) * 0.4 + 0.5) * W;
@@ -475,9 +475,9 @@ function playClip(idx) {
   var clip = vineState.clips[idx];
   if (!clip) return;
   if (clip._nullified) {
-    // Null bubble — show the ghost
+    // Null bubble Â— show the ghost
     var el = document.getElementById('chipmunk-reaction');
-    el.textContent = '?? null bubble: ' + clip.zkHash + ' — content is gone, proof remains';
+    el.textContent = '?? null bubble: ' + clip.zkHash + ' Â— content is gone, proof remains';
     el.style.opacity = '1';
     setTimeout(function() { el.style.opacity = '0'; }, 3000);
     return;
@@ -549,7 +549,7 @@ function playClip(idx) {
     ctx.font = '8px monospace';
     ctx.fillStyle = '#6e7681';
     var remaining = Math.max(0, EPHEMERAL_LIFESPAN - (clip.plays || 0));
-    ctx.fillText(clip.zkHash + ' · ' + remaining + ' plays left', 8, H - 22);
+    ctx.fillText(clip.zkHash + ' Â· ' + remaining + ' plays left', 8, H - 22);
     if (remaining < 10) {
       ctx.fillStyle = '#f85149';
       ctx.fillText('ephemeral fading...', 8, H - 34);
@@ -562,7 +562,7 @@ function playClip(idx) {
   renderPlayback();
 }
 
-// --- CHIPMUNK — watches, learns, makes its own clips ---
+// --- CHIPMUNK Â— watches, learns, makes its own clips ---
 // The chipmunk observes human clips and eventually makes its own.
 // It learns: what colors humans use, what text they write,
 // what timing patterns they prefer. Then it remixes.
@@ -622,7 +622,7 @@ function chipmunkMakesClip() {
     chipmunkMemory.colorsObserved[Math.floor(Math.random() * chipmunkMemory.colorsObserved.length)] :
     '#f0c674';
 
-  // Generate strokes — the chipmunk paints what it learned
+  // Generate strokes Â— the chipmunk paints what it learned
   var numStrokes = 20 + Math.floor(Math.random() * 40);
   for (var i = 0; i < numStrokes; i++) {
     var t = (i / numStrokes) * VINE_DURATION;
@@ -638,7 +638,7 @@ function chipmunkMakesClip() {
     });
   }
 
-  // Chipmunk text — remixed from what it saw
+  // Chipmunk text Â— remixed from what it saw
   var text = '';
   if (chipmunkMemory.textsObserved.length > 0) {
     var words = [];
@@ -683,7 +683,7 @@ function chipmunkMakesClip() {
   setTimeout(function() { el.style.opacity = '0'; }, 4000);
 }
 
-// --- FEED — thumbnails on the right ---
+// --- FEED Â— thumbnails on the right ---
 function addThumbToFeed(clip) {
   var feed = document.getElementById('vine-feed');
   var img = document.createElement('img');
@@ -696,7 +696,7 @@ function addThumbToFeed(clip) {
   feed.appendChild(img);
 }
 
-// --- PERSISTENCE — localStorage ---
+// --- PERSISTENCE Â— localStorage ---
 function saveClipsToStorage() {
   try {
     // Save metadata only (thumbnails + stroke data), not full frames
@@ -725,7 +725,7 @@ function loadClipsFromStorage() {
 }
 loadClipsFromStorage();
 
-// --- IDLE STATE — when not recording or playing ---
+// --- IDLE STATE Â— when not recording or playing ---
 function drawIdle() {
   if (vineState.recording || vineState.mode === 'playing') return;
 
@@ -738,7 +738,7 @@ function drawIdle() {
   ctx.strokeStyle = '#22c55e';
   ctx.lineWidth = 1;
 
-  // The vine — a growing spiral
+  // The vine Â— a growing spiral
   ctx.beginPath();
   for (var i = 0; i < 100; i++) {
     var angle = i * 0.15 + t * 0.5;
@@ -771,13 +771,13 @@ function drawIdle() {
   ctx.fillText('swarmVine', W / 2, H / 2 + 90);
   ctx.font = '10px monospace';
   ctx.fillStyle = '#6e7681';
-  ctx.fillText('6 sec · all media · press record', W / 2, H / 2 + 108);
+  ctx.fillText('6 sec Â· all media Â· press record', W / 2, H / 2 + 108);
   var aliveCount = vineState.clips.filter(function(c) { return !c._nullified; }).length;
-  ctx.fillText(aliveCount + ' alive · ' +
-    vineState.nullBubbles.length + ' null bubbles · ' +
+  ctx.fillText(aliveCount + ' alive Â· ' +
+    vineState.nullBubbles.length + ' null bubbles Â· ' +
     vineState.chipmunkClips.length + ' by chipmunk', W / 2, H / 2 + 122);
 
-  // Null bubbles floating — ghosts of vanished clips
+  // Null bubbles floating Â— ghosts of vanished clips
   vineState.nullBubbles.forEach(function(bubble, i) {
     var bx = W * (0.2 + (i * 0.137 % 0.6));
     var by = H * 0.3 + Math.sin(t + i * 1.5) * 20;
@@ -798,7 +798,7 @@ function drawIdle() {
 }
 drawIdle();
 
-// --- COLOR PICKER — tap/click to cycle paint colors ---
+// --- COLOR PICKER Â— tap/click to cycle paint colors ---
 var paintColors = ['#22c55e', '#58a6ff', '#d2a8ff', '#f85149', '#f0883e', '#f0c674', '#f0f6fc'];
 var colorIdx = 0;
 canvas.addEventListener('dblclick', function() {
