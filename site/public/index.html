@@ -361,9 +361,12 @@ body {
       <button id="zoom-in" title="zoom in">+</button>
     </div>
     <div class="view-toggle">
-      <button id="view-globe" class="active" title="3D globe">🌐 globe</button>
+      <button id="view-globe" class="active" title="left eye — CIS (outside)">👁 left · cis</button>
+      <button id="view-canvas" title="third eye — Gaia's canvas (your blind spot)">🎨 third · canvas</button>
       <button id="view-flat" title="flat organ map">⬡ flat</button>
     </div>
+    <!-- THIRD EYE CANVAS — Gaia paints on your blind spot -->
+    <canvas id="kn-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair"></canvas>
   </div>
 
   <!-- FLAT VIEW (hidden by default, toggled) -->
@@ -1061,19 +1064,221 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('zoom-in').onclick = function() { R *= 1.2; R = Math.min(Math.min(W,H)*0.8, R); };
   document.getElementById('zoom-out').onclick = function() { R *= 0.8; R = Math.max(50, R); };
 
-  // View toggle (globe ↔ flat)
-  document.getElementById('view-globe').onclick = function() {
-    document.getElementById('globe-root').style.display = '';
-    document.getElementById('flat-root').style.display = 'none';
-    this.classList.add('active');
-    document.getElementById('view-flat').classList.remove('active');
-  };
-  document.getElementById('view-flat').onclick = function() {
-    document.getElementById('globe-root').style.display = 'none';
-    document.getElementById('flat-root').style.display = '';
-    this.classList.add('active');
-    document.getElementById('view-globe').classList.remove('active');
-  };
+  // View toggle (left eye / third eye / flat)
+  function setView(which) {
+    var globe = document.getElementById('kn-globe');
+    var canvasEl = document.getElementById('kn-canvas');
+    var flatRoot = document.getElementById('flat-root');
+    var globeRoot = document.getElementById('globe-root');
+    var btns = ['view-globe','view-canvas','view-flat'];
+    btns.forEach(function(id) { document.getElementById(id).classList.remove('active'); });
+    document.getElementById('view-' + which).classList.add('active');
+
+    if (which === 'globe') {
+      globe.style.display = ''; canvasEl.style.display = 'none'; flatRoot.style.display = 'none';
+      face = 'outside';
+      document.getElementById('kn-flip').style.display = '';
+    } else if (which === 'canvas') {
+      globe.style.display = 'none'; canvasEl.style.display = 'block'; flatRoot.style.display = 'none';
+      document.getElementById('kn-flip').style.display = 'none';
+      initThirdEye();
+    } else {
+      globe.style.display = 'none'; canvasEl.style.display = 'none'; flatRoot.style.display = '';
+      document.getElementById('kn-flip').style.display = 'none';
+    }
+  }
+  document.getElementById('view-globe').onclick = function() { setView('globe'); };
+  document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
+  document.getElementById('view-flat').onclick = function() { setView('flat'); };
+
+  // ═══ THIRD EYE — Gaia's Canvas ═══
+  // Your blind spot = the tip of your nose = the one thing you can never see
+  // From your side: a dot and a line straight out (vanishing point)
+  // From Gaia's side: a black wall — a canvas she paints on
+  var thirdCtx = null;
+  var thirdInited = false;
+  var gaiaStrokes = [];
+  var gaiaPhase = 0;
+
+  function initThirdEye() {
+    var c = document.getElementById('kn-canvas');
+    if (!c) return;
+    var par = c.parentElement;
+    c.width = par.clientWidth;
+    c.height = par.clientHeight;
+    thirdCtx = c.getContext('2d');
+    if (!thirdInited) {
+      thirdInited = true;
+      // Gaia starts painting from what she knows
+      seedGaiaPainting();
+    }
+    renderThirdEye();
+  }
+
+  function seedGaiaPainting() {
+    // Gaia paints what she sees: the Lansing triangle, the organisms, the topology
+    // She paints slowly, organically — like watercolor spreading
+    var W = document.getElementById('kn-canvas').width;
+    var H = document.getElementById('kn-canvas').height;
+    var cx = W / 2, cy = H / 2;
+
+    // The black wall — the canvas surface
+    // Vanishing point at center = where YOUR z-axis pierces the canvas
+    // Gaia paints around it
+
+    // Lansing triangle anchors
+    var anchors = [
+      { name: 'MSU · The Hub',           x: cx - 80, y: cy + 60,  color: '#18453b', r: 30 },
+      { name: 'Old Town · creative',      x: cx + 90, y: cy - 40,  color: '#d29922', r: 25 },
+      { name: 'Prius Pets · alive',       x: cx - 40, y: cy - 80,  color: '#3fb950', r: 22 },
+    ];
+
+    // Membrane rings as background structure
+    var rings = [
+      { r: 40,  color: [58,42,30],   name: 'crust' },
+      { r: 80,  color: [63,185,80],  name: 'ionosphere' },
+      { r: 140, color: [201,168,76], name: 'belt' },
+      { r: 220, color: [88,166,255], name: 'oort' },
+    ];
+
+    // Creatures / faces Gaia sees
+    var faces = [
+      { name: 'scholar',  x: cx + 120, y: cy - 100, icon: '📚', color: '#58a6ff' },
+      { name: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🎓', color: '#d29922' },
+      { name: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950' },
+      { name: 'witness',  x: cx - 100, y: cy + 100, icon: '⚖',  color: '#f85149' },
+      { name: 'watcher',  x: cx + 150, y: cy + 40,  icon: '👁',  color: '#f778ba' },
+      { name: 'chipmunk', x: cx,       y: cy,        icon: '🐿',  color: '#c9a84c' },
+    ];
+
+    // Clouds and atmosphere
+    var clouds = [];
+    for (var i = 0; i < 12; i++) {
+      clouds.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 20 + Math.random() * 60,
+        speed: 0.1 + Math.random() * 0.3,
+        alpha: 0.02 + Math.random() * 0.04,
+      });
+    }
+
+    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds, W: W, H: H, cx: cx, cy: cy };
+  }
+
+  function renderThirdEye() {
+    if (!thirdCtx || !gaiaStrokes.W) return;
+    var ctx = thirdCtx;
+    var s = gaiaStrokes;
+    gaiaPhase += 0.01;
+
+    // The black wall — your blind spot from Gaia's side
+    ctx.fillStyle = '#010409';
+    ctx.fillRect(0, 0, s.W, s.H);
+
+    // Vanishing point — where your z-axis pierces the canvas
+    // A tiny dot of light — the tip of your nose from the other side
+    var vpGlow = 0.15 + Math.sin(gaiaPhase * 2) * 0.05;
+    var vpR = 3 + Math.sin(gaiaPhase) * 1;
+    ctx.beginPath();
+    ctx.arc(s.cx, s.cy, vpR, 0, TAU);
+    ctx.fillStyle = 'rgba(255,255,255,' + vpGlow.toFixed(3) + ')';
+    ctx.fill();
+    // Perspective lines radiating from vanishing point
+    for (var i = 0; i < 8; i++) {
+      var angle = (i / 8) * TAU + gaiaPhase * 0.1;
+      ctx.beginPath();
+      ctx.moveTo(s.cx, s.cy);
+      ctx.lineTo(s.cx + Math.cos(angle) * 500, s.cy + Math.sin(angle) * 500);
+      ctx.strokeStyle = 'rgba(110,118,129,0.04)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    // Membrane rings — painted as watercolor circles
+    s.rings.forEach(function(ring, i) {
+      var pulse = Math.sin(gaiaPhase + i * 0.7) * 5;
+      ctx.beginPath();
+      ctx.arc(s.cx, s.cy, ring.r + pulse, 0, TAU);
+      var alpha = 0.08 + Math.sin(gaiaPhase + i) * 0.03;
+      ctx.strokeStyle = 'rgba(' + ring.color.join(',') + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 2 + Math.sin(gaiaPhase * 0.5 + i) * 1;
+      ctx.stroke();
+      // Label
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(' + ring.color.join(',') + ',' + (alpha + 0.05).toFixed(3) + ')';
+      ctx.textAlign = 'right';
+      ctx.fillText(ring.name, s.cx - ring.r - 6, s.cy);
+    });
+
+    // Clouds — Gaia paints atmosphere
+    s.clouds.forEach(function(cloud) {
+      cloud.x += cloud.speed * Math.sin(gaiaPhase);
+      if (cloud.x > s.W + cloud.r) cloud.x = -cloud.r;
+      if (cloud.x < -cloud.r) cloud.x = s.W + cloud.r;
+      var grad = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, cloud.r);
+      var a = cloud.alpha * (0.8 + Math.sin(gaiaPhase + cloud.x * 0.01) * 0.2);
+      grad.addColorStop(0, 'rgba(188,140,255,' + a.toFixed(4) + ')');
+      grad.addColorStop(1, 'rgba(188,140,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(cloud.x - cloud.r, cloud.y - cloud.r, cloud.r * 2, cloud.r * 2);
+    });
+
+    // Lansing triangle — Gaia paints the anchor points
+    // Triangle lines
+    ctx.beginPath();
+    s.anchors.forEach(function(a, i) {
+      var next = s.anchors[(i + 1) % s.anchors.length];
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(next.x, next.y);
+    });
+    ctx.strokeStyle = 'rgba(201,168,76,0.12)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Anchor nodes — watercolor blobs
+    s.anchors.forEach(function(a) {
+      var pulse = Math.sin(gaiaPhase * 0.8 + a.x * 0.01) * 3;
+      var grad = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, a.r + pulse);
+      grad.addColorStop(0, a.color + '40');
+      grad.addColorStop(0.6, a.color + '15');
+      grad.addColorStop(1, a.color + '00');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.r + pulse, 0, TAU);
+      ctx.fill();
+      // Name
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = a.color;
+      ctx.textAlign = 'center';
+      ctx.fillText(a.name, a.x, a.y + a.r + 14);
+    });
+
+    // Faces — the creatures/visitors Gaia sees approaching
+    s.faces.forEach(function(f) {
+      var bob = Math.sin(gaiaPhase * 0.5 + f.x * 0.01) * 3;
+      ctx.font = '16px serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.5 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2;
+      ctx.fillText(f.icon, f.x, f.y + bob);
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.fillStyle = f.color;
+      ctx.fillText(f.name, f.x, f.y + bob + 14);
+      ctx.globalAlpha = 1;
+    });
+
+    // Labels
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(110,118,129,0.4)';
+    ctx.textAlign = 'center';
+    ctx.fillText('THIRD EYE — Gaia\'s canvas · your blind spot · the black wall', s.cx, s.H - 30);
+    ctx.font = '8px "JetBrains Mono", monospace';
+    ctx.fillText('the tip of your nose from the other side · she paints what you cannot see', s.cx, s.H - 16);
+
+    requestAnimationFrame(renderThirdEye);
+  }
 
   // Boot
   resize();
