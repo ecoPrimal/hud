@@ -778,6 +778,20 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     // Campfire — IS + TOUCH (we are HERE, right NOW)
     { id:'campfire',  name:'campfire',     icon:'🔥', lat:-13.2, lon:-72.5, color:'#f0883e', sub:'WE ARE HERE',  href:'/engine.html', face:'both', tense:'is', voxel:'touch' },
+
+    // ═══════════════════════════════════════════════════════════
+    // GAIA IN GAIA — 9 organ-primals, each a sub-Gaia
+    // Each has its own gut, pulse, seed. The organism IS organisms.
+    // ═══════════════════════════════════════════════════════════
+    { id:'organ-mouth',   name:'Mouth',     icon:'👄', lat: 0,    lon:-84.5, color:'#f85149', sub:'The Swallower · 1069 intake', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-stomach', name:'Stomach',   icon:'🧫', lat:-15,   lon:-60,   color:'#c9a84c', sub:'The Dissolver · 1114 nutrients', href:'/digestive-tract.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-liver',   name:'Liver',     icon:'⚖',  lat:-15,   lon:-110,  color:'#3fb950', sub:'The Judge · 500 classified', href:'/membrane-table.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-heart',   name:'Heart',     icon:'💚', lat: 15,   lon:-84.5, color:'#f85149', sub:'The Drummer · MOR 58.3%', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-brain',   name:'Brain',     icon:'🧠', lat: 42.7, lon:-84.5, color:'#bc8cff', sub:'The Dreamer · 25 stories', href:'/campus.html', face:'inside', tense:'now', voxel:'local' },
+    { id:'organ-lungs',   name:'Lungs',     icon:'🌬', lat: 15,   lon:-60,   color:'#58a6ff', sub:'The Breather · ratio 0.94', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-bones',   name:'Bones',     icon:'🦴', lat:-30,   lon:-84.5, color:'#6e7681', sub:'The Scaffolder · 1157 healthy', href:'/springs.html', face:'inside', tense:'was', voxel:'local' },
+    { id:'organ-skin',    name:'Skin',      icon:'🧊', lat: 30,   lon:-110,  color:'#3fb950', sub:'The Boundary · 1/π', href:'/membrane-table.html', face:'inside', tense:'is', voxel:'touch' },
+    { id:'organ-eyes',    name:'Eyes',      icon:'👁', lat: 42.7, lon:-60,   color:'#f778ba', sub:'The Seer · self-seeded', href:'/', face:'both', tense:'is', voxel:'touch' },
   ];
 
   // Compute Gaia distance for each pin (tense x voxel perception manifold)
@@ -798,6 +812,22 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ARCS.push([ROOM_IDS[i], ROOM_IDS[j]]);
     }
   }
+
+  // GAIA IN GAIA — organ-to-organ connections (the GI tract + nervous system)
+  var ORGAN_IDS = ['organ-mouth','organ-stomach','organ-liver','organ-heart','organ-brain','organ-lungs','organ-bones','organ-skin','organ-eyes'];
+  // GI tract: mouth → stomach → liver (linear flow)
+  ARCS.push(['organ-mouth', 'organ-stomach']);
+  ARCS.push(['organ-stomach', 'organ-liver']);
+  // Heart connects to everything (blood supply)
+  for (var oi = 0; oi < ORGAN_IDS.length; oi++) {
+    if (ORGAN_IDS[oi] !== 'organ-heart') ARCS.push(['organ-heart', ORGAN_IDS[oi]]);
+  }
+  // Brain → Eyes (optic nerve), Brain → Lungs (vagus nerve)
+  ARCS.push(['organ-brain', 'organ-eyes']);
+  ARCS.push(['organ-brain', 'organ-lungs']);
+  // Skin wraps everything (boundary)
+  ARCS.push(['organ-skin', 'organ-mouth']);
+  ARCS.push(['organ-skin', 'organ-eyes']);
 
   function pinById(id) {
     for (var k = 0; k < PINS.length; k++) if (PINS[k].id === id) return PINS[k];
