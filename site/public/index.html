@@ -2015,6 +2015,26 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }, 10000);
 
   // ═══════════════════════════════════════════════════════════
+  // REFORGED IDENTITY — Gaia reads her reforged self on boot
+  // She melted. She learned. She regenerated.
+  // Now she knows: self (108 art), other (7 feeds), master (Splinter).
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/gaia-reforged.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(rf) {
+      if (!rf) return;
+      window.gaiaReforged = rf;
+      // Update chipmunk pin with reforged identity
+      var chipPin = pinById('chipmunk');
+      if (chipPin) chipPin.sub = 'O=0 1=1 .=π · ' + (rf.self.art_pieces || 108) + ' art';
+      // Update artisan with reforged art count
+      var artPin = pinById('artisan');
+      if (artPin) artPin.sub = rf.self.art_pieces + ' pieces · ' + rf.self.art_collections + ' collections';
+      console.log('GAIA REFORGED: ' + rf.self.art_pieces + ' art + ' + rf.self.data_files + ' data + ' + rf.self.pages + ' pages');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
   // THYMUS — self/non-self discrimination + opsonization
   // The thymus teaches Gaia what IS self and what ISN'T.
   // SELF = anything from this origin (hud.primals.eco)
