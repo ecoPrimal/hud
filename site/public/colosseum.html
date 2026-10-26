@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚔️ COLOSSEUM — the gut arena. LET THE GAMES BEGIN!</title>
+  <meta property="og:title" content="Colosseum — Gaia's enzyme arena">
+  <link rel="canonical" href="https://nestgate.io/colosseum.html">
+  <style>
+    :root {
+      --bg:#060810; --surface:#0c1018; --border:#1a2030;
+      --fg:#e0ddd0; --dim:#6e7681; --accent:#ff6b35;
+      --green:#3fb950; --gold:#c9a84c; --red:#f85149;
+      --blue:#58a6ff; --plat:#e5e4e2; --violet:#bc8cff;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--fg); font-family:'IBM Plex Mono',monospace; overflow:hidden; height:100vh; display:flex; flex-direction:column; }
+
+    /* TOP BAR */
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:0.4rem 1rem; background:var(--surface); border-bottom:1px solid var(--border); font-size:0.75rem; }
+    .topbar .title { color:var(--accent); font-weight:bold; font-size:1rem; }
+    .topbar .stats span { margin-left:1rem; }
+
+    /* MAIN LAYOUT */
+    .arena { flex:1; display:grid; grid-template-columns:220px 1fr 220px; grid-template-rows:1fr auto; gap:0; overflow:hidden; }
+
+    /* LEFT: ENZYME DECK */
+    .deck { background:var(--surface); border-right:1px solid var(--border); padding:0.5rem; overflow-y:auto; }
+    .deck h3 { color:var(--accent); font-size:0.8rem; margin-bottom:0.5rem; text-align:center; border-bottom:1px solid var(--border); padding-bottom:0.3rem; }
+    .enzyme-card {
+      background:#12121a; border:1px solid #222; border-radius:6px; padding:0.5rem;
+      margin-bottom:0.4rem; cursor:grab; transition:all 0.2s; font-size:0.7rem;
+      border-left:3px solid var(--accent);
+    }
+    .enzyme-card:hover { border-color:var(--accent); transform:translateX(3px); }
+    .enzyme-card.selected { border-color:var(--green); background:#1a2a1a; box-shadow:0 0 8px #3fb95033; }
+    .enzyme-card .name { font-weight:bold; color:var(--green); }
+    .enzyme-card .class { color:var(--dim); font-size:0.65rem; }
+    .enzyme-card .power { color:var(--gold); }
+    .enzyme-card .redox { font-size:0.6rem; }
+
+    /* CENTER: TABLE */
+    .table { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(ellipse at center, #1a1410 0%, #0a0a0f 70%); overflow:hidden; }
+    .table-ring { width:80%; max-width:500px; aspect-ratio:1; border:2px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; animation:ring-pulse 3s ease-in-out infinite; }
+    @keyframes ring-pulse { 0%,100%{box-shadow:0 0 20px #c9a84c22;} 50%{box-shadow:0 0 40px #c9a84c44;} }
+    .battle-zone { text-align:center; padding:1rem; }
+    .battle-zone .vs { font-size:2rem; color:var(--accent); margin:0.5rem 0; }
+    .battle-zone .combatant { font-size:0.85rem; padding:0.5rem; background:#12121a; border-radius:6px; border:1px solid #333; min-width:180px; display:inline-block; margin:0.3rem; }
+    .battle-zone .combatant.enzyme { border-color:var(--green); }
+    .battle-zone .combatant.bounty { border-color:var(--red); }
+    .battle-zone .result { font-size:1rem; margin-top:0.5rem; padding:0.5rem; border-radius:6px; }
+    .result.win { background:#3fb95022; color:var(--green); border:1px solid var(--green); }
+    .result.pending { background:#c9a84c22; color:var(--gold); border:1px solid var(--gold); }
+
+    /* RIGHT: BOUNTY BOARD */
+    .board { background:var(--surface); border-left:1px solid var(--border); padding:0.5rem; overflow-y:auto; }
+    .board h3 { color:var(--red); font-size:0.8rem; margin-bottom:0.5rem; text-align:center; border-bottom:1px solid var(--border); padding-bottom:0.3rem; }
+    .bounty-card {
+      background:#12121a; border:1px solid #222; border-radius:6px; padding:0.5rem;
+      margin-bottom:0.4rem; cursor:pointer; transition:all 0.2s; font-size:0.7rem;
+      border-left:3px solid var(--red);
+    }
+    .bounty-card:hover { border-color:var(--gold); transform:translateX(-3px); }
+    .bounty-card.selected { border-color:var(--gold); background:#2a2a1a; box-shadow:0 0 8px #c9a84c33; }
+    .bounty-card .topic { font-weight:bold; color:var(--gold); }
+    .bounty-card .reward { color:var(--green); }
+    .bounty-card .enzyme-type { color:var(--dim); font-size:0.65rem; }
+
+    /* BOTTOM: LOG */
+    .log { grid-column:1/4; background:#0a0a0f; border-top:1px solid var(--border); padding:0.3rem 0.8rem; font-size:0.65rem; max-height:100px; overflow-y:auto; display:flex; flex-direction:column-reverse; }
+    .log-entry { padding:0.15rem 0; border-bottom:1px solid #111; }
+    .log-entry .time { color:var(--dim); }
+    .log-entry .action { color:var(--accent); }
+    .log-entry .result { color:var(--green); }
+
+    /* FIGHT BUTTON */
+    .fight-btn {
+      position:absolute; bottom:10%; left:50%; transform:translateX(-50%);
+      padding:0.8rem 2rem; background:var(--accent); color:#000; border:none;
+      border-radius:8px; font-family:inherit; font-size:1rem; font-weight:bold;
+      cursor:pointer; transition:all 0.2s; z-index:10;
+    }
+    .fight-btn:hover { background:#ff8855; transform:translateX(-50%) scale(1.05); }
+    .fight-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+    /* SCORE */
+    .score { position:absolute; top:8px; left:50%; transform:translateX(-50%); display:flex; gap:1rem; font-size:0.75rem; z-index:10; }
+    .score span { padding:0.2rem 0.6rem; border-radius:4px; background:var(--surface); border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="title">⚔️ COLOSSEUM — the gut arena</span>
+    <div class="stats">
+      <span id="stat-wins">🏆 0</span>
+      <span id="stat-gold">💰 0</span>
+      <span id="stat-daughters">🌱 0</span>
+      <span id="stat-combo">🔥 0 combo</span>
+    </div>
+  </div>
+
+  <div class="arena">
+    <div class="deck" id="deck">
+      <h3>🧬 ENZYME DECK</h3>
+    </div>
+
+    <div class="table">
+      <div class="score">
+        <span>⚗️ Sieve: <strong id="sieve-level">Fe</strong></span>
+        <span>⚡ Redox: <strong id="redox-state">OX</strong></span>
+        <span>🎲 Random: <strong id="random-type">BLAKE3</strong></span>
+      </div>
+      <div class="table-ring">
+        <div class="battle-zone" id="battle-zone">
+          <div style="color:var(--dim);font-size:0.85rem;">
+            select an enzyme ← and a bounty →<br>
+            then press FIGHT<br><br>
+            <span style="color:var(--accent)">LET THE GAMES BEGIN</span>
+          </div>
+        </div>
+      </div>
+      <button class="fight-btn" id="fight-btn" disabled>⚔️ FIGHT</button>
+    </div>
+
+    <div class="board" id="board">
+      <h3>🎯 BOUNTY BOARD</h3>
+    </div>
+
+    <div class="log" id="log">
+      <div class="log-entry"><span class="time">[init]</span> <span class="action">arena loaded.</span> <span class="result">select combatants.</span></div>
+    </div>
+  </div>
+
+  <script>
+    // ═══ GAME STATE (persistent object) ═══
+    const Game = {
+      wins: 0, gold: 0, daughters: 0, combo: 0, maxCombo: 0,
+      selectedEnzyme: null, selectedBounty: null,
+      history: [], round: 0,
+      sieveLevel: 'Fe', redoxState: 'OX', randomType: 'BLAKE3',
+      enzymes: [], bounties: [],
+
+      // Sieve progression
+      sieveLevels: ['Fe','Cu','Ag','Au','Pt'],
+      sieveThresholds: [0, 5, 15, 30, 50],
+
+      updateSieve() {
+        for (let i = this.sieveThresholds.length - 1; i >= 0; i--) {
+          if (this.wins >= this.sieveThresholds[i]) {
+            this.sieveLevel = this.sieveLevels[i];
+            break;
+          }
+        }
+        document.getElementById('sieve-level').textContent = this.sieveLevel;
+      },
+
+      toggleRedox() {
+        this.redoxState = this.redoxState === 'OX' ? 'RED' : 'OX';
+        document.getElementById('redox-state').textContent = this.redoxState;
+      },
+
+      cycleRandom() {
+        const types = ['TRUE','BLAKE3','ZK'];
+        const idx = (types.indexOf(this.randomType) + 1) % types.length;
+        this.randomType = types[idx];
+        document.getElementById('random-type').textContent = this.randomType;
+      }
+    };
+
+    // ═══ ENZYME MATCH TABLE ═══
+    const matchTable = {
+      'cell-ligase': ['ligase'],
+      'primal-synthase': ['polymerase','synthase'],
+      'general-catalase': ['polymerase','helicase','topoisomerase','oxidoreductase','synthase','lyase','hydrolase'],
+      'biome-transferase': ['transferase'],
+      'link-recombinase': ['transferase','ligase'],
+      'force-kinase': ['kinase','ATP synthase'],
+      'unblock-oxidase': ['kinase','helicase','protease','ATP synthase'],
+      'genre-isomerase': ['isomerase','lyase'],
+      'verb-hydrolase': ['oxidoreductase','hydrolase'],
+      'theorem-polymerase': ['topoisomerase'],
+    };
+
+    // ═══ LOAD DATA ═══
+    async function loadData() {
+      try {
+        const [proteinRes, boardRes] = await Promise.all([
+          fetch('data/protein-printout.json'),
+          fetch('data/bulletin-board.json')
+        ]);
+        const proteins = await proteinRes.json();
+        const board = await boardRes.json();
+
+        Game.enzymes = proteins.proteins.filter(p => p.is_enzyme).map(p => ({
+          name: p.name, class: p.enzyme_class, catalyzes: p.catalyzes,
+          power: Math.floor(p.binary_mb * 3),
+          redox: ['polymerase','kinase','helicase','protease','hydrolase','lyase'].includes(p.enzyme_class) ? 'OX' : 'RED'
+        }));
+
+        Game.bounties = board.bounties.map(b => ({
+          id: b.id, topic: b.topic, enzyme: b.enzyme,
+          reward: b.reward, type: b.type,
+          hp: b.reward * 2
+        }));
+
+        renderDeck();
+        renderBoard();
+      } catch(e) {
+        console.error('load failed:', e);
+        // Fallback data
+        Game.enzymes = [
+          {name:'petalTongue',class:'polymerase',catalyzes:'renders content',power:57,redox:'OX'},
+          {name:'bearDog',class:'kinase',catalyzes:'authenticates',power:25,redox:'OX'},
+          {name:'songBird',class:'transferase',catalyzes:'transfers data',power:72,redox:'RED'},
+          {name:'squirrel',class:'helicase',catalyzes:'unwinds problems',power:5,redox:'OX'},
+          {name:'skunkBat',class:'protease',catalyzes:'cuts invaders',power:10,redox:'OX'},
+          {name:'sourDough',class:'oxidoreductase',catalyzes:'fermentation',power:10,redox:'OX'},
+          {name:'nestGate',class:'ligase',catalyzes:'joins fragments',power:26,redox:'RED'},
+          {name:'toadStool',class:'hydrolase',catalyzes:'digests unknown',power:23,redox:'OX'},
+          {name:'swarmVine',class:'synthase',catalyzes:'builds quorum',power:7,redox:'RED'},
+          {name:'rhizoCrypt',class:'isomerase',catalyzes:'rearranges data',power:23,redox:'RED'},
+          {name:'sweetGrass',class:'topoisomerase',catalyzes:'untangles search',power:36,redox:'RED'},
+          {name:'bingoCube',class:'lyase',catalyzes:'splits bonds',power:27,redox:'OX'},
+          {name:'barraCuda',class:'ATP synthase',catalyzes:'converts energy',power:15,redox:'OX'},
+        ];
+        Game.bounties = Array.from({length:20}, (_,i) => ({
+          id:`B${String(i).padStart(3,'0')}`, topic:`topic-${i}`,
+          enzyme:Object.keys(matchTable)[i % Object.keys(matchTable).length],
+          reward:10+i*2, type:'🟢 BOUNTY', hp:20+i*4
+        }));
+        renderDeck();
+        renderBoard();
+      }
+    }
+
+    // ═══ RENDER ═══
+    function renderDeck() {
+      const deck = document.getElementById('deck');
+      deck.innerHTML = '<h3>🧬 ENZYME DECK (' + Game.enzymes.length + ')</h3>';
+      Game.enzymes.forEach((e, i) => {
+        const card = document.createElement('div');
+        card.className = 'enzyme-card' + (Game.selectedEnzyme === i ? ' selected' : '');
+        card.innerHTML = `
+          <div class="name">${e.name}</div>
+          <div class="class">${e.class}</div>
+          <div class="power">⚡${e.power} power</div>
+          <div class="redox">${e.redox === 'OX' ? '🔥 oxidation' : '🧊 reduction'}</div>
+        `;
+        card.onclick = () => selectEnzyme(i);
+        deck.appendChild(card);
+      });
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '<h3>🎯 BOUNTY BOARD (' + Game.bounties.length + ')</h3>';
+      Game.bounties.slice(0, 30).forEach((b, i) => {
+        const card = document.createElement('div');
+        card.className = 'bounty-card' + (Game.selectedBounty === i ? ' selected' : '');
+        card.innerHTML = `
+          <div class="topic">${b.topic}</div>
+          <div class="reward">💰${b.reward} · ❤️${b.hp}hp</div>
+          <div class="enzyme-type">needs: ${b.enzyme}</div>
+        `;
+        card.onclick = () => selectBounty(i);
+        board.appendChild(card);
+      });
+    }
+
+    // ═══ SELECT ═══
+    function selectEnzyme(i) {
+      Game.selectedEnzyme = i;
+      renderDeck();
+      updateBattle();
+    }
+
+    function selectBounty(i) {
+      Game.selectedBounty = i;
+      renderBoard();
+      updateBattle();
+    }
+
+    function updateBattle() {
+      const zone = document.getElementById('battle-zone');
+      const btn = document.getElementById('fight-btn');
+      const e = Game.selectedEnzyme !== null ? Game.enzymes[Game.selectedEnzyme] : null;
+      const b = Game.selectedBounty !== null ? Game.bounties[Game.selectedBounty] : null;
+
+      let html = '';
+      if (e) html += `<div class="combatant enzyme">🧬 ${e.name}<br><small>${e.class} · ⚡${e.power}</small></div>`;
+      if (e && b) html += '<div class="vs">⚔️</div>';
+      else if (e || b) html += '<div class="vs" style="opacity:0.3">⚔️</div>';
+      if (b) html += `<div class="combatant bounty">🎯 ${b.topic}<br><small>${b.enzyme} · ❤️${b.hp} · 💰${b.reward}</small></div>`;
+
+      if (e && b) {
+        // Check match
+        const matching = matchTable[b.enzyme] || [];
+        const isMatch = matching.includes(e.class);
+        html += `<div class="result ${isMatch ? 'win' : 'pending'}">${isMatch ? '✅ MATCH — enzyme can catalyze!' : '⚠️ mismatch — enzyme can still try (reduced power)'}</div>`;
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
+      }
+
+      zone.innerHTML = html || '<div style="color:var(--dim)">select combatants</div>';
+    }
+
+    // ═══ FIGHT ═══
+    document.getElementById('fight-btn').onclick = function() {
+      if (Game.selectedEnzyme === null || Game.selectedBounty === null) return;
+
+      const e = Game.enzymes[Game.selectedEnzyme];
+      const b = Game.bounties[Game.selectedBounty];
+      const matching = (matchTable[b.enzyme] || []).includes(e.class);
+
+      Game.round++;
+      Game.toggleRedox();
+      if (Game.round % 3 === 0) Game.cycleRandom();
+
+      // Calculate damage
+      let damage = e.power;
+      if (matching) damage *= 2; // match bonus
+      if (e.redox === Game.redoxState) damage = Math.floor(damage * 1.5); // redox alignment
+      if (Game.randomType === 'TRUE') damage += Math.floor(Math.random() * 20); // true random bonus
+      if (Game.randomType === 'ZK') damage += 10; // ZK flat bonus
+
+      b.hp -= damage;
+      const won = b.hp <= 0;
+
+      if (won) {
+        Game.wins++;
+        Game.gold += b.reward;
+        Game.combo++;
+        if (Game.combo > Game.maxCombo) Game.maxCombo = Game.combo;
+
+        // Daughter bud
+        if (Game.combo % 3 === 0) {
+          Game.daughters++;
+          Game.bounties.push({
+            id: `D${Game.daughters}`, topic: `daughter∘${b.topic}`,
+            enzyme: b.enzyme, reward: Math.floor(b.reward * 0.6),
+            type: '🌱 DAUGHTER', hp: Math.floor(b.reward * 1.2)
+          });
+        }
+
+        // Combo gold bonus
+        if (Game.combo >= 3) Game.gold += Game.combo * 5;
+
+        Game.bounties.splice(Game.selectedBounty, 1);
+        Game.selectedBounty = null;
+        Game.updateSieve();
+      } else {
+        Game.combo = 0; // miss resets combo
+      }
+
+      // Log
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="time">[R${Game.round}]</span> <span class="action">${e.name} ${matching?'⚡':'⚠️'}→ ${b.topic}</span> <span class="result">${won ? `🏆 WON! 💰${b.reward} ${Game.combo>=3?'🔥'+Game.combo+'combo':''}` : `💥 ${damage}dmg (${b.hp}hp left)`}</span>`;
+      log.prepend(entry);
+
+      // Update stats
+      document.getElementById('stat-wins').textContent = `🏆 ${Game.wins}`;
+      document.getElementById('stat-gold').textContent = `💰 ${Game.gold}`;
+      document.getElementById('stat-daughters').textContent = `🌱 ${Game.daughters}`;
+      document.getElementById('stat-combo').textContent = `🔥 ${Game.combo} combo`;
+
+      // Re-render
+      renderDeck();
+      renderBoard();
+      updateBattle();
+
+      // Enzyme RETURNS (not consumed)
+      const zone = document.getElementById('battle-zone');
+      if (won) {
+        zone.innerHTML = `
+          <div style="color:var(--green);font-size:1.2rem">🏆 VICTORY!</div>
+          <div style="font-size:0.8rem;margin-top:0.5rem">
+            ${e.name} catalyzed ${b.topic}<br>
+            💰${b.reward} earned · enzyme RETURNS (not consumed)<br>
+            ${Game.combo >= 3 ? '🔥 ' + Game.combo + '× COMBO BONUS! +' + (Game.combo*5) + '💰' : ''}
+            ${Game.daughters > 0 && Game.combo % 3 === 0 ? '<br>🌱 daughter bounty budded!' : ''}
+          </div>
+          <div style="font-size:0.7rem;color:var(--dim);margin-top:0.5rem">
+            sieve: ${Game.sieveLevel} · redox: ${Game.redoxState} · random: ${Game.randomType}
+          </div>
+        `;
+      }
+
+      Game.history.push({ round: Game.round, enzyme: e.name, bounty: b.topic, damage, won, combo: Game.combo });
+    };
+
+    // ═══ INIT ═══
+    loadData();
+  </script>
+</body>
+</html>
