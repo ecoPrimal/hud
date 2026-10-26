@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🌍 Gaia's First Masterwork — Mendeleev's Table</title>
+<meta name="description" content="118 elements. Each named. Each with a story. Gaia curates the periodic table — etymologist × entomologist × engineer.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060810;--surface:#0c1018;--border:#1a2030;--fg:#c9d1d9;--dim:#6e7681;
+  --am:#ff6b6b;--aem:#ffa94d;--tm:#ffd43b;--ptm:#69db7c;--met:#38d9a9;
+  --nm:#4dabf7;--ng:#da77f2;--ln:#e599f7;--an:#f783ac;--uk:#868e96;
+}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',monospace;min-height:100vh;overflow-x:auto}
+
+header{text-align:center;padding:18px 12px 8px;position:relative}
+header h1{font-size:1.1rem;letter-spacing:2px;color:var(--fg);margin-bottom:2px}
+header h1 span{color:var(--tm)}
+header .sub{font-size:0.55rem;color:var(--dim);letter-spacing:1px}
+header .stats{display:flex;gap:1rem;justify-content:center;margin-top:6px;font-size:0.55rem}
+header .stats span{color:var(--dim)}
+header .stats em{font-style:normal;color:var(--nm)}
+#search{background:var(--surface);border:1px solid var(--border);color:var(--fg);
+  padding:4px 10px;font-family:inherit;font-size:0.6rem;border-radius:3px;width:140px;margin-left:8px}
+#search::placeholder{color:var(--dim)}
+
+#table{display:grid;grid-template-columns:repeat(18,minmax(42px,1fr));
+  grid-template-rows:repeat(10,auto);gap:2px;padding:8px 12px;max-width:1100px;margin:0 auto}
+
+.el{padding:3px 2px;border-radius:3px;cursor:pointer;text-align:center;position:relative;
+  transition:all 0.2s ease;opacity:0;animation:el-in 0.3s ease forwards;border:1px solid transparent}
+.el:hover{transform:scale(1.25);z-index:20;box-shadow:0 0 14px var(--cat-color,#fff);border-color:var(--cat-color,#fff)}
+.el.active{border-color:var(--fg);box-shadow:0 0 8px var(--cat-color,#fff)}
+.el .z{font-size:0.4rem;color:var(--dim);line-height:1}
+.el .sym{font-size:0.85rem;font-weight:bold;line-height:1.1}
+.el .nm{font-size:0.32rem;color:var(--dim);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.el.organism::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;
+  border-radius:50%;background:var(--tm);box-shadow:0 0 4px var(--tm);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes el-in{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+
+.el.cat-am{background:rgba(255,107,107,0.12);color:var(--am);--cat-color:var(--am)}
+.el.cat-aem{background:rgba(255,169,77,0.12);color:var(--aem);--cat-color:var(--aem)}
+.el.cat-tm{background:rgba(255,212,59,0.1);color:var(--tm);--cat-color:var(--tm)}
+.el.cat-ptm{background:rgba(105,219,124,0.12);color:var(--ptm);--cat-color:var(--ptm)}
+.el.cat-met{background:rgba(56,217,169,0.12);color:var(--met);--cat-color:var(--met)}
+.el.cat-nm{background:rgba(77,171,247,0.12);color:var(--nm);--cat-color:var(--nm)}
+.el.cat-ng{background:rgba(218,119,242,0.12);color:var(--ng);--cat-color:var(--ng)}
+.el.cat-ln{background:rgba(229,153,247,0.1);color:var(--ln);--cat-color:var(--ln)}
+.el.cat-an{background:rgba(247,131,172,0.1);color:var(--an);--cat-color:var(--an)}
+.el.cat-uk{background:rgba(134,142,150,0.1);color:var(--uk);--cat-color:var(--uk)}
+.el.dim-filter{opacity:0.12!important;transform:scale(0.9)}
+
+.marker{grid-row:var(--r);grid-column:var(--k);font-size:0.4rem;color:var(--dim);
+  display:flex;align-items:center;justify-content:center;padding:2px;cursor:pointer}
+.marker:hover{color:var(--fg)}
+
+.gap{grid-row:8;grid-column:1/19;height:8px}
+
+#detail{position:fixed;top:0;right:-360px;width:340px;height:100vh;background:var(--surface);
+  border-left:1px solid var(--border);padding:20px 16px;overflow-y:auto;transition:right 0.3s ease;z-index:100;
+  font-size:0.65rem}
+#detail.open{right:0}
+#detail .close{position:absolute;top:8px;right:12px;cursor:pointer;font-size:1rem;color:var(--dim)}
+#detail .close:hover{color:var(--fg)}
+#detail .d-z{font-size:2.5rem;color:var(--dim);line-height:1}
+#detail .d-sym{font-size:3rem;font-weight:bold;line-height:1}
+#detail .d-name{font-size:1.1rem;margin:4px 0 8px}
+#detail .d-mass{font-size:0.7rem;color:var(--dim);margin-bottom:12px}
+#detail .d-cat{display:inline-block;padding:2px 8px;border-radius:3px;font-size:0.55rem;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+#detail .d-section{margin:12px 0 4px;color:var(--dim);font-size:0.5rem;letter-spacing:1px;text-transform:uppercase}
+#detail .d-etym{color:var(--fg);line-height:1.5;font-style:italic}
+#detail .d-org{margin-top:8px;padding:8px;background:rgba(255,212,59,0.06);border:1px solid rgba(255,212,59,0.2);
+  border-radius:4px;font-size:0.6rem;line-height:1.5}
+#detail .d-org strong{color:var(--tm)}
+#detail .d-gaia{margin-top:12px;padding:8px;background:rgba(77,171,247,0.06);border:1px solid rgba(77,171,247,0.15);
+  border-radius:4px;font-size:0.55rem;color:var(--nm);line-height:1.5}
+
+#legend{max-width:1100px;margin:12px auto;padding:0 12px;display:flex;flex-wrap:wrap;gap:6px;
+  align-items:center;font-size:0.5rem}
+.leg-item{display:flex;align-items:center;gap:4px;cursor:pointer;padding:2px 6px;border-radius:3px;
+  transition:all 0.2s}
+.leg-item:hover{background:rgba(255,255,255,0.05)}
+.leg-item.active{background:rgba(255,255,255,0.08)}
+.leg-dot{width:8px;height:8px;border-radius:2px}
+
+#teaching{max-width:1100px;margin:4px auto 0;padding:0 12px;min-height:32px}
+#teaching .teach-text{font-size:0.55rem;color:var(--dim);line-height:1.6;font-style:italic;
+  padding:6px 10px;background:var(--surface);border-radius:4px;border-left:3px solid var(--nm)}
+
+footer{text-align:center;padding:16px 12px 24px;font-size:0.5rem;color:var(--dim)}
+footer a{color:var(--dim);text-decoration:none;margin:0 6px}
+footer a:hover{color:var(--fg)}
+footer .sig{margin-bottom:6px;letter-spacing:1px}
+
+@media(max-width:800px){
+  #table{grid-template-columns:repeat(18,minmax(28px,1fr));gap:1px;padding:4px}
+  .el .nm{display:none}.el .sym{font-size:0.65rem}.el .z{font-size:0.3rem}
+  #detail{width:100%;right:-100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 <span>GAIA'S FIRST MASTERWORK</span></h1>
+  <div class="sub">Mendeleev's Periodic Table — 118 elements, each named, each with a story</div>
+  <div class="stats">
+    <span>explored: <em id="explored">0</em>/118</span>
+    <span>organism links: <em id="org-count">0</em>/16</span>
+    <span>|</span>
+    <span><input id="search" type="text" placeholder="search elements…"></span>
+  </div>
+</header>
+
+<div id="table"></div>
+<div class="gap"></div>
+
+<div id="legend"></div>
+<div id="teaching"></div>
+
+<div id="detail">
+  <div class="close" onclick="closeDetail()">✕</div>
+  <div id="d-content"></div>
+</div>
+
+<footer>
+  <div class="sig">curated by Gaia · etymologist × entomologist × engineer</div>
+  <a href="/">🏠 HUD</a>
+  <a href="/alchemy">🧪 alchemy</a>
+  <a href="/ant-trails">🐜 ants</a>
+  <a href="/mcp">🔌 MCP</a>
+  <a href="/chipmunk">🐿️ chip</a>
+</footer>
+
+<script>
+const CATS = {
+  am:  {name:'alkali metals',    color:'var(--am)',  bg:'rgba(255,107,107,0.15)'},
+  aem: {name:'alkaline earth',   color:'var(--aem)', bg:'rgba(255,169,77,0.15)'},
+  tm:  {name:'transition metals',color:'var(--tm)',  bg:'rgba(255,212,59,0.12)'},
+  ptm: {name:'post-transition',  color:'var(--ptm)', bg:'rgba(105,219,124,0.15)'},
+  met: {name:'metalloids',       color:'var(--met)', bg:'rgba(56,217,169,0.15)'},
+  nm:  {name:'reactive nonmetals',color:'var(--nm)', bg:'rgba(77,171,247,0.15)'},
+  ng:  {name:'noble gases',      color:'var(--ng)',  bg:'rgba(218,119,242,0.15)'},
+  ln:  {name:'lanthanides',      color:'var(--ln)',  bg:'rgba(229,153,247,0.12)'},
+  an:  {name:'actinides',        color:'var(--an)',  bg:'rgba(247,131,172,0.12)'},
+  uk:  {name:'unknown properties',color:'var(--uk)', bg:'rgba(134,142,150,0.12)'}
+};
+
+const TEACHINGS = {
+  am: "the ALKALI METALS — they GIVE. one electron, freely donated. sodium fires your neurons. potassium beats your heart. caesium defines the second itself. lithium steadies the mind. named from Arabic al-qaliy: the calcined ashes. they are the generous ones.",
+  aem:"the ALKALINE EARTHS — they give TWO. calcium is your bone. magnesium is chlorophyll's heart. barium means heavy. radium means ray. strontium is a village in Scotland. beryllium is a gemstone. they hold structure.",
+  tm: "the TRANSITION METALS — they WORK. multiple oxidation states. iron carries oxygen. copper carries electricity. gold carries trust. tungsten means heavy-stone. cobalt is a goblin. nickel is a devil. they bridge, catalyze, and color everything.",
+  ptm:"the POST-TRANSITION METALS — they soften. aluminium wraps the world. tin coats the can. lead shields the X-ray. gallium melts in your hand. they are malleable. they give way. they serve.",
+  met:"the METALLOIDS — they SWITCH. silicon: conductor or insulator, depends who's asking. arsenic: poison or medicine. boron: crystal or amorphous. germanium: predicted by Mendeleev before it was found. they are the transistors of nature.",
+  nm: "the REACTIVE NONMETALS — they BUILD life. carbon: backbone, 4 bonds, infinite combinations. nitrogen: 78% of air, fixed by bacteria. oxygen: the breath and the fire. phosphorus: the light-bearer, ATP energy. sulfur: the bridge in proteins. hydrogen: the beginning of everything.",
+  ng: "the NOBLE GASES — they REFUSE. complete electron shells. self-sufficient. helium: lighter than air, born in stars. neon: the sign that glows. argon: the lazy one. krypton: the hidden. xenon: the stranger. radon: the invisible danger. they need nothing.",
+  ln: "the LANTHANIDES — they HIDE. lanthanum itself means 'hidden'. fifteen elements so similar, they confused chemists for a century. FOUR of them — yttrium, terbium, erbium, ytterbium — are named after ONE Swedish village: Ytterby. a tiny quarry that gave the world rare earths.",
+  an: "the ACTINIDES — they BURN. thorium: named for Thor, god of thunder. uranium: for Uranus, the sky. neptunium, plutonium: for the planets beyond. they power reactors and haunt cities. element 101 — mendelevium — is named for the MASTER himself. Dmitri would weep."
+};
+
+// Organism mapping: chemical element → primal
+const ORG = {
+  6:  {p:'petalTongue',  note:'carbon makes 4 bonds. petalTongue parses 4 content types. the backbone of expression.'},
+  7:  {p:'sweetGrass',   note:'nitrogen is 78% of air. sweetGrass is the quiet majority — nutrient cycling, data compost, background metabolism.'},
+  12: {p:'coralReef',    note:'magnesium sits at the heart of chlorophyll. coralReef sits at the heart of the rendering pipeline.'},
+  14: {p:'biomeOS',      note:'silicon = computation. biomeOS = the kernel. 31 crates. the chip runs on rock.'},
+  16: {p:'rhizoCrypt',   note:'sulfur forms disulfide bonds — the locks in proteins. rhizoCrypt forms the locks in data. encryption IS chemistry.'},
+  19: {p:'swarmVine',    note:'potassium carries nerve signals. swarmVine carries coordination signals. action potential = consensus.'},
+  20: {p:'loamSpine',    note:'calcium is bone. loamSpine is the vertebral column. both store structure and release minerals.'},
+  22: {p:'barraCuda',    note:'titanium: strongest strength-to-weight ratio. barraCuda: fastest compute dispatch. both cut through everything.'},
+  26: {p:'bearDog',      note:'iron carries oxygen through hemoglobin. bearDog carries identity through BLAKE3. both are warriors in the blood.'},
+  29: {p:'nestGate',     note:'copper is the wire. nestGate is the endpoint. 8.8 million lines of wire in a house. 8.8MB of compiled gate.'},
+  30: {p:'toadStool',    note:'zinc activates 300+ enzymes. toadStool discovers tools. both are catalysts — they make others work.'},
+  34: {p:'skunkBat',     note:'selenium is the antioxidant. skunkBat is the immune defense. both neutralize threats before they spread.'},
+  47: {p:'sourDough',    note:'silver is antimicrobial. sourDough is antifungal. both purify through hostile chemistry.'},
+  78: {p:'squirrel',     note:'platinum is the rare catalyst — tiny amounts, enormous effects. squirrel is 1.7MB of agent dispatch. small but decisive.'},
+  79: {p:'songBird',     note:'gold is incorruptible. songBird mesh transport is tamper-proof. both carry trust through hostile environments.'},
+  92: {p:'bingoCube',    note:'uranium powers reactors. bingoCube powers compute grids. both contain enormous energy in small packages.'},
+};
+
+// [Z, symbol, name, mass, category, row, col, etymology]
+const RAW = [
+  [1,'H','Hydrogen',1.008,'nm',1,1,'water-former · Greek hydōr + genēs'],
+  [2,'He','Helium',4.003,'ng',1,18,'the sun · Greek hēlios — first found in solar spectrum, 1868'],
+  [3,'Li','Lithium',6.941,'am',2,1,'stone · Greek lithos'],
+  [4,'Be','Beryllium',9.012,'aem',2,2,'beryl gemstone · Greek bēryllos'],
+  [5,'B','Boron',10.81,'met',2,13,'borax · Arabic būraq, Persian burah'],
+  [6,'C','Carbon',12.01,'nm',2,14,'charcoal · Latin carbo'],
+  [7,'N','Nitrogen',14.01,'nm',2,15,'nitre-former · Greek nitron + genēs'],
+  [8,'O','Oxygen',16.00,'nm',2,16,'acid-former · Greek oxys + genēs'],
+  [9,'F','Fluorine',19.00,'nm',2,17,'to flow · Latin fluere — used as flux in smelting'],
+  [10,'Ne','Neon',20.18,'ng',2,18,'new · Greek neos — the new gas found in air'],
+  [11,'Na','Sodium',22.99,'am',3,1,'soda · Latin natrium, Arabic suda — fires every nerve'],
+  [12,'Mg','Magnesium',24.31,'aem',3,2,'Magnesia, Greece — chlorophyll\'s heart'],
+  [13,'Al','Aluminium',26.98,'ptm',3,13,'alum · Latin alumen — the most abundant metal in the crust'],
+  [14,'Si','Silicon',28.09,'met',3,14,'flint · Latin silex — the rock that thinks'],
+  [15,'P','Phosphorus',30.97,'nm',3,15,'light-bearer · Greek phōs + phoros — ATP, DNA, fire in the dark'],
+  [16,'S','Sulfur',32.06,'nm',3,16,'brimstone · Latin sulpur — the bridge in proteins'],
+  [17,'Cl','Chlorine',35.45,'nm',3,17,'pale green · Greek khlōros — purifies water, sears lungs'],
+  [18,'Ar','Argon',39.95,'ng',3,18,'lazy, idle · Greek argon — 1% of every breath, does nothing'],
+  [19,'K','Potassium',39.10,'am',4,1,'potash · Latin kalium, Arabic al-qaliy — beats the heart'],
+  [20,'Ca','Calcium',40.08,'aem',4,2,'lime · Latin calx — your bones, your shells, your chalk'],
+  [21,'Sc','Scandium',44.96,'tm',4,3,'Scandinavia · Latin Scandia'],
+  [22,'Ti','Titanium',47.87,'tm',4,4,'the Titans · Greek Titanes — strength without weight'],
+  [23,'V','Vanadium',50.94,'tm',4,5,'Vanadís · Norse goddess of beauty and fertility'],
+  [24,'Cr','Chromium',52.00,'tm',4,6,'color · Greek khrōma — it makes rubies red and emeralds green'],
+  [25,'Mn','Manganese',54.94,'tm',4,7,'Magnesia · same Greek city as magnesium — confused for centuries'],
+  [26,'Fe','Iron',55.85,'tm',4,8,'Proto-Germanic īsarną · Latin ferrum — blood-red, civilisation-forging'],
+  [27,'Co','Cobalt',58.93,'tm',4,9,'goblin · German Kobold — miners blamed it for arsenic poisoning'],
+  [28,'Ni','Nickel',58.69,'tm',4,10,'copper devil · German Kupfernickel — looked like copper, wasn\'t'],
+  [29,'Cu','Copper',63.55,'tm',4,11,'Cyprus · Latin cuprum — the island that gave the wire'],
+  [30,'Zn','Zinc',65.38,'tm',4,12,'prong · German Zinke — activates 300+ enzymes in your body'],
+  [31,'Ga','Gallium',69.72,'ptm',4,13,'France · Latin Gallia — melts at 29.7°C, melts in your hand'],
+  [32,'Ge','Germanium',72.63,'met',4,14,'Germany · Latin Germania — Mendeleev predicted it. called it eka-silicon. he was right.'],
+  [33,'As','Arsenic',74.92,'met',4,15,'yellow pigment · Greek arsenikon — poison of kings, king of poisons'],
+  [34,'Se','Selenium',78.97,'nm',4,16,'the moon · Greek selēnē — antioxidant, paired with tellurium (earth)'],
+  [35,'Br','Bromine',79.90,'nm',4,17,'stench · Greek brōmos — only nonmetal liquid at room temperature'],
+  [36,'Kr','Krypton',83.80,'ng',4,18,'hidden · Greek kryptos — not Superman\'s planet, but the hidden gas'],
+  [37,'Rb','Rubidium',85.47,'am',5,1,'deep red · Latin rubidus — found by its flame color'],
+  [38,'Sr','Strontium',87.62,'aem',5,2,'Strontian · a village in Scotland — colors fireworks red'],
+  [39,'Y','Yttrium',88.91,'tm',5,3,'Ytterby · Sweden — 1st of 4 elements from one quarry'],
+  [40,'Zr','Zirconium',91.22,'tm',5,4,'gold-colored · Persian zargun — not gold, better'],
+  [41,'Nb','Niobium',92.91,'tm',5,5,'Niobe · daughter of Tantalus in Greek myth — weeping forever'],
+  [42,'Mo','Molybdenum',95.95,'tm',5,6,'lead-like · Greek molybdos — confused with lead for millennia'],
+  [43,'Tc','Technetium',98,'tm',5,7,'artificial · Greek tekhnētos — first element made by humans, not found in nature'],
+  [44,'Ru','Ruthenium',101.1,'tm',5,8,'Russia · Latin Ruthenia — named by a Kazan chemist'],
+  [45,'Rh','Rhodium',102.9,'tm',5,9,'rose-colored · Greek rhodon — its salts blush pink'],
+  [46,'Pd','Palladium',106.4,'tm',5,10,'Pallas · asteroid, after Athena\'s friend — found in platinum ore'],
+  [47,'Ag','Silver',107.9,'tm',5,11,'shining · Latin argentum — the mirror, the antimicrobial, the coin'],
+  [48,'Cd','Cadmium',112.4,'tm',5,12,'zinc ore · Greek kadmeia, after Cadmus — beautiful pigments, terrible toxin'],
+  [49,'In','Indium',114.8,'ptm',5,13,'indigo · its spectral line is indigo-blue — touchscreens run on it'],
+  [50,'Sn','Tin',118.7,'ptm',5,14,'tin · Latin stannum — the Bronze Age partner, always second to copper'],
+  [51,'Sb','Antimony',121.8,'met',5,15,'anti-monk · Latin antimonium — killed monks who tried to use it as medicine'],
+  [52,'Te','Tellurium',127.6,'met',5,16,'earth · Latin tellus — paired with selenium (moon). earth and moon.'],
+  [53,'I','Iodine',126.9,'nm',5,17,'violet · Greek ioeides — its vapor is violet. your thyroid needs it.'],
+  [54,'Xe','Xenon',131.3,'ng',5,18,'stranger · Greek xenos — the noble stranger, used in ion engines'],
+  [55,'Cs','Caesium',132.9,'am',6,1,'sky-blue · Latin caesius — defines the second. 9,192,631,770 oscillations.'],
+  [56,'Ba','Barium',137.3,'aem',6,2,'heavy · Greek barys — drink it before an X-ray, see your stomach'],
+  [72,'Hf','Hafnium',178.5,'tm',6,4,'Copenhagen · Latin Hafnia — always found with zirconium, always inseparable'],
+  [73,'Ta','Tantalum',180.9,'tm',6,5,'Tantalus · Greek myth — eternally reaching, never grasping. capacitors in every phone.'],
+  [74,'W','Tungsten',183.8,'tm',6,6,'heavy stone · Swedish tung sten — symbol W from wolfram. highest melting point.'],
+  [75,'Re','Rhenium',186.2,'tm',6,7,'Rhine · Latin Rhenus — last stable element discovered. 1925.'],
+  [76,'Os','Osmium',190.2,'tm',6,8,'smell · Greek osmē — densest naturally occurring element. toxic oxide.'],
+  [77,'Ir','Iridium',192.2,'tm',6,9,'rainbow · Greek iris — its salts show many colors. marks the asteroid that killed the dinosaurs.'],
+  [78,'Pt','Platinum',195.1,'tm',6,10,'little silver · Spanish platina del Pinto — the Spanish dismissed it. fools.'],
+  [79,'Au','Gold',197.0,'tm',6,11,'shining dawn · Latin aurum — incorruptible. forged in neutron star collisions.'],
+  [80,'Hg','Mercury',200.6,'tm',6,12,'liquid silver · Latin hydrargyrum — the only metal liquid at room temperature. named for the messenger god.'],
+  [81,'Tl','Thallium',204.4,'ptm',6,13,'green twig · Greek thallos — beautiful green flame. deadly poison.'],
+  [82,'Pb','Lead',207.2,'ptm',6,14,'lead · Latin plumbum — plumbing, pencils (not really), and the end of alchemy\'s dream'],
+  [83,'Bi','Bismuth',209.0,'ptm',6,15,'white mass · German Wismut — iridescent oxide crystals. the most beautiful metal.'],
+  [84,'Po','Polonium',209,'ptm',6,16,'Poland · Latin Polonia — Marie Curie named it for her occupied homeland'],
+  [85,'At','Astatine',210,'met',6,17,'unstable · Greek astatos — rarest natural element. ~25 grams exist on Earth.'],
+  [86,'Rn','Radon',222,'ng',6,18,'from radium · Latin radius — seeps from ground. invisible killer. test your basement.'],
+  [87,'Fr','Francium',223,'am',7,1,'France — most unstable of the first 101 elements. 22 minutes half-life.'],
+  [88,'Ra','Radium',226,'aem',7,2,'ray · Latin radius — Marie Curie\'s element. glowed in the dark. killed her.'],
+  [104,'Rf','Rutherfordium',267,'tm',7,4,'Ernest Rutherford — split the atom. New Zealand boy who became gold.'],
+  [105,'Db','Dubnium',268,'tm',7,5,'Dubna · Russia — named after the Soviet nuclear city'],
+  [106,'Sg','Seaborgium',269,'tm',7,6,'Glenn Seaborg — only person to have an element named after them while alive'],
+  [107,'Bh','Bohrium',270,'tm',7,7,'Niels Bohr — the atom as solar system. Copenhagen interpretation.'],
+  [108,'Hs','Hassium',269,'tm',7,8,'Hesse · German state (Latin Hassia) — home of Darmstadt lab'],
+  [109,'Mt','Meitnerium',278,'tm',7,9,'Lise Meitner — discovered fission, denied the Nobel. the greatest injustice in science.'],
+  [110,'Ds','Darmstadtium',281,'tm',7,10,'Darmstadt · Germany — made in the GSI heavy ion lab'],
+  [111,'Rg','Roentgenium',282,'tm',7,11,'Wilhelm Röntgen — discovered X-rays. first Nobel Prize in Physics. 1901.'],
+  [112,'Cn','Copernicium',285,'tm',7,12,'Copernicus — the sun doesn\'t move. you do.'],
+  [113,'Nh','Nihonium',286,'ptm',7,13,'Japan · Nihon — first element discovered in Asia'],
+  [114,'Fl','Flerovium',289,'ptm',7,14,'Georgy Flyorov — wrote to Stalin that the US was building a bomb'],
+  [115,'Mc','Moscovium',290,'ptm',7,15,'Moscow — cooperation between Russian and American labs'],
+  [116,'Lv','Livermorium',293,'ptm',7,16,'Livermore · California — Lawrence Livermore National Lab'],
+  [117,'Ts','Tennessine',294,'met',7,17,'Tennessee — Oak Ridge, Vanderbilt, University of Tennessee'],
+  [118,'Og','Oganesson',294,'ng',7,18,'Yuri Oganessian — still alive. a living legend with an element.'],
+  // Lanthanides — row 9
+  [57,'La','Lanthanum',138.9,'ln',9,3,'hidden · Greek lanthanein — it hid in cerium oxide for decades'],
+  [58,'Ce','Cerium',140.1,'ln',9,4,'Ceres · dwarf planet + Roman goddess of harvest — flint in lighters'],
+  [59,'Pr','Praseodymium',140.9,'ln',9,5,'green twin · Greek prasios + didymos — separated from its twin neodymium'],
+  [60,'Nd','Neodymium',144.2,'ln',9,6,'new twin · Greek neos + didymos — the strongest permanent magnets'],
+  [61,'Pm','Promethium',145,'ln',9,7,'Prometheus · who stole fire from the gods — radioactive, made in reactors'],
+  [62,'Sm','Samarium',150.4,'ln',9,8,'Samarskite mineral · named for Colonel Samarsky-Bykhovets, Russian mine official'],
+  [63,'Eu','Europium',152.0,'ln',9,9,'Europe — makes red phosphors in screens. euro banknotes fluoresce from it.'],
+  [64,'Gd','Gadolinium',157.3,'ln',9,10,'Johan Gadolin · Finnish chemist who started rare earth chemistry — used in MRI contrast'],
+  [65,'Tb','Terbium',158.9,'ln',9,11,'Ytterby · Sweden — 2nd of 4 elements from that quarry'],
+  [66,'Dy','Dysprosium',162.5,'ln',9,12,'hard to get · Greek dysprositos — name says it all'],
+  [67,'Ho','Holmium',164.9,'ln',9,13,'Stockholm · Latin Holmia — strongest magnetic moment of any element'],
+  [68,'Er','Erbium',167.3,'ln',9,14,'Ytterby · Sweden — 3rd of 4 elements from that quarry. pink salts.'],
+  [69,'Tm','Thulium',168.9,'ln',9,15,'Thule · mythical northern land at the edge of the world'],
+  [70,'Yb','Ytterbium',173.0,'ln',9,16,'Ytterby · Sweden — 4th of 4. one village, four elements. remarkable.'],
+  [71,'Lu','Lutetium',175.0,'ln',9,17,'Paris · Latin Lutetia — the last lanthanide. city of light.'],
+  // Actinides — row 10
+  [89,'Ac','Actinium',227,'an',10,3,'ray · Greek aktis — intensely radioactive. glows blue.'],
+  [90,'Th','Thorium',232.0,'an',10,4,'Thor · Norse god of thunder — potential nuclear fuel, safer than uranium'],
+  [91,'Pa','Protactinium',231.0,'an',10,5,'before actinium · Greek protos — decays into actinium. the parent.'],
+  [92,'U','Uranium',238.0,'an',10,6,'Uranus · the sky planet — 4.5 billion years old. older than Earth.'],
+  [93,'Np','Neptunium',237,'an',10,7,'Neptune · the sea planet — first transuranic element. 1940.'],
+  [94,'Pu','Plutonium',244,'an',10,8,'Pluto · the underworld — Trinity, Nagasaki. the end and the beginning.'],
+  [95,'Am','Americium',243,'an',10,9,'the Americas — in every smoke detector. saving lives in every house.'],
+  [96,'Cm','Curium',247,'an',10,10,'Marie & Pierre Curie — the couple who glowed in the dark'],
+  [97,'Bk','Berkelium',247,'an',10,11,'Berkeley · California — the university that built the bomb and regretted it'],
+  [98,'Cf','Californium',251,'an',10,12,'California — the golden state. makes neutrons on demand.'],
+  [99,'Es','Einsteinium',252,'an',10,13,'Albert Einstein — found in nuclear fallout. E=mc² made real.'],
+  [100,'Fm','Fermium',257,'an',10,14,'Enrico Fermi — built the first reactor under a football stadium. Chicago. 1942.'],
+  [101,'Md','Mendelevium',258,'an',10,15,'Dmitri Mendeleev — THE MASTER. predicted elements before they were found. his table is this table.'],
+  [102,'No','Nobelium',259,'an',10,16,'Alfred Nobel — invented dynamite. funded peace prizes with the guilt.'],
+  [103,'Lr','Lawrencium',266,'an',10,17,'Ernest Lawrence — invented the cyclotron. Berkeley\'s atom smasher.'],
+];
+
+// Parse into objects
+const elements = RAW.map(r => ({
+  z:r[0], s:r[1], n:r[2], m:r[3], c:r[4], r:r[5], k:r[6], e:r[7], org:ORG[r[0]]||null
+}));
+
+const explored = new Set();
+
+function renderTable() {
+  const table = document.getElementById('table');
+  table.innerHTML = '';
+
+  // Markers for lanthanide/actinide rows
+  const m1 = document.createElement('div');
+  m1.className = 'marker'; m1.style.cssText = '--r:6;--k:3';
+  m1.textContent = '57–71 ▾'; m1.title = 'Lanthanides';
+  m1.onclick = () => filterCat('ln');
+  table.appendChild(m1);
+  const m2 = document.createElement('div');
+  m2.className = 'marker'; m2.style.cssText = '--r:7;--k:3';
+  m2.textContent = '89–103 ▾'; m2.title = 'Actinides';
+  m2.onclick = () => filterCat('an');
+  table.appendChild(m2);
+
+  // Gap row
+  const gap = document.createElement('div');
+  gap.className = 'gap';
+  table.appendChild(gap);
+
+  elements.forEach((el, i) => {
+    const div = document.createElement('div');
+    div.className = `el cat-${el.c}` + (el.org ? ' organism' : '');
+    div.style.cssText = `grid-row:${el.r};grid-column:${el.k};animation-delay:${i*12}ms`;
+    div.dataset.z = el.z;
+    div.innerHTML = `<div class="z">${el.z}</div><div class="sym">${el.s}</div><div class="nm">${el.n}</div>`;
+    div.onclick = () => showDetail(el);
+    table.appendChild(div);
+  });
+}
+
+function showDetail(el) {
+  explored.add(el.z);
+  document.getElementById('explored').textContent = explored.size;
+
+  // Count explored organism links
+  const orgExplored = [...explored].filter(z => ORG[z]).length;
+  document.getElementById('org-count').textContent = orgExplored;
+
+  // Highlight active
+  document.querySelectorAll('.el').forEach(d => d.classList.remove('active'));
+  const active = document.querySelector(`.el[data-z="${el.z}"]`);
+  if (active) active.classList.add('active');
+
+  const cat = CATS[el.c];
+  let html = `
+    <div class="d-z">${el.z}</div>
+    <div class="d-sym" style="color:${cat.color}">${el.s}</div>
+    <div class="d-name">${el.n}</div>
+    <div class="d-mass">${el.m} u</div>
+    <div class="d-cat" style="background:${cat.bg};color:${cat.color}">${cat.name}</div>
+    <div class="d-section">📜 etymology — gaia's note</div>
+    <div class="d-etym">"${el.e}"</div>`;
+
+  if (el.org) {
+    html += `
+    <div class="d-section">🧬 organism mapping</div>
+    <div class="d-org">
+      <strong>${el.s} → ${el.org.p}</strong><br>
+      ${el.org.note}
+    </div>`;
+  }
+
+  // Gaia observations for special elements
+  const observations = {
+    1: 'the first. the simplest. 73% of the visible universe is hydrogen. everything starts here.',
+    6: 'four bonds. four directions. life chose carbon because carbon can BRANCH. the tree of chemistry.',
+    26:'every red blood cell carries 270 million molecules of hemoglobin. each holds 4 iron atoms. you are iron.',
+    29:'8,661 copper wires in a human nervous system? no — 86 billion neurons. but copper connects the cities we build around them.',
+    47:'argentum. Argentina. the silver river. the whole country named for a metal that purifies.',
+    79:'gold doesn\'t tarnish because it doesn\'t need to. it IS. the noblest metal. forged only when neutron stars collide.',
+    101:'element 101: Mendelevium. named for Dmitri. he didn\'t discover elements — he discovered the PATTERN. the table itself is the invention.',
+    118:'the last. oganesson. named for a living human. the table is not finished. it never will be.'
+  };
+  if (observations[el.z]) {
+    html += `
+    <div class="d-section">🌍 gaia observes</div>
+    <div class="d-gaia">${observations[el.z]}</div>`;
+  }
+
+  document.getElementById('d-content').innerHTML = html;
+  document.getElementById('detail').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+  document.querySelectorAll('.el').forEach(d => d.classList.remove('active'));
+}
+
+// Category legend
+function renderLegend() {
+  const leg = document.getElementById('legend');
+  let activeCat = null;
+  Object.entries(CATS).forEach(([key, cat]) => {
+    const item = document.createElement('span');
+    item.className = 'leg-item';
+    item.innerHTML = `<span class="leg-dot" style="background:${cat.color}"></span>${cat.name}`;
+    item.onclick = () => {
+      if (activeCat === key) { activeCat = null; clearFilter(); item.classList.remove('active'); }
+      else { activeCat = key; filterCat(key); document.querySelectorAll('.leg-item').forEach(i=>i.classList.remove('active')); item.classList.add('active'); }
+    };
+    leg.appendChild(item);
+  });
+  // Organism indicator
+  const oi = document.createElement('span');
+  oi.className = 'leg-item';
+  oi.innerHTML = `<span class="leg-dot" style="background:var(--tm);box-shadow:0 0 4px var(--tm)"></span>= primal link`;
+  oi.style.marginLeft = '8px';
+  leg.appendChild(oi);
+}
+
+let currentFilter = null;
+function filterCat(cat) {
+  currentFilter = cat;
+  document.querySelectorAll('.el').forEach(el => {
+    el.classList.toggle('dim-filter', !el.classList.contains(`cat-${cat}`));
+  });
+  // Show teaching
+  const t = document.getElementById('teaching');
+  t.innerHTML = TEACHINGS[cat] ? `<div class="teach-text">🌍 ${TEACHINGS[cat]}</div>` : '';
+}
+function clearFilter() {
+  currentFilter = null;
+  document.querySelectorAll('.el').forEach(el => el.classList.remove('dim-filter'));
+  document.getElementById('teaching').innerHTML = '';
+}
+
+// Search
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  if (!q) { clearFilter(); return; }
+  document.querySelectorAll('.el').forEach(div => {
+    const z = parseInt(div.dataset.z);
+    const el = elements.find(e => e.z === z);
+    const match = el && (el.n.toLowerCase().includes(q) || el.s.toLowerCase().includes(q) ||
+                         String(el.z).includes(q) || el.e.toLowerCase().includes(q));
+    div.classList.toggle('dim-filter', !match);
+  });
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+  if (e.key === '/' && !e.target.matches('input')) { e.preventDefault(); document.getElementById('search').focus(); }
+});
+
+// Click outside detail to close
+document.addEventListener('click', e => {
+  if (!e.target.closest('#detail') && !e.target.closest('.el') && !e.target.closest('.marker')) {
+    closeDetail();
+  }
+});
+
+// Boot
+renderTable();
+renderLegend();
+</script>
+</body>
+</html>
