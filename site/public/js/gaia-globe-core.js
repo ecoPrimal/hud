@@ -6375,6 +6375,7 @@ window.G = {
     '/data/gaia-toolkit.json', '/data/trial-plasmid.json', '/data/lessons.json',
     '/data/identity-z.json', '/data/consent-bioethics.json', '/data/hear-self.json',
     '/data/phone-local-wan.json', '/data/slag-metallurgy.json',
+    '/data/null-face-cursor.json',
     '/data/medial-lateral-scatter.json', '/data/gumshoe-clutch-map.json',
     '/data/civil-mine-zk-proof.json', '/data/racket-case-wide-deep.json',
     '/data/gaia-campus-detroit.json', '/data/encyclopedia-detroit.json',
