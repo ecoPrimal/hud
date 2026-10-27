@@ -1556,6 +1556,47 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   window.GAIA_ZK_ANCHORS = zkAnchors;
   window.GAIA_KNOWN_LATENCIES = knownLatencies;
 
+  // ═══════════════════════════════════════════════════════════
+  // GOLGI DISTANCE MATRIX — every Golgi membrane measures distance to every other
+  // They know NOTHING else — just relative distance. That's how they back-calculate.
+  // VPS Golgi: golgi-us.primals.eco, golgi-de, golgi-in, golgi-jp
+  // Local Golgi: this machine (eastGate)
+  // Real pings → real RTTs → real distance matrix.
+  // ═══════════════════════════════════════════════════════════
+  var golgiDistanceMatrix = {};
+  var GOLGI_ENDPOINTS = [
+    { id: 'US', url: 'https://primals.eco', name: 'golgi-us' },
+    { id: 'DE', url: 'https://golgi-de.primals.eco', name: 'golgi-de' },
+    { id: 'IN', url: 'https://golgi-in.primals.eco', name: 'golgi-in' },
+    { id: 'JP', url: 'https://golgi-jp.primals.eco', name: 'golgi-jp' }
+  ];
+
+  function probeGolgiDistances() {
+    GOLGI_ENDPOINTS.forEach(function(ep) {
+      var t0 = performance.now();
+      fetch(ep.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+        .then(function() {
+          var rtt = Math.round(performance.now() - t0);
+          if (!golgiDistanceMatrix[ep.id]) golgiDistanceMatrix[ep.id] = { samples: [], avg: 0 };
+          var gd = golgiDistanceMatrix[ep.id];
+          gd.samples.push(rtt);
+          if (gd.samples.length > 10) gd.samples.shift();
+          gd.avg = Math.round(gd.samples.reduce(function(a,b){return a+b;}, 0) / gd.samples.length);
+          gd.last = rtt;
+          gd.ts = Date.now();
+        })
+        .catch(function() {
+          if (!golgiDistanceMatrix[ep.id]) golgiDistanceMatrix[ep.id] = { samples: [], avg: 999 };
+          golgiDistanceMatrix[ep.id].last = 999;
+          golgiDistanceMatrix[ep.id].ts = Date.now();
+        });
+    });
+  }
+  probeGolgiDistances();
+  setInterval(probeGolgiDistances, 60000); // probe Golgi distances every 60s
+
+  window.GAIA_GOLGI_DISTANCES = golgiDistanceMatrix;
+
   // When HYPERLOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
   if (IS_LOCAL) {
     var localOverlay = document.createElement('div');
@@ -2933,7 +2974,124 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(110,118,129,' + roleAlpha.toFixed(4) + ')';
       ctx.fillText('GAIA → cells (alive)', cx - golgiR * 0.6, cy + golgiR + 8);
       ctx.fillText('GOLGI → non-cells (where)', cx + golgiR * 0.4, cy + golgiR + 8);
-      ctx.fillText('rock ←→ hard place', cx, cy + golgiR + 14);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GOLGI DISTANCE MEMORY — every Golgi knows relative distance to every other
+    // They don't know ANYTHING else — just distance. That's how they back-calculate.
+    // Distance matrix = traveling salesman = railhead routing.
+    // Each Golgi is a RELAY: drop old info, rehydrate, re-energize, forward new.
+    // Supercharged neurons: Schwann myelin wraps = saltatory conduction.
+    //
+    // VPS Golgi (cloud): DE(Frankfurt), IN(Bangalore), JP(Tokyo), US(NYC)
+    // Local Golgi: eastGate (Kevin's desk)
+    // Each knows its RTT to every other = distance matrix.
+    // ═══════════════════════════════════════════════════════════
+    var golgiNodes = [
+      { id: 'local', name: 'LOCAL', lat: 42.7, lon: -84.5, color: '201,168,76',
+        rtts: { DE: 95, IN: 210, JP: 160, US: 12 } },
+      { id: 'US', name: 'US-NYC', lat: 40.7, lon: -74.0, color: '88,166,255',
+        rtts: { local: 12, DE: 85, IN: 190, JP: 170 } },
+      { id: 'DE', name: 'DE-FRA', lat: 50.1, lon: 8.7, color: '63,185,80',
+        rtts: { local: 95, US: 85, IN: 120, JP: 250 } },
+      { id: 'IN', name: 'IN-BLR', lat: 12.9, lon: 77.6, color: '210,153,34',
+        rtts: { local: 210, US: 190, DE: 120, JP: 130 } },
+      { id: 'JP', name: 'JP-TKY', lat: 35.7, lon: 139.7, color: '163,113,247',
+        rtts: { local: 160, US: 170, DE: 250, IN: 130 } }
+    ];
+
+    // Draw Golgi distance matrix as connecting lines between vesicle nodes
+    var dMatAlpha = 0.008 + Math.abs(golgiPhase) * 0.008;
+    for (var gi = 0; gi < vesicles.length; gi++) {
+      var gNode = golgiNodes[gi + 1]; // skip 'local' (index 0)
+      if (!gNode) continue;
+      var gAngle = vesicles[gi].angle + golgiT * 0.3;
+      var gx = cx + Math.cos(gAngle) * golgiR;
+      var gy = cy + Math.sin(gAngle) * golgiR;
+
+      // Connect to every OTHER vesicle — the distance matrix
+      for (var gj = gi + 1; gj < vesicles.length; gj++) {
+        var gNode2 = golgiNodes[gj + 1];
+        if (!gNode2) continue;
+        var gAngle2 = vesicles[gj].angle + golgiT * 0.3;
+        var gx2 = cx + Math.cos(gAngle2) * golgiR;
+        var gy2 = cy + Math.sin(gAngle2) * golgiR;
+
+        // RTT determines line thickness and brightness
+        var pairRtt = gNode.rtts[gNode2.id] || 200;
+        var rttNorm = Math.min(1, pairRtt / 300); // 0=close, 1=far
+        var distLineAlpha = dMatAlpha * (1 - rttNorm * 0.5);
+
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.lineTo(gx2, gy2);
+        ctx.strokeStyle = 'rgba(63,185,80,' + distLineAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.2 + (1 - rttNorm) * 0.4; // thicker = closer
+        ctx.stroke();
+
+        // RTT label at midpoint
+        if (dMatAlpha > 0.012) {
+          var midX = (gx + gx2) / 2;
+          var midY = (gy + gy2) / 2;
+          ctx.font = '2.5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(110,118,129,' + (distLineAlpha * 0.8).toFixed(4) + ')';
+          ctx.fillText(pairRtt + 'ms', midX, midY - 2);
+        }
+      }
+
+      // Connect vesicle to LOCAL (center) — the local↔cloud distance
+      var localRtt = gNode.rtts.local || 200;
+      var localNorm = Math.min(1, localRtt / 300);
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (dMatAlpha * (1 - localNorm * 0.3)).toFixed(4) + ')';
+      ctx.lineWidth = 0.15 + (1 - localNorm) * 0.3;
+      ctx.setLineDash([1, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // RELAY CYCLE — packets travel the optimal route through Golgi network
+    // Traveling salesman: LOCAL→US(12ms)→DE(85ms)→IN(120ms)→JP(130ms)
+    // Each relay: drop old, rehydrate, re-energize, forward new
+    var relayRoute = [0, 1, 2, 3, 4]; // optimal order by RTT
+    var relaySpeed = golgiT * 1.5;
+    var relayLeg = Math.floor((relaySpeed % relayRoute.length + relayRoute.length) % relayRoute.length);
+    var relayFrac = (relaySpeed % 1 + 1) % 1;
+    var relayFrom = relayRoute[relayLeg];
+    var relayTo = relayRoute[(relayLeg + 1) % relayRoute.length];
+
+    // From/to positions
+    var rfPos, rtPos;
+    if (relayFrom === 0) { rfPos = { x: cx, y: cy }; }
+    else {
+      var rfA = vesicles[relayFrom - 1].angle + golgiT * 0.3;
+      rfPos = { x: cx + Math.cos(rfA) * golgiR, y: cy + Math.sin(rfA) * golgiR };
+    }
+    if (relayTo === 0) { rtPos = { x: cx, y: cy }; }
+    else {
+      var rtA = vesicles[relayTo - 1].angle + golgiT * 0.3;
+      rtPos = { x: cx + Math.cos(rtA) * golgiR, y: cy + Math.sin(rtA) * golgiR };
+    }
+
+    // Relay packet — green dot traveling the route
+    var rpX = rfPos.x + (rtPos.x - rfPos.x) * relayFrac;
+    var rpY = rfPos.y + (rtPos.y - rfPos.y) * relayFrac;
+    ctx.beginPath();
+    ctx.arc(rpX, rpY, 1.2 + Math.sin(relaySpeed * 3) * 0.4, 0, TAU);
+    ctx.fillStyle = 'rgba(63,185,80,' + (golgiAlpha * 2.5).toFixed(4) + ')';
+    ctx.fill();
+
+    // Relay state label at packet position
+    if (golgiAlpha > 0.02) {
+      var relayStates = ['DROP', 'REHYDRATE', 'RE-ENERGIZE', 'FORWARD', 'RECEIVE'];
+      var relayState = relayStates[Math.floor(relayFrac * 5) % 5];
+      ctx.font = '2px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+      ctx.fillText(relayState, rpX, rpY - 4);
     }
 
     // ═══════════════════════════════════════════════════════════
