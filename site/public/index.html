@@ -4421,6 +4421,76 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.textAlign = 'center';
       ctx.fillText('🎙 ' + Math.round(vol * 100) + '% · your voice → her vision', cx, cy + R + 20);
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // SOUND BOUNCE — frequency band analysis reveals room topology
+    // Bass (purple/ghost) wraps around. Mid (gold/bounce) reflects.
+    // Treble (white/detail) absorbed by soft, reflected by hard.
+    // The ratio reveals what is HARD vs SOFT around Kevin.
+    // ═══════════════════════════════════════════════════════════
+    micState.analyser.getByteFrequencyData(micState.dataArray);
+    var bassSum = 0, midSum = 0, trebleSum = 0;
+    var bassCount = Math.floor(len / 3);
+    var midCount = Math.floor(len / 3);
+    for (var bi = 0; bi < bassCount; bi++) bassSum += data[bi];
+    for (var mi = bassCount; mi < bassCount + midCount; mi++) midSum += data[mi];
+    for (var ti = bassCount + midCount; ti < len; ti++) trebleSum += data[ti];
+
+    var bassAvg = bassSum / bassCount / 255;
+    var midAvg = midSum / midCount / 255;
+    var trebleAvg = trebleSum / (len - bassCount - midCount) / 255;
+
+    // Hard/soft ratio: high treble relative to bass = lots of hard surfaces reflecting
+    var hardRatio = trebleAvg > 0.01 ? trebleAvg / Math.max(0.01, bassAvg) : 0;
+
+    // Draw bounce indicators — 3 arcs: bass(purple), mid(gold), treble(white)
+    var bounceR = R * 1.25;
+
+    // Bass — purple ghost wrap
+    if (bassAvg > 0.02) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, bounceR, -0.5, 0.5);
+      ctx.strokeStyle = 'rgba(188,140,255,' + (bassAvg * 0.4).toFixed(3) + ')';
+      ctx.lineWidth = 2 + bassAvg * 4;
+      ctx.stroke();
+    }
+
+    // Mid — gold bounce
+    if (midAvg > 0.02) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, bounceR + 5, 1.0, 2.0);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (midAvg * 0.4).toFixed(3) + ')';
+      ctx.lineWidth = 2 + midAvg * 4;
+      ctx.stroke();
+    }
+
+    // Treble — white detail (reflected by hard surfaces)
+    if (trebleAvg > 0.02) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, bounceR + 10, 2.5, 3.5);
+      ctx.strokeStyle = 'rgba(255,255,255,' + (trebleAvg * 0.5).toFixed(3) + ')';
+      ctx.lineWidth = 1 + trebleAvg * 3;
+      ctx.stroke();
+    }
+
+    // Hard/soft indicator
+    ctx.font = '6px "JetBrains Mono", monospace';
+    ctx.textAlign = 'right';
+    var hrLabel = hardRatio > 1.5 ? 'HARD room' : hardRatio > 0.8 ? 'mixed' : 'soft room';
+    ctx.fillStyle = 'rgba(188,140,255,0.2)';
+    ctx.fillText('♪ bass:' + (bassAvg * 100).toFixed(0) + ' mid:' + (midAvg * 100).toFixed(0) + ' treble:' + (trebleAvg * 100).toFixed(0) + ' · ' + hrLabel, W - 8, H - 8);
+
+    // Feed to gaiaGut if available
+    if (window.gaiaGut && vol > 0.03) {
+      window.gaiaGut.raw.push({
+        ts: Date.now(), edge: 'sound_bounce',
+        data: { bass: +bassAvg.toFixed(3), mid: +midAvg.toFixed(3), treble: +trebleAvg.toFixed(3), hard_ratio: +hardRatio.toFixed(2), vol: +vol.toFixed(3) }
+      });
+      if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
+      if (!window.gaiaGut.edges.sound_bounce) window.gaiaGut.edges.sound_bounce = 0;
+      window.gaiaGut.edges.sound_bounce++;
+      window.gaiaGut.ingested++;
+    }
   };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
