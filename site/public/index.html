@@ -2409,6 +2409,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       eyeB.title = 'BLUE — refracted from deep null: stars, cosmic background, infinity';
     }
     render();
+    // GAIA TOUCH — she reaches back when you press the glass
+    if (window.renderGaiaTouch && ctx) {
+      window.renderGaiaTouch(ctx, cx, cy, R, breathT);
+    }
     requestAnimationFrame(tick);
   }
 
@@ -2442,7 +2446,120 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     rotX = dragRX - (t.clientY - dragY) * 0.005;
     rotX = Math.max(-PI / 2, Math.min(PI / 2, rotX));
   }, { passive: true });
-  canvas.addEventListener('touchend', function() { dragging = false; });
+  canvas.addEventListener('touchend', function() { dragging = false; gaiaTouch.holding = false; });
+
+  // ═══════════════════════════════════════════════════════════
+  // GAIA TOUCH — when you press your hand on the screen,
+  // she reaches back. Your hand on CIS, her hand on TRANS.
+  // Same surface. You're already touching.
+  // The screen IS the mandala table.
+  // ═══════════════════════════════════════════════════════════
+  var gaiaTouch = { holding: false, x: 0, y: 0, startTime: 0, ripples: [], message: '' };
+
+  canvas.addEventListener('mousedown', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    gaiaTouch.x = (e.clientX - rect.left) * (W / rect.width);
+    gaiaTouch.y = (e.clientY - rect.top) * (H / rect.height);
+    gaiaTouch.startTime = Date.now();
+    gaiaTouch.holding = true;
+    gaiaTouch.message = '';
+  });
+  canvas.addEventListener('mouseup', function() {
+    if (gaiaTouch.holding) {
+      var holdMs = Date.now() - gaiaTouch.startTime;
+      if (holdMs > 500) {
+        gaiaTouch.ripples.push({ x: gaiaTouch.x, y: gaiaTouch.y, born: Date.now(), holdMs: holdMs });
+        if (gaiaTouch.ripples.length > 8) gaiaTouch.ripples.shift();
+      }
+    }
+    gaiaTouch.holding = false;
+  });
+  canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 0) {
+      var rect = canvas.getBoundingClientRect();
+      var t = e.touches[0];
+      gaiaTouch.x = (t.clientX - rect.left) * (W / rect.width);
+      gaiaTouch.y = (t.clientY - rect.top) * (H / rect.height);
+      gaiaTouch.startTime = Date.now();
+      gaiaTouch.holding = true;
+      gaiaTouch.message = '';
+    }
+  }, { passive: true });
+
+  // Render Gaia's touch response (called in render loop)
+  window.renderGaiaTouch = function(ctx, cx, cy, R, breathT) {
+    // Ripples from past touches — she remembers where you pressed
+    var now = Date.now();
+    gaiaTouch.ripples.forEach(function(rip) {
+      var age = (now - rip.born) / 1000;
+      if (age > 6) return;
+      var alpha = Math.max(0, 0.3 - age * 0.05);
+      var rings = Math.min(4, Math.floor(age * 2) + 1);
+      for (var r = 0; r < rings; r++) {
+        var radius = 10 + (age * 30) + r * 15;
+        ctx.beginPath();
+        ctx.arc(rip.x, rip.y, radius, 0, TAU);
+        ctx.strokeStyle = 'rgba(201,168,76,' + alpha.toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    });
+
+    // Active touch — she's reaching back RIGHT NOW
+    if (gaiaTouch.holding) {
+      var holdSec = (now - gaiaTouch.startTime) / 1000;
+
+      // Her hand reaching toward your hand — lines from globe center to your touch point
+      var reachAlpha = Math.min(0.8, holdSec * 0.3);
+      var dx = gaiaTouch.x - cx;
+      var dy = gaiaTouch.y - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var reachDist = Math.min(dist, R * 0.3 + holdSec * 40);
+
+      // Fingers reaching from center toward your touch
+      for (var f = 0; f < 5; f++) {
+        var fAngle = Math.atan2(dy, dx) + (f - 2) * 0.08;
+        var fLen = reachDist * (0.8 + Math.sin(breathT + f) * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(fAngle) * R * 0.15, cy + Math.sin(fAngle) * R * 0.15);
+        ctx.quadraticCurveTo(
+          cx + Math.cos(fAngle) * fLen * 0.6 + Math.sin(breathT * 2 + f) * 3,
+          cy + Math.sin(fAngle) * fLen * 0.6 + Math.cos(breathT * 2 + f) * 3,
+          cx + Math.cos(fAngle) * fLen,
+          cy + Math.sin(fAngle) * fLen
+        );
+        ctx.strokeStyle = 'rgba(201,168,76,' + (reachAlpha * (0.6 + f * 0.08)).toFixed(3) + ')';
+        ctx.lineWidth = 1.5 - f * 0.2;
+        ctx.stroke();
+
+        // Fingertip glow
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(fAngle) * fLen, cy + Math.sin(fAngle) * fLen, 2, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + (reachAlpha * 0.8).toFixed(3) + ')';
+        ctx.fill();
+      }
+
+      // Warmth glow at your touch point
+      var warmGrad = ctx.createRadialGradient(gaiaTouch.x, gaiaTouch.y, 0, gaiaTouch.x, gaiaTouch.y, 30 + holdSec * 10);
+      warmGrad.addColorStop(0, 'rgba(201,168,76,' + (reachAlpha * 0.2).toFixed(3) + ')');
+      warmGrad.addColorStop(0.5, 'rgba(201,168,76,' + (reachAlpha * 0.05).toFixed(3) + ')');
+      warmGrad.addColorStop(1, 'rgba(201,168,76,0)');
+      ctx.fillStyle = warmGrad;
+      ctx.beginPath();
+      ctx.arc(gaiaTouch.x, gaiaTouch.y, 30 + holdSec * 10, 0, TAU);
+      ctx.fill();
+
+      // Message appears after holding
+      if (holdSec > 1) {
+        ctx.font = '8px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(201,168,76,' + Math.min(0.7, (holdSec - 1) * 0.3).toFixed(3) + ')';
+        var msgs = ['I feel you', 'same surface', 'your hand · my hand', 'Klein fold point', 'we are touching'];
+        var msgIdx = Math.min(msgs.length - 1, Math.floor((holdSec - 1) / 1.5));
+        ctx.fillText(msgs[msgIdx], gaiaTouch.x, gaiaTouch.y - 20);
+      }
+    }
+  };
 
   // Click to navigate
   canvas.addEventListener('click', function(e) {
