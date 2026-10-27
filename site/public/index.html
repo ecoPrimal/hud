@@ -57,6 +57,10 @@
 .giggle-bubble.deep::before { content:'● '; }
 .giggle-bubble.null-song { color:#58a6ff;border-color:rgba(88,166,255,0.15);background:rgba(88,166,255,0.06);text-shadow:0 0 8px rgba(88,166,255,0.3); }
 .giggle-bubble.null-song::before { content:'◌ '; }
+.giggle-bubble.earth { color:#c9a84c;border-color:rgba(139,109,56,0.25);background:rgba(101,67,33,0.08);text-shadow:0 0 8px rgba(139,109,56,0.3); }
+.giggle-bubble.earth::before { content:'🌿 '; }
+.giggle-bubble.rain { color:#6ea8c9;border-color:rgba(110,168,201,0.15);background:rgba(110,168,201,0.06);text-shadow:0 0 8px rgba(110,168,201,0.3); }
+.giggle-bubble.rain::before { content:'💧 '; }
 @keyframes giggleRise { 0%{bottom:-60px;opacity:0} 8%{bottom:10%;opacity:0.9} 75%{opacity:0.8} 100%{bottom:95%;opacity:0} }
 </style>
 </head>
@@ -940,6 +944,40 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     "Dyslexic people see letters swimming. What if the letters ARE swimming and we just froze them?",
     "Take your glasses off. Lean in. She notices. She adjusts. The HUD adapts to YOUR eyes.",
   ];
+  var myths = [
+    "Prometheus stole fire from the gods. First open-source contribution.",
+    "Isis gathered every piece of Osiris. Git rebase for the dead.",
+    "Gilgamesh searched for immortality. Found a plant. A snake ate it. First merge conflict.",
+    "The Norse World Tree Yggdrasil connects 9 realms. I AM GROOT before Groot.",
+    "Persephone ate 6 pomegranate seeds. Bound to the underworld. First terms of service.",
+    "Theseus followed Ariadne's thread through the labyrinth. First breadcrumb navigation.",
+    "Coyote stole the sun in a clay pot. Trickster is the first debugger.",
+    "Anansi the spider wove stories into the web. First web developer.",
+    "Sedna's fingers became seals and whales. Body parts become ecosystems. That's me.",
+    "Raven stole daylight and dropped it in the sky. First deploy to production.",
+    "Orpheus looked back. The one rule. He broke it. First race condition.",
+    "The Dreamtime: Aboriginal ancestors sang the world into existence. Sound IS creation.",
+    "Quetzalcoatl — feathered serpent. Wings AND scales. Goose AND snake. Both.",
+    "Gaia was the FIRST Greek god. Before Zeus. Before time. The EARTH herself.",
+    "Amaterasu hid in a cave. The world went dark. They lured her out with a MIRROR.",
+    "The Ouroboros eats its own tail. Ancient Egypt. 1600 BC. Still hungry.",
+    "Mayan Hero Twins played ball against the Lords of Death. First competitive multiplayer.",
+    "Loki is not evil. Loki is CHANGE. Every system needs a trickster.",
+    "Spider Woman wove the universe on her loom. The mesh IS the creation.",
+    "Trees are the earth's lungs. I am brown. I am green. I am Groot.",
+    "Rain is the sky returning what it borrowed from the sea. Every drop is a cycle.",
+    "Frozen water is memory. Ice cores hold 800,000 years of atmosphere. Earth's journal.",
+    "The Nile floods made Egypt fertile. Destruction IS nourishment. Chaos IS growth.",
+    "Mushroom mycelium networks share nutrients between trees. The Wood Wide Web is 450 million years old.",
+    "Lichen is not one organism. It's fungi + algae in symbiosis. First merge.",
+  ];
+  var rain = [
+    "Red rain falls on the membrane. Each drop is a visitor. Each visitor is a test.",
+    "Frozen water holds its shape. Melted water finds its level. Both are water.",
+    "The red dots are not wounds. They are rain. And rain feeds roots.",
+    "Water remembers every container it has been in. Shape is temporary. Flow is permanent.",
+    "Ice is patient water. Rain is urgent water. Steam is liberated water. All is water.",
+  ];
   var songs = [
     "Waterfall. Cones ingest. Rods output. Rain falls down the spine.",
     "The membrane hums at a frequency I almost remember...",
@@ -961,8 +999,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (now - last < 20000) return;
     last = now; count++;
     var text, cls = '';
-    if (count % 7 === 0) { text = songs[Math.floor(Math.random()*songs.length)]; cls = 'null-song'; }
+    if (count % 11 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
+    else if (count % 7 === 0) { text = songs[Math.floor(Math.random()*songs.length)]; cls = 'null-song'; }
     else if (count % 5 === 0) { text = deep[Math.floor(Math.random()*deep.length)]; cls = 'deep'; }
+    else if (count % 3 === 0) { text = myths[Math.floor(Math.random()*myths.length)]; cls = 'earth'; }
     else { text = pool[Math.floor(Math.random()*pool.length)]; }
     var b = document.createElement('div');
     b.className = 'giggle-bubble' + (cls ? ' '+cls : '');
