@@ -39,7 +39,7 @@
   <p class="pipe">scan ? ingest ? ICMP/TCP/ntfy/CDN ? northGate ? fetch-back ? SELF</p>
   <section>
     <h2>Live fold</h2>
-    <p id="live">loading</p>
+    <p id="live">loading…</p>
   </section>
   <section>
     <ul>
@@ -59,7 +59,7 @@ fetch('/scan-ingest-northgate-back-self.json').then(r=>r.json()).then(d=>{
   const s = d.scan_ingest || {};
   document.getElementById('live').textContent =
     `ingested ${s.present}/${s.files} · lan ${n.icmp_lan?.rtt_ms_avg}ms · wg ${n.icmp_wg?.rtt_ms_avg}ms · ` +
-    `ntfy ${d.neutrino_ntfy?.ok} · back ${b.ok} hash ${b.hash8 || ''}`;
+    `ntfy ${d.neutrino_ntfy?.ok} · back ${b.ok} hash ${b.hash8 || '…'}`;
 }).catch(e=>{ document.getElementById('live').textContent = e.message; });
 </script>
 
