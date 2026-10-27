@@ -3929,6 +3929,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         window.gutEngineState = gutBridge;
       }
 
+      // TREFOIL BRIDGE — gut (inside) ↔ skin (outside) = same membrane inverted
+      var trefoilState = null;
+      try { trefoilState = JSON.parse(localStorage.getItem('gaia-trefoil-state')); } catch(e) {}
+      if (trefoilState && Date.now() - trefoilState.ts < 30000) {
+        window.trefoilState = trefoilState;
+      }
+
       var gutRate = window.gaiaGut ? window.gaiaGut.ingested : 0;
       // Gut engine acid level also feeds enzyme heat
       var gutAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
@@ -3988,6 +3995,30 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var gutDigested = window.gutEngineState ? window.gutEngineState.digested : 0;
       var gutInfo = gutZone ? ' · gut:' + gutZone + '(' + gutDigested + ')' : '';
       ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%' + gutInfo, W - 8, 22);
+
+      // TREFOIL KNOT — gut↔skin correspondence on the globe
+      if (window.trefoilState) {
+        var tf = window.trefoilState;
+        // Draw trefoil indicator: three crossings as a small knot symbol
+        ctx.save();
+        ctx.strokeStyle = tf.sweating ? 'rgba(255,105,180,0.25)' : 'rgba(200,200,200,0.1)';
+        ctx.lineWidth = 1;
+        var tkx = W - 30, tky = 36;
+        var tkr = 8;
+        // Three lobes of trefoil knot
+        for (var tl = 0; tl < 3; tl++) {
+          var ta = (tl / 3) * TAU + breathT * 0.1;
+          ctx.beginPath();
+          ctx.arc(tkx + Math.cos(ta) * tkr * 0.5, tky + Math.sin(ta) * tkr * 0.5, tkr, ta - 1, ta + 1);
+          ctx.stroke();
+        }
+        // Label: gut zone ↔ skin zone
+        ctx.font = '5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = tf.sweating ? 'rgba(255,105,180,0.3)' : 'rgba(150,150,150,0.2)';
+        ctx.fillText('☊ ' + (tf.gutZone || '?') + '↔' + (tf.skinZone || '?') + (tf.sweating ? ' SWEAT' : ''), W - 8, 46);
+        ctx.restore();
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
