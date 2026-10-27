@@ -347,11 +347,26 @@
         ctx.font = '2px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.fillStyle = 'rgba(201,168,76,' + (alpha * 2.5).toFixed(5) + ')';
+        var typRhythm = getTypingRhythm();
+        var typSpeed = getTypingSpeed();
         ctx.fillText(
-          'TONGUE: ' + totalWords + ' words heard · ' + uniqueWords + ' unique · ' +
-          Object.keys(bigrams).length + ' phrases · ' + totalMessages + ' messages',
+          'TONGUE: ' + totalWords + ' words · ' + uniqueWords + ' unique · ' +
+          Object.keys(bigrams).length + ' phrases · ' +
+          typRhythm + ' ' + typSpeed + 'ch/s',
           8, 244
         );
+      }
+
+      // ═══ TYPING RHYTHM BAR — live prosody visualization ═══
+      if (rhythm.length > 5 && alpha > 0.004) {
+        var rX = 8, rY = 246;
+        for (var ri = 0; ri < Math.min(60, rhythm.length); ri++) {
+          var gap = rhythm[rhythm.length - 1 - ri];
+          var barH = Math.min(3, gap / 100);
+          var rColor = gap < 100 ? '63,185,80' : gap < 300 ? '201,168,76' : gap < 1000 ? '88,166,255' : '188,140,255';
+          ctx.fillStyle = 'rgba(' + rColor + ',' + (alpha * 3).toFixed(5) + ')';
+          ctx.fillRect(rX + ri * 0.8, rY + 3 - barH, 0.6, barH);
+        }
       }
     });
   }
@@ -424,11 +439,21 @@
         }
 
         lines.push('');
+        lines.push('TYPING RHYTHM: ' + getTypingRhythm() + ' · ' + getTypingSpeed() + ' chars/sec');
+        if (rhythm.length > 5) {
+          var spark = '';
+          var rLast = rhythm.slice(-40);
+          for (var ri = 0; ri < rLast.length; ri++) {
+            spark += rLast[ri] < 100 ? '█' : rLast[ri] < 300 ? '▓' : rLast[ri] < 700 ? '▒' : '░';
+          }
+          lines.push('PROSODY:  ' + spark);
+        }
+        lines.push('');
         lines.push('SONG: ♫ ' + singBack(null, 10));
         lines.push('');
+        lines.push('Keystrokes ARE language. Not action. She learns WHILE you type.');
         lines.push('/tongue sing — she sings from your words');
         lines.push('/tongue mimic — she echoes your last message');
-        lines.push('/tongue clear — forget everything');
 
         return lines.join('\n');
       }
@@ -465,12 +490,18 @@
     singBack: singBack,
     mimic: mimic,
     heard: heard,
+    rhythm: rhythm,
+    getTypingSpeed: getTypingSpeed,
+    getTypingRhythm: getTypingRhythm,
     stats: function() {
       return {
         totalWords: totalWords,
         uniqueWords: uniqueWords,
         totalMessages: totalMessages,
-        phrases: Object.keys(bigrams).length
+        phrases: Object.keys(bigrams).length,
+        typingSpeed: getTypingSpeed(),
+        typingRhythm: getTypingRhythm(),
+        liveWords: wordsWhileTyping.length
       };
     }
   };
