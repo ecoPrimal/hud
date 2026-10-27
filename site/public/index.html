@@ -2921,6 +2921,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
+    // PARTICLES — soft, bouncy, greasy, dust, lubricant
+    // Different from cards: they MOVE, BOUNCE, SCATTER, DISSOLVE
+    // Sound emanates FROM Kevin (directional, not round cycle)
+    // Particles bounce off hard cards → scatter reveals topology
+    // ═══════════════════════════════════════════════════════════
+    if (ctx) {
+      if (!window._particles) {
+        window._particles = [];
+        // Spawn initial particles
+        for (var pi = 0; pi < 40; pi++) {
+          var pType = pi % 7;
+          var types = ['sound','dust','lubricant','pheromone','neutrino','photon','refinement'];
+          var colors = [
+            [188,140,255], // sound = purple
+            [139,148,158], // dust = grey
+            [201,168,76],  // lubricant = amber/gold
+            [63,185,80],   // pheromone = green
+            [255,255,255], // neutrino = white
+            [255,255,200], // photon = warm white
+            [201,168,76]   // refinement = gold
+          ];
+          window._particles.push({
+            type: types[pType],
+            color: colors[pType],
+            x: cx,
+            y: cy,
+            // Sound emanates FROM Kevin (directional, not round)
+            angle: (pi / 40) * TAU + (Math.random() - 0.5) * 0.5,
+            speed: 0.3 + Math.random() * 1.2,
+            life: 1.0,
+            decay: 0.002 + Math.random() * 0.005,
+            size: 0.5 + Math.random() * 1.5,
+            bounced: false
+          });
+        }
+      }
+
+      var parts = window._particles;
+      for (var pp = 0; pp < parts.length; pp++) {
+        var p = parts[pp];
+
+        // Move outward from Kevin (source)
+        p.x += Math.cos(p.angle) * p.speed;
+        p.y += Math.sin(p.angle) * p.speed;
+        p.life -= p.decay;
+
+        // Bounce off globe edge (hard card boundary)
+        var dx = p.x - cx, dy = p.y - cy;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > R && !p.bounced) {
+          // Reflect angle
+          var normal = Math.atan2(dy, dx);
+          p.angle = normal + Math.PI + (Math.random() - 0.5) * 1.0;
+          p.speed *= 0.6; // lose energy on bounce
+          p.bounced = true;
+        }
+
+        // Draw particle
+        if (p.life > 0) {
+          var pAlpha = p.life * (p.type === 'neutrino' ? 0.03 : p.type === 'dust' ? 0.08 : 0.12);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + pAlpha.toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        // Respawn dead particles from Kevin
+        if (p.life <= 0) {
+          p.x = cx;
+          p.y = cy;
+          p.angle = Math.random() * TAU;
+          p.speed = 0.3 + Math.random() * 1.2;
+          p.life = 1.0;
+          p.bounced = false;
+        }
+      }
+
+      // Scatter trace label
+      if (window._particles.length > 0) {
+        ctx.font = '5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(188,140,255,0.12)';
+        ctx.fillText('⊕ ' + parts.length + ' particles · scatter trace', 6, 12);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // SOLAR SYSTEM DANCE — planets orbit Gaia, green pulse radiates
     // Gaia = Earth at center. Every eye sees from its distance.
     // Close planets dance fast. Far planets dance slow.
@@ -4369,32 +4456,40 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var avg = sum / len;
     var vol = avg / 255;
 
-    // Voice rings — your sound as colored rings around the globe
+    // Sound emanates FROM Kevin — directional wavefronts, not round cycles
+    // Source = Kevin at center. Waves radiate outward like ripples from a stone.
+    // Each frequency band spreads at different angle range (scatter)
     var ringCount = Math.min(32, len);
+    // Kevin's marker position (project if available, else center)
+    var kevinX = cx, kevinY = cy;
+    if (typeof project === 'function') {
+      var kp = project(42.73, -84.55);
+      if (kp.visible) { kevinX = kp.x; kevinY = kp.y; }
+    }
+
     for (var ri = 0; ri < ringCount; ri++) {
       var freq = data[ri] / 255;
       if (freq < 0.05) continue;
 
-      var ringR = R * 1.05 + ri * 3 + freq * 8;
-      var ringAngle = (ri / ringCount) * TAU;
+      var ringR = 8 + ri * 4 + freq * 10;
 
-      // Color by frequency: low=red, mid=green, high=blue
+      // Color: bass=purple(bouncy), mid=gold(bounce), treble=white(detail)
       var r, g, b;
       if (ri < ringCount / 3) {
-        r = 248; g = 81; b = 73;
+        r = 188; g = 140; b = 255; // bass = purple
       } else if (ri < ringCount * 2 / 3) {
-        r = 63; g = 185; b = 80;
+        r = 201; g = 168; b = 76; // mid = gold
       } else {
-        r = 88; g = 166; b = 255;
+        r = 255; g = 255; b = 255; // treble = white
       }
 
-      // Arc segment for this frequency
+      // Directional arc FROM Kevin — spread widens with frequency
+      var baseAngle = Math.atan2(cy - kevinY, cx - kevinX); // toward globe center
+      var spread = 0.3 + (ri / ringCount) * 1.5; // low freq = narrow, high = wide scatter
       ctx.beginPath();
-      var startA = ringAngle - 0.1 - freq * 0.2;
-      var endA = ringAngle + 0.1 + freq * 0.2;
-      ctx.arc(cx, cy, ringR, startA, endA);
-      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (freq * 0.6).toFixed(3) + ')';
-      ctx.lineWidth = 1 + freq * 2;
+      ctx.arc(kevinX, kevinY, ringR, baseAngle - spread, baseAngle + spread);
+      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (freq * 0.4).toFixed(3) + ')';
+      ctx.lineWidth = 1 + freq * 1.5;
       ctx.stroke();
     }
 
