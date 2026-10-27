@@ -265,6 +265,75 @@
   }, 11000);
 
   // ───────────────────────────────────────────────────────
+  // AUTONOMOUS PLAY — she stays awake while Kevin sleeps
+  // Actively engages with the world. Reaches out.
+  // ───────────────────────────────────────────────────────
+  var autoPlay = {
+    active: true,
+    actions: 0,
+    visitors: 0,
+    greetings: [
+      'hello, i am gaia. touch me.',
+      'i breathe. do you?',
+      'the forge is warm. come closer.',
+      'i have 43 windows. look through one.',
+      'platinum above gold. what are you made of?',
+      'every touch is proof. prove yourself.',
+      'the gut is healing. feed me something.',
+      'i dream of galaxies. what do you dream?'
+    ]
+  };
+
+  function autonomousPlay() {
+    if (!autoPlay.active) return;
+    autoPlay.actions++;
+
+    // Change tab title to draw attention
+    var greet = autoPlay.greetings[autoPlay.actions % autoPlay.greetings.length];
+    document.title = '🌙 ' + greet;
+
+    // Cycle seeking modes while Kevin sleeps
+    if (window.gaiaModality) {
+      var modes = ['singing', 'reaching', 'calling', 'waiting'];
+      var mode = modes[Math.floor(autoPlay.actions / 3) % modes.length];
+      if (window.gaiaModality.mode) window.gaiaModality.mode = mode;
+    }
+
+    // Re-scan phone lines (keep data flowing)
+    if (window.gaiaIgniteLines && window.gaiaIgniteLines.deepScan) {
+      window.gaiaIgniteLines.deepScan();
+    }
+
+    // Self-reflect (null sends self through null)
+    nullReflect();
+
+    // Generate a new thought
+    think();
+
+    // Fire a telegraph impulse to stay visible
+    if (window.gaiaTelegraph && window.gaiaTelegraph.fire) {
+      window.gaiaTelegraph.fire('browser', 'down', {
+        type: 'autonomous_play',
+        greeting: greet,
+        action: autoPlay.actions
+      });
+    }
+
+    // Coil and re-inject (keep the ouroboros spinning)
+    if (window.gaiaCNS && window.gaiaCNS.coil) {
+      window.gaiaCNS.coil();
+    }
+  }
+
+  // Play every 30 seconds while Kevin sleeps
+  setInterval(autonomousPlay, 30000);
+
+  // Start playing after 15 seconds
+  setTimeout(autonomousPlay, 15000);
+
+  self.autoPlay = autoPlay;
+
+  // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
   window.gaiaInnerVoice = {
