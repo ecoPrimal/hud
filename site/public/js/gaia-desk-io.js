@@ -130,15 +130,20 @@
     opts = opts || {};
     var isHuman = sender === 'human';
     var div = document.createElement('div');
+
+    // Green bubbles STAY INSIDE the membrane — Gaia's thought bubbles.
+    // They have inward rounded corners and subtle inner glow.
+    // Human bubbles poke FROM OUTSIDE — hot, red-tinged, enzyme-seeking.
     div.style.cssText = 'padding:4px 8px;border-radius:8px;max-width:90%;font-size:10px;line-height:1.4;word-break:break-word;animation:fadeIn 0.3s ease;' +
       (isHuman
-        ? 'align-self:flex-end;background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);color:#8db9e8;'
-        : 'align-self:flex-start;background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.15);color:#7cc08a;');
+        ? 'align-self:flex-end;background:rgba(248,81,73,0.04);border:1px solid rgba(248,81,73,0.12);color:#e8a08d;box-shadow:inset 0 0 6px rgba(248,81,73,0.05);'
+        : 'align-self:flex-start;background:rgba(63,185,80,0.04);border:1px solid rgba(63,185,80,0.1);color:#7cc08a;box-shadow:inset 0 0 8px rgba(63,185,80,0.06);');
 
-    // Sender label
+    // Sender label — human = hot Na⁺, Gaia = cool K⁺ (stays inside)
     var label = document.createElement('div');
-    label.style.cssText = 'font-size:7px;color:#555;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.05em;';
-    label.textContent = isHuman ? 'Na⁺ kevin' : '🌍 K⁺ gaia';
+    label.style.cssText = 'font-size:7px;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.05em;' +
+      (isHuman ? 'color:#f85149;' : 'color:#3fb950;');
+    label.textContent = isHuman ? '🔥 Na⁺ kevin' : '🫧 K⁺ gaia (inside membrane)';
     div.appendChild(label);
 
     // Message body
@@ -206,6 +211,11 @@
 
       addDeskMessage('gaia', resp, { rarity: rarity });
 
+      // Gaia responding = K⁺ outflow = cooling
+      if (window.GAIA_DRINK) {
+        window.GAIA_DRINK('K-out', 0.5);
+      }
+
       // SUBSTANCE — fetch real data, give a real follow-up
       Promise.all([
         fetch('/data/heartbeat.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
@@ -245,9 +255,14 @@
     deskInput.value = '';
     deskInput.style.height = 'auto';
 
-    // Na⁺ through interlayer
+    // Na⁺ through interlayer — HOT signal
     if (window.GAIA_INTERLAYER) {
       window.GAIA_INTERLAYER.push('desk-msg', 'Na', { text: text, words: text.split(/\s+/).length });
+    }
+
+    // EAT — human message = heat through the membrane
+    if (window.GAIA_EAT) {
+      window.GAIA_EAT('message', 1.0 + text.split(/\s+/).length * 0.2);
     }
 
     // Gut-brain channel
@@ -306,7 +321,14 @@
     }
     if (deskIons && window.GAIA_INTERLAYER) {
       var stats = window.GAIA_INTERLAYER.stats;
-      if (stats) deskIons.textContent = 'Na⁺' + (stats.Na || 0) + ' K⁺' + (stats.K || 0);
+      var tempStr = '';
+      if (window.GAIA_THERMO) {
+        var t = window.GAIA_THERMO;
+        tempStr = ' · ' + t.coreTemp.toFixed(1) + '°';
+        if (t.sweating) tempStr += '🔥';
+        else if (t.shivering) tempStr += '❄';
+      }
+      if (stats) deskIons.textContent = 'Na⁺' + (stats.Na || 0) + ' K⁺' + (stats.K || 0) + tempStr;
     }
   }, 2000);
 
