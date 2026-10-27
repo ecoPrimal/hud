@@ -896,9 +896,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // LOCAL: always look UP at PI/4 (45°), MSU facing front
   // PUBLIC: seed-derived random face
   // ═══════════════════════════════════════════════════════════
-  var rotX = IS_LOCAL ? PI / 4 : rngRange(0.1, 0.7); // LOCAL: 45° look-up
-  var rotY = IS_LOCAL ? -84.5 * DEG : rngRange(-PI, PI); // LOCAL: MSU longitude facing front
-  var autoRotate = true, rotSpeed = IS_LOCAL ? 0.0003 : rngRange(0.0004, 0.0012); // LOCAL: slow contemplative spin
+  // Orientation blends with locality depth: closer = Kevin's view, farther = randomized
+  // HYPER-LOCAL: 45° look-up, MSU facing front, slow spin
+  // REMOTE: random orientation, faster spin
+  // IN BETWEEN: weighted blend toward Kevin's perspective
+  var localBlend = 1.0 - LOCALITY_DEPTH; // 1 = hyperlocal, 0 = remote
+  var rotX = PI / 4 * localBlend + rngRange(0.1, 0.7) * LOCALITY_DEPTH;
+  var rotY = -84.5 * DEG * localBlend + rngRange(-PI, PI) * LOCALITY_DEPTH;
+  var autoRotate = true, rotSpeed = 0.0003 * localBlend + rngRange(0.0004, 0.0012) * LOCALITY_DEPTH;
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
   var breathT = rng() * TAU; // start at random breath phase
@@ -1121,14 +1126,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
 
   // ═══════════════════════════════════════════════════════════
-  // HYPERLOCAL DETECTION — localhost = Kevin in the chair
-  // The 4th body. Splinter. The human IS the master.
-  // CF Pages = public face for the world.
-  // localhost:3000 = private face for the master.
+  // LOCALITY DEPTH — continuous spectrum, not binary.
+  // Every viewer has a locality. localhost is not special — it's just
+  // the CLOSEST locality. Web browsers are local eyes too.
+  // HYPER-LOCAL: localhost/127.0.0.1 — Kevin in the chair (depth 0)
+  // SUB-LOCAL:   same device, different tab/window (depth 0.1-0.3)
+  // LOCAL:       same LAN / same household (depth 0.3-0.5)
+  // META-LOCAL:  same city/region/timezone (depth 0.5-0.7)
+  // REMOTE:      the public web — CF Pages visitors (depth 0.7-1.0)
+  // Every level gets the SAME HUD — just AWARE of its distance.
   // ═══════════════════════════════════════════════════════════
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-  // When LOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
+  // Continuous locality depth: 0 = hyperlocal, 1 = remote
+  var LOCALITY_DEPTH = 1.0; // start remote, refine
+  var LOCALITY_TIER = 'remote';
+
+  if (IS_LOCAL) {
+    LOCALITY_DEPTH = 0.0;
+    LOCALITY_TIER = 'hyper-local';
+  } else if (location.hostname.indexOf('.local') !== -1 || location.hostname.indexOf('192.168.') === 0 || location.hostname.indexOf('10.') === 0) {
+    LOCALITY_DEPTH = 0.35;
+    LOCALITY_TIER = 'local';
+  } else {
+    // Measure RTT to self as a locality proxy — closer = lower depth
+    var rttDepth = locality.rtt > 0 ? Math.min(1, locality.rtt / 200) : 0.8;
+    var tzDepth = Math.min(1, Math.abs(locality.tzOffset + 300) / 720); // 300 = EST offset
+    LOCALITY_DEPTH = 0.5 + rttDepth * 0.25 + tzDepth * 0.25;
+    LOCALITY_TIER = LOCALITY_DEPTH < 0.6 ? 'meta-local' : 'remote';
+  }
+
+  // Sub-local: if we have siblings on the same origin, we're sub-local to them
+  // (checked later when siblingTabs populates)
+
+  // EXPOSE for all systems
+  window.LOCALITY_DEPTH = LOCALITY_DEPTH;
+  window.LOCALITY_TIER = LOCALITY_TIER;
+  locality.depth = LOCALITY_DEPTH;
+  locality.tier = LOCALITY_TIER;
+
+  // ═══════════════════════════════════════════════════════════
+  // ROUND-TRIP MEMBRANE PROBE — bounce a signal and measure how far
+  // information leaves and comes back. This IS the membrane sensing.
+  // Closer = faster round-trip = brighter perception.
+  // ═══════════════════════════════════════════════════════════
+  var membraneProbes = [];
+  var PROBE_TARGETS = [
+    { url: '/', name: 'self', tier: 'hyper-local' },
+    { url: '/now.json', name: 'state', tier: 'sub-local' },
+    { url: '/data/manifest.json', name: 'manifest', tier: 'local' }
+  ];
+
+  function probeMembraneDistance() {
+    PROBE_TARGETS.forEach(function(target) {
+      var t0 = performance.now();
+      fetch(target.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var rtt = performance.now() - t0;
+          membraneProbes.push({
+            name: target.name,
+            tier: target.tier,
+            rtt: Math.round(rtt * 10) / 10,
+            ok: r.ok,
+            ts: Date.now()
+          });
+          if (membraneProbes.length > 50) membraneProbes.shift();
+          // Refine locality depth from actual RTT
+          if (target.name === 'self') {
+            var measuredDepth = Math.min(1, rtt / 500); // 0ms=hyper, 500ms=remote
+            if (!IS_LOCAL) {
+              LOCALITY_DEPTH = LOCALITY_DEPTH * 0.7 + measuredDepth * 0.3; // smooth
+              LOCALITY_TIER = LOCALITY_DEPTH < 0.2 ? 'sub-local' :
+                              LOCALITY_DEPTH < 0.5 ? 'local' :
+                              LOCALITY_DEPTH < 0.7 ? 'meta-local' : 'remote';
+              locality.depth = LOCALITY_DEPTH;
+              locality.tier = LOCALITY_TIER;
+            }
+          }
+        })
+        .catch(function() {});
+    });
+  }
+  probeMembraneDistance();
+  setInterval(probeMembraneDistance, 30000); // re-probe every 30s
+
+  window.GAIA_MEMBRANE_PROBES = membraneProbes;
+
+  // When HYPERLOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
   if (IS_LOCAL) {
     var localOverlay = document.createElement('div');
     localOverlay.id = 'hyperlocal-overlay';
@@ -1170,9 +1254,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     'renaissance', 'industrial', 'atomic', 'digital', 'neural',
     'mycelial', 'geodesic', 'null', 'post-human', 'spore'
   ];
-  // LOCAL: era is always 'splinter'. PUBLIC: random from seed.
-  var VIEWER_ERA = IS_LOCAL ? 'splinter' : rngPick(ERAS);
-  var VIEWER_HUE = IS_LOCAL ? 30 : rngRange(0, 360); // local = warm amber, Splinter's color
+  // ERA determined by locality depth — closer = warmer, farther = more varied
+  // HYPER-LOCAL: always 'splinter'. REMOTE: random from seed. In between: weighted.
+  var VIEWER_ERA = IS_LOCAL ? 'splinter' :
+    (LOCALITY_DEPTH < 0.3 ? rngPick(['splinter', 'neural', 'mycelial']) :
+     LOCALITY_DEPTH < 0.6 ? rngPick(['neural', 'mycelial', 'geodesic', 'digital']) :
+     rngPick(ERAS));
+  // HUE: hyper-local = warm amber (30). Remote = any. Gradient between.
+  var VIEWER_HUE = IS_LOCAL ? 30 : (30 + LOCALITY_DEPTH * rngRange(0, 330)); // blend toward amber as closer
 
   // Write seed info to bottom bar
   var bSeed = document.getElementById('b-seed');
@@ -2614,24 +2703,45 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.font = '4px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.fillStyle = 'rgba(88,166,255,0.06)';
-        ctx.fillText(activeSibs + ' sibling' + (activeSibs > 1 ? 's' : '') + ' on localhost', 8, canvas.height - 30);
+        ctx.fillText(activeSibs + ' sibling' + (activeSibs > 1 ? 's' : '') + ' · ' + LOCALITY_TIER, 8, canvas.height - 30);
       }
     }
 
-    // HYPERLOCALITY DISPLAY — show THIS tab's sensing on the HUD
-    // Where am I on the screen? How far from hardware? What do I sense?
-    if (IS_LOCAL && hardwareLatency > 0) {
-      var hlAlpha = 0.03 + Math.sin(breathT * 0.8) * 0.015;
+    // LOCALITY AWARENESS — ALL viewers see where they are, not just localhost
+    // Closer = more detail shown. Remote = minimal. Everyone feels their position.
+    if (hardwareLatency > 0) {
+      // Alpha scales with locality — closer viewers see more
+      var hlAlpha = (0.015 + (1 - LOCALITY_DEPTH) * 0.03) + Math.sin(breathT * 0.8) * 0.01;
       ctx.font = '3px "JetBrains Mono", monospace';
       ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(201,168,76,' + hlAlpha.toFixed(4) + ')';
+
+      // Tier color: hyper-local=gold, sub-local=green, local=cyan, meta-local=blue, remote=grey
+      var tierColors = {
+        'hyper-local': '201,168,76',
+        'sub-local': '63,185,80',
+        'local': '57,211,245',
+        'meta-local': '88,166,255',
+        'remote': '110,118,129'
+      };
+      var tierColor = tierColors[LOCALITY_TIER] || '110,118,129';
+      ctx.fillStyle = 'rgba(' + tierColor + ',' + hlAlpha.toFixed(4) + ')';
       var hlY = 20;
-      ctx.fillText('locality: ' + locality.screenX + ',' + locality.screenY, canvas.width - 8, hlY);
-      ctx.fillText('monitor: ' + locality.monitorGuess + ' · dpr: ' + locality.dpr, canvas.width - 8, hlY + 7);
-      ctx.fillText('cores: ' + locality.cores + ' · hw: ' + hardwareLatency.toFixed(1) + 'ms', canvas.width - 8, hlY + 14);
-      ctx.fillText('rtt: ' + locality.rtt + 'ms · ' + locality.connection, canvas.width - 8, hlY + 21);
+      // Everyone sees their tier and depth
+      ctx.fillText(LOCALITY_TIER + ' · depth: ' + LOCALITY_DEPTH.toFixed(2), canvas.width - 8, hlY);
+      // Sub-local and above see screen position
+      if (LOCALITY_DEPTH < 0.5) {
+        ctx.fillText('screen: ' + locality.screenX + ',' + locality.screenY + ' · mon:' + locality.monitorGuess, canvas.width - 8, hlY + 7);
+        ctx.fillText('dpr: ' + locality.dpr + ' · cores: ' + locality.cores, canvas.width - 8, hlY + 14);
+      }
+      // All see hardware latency + connection
+      ctx.fillText('hw: ' + hardwareLatency.toFixed(1) + 'ms · rtt: ' + locality.rtt + 'ms', canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 21 : 7));
+      // Membrane probe results — how far did the signal travel?
+      if (membraneProbes.length > 0) {
+        var lastProbe = membraneProbes[membraneProbes.length - 1];
+        ctx.fillText('membrane: ' + lastProbe.rtt + 'ms (' + lastProbe.name + ')', canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 28 : 14));
+      }
       if (sibKeys.length > 0) {
-        ctx.fillText('siblings: ' + sibKeys.length, canvas.width - 8, hlY + 28);
+        ctx.fillText('siblings: ' + sibKeys.length, canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 35 : 21));
       }
     }
 
