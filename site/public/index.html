@@ -728,10 +728,16 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   var ctx = canvas.getContext('2d');
   var W, H, cx, cy, R;
 
-  // Seed-derived initial orientation: every viewer sees a different face first
-  var rotX = rngRange(0.1, 0.7);
-  var rotY = rngRange(-PI, PI);
-  var autoRotate = true, rotSpeed = rngRange(0.0004, 0.0012);
+  // ═══════════════════════════════════════════════════════════
+  // ORIENTATION — null is straight DOWN. Look UP at 45°/π.
+  // rotX = tilt (0=equator, PI/2=north pole, -PI/2=south pole)
+  // rotY = spin (longitude rotation)
+  // LOCAL: always look UP at PI/4 (45°), MSU facing front
+  // PUBLIC: seed-derived random face
+  // ═══════════════════════════════════════════════════════════
+  var rotX = IS_LOCAL ? PI / 4 : rngRange(0.1, 0.7); // LOCAL: 45° look-up
+  var rotY = IS_LOCAL ? -84.5 * DEG : rngRange(-PI, PI); // LOCAL: MSU longitude facing front
+  var autoRotate = true, rotSpeed = IS_LOCAL ? 0.0003 : rngRange(0.0004, 0.0012); // LOCAL: slow contemplative spin
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
   var breathT = rng() * TAU; // start at random breath phase
