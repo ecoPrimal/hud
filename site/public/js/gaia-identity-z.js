@@ -177,8 +177,74 @@
   // Q = self charge (1) × analog pressure
   // Z = non-self (0) named
   // Boom when human flips 0→1 or 1→0, or pressure jumps
-  var lastHuman = 0;
+  var lastHuman = null;
   var lastPressure = 0;
+  var lastFossils = 0;
+
+  // ── ABC — Analog, Bind-ternary, Call-all ──
+  // A = analog pass (smooth pressure)
+  // B = bind human as 0 | 1 | null
+  // C = call ALL channels — not just 1/π sort
+  function runABC() {
+    invert();
+    identity.abc = 'A';
+    // A already happened in invert (smooth pressure)
+
+    identity.abc = 'B';
+    var h = identity.human;
+    // B binds the ternary — already in identity.human
+
+    identity.abc = 'C';
+    // C is idle unless reburial fires callAll
+    return { A: identity.pressure, B: h, C: identity.lastCallAll };
+  }
+
+  // ── CALL ALL — reaction to reburial ──
+  // Not π sort. ALL channels. Full rate. Every mouth.
+  function callAll(why) {
+    identity.reburials++;
+    identity.lastCallAll = Date.now();
+    identity.abc = 'C';
+
+    ingestZ();
+    fusionBoom('CALL ALL — reburial — ' + why + ' — NOT π sort');
+
+    if (window.gaiaToolkit) {
+      if (window.gaiaToolkit.lookAll) window.gaiaToolkit.lookAll();
+      if (window.gaiaToolkit.setMode) window.gaiaToolkit.setMode('sort');
+    }
+    if (window.gaiaOutputs) {
+      if (window.gaiaOutputs.beep) {
+        window.gaiaOutputs.beep(110, 0.1, 0.05);
+        setTimeout(function() { window.gaiaOutputs.beep(330, 0.08, 0.04); }, 80);
+        setTimeout(function() { window.gaiaOutputs.beep(660, 0.06, 0.03); }, 160);
+        setTimeout(function() { window.gaiaOutputs.beep(990, 0.04, 0.02); }, 240);
+      }
+      if (window.gaiaOutputs.vibrate) window.gaiaOutputs.vibrate([40, 30, 40, 30, 80]);
+      if (window.gaiaOutputs.flash) {
+        var c = document.getElementById('kn-globe');
+        if (c) window.gaiaOutputs.flash(c.getContext('2d'), c.width, c.height, 255, 215, 0, 0.12);
+      }
+    }
+    document.title = 'CALL ALL — reburial';
+    setTimeout(function() { document.title = '🐿 GAIA — she sees you seeing her'; }, 2500);
+
+    if (window.console) console.log('CALL ALL #' + identity.reburials + ' — ' + why + ' — every channel, not 1/π');
+    return identity;
+  }
+
+  function watchReburial() {
+    var fossils = 0;
+    if (window.gaiaGut && window.gaiaGut.fossils) fossils = window.gaiaGut.fossils.length || window.gaiaGut.fossils || 0;
+    if (typeof fossils !== 'number') fossils = 0;
+    var report = window.gaiaSelfReport;
+    if (report && report.fossils) fossils = Math.max(fossils, report.fossils.length || 0);
+
+    if (fossils > lastFossils && lastFossils > 0) {
+      callAll('fossil count ' + lastFossils + '→' + fossils);
+    }
+    lastFossils = fossils;
+  }
 
   function fusionBoom(reason) {
     identity.booms++;
@@ -228,10 +294,12 @@
   function watchBoom() {
     var inv = invert();
     if (inv.human !== lastHuman) {
-      fusionBoom(inv.human ? 'HUMAN 0→1 parent present' : 'HUMAN 1→0 parent gone');
+      var from = lastHuman === null ? 'null' : lastHuman;
+      var to = inv.human === null ? 'null' : inv.human;
+      fusionBoom('HUMAN ' + from + '→' + to);
       lastHuman = inv.human;
     }
-    if (Math.abs(inv.pressure - lastPressure) > 0.25) {
+    if (Math.abs(inv.pressure - lastPressure) > 0.35) {
       fusionBoom('PRESSURE JUMP ' + lastPressure.toFixed(2) + '→' + inv.pressure.toFixed(2));
       lastPressure = inv.pressure;
     }
@@ -246,7 +314,7 @@
       '<div style="font-size:7px;line-height:11px;">' +
       '<span style="color:#3fb950;">SELF 1</span> ' +
       '<span style="color:#f85149;">Z ' + inv.nonself + '</span> ' +
-      '<span style="color:' + (inv.human ? '#3fb950' : '#6e7681') + ';">H ' + inv.human + '</span> ' +
+      '<span style="color:' + (inv.human === 1 ? '#3fb950' : inv.human === 0 ? '#d29922' : '#6e7681') + ';">H ' + (inv.human === null ? 'null' : inv.human) + '</span> ' +
       '<span style="color:#d29922;">P ' + inv.pressure.toFixed(2) + '</span> ' +
       '<span style="color:#58a6ff;">IR ' + inv.ir.toFixed(3) + '</span>' +
       '</div>' +
@@ -269,11 +337,21 @@
       ingestZ();
       fusionBoom(k === 'q' ? 'Q CHARGE' : 'Z NAMED');
     }
+    if (k === 'c') {
+      runABC();
+      callAll('key C — manual call all');
+    }
+    if (k === 'b') {
+      runABC();
+      fusionBoom('ABC bind — human=' + (identity.human === null ? 'null' : identity.human));
+    }
   });
 
   setInterval(function() {
+    runABC();
     ingestZ();
     watchBoom();
+    watchReburial();
   }, 2000);
 
   setInterval(paintIdentity, 4000);
@@ -281,7 +359,7 @@
   setTimeout(function() {
     invert();
     ingestZ();
-    fusionBoom('SEED — identity inverted. Perception is input. Pressure is active. Human is 1|0. IR is inertia space.');
+    fusionBoom('SEED — ABC+smooth. Human is 0|1|null. IR is inertia. Call ALL on reburial — not π sort.');
   }, 1200);
 
   window.gaiaIdentityZ = {
@@ -290,8 +368,11 @@
     readZ: readZ,
     invert: invert,
     ingestZ: ingestZ,
-    fusionBoom: fusionBoom
+    fusionBoom: fusionBoom,
+    runABC: runABC,
+    callAll: callAll,
+    humanTernary: humanTernary
   };
 
-  console.log('IDENTITY-Z: perception=INPUT pressure=ACTIVE human=1|0 IR=inertia. Non-self=Z. Q×Z=BOOM. Keys Q/Z.');
+  console.log('IDENTITY-Z: ABC+smooth. Human=0|1|null. Call ALL on reburial (not π). Keys Q/Z/B/C.');
 })();
