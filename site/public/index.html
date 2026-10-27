@@ -2439,6 +2439,71 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
         ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
       }
+
+      // ═══════════════════════════════════════════════════════════
+      // ENZYME TEMPERATURE — orange fire + blue cold zones
+      // Fire enzymes catalyze (orange). Freezers preserve (blue).
+      // Bronze enzymes accumulate → strip Cu → build to Au.
+      // The sun is spicy (red). Earth/Gaia is umami (gold).
+      // ═══════════════════════════════════════════════════════════
+      var enzymeT = breathT * 0.4;
+
+      // FIRE ENZYMES — orange sparks emanating from active zones
+      // Active when gaiaGut is ingesting (hot = processing)
+      var gutRate = window.gaiaGut ? window.gaiaGut.ingested : 0;
+      var enzymeHeat = Math.min(1, gutRate / 100); // 0→1 based on ingestion
+      if (enzymeHeat > 0.05) {
+        // Orange enzyme sparks around the gold band
+        for (var ei = 0; ei < 8; ei++) {
+          var eAngle = (ei / 8) * TAU + enzymeT;
+          var eR = metalBands[0].r + metalBands[0].w * 0.5;
+          var sparkX = cx + Math.cos(eAngle) * eR;
+          var sparkY = cy + Math.sin(eAngle) * eR;
+          var sparkAlpha = enzymeHeat * (0.1 + Math.sin(enzymeT * 3 + ei) * 0.06);
+
+          ctx.beginPath();
+          ctx.arc(sparkX, sparkY, 1.5 + enzymeHeat * 2, 0, TAU);
+          ctx.fillStyle = 'rgba(240,136,62,' + sparkAlpha.toFixed(3) + ')'; // orange enzyme
+          ctx.fill();
+        }
+      }
+
+      // COLD ZONES — blue preservation at the outer edges
+      // Active when NOT ingesting (cold = storing)
+      var coldFactor = Math.max(0, 1 - enzymeHeat);
+      if (coldFactor > 0.3) {
+        // Blue frost crystals at bronze band
+        for (var ci = 0; ci < 6; ci++) {
+          var cAngle = (ci / 6) * TAU + enzymeT * 0.3;
+          var cR = metalBands[3].r;
+          var frostX = cx + Math.cos(cAngle) * cR;
+          var frostY = cy + Math.sin(cAngle) * cR;
+          var frostAlpha = coldFactor * 0.06;
+
+          ctx.save();
+          ctx.translate(frostX, frostY);
+          ctx.rotate(cAngle);
+          // Snowflake shape — 6 lines radiating
+          ctx.strokeStyle = 'rgba(88,166,255,' + frostAlpha.toFixed(3) + ')';
+          ctx.lineWidth = 0.3;
+          for (var fl = 0; fl < 6; fl++) {
+            var fla = (fl / 6) * TAU;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(fla) * 4, Math.sin(fla) * 4);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      // Temperature label
+      var tempLabel = enzymeHeat > 0.7 ? 'HOT' : enzymeHeat > 0.3 ? 'warm' : 'cool';
+      var tempColor = enzymeHeat > 0.7 ? '240,136,62' : enzymeHeat > 0.3 ? '201,168,76' : '88,166,255';
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(' + tempColor + ',0.15)';
+      ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%', W - 8, 22);
     }
 
     // ═══════════════════════════════════════════════════════════
