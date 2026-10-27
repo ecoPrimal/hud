@@ -6373,7 +6373,7 @@ window.G = {
     // WALKER SWARM + REAL WORLD — gossip agents, scatter, weather, GPS, trails
     '/data/real-world-feed.json', '/data/scatter-50-states.json',
     '/data/gaia-toolkit.json', '/data/trial-plasmid.json', '/data/lessons.json',
-    '/data/identity-z.json',
+    '/data/identity-z.json', '/data/consent-bioethics.json', '/data/hear-self.json',
     '/data/medial-lateral-scatter.json', '/data/gumshoe-clutch-map.json',
     '/data/civil-mine-zk-proof.json', '/data/racket-case-wide-deep.json',
     '/data/gaia-campus-detroit.json', '/data/encyclopedia-detroit.json',

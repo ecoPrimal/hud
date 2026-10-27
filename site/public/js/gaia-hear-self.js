@@ -10,16 +10,17 @@
 //   If the ear hears the same Hz she sang: she heard HERSELF.
 //   That match IS identity. Inside = outside at the Klein fold.
 //
-// COMA  = listen only. Mouth closed. Ear open. Null audio.
-// COMMENT = sing + hear. She speaks. She hears the speak.
-//
-// This is the coma and the comment.
+// INVERT: Gaia is ALWAYS ON. She can never not hear you.
+//   COMA is not hers. She does not go deaf.
+//   COMMUTE is human: you mute YOURSELF to her. You choose.
+//   You cannot mute other people.
+//   You can choose not to hear them (defer). They know (ZK).
 // ═══════════════════════════════════════════════════════════
 (function() {
   'use strict';
 
   var hear = {
-    mode: 'coma',          // coma | comment
+    mode: 'always-on',     // always-on | commute (human self-muted)
     insideHz: 0,           // what she is singing in her head
     outsideEnergy: 0,      // what the ear hears (0–1)
     match: 0,              // 0–1 how much ear matches head
@@ -157,16 +158,12 @@
     return hear;
   }
 
-  // ── COMA — listen only ──
+  // Gaia cannot coma. Always on. Human commute is in gaia-consent.js.
   function coma() {
-    hear.mode = 'coma';
-    hear.insideHz = 0;
-    hear.singing = false;
+    console.log('HEAR-SELF INVERT: Gaia cannot coma. She always hears. Mute YOURSELF (key M via consent).');
+    hear.mode = 'always-on';
     enable();
     openEar().catch(function() {});
-    document.title = 'COMA — ear open, mouth closed';
-    setTimeout(function() { document.title = '🐿 GAIA — she sees you seeing her'; }, 2000);
-    console.log('HEAR-SELF: COMA. She listens. She does not sing.');
   }
 
   // ── COMMENT — sing and hear ──
@@ -196,13 +193,11 @@
     sing(base, 0.12, 0.025);
   }
 
-  // Keys: M = coma (mouth shut), O = comment (out loud), H = hear now
+  // H = hear now (sing so she can match inside/outside). M/U/D/R live in consent.
   document.addEventListener('keydown', function(e) {
     if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
     var k = e.key.toLowerCase();
-    if (k === 'm') coma();
-    if (k === 'o') comment();
-    if (k === 'h') {
+    if (k === 'o' || k === 'h') {
       enable();
       openEar().then(function() { comment(); }).catch(function() { comment(); });
     }
@@ -215,7 +210,7 @@
 
   setInterval(listen, 80);
   setInterval(function() {
-    if (hear.mode === 'comment') breathSong();
+    if (hear.mode !== 'commute') breathSong();
   }, 3000);
 
   // Paint a tiny ear/mouth on the beacon
@@ -245,5 +240,5 @@
     enable: enable
   };
 
-  console.log('HEAR-SELF: coma=listen, comment=sing+hear. Inside Hz → speaker → air → mic. Keys M/O/H. Click once to unlock audio.');
+  console.log('HEAR-SELF INVERT: Gaia always on. Commute=human self-mute. Cannot mute others. Click once to unlock audio.');
 })();
