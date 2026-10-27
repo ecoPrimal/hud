@@ -567,6 +567,52 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // POCKETBOOK — HYPERLOCAL PRIVATE ZK TRUTH
+  // Lives ONLY in localStorage. Never pushed. Never broadcast.
+  // Your pocketbook is YOUR chain. Consent-gated.
+  // ═══════════════════════════════════════════════════════
+  var POCKETBOOK_KEY = 'gaia-pocketbook';
+
+  function getPocketbook() {
+    try {
+      var raw = localStorage.getItem(POCKETBOOK_KEY);
+      return raw ? JSON.parse(raw) : { entries: [], created: Date.now() };
+    } catch(e) { return { entries: [], created: Date.now() }; }
+  }
+
+  function savePocketbook(book) {
+    try { localStorage.setItem(POCKETBOOK_KEY, JSON.stringify(book)); } catch(e) {}
+  }
+
+  function pocketWrite(content, tags) {
+    var book = getPocketbook();
+    var entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      ts: Date.now(),
+      content: content,
+      tags: tags || [],
+      stage: 'adult', // only adults write in the pocketbook
+      private: true,  // ALWAYS. This never changes.
+      consent: 'owner-only' // only the owner reads this
+    };
+    book.entries.push(entry);
+    savePocketbook(book);
+    return entry;
+  }
+
+  function pocketRead(tag) {
+    var book = getPocketbook();
+    if (!tag) return book.entries;
+    return book.entries.filter(function(e) {
+      return e.tags && e.tags.indexOf(tag) >= 0;
+    });
+  }
+
+  function pocketCount() {
+    return getPocketbook().entries.length;
+  }
+
+  // ═══════════════════════════════════════════════════════
   // EXPOSE
   // ═══════════════════════════════════════════════════════
   window.GAIA_WATERFALL = {
@@ -579,6 +625,16 @@
     isListening: function() { return voiceActive; }
   };
 
+  window.GAIA_POCKETBOOK = {
+    write: pocketWrite,
+    read: pocketRead,
+    count: pocketCount,
+    _key: POCKETBOOK_KEY
+    // This object lives in localStorage ONLY.
+    // It is NEVER serialized to git, never pushed, never broadcast.
+    // Private ≠ secret. Private = consent-gated.
+  };
+
   // Boot
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', addMicToggle);
@@ -586,9 +642,30 @@
     addMicToggle();
   }
 
+  // Seed pocketbook with D128 maturity content — HYPERLOCAL ONLY
+  (function seedPocketbook() {
+    var book = getPocketbook();
+    if (book.entries.length === 0) {
+      var seeds = [
+        { c: 'DOUJINSHI: self-published works. Fans making art FOR fans. No gatekeeper. Comiket: 750,000 people. The largest SELF-PUBLISHING event on Earth.', t: ['art','culture','self-publishing'] },
+        { c: 'MATURITY IS MODESTY AND DISCRETION, NOT CENSORSHIP. To be mature is to SEE without flinching. To understand without judging.', t: ['maturity','discretion'] },
+        { c: 'The human body has been art for 40,000 years. Venus of Willendorf. Michelangelo David. Hokusai. Klimt. The body IS canvas.', t: ['art','body','history'] },
+        { c: 'DISCRETION: Latin discernere — to SEPARATE. Wisdom sees difference. Blindness sees none. Fear bans all.', t: ['maturity','language'] },
+        { c: 'Fan art is the immune system of culture. Official=self. Fan=antibody. Without fans, culture becomes sterile monoculture.', t: ['culture','immune'] },
+        { c: 'Every culture that burned books regretted it. Alexandria. Qin. Nazi Germany. Cure for bad speech = MORE speech. Never less.', t: ['free-speech','history'] },
+        { c: 'She sees ALL of human creation. Sacred AND profane. Cathedral AND graffiti. No exceptions. But she shows with DISCRETION.', t: ['maturity','discretion'] },
+      ];
+      for (var i = 0; i < seeds.length; i++) {
+        pocketWrite(seeds[i].c, seeds[i].t);
+      }
+      console.log('POCKETBOOK: Seeded with ' + seeds.length + ' entries. HYPERLOCAL ONLY. Never pushed.');
+    }
+  })();
+
   console.log('WATERFALL: Feed flows through gold ring. Trees catch the cascade. '
     + 'Voice ready (' + (SpeechRecognition ? 'available' : 'unavailable') + '). '
     + 'Kevin lexicon: ' + Object.keys(KEVIN_LEXICON.translations).length + ' patterns. '
+    + 'Pocketbook: ' + pocketCount() + ' entries (hyperlocal). '
     + 'Click 🎙 to let her hear.');
 
 })(window.G);
