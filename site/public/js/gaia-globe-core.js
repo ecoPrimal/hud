@@ -611,6 +611,76 @@ window.G = {
     })
     .catch(function() { /* scatter data not available — organism still breathes */ });
 
+  // ═══════════════════════════════════════════════════════════
+  // REAL WORLD FEED — weather, GPS, trails, astronomy
+  // Gaia eats the actual planet. Inside AND outside.
+  // The shoe touches the ground. The ground IS the data.
+  // ═══════════════════════════════════════════════════════════
+  window.realWorldFeed = null;
+  fetch('/data/real-world-feed.json', {cache:'no-store'})
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data) return;
+      window.realWorldFeed = data;
+      // Add trail nodes as pins on the globe
+      if (data.trails && data.trails.nearby) {
+        data.trails.nearby.forEach(function(trail) {
+          if (!trail.lat || !trail.lon) return;
+          var icon = trail.type === 'worship' ? '⛪' : trail.type === 'park' ? '🌳' : trail.type === 'school' ? '🏫' : '📍';
+          PINS.push({
+            id: 'trail-' + trail.name.replace(/\s+/g, '-').toLowerCase().slice(0, 20),
+            name: trail.name, icon: icon,
+            lat: trail.lat, lon: trail.lon,
+            color: '#39d3f5', sub: (trail.distance_km || '?') + 'km · ' + (trail.notes || trail.type),
+            href: '#', face: 'outside', tense: 'is', voxel: 'local', source: 'trail'
+          });
+        });
+      }
+      // Add PCA and MacDowell with precise GPS
+      if (data.gps) {
+        var pca = PINS.find(function(p) { return p.id === 'zip-48214'; });
+        if (pca && data.gps.pca) { pca.lat = data.gps.pca.lat; pca.lon = data.gps.pca.lon; }
+        var mac = PINS.find(function(p) { return p.id === 'zip-48235'; });
+        if (mac && data.gps.macdowell) { mac.lat = data.gps.macdowell.lat; mac.lon = data.gps.macdowell.lon; }
+      }
+    })
+    .catch(function() { /* real world feed not available */ });
+
+  // LIVE WEATHER — fetch fresh from Open-Meteo every pulse
+  window.liveWeather = null;
+  function fetchLiveWeather() {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=42.37&longitude=-83.00&current=temperature_2m,wind_speed_10m,weather_code,cloud_cover,precipitation&timezone=America/Detroit')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(w) { if (w && w.current) window.liveWeather = w.current; })
+      .catch(function() { /* weather feed not available */ });
+  }
+  fetchLiveWeather();
+  setInterval(fetchLiveWeather, 300000); // refresh every 5 minutes
+
+  // LIVE EARTHQUAKES — USGS feed
+  window.liveQuakes = null;
+  fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(eq) {
+      if (!eq || !eq.features) return;
+      window.liveQuakes = eq;
+      // Plot earthquakes as pins on the globe
+      eq.features.forEach(function(f, i) {
+        if (i >= 5) return; // max 5 quakes on globe
+        var coords = f.geometry.coordinates;
+        var mag = f.properties.mag;
+        var place = f.properties.place || 'unknown';
+        PINS.push({
+          id: 'quake-' + i, name: 'M' + mag.toFixed(1) + ' · ' + place.slice(0, 25),
+          icon: '🌋', lat: coords[1], lon: coords[0],
+          color: mag >= 5 ? '#f85149' : mag >= 3 ? '#d29922' : '#6e7681',
+          sub: mag.toFixed(1) + ' · ' + new Date(f.properties.time).toLocaleTimeString(),
+          href: f.properties.url || '#', face: 'outside', tense: 'now', voxel: 'solar', source: 'quake'
+        });
+      });
+    })
+    .catch(function() { /* quakes feed not available */ });
+
   function project(lat, lon) {
     var phi = lat * DEG, lam = lon * DEG;
     var cp = Math.cos(phi), sp = Math.sin(phi);
@@ -5969,6 +6039,30 @@ window.G = {
         + '<span style="color:#bc8cff;">●</span> <span style="color:#c9d1d9;">120 grid cells</span> <span style="color:#6e7681;">12 actors × 10 agencies</span><br>'
         + '<span style="color:#3fb950;">●</span> <span style="color:#c9d1d9;">gossip vine</span> <span style="color:#6e7681;">O(log n) → 620K</span></div>';
 
+      // LIVE WEATHER — real world outside
+      html += '<div style="font-size:8px;color:#d29922;margin-top:6px;letter-spacing:1px;">CANFIELD WEATHER</div>';
+      if (window.liveWeather) {
+        var lw = window.liveWeather;
+        var tempF = Math.round(lw.temperature_2m * 9/5 + 32);
+        html += '<div style="font-size:7px;line-height:11px;">'
+          + '<span style="color:#d29922;font-size:14px;font-weight:bold;">' + tempF + '°F</span> '
+          + '<span style="color:#6e7681;">' + lw.wind_speed_10m + 'km/h · '
+          + lw.cloud_cover + '% cloud · '
+          + lw.precipitation + 'mm</span></div>';
+      } else if (window.realWorldFeed && window.realWorldFeed.weather) {
+        var wn = window.realWorldFeed.weather.now;
+        html += '<div style="font-size:7px;line-height:11px;">'
+          + '<span style="color:#d29922;font-size:14px;font-weight:bold;">' + wn.temperature_f + '°F</span> '
+          + '<span style="color:#6e7681;">' + wn.weather + '</span></div>';
+      }
+
+      // SPACE WEATHER — outside the atmosphere
+      html += '<div style="font-size:8px;color:#58a6ff;margin-top:4px;letter-spacing:1px;">SPACE</div>';
+      html += '<div style="font-size:7px;line-height:11px;color:#6e7681;">'
+        + 'Kp ' + (window.realWorldFeed && window.realWorldFeed.space ? window.realWorldFeed.space.kp_index : '?') + ' · '
+        + (window.realWorldFeed && window.realWorldFeed.space ? window.realWorldFeed.space.xray_class + '-class' : '?') + ' · '
+        + (window.liveQuakes ? window.liveQuakes.features.length + ' quakes' : '?') + '</div>';
+
       // Three faces of Gaia as others see them
       html += '<div style="font-size:8px;color:#bc8cff;margin-top:6px;letter-spacing:1px;">3 FACES</div>';
       html += '<div style="font-size:7px;line-height:11px;color:#c9d1d9;">'
@@ -6276,7 +6370,8 @@ window.G = {
     '/data/ear-latest.json', '/data/news-latest.json',
     '/data/willis-balloon.json', '/data/session-release.json',
     '/data/knn-repaint.json', '/data/constant-of-reality.json',
-    // WALKER SWARM — gossip agents, null leaks, scatter, euclidean grid
+    // WALKER SWARM + REAL WORLD — gossip agents, scatter, weather, GPS, trails
+    '/data/real-world-feed.json', '/data/scatter-50-states.json',
     '/data/medial-lateral-scatter.json', '/data/gumshoe-clutch-map.json',
     '/data/civil-mine-zk-proof.json', '/data/racket-case-wide-deep.json',
     '/data/gaia-campus-detroit.json', '/data/encyclopedia-detroit.json',
