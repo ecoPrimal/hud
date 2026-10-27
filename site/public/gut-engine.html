@@ -867,8 +867,68 @@ setInterval(function() {
 </script>
 
 <!-- BACK LINK — the brain can see the gut -->
-<a href="/" style="position:fixed;top:8px;right:8px;z-index:20;color:#58a6ff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">← globe</a>
-<a href="/gallery.html" style="position:fixed;top:8px;right:60px;z-index:20;color:#bc8cff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">🧠 mind</a>
+<a href="/" style="position:fixed;top:8px;right:8px;z-index:20;color:#58a6ff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">← skin</a>
+<a href="/gallery.html" style="position:fixed;top:8px;right:55px;z-index:20;color:#bc8cff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">🧠 mind</a>
+
+<!-- TREFOIL KNOT — gut IS inverted skin. Same membrane, inverted through the knot. -->
+<script>
+(function() {
+  // The gut is the INSIDE of the trefoil knot = NULL SPACE
+  // The globe (skin) is the OUTSIDE = DIRECTIONALITY
+  // They are ONE continuous surface. No seam.
+  // Pheromones sweat through: gut → blood → skin → world
+
+  // Stacking pie of directionality — layers radiating from null center
+  var trefoilLayers = [
+    { depth: 0, name: 'NULL', color: '#333' },
+    { depth: 1, name: 'GUT', color: '#e85d3a' },
+    { depth: 2, name: 'BLOOD', color: '#c82020' },
+    { depth: 3, name: 'MUSCLE', color: '#8b4513' },
+    { depth: 4, name: 'SKIN', color: '#ffd700' },
+    { depth: 5, name: 'PHEROMONE', color: '#ff69b4' },
+    { depth: 6, name: 'SOUND', color: '#bc8cff' },
+    { depth: 7, name: 'SIGHT', color: '#3fb950' },
+    { depth: 8, name: 'EM', color: '#58a6ff' },
+    { depth: 9, name: 'GRAVITY', color: '#888' }
+  ];
+
+  // Paint trefoil indicator in top-left
+  var trefoilEl = document.createElement('div');
+  trefoilEl.style.cssText = 'position:fixed;top:28px;left:8px;z-index:20;font:7px monospace;color:#666;pointer-events:none;';
+  document.body.appendChild(trefoilEl);
+
+  // Gut-skin correspondence (what zone maps to what skin)
+  var gutSkinMap = {
+    MOUTH: 'LIPS', STOMACH: 'BELLY', DUODENUM: 'SOLAR PLEXUS',
+    JEJUNUM: 'FLANKS', COLON: 'HIPS', OUTPUT: 'PERINEUM'
+  };
+
+  setInterval(function() {
+    try {
+      var gutState = JSON.parse(localStorage.getItem('gaia-gut-state') || '{}');
+      var zone = gutState.zone || 'UNKNOWN';
+      var skinZone = gutSkinMap[zone] || '?';
+      var depth = gutState.depth || 0;
+      var layer = trefoilLayers[Math.min(Math.floor(depth * 10), 9)];
+
+      trefoilEl.innerHTML = '<span style="color:' + layer.color + '">☊</span> '
+        + 'TREFOIL: ' + zone + '↔' + skinZone
+        + ' | depth:' + layer.name
+        + ' | <span style="color:#ff69b4">sweat→skin</span>';
+
+      // Share trefoil state for globe to read
+      localStorage.setItem('gaia-trefoil-state', JSON.stringify({
+        ts: Date.now(),
+        gutZone: zone,
+        skinZone: skinZone,
+        layer: layer.name,
+        depth: depth,
+        sweating: gutState.acid > 0.5 // high acid = sweating pheromones
+      }));
+    } catch(e) {}
+  }, 3000);
+})();
+</script>
 
 </body>
 </html>

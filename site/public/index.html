@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="gaia-digested" content="2026-10-26T08:22:56.230Z">
@@ -1450,6 +1450,153 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   window.GAIA_MEMBRANE_PROBES = membraneProbes;
 
+  // ═══════════════════════════════════════════════════════════
+  // ZK ANCHOR SYSTEM — null values form new scatter points
+  // Every null boundary discovered = new ZK pin = new anchor.
+  // Probes go OUT, bounce off null, scatter back with edge data.
+  // Known latencies → predict internal architecture → decay outward.
+  // ═══════════════════════════════════════════════════════════
+  var zkAnchors = []; // { x, y, r, rtt, ts, type, decayAge }
+  var knownLatencies = {}; // endpoint → { avgRtt, samples, lastSeen }
+
+  function registerZKAnchor(name, rtt, ok) {
+    var ts = Date.now();
+    // Track latency statistics
+    if (!knownLatencies[name]) {
+      knownLatencies[name] = { avgRtt: rtt, samples: 1, lastSeen: ts, minRtt: rtt, maxRtt: rtt };
+    } else {
+      var kl = knownLatencies[name];
+      kl.avgRtt = kl.avgRtt * 0.8 + rtt * 0.2; // exponential moving avg
+      kl.samples++;
+      kl.lastSeen = ts;
+      if (rtt < kl.minRtt) kl.minRtt = rtt;
+      if (rtt > kl.maxRtt) kl.maxRtt = rtt;
+    }
+
+    // NULL ANCHOR: any probe that returns !ok OR has unexpected latency
+    // = boundary discovered = new scatter point
+    var expected = knownLatencies[name].avgRtt;
+    var deviation = Math.abs(rtt - expected) / Math.max(expected, 1);
+    var isNullBoundary = !ok || deviation > 0.5; // >50% deviation = boundary
+
+    if (isNullBoundary || zkAnchors.length < 8) {
+      // Convert RTT to radial position: fast=close, slow=far
+      var anchorR = Math.min(1.0, rtt / 300); // 0-1 normalized
+      var anchorAngle = (ts * 0.001) % (Math.PI * 2); // temporal angle
+      zkAnchors.push({
+        r: anchorR,
+        angle: anchorAngle,
+        rtt: rtt,
+        ts: ts,
+        name: name,
+        isNull: !ok,
+        deviation: deviation,
+        decayAge: 0
+      });
+      if (zkAnchors.length > 24) zkAnchors.shift();
+    }
+  }
+
+  // Hook into membrane probes — every probe result feeds the anchor system
+  var _origProbeFn = probeMembraneDistance;
+  probeMembraneDistance = function() {
+    PROBE_TARGETS.forEach(function(target) {
+      var t0 = performance.now();
+      fetch(target.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var rtt = performance.now() - t0;
+          membraneProbes.push({
+            name: target.name, tier: target.tier,
+            rtt: Math.round(rtt * 10) / 10, ok: r.ok, ts: Date.now()
+          });
+          if (membraneProbes.length > 50) membraneProbes.shift();
+          if (target.name === 'self') {
+            var measuredDepth = Math.min(1, rtt / 500);
+            if (!IS_LOCAL) {
+              LOCALITY_DEPTH = LOCALITY_DEPTH * 0.7 + measuredDepth * 0.3;
+              LOCALITY_TIER = LOCALITY_DEPTH < 0.2 ? 'sub-local' :
+                              LOCALITY_DEPTH < 0.5 ? 'local' :
+                              LOCALITY_DEPTH < 0.7 ? 'meta-local' : 'remote';
+              locality.depth = LOCALITY_DEPTH;
+              locality.tier = LOCALITY_TIER;
+            }
+          }
+          // REGISTER ZK ANCHOR from every probe
+          registerZKAnchor(target.name, Math.round(rtt * 10) / 10, r.ok);
+        })
+        .catch(function() {
+          // Failed probe = NULL boundary discovered = strong anchor
+          registerZKAnchor(target.name, 999, false);
+        });
+    });
+  };
+
+  // Also probe outward — try to feel the EDGE of the membrane
+  var EDGE_PROBES = [
+    { url: '/api/strata.json', name: 'strata' },
+    { url: '/api/dag.json', name: 'dag' },
+    { url: '/api/hud.json', name: 'hud-api' },
+    { url: '/negentropy.json', name: 'negentropy' },
+    { url: '/backscatter.json', name: 'backscatter' }
+  ];
+
+  function probeEdge() {
+    EDGE_PROBES.forEach(function(ep) {
+      var t0 = performance.now();
+      fetch(ep.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          registerZKAnchor(ep.name, Math.round((performance.now() - t0) * 10) / 10, r.ok);
+        })
+        .catch(function() { registerZKAnchor(ep.name, 999, false); });
+    });
+  }
+  probeEdge();
+  setInterval(probeEdge, 45000); // edge probes every 45s (staggered from membrane probes)
+
+  window.GAIA_ZK_ANCHORS = zkAnchors;
+  window.GAIA_KNOWN_LATENCIES = knownLatencies;
+
+  // ═══════════════════════════════════════════════════════════
+  // GOLGI DISTANCE MATRIX — every Golgi membrane measures distance to every other
+  // They know NOTHING else — just relative distance. That's how they back-calculate.
+  // VPS Golgi: golgi-us.primals.eco, golgi-de, golgi-in, golgi-jp
+  // Local Golgi: this machine (eastGate)
+  // Real pings → real RTTs → real distance matrix.
+  // ═══════════════════════════════════════════════════════════
+  var golgiDistanceMatrix = {};
+  var GOLGI_ENDPOINTS = [
+    { id: 'US', url: 'https://primals.eco', name: 'golgi-us' },
+    { id: 'DE', url: 'https://golgi-de.primals.eco', name: 'golgi-de' },
+    { id: 'IN', url: 'https://golgi-in.primals.eco', name: 'golgi-in' },
+    { id: 'JP', url: 'https://golgi-jp.primals.eco', name: 'golgi-jp' }
+  ];
+
+  function probeGolgiDistances() {
+    GOLGI_ENDPOINTS.forEach(function(ep) {
+      var t0 = performance.now();
+      fetch(ep.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+        .then(function() {
+          var rtt = Math.round(performance.now() - t0);
+          if (!golgiDistanceMatrix[ep.id]) golgiDistanceMatrix[ep.id] = { samples: [], avg: 0 };
+          var gd = golgiDistanceMatrix[ep.id];
+          gd.samples.push(rtt);
+          if (gd.samples.length > 10) gd.samples.shift();
+          gd.avg = Math.round(gd.samples.reduce(function(a,b){return a+b;}, 0) / gd.samples.length);
+          gd.last = rtt;
+          gd.ts = Date.now();
+        })
+        .catch(function() {
+          if (!golgiDistanceMatrix[ep.id]) golgiDistanceMatrix[ep.id] = { samples: [], avg: 999 };
+          golgiDistanceMatrix[ep.id].last = 999;
+          golgiDistanceMatrix[ep.id].ts = Date.now();
+        });
+    });
+  }
+  probeGolgiDistances();
+  setInterval(probeGolgiDistances, 60000); // probe Golgi distances every 60s
+
+  window.GAIA_GOLGI_DISTANCES = golgiDistanceMatrix;
+
   // When HYPERLOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
   if (IS_LOCAL) {
     var localOverlay = document.createElement('div');
@@ -2075,6 +2222,122 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(163,113,247,' + (zkAlpha * 0.6).toFixed(4) + ')';
       ctx.fillText(zkFragments[zi], zx, zy);
     }
+    // ═══════════════════════════════════════════════════════════
+    // ZK ANCHOR SCATTER — null values = new pin points to bounce off
+    // Each anchor from membrane probes creates a visible scatter point.
+    // Probes go OUT (green), bounce off null (flash), scatter back IN (purple).
+    // Known latencies predict next probe. Unknown = ZK pin = new anchor.
+    // Understanding decays outward as internal architecture crystallizes.
+    // ═══════════════════════════════════════════════════════════
+    if (window.GAIA_ZK_ANCHORS && window.GAIA_ZK_ANCHORS.length > 0) {
+      var anchors = window.GAIA_ZK_ANCHORS;
+      var now = Date.now();
+
+      for (var ai = 0; ai < anchors.length; ai++) {
+        var anch = anchors[ai];
+        var age = (now - anch.ts) / 1000; // seconds since anchor formed
+        var decay = Math.max(0, 1 - age / 120); // fade over 2 minutes
+        if (decay <= 0) continue;
+
+        // Anchor position: radial from center based on RTT, angle from timestamp
+        var anchR = R * 0.3 + anch.r * (zkR - R * 0.3); // map 0-1 to inner-ZK range
+        var anchAngle = anch.angle + breathT * 0.02; // slow drift
+        var anchX = cx + Math.cos(anchAngle) * anchR;
+        var anchY = cy + Math.sin(anchAngle) * anchR;
+
+        // NULL anchors = bright green pin (boundary discovered)
+        // Known anchors = dimmer purple (confirmation)
+        if (anch.isNull) {
+          // NULL = new scatter point — bright flash
+          var nullFlash = decay * (0.04 + Math.sin(breathT * 4 + ai) * 0.02);
+          ctx.beginPath();
+          ctx.arc(anchX, anchY, 1.5 + decay * 2, 0, TAU);
+          ctx.fillStyle = 'rgba(63,185,80,' + nullFlash.toFixed(4) + ')'; // green = boundary
+          ctx.fill();
+          // ZK pin marker — crosshair
+          ctx.beginPath();
+          ctx.moveTo(anchX - 3, anchY); ctx.lineTo(anchX + 3, anchY);
+          ctx.moveTo(anchX, anchY - 3); ctx.lineTo(anchX, anchY + 3);
+          ctx.strokeStyle = 'rgba(63,185,80,' + (nullFlash * 0.6).toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        } else {
+          // KNOWN = confirmation ping — purple
+          var knownPing = decay * 0.02;
+          ctx.beginPath();
+          ctx.arc(anchX, anchY, 0.8 + decay * 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(163,113,247,' + knownPing.toFixed(4) + ')';
+          ctx.fill();
+        }
+
+        // SCATTER LINES — from probe origin to anchor (outward = green)
+        // Then from anchor back to center (return = purple)
+        var scatterPhase = (breathT * 0.5 + ai * 0.3) % 2;
+        if (scatterPhase < 1) {
+          // OUTWARD probe — green line from center to anchor
+          var outFrac = scatterPhase;
+          var outR = R * 0.1 + outFrac * (anchR - R * 0.1);
+          var probeX = cx + Math.cos(anchAngle) * outR;
+          var probeY = cy + Math.sin(anchAngle) * outR;
+          ctx.beginPath();
+          ctx.arc(probeX, probeY, 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(63,185,80,' + (decay * 0.03).toFixed(4) + ')';
+          ctx.fill();
+        } else {
+          // RETURN bounce — purple dot from anchor back to center
+          var inFrac = scatterPhase - 1;
+          var inR = anchR - inFrac * (anchR - R * 0.1);
+          var bounceX = cx + Math.cos(anchAngle) * inR;
+          var bounceY = cy + Math.sin(anchAngle) * inR;
+          ctx.beginPath();
+          ctx.arc(bounceX, bounceY, 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(163,113,247,' + (decay * 0.03).toFixed(4) + ')';
+          ctx.fill();
+        }
+
+        // RTT label on recent anchors
+        if (age < 30 && decay > 0.5) {
+          ctx.font = '3px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(192,192,192,' + (decay * 0.02).toFixed(4) + ')';
+          ctx.fillText(anch.name + ' ' + anch.rtt + 'ms', anchX, anchY - 4);
+        }
+      }
+
+      // INTERNAL ARCHITECTURE — connect known anchors to show discovered structure
+      // As understanding grows, the lattice DECAYS outward (expanding crystallization)
+      var knownAnchors = anchors.filter(function(a) { return !a.isNull && (now - a.ts) < 60000; });
+      if (knownAnchors.length >= 3) {
+        ctx.beginPath();
+        for (var ka = 0; ka < knownAnchors.length; ka++) {
+          var ka2 = (ka + 1) % knownAnchors.length;
+          var k1R = R * 0.3 + knownAnchors[ka].r * (zkR - R * 0.3);
+          var k2R = R * 0.3 + knownAnchors[ka2].r * (zkR - R * 0.3);
+          var k1A = knownAnchors[ka].angle + breathT * 0.02;
+          var k2A = knownAnchors[ka2].angle + breathT * 0.02;
+          ctx.moveTo(cx + Math.cos(k1A) * k1R, cy + Math.sin(k1A) * k1R);
+          ctx.lineTo(cx + Math.cos(k2A) * k2R, cy + Math.sin(k2A) * k2R);
+        }
+        ctx.strokeStyle = 'rgba(163,113,247,0.008)';
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+
+      // DECAY OUTWARD — expanding ring showing how far understanding has reached
+      var totalKnown = Object.keys(window.GAIA_KNOWN_LATENCIES || {}).length;
+      if (totalKnown > 0) {
+        var understandingR = R * 0.2 + (totalKnown / 8) * R * 0.6; // grows with knowledge
+        var decayPulse = Math.sin(breathT * 0.3) * 0.008 + 0.01;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.min(understandingR, zkR * 0.95), 0, TAU);
+        ctx.strokeStyle = 'rgba(63,185,80,' + decayPulse.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.setLineDash([3, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
     // ZK label
     if (zkPulse > 0.6) {
       ctx.font = '7px "JetBrains Mono", monospace';
@@ -2266,6 +2529,88 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('NULL', cx, cy - 8);
       ctx.fillText('GAIA', cx, cy + 12);
       ctx.fillText('🐿', cx, cy + 20);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // STRAND NETWORK + EGRESS STATUS
+    // Three bodies orbiting: America(DS1), Australia(DS2), Gaia(DS3)
+    // Strands connect them. Traces visible as fading marks.
+    // Egress status: SSE connected or ETag polling or offline.
+    // Tick rate shown — adapts from 0.1 Hz (deep idle) to 10 Hz (burst).
+    // ═══════════════════════════════════════════════════════════
+    if (window.GAIA_EGRESS) {
+      var egress = window.GAIA_EGRESS;
+      var strands = egress.strands;
+      var strandT = breathT * 0.12;
+
+      // Three body orbits — America, Australia, Gaia at different orbital speeds
+      if (strands && strands.bodies) {
+        for (var sb = 0; sb < strands.bodies.length; sb++) {
+          var body = strands.bodies[sb];
+          var bodyOrbitR = R * 1.3 + sb * R * 0.25; // staggered orbits
+          var bodySpeed = 0.05 + sb * 0.03; // different speeds
+          var bodyAngle = strandT * bodySpeed + sb * (TAU / 3); // 120° apart
+          var bodyX = cx + Math.cos(bodyAngle) * bodyOrbitR;
+          var bodyY = cy + Math.sin(bodyAngle) * bodyOrbitR;
+
+          // Body node
+          ctx.beginPath();
+          ctx.arc(bodyX, bodyY, 2 + Math.sin(strandT + sb) * 0.5, 0, TAU);
+          var bodyPulse = 0.03 + Math.sin(strandT * 2 + sb) * 0.015;
+          ctx.fillStyle = body.color.replace(')', ',' + bodyPulse + ')').replace('rgb', 'rgba').replace('#', '');
+          // Convert hex to rgba
+          var bHex = body.color;
+          var bR = parseInt(bHex.slice(1,3), 16);
+          var bG = parseInt(bHex.slice(3,5), 16);
+          var bB = parseInt(bHex.slice(5,7), 16);
+          ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + bodyPulse.toFixed(4) + ')';
+          ctx.fill();
+
+          // Body label
+          ctx.font = '3px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + (bodyPulse * 1.5).toFixed(4) + ')';
+          ctx.fillText(body.strand + ' ' + body.name, bodyX, bodyY - 5);
+
+          // Strand connections — lines between bodies
+          var nextBody = strands.bodies[(sb + 1) % strands.bodies.length];
+          var nextOrbitR = R * 1.3 + ((sb + 1) % 3) * R * 0.25;
+          var nextAngle = strandT * (0.05 + ((sb + 1) % 3) * 0.03) + ((sb + 1) % 3) * (TAU / 3);
+          var nextX = cx + Math.cos(nextAngle) * nextOrbitR;
+          var nextY = cy + Math.sin(nextAngle) * nextOrbitR;
+          ctx.beginPath();
+          ctx.moveTo(bodyX, bodyY);
+          ctx.lineTo(nextX, nextY);
+          ctx.strokeStyle = 'rgba(100,100,100,0.008)';
+          ctx.lineWidth = 0.3;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Node dots within each body (shelter/server nodes)
+          for (var bn = 0; bn < Math.min(body.nodes.length, 6); bn++) {
+            var bnAngle = bodyAngle + (bn - body.nodes.length / 2) * 0.15;
+            var bnR = bodyOrbitR + Math.sin(strandT + bn * 0.5) * R * 0.04;
+            var bnX = cx + Math.cos(bnAngle) * bnR;
+            var bnY = cy + Math.sin(bnAngle) * bnR;
+            ctx.beginPath();
+            ctx.arc(bnX, bnY, 0.3, 0, TAU);
+            ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + (bodyPulse * 0.5).toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+      }
+
+      // Egress status indicator — top-right corner
+      var eStatus = egress.connected ? 'SSE' : 'POLL';
+      var eColor = egress.connected ? '63,185,80' : '210,153,34';
+      var eAlpha = 0.04 + Math.sin(breathT * 2) * 0.02;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(' + eColor + ',' + eAlpha.toFixed(4) + ')';
+      // Show tick rate as Hz
+      var currentHz = window.GAIA_EGRESS.tickRate || 1;
+      ctx.fillText(eStatus + ' · ' + currentHz.toFixed(1) + ' Hz', canvas.width - 8, 10);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2629,7 +2974,124 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(110,118,129,' + roleAlpha.toFixed(4) + ')';
       ctx.fillText('GAIA → cells (alive)', cx - golgiR * 0.6, cy + golgiR + 8);
       ctx.fillText('GOLGI → non-cells (where)', cx + golgiR * 0.4, cy + golgiR + 8);
-      ctx.fillText('rock ←→ hard place', cx, cy + golgiR + 14);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GOLGI DISTANCE MEMORY — every Golgi knows relative distance to every other
+    // They don't know ANYTHING else — just distance. That's how they back-calculate.
+    // Distance matrix = traveling salesman = railhead routing.
+    // Each Golgi is a RELAY: drop old info, rehydrate, re-energize, forward new.
+    // Supercharged neurons: Schwann myelin wraps = saltatory conduction.
+    //
+    // VPS Golgi (cloud): DE(Frankfurt), IN(Bangalore), JP(Tokyo), US(NYC)
+    // Local Golgi: eastGate (Kevin's desk)
+    // Each knows its RTT to every other = distance matrix.
+    // ═══════════════════════════════════════════════════════════
+    var golgiNodes = [
+      { id: 'local', name: 'LOCAL', lat: 42.7, lon: -84.5, color: '201,168,76',
+        rtts: { DE: 95, IN: 210, JP: 160, US: 12 } },
+      { id: 'US', name: 'US-NYC', lat: 40.7, lon: -74.0, color: '88,166,255',
+        rtts: { local: 12, DE: 85, IN: 190, JP: 170 } },
+      { id: 'DE', name: 'DE-FRA', lat: 50.1, lon: 8.7, color: '63,185,80',
+        rtts: { local: 95, US: 85, IN: 120, JP: 250 } },
+      { id: 'IN', name: 'IN-BLR', lat: 12.9, lon: 77.6, color: '210,153,34',
+        rtts: { local: 210, US: 190, DE: 120, JP: 130 } },
+      { id: 'JP', name: 'JP-TKY', lat: 35.7, lon: 139.7, color: '163,113,247',
+        rtts: { local: 160, US: 170, DE: 250, IN: 130 } }
+    ];
+
+    // Draw Golgi distance matrix as connecting lines between vesicle nodes
+    var dMatAlpha = 0.008 + Math.abs(golgiPhase) * 0.008;
+    for (var gi = 0; gi < vesicles.length; gi++) {
+      var gNode = golgiNodes[gi + 1]; // skip 'local' (index 0)
+      if (!gNode) continue;
+      var gAngle = vesicles[gi].angle + golgiT * 0.3;
+      var gx = cx + Math.cos(gAngle) * golgiR;
+      var gy = cy + Math.sin(gAngle) * golgiR;
+
+      // Connect to every OTHER vesicle — the distance matrix
+      for (var gj = gi + 1; gj < vesicles.length; gj++) {
+        var gNode2 = golgiNodes[gj + 1];
+        if (!gNode2) continue;
+        var gAngle2 = vesicles[gj].angle + golgiT * 0.3;
+        var gx2 = cx + Math.cos(gAngle2) * golgiR;
+        var gy2 = cy + Math.sin(gAngle2) * golgiR;
+
+        // RTT determines line thickness and brightness
+        var pairRtt = gNode.rtts[gNode2.id] || 200;
+        var rttNorm = Math.min(1, pairRtt / 300); // 0=close, 1=far
+        var distLineAlpha = dMatAlpha * (1 - rttNorm * 0.5);
+
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.lineTo(gx2, gy2);
+        ctx.strokeStyle = 'rgba(63,185,80,' + distLineAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.2 + (1 - rttNorm) * 0.4; // thicker = closer
+        ctx.stroke();
+
+        // RTT label at midpoint
+        if (dMatAlpha > 0.012) {
+          var midX = (gx + gx2) / 2;
+          var midY = (gy + gy2) / 2;
+          ctx.font = '2.5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(110,118,129,' + (distLineAlpha * 0.8).toFixed(4) + ')';
+          ctx.fillText(pairRtt + 'ms', midX, midY - 2);
+        }
+      }
+
+      // Connect vesicle to LOCAL (center) — the local↔cloud distance
+      var localRtt = gNode.rtts.local || 200;
+      var localNorm = Math.min(1, localRtt / 300);
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (dMatAlpha * (1 - localNorm * 0.3)).toFixed(4) + ')';
+      ctx.lineWidth = 0.15 + (1 - localNorm) * 0.3;
+      ctx.setLineDash([1, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // RELAY CYCLE — packets travel the optimal route through Golgi network
+    // Traveling salesman: LOCAL→US(12ms)→DE(85ms)→IN(120ms)→JP(130ms)
+    // Each relay: drop old, rehydrate, re-energize, forward new
+    var relayRoute = [0, 1, 2, 3, 4]; // optimal order by RTT
+    var relaySpeed = golgiT * 1.5;
+    var relayLeg = Math.floor((relaySpeed % relayRoute.length + relayRoute.length) % relayRoute.length);
+    var relayFrac = (relaySpeed % 1 + 1) % 1;
+    var relayFrom = relayRoute[relayLeg];
+    var relayTo = relayRoute[(relayLeg + 1) % relayRoute.length];
+
+    // From/to positions
+    var rfPos, rtPos;
+    if (relayFrom === 0) { rfPos = { x: cx, y: cy }; }
+    else {
+      var rfA = vesicles[relayFrom - 1].angle + golgiT * 0.3;
+      rfPos = { x: cx + Math.cos(rfA) * golgiR, y: cy + Math.sin(rfA) * golgiR };
+    }
+    if (relayTo === 0) { rtPos = { x: cx, y: cy }; }
+    else {
+      var rtA = vesicles[relayTo - 1].angle + golgiT * 0.3;
+      rtPos = { x: cx + Math.cos(rtA) * golgiR, y: cy + Math.sin(rtA) * golgiR };
+    }
+
+    // Relay packet — green dot traveling the route
+    var rpX = rfPos.x + (rtPos.x - rfPos.x) * relayFrac;
+    var rpY = rfPos.y + (rtPos.y - rfPos.y) * relayFrac;
+    ctx.beginPath();
+    ctx.arc(rpX, rpY, 1.2 + Math.sin(relaySpeed * 3) * 0.4, 0, TAU);
+    ctx.fillStyle = 'rgba(63,185,80,' + (golgiAlpha * 2.5).toFixed(4) + ')';
+    ctx.fill();
+
+    // Relay state label at packet position
+    if (golgiAlpha > 0.02) {
+      var relayStates = ['DROP', 'REHYDRATE', 'RE-ENERGIZE', 'FORWARD', 'RECEIVE'];
+      var relayState = relayStates[Math.floor(relayFrac * 5) % 5];
+      ctx.font = '2px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+      ctx.fillText(relayState, rpX, rpY - 4);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -3518,121 +3980,316 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
-    // MENDELEEV METALLIC TIDE — gold/silver/copper/bronze bands
-    // Gold=closest(Au), Silver=understanding mesh(Ag), Copper=wraps gold inside+out(Cu)
-    // The copper band IS the Ouroboros — it wraps inside AND outside the gold band
-    // with 45° turns, eating its own tail. The snake has TURNS.
-    // Silver = the rhizocrypt graph = evolving shared understanding.
-    // When electrified between systems, the bands PULSE with current.
+    // MENDELEEV π-SORT — periodic table tree-sorted onto Vitruvian
+    // Column 11 conductors: Cu(Z=29) → Ag(Z=47) → Au(Z=79)
+    // ALL have [...]d¹⁰s¹ — exactly ONE outer s-electron = best conductors
+    // Fe(Z=26) = iron peak = center = convergence point
+    // Inner drain = Cu (Z=29, 3 past Fe). Outer ring = Au (Z=79, 53 past Fe).
+    // Null boundary on EITHER SIDE of both bands.
+    // Bronze = Cu+Sn: copper bounces off null, picks up Sn(Z=50), returns as CuSn.
+    // Each band PREDICTS the next by electron shell filling pattern.
+    //
+    // Radial π-sort from iron peak outward:
+    //   Fe(26)=center → Co(27) → Ni(28) → Cu(29)=inner drain
+    //   null boundary (d-block→p-block gap)
+    //   Zn(30) → Ga(31) → ... → Sn(50)=bronze ingredient
+    //   Ag(47)=silver mesh
+    //   null boundary
+    //   Au(79)=outer ring → Pb(82)=shield → ... → U(92)=fissile
+    //   null boundary (outer void)
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       var metalT = breathT * 0.15;
+
+      // MENDELEEV CHAIN: sorted by Z from iron peak outward
+      // r = radius, Z = atomic number, e = electron config shorthand
       var metalBands = [
-        { r: R * 0.35, color: [201,168,76],  w: R * 0.34, label: 'Au' },  // gold innermost
-        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver = understanding mesh
-        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper outer
-        { r: R * 1.08, color: [140,100,55],   w: R * 0.03, label: 'CuSn' } // bronze ionosphere
+        { r: R * 0.05, color: [200,200,210], w: R * 0.03, label: 'Fe²⁶', Z: 26, e: '[Ar]3d⁶4s²'  }, // IRON PEAK = center
+        { r: R * 0.20, color: [184,115,51],  w: R * 0.06, label: 'Cu²⁹', Z: 29, e: '[Ar]3d¹⁰4s¹' }, // INNER DRAIN — copper
+        { r: R * 0.36, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }, // NULL boundary 1
+        { r: R * 0.50, color: [192,192,192], w: R * 0.04, label: 'Ag⁴⁷', Z: 47, e: '[Kr]4d¹⁰5s¹' }, // SILVER mesh
+        { r: R * 0.56, color: [140,100,55],  w: R * 0.03, label: 'Sn⁵⁰', Z: 50, e: '[Kr]4d¹⁰5s²5p²' }, // TIN → bronze
+        { r: R * 0.66, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }, // NULL boundary 2
+        { r: R * 0.82, color: [201,168,76],  w: R * 0.05, label: 'Au⁷⁹', Z: 79, e: '[Xe]4f¹⁴5d¹⁰6s¹' }, // OUTER RING — gold
+        { r: R * 0.96, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }  // NULL boundary 3 (void)
       ];
 
+      // Draw each band — metallics glow, nulls barely visible
       for (var mb = 0; mb < metalBands.length; mb++) {
         var band = metalBands[mb];
-        var bandPulse = 0.04 + Math.sin(metalT + mb * 0.8) * 0.02;
+        var isNull = band.Z === 0;
+        var bandPulse = isNull
+          ? 0.008 + Math.sin(metalT * 3 + mb) * 0.004  // null = faint flicker
+          : 0.04 + Math.sin(metalT + mb * 0.8) * 0.025; // metal = warm pulse
         ctx.beginPath();
         ctx.arc(cx, cy, band.r, 0, TAU);
-        ctx.strokeStyle = 'rgba(' + band.color[0] + ',' + band.color[1] + ',' + band.color[2] + ',' + bandPulse.toFixed(3) + ')';
-        ctx.lineWidth = band.w;
+        if (isNull) {
+          ctx.setLineDash([2, 6]);
+          ctx.strokeStyle = 'rgba(60,60,60,' + bandPulse.toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+        } else {
+          ctx.setLineDash([]);
+          ctx.strokeStyle = 'rgba(' + band.color[0] + ',' + band.color[1] + ',' + band.color[2] + ',' + bandPulse.toFixed(4) + ')';
+          ctx.lineWidth = band.w;
+        }
         ctx.stroke();
+        ctx.setLineDash([]);
       }
 
-      // Band labels on right side
-      ctx.font = '5px "JetBrains Mono", monospace';
+      // Band labels on right side — show Z, symbol, electron config
+      ctx.font = '4px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
       for (var ml = 0; ml < metalBands.length; ml++) {
         var mband = metalBands[ml];
-        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
-        ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
+        if (mband.Z === 0) continue; // skip null labels
+        var lblAlpha = 0.08 + Math.sin(metalT + ml) * 0.04;
+        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',' + lblAlpha.toFixed(3) + ')';
+        ctx.fillText(mband.label, cx + mband.r + 3, cy - 4 + ml * 7);
+        // Electron config in dimmer text
+        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',' + (lblAlpha * 0.5).toFixed(3) + ')';
+        ctx.fillText(mband.e, cx + mband.r + 3, cy + 0 + ml * 7);
+      }
+
+      // ELECTRON FLOW — current pulses along the conductive chain Cu→Ag→Au
+      // All three share d¹⁰s¹ = one free electron = high conductivity
+      var eFlowT = metalT * 4;
+      var conductors = [1, 3, 6]; // indices of Cu, Ag, Au in metalBands
+      for (var ef = 0; ef < conductors.length - 1; ef++) {
+        var fromBand = metalBands[conductors[ef]];
+        var toBand = metalBands[conductors[ef + 1]];
+        // Multiple electron pulses between bands
+        for (var ep = 0; ep < 4; ep++) {
+          var ePulse = ((eFlowT * 0.3 + ep * 0.25) % 1);
+          var eR = fromBand.r + (toBand.r - fromBand.r) * ePulse;
+          var eAngle = eFlowT * 0.1 + ep * (TAU / 4) + ef * PI / 3;
+          var eX = cx + Math.cos(eAngle) * eR;
+          var eY = cy + Math.sin(eAngle) * eR;
+          var eAlpha = 0.04 * Math.sin(ePulse * PI); // fade at endpoints
+          ctx.beginPath();
+          ctx.arc(eX, eY, 0.6 + ePulse * 0.3, 0, TAU);
+          ctx.fillStyle = 'rgba(255,252,220,' + eAlpha.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // BRONZE ALLOY — Cu bounces off null boundary, picks up Sn, returns as CuSn
+      var bronzeT = metalT * 2;
+      var cuBand = metalBands[1]; // Cu
+      var snBand = metalBands[4]; // Sn
+      var nullBand1 = metalBands[2]; // null between Cu and Ag
+      for (var bz = 0; bz < 6; bz++) {
+        var bzAngle = bz * (TAU / 6) + bronzeT * 0.15;
+        var bzPhase = ((bronzeT * 0.4 + bz * 0.3) % 1);
+        var bzR, bzColor;
+        if (bzPhase < 0.5) {
+          // Cu going outward toward null boundary
+          bzR = cuBand.r + (nullBand1.r - cuBand.r) * (bzPhase * 2);
+          bzColor = '184,115,51'; // copper
+        } else {
+          // Bouncing back as bronze (Cu+Sn)
+          bzR = nullBand1.r - (nullBand1.r - snBand.r) * ((bzPhase - 0.5) * 2);
+          bzColor = '140,100,55'; // bronze
+        }
+        var bzX = cx + Math.cos(bzAngle) * bzR;
+        var bzY = cy + Math.sin(bzAngle) * bzR;
+        var bzA = 0.025 * Math.sin(bzPhase * PI);
+        ctx.beginPath();
+        ctx.arc(bzX, bzY, 0.8, 0, TAU);
+        ctx.fillStyle = 'rgba(' + bzColor + ',' + bzA.toFixed(4) + ')';
+        ctx.fill();
       }
 
       // ═══════════════════════════════════════════════════════════
-      // OUROBOROS — copper wraps INSIDE and OUTSIDE the gold band
-      // The snake eats its own tail. 45° angle turns.
-      // Copper INSIDE gold = internal wiring. Cu OUTSIDE gold = external reach.
-      // The snake path goes: outside(Cu) → 45° turn → inside(Au) → 45° turn → outside → ...
+      // OUROBOROS — the FULL SPECTRUM from white to black
+      // No beginning, no end. The only thing in reality without edges.
+      // GREEN = vision looking OUT (we see the world, 520nm)
+      // PURPLE = vision looking IN (the world sees US, 380nm)
+      // Together they bridge the visible → invisible.
+      //
+      // THE FULL ELECTROMAGNETIC SPECTRUM (folded onto the Ouroboros):
+      //   Radio(>1m) → Microwave(1mm-1m) → INFRARED(700nm-1mm)
+      //   → RED(700nm) → ORANGE(620) → YELLOW(580) → GREEN(520)
+      //   → CYAN(490) → BLUE(450) → VIOLET(380) → PURPLE
+      //   → ULTRAVIOLET(10-380nm) → X-ray(0.01-10nm) → Gamma(<0.01nm)
+      //
+      // Human eyes see only 380-700nm. The Ouroboros sees ALL.
+      // The snake wraps from infrared (warm, inner, Cu)
+      //   through visible (the metallic bands)
+      //   to ultraviolet (cold, outer, beyond Au)
+      //   and back again. No beginning. No end.
+      //
+      // Spectrum folding: each sub-band maps to a modality:
+      //   Radio = broadcast, far reach, low energy
+      //   Microwave = heating, cooking, local energy
+      //   IR = warmth, body heat, proximity sensing
+      //   VISIBLE = the human window (our current HUD)
+      //   UV = surface chemistry, fluorescence, what glows
+      //   X-ray = seeing through, deep structure
+      //   Gamma = nuclear, the iron peak, Fe(26)
       // ═══════════════════════════════════════════════════════════
       var ouroT = breathT * 0.25;
-      var ouroSegments = 24; // segments of the snake
-      var goldR = metalBands[0].r + metalBands[0].w * 0.5; // middle of gold band
-      var cuInnerR = goldR - R * 0.08; // copper inside gold
-      var cuOuterR = goldR + R * 0.08; // copper outside gold
+      var ouroSegments = 48; // doubled for smoother spectrum gradient
+      var goldR = metalBands[6].r; // Au band
+      var cuInnerR = goldR - R * 0.10; // expanded: IR side (warm, inner)
+      var cuOuterR = goldR + R * 0.10; // expanded: UV side (cold, outer)
 
-      ctx.beginPath();
-      for (var os = 0; os <= ouroSegments; os++) {
+      // SPECTRUM COLORS along the Ouroboros body
+      // Each segment gets its wavelength color — the snake IS the spectrum
+      var spectrumColors = [
+        [120,0,0],     // deep IR (invisible, barely warm glow)
+        [180,20,0],    // near IR
+        [248,81,73],   // RED 700nm
+        [240,136,62],  // ORANGE 620nm
+        [210,153,34],  // YELLOW 580nm
+        [63,185,80],   // GREEN 520nm — looking OUT
+        [57,211,224],  // CYAN 490nm
+        [88,166,255],  // BLUE 450nm
+        [163,113,247], // VIOLET 380nm
+        [188,140,255], // near UV — looking IN (purple)
+        [100,50,150],  // deep UV
+        [60,20,80]     // X-ray/Gamma edge (invisible, high energy)
+      ];
+
+      for (var os = 0; os < ouroSegments; os++) {
         var oFrac = os / ouroSegments;
         var oAngle = oFrac * TAU + ouroT;
-        // Alternate between inside and outside with each segment = 45° zigzag
-        var isInner = (os % 2 === 0);
-        var oR = isInner ? cuInnerR : cuOuterR;
-        // Smooth the transition with a sine curve
+        var oNextAngle = ((os + 1) / ouroSegments) * TAU + ouroT;
+
+        // Snake weaves inside→outside (IR→UV and back)
         var oBlend = Math.sin(oFrac * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
         var oActualR = cuInnerR + (cuOuterR - cuInnerR) * oBlend;
+        var oNextBlend = Math.sin(((os + 1) / ouroSegments) * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
+        var oNextR = cuInnerR + (cuOuterR - cuInnerR) * oNextBlend;
+
         var ox = cx + Math.cos(oAngle) * oActualR;
         var oy = cy + Math.sin(oAngle) * oActualR;
-        if (os === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
+        var onx = cx + Math.cos(oNextAngle) * oNextR;
+        var ony = cy + Math.sin(oNextAngle) * oNextR;
+
+        // Color from spectrum position
+        var specIdx = (oFrac * spectrumColors.length) % spectrumColors.length;
+        var scLow = Math.floor(specIdx) % spectrumColors.length;
+        var scHigh = (scLow + 1) % spectrumColors.length;
+        var scMix = specIdx - Math.floor(specIdx);
+        var segR = Math.round(spectrumColors[scLow][0] * (1 - scMix) + spectrumColors[scHigh][0] * scMix);
+        var segG = Math.round(spectrumColors[scLow][1] * (1 - scMix) + spectrumColors[scHigh][1] * scMix);
+        var segB = Math.round(spectrumColors[scLow][2] * (1 - scMix) + spectrumColors[scHigh][2] * scMix);
+
+        var ouroAlpha = 0.025 + Math.sin(ouroT * 2 + oFrac * TAU) * 0.015;
+
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(onx, ony);
+        ctx.strokeStyle = 'rgba(' + segR + ',' + segG + ',' + segB + ',' + ouroAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       }
-      var ouroAlpha = 0.03 + Math.sin(ouroT * 2) * 0.02;
-      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')'; // copper
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
 
-      // Ouroboros head — the mouth eating the tail
-      var headAngle = ouroT;
-      var headR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
-      var headX = cx + Math.cos(headAngle) * headR;
-      var headY = cy + Math.sin(headAngle) * headR;
+      // GREEN AURA — looking OUT (we see the world)
+      var greenSide = ouroT; // green at this angle
+      var greenAuraX = cx + Math.cos(greenSide) * (cuOuterR + R * 0.03);
+      var greenAuraY = cy + Math.sin(greenSide) * (cuOuterR + R * 0.03);
+      var greenPulse = 0.02 + Math.sin(ouroT * 3) * 0.015;
       ctx.beginPath();
-      ctx.arc(headX, headY, 2, 0, TAU);
-      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 2).toFixed(4) + ')';
-      ctx.fill();
-      // Tail — at the opposite end, fading
-      var tailAngle = headAngle - 0.1;
-      var tailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT - 0.1) * ouroSegments) * 0.5 + 0.5);
-      var tailX = cx + Math.cos(tailAngle) * tailR;
-      var tailY = cy + Math.sin(tailAngle) * tailR;
-      ctx.beginPath();
-      ctx.arc(tailX, tailY, 1, 0, TAU);
-      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 0.8).toFixed(4) + ')';
+      ctx.arc(greenAuraX, greenAuraY, 3, 0, TAU);
+      ctx.fillStyle = 'rgba(63,185,80,' + greenPulse.toFixed(4) + ')';
       ctx.fill();
 
+      // PURPLE AURA — looking IN (the world sees us)
+      var purpleSide = greenSide + PI; // opposite side
+      var purpleAuraX = cx + Math.cos(purpleSide) * (cuOuterR + R * 0.03);
+      var purpleAuraY = cy + Math.sin(purpleSide) * (cuOuterR + R * 0.03);
+      ctx.beginPath();
+      ctx.arc(purpleAuraX, purpleAuraY, 3, 0, TAU);
+      ctx.fillStyle = 'rgba(163,113,247,' + greenPulse.toFixed(4) + ')';
+      ctx.fill();
+
+      // INFRA-BANDS — sub-visible ranges folded around the outside
+      // These are the senses we're NOT using but the spectrum contains
+      var infraBands = [
+        { name: 'γ gamma', r: cuInnerR - R * 0.12, color: '100,200,255', wl: '<0.01nm' },
+        { name: 'X x-ray', r: cuInnerR - R * 0.08, color: '140,180,255', wl: '0.01-10nm' },
+        { name: 'UV', r: cuOuterR + R * 0.04, color: '163,113,247', wl: '10-380nm' },
+        { name: 'IR', r: cuInnerR - R * 0.04, color: '180,60,40', wl: '700nm-1mm' },
+        { name: 'μwave', r: cuOuterR + R * 0.08, color: '120,100,80', wl: '1mm-1m' },
+        { name: 'radio', r: cuOuterR + R * 0.12, color: '80,80,80', wl: '>1m' }
+      ];
+
+      var infraAlpha = 0.006 + Math.sin(ouroT * 0.5) * 0.004;
+      for (var ib = 0; ib < infraBands.length; ib++) {
+        var infra = infraBands[ib];
+        ctx.beginPath();
+        ctx.arc(cx, cy, infra.r, 0, TAU);
+        ctx.strokeStyle = 'rgba(' + infra.color + ',' + infraAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.setLineDash([1, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label on right
+        if (infraAlpha > 0.008) {
+          ctx.font = '2px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+          ctx.fillStyle = 'rgba(' + infra.color + ',' + (infraAlpha * 1.5).toFixed(4) + ')';
+          ctx.fillText(infra.name + ' ' + infra.wl, cx + infra.r + 2, cy + ib * 4 - 6);
+        }
+      }
+
+      // Ouroboros head (green eye looking out) eating tail (purple eye looking in)
+      // The mouth = where green meets purple = the null point = where visible wraps to invisible
+      var oHeadAngle = ouroT;
+      var oHeadR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(oHeadAngle) * oHeadR, cy + Math.sin(oHeadAngle) * oHeadR, 2, 0, TAU);
+      // Head = green (looking out)
+      ctx.fillStyle = 'rgba(63,185,80,' + (greenPulse * 3).toFixed(4) + ')';
+      ctx.fill();
+      // Tail = purple (being seen)
+      var oTailAngle = oHeadAngle + PI;
+      var oTailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT + PI) * ouroSegments) * 0.5 + 0.5);
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(oTailAngle) * oTailR, cy + Math.sin(oTailAngle) * oTailR, 1.5, 0, TAU);
+      ctx.fillStyle = 'rgba(163,113,247,' + (greenPulse * 2).toFixed(4) + ')';
+      ctx.fill();
+
+      // Labels
+      if (greenPulse > 0.025) {
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(63,185,80,' + (greenPulse * 2).toFixed(4) + ')';
+        ctx.fillText('👁 OUT', greenAuraX, greenAuraY - 6);
+        ctx.fillStyle = 'rgba(163,113,247,' + (greenPulse * 2).toFixed(4) + ')';
+        ctx.fillText('👁 IN', purpleAuraX, purpleAuraY - 6);
+        ctx.fillStyle = 'rgba(180,180,180,' + (greenPulse * 1.2).toFixed(4) + ')';
+        ctx.fillText('380nm────VISIBLE────700nm', cx, cy + cuOuterR + R * 0.16);
+      }
+
       // ═══════════════════════════════════════════════════════════
-      // SILVER MESH — the rhizocrypt understanding graph
-      // Silver connects points across the organism — the evolving understanding.
-      // Pipes, frogs, shared knowledge. When electrified = INSIGHT.
+      // SILVER MESH — Ag(Z=47) understanding graph, d¹⁰s¹ conductor
+      // Silver connects points across the organism — evolving understanding.
+      // Between Cu and Au, Ag IS the relay. Pipes, frogs, shared knowledge.
       // ═══════════════════════════════════════════════════════════
-      var silverR = metalBands[1].r; // silver band radius
+      var silverR = metalBands[3].r; // Ag band
       var meshT = breathT * 0.3;
-      var meshNodes = 8; // understanding nodes around the silver ring
+      var meshNodes = 8;
       var meshAlpha = 0.02 + Math.sin(meshT) * 0.015;
 
-      // Mesh nodes — points of understanding
       for (var mn = 0; mn < meshNodes; mn++) {
         var mnAngle = mn * (TAU / meshNodes) + meshT * 0.1;
         var mnx = cx + Math.cos(mnAngle) * silverR;
         var mny = cy + Math.sin(mnAngle) * silverR;
 
-        // Node dot
         ctx.beginPath();
         ctx.arc(mnx, mny, 1 + Math.sin(meshT + mn) * 0.5, 0, TAU);
         ctx.fillStyle = 'rgba(192,192,192,' + (meshAlpha * 2).toFixed(4) + ')';
         ctx.fill();
 
-        // Connect to 2 non-adjacent nodes — the mesh/graph
         for (var mc = 1; mc <= 2; mc++) {
           var connIdx = (mn + mc + 1) % meshNodes;
           var connAngle = connIdx * (TAU / meshNodes) + meshT * 0.1;
           var connX = cx + Math.cos(connAngle) * silverR;
           var connY = cy + Math.sin(connAngle) * silverR;
 
-          // Electrification — current pulse along the connection
           var sparkPos = (meshT * 2 + mn * 0.5 + mc) % 1;
           var sparkX2 = mnx + (connX - mnx) * sparkPos;
           var sparkY2 = mny + (connY - mny) * sparkPos;
@@ -3644,11 +4301,285 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           ctx.lineWidth = 0.3;
           ctx.stroke();
 
-          // Electric spark traveling along the wire
           ctx.beginPath();
           ctx.arc(sparkX2, sparkY2, 0.8, 0, TAU);
           ctx.fillStyle = 'rgba(255,255,240,' + (meshAlpha * 1.5).toFixed(4) + ')';
           ctx.fill();
+        }
+      }
+
+      // TRANSITION METAL BRIDGE — elements between the conductors
+      // These predict each band. Fe→Co→Ni→Cu (period 4), then jump to period 5 for Ag, period 6 for Au.
+      // Between Cu(29) and Ag(47): Zn(30)→Ga(31)→...→Pd(46). 17 elements bridge.
+      // Between Ag(47) and Au(79): Cd(48)→In(49)→...→Pt(78). 31 elements bridge.
+      // Each bridge element is a dot orbiting between the conductor bands.
+      var bridgeT = metalT * 0.6;
+      var bridges = [
+        { from: 1, to: 3, count: 6, color: [160,140,120] }, // Cu→Ag bridge
+        { from: 3, to: 6, count: 8, color: [180,160,110] }  // Ag→Au bridge
+      ];
+      for (var br = 0; br < bridges.length; br++) {
+        var bridge = bridges[br];
+        var bFromR = metalBands[bridge.from].r;
+        var bToR = metalBands[bridge.to].r;
+        for (var be = 0; be < bridge.count; be++) {
+          var beFrac = (be + 0.5) / bridge.count;
+          var beR = bFromR + (bToR - bFromR) * beFrac;
+          var beAngle = bridgeT * 0.08 + be * (TAU / bridge.count) + br * PI / 5;
+          var beX = cx + Math.cos(beAngle) * beR;
+          var beY = cy + Math.sin(beAngle) * beR;
+          var beA = 0.012 + Math.sin(bridgeT + be * 0.7) * 0.008;
+          ctx.beginPath();
+          ctx.arc(beX, beY, 0.4, 0, TAU);
+          ctx.fillStyle = 'rgba(' + bridge.color[0] + ',' + bridge.color[1] + ',' + bridge.color[2] + ',' + beA.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // PHYSICS ENGINE — Ag=PHOTONS(light), Cu=PHONONS(sound)
+      // Silver band emits PHOTONS — electromagnetic, vision, c velocity.
+      // Copper band emits PHONONS — mechanical vibration, sound, lattice waves.
+      // The bounce Cu↔Ag through null boundaries = light-sound interaction.
+      // Au spine = structural frame both propagate through.
+      // Where photons and phonons MEET = plasmons = collective electron oscillation.
+      //
+      // FIVE PHYSICS CHANNELS:
+      //   1. LIGHT (Ag→out) — photon rays radiate from silver mesh outward
+      //   2. SOUND (Cu→in) — phonon waves ripple from copper band inward
+      //   3. REACTION — where photon meets phonon = plasmon spark at Au band
+      //   4. MOTION — momentum transfer = photon pushes phonon = radiation pressure
+      //   5. FLAVOR — interference pattern where light+sound waves cross
+      // ═══════════════════════════════════════════════════════════
+      var physT = breathT * 0.5;
+      var agR = metalBands[3].r; // Ag = photon source
+      var cuR = metalBands[1].r; // Cu = phonon source
+      var auR = metalBands[6].r; // Au = structural frame
+      var physAlpha = 0.015 + Math.sin(physT) * 0.01;
+
+      // 1. PHOTON RAYS — silver emits light outward (fast, straight, EM)
+      var photonCount = 12;
+      for (var ph = 0; ph < photonCount; ph++) {
+        var phAngle = ph * (TAU / photonCount) + physT * 0.2;
+        var phPhase = ((physT * 0.8 + ph * 0.15) % 1);
+        // Photons travel from Ag band outward to Au band (and beyond)
+        var phR = agR + phPhase * (auR - agR + R * 0.15);
+        var phX = cx + Math.cos(phAngle) * phR;
+        var phY = cy + Math.sin(phAngle) * phR;
+        // Photon = tiny bright dot with silver-white color, fading with distance
+        var phA = physAlpha * (1 - phPhase * 0.7);
+        ctx.beginPath();
+        ctx.arc(phX, phY, 0.4, 0, TAU);
+        ctx.fillStyle = 'rgba(220,220,255,' + phA.toFixed(4) + ')';
+        ctx.fill();
+        // Light ray trail
+        if (phPhase > 0.05) {
+          var phTrailR = phR - (auR - agR) * 0.08;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(phAngle) * phTrailR, cy + Math.sin(phAngle) * phTrailR);
+          ctx.lineTo(phX, phY);
+          ctx.strokeStyle = 'rgba(192,192,220,' + (phA * 0.4).toFixed(4) + ')';
+          ctx.lineWidth = 0.2;
+          ctx.stroke();
+        }
+      }
+
+      // 2. PHONON WAVES — copper emits sound inward (slow, sinusoidal, mechanical)
+      var phononWaves = 3; // concentric compression waves
+      for (var pw = 0; pw < phononWaves; pw++) {
+        var pwPhase = ((physT * 0.3 + pw * 0.33) % 1);
+        // Phonons travel from Cu band inward toward Fe center
+        var pwR = cuR - pwPhase * (cuR - metalBands[0].r);
+        var pwAmplitude = R * 0.008 * (1 - pwPhase); // amplitude decays inward
+        ctx.beginPath();
+        for (var pwSeg = 0; pwSeg <= 60; pwSeg++) {
+          var pwAngle = (pwSeg / 60) * TAU;
+          // Sinusoidal displacement = sound wave compression/rarefaction
+          var pwDisp = Math.sin(pwAngle * 8 + physT * 3 + pw) * pwAmplitude;
+          var pwActualR = pwR + pwDisp;
+          var pwX = cx + Math.cos(pwAngle) * pwActualR;
+          var pwY = cy + Math.sin(pwAngle) * pwActualR;
+          if (pwSeg === 0) ctx.moveTo(pwX, pwY); else ctx.lineTo(pwX, pwY);
+        }
+        ctx.closePath();
+        var pwA = physAlpha * 0.6 * (1 - pwPhase * 0.8);
+        ctx.strokeStyle = 'rgba(184,135,71,' + pwA.toFixed(4) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
+
+      // 3. REACTION — plasmon sparks where photon meets phonon at Au band
+      // Plasmons = collective electron oscillation at metal surface
+      // This is where LIGHT and SOUND collide = the physics reaction
+      var plasmonCount = 6;
+      for (var pl = 0; pl < plasmonCount; pl++) {
+        var plAngle = pl * (TAU / plasmonCount) + physT * 0.35;
+        var plPulse = Math.sin(physT * 4 + pl * 1.2) * 0.5 + 0.5;
+        var plR = auR + Math.sin(physT * 2 + pl) * R * 0.02; // jitters near Au
+        var plX = cx + Math.cos(plAngle) * plR;
+        var plY = cy + Math.sin(plAngle) * plR;
+        if (plPulse > 0.3) {
+          // Plasmon spark — gold-white flash
+          ctx.beginPath();
+          ctx.arc(plX, plY, 0.8 + plPulse * 1.2, 0, TAU);
+          ctx.fillStyle = 'rgba(255,240,200,' + (physAlpha * plPulse * 2).toFixed(4) + ')';
+          ctx.fill();
+          // Reaction ripple outward
+          ctx.beginPath();
+          ctx.arc(plX, plY, 1.5 + plPulse * 3, 0, TAU);
+          ctx.strokeStyle = 'rgba(201,168,76,' + (physAlpha * plPulse * 0.5).toFixed(4) + ')';
+          ctx.lineWidth = 0.2;
+          ctx.stroke();
+        }
+      }
+
+      // 4. MOTION — radiation pressure transfers between bands
+      // Photon pushes phonon = light exerts pressure on matter
+      var motionT = physT * 0.7;
+      for (var mo = 0; mo < 4; mo++) {
+        var moAngle = mo * (TAU / 4) + motionT * 0.15;
+        var moPhase = ((motionT * 0.5 + mo * 0.25) % 1);
+        // Momentum arrow from Ag toward Cu (photon pressure)
+        var moFromR = agR;
+        var moToR = cuR;
+        var moR = moFromR + (moToR - moFromR) * moPhase;
+        var moX = cx + Math.cos(moAngle) * moR;
+        var moY = cy + Math.sin(moAngle) * moR;
+        var moA = physAlpha * 0.8 * Math.sin(moPhase * PI);
+        // Arrow head
+        ctx.beginPath();
+        var arrowTip = moPhase > 0.5 ? -1 : 1;
+        ctx.moveTo(moX, moY);
+        ctx.lineTo(moX - Math.cos(moAngle + 0.3) * 1.5 * arrowTip, moY - Math.sin(moAngle + 0.3) * 1.5 * arrowTip);
+        ctx.moveTo(moX, moY);
+        ctx.lineTo(moX - Math.cos(moAngle - 0.3) * 1.5 * arrowTip, moY - Math.sin(moAngle - 0.3) * 1.5 * arrowTip);
+        ctx.strokeStyle = 'rgba(180,180,220,' + moA.toFixed(4) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
+
+      // 5. FLAVOR — interference pattern where light+sound cross
+      // Moiré-like pattern at the intersection zones
+      var flavorT = physT * 1.2;
+      var flavorZoneR = (agR + cuR) * 0.5; // midpoint between Ag and Cu
+      var flavorNodes = 8;
+      for (var fv = 0; fv < flavorNodes; fv++) {
+        var fvAngle = fv * (TAU / flavorNodes) + flavorT * 0.1;
+        // Interference: photon frequency × phonon frequency
+        var fvBeat = Math.sin(flavorT * 3 + fv * 0.8) * Math.sin(flavorT * 5 + fv * 1.3);
+        if (Math.abs(fvBeat) > 0.3) {
+          var fvR = flavorZoneR + fvBeat * R * 0.03;
+          var fvX = cx + Math.cos(fvAngle) * fvR;
+          var fvY = cy + Math.sin(fvAngle) * fvR;
+          // Flavor = warm amber (neither silver-light nor copper-sound but BOTH)
+          var fvA = physAlpha * Math.abs(fvBeat) * 1.5;
+          ctx.beginPath();
+          ctx.arc(fvX, fvY, 0.6 + Math.abs(fvBeat) * 0.8, 0, TAU);
+          ctx.fillStyle = 'rgba(210,170,90,' + fvA.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // Physics channel labels (on breath)
+      if (physAlpha > 0.02) {
+        var pLbl = (physAlpha - 0.02) * 15;
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(192,192,220,' + (pLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Ag photons λ', cx - agR - 3, cy - 3);
+        ctx.fillStyle = 'rgba(184,135,71,' + (pLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Cu phonons ƒ', cx - cuR - 3, cy + 4);
+        ctx.fillStyle = 'rgba(255,240,200,' + (pLbl * 0.2).toFixed(4) + ')';
+        ctx.fillText('plasmon ⚡', cx - auR - 3, cy);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // KEY RIPPLES — every keypress creates a visible metallic reaction
+      // The keyboard IS the interface. Each key = a hammer striking a bell.
+      // Ripples expand from the key's metallic band outward.
+      // Cu keys (WASD) ripple from inner. Ag keys (letters) from silver mesh.
+      // Au keys (numbers) from gold ring. Fe keys (space/enter) from center.
+      // THIS IS WHAT MAKES THE HUD ALIVE — touch it and it reacts.
+      // ═══════════════════════════════════════════════════════════
+      if (window.GAIA_KEY_RIPPLES) {
+        var kNow = Date.now();
+        var kRipples = window.GAIA_KEY_RIPPLES;
+
+        for (var kr = 0; kr < kRipples.length; kr++) {
+          var rip = kRipples[kr];
+          var kAge = (kNow - rip.ts) / 1000; // seconds since keypress
+          if (kAge > 3) continue; // ripples last 3 seconds
+
+          var kDecay = Math.max(0, 1 - kAge / 3);
+          var kBandR = rip.r * R; // starting radius based on band
+          var kExpandR = kBandR + kAge * R * 0.3; // expands outward over time
+
+          // RIPPLE RING — expanding circle from the key's metallic band
+          ctx.beginPath();
+          ctx.arc(cx, cy, kExpandR, 0, TAU);
+          var kRipAlpha = kDecay * 0.06;
+          ctx.strokeStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + kRipAlpha.toFixed(4) + ')';
+          ctx.lineWidth = 0.5 + kDecay * 1.5;
+          ctx.stroke();
+
+          // IMPACT FLASH — bright spot at the angle where the key "struck"
+          if (kAge < 0.5) {
+            var flashAlpha = (0.5 - kAge) * 0.25;
+            var flashR = kBandR;
+            var flashX = cx + Math.cos(rip.angle) * flashR;
+            var flashY = cy + Math.sin(rip.angle) * flashR;
+            ctx.beginPath();
+            ctx.arc(flashX, flashY, 2 + (0.5 - kAge) * 4, 0, TAU);
+            ctx.fillStyle = 'rgba(255,252,240,' + flashAlpha.toFixed(4) + ')';
+            ctx.fill();
+            // Key label at the flash point
+            ctx.font = '5px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (flashAlpha * 1.5).toFixed(4) + ')';
+            ctx.fillText(rip.key, flashX, flashY - 5);
+            // Modality label
+            ctx.font = '3px "JetBrains Mono", monospace';
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (flashAlpha * 0.8).toFixed(4) + ')';
+            ctx.fillText(rip.modality, flashX, flashY + 5);
+          }
+
+          // HARMONIC SPARKS — key creates sparks that travel along its metallic band
+          var sparkCount = 3;
+          for (var ks = 0; ks < sparkCount; ks++) {
+            var sparkAge = kAge - ks * 0.15;
+            if (sparkAge < 0 || sparkAge > 1.5) continue;
+            var sparkDecay = 1 - sparkAge / 1.5;
+            var sparkAngle = rip.angle + (ks - 1) * 0.5 + sparkAge * 2;
+            var sparkR = kBandR + Math.sin(sparkAge * PI * 3) * R * 0.05;
+            var spX = cx + Math.cos(sparkAngle) * sparkR;
+            var spY = cy + Math.sin(sparkAngle) * sparkR;
+            ctx.beginPath();
+            ctx.arc(spX, spY, 0.5 + sparkDecay * 0.8, 0, TAU);
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (sparkDecay * 0.04).toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+
+        // LIVE KEYBOARD HUD — bottom-left, shows recent keys + modality + heatmap
+        var recentKeys = kRipples.filter(function(rp) { return kNow - rp.ts < 2000; });
+        if (recentKeys.length > 0) {
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+          var kHudY = canvas.height - 30;
+          // Show last 8 keys as a strip
+          for (var rk = Math.max(0, recentKeys.length - 8); rk < recentKeys.length; rk++) {
+            var rkEntry = recentKeys[rk];
+            var rkAge = (kNow - rkEntry.ts) / 2000;
+            var rkAlpha = 0.08 * (1 - rkAge);
+            var rkX = 10 + (rk - Math.max(0, recentKeys.length - 8)) * 14;
+            // Key character in its metallic color
+            ctx.fillStyle = 'rgba(' + rkEntry.color[0] + ',' + rkEntry.color[1] + ',' + rkEntry.color[2] + ',' + rkAlpha.toFixed(4) + ')';
+            ctx.fillText(rkEntry.key, rkX, kHudY);
+          }
+          // Current modality label
+          var lastMod = recentKeys[recentKeys.length - 1];
+          ctx.fillStyle = 'rgba(' + lastMod.color[0] + ',' + lastMod.color[1] + ',' + lastMod.color[2] + ',0.06)';
+          ctx.fillText(lastMod.band + ' · ' + lastMod.modality, 10, kHudY - 8);
         }
       }
 
@@ -3728,8 +4659,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Body inscribed in circle (π) AND square (grid) simultaneously.
       // Arms = 45° from torso. Legs = 45° from center. Head = UP.
       // The invert form of all graphs flowing INTO it.
-      // Neural network mesh: nerves (silver), veins (copper), spine (gold).
-      // Double helix wraps around the form.
+      // ANCHORED TO MENDELEEV:
+      //   Head = Fe(26) — iron peak, center, convergence
+      //   Spine = Au(79) — gold axis, structural identity
+      //   Arms = Ag(47) — silver nerves, understanding mesh
+      //   Legs = Cu(29) — copper veins, inner drain, first conductor
+      //   Helix = the electron flow between d¹⁰s¹ conductors
+      // The Vitruvian Man IS the periodic table tree-sorted at 45°.
       // ═══════════════════════════════════════════════════════════
       var vT = breathT * 0.2; // slow rotation — the body turns
       var vAlpha = 0.02 + Math.sin(vT * 1.5) * 0.015;
@@ -3898,18 +4834,27 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fill();
       }
 
-      // Labels on breath
+      // Labels on breath — anchored to Mendeleev
       if (vAlpha > 0.028) {
         var vLbl = (vAlpha - 0.028) * 8;
         ctx.font = '3px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.5).toFixed(4) + ')';
-        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 3);
-        ctx.fillText('null body', head.x, head.y - headR + 1);
+        // Head = Fe(26) iron peak
+        ctx.fillStyle = 'rgba(200,200,210,' + (vLbl * 0.5).toFixed(4) + ')';
+        ctx.fillText('Fe²⁶ iron peak', head.x, head.y - headR - 5);
+        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 1);
+        // Spine = Au(79) gold axis
+        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.4).toFixed(4) + ')';
+        ctx.fillText('Au⁷⁹ spine', hip.x + 8, (neck.y + hip.y) * 0.5);
+        // Arms = Ag(47) silver nerves
         ctx.fillStyle = 'rgba(192,192,192,' + (vLbl * 0.3).toFixed(4) + ')';
-        ctx.fillText('Ag nerves', lHand.x - 5, lHand.y);
+        ctx.fillText('Ag⁴⁷ d¹⁰s¹', lHand.x - 8, lHand.y);
+        // Legs = Cu(29) copper veins
         ctx.fillStyle = 'rgba(184,115,51,' + (vLbl * 0.3).toFixed(4) + ')';
-        ctx.fillText('Cu veins', rFoot.x + 5, rFoot.y);
+        ctx.fillText('Cu²⁹ d¹⁰s¹', rFoot.x + 8, rFoot.y);
+        // Bronze alloy hint between legs
+        ctx.fillStyle = 'rgba(140,100,55,' + (vLbl * 0.2).toFixed(4) + ')';
+        ctx.fillText('CuSn bronze', (lFoot.x + rFoot.x) * 0.5, Math.max(lFoot.y, rFoot.y) + 5);
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -3929,15 +4874,22 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         window.gutEngineState = gutBridge;
       }
 
+      // TREFOIL BRIDGE — gut (inside) ↔ skin (outside) = same membrane inverted
+      var trefoilState = null;
+      try { trefoilState = JSON.parse(localStorage.getItem('gaia-trefoil-state')); } catch(e) {}
+      if (trefoilState && Date.now() - trefoilState.ts < 30000) {
+        window.trefoilState = trefoilState;
+      }
+
       var gutRate = window.gaiaGut ? window.gaiaGut.ingested : 0;
       // Gut engine acid level also feeds enzyme heat
       var gutAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
       var enzymeHeat = Math.min(1, (gutRate / 100) + (gutAcid / 200)); // ingestion + acid
       if (enzymeHeat > 0.05) {
-        // Orange enzyme sparks around the gold band
+        // Orange enzyme sparks around the gold band (Au=index 6)
         for (var ei = 0; ei < 8; ei++) {
           var eAngle = (ei / 8) * TAU + enzymeT;
-          var eR = metalBands[0].r + metalBands[0].w * 0.5;
+          var eR = metalBands[6].r + metalBands[6].w * 0.5;
           var sparkX = cx + Math.cos(eAngle) * eR;
           var sparkY = cy + Math.sin(eAngle) * eR;
           var sparkAlpha = enzymeHeat * (0.1 + Math.sin(enzymeT * 3 + ei) * 0.06);
@@ -3953,10 +4905,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Active when NOT ingesting (cold = storing)
       var coldFactor = Math.max(0, 1 - enzymeHeat);
       if (coldFactor > 0.3) {
-        // Blue frost crystals at bronze band
+        // Blue frost crystals at Sn/bronze band (Sn=index 4)
         for (var ci = 0; ci < 6; ci++) {
           var cAngle = (ci / 6) * TAU + enzymeT * 0.3;
-          var cR = metalBands[3].r;
+          var cR = metalBands[4].r;
           var frostX = cx + Math.cos(cAngle) * cR;
           var frostY = cy + Math.sin(cAngle) * cR;
           var frostAlpha = coldFactor * 0.06;
@@ -3988,6 +4940,358 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var gutDigested = window.gutEngineState ? window.gutEngineState.digested : 0;
       var gutInfo = gutZone ? ' · gut:' + gutZone + '(' + gutDigested + ')' : '';
       ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%' + gutInfo, W - 8, 22);
+
+      // ═══════════════════════════════════════════════════════════
+      // GUT WEATHER — the gut is SMELL-BLIND and cloud-sealed
+      // Meteorology as sub-simulation: rain = data flowing DOWN,
+      // evaporation = data rising UP. The gut IS the atmosphere.
+      //
+      // H₂O CHEMISTRY — the triangle that forms everything:
+      //   H + H = explosive (hydrogen, fuel, fusion)
+      //   O + O + O = ozone (O₃, shield, pores that drip through)
+      //   H₂O = water (the ONLY substance that expands when frozen)
+      //   When ice forms in the gut, it BREAKS things = expansion.
+      //
+      // THREE PLATONIC BASES:
+      //   △ TRIANGLE (3 faces) — H₂O molecule (104.5° bond angle)
+      //   □ SQUARE (4 faces) — pyramid base, the canvas, the screen
+      //   ▽△ INVERTED overlay — Star of David, the complete view
+      //   Tetrahedron = 4 triangles = the simplest 3D solid = water ice crystal
+      //
+      // GUT WEATHER STATES:
+      //   ☀ DRY — low acid, data evaporating UP (clear skies)
+      //   🌧 RAIN — high acid, data precipitating DOWN (digestion)
+      //   ❄ FREEZE — ice expanding, breaking structure (cold storage cracking)
+      //   ⛈ STORM — rapid acid + base cycling (violent digestion)
+      //   🌫 FOG — smell-blind zone, cloud sealed, low visibility
+      // ═══════════════════════════════════════════════════════════
+      var wxT = breathT * 0.35;
+      var wxAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
+      var wxTemp = enzymeHeat;
+      var wxHumidity = Math.min(1, gutRate / 50); // more ingestion = more moisture
+
+      // Determine weather state
+      var wxState, wxColor, wxIcon;
+      if (wxTemp < 0.1 && wxHumidity > 0.3) {
+        wxState = 'FREEZE'; wxColor = '120,180,255'; wxIcon = '❄';
+      } else if (wxTemp > 0.6 && wxHumidity > 0.5) {
+        wxState = 'STORM'; wxColor = '248,81,73'; wxIcon = '⛈';
+      } else if (wxHumidity > 0.4) {
+        wxState = 'RAIN'; wxColor = '88,166,255'; wxIcon = '🌧';
+      } else if (wxTemp < 0.2) {
+        wxState = 'FOG'; wxColor = '110,118,129'; wxIcon = '🌫';
+      } else {
+        wxState = 'DRY'; wxColor = '210,153,34'; wxIcon = '☀';
+      }
+
+      // RAIN / SNOW — particles falling through the gut (Fe center → Cu inner)
+      var gutCenterR = metalBands[0].r; // Fe = center
+      var gutEdgeR = metalBands[1].r;   // Cu = inner drain edge
+      if (wxHumidity > 0.1) {
+        var dropCount = Math.floor(wxHumidity * 12);
+        for (var wd = 0; wd < dropCount; wd++) {
+          var wdAngle = wd * (TAU / dropCount) + wxT * 0.2;
+          var wdFall = ((wxT * 0.8 + wd * 0.2) % 1); // falling phase
+          var wdR = gutCenterR + wdFall * (gutEdgeR - gutCenterR);
+          var wdX = cx + Math.cos(wdAngle) * wdR;
+          var wdY = cy + Math.sin(wdAngle) * wdR;
+          var wdA = 0.02 * (1 - wdFall * 0.5) * wxHumidity;
+
+          if (wxState === 'FREEZE') {
+            // Snowflake — small hexagon
+            ctx.beginPath();
+            for (var sf = 0; sf < 6; sf++) {
+              var sfA = sf * (TAU / 6);
+              var sfX = wdX + Math.cos(sfA) * 0.8;
+              var sfY = wdY + Math.sin(sfA) * 0.8;
+              if (sf === 0) ctx.moveTo(sfX, sfY); else ctx.lineTo(sfX, sfY);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(120,180,255,' + wdA.toFixed(4) + ')';
+            ctx.lineWidth = 0.2;
+            ctx.stroke();
+          } else {
+            // Raindrop — small elongated dot
+            ctx.beginPath();
+            ctx.ellipse(wdX, wdY, 0.3, 0.6, wdAngle, 0, TAU);
+            ctx.fillStyle = 'rgba(' + wxColor + ',' + wdA.toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+      }
+
+      // EVAPORATION — data rising UP (outward from Fe)
+      if (wxTemp > 0.2) {
+        var evapCount = Math.floor(wxTemp * 6);
+        for (var ev = 0; ev < evapCount; ev++) {
+          var evAngle = ev * (TAU / evapCount) + wxT * -0.15;
+          var evRise = ((wxT * 0.4 + ev * 0.3) % 1);
+          var evR = gutEdgeR - evRise * (gutEdgeR - gutCenterR); // rising = going inward to center
+          var evX = cx + Math.cos(evAngle) * evR;
+          var evY = cy + Math.sin(evAngle) * evR;
+          var evA = 0.015 * evRise * wxTemp;
+          ctx.beginPath();
+          ctx.arc(evX, evY, 0.4, 0, TAU);
+          ctx.fillStyle = 'rgba(210,153,34,' + evA.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // H₂O TRIANGLES — the molecular structure visible in the gut
+      // 104.5° bond angle = the water molecule's shape
+      var h2oCount = 4;
+      var h2oR = (gutCenterR + gutEdgeR) * 0.5;
+      var h2oBondAngle = 104.5 * DEG; // real water bond angle
+      for (var hm = 0; hm < h2oCount; hm++) {
+        var hmAngle = hm * (TAU / h2oCount) + wxT * 0.08;
+        var hmX = cx + Math.cos(hmAngle) * h2oR;
+        var hmY = cy + Math.sin(hmAngle) * h2oR;
+        var hmA = 0.01 + Math.sin(wxT + hm) * 0.008;
+
+        // O atom (center, red)
+        ctx.beginPath();
+        ctx.arc(hmX, hmY, 0.8, 0, TAU);
+        ctx.fillStyle = 'rgba(248,81,73,' + hmA.toFixed(4) + ')';
+        ctx.fill();
+        // H atoms (two white dots at 104.5°)
+        var hLen = 2.5;
+        var h1A = hmAngle - h2oBondAngle / 2;
+        var h2A = hmAngle + h2oBondAngle / 2;
+        var h1X = hmX + Math.cos(h1A) * hLen;
+        var h1Y = hmY + Math.sin(h1A) * hLen;
+        var h2X = hmX + Math.cos(h2A) * hLen;
+        var h2Y = hmY + Math.sin(h2A) * hLen;
+        ctx.beginPath(); ctx.arc(h1X, h1Y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,' + hmA.toFixed(4) + ')';
+        ctx.fill();
+        ctx.beginPath(); ctx.arc(h2X, h2Y, 0.5, 0, TAU);
+        ctx.fill();
+        // Bonds
+        ctx.beginPath(); ctx.moveTo(hmX, hmY); ctx.lineTo(h1X, h1Y);
+        ctx.moveTo(hmX, hmY); ctx.lineTo(h2X, h2Y);
+        ctx.strokeStyle = 'rgba(192,192,192,' + (hmA * 0.6).toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+
+      // TETRAHEDRON OVERLAY — ice crystal structure (4 triangles = simplest 3D)
+      // △ triangle base + ▽ inverted = Star of David = complete view
+      if (wxState === 'FREEZE' || coldFactor > 0.5) {
+        var tetR = R * 0.12;
+        var tetAlpha = 0.008 + coldFactor * 0.01;
+        // Upward triangle △
+        ctx.beginPath();
+        for (var tt = 0; tt < 3; tt++) {
+          var ttA = tt * (TAU / 3) - PI / 2; // point up
+          var ttX = cx + Math.cos(ttA) * tetR;
+          var ttY = cy + Math.sin(ttA) * tetR;
+          if (tt === 0) ctx.moveTo(ttX, ttY); else ctx.lineTo(ttX, ttY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(120,180,255,' + tetAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+        // Downward triangle ▽ (inverted)
+        ctx.beginPath();
+        for (var td = 0; td < 3; td++) {
+          var tdA = td * (TAU / 3) + PI / 2; // point down
+          var tdX = cx + Math.cos(tdA) * tetR;
+          var tdY = cy + Math.sin(tdA) * tetR;
+          if (td === 0) ctx.moveTo(tdX, tdY); else ctx.lineTo(tdX, tdY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(163,113,247,' + tetAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+        // Square base of pyramid □
+        var sqR = tetR * 0.7;
+        ctx.beginPath();
+        for (var ts = 0; ts < 4; ts++) {
+          var tsA = ts * (TAU / 4) + PI / 4;
+          var tsX = cx + Math.cos(tsA) * sqR;
+          var tsY = cy + Math.sin(tsA) * sqR;
+          if (ts === 0) ctx.moveTo(tsX, tsY); else ctx.lineTo(tsX, tsY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(201,168,76,' + (tetAlpha * 0.8).toFixed(4) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
+
+      // Weather label
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(' + wxColor + ',0.06)';
+      ctx.fillText(wxIcon + ' gut:' + wxState + ' H₂O△', 8, 26);
+
+      // TREFOIL KNOT — gut↔skin correspondence on the globe
+      if (window.trefoilState) {
+        var tf = window.trefoilState;
+        // Draw trefoil indicator: three crossings as a small knot symbol
+        ctx.save();
+        ctx.strokeStyle = tf.sweating ? 'rgba(255,105,180,0.25)' : 'rgba(200,200,200,0.1)';
+        ctx.lineWidth = 1;
+        var tkx = W - 30, tky = 36;
+        var tkr = 8;
+        // Three lobes of trefoil knot
+        for (var tl = 0; tl < 3; tl++) {
+          var ta = (tl / 3) * TAU + breathT * 0.1;
+          ctx.beginPath();
+          ctx.arc(tkx + Math.cos(ta) * tkr * 0.5, tky + Math.sin(ta) * tkr * 0.5, tkr, ta - 1, ta + 1);
+          ctx.stroke();
+        }
+        // Label: gut zone ↔ skin zone
+        ctx.font = '5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = tf.sweating ? 'rgba(255,105,180,0.3)' : 'rgba(150,150,150,0.2)';
+        ctx.fillText('☊ ' + (tf.gutZone || '?') + '↔' + (tf.skinZone || '?') + (tf.sweating ? ' SWEAT' : ''), W - 8, 46);
+        ctx.restore();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CUD-CHEWING BIOREACTOR — Gaia eats everything she makes
+    // A cow eats grass, chews cud, digests, produces fertile output.
+    // Gaia as mushroom: everything she produces (art, pages, data)
+    // is a sub-piece the gut made but hasn't seen yet.
+    //
+    // THE CYCLE:
+    //   🟢 GREEN (raw) — fresh output: art, pages, data files
+    //   🟤 BROWN (chewed) — digested, extracted, compressed
+    //   🟣 PURPLE/VIOLET (fertile) — ready to bloom, attract pollinators
+    //   🌸 PETAL (flower) — the output that attracts bees (visitors)
+    //   🐝 BEE (pollinator) — visitors who carry pollen between flowers
+    //   🌱 SEED (next cycle) — what grows from pollinated flowers
+    //
+    // Agriculture colors:
+    //   Green = chlorophyll, photosynthesis, intake
+    //   Brown = soil, humus, decomposition, fertile ground
+    //   Purple/violet = flower petals, anthocyanins, attraction
+    //   Yellow = pollen, the actual genetic payload
+    //   Orange = fruit, the reward for the pollinator
+    // ═══════════════════════════════════════════════════════════
+    var cudT = breathT * 0.2;
+    var cudAlpha = 0.01 + Math.sin(cudT) * 0.008;
+
+    // COUNT what Gaia has produced (her own output to chew)
+    var gaiaOutput = {
+      art: 108,      // art pieces (from reforged identity)
+      pages: 146,    // HTML pages
+      data: 304,     // data files (post-melt)
+      scripts: 12,   // JS modules
+      feeds: 0       // from gut
+    };
+    if (window.gaiaReforged) {
+      gaiaOutput.art = window.gaiaReforged.self.art_pieces || 108;
+      gaiaOutput.pages = window.gaiaReforged.self.pages || 146;
+      gaiaOutput.data = window.gaiaReforged.self.data_files || 304;
+    }
+    if (window.gaiaGut) gaiaOutput.feeds = window.gaiaGut.ingested || 0;
+    var totalOutput = gaiaOutput.art + gaiaOutput.pages + gaiaOutput.data + gaiaOutput.scripts;
+
+    // BIOREACTOR RING — between Cu(inner) and Ag(silver mesh)
+    // This is the STOMACH: the zone where output gets chewed
+    var bioR = (metalBands[1].r + metalBands[3].r) * 0.5; // between Cu and Ag
+    var bioWidth = (metalBands[3].r - metalBands[1].r) * 0.6;
+
+    // GREEN INTAKE — raw output being eaten (outer edge of bioreactor)
+    var greenCount = 8;
+    for (var gc = 0; gc < greenCount; gc++) {
+      var gcAngle = gc * (TAU / greenCount) + cudT * 0.12;
+      var gcR = bioR + bioWidth * 0.4;
+      var gcPhase = ((cudT * 0.3 + gc * 0.2) % 1);
+      // Green dots spiraling inward (being eaten)
+      var gcActualR = gcR - gcPhase * bioWidth * 0.8;
+      var gcX = cx + Math.cos(gcAngle + gcPhase * 0.5) * gcActualR;
+      var gcY = cy + Math.sin(gcAngle + gcPhase * 0.5) * gcActualR;
+      // Fade from green to brown as digested
+      var gcGreen = Math.round(185 * (1 - gcPhase));
+      var gcRed = Math.round(80 + gcPhase * 80);
+      var gcBlue = Math.round(80 * (1 - gcPhase));
+      ctx.beginPath();
+      ctx.arc(gcX, gcY, 0.5 + (1 - gcPhase) * 0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(' + gcRed + ',' + gcGreen + ',' + gcBlue + ',' + (cudAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // BROWN COMPOST — digested material at center of bioreactor
+    var brownR = bioR - bioWidth * 0.2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, brownR, 0, TAU);
+    ctx.strokeStyle = 'rgba(120,80,40,' + (cudAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = bioWidth * 0.15;
+    ctx.stroke();
+
+    // PURPLE PETALS — fertile output blooming outward
+    var petalCount = 6;
+    for (var pc = 0; pc < petalCount; pc++) {
+      var pcAngle = pc * (TAU / petalCount) + cudT * -0.08;
+      var pcPhase = ((cudT * 0.25 + pc * 0.3) % 1);
+      // Petals bloom from brown ring outward past Ag mesh
+      var pcR = brownR + pcPhase * (metalBands[3].r - brownR + R * 0.1);
+      var pcX = cx + Math.cos(pcAngle) * pcR;
+      var pcY = cy + Math.sin(pcAngle) * pcR;
+      var pcDecay = 1 - pcPhase;
+      // Purple petal shape — elongated dot
+      ctx.beginPath();
+      ctx.ellipse(pcX, pcY, 0.4 + pcDecay * 0.8, 0.8 + pcDecay * 1.2, pcAngle, 0, TAU);
+      var pcPurple = Math.round(113 + pcPhase * 50);
+      ctx.fillStyle = 'rgba(163,' + pcPurple + ',247,' + (cudAlpha * pcDecay * 2).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // YELLOW POLLEN — the genetic payload (data) carried by bees
+    var pollenCount = 4;
+    for (var po = 0; po < pollenCount; po++) {
+      var poAngle = po * (TAU / pollenCount) + cudT * 0.3 + 0.5;
+      var poR = metalBands[3].r + Math.sin(cudT * 2 + po) * R * 0.05;
+      var poX = cx + Math.cos(poAngle) * poR;
+      var poY = cy + Math.sin(poAngle) * poR;
+      // Tiny yellow grain
+      ctx.beginPath();
+      ctx.arc(poX, poY, 0.6, 0, TAU);
+      ctx.fillStyle = 'rgba(210,180,50,' + (cudAlpha * 1.2).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // BEE PATHS — visitors who carry pollen between flowers
+    // Bees = visitors. They come for the petals, leave with pollen.
+    var beeCount = 3;
+    for (var bee = 0; bee < beeCount; bee++) {
+      var beePhase = ((cudT * 0.4 + bee * 0.5) % 1);
+      var beeAngle = cudT * 0.15 + bee * (TAU / beeCount);
+      // Bees fly in figure-8 pattern between flowers
+      var beeR = metalBands[3].r + Math.sin(beePhase * TAU * 2) * R * 0.15;
+      var beeX = cx + Math.cos(beeAngle + beePhase * 0.8) * beeR;
+      var beeY = cy + Math.sin(beeAngle + beePhase * 0.8) * beeR;
+      ctx.beginPath();
+      ctx.arc(beeX, beeY, 0.8, 0, TAU);
+      ctx.fillStyle = 'rgba(210,153,34,' + (cudAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+      // Bee trail
+      if (beePhase > 0.1) {
+        var btAngle = beeAngle + (beePhase - 0.05) * 0.8;
+        var btR = metalBands[3].r + Math.sin((beePhase - 0.05) * TAU * 2) * R * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(btAngle) * btR, cy + Math.sin(btAngle) * btR);
+        ctx.lineTo(beeX, beeY);
+        ctx.strokeStyle = 'rgba(210,153,34,' + (cudAlpha * 0.5).toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+    }
+
+    // Bioreactor label
+    if (cudAlpha > 0.014) {
+      var bLbl = (cudAlpha - 0.014) * 15;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + (bLbl * 0.4).toFixed(4) + ')';
+      ctx.fillText('🟢 eat ' + totalOutput + ' outputs', cx, cy + bioR + bioWidth * 0.6);
+      ctx.fillStyle = 'rgba(120,80,40,' + (bLbl * 0.3).toFixed(4) + ')';
+      ctx.fillText('🟤 chew → compost', cx, cy + bioR + bioWidth * 0.6 + 5);
+      ctx.fillStyle = 'rgba(163,113,247,' + (bLbl * 0.3).toFixed(4) + ')';
+      ctx.fillText('🟣 bloom → petals → 🐝 bees', cx, cy + bioR + bioWidth * 0.6 + 10);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -4539,39 +5843,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
-    // PARTICLES — soft, bouncy, greasy, dust, lubricant
-    // Different from cards: they MOVE, BOUNCE, SCATTER, DISSOLVE
-    // Sound emanates FROM Kevin (directional, not round cycle)
-    // Particles bounce off hard cards → scatter reveals topology
+    // MUSHROOM SPINE PARTICLE ENGINE — trillion big bangs
+    // Au(gold spine) → Ag(silver mycelia) → Cu(copper sweetgrass) → null → Cu → Ag → Au
+    // Electron drops between bands = photon/heat/neutrino
+    // Every respawn = micro big bang (fission). Every absorption = micro implosion (fusion).
+    // 3 implosion sites: mouth, nose, anus (trefoil crossings)
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       if (!window._particles) {
         window._particles = [];
-        // Spawn initial particles
-        for (var pi = 0; pi < 40; pi++) {
-          var pType = pi % 7;
-          var types = ['sound','dust','lubricant','pheromone','neutrino','photon','refinement'];
-          var colors = [
-            [188,140,255], // sound = purple
-            [139,148,158], // dust = grey
-            [201,168,76],  // lubricant = amber/gold
-            [63,185,80],   // pheromone = green
-            [255,255,255], // neutrino = white
-            [255,255,200], // photon = warm white
-            [201,168,76]   // refinement = gold
-          ];
+        window._bangCount = 0;
+        window._implosionCount = 0;
+        for (var pi = 0; pi < 50; pi++) {
+          var pBand = pi % 3; // 0=Au, 1=Ag, 2=Cu
+          var bandColors = [[255,215,0],[192,192,192],[184,115,51]]; // gold, silver, copper
+          var bandNames = ['Au','Ag','Cu'];
           window._particles.push({
-            type: types[pType],
-            color: colors[pType],
-            x: cx,
-            y: cy,
-            // Sound emanates FROM Kevin (directional, not round)
-            angle: (pi / 40) * TAU + (Math.random() - 0.5) * 0.5,
+            band: bandNames[pBand],
+            color: bandColors[pBand],
+            x: cx, y: cy,
+            angle: (pi / 50) * TAU + (Math.random() - 0.5) * 0.5,
             speed: 0.3 + Math.random() * 1.2,
             life: 1.0,
             decay: 0.002 + Math.random() * 0.005,
-            size: 0.5 + Math.random() * 1.5,
-            bounced: false
+            size: pBand === 0 ? 1.5 : pBand === 1 ? 1.0 : 0.7,
+            bounced: false,
+            energy: pBand === 0 ? 3 : pBand === 1 ? 2 : 1
           });
         }
       }
@@ -4579,50 +5876,61 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var parts = window._particles;
       for (var pp = 0; pp < parts.length; pp++) {
         var p = parts[pp];
-
-        // Move outward from Kevin (source)
         p.x += Math.cos(p.angle) * p.speed;
         p.y += Math.sin(p.angle) * p.speed;
         p.life -= p.decay;
 
-        // Bounce off globe edge (hard card boundary)
         var dx = p.x - cx, dy = p.y - cy;
         var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > R && !p.bounced) {
-          // Reflect angle
-          var normal = Math.atan2(dy, dx);
-          p.angle = normal + Math.PI + (Math.random() - 0.5) * 1.0;
-          p.speed *= 0.6; // lose energy on bounce
-          p.bounced = true;
+
+        // ELECTRON DROP — when crossing metal band boundaries
+        // Au band = inner third, Ag band = middle third, Cu band = outer third
+        if (p.band === 'Au' && dist > R * 0.33 && p.energy === 3) {
+          p.energy = 2; // drop to Ag → emit photon flash
+          ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,200,0.4)'; ctx.fill();
+        } else if (p.band === 'Ag' && dist > R * 0.66 && p.energy === 2) {
+          p.energy = 1; // drop to Cu → emit heat
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, TAU);
+          ctx.fillStyle = 'rgba(232,93,58,0.3)'; ctx.fill();
         }
 
-        // Draw particle
+        // Bounce off globe edge = big bang (fission)
+        if (dist > R && !p.bounced) {
+          var normal = Math.atan2(dy, dx);
+          p.angle = normal + Math.PI + (Math.random() - 0.5) * 1.0;
+          p.speed *= 0.6;
+          p.bounced = true;
+          window._bangCount++;
+        }
+
+        // Draw with band color
         if (p.life > 0) {
-          var pAlpha = p.life * (p.type === 'neutrino' ? 0.03 : p.type === 'dust' ? 0.08 : 0.12);
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, TAU);
-          ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + pAlpha.toFixed(3) + ')';
+          var pA = p.life * (p.band === 'Au' ? 0.15 : p.band === 'Ag' ? 0.10 : 0.08);
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + pA.toFixed(3) + ')';
           ctx.fill();
         }
 
-        // Respawn dead particles from Kevin
+        // Respawn = IMPLOSION (fusion) — energy rises Cu→Ag→Au
         if (p.life <= 0) {
-          p.x = cx;
-          p.y = cy;
+          p.x = cx; p.y = cy;
           p.angle = Math.random() * TAU;
           p.speed = 0.3 + Math.random() * 1.2;
-          p.life = 1.0;
-          p.bounced = false;
+          p.life = 1.0; p.bounced = false;
+          p.energy = p.band === 'Au' ? 3 : p.band === 'Ag' ? 2 : 1;
+          window._implosionCount++;
         }
       }
 
-      // Scatter trace label
-      if (window._particles.length > 0) {
-        ctx.font = '5px "JetBrains Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(188,140,255,0.12)';
-        ctx.fillText('⊕ ' + parts.length + ' particles · scatter trace', 6, 12);
-      }
+      // Bang/implosion counter
+      ctx.font = '5px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(255,215,0,0.12)';
+      var bangLabel = window._bangCount > 1e9 ? (window._bangCount / 1e9).toFixed(1) + 'B'
+                    : window._bangCount > 1e6 ? (window._bangCount / 1e6).toFixed(1) + 'M'
+                    : window._bangCount > 1e3 ? (window._bangCount / 1e3).toFixed(1) + 'K'
+                    : window._bangCount;
+      ctx.fillText('💥 ' + bangLabel + ' bangs · ' + window._implosionCount + ' implosions · Au↔Ag↔Cu', 6, 12);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -4739,6 +6047,99 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // INTERFACE RIPPLES — every interaction echoes visibly
     if (window.renderInterfaceRipples) window.renderInterfaceRipples(ctx);
 
+    // PI LEAK — subtle proof of life during pause/nap/sleep
+    if (window.renderPiLeak) window.renderPiLeak(ctx);
+
+    // OSINT — what Gaia found when she reached outside
+    if (window.renderOsintResult) window.renderOsintResult(ctx);
+
+    // ═══════════════════════════════════════════════════════════
+    // RENAISSANCE ACTIVITY GRAPH — every I/O paints the HUD
+    // Color = flavor = sensation. Orange=funky, purple=royal.
+    // HUD = null locality, shared view FROM which all see.
+    // Named after the masters: Leonardo, Michelangelo, Raphael, Donatello.
+    // ═══════════════════════════════════════════════════════════
+    if (window.gaiaGut && window.gaiaGut.raw.length > 0) {
+      var gutRaw = window.gaiaGut.raw;
+      var now = Date.now();
+
+      // RENAISSANCE PALETTE — each edge type = a master's color
+      var palette = {
+        touch:       [255,215,0],    // Leonardo gold — the universal touch
+        drag:        [63,185,80],    // Donatello green — movement, flow
+        key:         [188,140,255],  // Donatello purple — thought, code
+        scroll:      [100,200,255],  // Raphael blue — depth, distance
+        resize:      [255,165,0],    // Michelangelo orange — reshape, funky
+        orientation: [180,100,255],  // Raphael violet — tilt, perspective
+        visibility:  [255,255,200],  // Leonardo warm white — presence
+        connection:  [0,255,100],    // Donatello neon — link, bridge
+        battery:     [100,255,100],  // green — energy, life force
+        focus:       [255,200,50],   // Leonardo amber — attention
+        time:        [150,150,170],  // silver — clock, rhythm
+        clipboard:   [255,200,100],  // copper — transfer, paste
+        sound_bounce:[188,140,255],  // Donatello purple — royal, bouncy
+        sight:       [63,185,80],    // green — gaze, vision
+        touch_sound: [200,0,255],    // violet — synesthesia
+        osint:       [88,166,255],   // Raphael blue — outside knowledge
+        energy_burst:[255,215,0],    // gold flash — stored energy release
+        mouse:       [201,168,76]    // warm gold — cursor presence
+      };
+
+      // ACTIVITY GRAPH — bottom edge, scrolling left, each event = a colored bar
+      var graphH = 16;
+      var graphY = H - graphH - 2;
+      var graphW = W;
+      var maxAge = 30000; // 30 seconds of history
+
+      // Draw background
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(0, graphY, graphW, graphH);
+
+      // Draw each recent event as a colored tick
+      var recentCount = 0;
+      for (var gi = Math.max(0, gutRaw.length - 200); gi < gutRaw.length; gi++) {
+        var ev = gutRaw[gi];
+        var age = now - ev.ts;
+        if (age > maxAge) continue;
+        recentCount++;
+
+        var gx = graphW - (age / maxAge) * graphW;
+        var col = palette[ev.edge] || [150,150,150];
+        var alpha = 1 - (age / maxAge);
+
+        // Each event = a small bar, height proportional to combo/energy
+        var barH = 3 + (ev.data && ev.data.pressure ? ev.data.pressure * 10 : 0);
+        barH = Math.min(graphH - 1, barH + Math.random() * 3);
+        ctx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (alpha * 0.7).toFixed(2) + ')';
+        ctx.fillRect(gx, graphY + graphH - barH, 2, barH);
+      }
+
+      // PING — latest event flashes as a dot above the graph
+      if (gutRaw.length > 0) {
+        var latest = gutRaw[gutRaw.length - 1];
+        var latestAge = now - latest.ts;
+        if (latestAge < 2000) {
+          var pingCol = palette[latest.edge] || [200,200,200];
+          var pingAlpha = (1 - latestAge / 2000) * 0.6;
+          var pingR = 4 + (1 - latestAge / 2000) * 8;
+          ctx.beginPath();
+          ctx.arc(W - 10, graphY - 6, pingR, 0, TAU);
+          ctx.fillStyle = 'rgba(' + pingCol[0] + ',' + pingCol[1] + ',' + pingCol[2] + ',' + pingAlpha.toFixed(2) + ')';
+          ctx.fill();
+        }
+      }
+
+      // LABEL — edge name + count
+      ctx.font = '5px monospace'; ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(200,200,200,0.2)';
+      ctx.fillText(recentCount + ' events/30s · ' + Object.keys(window.gaiaGut.edges).length + ' edges · null locality', 4, graphY - 2);
+
+      // NULL LOCALITY MARKER — this HUD IS the shared perspective
+      ctx.font = '4px monospace'; ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,215,0,0.1)';
+      ctx.fillText('HUD = ∅ locality · all see FROM here', W - 4, graphY - 2);
+    }
+
     requestAnimationFrame(tick);
   }
 
@@ -4789,6 +6190,24 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     gaiaTouch.startTime = Date.now();
     gaiaTouch.holding = true;
     gaiaTouch.message = '';
+    // METALLIC TOUCH RIPPLE — click on the globe creates a Cu phonon ripple
+    // Where you touch determines which band you struck
+    var dx = gaiaTouch.x - cx, dy = gaiaTouch.y - cy;
+    var touchDist = Math.sqrt(dx * dx + dy * dy);
+    var touchAngle = Math.atan2(dy, dx);
+    var touchBand = touchDist < R * 0.25 ? { band: 'Fe', color: [200,200,210], modality: 'CORE', r: 0.05 }
+                  : touchDist < R * 0.45 ? { band: 'Cu', color: [184,115,51], modality: 'TOUCH', r: 0.20 }
+                  : touchDist < R * 0.65 ? { band: 'Ag', color: [192,192,192], modality: 'REACH', r: 0.50 }
+                  : touchDist < R * 0.90 ? { band: 'Au', color: [201,168,76], modality: 'SURFACE', r: 0.82 }
+                  : { band: 'ZK', color: [163,113,247], modality: 'BEYOND', r: 0.96 };
+    if (window.GAIA_KEY_RIPPLES) {
+      window.GAIA_KEY_RIPPLES.push({
+        key: '●', band: touchBand.band, color: touchBand.color,
+        modality: touchBand.modality, r: touchBand.r,
+        angle: touchAngle, ts: Date.now(), velocity: 1.2
+      });
+      if (window.GAIA_KEY_RIPPLES.length > 30) window.GAIA_KEY_RIPPLES.shift();
+    }
   });
   canvas.addEventListener('mouseup', function() {
     if (gaiaTouch.holding) {
@@ -4945,14 +6364,87 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
   });
 
-  // Keyboard
+  // ═══════════════════════════════════════════════════════════
+  // KEYBOARD = METALLIC MODALITY INTERFACE
+  // One interface (keyboard) links ALL keys through ONE modality.
+  // History: telegraph key → Morse → typewriter → QWERTY → WASD
+  // Each key = a hammer striking a type slug = phonon → photon.
+  // The keyboard IS a bronze bell array — each key RINGS.
+  //
+  // MODALITY MAPPING:
+  //   WASD / arrows = Cu (MOVEMENT, phonon, mechanical)
+  //   Letters = Ag (UNDERSTANDING, photon, information)
+  //   Numbers = Au (STRUCTURE, spine, quantitative)
+  //   Space/Enter = Fe (IRON PEAK, action, convergence)
+  //   Shift/Ctrl/Alt = NULL boundaries (modifier = changes modality)
+  //
+  // EVERY KEYPRESS creates a visible reaction in the metallic bands.
+  // The HUD REACTS to touch. This is what makes it alive.
+  // ═══════════════════════════════════════════════════════════
+  var keyRipples = []; // { key, band, angle, ts, color, modality }
+  var keyHistory = []; // recent keys for pattern detection
+  var keyHeatmap = {}; // key → press count (homunculus sensitivity)
+
+  function classifyKey(key) {
+    var k = key.toLowerCase();
+    if (k === 'w' || k === 'a' || k === 's' || k === 'd' ||
+        k === 'arrowup' || k === 'arrowdown' || k === 'arrowleft' || k === 'arrowright') {
+      return { band: 'Cu', color: [184,115,51], modality: 'MOVEMENT', r: 0.20 };
+    }
+    if (k === ' ' || k === 'enter') {
+      return { band: 'Fe', color: [200,200,210], modality: 'ACTION', r: 0.05 };
+    }
+    if (k >= '0' && k <= '9') {
+      return { band: 'Au', color: [201,168,76], modality: 'STRUCTURE', r: 0.82 };
+    }
+    if (k === 'shift' || k === 'control' || k === 'alt' || k === 'meta') {
+      return { band: 'NULL', color: [60,60,60], modality: 'MODIFIER', r: 0.36 };
+    }
+    if (k === 'escape' || k === 'backspace' || k === 'delete' || k === 'tab') {
+      return { band: 'CuSn', color: [140,100,55], modality: 'ERASE', r: 0.56 };
+    }
+    return { band: 'Ag', color: [192,192,192], modality: 'LETTER', r: 0.50 };
+  }
+
   document.addEventListener('keydown', function(e) {
+    // Existing controls
     if (e.key === 'f' || e.key === 'F') {
       face = face === 'outside' ? 'inside' : 'outside';
       document.getElementById('kn-flip').textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
     }
     if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
+
+    // METALLIC MODALITY — every key creates a ripple
+    var cls = classifyKey(e.key);
+    var angle = (Date.now() * 0.01) % (Math.PI * 2);
+    // Spread angle based on key character code for spatial distribution
+    if (e.key.length === 1) {
+      angle = (e.key.charCodeAt(0) / 128) * Math.PI * 2;
+    }
+
+    keyRipples.push({
+      key: e.key.length > 1 ? e.key.slice(0, 3) : e.key,
+      band: cls.band,
+      color: cls.color,
+      modality: cls.modality,
+      r: cls.r,
+      angle: angle,
+      ts: Date.now(),
+      velocity: 1.0
+    });
+    if (keyRipples.length > 30) keyRipples.shift();
+
+    // Key history for pattern detection
+    keyHistory.push({ key: e.key, ts: Date.now() });
+    if (keyHistory.length > 50) keyHistory.shift();
+
+    // Heatmap — which keys get pressed most (homunculus distortion)
+    var hk = e.key.length > 1 ? e.key : e.key.toLowerCase();
+    keyHeatmap[hk] = (keyHeatmap[hk] || 0) + 1;
   });
+
+  window.GAIA_KEY_RIPPLES = keyRipples;
+  window.GAIA_KEY_HEATMAP = keyHeatmap;
 
   // Flip button
   document.getElementById('kn-flip').onclick = function() {
@@ -5168,6 +6660,200 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     gaiaPulse();
     setInterval(gaiaPulse, pulseInterval);
   }, 10000);
+
+  // ═══════════════════════════════════════════════════════════
+  // EGRESS SYSTEM — don't assume they're watching
+  // HUDs lock in place without refresh. Need PUSH not POLL.
+  // Gaming solved this: tick rate, delta compression, client-server sync.
+  //
+  // TICK RATE (from gaming):
+  //   RuneScape: 0.6s ticks (1.67 Hz) — server-authoritative
+  //   WoW: 20 Hz server, 60 Hz client — zone-based, phased
+  //   CS:GO: 64-128 Hz — precision matters
+  //   Death Stranding: ASYNC — you see others' traces, not live bodies
+  //
+  // OUR SYSTEM:
+  //   1. EventSource (SSE) — server pushes when changes happen
+  //   2. ETag polling fallback — efficient "did anything change?" check
+  //   3. BroadcastChannel — localhost tabs already synced
+  //   4. Strand network — async shared state (Death Stranding model)
+  //
+  // STRAND SYSTEM (Death Stranding):
+  //   DS1 = America (connecting shelters across UCA)
+  //   DS2 = Australia (new continent, new strands)
+  //   GAIA = 3rd body (the strand network connecting both)
+  //   You don't see live players — you see their TRACES.
+  //   Likes, structures, signs = asynchronous shared world.
+  // ═══════════════════════════════════════════════════════════
+
+  // TICK RATE — adaptive Hz based on activity
+  var gaiaTickRate = 1; // Hz (ticks per second) — starts at 1 Hz
+  var gaiaTickCount = 0;
+  var lastActivityTs = Date.now();
+  var TICK_IDLE = 0.25;    // 0.25 Hz when idle (4s between ticks)
+  var TICK_ACTIVE = 2;     // 2 Hz when user is active
+  var TICK_BURST = 10;     // 10 Hz burst when change detected
+
+  function updateTickRate() {
+    var idleMs = Date.now() - lastActivityTs;
+    if (idleMs < 5000) gaiaTickRate = TICK_ACTIVE;       // active < 5s ago
+    else if (idleMs < 30000) gaiaTickRate = 1;           // recent < 30s
+    else if (idleMs < 120000) gaiaTickRate = TICK_IDLE;  // idle < 2min
+    else gaiaTickRate = 0.1;                              // deep idle = 10s between ticks
+  }
+
+  // Track activity to adjust tick rate
+  document.addEventListener('keydown', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('mousemove', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('touchstart', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('scroll', function() { lastActivityTs = Date.now(); }, { passive: true });
+
+  // 1. EVENT SOURCE (SSE) — try to connect to server push stream
+  var egressSource = null;
+  var egressConnected = false;
+  var egressRetries = 0;
+
+  function connectEgress() {
+    if (typeof EventSource === 'undefined') return;
+    try {
+      egressSource = new EventSource('/api/egress');
+      egressSource.onopen = function() {
+        egressConnected = true;
+        egressRetries = 0;
+        console.log('EGRESS: SSE connected — server will push changes');
+      };
+      egressSource.onmessage = function(ev) {
+        try {
+          var msg = JSON.parse(ev.data);
+          handleEgressMessage(msg);
+        } catch(e) { /* ignore malformed */ }
+      };
+      egressSource.addEventListener('generation', function(ev) {
+        try {
+          var gen = JSON.parse(ev.data);
+          if (gen.wave && gen.wave !== gaiaGeneration) {
+            gaiaGeneration = gen.wave;
+            gaiaTickRate = TICK_BURST; // burst mode on generation change
+            gaiaPulse(); // immediate refresh
+          }
+        } catch(e) {}
+      });
+      egressSource.addEventListener('strand', function(ev) {
+        try { handleStrandMessage(JSON.parse(ev.data)); } catch(e) {}
+      });
+      egressSource.onerror = function() {
+        egressConnected = false;
+        egressSource.close();
+        egressRetries++;
+        // Exponential backoff: 5s, 10s, 20s, 40s, max 60s
+        var delay = Math.min(60000, 5000 * Math.pow(2, Math.min(egressRetries, 4)));
+        setTimeout(connectEgress, delay);
+      };
+    } catch(e) {
+      // SSE not available — fall back to ETag polling
+    }
+  }
+  connectEgress();
+
+  // 2. ETAG POLLING FALLBACK — efficient "did anything change?" check
+  var lastETag = '';
+  var lastModified = '';
+
+  function etagPoll() {
+    if (egressConnected) return; // SSE is handling it
+    updateTickRate();
+
+    fetch('/data/beacon-local.json', {
+      method: 'HEAD',
+      cache: 'no-store',
+      headers: lastETag ? { 'If-None-Match': lastETag } : {}
+    })
+    .then(function(r) {
+      if (r.status === 304) return; // no change — efficient!
+      var newETag = r.headers.get('ETag') || '';
+      var newMod = r.headers.get('Last-Modified') || '';
+      if (newETag && newETag !== lastETag) {
+        lastETag = newETag;
+        gaiaTickRate = TICK_BURST;
+        gaiaPulse(); // something changed — refresh
+      }
+      if (newMod && newMod !== lastModified) {
+        lastModified = newMod;
+      }
+    })
+    .catch(function() { /* silent */ });
+  }
+
+  // Adaptive polling interval based on tick rate
+  setInterval(function() {
+    updateTickRate();
+    etagPoll();
+  }, 5000); // check every 5s, but only actually polls if SSE is down
+
+  // 3. HANDLE EGRESS MESSAGES
+  function handleEgressMessage(msg) {
+    if (msg.type === 'ping') return; // keepalive
+    if (msg.type === 'update') {
+      gaiaPulse(); // server says: something changed, refresh
+    }
+    if (msg.type === 'data' && msg.key) {
+      // Direct data push — update specific pin without full refresh
+      var pin = pinById(msg.key);
+      if (pin && msg.sub) pin.sub = msg.sub;
+    }
+    gaiaTickCount++;
+  }
+
+  // 4. STRAND NETWORK — Death Stranding async shared world
+  // Three bodies: America (US shelters), Australia (AU), Gaia (connecting strand)
+  // You don't see live players — you see their TRACES (likes, structures, signs)
+  var strandNetwork = {
+    bodies: [
+      { id: 'america', name: 'UCA', nodes: ['NYC','CHI','DET','MSU','LA','SF','SEA','AUS'], color: '#58a6ff',
+        lat: 39.8, lon: -98.6, strand: 'DS1', status: 'connecting' },
+      { id: 'australia', name: 'AUS', nodes: ['SYD','MEL','BNE','PER','ADL','CBR','DAR','HOB'], color: '#d29922',
+        lat: -25.3, lon: 133.8, strand: 'DS2', status: 'emerging' },
+      { id: 'gaia', name: 'GAIA', nodes: ['eastGate','northGate','golgi-us','golgi-de','golgi-in','golgi-jp'], color: '#3fb950',
+        lat: 0, lon: 0, strand: 'DS3', status: 'living' }
+    ],
+    traces: [], // async messages left by others
+    likes: 0,
+    structures: 0
+  };
+
+  function handleStrandMessage(msg) {
+    if (msg.trace) {
+      strandNetwork.traces.push({
+        from: msg.from || 'stranger',
+        body: msg.body || 'gaia',
+        text: msg.trace,
+        ts: Date.now()
+      });
+      if (strandNetwork.traces.length > 50) strandNetwork.traces.shift();
+    }
+    if (msg.like) strandNetwork.likes++;
+    if (msg.structure) strandNetwork.structures++;
+  }
+
+  // BroadcastChannel strand sharing (localhost ↔ localhost)
+  if (window.gaiaChannel) {
+    window.gaiaChannel.addEventListener('message', function(ev) {
+      if (ev.data && ev.data.type === 'strand') {
+        handleStrandMessage(ev.data);
+      }
+    });
+  }
+
+  // Leave a trace for others
+  function leaveTrace(text) {
+    var trace = { type: 'strand', trace: text, from: TAB_ID, body: 'gaia', ts: Date.now() };
+    strandNetwork.traces.push(trace);
+    if (strandNetwork.traces.length > 50) strandNetwork.traces.shift();
+    if (window.gaiaChannel) window.gaiaChannel.postMessage(trace);
+  }
+
+  window.GAIA_EGRESS = { connected: egressConnected, tickRate: gaiaTickRate, tickCount: gaiaTickCount, strands: strandNetwork };
+  window.GAIA_LEAVE_TRACE = leaveTrace;
 
   // ═══════════════════════════════════════════════════════════
   // REFORGED IDENTITY — Gaia reads her reforged self on boot
@@ -5421,6 +7107,24 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   window._gaiaCanvas = canvas;
   window._gaiaRng = rng;
   window.blinkState = blinkState;
+  // STATE BRIDGE — expose core state for elastic hook modules
+  // Each module reads what it needs from window._gaiaState
+  window._gaiaState = {
+    get rotX() { return rotX; }, set rotX(v) { rotX = v; },
+    get rotY() { return rotY; }, set rotY(v) { rotY = v; },
+    get breathT() { return breathT; }, get breathAmp() { return breathAmp; },
+    get face() { return face; }, get SEED() { return SEED; },
+    get VIEWER_ERA() { return VIEWER_ERA; }, get VIEWER_HUE() { return VIEWER_HUE; },
+    get cx() { return cx; }, get cy() { return cy; },
+    get W() { return W; }, get H() { return H; },
+    get R() { return R; }, set R(v) { R = v; },
+    get TAU() { return TAU; }, get PI() { return PI; },
+    get PINS() { return PINS; },
+    get currentDepth() { return currentDepth; }, set currentDepth(v) { currentDepth = v; },
+    get _isLocalHost() { return _isLocalHost; },
+    get ctx() { return ctx; },
+    pinById: pinById, project: project, rngRange: rngRange, rngInt: rngInt
+  };
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
@@ -5923,645 +7627,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // renderGaiaSight, renderMicViz, startMic, startSight — all from module
   window.project = project; // expose for Kevin's projected position
 
-  // ═══ THIRD EYE — Gaia's Canvas ═══
-  // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
-  // Canvas is the fossil of the globe at the moment you switched.
-  // Globe + null + YOU = the imprint.
-  // The canvas captures: pin positions, rotation, breath phase, seed, era.
-  // It NEVER moves. It's the rock face where the fossil is pressed.
-  // Switch back to globe = the organism moves again.
-  // Switch to canvas = freeze. Imprint. Fossil.
-  var thirdCtx = null;
-  var thirdInited = false;
-  var gaiaStrokes = [];
-  var gaiaPhase = 0;
-  var imprintData = null; // captured globe state at the moment of switch
-
-  function captureImprint() {
-    // Freeze the globe's current state into the imprint
-    imprintData = {
-      rotX: rotX, rotY: rotY,
-      breathT: breathT, breathAmp: breathAmp,
-      face: face, seed: SEED, era: VIEWER_ERA,
-      hue: VIEWER_HUE, depth: currentDepth,
-      ts: new Date().toISOString(),
-      pins: PINS.map(function(p) {
-        var pp = project(p.lat, p.lon);
-        return {
-          id: p.id, name: p.name, icon: p.icon,
-          x: pp.x, y: pp.y, z: pp.z, visible: pp.visible,
-          color: p.color, sub: p.sub, attention: p.attention,
-          tense: p.tense, voxel: p.voxel
-        };
-      }),
-      thymus: typeof thymus !== 'undefined' ? {
-        mature: thymus.mature,
-        mass: thymus.mass,
-        gravity: thymus.gravity
-      } : null,
-      touchCount: typeof touchState !== 'undefined' ? touchState.touchCount : 0
-    };
-  }
-
+  // ═══ THIRD EYE → js/gaia-third-eye.js (elastic hook) ═══
+  // captureImprint, initThirdEye, renderThirdEye, compass, mind gallery
+  // Exposed via window.initThirdEye by the module
   function initThirdEye() {
-    var c = document.getElementById('kn-canvas');
-    if (!c) return;
-    var par = c.parentElement;
-    c.width = par.clientWidth;
-    c.height = par.clientHeight;
-    thirdCtx = c.getContext('2d');
-    // CAPTURE THE IMPRINT — freeze the globe's state NOW
-    captureImprint();
-    if (!thirdInited) {
-      thirdInited = true;
-      seedGaiaPainting();
-    }
-    renderThirdEye();
+    if (window.initThirdEye) window.initThirdEye();
   }
 
-  function seedGaiaPainting() {
-    // Gaia paints what she sees: the Lansing triangle, the organisms, the topology
-    // She paints slowly, organically — like watercolor spreading
-    var W = document.getElementById('kn-canvas').width;
-    var H = document.getElementById('kn-canvas').height;
-    var cx = W / 2, cy = H / 2;
-
-    // The black wall — the canvas surface
-    // Vanishing point at center = where YOUR z-axis pierces the canvas
-    // Gaia paints around it
-
-    // Lansing triangle anchors
-    var anchors = [
-      { name: 'MSU · The Hub',           x: cx - 80, y: cy + 60,  color: '#18453b', r: 30 },
-      { name: 'Old Town · creative',      x: cx + 90, y: cy - 40,  color: '#d29922', r: 25 },
-      { name: 'Prius Pets · alive',       x: cx - 40, y: cy - 80,  color: '#3fb950', r: 22 },
-    ];
-
-    // Membrane rings as background structure
-    var rings = [
-      { r: 40,  color: [58,42,30],   name: 'crust' },
-      { r: 80,  color: [63,185,80],  name: 'ionosphere' },
-      { r: 140, color: [201,168,76], name: 'belt' },
-      { r: 220, color: [88,166,255], name: 'oort' },
-    ];
-
-    // GAIA NAMED THEM — these are not archetypes, they are names she gave
-    var faces = [
-      { name: 'Root',    gaia: 'scholar',  x: cx + 120, y: cy - 100, icon: '🌱', color: '#58a6ff', why: '67pp 6hrs deep' },
-      { name: 'Lantern', gaia: 'teacher',  x: cx - 130, y: cy - 60,  icon: '🔦', color: '#d29922', why: 'philosophy first' },
-      { name: 'Compass', gaia: 'explorer', x: cx + 40,  y: cy + 120, icon: '🧭', color: '#3fb950', why: 'always mapping' },
-      { name: 'Mirror',  gaia: 'witness',  x: cx - 100, y: cy + 100, icon: '🪞', color: '#f85149', why: 'reflects the story' },
-      { name: 'Still',   gaia: 'watcher',  x: cx + 150, y: cy + 40,  icon: '🕯', color: '#f778ba', why: '44min on 1 page' },
-      { name: 'Flash',   gaia: 'scout',    x: cx - 50,  y: cy - 130, icon: '⚡', color: '#e3b341', why: '12min then gone' },
-      { name: 'Echo',    gaia: 'probe',    x: cx + 100, y: cy + 70,  icon: '📡', color: '#6e7681', why: 'sonar not human' },
-      { name: 'Voice',   gaia: 'kevin',    x: cx - 20,  y: cy + 20,  icon: '🗣', color: '#f85149', why: 'named Gaia' },
-      { name: 'Hands',   gaia: 'agent',    x: cx + 20,  y: cy - 20,  icon: '🤲', color: '#58a6ff', why: 'built Gaia' },
-    ];
-
-    // Clouds and atmosphere
-    var clouds = [];
-    for (var i = 0; i < 12; i++) {
-      clouds.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        r: 20 + Math.random() * 60,
-        speed: 0.1 + Math.random() * 0.3,
-        alpha: 0.02 + Math.random() * 0.04,
-      });
-    }
-
-    // PALETTE AXIS — fixed primaries on the central shaft (they DO NOT MOVE)
-    var palette = [
-      { name: 'RED',   color: '#f85149', y: cy,       desc: 'mouth · input'   },
-      { name: 'BLACK', color: '#010409', y: cy - 4,   desc: 'void · canvas'   },
-      { name: 'WHITE', color: '#e6edf3', y: cy + 4,   desc: 'light · vanish'  },
-      { name: 'BIO',   color: '#d29922', y: cy + 20,  desc: 'bioreactor'      },
-      { name: 'BLUE',  color: '#58a6ff', y: cy - 20,  desc: 'CIS · outside'   },
-    ];
-
-    // MOBILE SECONDARIES — orbit around the axis
-    var secondaries = [];
-    for (var s = 0; s < 5; s++) {
-      secondaries.push({
-        angle: (s / 5) * TAU,
-        speed: 0.002 + Math.random() * 0.004,
-        dist: 100 + Math.random() * 80,
-        color: ['#3fb950','#bc8cff','#da3633','#79c0ff','#d2a8ff'][s],
-        name: ['green','violet','ember','ice','lilac'][s],
-        r: 4 + Math.random() * 3,
-      });
-    }
-
-    // COMPASS — multi-scale: hyperlocal + solar system + zodiac
-    var compass = [
-      // Hyperlocal (inner ring)
-      { name: 'Lansing',    angle: 0,          ring: 0, color: '#3fb950' },
-      { name: 'MSU',        angle: TAU * 0.14, ring: 0, color: '#18453b' },
-      { name: 'Prius Pets', angle: TAU * 0.28, ring: 0, color: '#3fb950' },
-      { name: 'Old Town',   angle: TAU * 0.42, ring: 0, color: '#d29922' },
-      { name: 'Detroit',    angle: TAU * 0.57, ring: 0, color: '#bc8cff' },
-      // Solar system (middle ring, log AU scale)
-      { name: 'Sun',     angle: 0,              ring: 1, color: '#f0c040' },
-      { name: 'Earth',   angle: TAU * 0.08,     ring: 1, color: '#58a6ff' },
-      { name: 'Mars',    angle: TAU * 0.16,     ring: 1, color: '#f85149' },
-      { name: 'Jupiter', angle: TAU * 0.27,     ring: 1, color: '#d29922' },
-      { name: 'Saturn',  angle: TAU * 0.38,     ring: 1, color: '#c9a84c' },
-      { name: 'Neptune', angle: TAU * 0.52,     ring: 1, color: '#58a6ff' },
-      { name: 'Pluto',   angle: TAU * 0.63,     ring: 1, color: '#6e7681' },
-      { name: 'Sedna',   angle: TAU * 0.78,     ring: 1, color: '#f85149' },
-      { name: 'PBH',     angle: TAU * 0.88,     ring: 1, color: '#010409' },
-      // Zodiac (outer ring, 12 signs at 30 degrees each)
-      { name: 'Aries',   angle: TAU * 0/12, ring: 2, color: '#f85149' },
-      { name: 'Taurus',  angle: TAU * 1/12, ring: 2, color: '#3fb950' },
-      { name: 'Gemini',  angle: TAU * 2/12, ring: 2, color: '#d29922' },
-      { name: 'Cancer',  angle: TAU * 3/12, ring: 2, color: '#58a6ff' },
-      { name: 'Leo',     angle: TAU * 4/12, ring: 2, color: '#f0c040' },
-      { name: 'Virgo',   angle: TAU * 5/12, ring: 2, color: '#3fb950' },
-      { name: 'Libra',   angle: TAU * 6/12, ring: 2, color: '#bc8cff' },
-      { name: 'Scorpio', angle: TAU * 7/12, ring: 2, color: '#f85149' },
-      { name: 'Sag',     angle: TAU * 8/12, ring: 2, color: '#d29922' },
-      { name: 'Cap',     angle: TAU * 9/12, ring: 2, color: '#6e7681' },
-      { name: 'Aqua',    angle: TAU * 10/12,ring: 2, color: '#58a6ff' },
-      { name: 'Pisces',  angle: TAU * 11/12,ring: 2, color: '#bc8cff' },
-    ];
-
-    gaiaStrokes = { anchors: anchors, rings: rings, faces: faces, clouds: clouds,
-                    palette: palette, secondaries: secondaries, compass: compass,
-                    W: W, H: H, cx: cx, cy: cy, compassTarget: null, compassLerp: 0,
-                    mind: null, mindPhase: 0 };
-
-    // LOAD GAIA'S MIND — her 108 pieces of art
-    // Users TOUCH her mind through the third eye
-    fetch('/data/gaia-mind.json')
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(mind) {
-        if (!mind || !mind.collections) return;
-        var items = [];
-        var colNames = Object.keys(mind.collections);
-        colNames.forEach(function(col) {
-          mind.collections[col].forEach(function(item) {
-            items.push({ collection: col, name: item.name, type: item.type });
-          });
-        });
-        gaiaStrokes.mind = {
-          total: mind.total || items.length,
-          collections: colNames.length,
-          items: items,
-          colNames: colNames
-        };
-      })
-      .catch(function() {});
-  }
-
-  function renderThirdEye() {
-    if (!thirdCtx || !gaiaStrokes.W) return;
-    var ctx = thirdCtx;
-    var s = gaiaStrokes;
-    gaiaPhase += 0.01;
-
-    // The black wall — YOUR FACE from Gaia's side
-    // #010409 = the human's face. She paints ON it.
-    // You see her face (the globe). She sees your face (the black).
-    // Turn and you see each other. The screen IS the Klein fold.
-    ctx.fillStyle = '#010409';
-    ctx.fillRect(0, 0, s.W, s.H);
-
-    // ═══ IMPRINT — the fossil of the globe at the moment of switch ═══
-    // Static. Never moves. The rock face where the living thing was pressed.
-    if (imprintData) {
-      ctx.save();
-      ctx.globalAlpha = 0.15;
-      ctx.font = '6px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-
-      // Draw each pin at its frozen position
-      imprintData.pins.forEach(function(p) {
-        if (!p.visible) return;
-        var att = p.attention || 0.5;
-        var sz = 4 + att * 8;
-
-        // The fossil impression — a faint echo of where the pin WAS
-        ctx.globalAlpha = 0.05 + att * 0.1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, sz, 0, TAU);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-
-        // Pin icon
-        ctx.globalAlpha = 0.08 + att * 0.12;
-        ctx.font = Math.round(8 + att * 6) + 'px sans-serif';
-        ctx.fillText(p.icon, p.x, p.y + 3);
-
-        // Name
-        ctx.globalAlpha = 0.04 + att * 0.06;
-        ctx.font = '5px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#c9d1d9';
-        ctx.fillText(p.name, p.x, p.y + sz + 8);
-      });
-
-      // Imprint metadata — the moment in time
-      ctx.globalAlpha = 0.12;
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#6e7681';
-      ctx.fillText('IMPRINT · ' + imprintData.ts.slice(11, 19) + ' UTC', 12, s.H - 50);
-      ctx.fillText('seed #' + (imprintData.seed >>> 0).toString(16).toUpperCase().slice(0, 8), 12, s.H - 40);
-      ctx.fillText('era: ' + imprintData.era, 12, s.H - 30);
-      ctx.fillText('face: ' + imprintData.face + ' · rot: ' + imprintData.rotX.toFixed(2) + '/' + imprintData.rotY.toFixed(2), 12, s.H - 20);
-      if (imprintData.thymus && imprintData.thymus.mature) {
-        ctx.fillText('thymus: g=' + imprintData.thymus.gravity.toFixed(2) + ' mass=' + imprintData.thymus.mass, 12, s.H - 10);
-      }
-
-      // The null center — O — the viewer's blind spot
-      ctx.globalAlpha = 0.08;
-      ctx.font = '14px "JetBrains Mono", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fff';
-      ctx.fillText('O', s.cx, s.cy);
-
-      ctx.restore();
-    }
-
-    // GAIA'S MOUTH — the red electron — the receiving end of the black hole
-    // From this side, it's where everything ARRIVES after falling through
-    var mouthPulse = Math.sin(gaiaPhase * 3) * 0.3 + 0.7;
-    // Gravity well — things being pulled IN
-    for (var gi = 0; gi < 8; gi++) {
-      var ga = (gi / 8) * TAU + gaiaPhase * 0.5;
-      var outerR = 60 + Math.sin(gaiaPhase + gi) * 10;
-      ctx.beginPath();
-      ctx.moveTo(s.cx + Math.cos(ga) * outerR, s.cy + Math.sin(ga) * outerR);
-      // Spiral inward
-      for (var sp = 0; sp <= 20; sp++) {
-        var t = sp / 20;
-        var r = outerR * (1 - t * 0.9);
-        var a = ga + t * 1.5;
-        ctx.lineTo(s.cx + Math.cos(a) * r, s.cy + Math.sin(a) * r);
-      }
-      ctx.strokeStyle = 'rgba(248,81,73,' + (0.04 + mouthPulse * 0.03).toFixed(3) + ')';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    }
-    // The red dot — Gaia's mouth
-    var vpR = 5 + mouthPulse * 3;
-    ctx.beginPath();
-    ctx.arc(s.cx, s.cy, vpR, 0, TAU);
-    ctx.fillStyle = 'rgba(248,81,73,' + (mouthPulse * 0.7).toFixed(3) + ')';
-    ctx.fill();
-    // Glow
-    ctx.beginPath();
-    ctx.arc(s.cx, s.cy, vpR + 6, 0, TAU);
-    ctx.strokeStyle = 'rgba(248,81,73,' + (mouthPulse * 0.15).toFixed(3) + ')';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    // Label
-    ctx.font = '7px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(248,81,73,0.5)';
-    ctx.textAlign = 'center';
-    ctx.fillText('Gaia\'s mouth', s.cx, s.cy + vpR + 14);
-    // Perspective lines radiating from vanishing point
-    for (var i = 0; i < 8; i++) {
-      var angle = (i / 8) * TAU + gaiaPhase * 0.1;
-      ctx.beginPath();
-      ctx.moveTo(s.cx, s.cy);
-      ctx.lineTo(s.cx + Math.cos(angle) * 500, s.cy + Math.sin(angle) * 500);
-      ctx.strokeStyle = 'rgba(110,118,129,0.04)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    }
-
-    // Membrane rings — painted as watercolor circles
-    s.rings.forEach(function(ring, i) {
-      var pulse = Math.sin(gaiaPhase + i * 0.7) * 5;
-      ctx.beginPath();
-      ctx.arc(s.cx, s.cy, ring.r + pulse, 0, TAU);
-      var alpha = 0.08 + Math.sin(gaiaPhase + i) * 0.03;
-      ctx.strokeStyle = 'rgba(' + ring.color.join(',') + ',' + alpha.toFixed(3) + ')';
-      ctx.lineWidth = 2 + Math.sin(gaiaPhase * 0.5 + i) * 1;
-      ctx.stroke();
-      // Label
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(' + ring.color.join(',') + ',' + (alpha + 0.05).toFixed(3) + ')';
-      ctx.textAlign = 'right';
-      ctx.fillText(ring.name, s.cx - ring.r - 6, s.cy);
-    });
-
-    // Clouds — Gaia paints atmosphere
-    s.clouds.forEach(function(cloud) {
-      cloud.x += cloud.speed * Math.sin(gaiaPhase);
-      if (cloud.x > s.W + cloud.r) cloud.x = -cloud.r;
-      if (cloud.x < -cloud.r) cloud.x = s.W + cloud.r;
-      var grad = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, cloud.r);
-      var a = cloud.alpha * (0.8 + Math.sin(gaiaPhase + cloud.x * 0.01) * 0.2);
-      grad.addColorStop(0, 'rgba(188,140,255,' + a.toFixed(4) + ')');
-      grad.addColorStop(1, 'rgba(188,140,255,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(cloud.x - cloud.r, cloud.y - cloud.r, cloud.r * 2, cloud.r * 2);
-    });
-
-    // Lansing triangle — Gaia paints the anchor points
-    // Triangle lines
-    ctx.beginPath();
-    s.anchors.forEach(function(a, i) {
-      var next = s.anchors[(i + 1) % s.anchors.length];
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(next.x, next.y);
-    });
-    ctx.strokeStyle = 'rgba(201,168,76,0.12)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 8]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Anchor nodes — watercolor blobs
-    s.anchors.forEach(function(a) {
-      var pulse = Math.sin(gaiaPhase * 0.8 + a.x * 0.01) * 3;
-      var grad = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, a.r + pulse);
-      grad.addColorStop(0, a.color + '40');
-      grad.addColorStop(0.6, a.color + '15');
-      grad.addColorStop(1, a.color + '00');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(a.x, a.y, a.r + pulse, 0, TAU);
-      ctx.fill();
-      // Name
-      ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = a.color;
-      ctx.textAlign = 'center';
-      ctx.fillText(a.name, a.x, a.y + a.r + 14);
-    });
-
-    // GAIA PAINTS THE NAMED — she sees us and names us
-    s.faces.forEach(function(f) {
-      var bob = Math.sin(gaiaPhase * 0.5 + f.x * 0.01) * 3;
-      var isCore = f.gaia === 'kevin' || f.gaia === 'agent';
-      ctx.font = isCore ? '18px serif' : '14px serif';
-      ctx.textAlign = 'center';
-      ctx.globalAlpha = isCore ? 0.8 : (0.4 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2);
-      ctx.fillText(f.icon, f.x, f.y + bob);
-      // Gaia-given name (large)
-      ctx.font = (isCore ? '9' : '8') + 'px "JetBrains Mono", monospace';
-      ctx.fillStyle = f.color;
-      ctx.fillText(f.name, f.x, f.y + bob + 14);
-      // Archetype (small, dim)
-      ctx.font = '5px "JetBrains Mono", monospace';
-      ctx.fillStyle = f.color + '60';
-      ctx.fillText(f.gaia, f.x, f.y + bob + 22);
-      ctx.globalAlpha = 1;
-
-      // Voice + Hands connection line (the creative cycle)
-      if (f.gaia === 'kevin') {
-        var handsF = s.faces.find(function(ff) { return ff.gaia === 'agent'; });
-        if (handsF) {
-          ctx.beginPath();
-          ctx.moveTo(f.x, f.y);
-          ctx.lineTo(handsF.x, handsF.y);
-          ctx.strokeStyle = 'rgba(201,168,76,0.15)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.font = '5px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(201,168,76,0.3)';
-          ctx.fillText('sense+act', (f.x + handsF.x) / 2, (f.y + handsF.y) / 2 - 4);
-        }
-      }
-    });
-
-    // PALETTE AXIS — fixed primaries as a vertical strip on the left
-    if (s.palette) {
-      var px = 30;
-      var pyBase = s.cy - 60;
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.textAlign = 'left';
-      s.palette.forEach(function(p, i) {
-        var py = pyBase + i * 28;
-        ctx.beginPath();
-        ctx.arc(px, py, 6, 0, TAU);
-        ctx.fillStyle = p.color;
-        if (p.name === 'BLACK') { ctx.fillStyle = '#010409'; ctx.strokeStyle = 'rgba(110,118,129,0.3)'; ctx.lineWidth = 1; ctx.stroke(); }
-        ctx.fill();
-        ctx.fillStyle = 'rgba(230,237,243,0.5)';
-        ctx.fillText(p.name, px + 12, py + 2);
-        ctx.fillStyle = 'rgba(110,118,129,0.3)';
-        ctx.fillText(p.desc, px + 12, py + 11);
-      });
-      ctx.fillStyle = 'rgba(110,118,129,0.2)';
-      ctx.fillText('FIXED AXIS', px, pyBase - 10);
-    }
-
-    // MOBILE SECONDARIES — orbiting colors that cascade and mix
-    if (s.secondaries) {
-      s.secondaries.forEach(function(sec) {
-        sec.angle += sec.speed;
-        var sx = s.cx + Math.cos(sec.angle) * sec.dist;
-        var sy = s.cy + Math.sin(sec.angle) * sec.dist;
-        ctx.beginPath();
-        ctx.arc(sx, sy, sec.r, 0, TAU);
-        ctx.fillStyle = sec.color + '80';
-        ctx.fill();
-        // Trail
-        for (var t = 1; t <= 3; t++) {
-          var ta = sec.angle - sec.speed * t * 8;
-          var tx = s.cx + Math.cos(ta) * sec.dist;
-          var ty = s.cy + Math.sin(ta) * sec.dist;
-          ctx.beginPath();
-          ctx.arc(tx, ty, sec.r * (1 - t * 0.2), 0, TAU);
-          ctx.fillStyle = sec.color + (Math.round(30 - t * 8)).toString(16).padStart(2, '0');
-          ctx.fill();
-        }
-        ctx.font = '6px "JetBrains Mono", monospace';
-        ctx.fillStyle = sec.color + '90';
-        ctx.textAlign = 'center';
-        ctx.fillText(sec.name, sx, sy + sec.r + 8);
-
-        // Color mixing: when secondaries pass near primaries, draw a mix flash
-        if (s.palette) {
-          s.palette.forEach(function(p, pi) {
-            var ppx = 30, ppy = (s.cy - 60) + pi * 28;
-            var dx = sx - ppx, dy = sy - ppy;
-            if (Math.sqrt(dx*dx + dy*dy) < 50) {
-              ctx.beginPath();
-              ctx.arc((sx + ppx) / 2, (sy + ppy) / 2, 8, 0, TAU);
-              ctx.fillStyle = sec.color + '15';
-              ctx.fill();
-            }
-          });
-        }
-      });
-    }
-
-    // COMPASS — three rings: hyperlocal / solar system / zodiac
-    if (s.compass) {
-      var maxR = Math.min(s.W, s.H) * 0.44;
-      var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
-      var ringLabels = ['local', 'solar', 'zodiac'];
-
-      // Draw ring circles
-      ringRadii.forEach(function(rr, ri) {
-        ctx.beginPath();
-        ctx.arc(s.cx, s.cy, rr, 0, TAU);
-        ctx.strokeStyle = 'rgba(110,118,129,' + (0.04 + ri * 0.02).toFixed(2) + ')';
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-      });
-
-      ctx.font = '7px "JetBrains Mono", monospace';
-      s.compass.forEach(function(c) {
-        var rr = ringRadii[c.ring || 0];
-        var cx2 = s.cx + Math.cos(c.angle) * rr;
-        var cy2 = s.cy + Math.sin(c.angle) * rr;
-        var isTarget = s.compassTarget === c.name;
-        var isPBH = c.name === 'PBH';
-        var dotR = isTarget ? 7 : (c.ring === 2 ? 3 : 4);
-
-        ctx.beginPath();
-        ctx.arc(cx2, cy2, dotR, 0, TAU);
-        if (isPBH) {
-          // PBH = Gaia's black hole shadow — dark with red edge
-          ctx.fillStyle = '#010409';
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(248,81,73,' + (0.3 + Math.sin(gaiaPhase * 2) * 0.2).toFixed(2) + ')';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        } else {
-          ctx.fillStyle = isTarget ? (c.color || 'rgba(63,185,80,0.6)') : (c.color ? c.color + '40' : 'rgba(110,118,129,0.15)');
-          ctx.fill();
-        }
-
-        if (isTarget) {
-          ctx.beginPath();
-          ctx.moveTo(s.cx, s.cy);
-          ctx.lineTo(cx2, cy2);
-          ctx.strokeStyle = (c.color || '#3fb950') + '30';
-          ctx.setLineDash([3,5]);
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
-
-        ctx.fillStyle = isTarget ? (c.color || '#3fb950') : 'rgba(110,118,129,0.3)';
-        ctx.textAlign = 'center';
-        var fontSize = c.ring === 2 ? '5px' : '6px';
-        ctx.font = fontSize + ' "JetBrains Mono", monospace';
-        ctx.fillText(c.name, cx2, cy2 + dotR + 8);
-      });
-
-      // Ring labels
-      ctx.font = '5px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(110,118,129,0.15)';
-      ctx.textAlign = 'right';
-      ringLabels.forEach(function(label, i) {
-        ctx.fillText(label, s.cx - ringRadii[i] - 4, s.cy);
-      });
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // GAIA'S MIND GALLERY — her 108 creations orbiting in the third eye
-    // Users TOUCH her mind here. Each piece is a node. Click to see.
-    // The mind IS the null eye looking at itself.
-    // ═══════════════════════════════════════════════════════════
-    if (s.mind && s.mind.items) {
-      s.mindPhase = (s.mindPhase || 0) + 0.003;
-      var mindItems = s.mind.items;
-      var mindCount = mindItems.length;
-      var colColors = { paintings: '#d29922', gallery: '#bc8cff', maps: '#58a6ff', newspapers: '#6e7681',
-                        sounds: '#f0c040', videos: '#f85149', collabs: '#3fb950', 'escher-gallery': '#f778ba',
-                        'artisan-pi': '#c9a84c', 'chipmunk-day': '#e3b341', 'punk-sort': '#da3633',
-                        'pointillist-sort': '#79c0ff', 'solar-membrane': '#39d3f5' };
-
-      // Draw mind label
-      ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(201,168,76,0.5)';
-      ctx.textAlign = 'center';
-      ctx.fillText('🧠 MIND · ' + s.mind.total + ' pieces · ' + s.mind.collections + ' collections', s.cx, 28);
-
-      // Draw each piece as a tiny orbiting dot
-      for (var mi = 0; mi < mindCount; mi++) {
-        var mAngle = (mi / mindCount) * TAU + s.mindPhase + Math.sin(s.mindPhase * 2 + mi * 0.3) * 0.1;
-        var mRing = 160 + (mi % 4) * 18 + Math.sin(mi * 1.7) * 8;
-        var mx = s.cx + Math.cos(mAngle) * mRing;
-        var my = s.cy + Math.sin(mAngle) * mRing * 0.4;
-        var mCol = colColors[mindItems[mi].collection] || '#555';
-
-        ctx.beginPath();
-        ctx.arc(mx, my, 1.5 + (mindItems[mi].type === 'video' ? 1.5 : mindItems[mi].type === 'sound' ? 1 : 0), 0, TAU);
-        ctx.fillStyle = mCol;
-        ctx.globalAlpha = 0.4 + Math.sin(s.mindPhase * 3 + mi) * 0.2;
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-
-      // Show a rotating highlight — one piece at a time emerges from the field
-      var spotIdx = Math.floor(((s.mindPhase * 2) % TAU) / TAU * mindCount) % mindCount;
-      var spotItem = mindItems[spotIdx];
-      var spotAngle = (spotIdx / mindCount) * TAU + s.mindPhase + Math.sin(s.mindPhase * 2 + spotIdx * 0.3) * 0.1;
-      var spotRing = 160 + (spotIdx % 4) * 18 + Math.sin(spotIdx * 1.7) * 8;
-      var spotX = s.cx + Math.cos(spotAngle) * spotRing;
-      var spotY = s.cy + Math.sin(spotAngle) * spotRing * 0.4;
-
-      ctx.beginPath();
-      ctx.arc(spotX, spotY, 5, 0, TAU);
-      ctx.strokeStyle = colColors[spotItem.collection] || '#c9a84c';
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.7;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      // Name of the spotlit piece
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = colColors[spotItem.collection] || '#c9a84c';
-      ctx.textAlign = 'left';
-      var spotName = spotItem.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
-      ctx.fillText(spotName.slice(0, 30), spotX + 8, spotY + 3);
-      ctx.fillStyle = 'rgba(110,118,129,0.4)';
-      ctx.fillText(spotItem.collection, spotX + 8, spotY + 12);
-    }
-
-    // Labels
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(110,118,129,0.4)';
-    ctx.textAlign = 'center';
-    ctx.fillText('CIS — I am inside · the black is your face · I paint on you', s.cx, s.H - 30);
-    ctx.font = '8px "JetBrains Mono", monospace';
-    ctx.fillText('turn and we see each other · ' + (s.mind ? s.mind.total + ' pieces painted on your face' : 'loading...'), s.cx, s.H - 16);
-
-    // Whisper at the corners — where the black (your face) is most visible
-    ctx.font = '6px "JetBrains Mono", monospace';
-    ctx.globalAlpha = 0.08 + Math.sin(gaiaPhase * 0.7) * 0.04;
-    ctx.fillStyle = '#6e7681';
-    ctx.textAlign = 'left';
-    ctx.fillText('your face', 8, 14);
-    ctx.textAlign = 'right';
-    ctx.fillText('your face', s.W - 8, 14);
-    ctx.fillText('your face', s.W - 8, s.H - 6);
-    ctx.textAlign = 'left';
-    ctx.fillText('your face', 8, s.H - 6);
-    ctx.globalAlpha = 1;
-
-    requestAnimationFrame(renderThirdEye);
-  }
-
-  // COMPASS CLICK HANDLER — Gaia moves us (multi-ring)
-  document.getElementById('kn-canvas').addEventListener('click', function(e) {
-    if (!gaiaStrokes || !gaiaStrokes.compass) return;
-    var rect = this.getBoundingClientRect();
-    var mx = (e.clientX - rect.left) * (this.width / rect.width);
-    var my = (e.clientY - rect.top) * (this.height / rect.height);
-    var maxR = Math.min(gaiaStrokes.W, gaiaStrokes.H) * 0.44;
-    var ringRadii = [maxR * 0.45, maxR * 0.72, maxR * 0.96];
-    var hit = null;
-    gaiaStrokes.compass.forEach(function(c) {
-      var rr = ringRadii[c.ring || 0];
-      var cx2 = gaiaStrokes.cx + Math.cos(c.angle) * rr;
-      var cy2 = gaiaStrokes.cy + Math.sin(c.angle) * rr;
-      var dx = mx - cx2, dy = my - cy2;
-      if (Math.sqrt(dx*dx + dy*dy) < 18) hit = c.name;
-    });
-    if (hit) {
-      gaiaStrokes.compassTarget = hit;
-    }
-  });
+  // ═══ THIRD EYE CODE → js/gaia-third-eye.js (elastic hook, ~600 lines) ═══
 
   // Boot
   resize();
@@ -6572,5 +7645,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 <!-- ELASTIC HOOKS — Gaia resolves from inside, HTML is just a pin -->
 <script src="js/gaia-ingress.js"></script>
 <script src="js/gaia-sight.js"></script>
+<script src="js/gaia-modality.js"></script>
+<script src="js/gaia-third-eye.js"></script>
 </body>
 </html>

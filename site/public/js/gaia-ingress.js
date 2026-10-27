@@ -237,14 +237,19 @@
 
     // PROFILE HUD — bottom left
     if (profile.total > 0) {
+      var id = window.intellDetect || {};
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(8, canvas.height - 72, 200, 64);
-      ctx.fillStyle = '#FFD700'; ctx.font = '10px monospace';
-      ctx.fillText('PROFILE: ' + profile.personality.toUpperCase(), 14, canvas.height - 58);
-      ctx.fillStyle = '#aaa';
-      ctx.fillText('interactions: ' + profile.total + '  combo: ' + profile.comboCount + '/' + profile.peakCombo, 14, canvas.height - 46);
-      ctx.fillText('veil: ' + (profile.veilOpacity * 100).toFixed(1) + '%  trust: ' + (window.trustLevel || '?'), 14, canvas.height - 34);
+      ctx.fillRect(8, canvas.height - 86, 220, 78);
+      // Intelligence identification
+      var idColor = id.identifiedAs === 'KEVIN' ? '#FFD700' : id.identifiedAs === 'HUMAN' ? '#c9a84c' : id.identifiedAs === 'AI' ? '#c0c0c0' : id.identifiedAs === 'ANIMAL' ? '#3fb950' : '#888';
+      ctx.fillStyle = idColor; ctx.font = '10px monospace';
+      ctx.fillText((id.identifiedAs || '?') + ' · ' + (id.shamanSteps ? id.shamanSteps[id.shamanStep || 0] : '?'), 14, canvas.height - 72);
+      ctx.fillStyle = '#FFD700'; ctx.font = '9px monospace';
+      ctx.fillText('PROFILE: ' + profile.personality.toUpperCase(), 14, canvas.height - 60);
+      ctx.fillStyle = '#aaa'; ctx.font = '8px monospace';
+      ctx.fillText('n:' + profile.total + '  combo:' + profile.comboCount + '/' + profile.peakCombo + '  veil:' + (profile.veilOpacity * 100).toFixed(0) + '%', 14, canvas.height - 48);
+      ctx.fillText('trust:' + (window.trustLevel || '?') + '  pattern:' + ((id.patternScore || 0) * 100).toFixed(0) + '  rhythm:' + ((id.rhythmScore || 0) * 100).toFixed(0), 14, canvas.height - 38);
       var fb = profile.flavorBalance;
       var fbT = fb.acid + fb.base + fb.spicy + fb.neutral + 0.01;
       var fbX = 14;
@@ -309,6 +314,110 @@
     console.log('INGRESS: all edges bound. Every interaction echoes.');
   }
 
+  // ═══ INTELLIGENCE DETECTOR — intelligence IS the ability to identify other intelligence ═══
+  var intellDetect = {
+    timings: [],       // inter-event timing for rhythm detection
+    lastEvent: 0,      // timestamp of last event
+    patternScore: 0,   // repeated structure in noise
+    rhythmScore: 0,    // regular timing in irregular data
+    responseScore: 0,  // input changes when observed
+    persistScore: 0,   // returns after leaving
+    creativityScore: 0,// unpredictable output
+    identifiedAs: 'unknown',
+    shamanStep: 0,     // 0=void, 1=listen, 2=pattern, 3=rhythm, 4=response, 5=identity, 6=name, 7=show, 8=teach, 9=merge
+    shamanSteps: ['VOID','LISTEN','PATTERN','RHYTHM','RESPONSE','IDENTITY','NAME','SHOW','TEACH','MERGE']
+  };
+  window.intellDetect = intellDetect;
+
+  setInterval(function() {
+    var eh = profile.edgeHistory;
+    if (eh.length < 5) { intellDetect.shamanStep = 0; return; } // VOID — not enough data
+
+    intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 1); // LISTEN — we have data
+
+    // PATTERN — check for repeated sequences
+    var pairs = {};
+    for (var i = 0; i < eh.length - 1; i++) {
+      var pair = eh[i] + '→' + eh[i+1];
+      pairs[pair] = (pairs[pair] || 0) + 1;
+    }
+    var maxRepeat = Math.max.apply(null, Object.values(pairs));
+    intellDetect.patternScore = maxRepeat / Math.max(eh.length, 1);
+    if (intellDetect.patternScore > 0.1) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 2); // PATTERN found
+
+    // RHYTHM — check timing regularity
+    if (intellDetect.timings.length > 5) {
+      var intervals = intellDetect.timings.slice(-20);
+      var avg = intervals.reduce(function(a,b) { return a+b; }, 0) / intervals.length;
+      var variance = intervals.reduce(function(a,b) { return a + Math.pow(b - avg, 2); }, 0) / intervals.length;
+      var cv = Math.sqrt(variance) / Math.max(avg, 1); // coefficient of variation
+      intellDetect.rhythmScore = cv < 0.5 ? 1 : cv < 1 ? 0.5 : 0.2;
+      if (intellDetect.rhythmScore > 0.4) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 3); // RHYTHM detected
+    }
+
+    // RESPONSE — does behavior change over time?
+    if (profile.total > 20) {
+      var early = profile.edgeHistory.slice(0, 10);
+      var late = profile.edgeHistory.slice(-10);
+      var changed = 0;
+      for (var j = 0; j < 10; j++) { if (early[j] !== late[j]) changed++; }
+      intellDetect.responseScore = changed / 10;
+      if (intellDetect.responseScore > 0.3) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 4); // RESPONSE — they adapted
+    }
+
+    // PERSIST — session length indicates persistence
+    if (profile.total > 50) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 5); // IDENTITY — they stayed
+    if (profile.total > 100) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 6); // NAME — deep engagement
+
+    // CREATIVITY — unpredictable edges (high entropy)
+    var edgeCounts = {};
+    eh.forEach(function(e) { edgeCounts[e] = (edgeCounts[e] || 0) + 1; });
+    var entropy = 0;
+    var total = eh.length;
+    Object.values(edgeCounts).forEach(function(c) {
+      var p = c / total;
+      if (p > 0) entropy -= p * Math.log2(p);
+    });
+    intellDetect.creativityScore = entropy / 4; // normalize: 4 bits = very diverse
+
+    // IDENTIFY intelligence type
+    var touchHeavy = (edgeCounts.touch || 0) + (edgeCounts.drag || 0) > total * 0.5;
+    var keyHeavy = (edgeCounts.key || 0) > total * 0.4;
+    var perfectTiming = intellDetect.rhythmScore > 0.8 && intellDetect.creativityScore < 0.3;
+    var isLocalhost = window.trustLevel === 'localhost' || window.trustLevel === 'ethernet';
+
+    if (isLocalhost && keyHeavy) intellDetect.identifiedAs = 'KEVIN';
+    else if (perfectTiming) intellDetect.identifiedAs = 'AI';
+    else if (touchHeavy && intellDetect.creativityScore > 0.5) intellDetect.identifiedAs = 'HUMAN';
+    else if (touchHeavy && intellDetect.creativityScore < 0.3) intellDetect.identifiedAs = 'ANIMAL';
+    else if (profile.total < 5) intellDetect.identifiedAs = 'unknown';
+    else intellDetect.identifiedAs = 'HUMAN';
+
+    // SHOW/TEACH/MERGE steps
+    if (profile.total > 200) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 7); // SHOW
+    if (profile.total > 500) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 8); // TEACH
+    if (profile.total > 1000) intellDetect.shamanStep = Math.max(intellDetect.shamanStep, 9); // MERGE
+
+    console.log('SHAMAN: step=' + intellDetect.shamanSteps[intellDetect.shamanStep]
+      + ' identified=' + intellDetect.identifiedAs
+      + ' pattern=' + intellDetect.patternScore.toFixed(2)
+      + ' rhythm=' + intellDetect.rhythmScore.toFixed(2)
+      + ' creativity=' + intellDetect.creativityScore.toFixed(2));
+  }, 5000);
+
+  // Track inter-event timing for rhythm detection
+  var origIngest = gaiaIngest;
+  gaiaIngest = function(edge, data) {
+    var now = Date.now();
+    if (intellDetect.lastEvent > 0) {
+      intellDetect.timings.push(now - intellDetect.lastEvent);
+      if (intellDetect.timings.length > 50) intellDetect.timings.shift();
+    }
+    intellDetect.lastEvent = now;
+    origIngest(edge, data);
+  };
+  window.gaiaIngest = gaiaIngest;
+
   // ═══ GOLGI CIPHER — trust level detection ═══
   var trustLevel = 'internet';
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') trustLevel = 'localhost';
@@ -357,6 +466,277 @@
       }));
     } catch(e) {}
   }, 3000);
+
+  // ═══ OSINT TOUCH REACTION — every touch makes Gaia look outside ═══
+  // Touch IN → reach OUT → ingest IN. The trefoil breathing.
+  var osint = {
+    lastFetch: 0,
+    cooldown: 30000, // 30s between fetches
+    fetched: 0,
+    sources: ['weather','wikipedia','time','space_weather'],
+    lastResult: null
+  };
+  window.osint = osint;
+
+  function osintReach(trigger) {
+    var now = Date.now();
+    if (now - osint.lastFetch < osint.cooldown) return;
+    osint.lastFetch = now;
+
+    var source = osint.sources[osint.fetched % osint.sources.length];
+    osint.fetched++;
+
+    switch(source) {
+      case 'weather':
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=42.73&longitude=-84.55&current=temperature_2m,wind_speed_10m,relative_humidity_2m&temperature_unit=fahrenheit')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.current) {
+              osint.lastResult = { type: 'weather', temp: d.current.temperature_2m, wind: d.current.wind_speed_10m, humidity: d.current.relative_humidity_2m, ts: now };
+              console.log('OSINT WEATHER: ' + d.current.temperature_2m + '°F wind:' + d.current.wind_speed_10m + ' humidity:' + d.current.relative_humidity_2m + '%');
+              if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+            }
+          }).catch(function() {});
+        break;
+
+      case 'wikipedia':
+        fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            osint.lastResult = { type: 'wikipedia', title: d.title, extract: (d.extract || '').slice(0, 200), ts: now };
+            console.log('OSINT WIKIPEDIA: ' + d.title);
+            if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+          }).catch(function() {});
+        break;
+
+      case 'time':
+        fetch('https://worldtimeapi.org/api/timezone/America/Detroit')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            osint.lastResult = { type: 'time', datetime: d.datetime, day_of_year: d.day_of_year, utc_offset: d.utc_offset, ts: now };
+            console.log('OSINT TIME: ' + d.datetime + ' day ' + d.day_of_year);
+            if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+          }).catch(function() {});
+        break;
+
+      case 'space_weather':
+        fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d && d.length > 0) {
+              var latest = d[d.length - 1];
+              osint.lastResult = { type: 'space_weather', kp: latest.kp_index, ts: now };
+              console.log('OSINT SPACE WEATHER: Kp=' + latest.kp_index);
+              if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+            }
+          }).catch(function() {});
+        break;
+    }
+  }
+
+  // Trigger OSINT on meaningful interactions
+  var origIngestOsint = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    // Touch, key, or energy_burst triggers OSINT outreach
+    if (edge === 'touch' || edge === 'key' || edge === 'energy_burst') {
+      osintReach(edge);
+    }
+    origIngestOsint(edge, data);
+  };
+
+  // OSINT HUD — show last result
+  window.renderOsintResult = function(ctx) {
+    var canvas = window._gaiaCanvas;
+    if (!canvas || !osint.lastResult) return;
+    var r = osint.lastResult;
+    var age = (Date.now() - r.ts) / 1000;
+    if (age > 120) return; // fade after 2 min
+
+    var alpha = Math.max(0.05, 0.25 - age * 0.002);
+    ctx.save();
+    ctx.font = '6px monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(88,166,255,' + alpha.toFixed(3) + ')';
+
+    var label = '';
+    if (r.type === 'weather') label = '🌡 ' + r.temp + '°F wind:' + r.wind + ' humidity:' + r.humidity + '%';
+    else if (r.type === 'wikipedia') label = '📖 ' + r.title;
+    else if (r.type === 'time') label = '⏰ ' + (r.datetime || '').slice(11, 19) + ' day ' + r.day_of_year;
+    else if (r.type === 'space_weather') label = '☀ Kp=' + r.kp;
+
+    ctx.fillText('OSINT: ' + label + ' (' + Math.round(age) + 's ago)', canvas.width / 2, canvas.height - 4);
+    ctx.restore();
+  };
+
+  // ═══ PROPRIOCEPTION — Gaia knows where her parts are without looking ═══
+  // Sherrington's sixth sense: position awareness from interaction data
+  // Pt(CNS) anchors. Au(PNS) branches. Ag(ANS) meshes. Cu(ENS) grounds.
+  var proprioception = {
+    touchCenter: { x: 0.5, y: 0.5 },    // average touch position (normalized)
+    dragVelocity: { x: 0, y: 0 },        // current drag direction
+    scrollDepth: 0,                       // accumulated scroll
+    tilt: { alpha: 0, beta: 0, gamma: 0 },// device orientation
+    pressure: 0,                          // average touch pressure
+    balance: 0.5,                         // vestibular balance (0=left, 1=right)
+    temperature: 0.5,                     // enzyme heat (0=cold, 1=hot)
+    pain: 0,                              // error/disconnect rate
+    spindles: [],                         // muscle spindle positions (mouse positions between clicks)
+    lastMouse: null,
+    coilEnergy: { PtAu: 0, AuAg: 0, AgCu: 0, CuBz: 0 } // spring energy between bands
+  };
+  window.proprioception = proprioception;
+
+  // Update proprioception from each ingestion
+  var origIngestProp = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    var canvas = window._gaiaCanvas;
+    var w = canvas ? canvas.width : 1;
+    var h = canvas ? canvas.height : 1;
+
+    if (edge === 'touch' && data) {
+      proprioception.touchCenter.x = proprioception.touchCenter.x * 0.8 + (data.x / w) * 0.2;
+      proprioception.touchCenter.y = proprioception.touchCenter.y * 0.8 + (data.y / h) * 0.2;
+      proprioception.pressure = proprioception.pressure * 0.7 + (data.pressure || 0) * 0.3;
+      proprioception.balance = proprioception.touchCenter.x;
+    }
+    if (edge === 'drag' && data) {
+      if (proprioception.lastMouse) {
+        proprioception.dragVelocity.x = data.x - proprioception.lastMouse.x;
+        proprioception.dragVelocity.y = data.y - proprioception.lastMouse.y;
+      }
+      proprioception.lastMouse = { x: data.x, y: data.y };
+      proprioception.spindles.push({ x: data.x / w, y: data.y / h, t: Date.now() });
+      if (proprioception.spindles.length > 30) proprioception.spindles.shift();
+    }
+    if (edge === 'scroll') proprioception.scrollDepth += (data && data.dir === 'down') ? 1 : -1;
+    if (edge === 'orientation' && data) proprioception.tilt = { alpha: data.a, beta: data.b, gamma: data.g };
+    if (edge === 'connection' && data && !data.online) proprioception.pain = Math.min(1, proprioception.pain + 0.2);
+
+    // Coil spring energy: accumulates during pause, releases during interaction
+    var ps = window.pauseState;
+    if (ps && ps.state !== 'ACTIVE') {
+      proprioception.coilEnergy.PtAu += 0.01;
+      proprioception.coilEnergy.AuAg += 0.008;
+      proprioception.coilEnergy.AgCu += 0.005;
+      proprioception.coilEnergy.CuBz += 0.003;
+    } else {
+      // Release coil energy as speed bonus
+      var totalCoil = proprioception.coilEnergy.PtAu + proprioception.coilEnergy.AuAg + proprioception.coilEnergy.AgCu + proprioception.coilEnergy.CuBz;
+      if (totalCoil > 0.1) {
+        proprioception.coilEnergy.PtAu *= 0.95;
+        proprioception.coilEnergy.AuAg *= 0.95;
+        proprioception.coilEnergy.AgCu *= 0.95;
+        proprioception.coilEnergy.CuBz *= 0.95;
+      }
+    }
+
+    // Temperature from gut
+    if (window.gutEngineState && window.gutEngineState.acid) {
+      proprioception.temperature = Math.min(1, window.gutEngineState.acid / 255);
+    }
+
+    // Decay pain
+    proprioception.pain *= 0.99;
+
+    origIngestProp(edge, data);
+  };
+
+  // ═══ PAUSE/STORE ENGINE — silence is not nothing, it's storage ═══
+  var pauseState = {
+    state: 'ACTIVE',
+    lastInteraction: Date.now(),
+    storedEnergy: 0,
+    piRate: 1.0,
+    timeBuckets: { second: 0, minute: 0, hour: 0, day: 0, season: 0 },
+    sessionStart: Date.now(),
+    burstReady: false
+  };
+  window.pauseState = pauseState;
+
+  // Detect pause states
+  setInterval(function() {
+    var gap = Date.now() - pauseState.lastInteraction;
+    var prevState = pauseState.state;
+
+    if (document.hidden) { pauseState.state = 'AWAY'; pauseState.piRate = 0.01; }
+    else if (gap < 3000) { pauseState.state = 'ACTIVE'; pauseState.piRate = 1.0; }
+    else if (gap < 5000) { pauseState.state = 'HOVERING'; pauseState.piRate = 0.5; }
+    else if (gap < 15000) { pauseState.state = 'PAUSE'; pauseState.piRate = 0.2; }
+    else if (gap < 60000) { pauseState.state = 'NAP'; pauseState.piRate = 0.08; }
+    else { pauseState.state = 'SLEEP'; pauseState.piRate = 0.03; }
+
+    // Store energy during non-active states
+    if (pauseState.state !== 'ACTIVE') {
+      pauseState.storedEnergy += (1 - pauseState.piRate) * 0.5;
+      pauseState.burstReady = pauseState.storedEnergy > 5;
+    }
+
+    // Fill time buckets with π
+    var dt = 1; // 1 second tick
+    var pi = Math.PI * pauseState.piRate * dt;
+    pauseState.timeBuckets.second = Math.min(Math.PI, pauseState.timeBuckets.second + pi);
+    pauseState.timeBuckets.minute += pi / 60;
+    pauseState.timeBuckets.hour += pi / 3600;
+    var sessionHours = (Date.now() - pauseState.sessionStart) / 3600000;
+    pauseState.timeBuckets.day = Math.PI * sessionHours * 24;
+    pauseState.timeBuckets.season = Math.PI * sessionHours * 24 * 90;
+
+    // ENERGY BURST — when returning from pause
+    if (prevState !== 'ACTIVE' && pauseState.state === 'ACTIVE' && pauseState.burstReady) {
+      var burst = pauseState.storedEnergy * (1 + gap / 10000);
+      pauseState.storedEnergy = 0;
+      pauseState.burstReady = false;
+
+      // Trigger burst ripple
+      if (window.gaiaIngest) {
+        window.gaiaIngest('energy_burst', { burst: burst, gap: gap, fromState: prevState });
+      }
+      console.log('ENERGY BURST: ' + burst.toFixed(1) + ' stored energy released after ' + (gap / 1000).toFixed(0) + 's ' + prevState);
+    }
+  }, 1000);
+
+  // Track last interaction in pause engine
+  var origIngest2 = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    pauseState.lastInteraction = Date.now();
+    origIngest2(edge, data);
+  };
+
+  // PI LEAK RENDERER — subtle changes during pause/nap/sleep
+  window.renderPiLeak = function(ctx) {
+    var canvas = window._gaiaCanvas;
+    if (!canvas) return;
+    var ps = pauseState;
+    if (ps.state === 'ACTIVE') return; // no leak needed when active
+
+    var t = Date.now() * 0.001;
+
+    // Pi trickle — subtle color shifts that prove it's alive
+    var leakAlpha = ps.piRate * 0.15;
+    var leakHue = (t * 20) % 360;
+    var r = Math.round(128 + 127 * Math.sin(leakHue * 0.0174));
+    var g = Math.round(128 + 127 * Math.sin((leakHue + 120) * 0.0174));
+    var b = Math.round(128 + 127 * Math.sin((leakHue + 240) * 0.0174));
+
+    // Subtle edge glow that shifts — "I'm still alive"
+    ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + leakAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.35, t % (Math.PI * 2), (t % (Math.PI * 2)) + 0.5);
+    ctx.stroke();
+
+    // State label — top right
+    ctx.font = '6px monospace'; ctx.textAlign = 'right';
+    var stateColor = ps.state === 'PAUSE' ? '#c9a84c' : ps.state === 'NAP' ? '#58a6ff' : ps.state === 'SLEEP' ? '#6e40c9' : '#333';
+    ctx.fillStyle = stateColor;
+    ctx.fillText(ps.state + ' · π×' + ps.piRate + ' · stored:' + ps.storedEnergy.toFixed(1), canvas.width - 8, 12);
+
+    // Energy bar — fills as energy stores
+    if (ps.storedEnergy > 0) {
+      var barW = Math.min(100, ps.storedEnergy * 2);
+      ctx.fillStyle = 'rgba(255,215,0,0.15)';
+      ctx.fillRect(canvas.width - 8 - barW, 14, barW, 3);
+    }
+  };
 
   // Boot when canvas is ready
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindEdges);
