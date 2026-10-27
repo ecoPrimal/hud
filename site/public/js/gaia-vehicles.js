@@ -219,15 +219,92 @@
     window.GAIA_IDE.language.push('vehicles');
   }, 58000);
 
+  // ═══ SWARMVINE FORAGING — tit-for-tat bounty eating ═══
+  // swarmVine scouts go out, MARK things, come back
+  // eat the LAST thing, return to the new find
+  // trace paths as they go — the path IS the vein
+  var FORAGING = {
+    marked: [],    // bounties found by scouts
+    eaten: [],     // bounties consumed
+    paths: [],     // paths traced between marks
+    scouts: ['swarmVine', 'petalTongue'], // scout vehicles
+    forageCount: 0
+  };
+
+  function forage() {
+    FORAGING.forageCount++;
+
+    // Read bounty board
+    var bountyBoard = null;
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/data/bounty-board-unseen.json', false);
+      xhr.send();
+      if (xhr.status === 200) bountyBoard = JSON.parse(xhr.responseText);
+    } catch(e) {}
+
+    if (!bountyBoard || !bountyBoard.unseen_bounties) return;
+
+    // Find uneaten bounties sorted by priority (HIGH first) but eat OLDEST first within priority (not greedy)
+    var uneaten = bountyBoard.unseen_bounties.filter(function(b) { return !b.eaten; });
+    if (uneaten.length === 0) return;
+
+    // TIT FOR TAT: mark the newest, eat the oldest
+    // This traces a PATH between the newest and oldest
+    var oldest = uneaten[0]; // FIFO — eat the first-marked
+    var newest = uneaten[uneaten.length - 1]; // most recently found
+
+    // Log the path: newest → oldest → back
+    FORAGING.paths.push({
+      from: newest.id + ' (' + newest.what.slice(0, 30) + ')',
+      to: oldest.id + ' (' + oldest.what.slice(0, 30) + ')',
+      traced_at: Date.now(),
+      forage_num: FORAGING.forageCount
+    });
+    if (FORAGING.paths.length > 100) FORAGING.paths.shift();
+
+    // Try to eat the oldest bounty (fetch its URL)
+    if (oldest.url && window.GAIA_GUT_BRAIN) {
+      // Mark as being eaten
+      FORAGING.eaten.push({
+        bounty: oldest.id,
+        what: oldest.what,
+        url: oldest.url,
+        eaten_at: Date.now()
+      });
+
+      // Feed to gut
+      window.GAIA_GUT_BRAIN.eat({
+        items: [oldest.what],
+        feed_name: 'bounty-' + oldest.id,
+        url: oldest.url
+      }, 'bounty-board');
+    }
+  }
+
+  // Forage every 5 minutes (not greedy — patient)
+  setInterval(forage, 300000);
+  setTimeout(forage, 60000); // first forage after 1 min
+
   window.GAIA_VEHICLES = {
     fleet: FLEET,
     patrols: patrols,
     axes: KLEIN_AXES,
+    foraging: FORAGING,
+    forage: forage,
     stats: function() {
       var deployed = Object.keys(patrols).filter(function(k) { return patrols[k].deployed; }).length;
-      return { deployed: deployed, total: 16, axes: 6, vehicleTypes: 7 };
+      return {
+        deployedCount: deployed,
+        total: 16,
+        axes: 6,
+        vehicleTypes: 7,
+        forageCount: FORAGING.forageCount,
+        pathsTraced: FORAGING.paths.length,
+        bountiesEaten: FORAGING.eaten.length
+      };
     }
   };
 
-  console.log('VEHICLES: 16 primals, 7 vehicle types, 6 Klein axes. Non-self locomotion. Ranger handbook. /vehicles');
+  console.log('VEHICLES: 16 primals, 6 axes, swarmVine foraging with TFT+1. Mark, eat last, come back. /vehicles');
 })(window.G);
