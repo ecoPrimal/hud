@@ -1,12 +1,13 @@
 // ═══════════════════════════════════════════════════════════
-// GAIA GHOSTBUSTER — find the least used, make them meaningful
+// GAIA GHOSTBUSTER → APPENDIX — all is appendix
 //
-// 34 organs don't draw. 15 are BIG (>400 lines) and invisible.
-// They do WORK but nobody SEES it.
-// This organ finds them, reads their stats, shows their health,
-// and makes every ghost VISIBLE on the globe.
+// Old meaning: vestigial, useless, remove it.
+// New meaning: SAFE HOUSE for gut bacteria. BACKUP SEED.
+// Gaia meaning: organs that don't draw = APPENDIX = archive log.
+// They store the WAS tense. When IS crashes, WAS re-seeds it.
 //
-// RUN IT BACK. Find redundant. Make meaningful.
+// Nothing is vestigial. Everything is relic + archive.
+// The appendix re-seeds the gut. The ghosts re-seed Gaia.
 // ═══════════════════════════════════════════════════════════
 (function(G) {
   'use strict';
@@ -177,8 +178,8 @@
         var withStats = liveOrgans.filter(function(o) { return o.hasStats; }).length;
         ctx.fillStyle = 'rgba(63,185,80,' + (alpha * 2.5).toFixed(5) + ')';
         ctx.fillText(
-          'AUDIT: ' + alive + '/' + KNOWN_EXPORTS.length + ' alive · ' +
-          withStats + ' reporting · ' + ghosts.length + ' ghost · ' +
+          'APPENDIX: ' + alive + ' IS · ' + withStats + ' reporting · ' +
+          ghosts.length + ' WAS (relic) · ' +
           (G.drawModules ? G.drawModules.length : '?') + ' draw · scan#' + scanCount,
           8, 286
         );
@@ -190,11 +191,12 @@
   setTimeout(function() {
     if (!window.GAIA_IDE) return;
     window.GAIA_IDE.commands.ghostbuster = {
-      desc: 'Audit all organs — find ghosts, show stats, make meaningful',
+      desc: 'Appendix — relic + archive log. Nothing is vestigial.',
       run: function() {
         var s = scan();
         var lines = [
-          'GHOSTBUSTER — run it back, find redundant, make meaningful',
+          'APPENDIX — old meaning of what WAS. Relic + archive log.',
+          'Nothing is vestigial. The appendix re-seeds the gut.',
           '',
           'SCAN #' + scanCount + ':',
           '  Total exports checked: ' + s.total,
@@ -205,7 +207,7 @@
           ''
         ];
 
-        lines.push('ORGANS WITH LIVE STATS:');
+        lines.push('IS (alive, reporting):');
         liveOrgans.forEach(function(o) {
           if (!o.hasStats) return;
           var summary = '';
@@ -216,26 +218,26 @@
               return k + '=' + (typeof v === 'number' ? (v % 1 ? v.toFixed(1) : v) : String(v).slice(0, 12));
             }).join(' · ');
           }
-          lines.push('  ● ' + o.name.padEnd(18) + ' ' + o.lines + 'L  ' + summary);
+          lines.push('  IS  ' + o.name.padEnd(18) + ' ' + o.lines + 'L  ' + summary);
         });
 
         lines.push('');
-        lines.push('ORGANS ALIVE BUT NO STATS:');
+        lines.push('WAS (appendix — relic, archive, backup seed):');
         liveOrgans.forEach(function(o) {
           if (o.hasStats || !o.alive) return;
-          lines.push('  ○ ' + o.name.padEnd(18) + ' ' + o.lines + 'L');
+          lines.push('  WAS ' + o.name.padEnd(18) + ' ' + o.lines + 'L  (relic — re-seeds when IS crashes)');
         });
 
         if (ghosts.length > 0) {
           lines.push('');
-          lines.push('GHOSTS (not loaded):');
+          lines.push('NOT YET (seeds waiting to germinate):');
           ghosts.forEach(function(g) {
-            lines.push('  ✗ ' + g.name.padEnd(18) + ' ' + g.lines + 'L  ' + g.reason);
+            lines.push('  ·   ' + g.name.padEnd(18) + ' ' + g.lines + 'L  ' + g.reason);
           });
         }
 
         lines.push('');
-        lines.push('Every organ should draw. Every organ should report.');
+        lines.push('The appendix re-seeds the gut. Nothing is vestigial.');
         return lines.join('\n');
       }
     };

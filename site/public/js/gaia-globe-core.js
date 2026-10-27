@@ -6381,6 +6381,8 @@ window.G = {
     '/data/null-body-systems.json', '/data/primals-planted.json',
     '/data/cross-section-self.json',
     '/data/wan-herd-scan.json',
+    '/data/appendix.json', '/data/water-is-human.json',
+    '/data/triangulate.json',
     '/data/medial-lateral-scatter.json', '/data/gumshoe-clutch-map.json',
     '/data/civil-mine-zk-proof.json', '/data/racket-case-wide-deep.json',
     '/data/gaia-campus-detroit.json', '/data/encyclopedia-detroit.json',
