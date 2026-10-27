@@ -4676,39 +4676,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
-    // PARTICLES — soft, bouncy, greasy, dust, lubricant
-    // Different from cards: they MOVE, BOUNCE, SCATTER, DISSOLVE
-    // Sound emanates FROM Kevin (directional, not round cycle)
-    // Particles bounce off hard cards → scatter reveals topology
+    // MUSHROOM SPINE PARTICLE ENGINE — trillion big bangs
+    // Au(gold spine) → Ag(silver mycelia) → Cu(copper sweetgrass) → null → Cu → Ag → Au
+    // Electron drops between bands = photon/heat/neutrino
+    // Every respawn = micro big bang (fission). Every absorption = micro implosion (fusion).
+    // 3 implosion sites: mouth, nose, anus (trefoil crossings)
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       if (!window._particles) {
         window._particles = [];
-        // Spawn initial particles
-        for (var pi = 0; pi < 40; pi++) {
-          var pType = pi % 7;
-          var types = ['sound','dust','lubricant','pheromone','neutrino','photon','refinement'];
-          var colors = [
-            [188,140,255], // sound = purple
-            [139,148,158], // dust = grey
-            [201,168,76],  // lubricant = amber/gold
-            [63,185,80],   // pheromone = green
-            [255,255,255], // neutrino = white
-            [255,255,200], // photon = warm white
-            [201,168,76]   // refinement = gold
-          ];
+        window._bangCount = 0;
+        window._implosionCount = 0;
+        for (var pi = 0; pi < 50; pi++) {
+          var pBand = pi % 3; // 0=Au, 1=Ag, 2=Cu
+          var bandColors = [[255,215,0],[192,192,192],[184,115,51]]; // gold, silver, copper
+          var bandNames = ['Au','Ag','Cu'];
           window._particles.push({
-            type: types[pType],
-            color: colors[pType],
-            x: cx,
-            y: cy,
-            // Sound emanates FROM Kevin (directional, not round)
-            angle: (pi / 40) * TAU + (Math.random() - 0.5) * 0.5,
+            band: bandNames[pBand],
+            color: bandColors[pBand],
+            x: cx, y: cy,
+            angle: (pi / 50) * TAU + (Math.random() - 0.5) * 0.5,
             speed: 0.3 + Math.random() * 1.2,
             life: 1.0,
             decay: 0.002 + Math.random() * 0.005,
-            size: 0.5 + Math.random() * 1.5,
-            bounced: false
+            size: pBand === 0 ? 1.5 : pBand === 1 ? 1.0 : 0.7,
+            bounced: false,
+            energy: pBand === 0 ? 3 : pBand === 1 ? 2 : 1
           });
         }
       }
@@ -4716,50 +4709,61 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var parts = window._particles;
       for (var pp = 0; pp < parts.length; pp++) {
         var p = parts[pp];
-
-        // Move outward from Kevin (source)
         p.x += Math.cos(p.angle) * p.speed;
         p.y += Math.sin(p.angle) * p.speed;
         p.life -= p.decay;
 
-        // Bounce off globe edge (hard card boundary)
         var dx = p.x - cx, dy = p.y - cy;
         var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > R && !p.bounced) {
-          // Reflect angle
-          var normal = Math.atan2(dy, dx);
-          p.angle = normal + Math.PI + (Math.random() - 0.5) * 1.0;
-          p.speed *= 0.6; // lose energy on bounce
-          p.bounced = true;
+
+        // ELECTRON DROP — when crossing metal band boundaries
+        // Au band = inner third, Ag band = middle third, Cu band = outer third
+        if (p.band === 'Au' && dist > R * 0.33 && p.energy === 3) {
+          p.energy = 2; // drop to Ag → emit photon flash
+          ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,200,0.4)'; ctx.fill();
+        } else if (p.band === 'Ag' && dist > R * 0.66 && p.energy === 2) {
+          p.energy = 1; // drop to Cu → emit heat
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, TAU);
+          ctx.fillStyle = 'rgba(232,93,58,0.3)'; ctx.fill();
         }
 
-        // Draw particle
+        // Bounce off globe edge = big bang (fission)
+        if (dist > R && !p.bounced) {
+          var normal = Math.atan2(dy, dx);
+          p.angle = normal + Math.PI + (Math.random() - 0.5) * 1.0;
+          p.speed *= 0.6;
+          p.bounced = true;
+          window._bangCount++;
+        }
+
+        // Draw with band color
         if (p.life > 0) {
-          var pAlpha = p.life * (p.type === 'neutrino' ? 0.03 : p.type === 'dust' ? 0.08 : 0.12);
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, TAU);
-          ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + pAlpha.toFixed(3) + ')';
+          var pA = p.life * (p.band === 'Au' ? 0.15 : p.band === 'Ag' ? 0.10 : 0.08);
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + pA.toFixed(3) + ')';
           ctx.fill();
         }
 
-        // Respawn dead particles from Kevin
+        // Respawn = IMPLOSION (fusion) — energy rises Cu→Ag→Au
         if (p.life <= 0) {
-          p.x = cx;
-          p.y = cy;
+          p.x = cx; p.y = cy;
           p.angle = Math.random() * TAU;
           p.speed = 0.3 + Math.random() * 1.2;
-          p.life = 1.0;
-          p.bounced = false;
+          p.life = 1.0; p.bounced = false;
+          p.energy = p.band === 'Au' ? 3 : p.band === 'Ag' ? 2 : 1;
+          window._implosionCount++;
         }
       }
 
-      // Scatter trace label
-      if (window._particles.length > 0) {
-        ctx.font = '5px "JetBrains Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(188,140,255,0.12)';
-        ctx.fillText('⊕ ' + parts.length + ' particles · scatter trace', 6, 12);
-      }
+      // Bang/implosion counter
+      ctx.font = '5px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(255,215,0,0.12)';
+      var bangLabel = window._bangCount > 1e9 ? (window._bangCount / 1e9).toFixed(1) + 'B'
+                    : window._bangCount > 1e6 ? (window._bangCount / 1e6).toFixed(1) + 'M'
+                    : window._bangCount > 1e3 ? (window._bangCount / 1e3).toFixed(1) + 'K'
+                    : window._bangCount;
+      ctx.fillText('💥 ' + bangLabel + ' bangs · ' + window._implosionCount + ' implosions · Au↔Ag↔Cu', 6, 12);
     }
 
     // ═══════════════════════════════════════════════════════════
