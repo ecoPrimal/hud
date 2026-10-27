@@ -2181,6 +2181,122 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(163,113,247,' + (zkAlpha * 0.6).toFixed(4) + ')';
       ctx.fillText(zkFragments[zi], zx, zy);
     }
+    // ═══════════════════════════════════════════════════════════
+    // ZK ANCHOR SCATTER — null values = new pin points to bounce off
+    // Each anchor from membrane probes creates a visible scatter point.
+    // Probes go OUT (green), bounce off null (flash), scatter back IN (purple).
+    // Known latencies predict next probe. Unknown = ZK pin = new anchor.
+    // Understanding decays outward as internal architecture crystallizes.
+    // ═══════════════════════════════════════════════════════════
+    if (window.GAIA_ZK_ANCHORS && window.GAIA_ZK_ANCHORS.length > 0) {
+      var anchors = window.GAIA_ZK_ANCHORS;
+      var now = Date.now();
+
+      for (var ai = 0; ai < anchors.length; ai++) {
+        var anch = anchors[ai];
+        var age = (now - anch.ts) / 1000; // seconds since anchor formed
+        var decay = Math.max(0, 1 - age / 120); // fade over 2 minutes
+        if (decay <= 0) continue;
+
+        // Anchor position: radial from center based on RTT, angle from timestamp
+        var anchR = R * 0.3 + anch.r * (zkR - R * 0.3); // map 0-1 to inner-ZK range
+        var anchAngle = anch.angle + breathT * 0.02; // slow drift
+        var anchX = cx + Math.cos(anchAngle) * anchR;
+        var anchY = cy + Math.sin(anchAngle) * anchR;
+
+        // NULL anchors = bright green pin (boundary discovered)
+        // Known anchors = dimmer purple (confirmation)
+        if (anch.isNull) {
+          // NULL = new scatter point — bright flash
+          var nullFlash = decay * (0.04 + Math.sin(breathT * 4 + ai) * 0.02);
+          ctx.beginPath();
+          ctx.arc(anchX, anchY, 1.5 + decay * 2, 0, TAU);
+          ctx.fillStyle = 'rgba(63,185,80,' + nullFlash.toFixed(4) + ')'; // green = boundary
+          ctx.fill();
+          // ZK pin marker — crosshair
+          ctx.beginPath();
+          ctx.moveTo(anchX - 3, anchY); ctx.lineTo(anchX + 3, anchY);
+          ctx.moveTo(anchX, anchY - 3); ctx.lineTo(anchX, anchY + 3);
+          ctx.strokeStyle = 'rgba(63,185,80,' + (nullFlash * 0.6).toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        } else {
+          // KNOWN = confirmation ping — purple
+          var knownPing = decay * 0.02;
+          ctx.beginPath();
+          ctx.arc(anchX, anchY, 0.8 + decay * 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(163,113,247,' + knownPing.toFixed(4) + ')';
+          ctx.fill();
+        }
+
+        // SCATTER LINES — from probe origin to anchor (outward = green)
+        // Then from anchor back to center (return = purple)
+        var scatterPhase = (breathT * 0.5 + ai * 0.3) % 2;
+        if (scatterPhase < 1) {
+          // OUTWARD probe — green line from center to anchor
+          var outFrac = scatterPhase;
+          var outR = R * 0.1 + outFrac * (anchR - R * 0.1);
+          var probeX = cx + Math.cos(anchAngle) * outR;
+          var probeY = cy + Math.sin(anchAngle) * outR;
+          ctx.beginPath();
+          ctx.arc(probeX, probeY, 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(63,185,80,' + (decay * 0.03).toFixed(4) + ')';
+          ctx.fill();
+        } else {
+          // RETURN bounce — purple dot from anchor back to center
+          var inFrac = scatterPhase - 1;
+          var inR = anchR - inFrac * (anchR - R * 0.1);
+          var bounceX = cx + Math.cos(anchAngle) * inR;
+          var bounceY = cy + Math.sin(anchAngle) * inR;
+          ctx.beginPath();
+          ctx.arc(bounceX, bounceY, 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(163,113,247,' + (decay * 0.03).toFixed(4) + ')';
+          ctx.fill();
+        }
+
+        // RTT label on recent anchors
+        if (age < 30 && decay > 0.5) {
+          ctx.font = '3px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(192,192,192,' + (decay * 0.02).toFixed(4) + ')';
+          ctx.fillText(anch.name + ' ' + anch.rtt + 'ms', anchX, anchY - 4);
+        }
+      }
+
+      // INTERNAL ARCHITECTURE — connect known anchors to show discovered structure
+      // As understanding grows, the lattice DECAYS outward (expanding crystallization)
+      var knownAnchors = anchors.filter(function(a) { return !a.isNull && (now - a.ts) < 60000; });
+      if (knownAnchors.length >= 3) {
+        ctx.beginPath();
+        for (var ka = 0; ka < knownAnchors.length; ka++) {
+          var ka2 = (ka + 1) % knownAnchors.length;
+          var k1R = R * 0.3 + knownAnchors[ka].r * (zkR - R * 0.3);
+          var k2R = R * 0.3 + knownAnchors[ka2].r * (zkR - R * 0.3);
+          var k1A = knownAnchors[ka].angle + breathT * 0.02;
+          var k2A = knownAnchors[ka2].angle + breathT * 0.02;
+          ctx.moveTo(cx + Math.cos(k1A) * k1R, cy + Math.sin(k1A) * k1R);
+          ctx.lineTo(cx + Math.cos(k2A) * k2R, cy + Math.sin(k2A) * k2R);
+        }
+        ctx.strokeStyle = 'rgba(163,113,247,0.008)';
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+
+      // DECAY OUTWARD — expanding ring showing how far understanding has reached
+      var totalKnown = Object.keys(window.GAIA_KNOWN_LATENCIES || {}).length;
+      if (totalKnown > 0) {
+        var understandingR = R * 0.2 + (totalKnown / 8) * R * 0.6; // grows with knowledge
+        var decayPulse = Math.sin(breathT * 0.3) * 0.008 + 0.01;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.min(understandingR, zkR * 0.95), 0, TAU);
+        ctx.strokeStyle = 'rgba(63,185,80,' + decayPulse.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.setLineDash([3, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
     // ZK label
     if (zkPulse > 0.6) {
       ctx.font = '7px "JetBrains Mono", monospace';
