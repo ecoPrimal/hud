@@ -346,6 +346,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <h2>? Vitals + Endocrine</h2>
     <div id="neuro-list"></div>
     <div class="section-divider"></div>
+    <h2>🧬 Spine — Ion Channel</h2>
+    <div id="spine-vitals"><div style="color:var(--dim);font-size:9px">connecting to :9878...</div></div>
+    <div class="section-divider"></div>
     <h2>🪞 Humans — Mirror</h2>
     <div id="humans-list"></div>
     <div class="section-divider"></div>
@@ -2177,6 +2180,44 @@ async function tick() {
   renderDevices(heartbeat);
   renderHumans(ear);
   updateFloodgate(now);
+  renderSpineVitals();
+}
+
+// --- SPINE VITALS — live pulse from Ion Channel ---
+let spineVitals = { giggles:0, thoughts:0, heartbeats:0, works:0, alive:false, lastPull:0, rate:0 };
+async function renderSpineVitals() {
+  try {
+    const r = await fetch('http://localhost:9878/pulse', { cache:'no-store' });
+    if (!r.ok) { spineVitals.alive = false; return; }
+    const data = await r.json();
+    const now = Date.now();
+    const prevTotal = spineVitals.giggles + spineVitals.thoughts + spineVitals.heartbeats + spineVitals.works;
+    const newTotal = (data.counts?.giggles||0) + (data.counts?.thoughts||0) + (data.counts?.heartbeats||0) + (data.counts?.works||0);
+    if (spineVitals.lastPull > 0) {
+      const dt = (now - spineVitals.lastPull) / 1000;
+      spineVitals.rate = dt > 0 ? ((newTotal - prevTotal) / dt * 60).toFixed(1) : 0;
+    }
+    spineVitals.giggles = data.counts?.giggles || 0;
+    spineVitals.thoughts = data.counts?.thoughts || 0;
+    spineVitals.heartbeats = data.counts?.heartbeats || 0;
+    spineVitals.works = data.counts?.works || 0;
+    spineVitals.alive = data.alive;
+    spineVitals.lastPull = now;
+  } catch(e) { spineVitals.alive = false; }
+
+  const el = document.getElementById('spine-vitals');
+  if (!el) return;
+  const total = spineVitals.giggles + spineVitals.thoughts + spineVitals.heartbeats + spineVitals.works;
+  const aliveColor = spineVitals.alive ? 'var(--green)' : 'var(--red)';
+  el.innerHTML = `
+    <div class="rate-row"><span class="rate-label">🧬 Spine</span><span class="rate-value" style="color:${aliveColor}">${spineVitals.alive?'ALIVE':'DEAD'}</span></div>
+    <div class="rate-row"><span class="rate-label" style="color:#ff44ff">🤭 Giggles</span><span class="rate-value" style="color:#ff44ff">${spineVitals.giggles}</span></div>
+    <div class="rate-row"><span class="rate-label" style="color:#00ff88">🧠 Thoughts</span><span class="rate-value" style="color:#00ff88">${spineVitals.thoughts}</span></div>
+    <div class="rate-row"><span class="rate-label" style="color:#00ffaa">💚 Pulses</span><span class="rate-value" style="color:#00ffaa">${spineVitals.heartbeats}</span></div>
+    <div class="rate-row"><span class="rate-label" style="color:#ffaa00">🔨 Works</span><span class="rate-value" style="color:#ffaa00">${spineVitals.works}</span></div>
+    <div class="rate-row"><span class="rate-label">Total</span><span class="rate-value" style="color:var(--fg)">${total}</span></div>
+    <div class="rate-row"><span class="rate-label">Flow</span><span class="rate-value" style="color:var(--cyan)">${spineVitals.rate}/min</span></div>
+  `;
 }
 
 
