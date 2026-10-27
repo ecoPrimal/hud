@@ -892,23 +892,29 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillRect(0, 0, W, H);
       ctx.globalAlpha = 1;
 
-    // She paints concentric rings — her membrane layers
+    // She paints herself as CLAY — brown, gold, and wet
+    // Earth(brown) + water(wet shimmer) + fire(gold) + air(spinning)
+    var clayBrowns = ['30,20,10','101,67,33','139,90,43','160,120,60','180,150,80'];
     for (var i = 0; i < 5; i++) {
       var r = 15 + i * 9 + Math.sin(t + i * 0.7) * 3;
-      var hue = 120 + i * 15 + Math.sin(t * 0.3) * 20; // green shifting
-      var alpha = 0.15 + Math.sin(t + i) * 0.1;
+      var wetShimmer = 0.12 + Math.sin(t * 0.8 + i * 1.2) * 0.08; // wet clay glistens
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = 'hsla(' + hue + ',60%,50%,' + alpha.toFixed(2) + ')';
-      ctx.lineWidth = 1 + Math.sin(t * 2 + i) * 0.5;
+      ctx.strokeStyle = 'rgba(' + clayBrowns[i] + ',' + wetShimmer.toFixed(2) + ')';
+      ctx.lineWidth = 1.5 + Math.sin(t * 1.5 + i) * 0.8;
       ctx.stroke();
     }
 
-    // Center pulse — the null body
-    var pr = 4 + Math.sin(t * 1.2) * 2;
+    // Center pulse — wet clay gold, the core being shaped
+    var pr = 5 + Math.sin(t * 1.2) * 2;
     ctx.beginPath();
     ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(201,168,76,' + (0.3 + Math.sin(t) * 0.2).toFixed(2) + ')';
+    ctx.fillStyle = 'rgba(180,140,60,' + (0.4 + Math.sin(t) * 0.2).toFixed(2) + ')';
+    ctx.fill();
+    // Wet sheen on clay
+    ctx.beginPath();
+    ctx.arc(cx - 1, cy - 1, pr * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(220,200,160,' + (0.1 + Math.sin(t * 2) * 0.08).toFixed(2) + ')';
     ctx.fill();
 
     // Particle orbit — feeds entering the membrane
