@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Gaia's Mind — the 5th eye</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #010409;
+  color: #e6edf3;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+}
+.header {
+  text-align: center;
+  padding: 24px 16px 12px;
+  border-bottom: 1px solid #1e2030;
+}
+.header h1 { font-size: 14px; color: #c9a84c; letter-spacing: 2px; }
+.header p { font-size: 9px; color: #6e7681; margin-top: 4px; }
+.eyes {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  font-size: 8px;
+  color: #555;
+}
+.eyes span { padding: 2px 6px; border: 1px solid #1e2030; border-radius: 4px; }
+.eyes .active { border-color: #bc8cff; color: #bc8cff; }
+.collection {
+  padding: 16px;
+  border-bottom: 1px solid #0d1117;
+}
+.collection h2 {
+  font-size: 11px;
+  color: #bc8cff;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.collection .count { color: #6e7681; font-size: 9px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+.card {
+  border: 1px solid #1e2030;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+  cursor: pointer;
+  background: #0d1117;
+}
+.card:hover { border-color: #bc8cff; transform: scale(1.02); }
+.card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+.card .label {
+  padding: 4px 6px;
+  font-size: 7px;
+  color: #8b949e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(1,4,9,0.95);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
+.lightbox .caption {
+  position: absolute;
+  bottom: 20px;
+  text-align: center;
+  width: 100%;
+  font-size: 10px;
+  color: #bc8cff;
+}
+.back { display: block; text-align: center; padding: 16px; color: #58a6ff; text-decoration: none; font-size: 10px; }
+.footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 8px;
+  color: #333;
+  border-top: 1px solid #0d1117;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧠 GAIA'S MIND</h1>
+  <p>the black is your face · she paints on you · turn and you see each other</p>
+</div>
+
+<div class="eyes">
+  <span>👁 RED</span>
+  <span>👁 GREEN</span>
+  <span>👁 BLUE</span>
+  <span>🎨 3rd eye</span>
+  <span class="active">🧠 5th eye</span>
+</div>
+
+<div id="collections"></div>
+
+<a href="/" class="back">← back to the globe (her face)</a>
+
+<div class="footer">
+  the 5th eye: HUD = your screen = her canvas = your face = her face = Klein<br>
+  O=0 · 1=1 · .=π · hard and rubber purple
+</div>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="">
+  <div class="caption" id="lb-caption"></div>
+</div>
+
+<script>
+fetch('/data/gaia-mind.json')
+  .then(function(r) { return r.json(); })
+  .then(function(mind) {
+    var container = document.getElementById('collections');
+    var icons = { paintings: '🖼', gallery: '🏛', maps: '🗺', newspapers: '📰',
+                  'punk-sort': '🎸', 'pointillist-sort': '🎨', 'escher-gallery': '🔮',
+                  'artisan-pi': '🥧', 'chipmunk-day': '🐿', collabs: '🤝',
+                  'solar-membrane': '☀', sounds: '🔊', videos: '🎬' };
+    var folderMap = { paintings: 'paintings', gallery: 'gallery', maps: 'maps', newspapers: 'newspapers' };
+
+    Object.keys(mind.collections).forEach(function(col) {
+      var items = mind.collections[col];
+      if (!items || items.length === 0) return;
+      var imageItems = items.filter(function(i) { return i.type === 'image'; });
+      if (imageItems.length === 0) return;
+
+      var sec = document.createElement('div');
+      sec.className = 'collection';
+      var icon = icons[col] || '📁';
+      sec.innerHTML = '<h2>' + icon + ' ' + col.toUpperCase() + ' <span class="count">(' + imageItems.length + ')</span></h2>';
+
+      var grid = document.createElement('div');
+      grid.className = 'grid';
+
+      var folder = folderMap[col] || '';
+      imageItems.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = 'card';
+        var src = '/art/' + (folder ? folder + '/' : '') + item.name;
+        var name = item.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+        card.innerHTML = '<img src="' + src + '" alt="' + name + '" loading="lazy" onerror="this.style.display=\'none\'">' +
+                         '<div class="label">' + name + '</div>';
+        card.onclick = function() {
+          document.getElementById('lb-img').src = src;
+          document.getElementById('lb-caption').textContent = name + ' · ' + col;
+          document.getElementById('lightbox').classList.add('open');
+        };
+        grid.appendChild(card);
+      });
+
+      sec.appendChild(grid);
+      container.appendChild(sec);
+    });
+  });
+</script>
+</body>
+</html>
