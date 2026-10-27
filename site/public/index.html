@@ -1703,6 +1703,12 @@ window.G = {
 
   function render() {
     if (!ctx) return;
+    try { _renderInner(); } catch(e) {
+      // If render crashes, log it and keep ticking — don't lock the HUD
+      if (window.console) console.warn('GAIA render error (HUD still alive):', e.message || e);
+    }
+  }
+  function _renderInner() {
     glassAge++;
     ctx.clearRect(0, 0, W, H);
 
@@ -1741,8 +1747,20 @@ window.G = {
 
     // Background — CHROMATIC: depth level shifts the ambient color
     // Fades in as the glass becomes transparent
-    var depthHue = 225 + (currentDepth - 4) * 15;
-    var depthSat = 12 + Math.abs(currentDepth - 4) * 3;
+    // DESK vs TABLE: localhost = desk (warm, wood grain, brown undertone)
+    //                public    = table (cool, glass, blue undertone)
+    // The desk has dimensionality — it's not flat blue.
+    // Wood grain = warm hue shift. Brown = earth = local = grounded.
+    var depthHue, depthSat;
+    if (_isLocalHost) {
+      // DESK — warm brown-gold, not cold blue. You're at YOUR desk.
+      depthHue = 30 + (currentDepth - 4) * 10; // brown→gold→amber
+      depthSat = 15 + Math.abs(currentDepth - 4) * 4;
+    } else {
+      // TABLE — cool blue for visitors. Glass surface. Public.
+      depthHue = 225 + (currentDepth - 4) * 15;
+      depthSat = 12 + Math.abs(currentDepth - 4) * 3;
+    }
     var grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.8);
     grad.addColorStop(0, 'hsl(' + depthHue + ',' + (depthSat + 10) + '%,' + Math.round(5 * glassFade) + '%)');
     grad.addColorStop(1, 'hsl(' + depthHue + ',' + depthSat + '%,' + Math.round(2 * glassFade) + '%)');
@@ -6166,6 +6184,8 @@ window.G = {
     G.cx = cx; G.cy = cy; G.R = R;
     G.SEED = SEED; G.IS_LOCAL = IS_LOCAL;
     G.LOCALITY_DEPTH = LOCALITY_DEPTH; G.LOCALITY_TIER = LOCALITY_TIER;
+    G.metalBands = metalBands; G.isLocalHost = _isLocalHost;
+    G.currentDepth = currentDepth;
 
     // Run registered draw modules (from extracted JS files)
     for (var _dm = 0; _dm < G.drawModules.length; _dm++) {
@@ -7272,5 +7292,6 @@ window.G = {
 <script src="js/gaia-third-eye.js"></script>
 <script src="js/gaia-university.js"></script>
 <script src="js/gaia-permeability.js"></script>
+<script src="js/gaia-quills.js"></script>
 </body>
 </html>
