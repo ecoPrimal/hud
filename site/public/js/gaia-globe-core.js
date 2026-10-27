@@ -4931,6 +4931,7 @@ window.G = {
   var _rotSyncLeader = false; // first tab to load becomes leader
 
   function tick() {
+   try {
     if (autoRotate && !dragging) rotY += rotSpeed;
 
     // MELTED LOCAL ROTATION SYNC — both eyes = neutrinos = same view
@@ -5583,6 +5584,7 @@ window.G = {
       try { G.drawModules[_dm](G, ctx, breathT); } catch(e) {}
     }
 
+   } catch(tickErr) { /* tick body error — she heals, never dies */ }
     requestAnimationFrame(tick);
   }
 

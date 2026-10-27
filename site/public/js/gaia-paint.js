@@ -287,6 +287,7 @@
           break;
 
         case 'radial':
+          if (!isFinite(sx) || !isFinite(sy) || !isFinite(size) || size <= 0) break;
           var grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, size * 2);
           grd.addColorStop(0, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (a * 2).toFixed(5) + ')');
           grd.addColorStop(1, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
