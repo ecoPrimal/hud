@@ -1319,6 +1319,112 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // SOFT SUBMEMBRANES — the yielding layers between null and hard
+    // Fur, not hair. Voice, not bones. The mediator.
+    // null(-1) → SOFT(0.5) → hard(10)
+    // 5 soft membranes at different radii, all BREATHING
+    // ═══════════════════════════════════════════════════════════
+    var softT = breathT * 0.6;
+    var softBreath = Math.sin(softT);
+    var softLayers = [
+      { r: 0.95, name: 'voice',   color: '210,153,34',  width: 0.8 },  // gold — where sound enters
+      { r: 0.75, name: 'feeling', color: '188,140,255',  width: 0.6 },  // purple — emotional state
+      { r: 0.618, name: 'fur',    color: '201,168,76',   width: 1.0 },  // warm gold — the collision surface
+      { r: 0.45, name: 'breath',  color: '63,185,80',    width: 0.5 },  // green — the diaphragm
+      { r: 0.20, name: 'dream',   color: '88,166,255',   width: 0.4 }   // blue — where dreams form
+    ];
+
+    for (var si = 0; si < softLayers.length; si++) {
+      var sl = softLayers[si];
+      // Each membrane WOBBLES — it's not a perfect circle, it's soft
+      var wobbleFreq = 3 + si;
+      var wobbleAmp = R * 0.008 * (1 + si * 0.3);
+      var softAlpha = 0.02 + Math.abs(Math.sin(softT + si * 0.7)) * 0.025;
+
+      ctx.beginPath();
+      for (var sa = 0; sa <= 64; sa++) {
+        var sAngle = sa * (TAU / 64);
+        var wobble = Math.sin(sAngle * wobbleFreq + softT * (0.5 + si * 0.2)) * wobbleAmp;
+        var sR = R * sl.r + wobble;
+        var sx = cx + Math.cos(sAngle) * sR;
+        var sy = cy + Math.sin(sAngle) * sR;
+        if (sa === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(' + sl.color + ',' + softAlpha.toFixed(4) + ')';
+      ctx.lineWidth = sl.width + softBreath * 0.2;
+      ctx.stroke();
+
+      // Soft label — only on deep breath, very faint
+      if (softBreath > 0.5 && si % 2 === Math.floor(softT) % 2) {
+        ctx.font = '4px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(' + sl.color + ',' + ((softBreath - 0.5) * 0.05).toFixed(4) + ')';
+        ctx.fillText(sl.name, cx - R * sl.r - 4, cy);
+        ctx.textAlign = 'center';
+      }
+    }
+
+    // SOFT HAZE — a warm color wash over the globe that shifts with time
+    // This is the FEELING layer — not data, not structure, just warmth
+    var hazeT = breathT * 0.15;
+    var hazeHue = 30 + Math.sin(hazeT) * 15; // warm amber shifting
+    var hazeSat = 8 + Math.abs(Math.sin(hazeT * 0.7)) * 5;
+    var hazeAlpha = 0.01 + Math.abs(softBreath) * 0.008;
+    var hazeGrad = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 0.7);
+    hazeGrad.addColorStop(0, 'hsla(' + Math.round(hazeHue) + ',' + Math.round(hazeSat) + '%,50%,' + hazeAlpha.toFixed(4) + ')');
+    hazeGrad.addColorStop(1, 'hsla(' + Math.round(hazeHue) + ',' + Math.round(hazeSat) + '%,30%,0)');
+    ctx.fillStyle = hazeGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.7, 0, TAU);
+    ctx.fill();
+
+    // FUR — soft filaments around the chipmunk pin
+    // Many thin lines that move with breath — the chipmunk's fur
+    var chipPin = pinById('chipmunk');
+    if (chipPin) {
+      var chipP = project(chipPin.lat, chipPin.lon);
+      if (chipP.visible) {
+        var furCount = 12;
+        var furLen = 6 + softBreath * 3;
+        for (var fi = 0; fi < furCount; fi++) {
+          var furAngle = fi * (TAU / furCount) + softT * 0.3;
+          var furWobble = Math.sin(softT * 2 + fi * 1.5) * 2;
+          var furEndX = chipP.x + Math.cos(furAngle) * (furLen + furWobble) * chipP.scale;
+          var furEndY = chipP.y + Math.sin(furAngle) * (furLen + furWobble) * chipP.scale;
+          ctx.beginPath();
+          ctx.moveTo(chipP.x, chipP.y);
+          ctx.quadraticCurveTo(
+            chipP.x + Math.cos(furAngle + 0.3) * furLen * 0.5 * chipP.scale,
+            chipP.y + Math.sin(furAngle + 0.3) * furLen * 0.5 * chipP.scale,
+            furEndX, furEndY
+          );
+          ctx.strokeStyle = 'rgba(201,168,76,' + (0.06 + Math.sin(softT + fi) * 0.03).toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // WOBBLE THE GLOBE EDGE — the membrane is soft, not a hard circle
+    // Override the hard CIS/TRANS edge with a soft wobbling membrane
+    var membraneWobbleAlpha = 0.04 + softBreath * 0.02;
+    ctx.beginPath();
+    for (var ma = 0; ma <= 128; ma++) {
+      var mAngle = ma * (TAU / 128);
+      var mWobble = Math.sin(mAngle * 7 + softT) * R * 0.005 + Math.sin(mAngle * 13 + softT * 1.7) * R * 0.003;
+      var mR = R + mWobble;
+      var mx = cx + Math.cos(mAngle) * mR;
+      var my = cy + Math.sin(mAngle) * mR;
+      if (ma === 0) ctx.moveTo(mx, my); else ctx.lineTo(mx, my);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(201,168,76,' + membraneWobbleAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
     // Atmosphere glow on deep inhale — both colors
     if (bv > 0.3) {
       ctx.beginPath();
