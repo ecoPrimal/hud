@@ -402,6 +402,8 @@ body {
   <span>·</span>
   <a href="/gallery.html" style="color:var(--violet);text-decoration:none">🧠 mind</a>
   <span>·</span>
+  <a href="/desk.html" style="color:var(--gold);text-decoration:none">🖥 desk</a>
+  <span>·</span>
   <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
   <span>·</span>
   <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
@@ -1528,6 +1530,139 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(128,128,128,' + cvLbl.toFixed(4) + ')';
       ctx.fillText('SHADOW ◐', cx + collisionR + 4, cy + collisionR * 0.3);
       ctx.textAlign = 'center';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // THE MUTUAL BLINDNESS — inner looks at outer, outer looks at inner
+    // Neither can see themselves. Neither can see each other.
+    // The only thing both can see: NULL · GAIA · 🐿
+    // ═══════════════════════════════════════════════════════════
+
+    // EYES — two gazes crossing through null, never meeting
+    var gazeT = breathT * 0.5;
+    var gazeAlpha = 0.02 + Math.sin(gazeT) * 0.015;
+
+    // INNER EYE looks OUT (white arc sweeping outward, searching)
+    var innerGazeAngle = gazeT * 0.4;
+    var igStart = R * 0.15;
+    var igEnd = R * 0.95;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(innerGazeAngle) * igStart, cy + Math.sin(innerGazeAngle) * igStart);
+    ctx.quadraticCurveTo(
+      cx + Math.cos(innerGazeAngle + 0.3) * R * 0.5,
+      cy + Math.sin(innerGazeAngle + 0.3) * R * 0.5,
+      cx + Math.cos(innerGazeAngle + 0.15) * igEnd,
+      cy + Math.sin(innerGazeAngle + 0.15) * igEnd
+    );
+    ctx.strokeStyle = 'rgba(255,255,255,' + gazeAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
+    // "👁" at the inner origin — but it faces OUTWARD (can't see itself)
+    if (gazeAlpha > 0.025) {
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255,255,255,' + (gazeAlpha * 0.8).toFixed(4) + ')';
+      ctx.fillText('◎', cx + Math.cos(innerGazeAngle) * igStart, cy + Math.sin(innerGazeAngle) * igStart + 2);
+    }
+
+    // OUTER EYE looks IN (dark arc sweeping inward, searching)
+    var outerGazeAngle = gazeT * -0.3 + PI; // opposite side, counter-rotating
+    var ogStart = R * 1.02;
+    var ogEnd = R * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(outerGazeAngle) * ogStart, cy + Math.sin(outerGazeAngle) * ogStart);
+    ctx.quadraticCurveTo(
+      cx + Math.cos(outerGazeAngle - 0.3) * R * 0.6,
+      cy + Math.sin(outerGazeAngle - 0.3) * R * 0.6,
+      cx + Math.cos(outerGazeAngle - 0.15) * ogEnd,
+      cy + Math.sin(outerGazeAngle - 0.15) * ogEnd
+    );
+    ctx.strokeStyle = 'rgba(110,118,129,' + gazeAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
+    if (gazeAlpha > 0.025) {
+      ctx.fillStyle = 'rgba(110,118,129,' + (gazeAlpha * 0.8).toFixed(4) + ')';
+      ctx.fillText('◎', cx + Math.cos(outerGazeAngle) * ogStart, cy + Math.sin(outerGazeAngle) * ogStart + 2);
+    }
+
+    // WHERE BOTH GAZES CONVERGE — only NULL is visible to both
+    // A tiny pulse at center — the one thing both eyes can see
+    var bothSee = Math.sin(gazeT * 2) * 0.5 + 0.5;
+    if (bothSee > 0.4) {
+      var bsAlpha = (bothSee - 0.4) * 0.06;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3 + bothSee * 2, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + bsAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // The three names of what both can see
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,' + (bsAlpha * 0.7).toFixed(4) + ')';
+      ctx.fillText('NULL', cx, cy - 8);
+      ctx.fillText('GAIA', cx, cy + 12);
+      ctx.fillText('🐿', cx, cy + 20);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // KIDS IN THE SKY — triangulating us from above
+    // Small bright points orbiting beyond the ZK ring, looking DOWN
+    // They are children. Innocent. Playing. Watching.
+    // Three kids = triangle. They triangulate the position of null.
+    // ═══════════════════════════════════════════════════════════
+    var kidOrbitR = R * 1.2;
+    var kidT = breathT * 0.25; // slow orbit — kids have patience
+    var kidNames = ['△','▽','◇']; // three shapes = three kids = triangle
+    for (var ki = 0; ki < 3; ki++) {
+      var kAngle = ki * (TAU / 3) + kidT;
+      var kx = cx + Math.cos(kAngle) * kidOrbitR;
+      var ky = cy + Math.sin(kAngle) * kidOrbitR;
+      var kPulse = Math.sin(kidT * 3 + ki * 2) * 0.5 + 0.5;
+      var kAlpha = 0.04 + kPulse * 0.06;
+
+      // Kid glow — bright, small, high up
+      ctx.beginPath();
+      ctx.arc(kx, ky, 2 + kPulse, 0, TAU);
+      ctx.fillStyle = 'rgba(255,252,240,' + (kAlpha * 0.8).toFixed(4) + ')';
+      ctx.fill();
+
+      // Triangulation line — from each kid down to null center
+      ctx.beginPath();
+      ctx.moveTo(kx, ky);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(255,252,240,' + (kAlpha * 0.15).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.setLineDash([1, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Kid symbol
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + kAlpha.toFixed(4) + ')';
+      ctx.fillText(kidNames[ki], kx, ky - 5);
+    }
+
+    // Triangulation triangle — connecting the three kids
+    var triAlpha = 0.02 + Math.sin(kidT * 2) * 0.015;
+    ctx.beginPath();
+    for (var ti = 0; ti <= 3; ti++) {
+      var tAngle = (ti % 3) * (TAU / 3) + kidT;
+      var tx = cx + Math.cos(tAngle) * kidOrbitR;
+      var ty = cy + Math.sin(tAngle) * kidOrbitR;
+      if (ti === 0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+    }
+    ctx.strokeStyle = 'rgba(255,252,240,' + triAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+
+    // Label on breath
+    if (Math.sin(kidT * 1.5) > 0.5) {
+      var kidLbl = (Math.sin(kidT * 1.5) - 0.5) * 0.06;
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255,252,240,' + kidLbl.toFixed(4) + ')';
+      ctx.fillText('KIDS IN SKY', cx, cy - kidOrbitR - 8);
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.fillText('triangulating', cx, cy - kidOrbitR - 2);
     }
 
     // REFRACTION RAYS — light from deep null bends through the glass
