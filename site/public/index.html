@@ -1419,6 +1419,117 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.textAlign = 'center';
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // INNER PROJECTS UP · OUTER RAINS DOWN · WHERE THEY HIT = CANVAS
+    // White and black and shadow. No color. Just LIGHT.
+    // The cave wall. The chiaroscuro. The collision surface.
+    // ═══════════════════════════════════════════════════════════
+    var collisionT = breathT * 0.8;
+    var collisionPhase = Math.sin(collisionT);
+
+    // INNER PROJECTS UP — white rays from center rising toward surface
+    var innerRayCount = 7;
+    for (var iu = 0; iu < innerRayCount; iu++) {
+      var iAngle = iu * (TAU / innerRayCount) + collisionT * 0.3;
+      var iLen = R * (0.3 + Math.abs(Math.sin(collisionT + iu * 1.1)) * 0.65);
+      var iEndX = cx + Math.cos(iAngle) * iLen;
+      var iEndY = cy + Math.sin(iAngle) * iLen;
+      var iAlpha = 0.02 + Math.abs(Math.sin(collisionT * 0.5 + iu)) * 0.04;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(iEndX, iEndY);
+      ctx.strokeStyle = 'rgba(255,255,255,' + iAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.4 + Math.sin(collisionT + iu * 0.7) * 0.3;
+      ctx.stroke();
+      // White dot at tip — the inner projection reaching outward
+      ctx.beginPath();
+      ctx.arc(iEndX, iEndY, 1 + Math.sin(collisionT * 2 + iu) * 0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(255,255,255,' + (iAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // OUTER RAINS DOWN — black/dark particles falling inward from the edge
+    var outerDropCount = 11;
+    for (var od = 0; od < outerDropCount; od++) {
+      var oAngle = od * (TAU / outerDropCount) + collisionT * -0.2;
+      var oProgress = (Math.sin(collisionT * 1.3 + od * 0.9) * 0.5 + 0.5); // 0→1 fall progress
+      var oStartR = R * 1.05;
+      var oCurrentR = oStartR - oProgress * R * 0.7; // falls from edge toward center
+      var oX = cx + Math.cos(oAngle) * oCurrentR;
+      var oY = cy + Math.sin(oAngle) * oCurrentR;
+      var oAlpha = 0.03 + oProgress * 0.04;
+      // Dark droplet
+      ctx.beginPath();
+      ctx.arc(oX, oY, 0.8 + (1 - oProgress) * 1.2, 0, TAU);
+      ctx.fillStyle = 'rgba(0,0,0,' + (oAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+      // Faint dark trail from edge to current position
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(oAngle) * oStartR, cy + Math.sin(oAngle) * oStartR);
+      ctx.lineTo(oX, oY);
+      ctx.strokeStyle = 'rgba(0,0,0,' + (oAlpha * 0.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // COLLISION SURFACE — where inner white meets outer black = SHADOW
+    // The shadow ring forms at the collision radius (~0.618R = golden ratio)
+    var collisionR = R * 0.618;
+    var shadowPulse = Math.sin(collisionT * 1.5) * 0.5 + 0.5;
+    // Shadow arc — grey, flickering, the canvas itself
+    ctx.beginPath();
+    ctx.arc(cx, cy, collisionR, 0, TAU);
+    var shadowAlpha = 0.015 + shadowPulse * 0.025;
+    ctx.strokeStyle = 'rgba(128,128,128,' + shadowAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 1 + shadowPulse * 2;
+    ctx.stroke();
+
+    // Shadow marks at collision points — where specific inner rays meet outer drops
+    var shadowCount = 5;
+    for (var si = 0; si < shadowCount; si++) {
+      var sAngle = si * (TAU / shadowCount) + collisionT * 0.15;
+      var sx = cx + Math.cos(sAngle) * collisionR;
+      var sy = cy + Math.sin(sAngle) * collisionR;
+      var sFlicker = Math.sin(collisionT * 3 + si * 2.1);
+      // WHITE flash (inner hit)
+      if (sFlicker > 0.3) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1.5 + sFlicker * 2, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,' + ((sFlicker - 0.3) * 0.06).toFixed(4) + ')';
+        ctx.fill();
+      }
+      // BLACK mark (outer hit)
+      if (sFlicker < -0.3) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1 + Math.abs(sFlicker) * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(0,0,0,' + ((Math.abs(sFlicker) - 0.3) * 0.08).toFixed(4) + ')';
+        ctx.fill();
+      }
+      // SHADOW trail (the residue of collision — neither black nor white)
+      var trailLen = 8 + shadowPulse * 6;
+      var trailAngle = sAngle + PI * 0.5; // perpendicular to radius = along surface
+      ctx.beginPath();
+      ctx.moveTo(sx - Math.cos(trailAngle) * trailLen * 0.5, sy - Math.sin(trailAngle) * trailLen * 0.5);
+      ctx.lineTo(sx + Math.cos(trailAngle) * trailLen * 0.5, sy + Math.sin(trailAngle) * trailLen * 0.5);
+      ctx.strokeStyle = 'rgba(128,128,128,' + (shadowAlpha * 0.7).toFixed(4) + ')';
+      ctx.lineWidth = 0.5 + Math.abs(sFlicker) * 0.5;
+      ctx.stroke();
+    }
+
+    // Canvas label on deep breath
+    if (collisionPhase > 0.5) {
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      var cvLbl = (collisionPhase - 0.5) * 0.08;
+      ctx.fillStyle = 'rgba(255,255,255,' + cvLbl.toFixed(4) + ')';
+      ctx.fillText('INNER ↑', cx + 4, cy - 4);
+      ctx.fillStyle = 'rgba(0,0,0,' + (cvLbl * 1.5).toFixed(4) + ')';
+      ctx.fillText('OUTER ↓', cx + 4, cy + 8);
+      ctx.fillStyle = 'rgba(128,128,128,' + cvLbl.toFixed(4) + ')';
+      ctx.fillText('SHADOW ◐', cx + collisionR + 4, cy + collisionR * 0.3);
+      ctx.textAlign = 'center';
+    }
+
     // REFRACTION RAYS — light from deep null bends through the glass
     // Three wavelengths separate as they pass through the glass plane
     // Red bends least (long wave), Green moderate, Blue bends most (short wave)
