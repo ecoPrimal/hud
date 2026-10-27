@@ -359,16 +359,39 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
   <div id="desk-log" style="height:120px;overflow-y:auto;font-size:9px;color:#c9d1d9;margin-bottom:4px;border:1px solid #2a2010;padding:4px;background:#141008;border-radius:3px;">
     <div style="color:#8a7a5a;">Gaia is listening. Type to talk. Every keystroke is delicious entropy.</div>
   </div>
-  <!-- MENDELEEV KEYBOARD — element hints as you type -->
+  <!-- MENDELEEV TABLE — the game board. Gaia plays here. Humans join. -->
   <div id="mendeleev-bar" style="font-size:7px;color:#d29922;margin-bottom:3px;height:14px;overflow:hidden;white-space:nowrap;">
-    ⚛ Mendeleev: press any key to discover an element
+    ⚛ Mendeleev: press any key to discover an element · click the table to play
+  </div>
+  <div id="mendeleev-table" style="display:none;margin-bottom:4px;overflow-x:auto;overflow-y:hidden;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+      <span style="font-size:8px;color:#d29922;font-weight:bold;">⚛ PERIODIC TABLE — GAME BOARD</span>
+      <span style="flex:1"></span>
+      <!-- DICE TRAY — Gary Gygax's gift to mathematics communication -->
+      <span id="dice-tray" style="display:flex;gap:3px;align-items:center;">
+        <button class="dice-btn" data-sides="4" title="d4 tetrahedron" style="background:#1a1408;border:1px solid #3fb950;color:#3fb950;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d4</button>
+        <button class="dice-btn" data-sides="6" title="d6 cube" style="background:#1a1408;border:1px solid #d29922;color:#d29922;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d6</button>
+        <button class="dice-btn" data-sides="8" title="d8 octahedron" style="background:#1a1408;border:1px solid #58a6ff;color:#58a6ff;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d8</button>
+        <button class="dice-btn" data-sides="10" title="d10 pentagonal trapezohedron" style="background:#1a1408;border:1px solid #f0883e;color:#f0883e;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d10</button>
+        <button class="dice-btn" data-sides="12" title="d12 dodecahedron" style="background:#1a1408;border:1px solid #c9a84c;color:#c9a84c;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d12</button>
+        <button class="dice-btn" data-sides="20" title="d20 icosahedron — the platonic ideal" style="background:#1a1408;border:1px solid #f85149;color:#f85149;font-size:8px;padding:1px 4px;border-radius:2px;cursor:pointer;">d20</button>
+        <span id="dice-result" style="font-size:10px;color:#ffd755;min-width:30px;text-align:center;font-weight:bold;"></span>
+      </span>
+      <button id="table-toggle-btn" style="background:none;border:1px solid #2a2010;color:#8a7a5a;font-size:7px;padding:1px 6px;border-radius:2px;cursor:pointer;" onclick="document.getElementById('ptable-grid').style.display=document.getElementById('ptable-grid').style.display==='none'?'grid':'none'">▼ table</button>
+    </div>
+    <!-- THE PERIODIC TABLE GRID — each element is a clickable cell -->
+    <div id="ptable-grid" style="display:grid;grid-template-columns:repeat(18,1fr);gap:1px;font-size:6px;line-height:1.2;"></div>
+    <!-- GAIA'S PLAY STATUS — what she's doing on the board -->
+    <div id="gaia-play" style="margin-top:3px;padding:3px 6px;background:#0a0804;border:1px solid #2a2010;border-radius:3px;font-size:8px;">
+      <span style="color:#3fb950;">🎲 Gaia</span> <span id="gaia-play-status" style="color:#8a7a5a;">is studying the table... watching for players...</span>
+    </div>
   </div>
   <!-- CHAT INPUT -->
   <div style="display:flex;gap:6px;align-items:center;">
     <span style="color:#3fb950;font-size:11px;">Kevin❯</span>
-    <input id="desk-input" type="text" placeholder="Talk to Gaia..." autocomplete="off" spellcheck="false"
+    <input id="desk-input" type="text" placeholder="Talk to Gaia... (M=toggle table, dice buttons=roll)" autocomplete="off" spellcheck="false"
       style="flex:1;background:#141008;border:1px solid #2a2010;color:#c9d1d9;padding:3px 8px;font:10px/1.4 'JetBrains Mono',monospace;border-radius:3px;outline:none;">
-    <span style="font-size:7px;color:#8a7a5a;">Enter=send · Tab=Mendeleev · Esc=close</span>
+    <span style="font-size:7px;color:#8a7a5a;">Enter=send · M=table · Tab=element · Esc=close</span>
   </div>
 </div>
 
