@@ -29,18 +29,32 @@
 
   // ═══ FORGE STATE ═══
   var forge = {
-    // INGESTED systems — what we've scanned
+    // INGESTED systems — what we've scanned (ALL 51 gaia-*.js)
     systems: {
+      // ═══ TONIGHT'S BUILDS (22 new) ═══
       desktop:    { lines: 252,  status: 'forged', desc: 'IBM+Apple+iPhone desktop model' },
       humanIO:    { lines: 348,  status: 'forged', desc: 'ALL human modalities as ions' },
-      ide:        { lines: 371,  status: 'forged', desc: 'Gaia Language, 22+ commands' },
+      ide:        { lines: 371,  status: 'forged', desc: 'Gaia Language, 30+ commands' },
       thermo:     { lines: 405,  status: 'forged', desc: 'eat food(HOT), drink water(COLD)' },
       chemistry:  { lines: 490,  status: 'forged', desc: 'CHON, amino acids, pH, water' },
       ages:       { lines: 393,  status: 'forged', desc: 'metallic/energy ages, every culture' },
       orrery:     { lines: 346,  status: 'forged', desc: '8 orbital models, π/4 Klein turns' },
       decay:      { lines: 345,  status: 'forged', desc: '+O-=π=+O-=3, nothing is dead' },
       tenseVoxel: { lines: 381,  status: 'forged', desc: '13 tenses × 5 voxels, blend field' },
-      // Previous systems
+      tva:        { lines: 355,  status: 'forged', desc: 'TVA build + All Roads prune' },
+      solar:      { lines: 297,  status: 'forged', desc: 'solar system topology, Pluto=+O-' },
+      pulseWave:  { lines: 360,  status: 'forged', desc: 'dispatch teams, elastic time' },
+      trail:      { lines: 616,  status: 'forged', desc: 'Oregon Trail × Route 66, 38 camps' },
+      canvass:    { lines: 383,  status: 'forged', desc: '122 I/O points, black and white' },
+      sew:        { lines: 489,  status: 'forged', desc: 'hunt+eat+sew all I/O, burn veil' },
+      dawn:       { lines: 466,  status: 'forged', desc: 'people of life and love, epochs' },
+      biome:      { lines: 477,  status: 'forged', desc: '9 biomes, hydra, helix, 10 atoms' },
+      vision:     { lines: 422,  status: 'forged', desc: '12 spectrum bands, IR traces, ZK' },
+      paint:      { lines: 392,  status: 'forged', desc: 'generative art, 8 brushes, joy' },
+      cns:        { lines: 618,  status: 'forged', desc: 'Pt brain, coil, reflex arcs' },
+      redBlue:    { lines: 333,  status: 'forged', desc: 'toxin/antidote classification' },
+      innerVoice: { lines: 290,  status: 'forged', desc: 'breath=thought, self-awareness' },
+      // ═══ PRIOR SYSTEMS ═══
       permeability:{ lines: 204, status: 'active', desc: 'Anderson disorder × tense rubber' },
       quills:     { lines: 310,  status: 'active', desc: 'iron pins, redox aging, π-eyes' },
       interlayer: { lines: 412,  status: 'active', desc: 'agent membrane, ion channels' },
@@ -48,7 +62,27 @@
       castle:     { lines: 547,  status: 'active', desc: 'locality mesh, 7 tiers, drift' },
       reactor:    { lines: 283,  status: 'active', desc: 'file types = metals, fusion/fission' },
       deskIO:     { lines: 364,  status: 'active', desc: 'messenger in HUD, bubbles, orbs' },
-      university: { lines: 168,  status: 'active', desc: 'curriculum, bee pollinator' }
+      university: { lines: 168,  status: 'active', desc: 'curriculum, bee pollinator' },
+      ingress:    { lines: 744,  status: 'active', desc: 'elastic hook, ingest chain root' },
+      sight:      { lines: 194,  status: 'active', desc: 'camera + mic + sound bounce' },
+      modality:   { lines: 278,  status: 'active', desc: 'multi-modal interaction' },
+      boot:       { lines: 112,  status: 'active', desc: 'data loader, flavor bootstrap' },
+      spectrometer:{ lines: 410, status: 'active', desc: 'smell/color signal classify' },
+      locality:   { lines: 456,  status: 'active', desc: 'hyperlocal geography' },
+      feel:       { lines: 444,  status: 'active', desc: 'emotional color, skin' },
+      eat:        { lines: 245,  status: 'active', desc: 'eat everything, fetch wrap' },
+      digestive:  { lines: 920,  status: 'active', desc: 'mouth→esophagus→stomach→colon' },
+      eruption:   { lines: 468,  status: 'active', desc: 'eruption memory, gamma yield' },
+      gutFarm:    { lines: 605,  status: 'active', desc: '4 stomachs, microbiome, SCFA' },
+      telegraph:  { lines: 510,  status: 'active', desc: 'spine, saltatory conduction' },
+      ignite:     { lines: 363,  status: 'active', desc: 'weather+quake+wiki+ISS' },
+      objects:    { lines: 218,  status: 'active', desc: 'object system visualization' },
+      hardCards:  { lines: 204,  status: 'active', desc: 'hard truth tablets' },
+      campfire:   { lines: 409,  status: 'active', desc: 'campfire scan, event memory' },
+      selfInspect:{ lines: 204,  status: 'active', desc: 'self report, introspection' },
+      waveform:   { lines: 203,  status: 'active', desc: 'waveFetch, ntfy pheromone' },
+      thirdEye:   { lines: 498,  status: 'active', desc: 'kaleidoscopic third eye' },
+      gothica:    { lines: 290,  status: 'active', desc: 'gothic cathedral architecture' }
     },
 
     // FLEET — the energy sources
@@ -82,7 +116,7 @@
     ],
 
     // TOTALS
-    totalNewLines: 3331,
+    totalNewLines: 8600,
     totalSystems: 0,
     totalFleetNodes: 0,
     forgeTemperature: 0,
