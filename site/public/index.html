@@ -897,9 +897,39 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // SELF-SEED: every visit gets a unique seed. Same seed = same HUD.
   // The seed IS the viewer. I = IS. The viewer defines the present tense.
   // Share ?seed=X to show someone YOUR exact view.
+  //
+  // MELTED LOCAL: on localhost ALL tabs share ONE seed.
+  // Both eyes are neutrinos — they pass through everything and see the same.
+  // The local system does NOT split. It is ONE organism, ONE view.
+  // Public visitors each get their own seed (unique experience).
   // ═══════════════════════════════════════════════════════════
+  var _isLocalHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   var urlSeed = new URLSearchParams(location.search).get('seed');
-  var SEED = urlSeed ? parseInt(urlSeed, 10) : (crypto.getRandomValues(new Uint32Array(1))[0]);
+  var SEED;
+
+  if (_isLocalHost && !urlSeed) {
+    // MELTED: all localhost tabs share one master seed per day
+    // The seed rotates daily (tied to date) so it's fresh each session
+    // but IDENTICAL across all tabs in the same session.
+    var dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    var storedSeed = null;
+    try { storedSeed = localStorage.getItem('gaia-master-seed'); } catch(e) {}
+    var storedDay = null;
+    try { storedDay = localStorage.getItem('gaia-master-seed-day'); } catch(e) {}
+
+    if (storedSeed && storedDay === dayKey) {
+      SEED = parseInt(storedSeed, 10);
+    } else {
+      SEED = crypto.getRandomValues(new Uint32Array(1))[0];
+      try {
+        localStorage.setItem('gaia-master-seed', SEED);
+        localStorage.setItem('gaia-master-seed-day', dayKey);
+      } catch(e) {}
+    }
+  } else {
+    SEED = urlSeed ? parseInt(urlSeed, 10) : (crypto.getRandomValues(new Uint32Array(1))[0]);
+  }
+
   if (!urlSeed) {
     var u = new URL(location.href);
     u.searchParams.set('seed', SEED);
@@ -1033,6 +1063,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           seedDist: seedDist,
           monitorGuess: other.monitorGuess
         };
+      }
+
+      // MELTED LOCAL ROTATION SYNC — on localhost, all tabs share rotation
+      // Both eyes are neutrinos — same angle, same view, same organism
+      if (msg.type === 'rotation' && _isLocalHost) {
+        window._syncRotX = msg.rotX;
+        window._syncRotY = msg.rotY;
+        window._syncFace = msg.face;
       }
     };
 
@@ -3845,8 +3883,38 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // ═══════════════════════════════════════════════════════════
   var blinkState = { blinking: false, blinkT: 0, blinkInterval: 180 + rng() * 120, framesSinceBlink: 0, generation: 0 };
 
+  // MELTED LOCAL: broadcast rotation every 30 frames, sync from siblings
+  var _rotSyncCounter = 0;
+  var _rotSyncLeader = false; // first tab to load becomes leader
+
   function tick() {
     if (autoRotate && !dragging) rotY += rotSpeed;
+
+    // MELTED LOCAL ROTATION SYNC — both eyes = neutrinos = same view
+    if (_isLocalHost && gaiaChannel) {
+      _rotSyncCounter++;
+      // Broadcast rotation state every 30 frames (~0.5s)
+      if (_rotSyncCounter % 30 === 0) {
+        // Leader broadcasts, followers receive
+        if (Object.keys(siblingTabs).length === 0) _rotSyncLeader = true;
+        if (_rotSyncLeader) {
+          gaiaChannel.postMessage({
+            type: 'rotation',
+            from: TAB_ID,
+            rotX: rotX,
+            rotY: rotY,
+            face: face,
+            ts: Date.now()
+          });
+        }
+      }
+      // Receive sync from leader (if we're not the leader)
+      if (!_rotSyncLeader && window._syncRotY !== undefined) {
+        rotX = rotX * 0.8 + window._syncRotX * 0.2; // smooth blend
+        rotY = rotY * 0.8 + window._syncRotY * 0.2;
+        if (window._syncFace && window._syncFace !== face) face = window._syncFace;
+      }
+    }
 
     // BLINK — every ~4-5 seconds, close all eyes for a moment
     blinkState.framesSinceBlink++;
