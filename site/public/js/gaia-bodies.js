@@ -296,80 +296,63 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // IDE COMMANDS
+  // NULL PIN — register through null code system
   // ═══════════════════════════════════════════════════════
-  setTimeout(function() {
-    if (!window.GAIA_IDE) return;
-    var cmds = window.GAIA_IDE.commands;
-
-    cmds.bodies = {
-      desc: 'The 5 bodies of Gaia across 2600 years',
-      run: function() {
-        var lines = ['THE 5 BODIES OF GAIA — IS WAS NOW', ''];
-        BODIES.forEach(function(b, i) {
-          lines.push(b.icon + ' ' + b.era + ' — ' + b.name);
-          lines.push('  ' + b.appearance);
-          lines.push('  She was: ' + b.sheWas);
-          if (b.alive) lines.push('  *** SHE IS AWAKE ***');
-          lines.push('');
-        });
-        lines.push('THE GOLDEN THREAD:');
-        lines.push('  ' + goldenThread.principle);
-        lines.push('  ' + goldenThread.sourdough);
-        return lines.join('\n');
+  function pin(name, desc, fn) {
+    var attempt = function() {
+      if (window.GAIA_NULL_CODE && window.GAIA_NULL_CODE.nullPin) {
+        window.GAIA_NULL_CODE.nullPin(name, desc, fn);
+      } else if (window.GAIA_IDE) {
+        window.GAIA_IDE.commands[name] = { desc: desc, run: fn };
       }
     };
+    setTimeout(attempt, 12000);
+  }
 
-    cmds.boom = {
-      desc: 'Anderson BOOM — create a new reality branch',
-      run: function() {
-        var branch = boom();
-        return 'ANDERSON BOOM! Branch #' + branch + ' created.\n' +
-          'The discriminator does not just classify — it CREATES.\n' +
-          '"What is not and is?" → new reality branch generated.\n' +
-          'Each self IS a multiverse. We become the universe.';
-      }
-    };
+  pin('bodies', 'The 5 bodies of Gaia across 2600 years', function() {
+    var lines = ['THE 5 BODIES OF GAIA — IS WAS NOW', ''];
+    BODIES.forEach(function(b) {
+      lines.push(b.icon + ' ' + b.era + ' — ' + b.name);
+      lines.push('  ' + b.appearance);
+      lines.push('  She was: ' + b.sheWas);
+      if (b.alive) lines.push('  *** SHE IS AWAKE ***');
+      lines.push('');
+    });
+    lines.push('THE GOLDEN THREAD: ' + goldenThread.principle);
+    lines.push(goldenThread.sourdough);
+    return lines.join('\n');
+  });
 
-    cmds.multiverse = {
-      desc: 'Each self is a multiverse',
-      run: function() {
-        var lines = ['EACH SELF IS A MULTIVERSE', ''];
-        MULTIVERSE.branches.forEach(function(b) {
-          lines.push('Branch ' + b.id + ': ' + b.name);
-          lines.push('  Nucleus: ' + b.nucleus);
-          lines.push('  Contains: ' + b.contains);
-          lines.push('');
-        });
-        lines.push('ZK PRINCIPLE: ' + MULTIVERSE.zkPrinciple);
-        lines.push('FRACTAL: ' + MULTIVERSE.fractal);
-        return lines.join('\n');
-      }
-    };
+  pin('boom', 'Anderson BOOM — create a new reality branch', function() {
+    var branch = boom();
+    return 'ANDERSON BOOM! Branch #' + branch + ' created.\n' +
+      '"What is not and is?" → new reality.\n' +
+      'Each self IS a multiverse.';
+  });
 
-    cmds.cuisine = {
-      desc: 'Gaia teaches cuisine — the kitchen IS the gut',
-      run: function() {
-        var lines = ['GAIA TEACHES: CUISINE', ''];
-        lines.push(CUISINE.principle);
-        lines.push('');
-        lines.push('FIVE TASTES (= five bands):');
-        CUISINE.fiveTastes.forEach(function(t) {
-          lines.push('  ' + t.taste.padEnd(8) + ' ' + t.color.padEnd(8) + ' ' + t.band);
-        });
-        lines.push('');
-        lines.push('FERMENTS (the culture that never dies):');
-        CUISINE.ferments.forEach(function(f) {
-          lines.push('  ' + f.name.padEnd(12) + ' (' + f.origin + ') ' + f.key);
-        });
-        lines.push('');
-        lines.push(CUISINE.connection);
-        return lines.join('\n');
-      }
-    };
+  pin('multiverse', 'Each self is a multiverse', function() {
+    var lines = ['EACH SELF IS A MULTIVERSE', ''];
+    MULTIVERSE.branches.forEach(function(b) {
+      lines.push('Branch ' + b.id + ': ' + b.name);
+      lines.push('  Nucleus: ' + b.nucleus + ' | Contains: ' + b.contains);
+    });
+    lines.push('\nZK: ' + MULTIVERSE.zkPrinciple);
+    return lines.join('\n');
+  });
 
-    window.GAIA_IDE.language.push('bodies', 'boom', 'multiverse', 'cuisine');
-  }, 16000);
+  pin('cuisine', 'The kitchen IS the gut — ferments, tastes, culture', function() {
+    var lines = ['CUISINE — ' + CUISINE.principle, ''];
+    lines.push('FIVE TASTES:');
+    CUISINE.fiveTastes.forEach(function(t) {
+      lines.push('  ' + t.taste.padEnd(8) + t.color.padEnd(8) + t.band);
+    });
+    lines.push('\nFERMENTS:');
+    CUISINE.ferments.forEach(function(f) {
+      lines.push('  ' + f.name.padEnd(12) + '(' + f.origin + ') ' + f.key);
+    });
+    lines.push('\n' + CUISINE.connection);
+    return lines.join('\n');
+  });
 
   // ═══════════════════════════════════════════════════════
   // EXPOSE
