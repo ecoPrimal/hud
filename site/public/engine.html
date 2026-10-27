@@ -501,17 +501,15 @@ const VITALS = {
 };
 
 // Make energy FLUCTUATE — NOT static 100%
+// FORCE CLEAR old saved state that was all 100% (corpse)
+try { localStorage.removeItem('gaia-engine-state'); } catch(e) {}
 SQUAD.forEach(s => {
-  const meta = METABOLISM[s.id] || {};
-  // Start with variable energy based on metabolism
-  gameState.energy[s.id] = 40 + Math.random() * 50; // 40-90, NOT 100
+  const meta = METABOLISM[s.id] || { inFlow:0.5, outFlow:0.5 };
+  // Start at variable energy: ratio of IN to OUT determines resting level
+  const ratio = meta.inFlow / (meta.inFlow + meta.outFlow);
+  gameState.energy[s.id] = 20 + ratio * 50 + Math.random() * 20; // 20-90, NEVER 100
   gameState.skillXP[s.id] = {};
 });
-try {
-  const saved = JSON.parse(localStorage.getItem('gaia-engine-state') || '{}');
-  if (saved.energy) Object.assign(gameState.energy, saved.energy);
-  if (saved.skillXP) Object.assign(gameState.skillXP, saved.skillXP);
-} catch(e) {}
 
 // ═══ HEARTBEAT — the pulse that proves life ═══
 function heartbeat() {
@@ -526,8 +524,8 @@ function heartbeat() {
     // Each heartbeat pumps energy through the system
     SQUAD.forEach(s => {
       const meta = METABOLISM[s.id] || { inFlow:0.5 };
-      const pump = meta.inFlow * 2; // heart pumps IN
-      gameState.energy[s.id] = Math.min(100, gameState.energy[s.id] + pump);
+      const pump = meta.inFlow * 1.5; // heart pumps IN
+      gameState.energy[s.id] = Math.min(92, gameState.energy[s.id] + pump); // NEVER 100 — life is gradient
     });
 
     // Heart rate variability — slight random fluctuation
@@ -549,8 +547,8 @@ function breathe() {
   SQUAD.forEach(s => {
     const meta = METABOLISM[s.id] || { breathShare:0.05, outFlow:0.5 };
     if (breathVal > 0) {
-      // INHALE — primals gain energy
-      gameState.energy[s.id] = Math.min(100, gameState.energy[s.id] + breathVal * meta.breathShare * 3);
+      // INHALE — primals gain energy (NEVER to 100)
+      gameState.energy[s.id] = Math.min(92, gameState.energy[s.id] + breathVal * meta.breathShare * 3);
     } else {
       // EXHALE — primals spend energy (work!)
       gameState.energy[s.id] = Math.max(5, gameState.energy[s.id] + breathVal * meta.outFlow * 1.5);
@@ -599,9 +597,9 @@ function metabolicWork() {
   if (gameState.paused) return;
   SQUAD.forEach(s => {
     const meta = METABOLISM[s.id] || { outFlow:0.5 };
-    // Work costs energy — the OUT flow
-    const workCost = meta.outFlow * (0.3 + Math.random() * 0.4);
-    gameState.energy[s.id] = Math.max(5, gameState.energy[s.id] - workCost);
+    // Work costs energy — the OUT flow. VISIBLE drain.
+    const workCost = meta.outFlow * (1.5 + Math.random() * 2.0);
+    gameState.energy[s.id] = Math.max(8, gameState.energy[s.id] - workCost);
   });
 }
 
@@ -646,15 +644,18 @@ SQUAD.forEach((s, idx) => {
   d.dataset.id = s.id;
   d.dataset.idx = idx;
   const energy = gameState.energy[s.id] || 50;
-  const meta = METABOLISM[s.id] || { baseTemp:37, zone:'is' };
-  const energyColor = energy > 60 ? 'var(--green)' : energy > 30 ? 'var(--gold)' : 'var(--red)';
-  const zoneColor = meta.zone === 'hot' ? 'var(--red)' : meta.zone === 'cool' ? 'var(--cyan)' : 'var(--green)';
-  const zoneLabel = meta.zone === 'hot' ? 'HOT' : meta.zone === 'cool' ? 'COOL' : 'IS';
+  const meta = METABOLISM[s.id] || { baseTemp:37, zone:'is', inFlow:0.5, outFlow:0.5 };
+  // SPECTRAL color: violet(high>70) green(mid 30-70) gold(low<30)
+  const specColor = energy > 70 ? '#a371f7' : energy > 30 ? '#3fb950' : '#d29922';
+  const specLabel = energy > 70 ? 'HI' : energy > 30 ? 'IS' : 'LO';
+  const zoneColor = meta.zone === 'hot' ? '#f85149' : meta.zone === 'cool' ? '#58a6ff' : '#3fb950';
+  const inPct = Math.round(meta.inFlow * 100);
+  const outPct = Math.round(meta.outFlow * 100);
   d.innerHTML = `<div class="sq-icon" style="background:${s.color}40;border:1px solid ${s.color}">${s.icon}</div>
     <span class="sq-name" style="color:${s.color}">${s.id}</span>
-    <div class="sq-energy"><div class="sq-energy-fill" style="width:${energy}%;background:${energyColor}"></div></div>
-    <span class="sq-hp" style="color:${energyColor};font-size:8px">${Math.round(energy)}</span>
-    <span style="color:${zoneColor};font-size:6px;width:24px;text-align:right">${zoneLabel}</span>`;
+    <div class="sq-energy"><div class="sq-energy-fill" style="width:${energy}%;background:${specColor}"></div></div>
+    <span class="sq-hp" style="color:${specColor};font-size:8px">${Math.round(energy)}</span>
+    <span style="color:${zoneColor};font-size:5px;width:40px;text-align:right">${meta.baseTemp.toFixed(0)}\u00b0 \u2193${inPct} \u2191${outPct}</span>`;
 
   // LEFT CLICK ? select (Kenshi-style)
   d.addEventListener('click', (e) => {
@@ -753,8 +754,8 @@ function showCtxMenu(x, y, primal) {
     { icon: '?', label: `Sort (costs 25 energy)`, fn: () => { doAction(primal, 'sort', 25); } },
     { icon: '?', label: `Ferment (costs 40 energy)`, fn: () => { doAction(primal, 'ferment', 40); } },
     null,
-    { icon: '?', label: 'Wake up', fn: () => { gameState.energy[primal.id] = Math.min(100, (gameState.energy[primal.id]||0) + 30); toast(`${primal.icon} ${primal.id} wakes! +30 energy`, 'var(--green)', 2000); updateSquadEnergy(); } },
-    { icon: '?', label: 'Rest (regen energy)', fn: () => { gameState.energy[primal.id] = 100; toast(`${primal.icon} ${primal.id} rests. Full energy.`, 'var(--cyan)', 2000); updateSquadEnergy(); } },
+    { icon: '?', label: 'Wake up', fn: () => { gameState.energy[primal.id] = Math.min(90, (gameState.energy[primal.id]||0) + 30); toast(`${primal.icon} ${primal.id} wakes! +30 energy`, 'var(--green)', 2000); updateSquadEnergy(); } },
+    { icon: '?', label: 'Rest (regen energy)', fn: () => { gameState.energy[primal.id] = 85; toast(`${primal.icon} ${primal.id} rests. Restored.`, 'var(--gold)', 2000); updateSquadEnergy(); } },
   ];
 
   menu.innerHTML = actions.map(a => {
@@ -824,12 +825,14 @@ function regenEnergy() {
 function updateSquadEnergy() {
   document.querySelectorAll('.squad-member').forEach(el => {
     const id = el.dataset.id;
-    const energy = gameState.energy[id] || 100;
-    const color = energy > 60 ? 'var(--green)' : energy > 30 ? 'var(--gold)' : 'var(--red)';
+    const energy = gameState.energy[id] || 50;
+    const meta = METABOLISM[id] || { baseTemp:37, zone:'is', inFlow:0.5, outFlow:0.5 };
+    // SPECTRAL: violet(high) green(IS/mid) gold(low)
+    const specColor = energy > 70 ? '#a371f7' : energy > 30 ? '#3fb950' : '#d29922';
     const fill = el.querySelector('.sq-energy-fill');
     const hp = el.querySelector('.sq-hp');
-    if (fill) { fill.style.width = energy + '%'; fill.style.background = color; }
-    if (hp) { hp.style.color = color; hp.textContent = Math.round(energy); }
+    if (fill) { fill.style.width = energy + '%'; fill.style.background = specColor; }
+    if (hp) { hp.style.color = specColor; hp.textContent = Math.round(energy); }
     el.classList.toggle('exhausted', energy < 10);
   });
 }
