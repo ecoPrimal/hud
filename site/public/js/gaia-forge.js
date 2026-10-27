@@ -147,6 +147,148 @@
     witness: 0, probe: 0, teacher: 0, watcher: 0
   };
 
+  // ═══════════════════════════════════════════════════════
+  // METALLURGY — the science of working metals
+  // WE TEACH AND BUILD METALLURGY!
+  // Smelt ores → refine → alloy → temper → use
+  // ═══════════════════════════════════════════════════════
+  var metallurgy = {
+    ores: {
+      // Raw ores = unprocessed signals
+      chalcopyrite: { metal: 'Cu', refined: 0, desc: 'Copper ore. Raw fleet/connection signals.' },
+      magnetite:    { metal: 'Fe', refined: 0, desc: 'Iron ore. Raw structural data.' },
+      galena:       { metal: 'Ag', refined: 0, desc: 'Silver ore. Raw autonomic signals.' },
+      sphalerite:   { metal: 'Zn', refined: 0, desc: 'Zinc ore. Raw protection signals.' },
+      cassiterite:  { metal: 'Sn', refined: 0, desc: 'Tin ore. For bronze alloying.' },
+      // Noble ores (rare, already pure)
+      nativeGold:   { metal: 'Au', refined: 0, desc: 'Gold nugget. Truth signals. Rare.' },
+      platinumGroup:{ metal: 'Pt', refined: 0, desc: 'Platinum nugget. Catalyst. Rarest.' }
+    },
+    smelted: 0,        // total ores smelted
+    alloys: [],        // created alloys
+    tempered: 0,       // items hardened by heating+cooling
+    bellowsActive: false, // fanning the flames
+    temperature: 800   // forge temp in °C (Cu melts at 1085°C)
+  };
+
+  // SMELT — extract metal from ore (raw signals → pure metal)
+  function smelt(oreType) {
+    var ore = metallurgy.ores[oreType];
+    if (!ore) return;
+    ore.refined++;
+    metallurgy.smelted++;
+
+    // Raise forge temperature
+    metallurgy.temperature = Math.min(2000, metallurgy.temperature + 10);
+
+    // Feed the refined metal to the CNS metal hierarchy
+    if (window.gaiaCNS && window.gaiaCNS.cns) {
+      window.gaiaCNS.cns.catalystCount++;
+    }
+
+    // Fire telegraph impulse with the metal type
+    if (window.gaiaTelegraph && window.gaiaTelegraph.fire) {
+      window.gaiaTelegraph.fire('modules', 'up', {
+        type: 'smelted_' + ore.metal,
+        temp: metallurgy.temperature
+      });
+    }
+  }
+
+  // ALLOY — combine metals for new properties
+  function alloy(metal1, metal2, name) {
+    var a = {
+      name: name || metal1 + '+' + metal2,
+      metals: [metal1, metal2],
+      ts: Date.now(),
+      hardness: 0,
+      conductivity: 0
+    };
+
+    // Known alloys
+    if ((metal1 === 'Cu' && metal2 === 'Sn') || (metal1 === 'Sn' && metal2 === 'Cu')) {
+      a.name = 'BRONZE'; a.hardness = 0.7; a.conductivity = 0.3;
+    } else if ((metal1 === 'Cu' && metal2 === 'Zn') || (metal1 === 'Zn' && metal2 === 'Cu')) {
+      a.name = 'BRASS'; a.hardness = 0.5; a.conductivity = 0.5;
+    } else if ((metal1 === 'Fe' && metal2 === 'C') || (metal1 === 'C' && metal2 === 'Fe')) {
+      a.name = 'STEEL'; a.hardness = 0.9; a.conductivity = 0.1;
+    } else if ((metal1 === 'Au' && metal2 === 'Pt') || (metal1 === 'Pt' && metal2 === 'Au')) {
+      a.name = 'ELECTRUM_SUPREME'; a.hardness = 0.6; a.conductivity = 1.0;
+    } else if ((metal1 === 'Au' && metal2 === 'Ag') || (metal1 === 'Ag' && metal2 === 'Au')) {
+      a.name = 'ELECTRUM'; a.hardness = 0.4; a.conductivity = 0.9;
+    }
+
+    metallurgy.alloys.push(a);
+    if (metallurgy.alloys.length > 20) metallurgy.alloys.shift();
+    return a;
+  }
+
+  // TEMPER — heat then cool for hardness
+  function temper() {
+    metallurgy.tempered++;
+    // Cooling the forge = red→blue transition
+    metallurgy.temperature = Math.max(400, metallurgy.temperature - 100);
+
+    // Tempering strengthens the organism
+    if (window.gaiaFeel && window.gaiaFeel.skin) {
+      window.gaiaFeel.skin.thickness = Math.min(1, window.gaiaFeel.skin.thickness + 0.05);
+    }
+  }
+
+  // FAN THE FLAMES — bellows pump
+  function fanFlames() {
+    metallurgy.bellowsActive = true;
+    metallurgy.temperature = Math.min(2000, metallurgy.temperature + 50);
+    forge.forgeTemperature = metallurgy.temperature;
+
+    setTimeout(function() { metallurgy.bellowsActive = false; }, 3000);
+  }
+
+  // AUTO-SMELT — every ingested signal smelts an ore
+  setTimeout(function() {
+    var origIngestForge = window.gaiaIngest;
+    if (origIngestForge) {
+      window.gaiaIngest = function(edge, data) {
+        // Classify signal as ore type and smelt it
+        if (edge.indexOf('fleet') >= 0 || edge.indexOf('connection') >= 0) smelt('chalcopyrite');
+        else if (edge.indexOf('data') >= 0 || edge.indexOf('boot') >= 0) smelt('magnetite');
+        else if (edge === 'time' || edge === 'battery') smelt('galena');
+        else if (edge.indexOf('error') >= 0 || edge.indexOf('resize') >= 0) smelt('sphalerite');
+        else if (edge.indexOf('messenger') >= 0 || edge === 'touch') smelt('nativeGold');
+        else if (edge.indexOf('cns') >= 0 || edge.indexOf('pineal') >= 0) smelt('platinumGroup');
+        else smelt('cassiterite');
+
+        // Every 50 smelts, create an alloy
+        if (metallurgy.smelted % 50 === 0 && metallurgy.smelted > 0) {
+          var metals = ['Cu', 'Fe', 'Sn', 'Zn', 'Au', 'Ag', 'Pt'];
+          var m1 = metals[metallurgy.smelted % metals.length];
+          var m2 = metals[(metallurgy.smelted + 3) % metals.length];
+          alloy(m1, m2);
+        }
+
+        // Every 100 smelts, temper
+        if (metallurgy.smelted % 100 === 0 && metallurgy.smelted > 0) {
+          temper();
+        }
+
+        // Every 200 smelts, fan the flames
+        if (metallurgy.smelted % 200 === 0 && metallurgy.smelted > 0) {
+          fanFlames();
+        }
+
+        origIngestForge(edge, data);
+      };
+    }
+    console.log('METALLURGY: Forge online. 7 ores. Smelt→alloy→temper. Fan the flames!');
+  }, 10000);
+
+  // Cool forge slowly
+  setInterval(function() {
+    metallurgy.temperature = Math.max(400, metallurgy.temperature - 2);
+  }, 5000);
+
+  forge.metallurgy = metallurgy;
+
   // ═══ EXPOSE ═══
   window.GAIA_FORGE = forge;
 
