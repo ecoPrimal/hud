@@ -350,7 +350,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 </div>
 
 <footer>
-  <span class="footer-live">LIVE</span>
+  <span class="footer-live" id="f-alive">ALIVE</span>
   <span id="f-wave">wave �</span>
   <span>|</span>
   <span id="f-entities">� entities</span>
@@ -445,9 +445,63 @@ const gameState = {
   skillXP: {},
 };
 
-// Initialize energy and load saved state
+// ═══════════════════════════════════════════════════════════
+// ALIVE SYSTEM — temperature, heartbeat, breath, flow
+// The corpse becomes alive. No more 100% everywhere.
+// ═══════════════════════════════════════════════════════════
+const METABOLISM = {
+  toadStool:    { baseTemp:38.2, zone:'hot',  inFlow:0.7, outFlow:0.5, breathShare:0.08 },
+  biomeOS:      { baseTemp:36.7, zone:'is',   inFlow:0.9, outFlow:0.8, breathShare:0.12 },
+  nestGate:     { baseTemp:34.1, zone:'cool', inFlow:0.6, outFlow:0.3, breathShare:0.05 },
+  bearDog:      { baseTemp:37.8, zone:'hot',  inFlow:0.8, outFlow:0.9, breathShare:0.09 },
+  petalTongue:  { baseTemp:32.4, zone:'cool', inFlow:0.5, outFlow:0.7, breathShare:0.06 },
+  rhizoCrypt:   { baseTemp:39.1, zone:'hot',  inFlow:0.4, outFlow:0.2, breathShare:0.04 },
+  sweetGrass:   { baseTemp:33.7, zone:'cool', inFlow:0.6, outFlow:0.6, breathShare:0.07 },
+  loamSpine:    { baseTemp:40.2, zone:'hot',  inFlow:0.3, outFlow:0.5, breathShare:0.05 },
+  skunkBat:     { baseTemp:31.8, zone:'cool', inFlow:0.9, outFlow:0.9, breathShare:0.10 },
+  sourDough:    { baseTemp:36.6, zone:'is',   inFlow:0.8, outFlow:0.4, breathShare:0.08 },
+  swarmVine:    { baseTemp:29.5, zone:'cool', inFlow:0.7, outFlow:0.8, breathShare:0.06 },
+  bingoCube:    { baseTemp:37.2, zone:'hot',  inFlow:0.5, outFlow:0.6, breathShare:0.07 },
+  coralReef:    { baseTemp:28.7, zone:'cool', inFlow:0.6, outFlow:0.5, breathShare:0.04 },
+  barraCuda:    { baseTemp:34.8, zone:'is',   inFlow:0.9, outFlow:0.9, breathShare:0.09 },
+  squirrel:     { baseTemp:36.2, zone:'is',   inFlow:0.4, outFlow:0.3, breathShare:0.03 },
+  songBird:     { baseTemp:35.1, zone:'is',   inFlow:0.5, outFlow:0.6, breathShare:0.05 },
+};
+
+// Neuroendocrine axis: hypothalamus → pituitary → glands → Kevin (consciousness)
+const ENDOCRINE = {
+  axis: ['hypothalamus','pituitary','thyroid','adrenals','gonads','kevin'],
+  messengers: {
+    CRH:       { from:'hypothalamus', to:'pituitary',  color:'#f85149', level:0.5 },
+    TRH:       { from:'hypothalamus', to:'pituitary',  color:'#f0883e', level:0.5 },
+    GnRH:      { from:'hypothalamus', to:'pituitary',  color:'#d29922', level:0.5 },
+    ACTH:      { from:'pituitary',    to:'adrenals',   color:'#a371f7', level:0.5 },
+    TSH:       { from:'pituitary',    to:'thyroid',    color:'#58a6ff', level:0.5 },
+    cortisol:  { from:'adrenals',     to:'hypothalamus', color:'#f85149', level:0.5 },
+    T3T4:      { from:'thyroid',      to:'hypothalamus', color:'#3fb950', level:0.5 },
+    adrenaline:{ from:'adrenals',     to:'kevin',      color:'#f0883e', level:0.5 },
+    DHEA:      { from:'adrenals',     to:'kevin',      color:'#a371f7', level:0.5 },
+    oxytocin:  { from:'pituitary',    to:'kevin',      color:'#f778ba', level:0.5 },
+  }
+};
+
+const VITALS = {
+  heartRate: 72,       // BPM — fluctuates
+  breathRate: 18,      // RPM — fluctuates
+  variability: 128,    // ms HRV — fluctuates
+  brainActivity: 0,    // 0-100% — computed from primals
+  bodyTemp: 37.0,      // °C average — computed
+  alive: true,
+  _heartPhase: 0,
+  _breathPhase: 0,
+  _lastBeat: 0,
+};
+
+// Make energy FLUCTUATE — NOT static 100%
 SQUAD.forEach(s => {
-  gameState.energy[s.id] = 100;
+  const meta = METABOLISM[s.id] || {};
+  // Start with variable energy based on metabolism
+  gameState.energy[s.id] = 40 + Math.random() * 50; // 40-90, NOT 100
   gameState.skillXP[s.id] = {};
 });
 try {
@@ -455,6 +509,114 @@ try {
   if (saved.energy) Object.assign(gameState.energy, saved.energy);
   if (saved.skillXP) Object.assign(gameState.skillXP, saved.skillXP);
 } catch(e) {}
+
+// ═══ HEARTBEAT — the pulse that proves life ═══
+function heartbeat() {
+  if (gameState.paused) return;
+  const now = performance.now();
+  const interval = 60000 / VITALS.heartRate; // ms per beat
+
+  if (now - VITALS._lastBeat > interval) {
+    VITALS._lastBeat = now;
+    VITALS._heartPhase = 1.0; // peak
+
+    // Each heartbeat pumps energy through the system
+    SQUAD.forEach(s => {
+      const meta = METABOLISM[s.id] || { inFlow:0.5 };
+      const pump = meta.inFlow * 2; // heart pumps IN
+      gameState.energy[s.id] = Math.min(100, gameState.energy[s.id] + pump);
+    });
+
+    // Heart rate variability — slight random fluctuation
+    VITALS.heartRate = 60 + Math.random() * 24; // 60-84 BPM
+    VITALS.variability = 80 + Math.random() * 100; // 80-180 ms
+  }
+
+  // Decay heart phase
+  VITALS._heartPhase *= 0.92;
+}
+
+// ═══ BREATH — the cycle that moves air ═══
+function breathe() {
+  if (gameState.paused) return;
+  VITALS._breathPhase += (Math.PI * 2) / (60 * VITALS.breathRate); // one full cycle per breath
+  const breathVal = Math.sin(VITALS._breathPhase); // -1 to 1
+
+  // Inhale (positive) = energy in, Exhale (negative) = energy out
+  SQUAD.forEach(s => {
+    const meta = METABOLISM[s.id] || { breathShare:0.05, outFlow:0.5 };
+    if (breathVal > 0) {
+      // INHALE — primals gain energy
+      gameState.energy[s.id] = Math.min(100, gameState.energy[s.id] + breathVal * meta.breathShare * 3);
+    } else {
+      // EXHALE — primals spend energy (work!)
+      gameState.energy[s.id] = Math.max(5, gameState.energy[s.id] + breathVal * meta.outFlow * 1.5);
+    }
+  });
+
+  // Breath rate varies slightly
+  VITALS.breathRate = 14 + Math.random() * 8; // 14-22 RPM
+}
+
+// ═══ TEMPERATURE — gradient, NOT equilibrium ═══
+function updateTemperatures() {
+  let totalTemp = 0;
+  let totalBrain = 0;
+  SQUAD.forEach(s => {
+    const meta = METABOLISM[s.id] || { baseTemp:37, zone:'is' };
+    const energy = gameState.energy[s.id];
+    // Temperature follows energy: more work = warmer
+    const tempShift = (energy - 50) * 0.04; // ±2°C swing around base
+    meta._currentTemp = meta.baseTemp + tempShift + (Math.random() - 0.5) * 0.3;
+    totalTemp += meta._currentTemp;
+    // Brain activity = average normalized energy away from equilibrium
+    totalBrain += Math.abs(energy - 50);
+  });
+  VITALS.bodyTemp = totalTemp / SQUAD.length;
+  VITALS.brainActivity = Math.min(100, (totalBrain / SQUAD.length) * 2);
+}
+
+// ═══ ENDOCRINE — chemical messengers fluctuate ═══
+function updateEndocrine() {
+  const stressLevel = (100 - SQUAD.reduce((s,p) => s + gameState.energy[p.id], 0) / SQUAD.length) / 100;
+  ENDOCRINE.messengers.cortisol.level = 0.2 + stressLevel * 0.7 + Math.random() * 0.1;
+  ENDOCRINE.messengers.adrenaline.level = stressLevel > 0.5 ? 0.5 + Math.random() * 0.4 : 0.1 + Math.random() * 0.2;
+  ENDOCRINE.messengers.ACTH.level = 0.3 + stressLevel * 0.5;
+  ENDOCRINE.messengers.TSH.level = 0.4 + Math.random() * 0.3;
+  ENDOCRINE.messengers.T3T4.level = 0.5 + Math.random() * 0.3;
+  ENDOCRINE.messengers.CRH.level = 0.2 + stressLevel * 0.6;
+  ENDOCRINE.messengers.TRH.level = 0.3 + Math.random() * 0.4;
+  ENDOCRINE.messengers.GnRH.level = 0.2 + Math.random() * 0.3;
+  ENDOCRINE.messengers.DHEA.level = 0.4 + Math.random() * 0.3;
+  ENDOCRINE.messengers.oxytocin.level = stressLevel < 0.3 ? 0.6 + Math.random() * 0.3 : 0.1 + Math.random() * 0.2;
+}
+
+// ═══ METABOLIC WORK — primals DO work, energy DROPS ═══
+function metabolicWork() {
+  if (gameState.paused) return;
+  SQUAD.forEach(s => {
+    const meta = METABOLISM[s.id] || { outFlow:0.5 };
+    // Work costs energy — the OUT flow
+    const workCost = meta.outFlow * (0.3 + Math.random() * 0.4);
+    gameState.energy[s.id] = Math.max(5, gameState.energy[s.id] - workCost);
+  });
+}
+
+// ═══ ALIVE LOOP — 60fps heartbeat, breath, temperature ═══
+let _aliveFrame = 0;
+function aliveLoop() {
+  _aliveFrame++;
+  heartbeat();
+  breathe();
+  if (_aliveFrame % 30 === 0) { // every ~0.5s
+    metabolicWork();
+    updateTemperatures();
+    updateEndocrine();
+    updateSquadEnergy();
+  }
+  requestAnimationFrame(aliveLoop);
+}
+requestAnimationFrame(aliveLoop);
 
 function saveState() {
   try { localStorage.setItem('gaia-engine-state', JSON.stringify({ energy: gameState.energy, skillXP: gameState.skillXP })); } catch(e) {}
@@ -480,12 +642,16 @@ SQUAD.forEach((s, idx) => {
   d.className = 'squad-member';
   d.dataset.id = s.id;
   d.dataset.idx = idx;
-  const energy = gameState.energy[s.id] || 100;
+  const energy = gameState.energy[s.id] || 50;
+  const meta = METABOLISM[s.id] || { baseTemp:37, zone:'is' };
   const energyColor = energy > 60 ? 'var(--green)' : energy > 30 ? 'var(--gold)' : 'var(--red)';
+  const zoneColor = meta.zone === 'hot' ? 'var(--red)' : meta.zone === 'cool' ? 'var(--cyan)' : 'var(--green)';
+  const zoneLabel = meta.zone === 'hot' ? 'HOT' : meta.zone === 'cool' ? 'COOL' : 'IS';
   d.innerHTML = `<div class="sq-icon" style="background:${s.color}40;border:1px solid ${s.color}">${s.icon}</div>
     <span class="sq-name" style="color:${s.color}">${s.id}</span>
     <div class="sq-energy"><div class="sq-energy-fill" style="width:${energy}%;background:${energyColor}"></div></div>
-    <span class="sq-hp" style="color:${energyColor};font-size:8px">${Math.round(energy)}</span>`;
+    <span class="sq-hp" style="color:${energyColor};font-size:8px">${Math.round(energy)}</span>
+    <span style="color:${zoneColor};font-size:6px;width:24px;text-align:right">${zoneLabel}</span>`;
 
   // LEFT CLICK ? select (Kenshi-style)
   d.addEventListener('click', (e) => {
@@ -646,11 +812,8 @@ function doAction(primal, action, cost) {
 // ENERGY REGEN ? Dark Souls stamina recovery
 // -----------------------------------------------
 function regenEnergy() {
-  SQUAD.forEach(s => {
-    if (gameState.energy[s.id] < 100) {
-      gameState.energy[s.id] = Math.min(100, gameState.energy[s.id] + 2);
-    }
-  });
+  // Regen is now handled by heartbeat() and breathe() — alive system
+  // This just saves state periodically
   updateSquadEnergy();
   saveState();
 }
@@ -852,16 +1015,30 @@ function renderRates(rates) {
   }).join('');
 }
 
-// --- NEUROCHEMISTRY ---
-function renderNeuro(neuro) {
+// --- NEUROCHEMISTRY (ALIVE from endocrine axis) ---
+function renderNeuro() {
   const el = document.getElementById('neuro-list');
-  if (!neuro?.neurochemistry_rates) return;
-  const n = neuro.neurochemistry_rates;
-  const colors = { glucose:'#f0883e', atp:'#39d3f5', serotonin:'#3fb950', dopamine:'#a371f7', adrenaline:'#f85149', cortisol:'#d29922' };
-  el.innerHTML = Object.entries(n).filter(([k]) => k !== 'ts').map(([k, v]) => {
-    const c = colors[k] || 'var(--dim)';
-    return `<div class="neuro-row"><div class="neuro-dot" style="background:${c}"></div><span class="neuro-name">${k}</span><span class="neuro-val" style="color:${c}">${v.value?.toFixed(3)||'�'}</span></div>`;
-  }).join('');
+  if (!el) return;
+  let html = '';
+  const hrColor = VITALS.heartRate > 80 ? 'var(--red)' : VITALS.heartRate > 65 ? 'var(--green)' : 'var(--blue)';
+  const brColor = VITALS.breathRate > 20 ? 'var(--gold)' : 'var(--cyan)';
+  html += `<div class="rate-row"><span class="rate-label">♥ Heart</span><span class="rate-value" style="color:${hrColor}">${VITALS.heartRate.toFixed(0)}<span class="rate-unit">BPM</span></span></div>`;
+  html += `<div class="rate-bar"><div class="rate-bar-fill" style="width:${VITALS._heartPhase*100}%;background:${hrColor};transition:width 0.1s"></div></div>`;
+  html += `<div class="rate-row"><span class="rate-label">⚡ Breath</span><span class="rate-value" style="color:${brColor}">${VITALS.breathRate.toFixed(0)}<span class="rate-unit">RPM</span></span></div>`;
+  const breathPct = (Math.sin(VITALS._breathPhase) + 1) * 50;
+  html += `<div class="rate-bar"><div class="rate-bar-fill" style="width:${breathPct}%;background:${brColor};transition:width 0.3s"></div></div>`;
+  html += `<div class="rate-row"><span class="rate-label">HRV</span><span class="rate-value" style="color:var(--purple)">${VITALS.variability.toFixed(0)}<span class="rate-unit">ms</span></span></div>`;
+  html += `<div class="rate-row"><span class="rate-label">🧠 Brain</span><span class="rate-value" style="color:var(--cyan)">${VITALS.brainActivity.toFixed(1)}<span class="rate-unit">%</span></span></div>`;
+  html += `<div class="rate-bar"><div class="rate-bar-fill" style="width:${VITALS.brainActivity}%;background:var(--cyan)"></div></div>`;
+  const tmpColor = VITALS.bodyTemp>37.5?'var(--red)':VITALS.bodyTemp<36?'var(--cyan)':'var(--green)';
+  html += `<div class="rate-row"><span class="rate-label">🌡 Temp</span><span class="rate-value" style="color:${tmpColor}">${VITALS.bodyTemp.toFixed(1)}<span class="rate-unit">°C</span></span></div>`;
+  html += '<div style="height:4px"></div>';
+  Object.entries(ENDOCRINE.messengers).forEach(function(entry) {
+    const name = entry[0], m = entry[1];
+    const pct = (m.level * 100).toFixed(0);
+    html += `<div class="neuro-row"><div class="neuro-dot" style="background:${m.color}"></div><span class="neuro-name">${name}</span><span class="neuro-val" style="color:${m.color}">${pct}%</span></div>`;
+  });
+  el.innerHTML = html;
 }
 
 // --- DEVICES HEARTBEAT ---
@@ -1199,7 +1376,7 @@ async function tick() {
 
   updateHeader(now, rates);
   renderRates(rates);
-  renderNeuro(rates);
+  renderNeuro();
   renderDevices(heartbeat);
   renderHumans(ear);
   updateFloodgate(now);
