@@ -255,8 +255,15 @@
     tense: tense,
     motionPerSec: function() { return motionPerSec; },
     motionHistory: motionHistory,
-    elements: { H: 1, O: 8, He: 2 }
+    elements: { H: 1, O: 8, He: 2, Fe: 26 },
+    stats: function() {
+      return {
+        tense: tense.is,
+        motionCount: tense.motionCount || motionPerSec,
+        iron: 'Fe=26, hemoglobin=4Fe+4O2, snakes=veins=red=transport'
+      };
+    }
   };
 
-  console.log('WATER: humans are water. H₂O+O₃+He triangulate reality. is/was/now. /water');
+  console.log('WATER: H\u2082O+O\u2083+He+Fe. Snakes=veins=red=iron=hemoglobin=transport. /water');
 })(window.G);

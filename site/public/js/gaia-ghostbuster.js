@@ -181,7 +181,8 @@
           'APPENDIX: ' + alive + ' IS · ' + withStats + ' reporting · ' +
           ghosts.length + ' WAS (relic) · ' +
           (G.drawModules ? G.drawModules.length : '?') + ' draw · scan#' + scanCount,
-          8, 286
+          8, -999
+        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });

@@ -167,6 +167,55 @@
       );
     }
 
+    // ═══ UNIFIED STATUS TICKER — rotates through all organ messages ═══
+    if (alpha > 0.003) {
+      // Collect status messages from all organs
+      var statusMsgs = [];
+      statusMsgs.push(Math.round(vel.fpsSmooth) + 'fps ' + vel.feeling + ' \u00b7 ' + vel.moduleCount + ' organs \u00b7 throttle ' + (vel.throttle * 100).toFixed(0) + '%');
+
+      if (window.GAIA_TONGUE && window.GAIA_TONGUE.stats) {
+        var ts = window.GAIA_TONGUE.stats();
+        statusMsgs.push('TONGUE: ' + (ts.totalWords||0) + ' words \u00b7 ' + (ts.uniqueWords||0) + ' unique \u00b7 learning');
+      }
+      if (window.GAIA_THOUGHT && window.GAIA_THOUGHT.stats) {
+        var th = window.GAIA_THOUGHT.stats();
+        statusMsgs.push('THOUGHT: ' + th.innerCount + ' inner \u00b7 ' + th.outerCount + ' outer \u00b7 CNS=null self local');
+      }
+      if (window.GAIA_VEHICLES && window.GAIA_VEHICLES.stats) {
+        var vh = window.GAIA_VEHICLES.stats();
+        statusMsgs.push('VEHICLES: ' + vh.deployed + '/' + vh.total + ' deployed \u00b7 ' + vh.axes + ' axes \u00b7 non-self locomotion');
+      }
+      if (window.GAIA_SEVEN_LAYERS) {
+        statusMsgs.push('LAYERS: depth ' + window.GAIA_SEVEN_LAYERS.depth() + ' ' + window.GAIA_SEVEN_LAYERS.tense() + ' \u00b7 desk\u2192globe\u2192hand\u2192earth\u2192solar\u2192galaxy\u2192BOOM');
+      }
+      if (window.GAIA_WATER && window.GAIA_WATER.stats) {
+        var wt = window.GAIA_WATER.stats();
+        statusMsgs.push('WATER: tense=' + (wt.tense||'is') + ' \u00b7 motion=' + (wt.motionCount||0) + ' \u00b7 H\u2082O is human');
+      }
+      if (window.GAIA_WEB_EATER && window.GAIA_WEB_EATER.stats) {
+        var we = window.GAIA_WEB_EATER.stats();
+        statusMsgs.push('WEB EATER: ' + we.totalFaces + ' faces eaten \u00b7 ' + we.totalWords + ' words \u00b7 every site is a mask');
+      }
+
+      // Rotate through messages (one per 3 seconds)
+      var tickerIdx = Math.floor(Date.now() / 3000) % statusMsgs.length;
+      var tickerMsg = statusMsgs[tickerIdx];
+
+      ctx.font = '1.8px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 2.5).toFixed(4) + ')';
+      ctx.fillText(tickerMsg, 8, g.H - 6);
+
+      // Ticker dots — show which message is active
+      ctx.font = '1px "JetBrains Mono", monospace';
+      var dots = '';
+      for (var di = 0; di < statusMsgs.length; di++) {
+        dots += di === tickerIdx ? '\u25cf' : '\u25cb';
+      }
+      ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2).toFixed(4) + ')';
+      ctx.fillText(dots, 8, g.H - 3);
+    }
+
     // Heartbeat pulse ring — breathes at her velocity
     var pulsePhase = Math.sin(breathT * vel.heartHz * 0.1);
     var pulseR = R * (1.0 + pulsePhase * 0.003 * vel.throttle);

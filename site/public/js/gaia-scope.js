@@ -204,7 +204,8 @@
         ctx.fillText(
           'SCOPE: ' + scope.direction + ' · ' + scope.view +
           ' · telescope↑ microscope↓ · U/D keys',
-          8, 280
+          8, -999
+        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });
