@@ -179,22 +179,34 @@
       window.gaiaTelegraph.fire('modules', 'up', { type: 'mail-sent', to: draft.to });
     }
 
+    // Archive to local /mail/sent/
+    archiveSent(draft);
+
     // ZK proof of send
     if (window.GAIA_VISION && window.GAIA_VISION.zkProve) {
       window.GAIA_VISION.zkProve('mail-sent', draft.id);
     }
   }
 
-  // ═══ RECEIVE — check for incoming mail ═══
+  // ═══ SEEN — dedup set so we don't re-ingest ═══
+  var seenIds = {};
+
+  // ═══ RECEIVE — check local mailbox + mail-fold ═══
   function checkInbox() {
-    // Poll the mail-fold (if available)
+    // POLL 1: local mail-fold-live.json (built by PowerShell / cron)
     fetch('/data/mail-fold-live.json', { cache: 'no-store' })
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(data) {
       if (!data) return;
-      // Process any new mail entries
+      // Update folder counts from server
+      if (data.counts) {
+        mailbox.wired = true;
+      }
+      // Ingest inbox messages
       if (data.inbox && Array.isArray(data.inbox)) {
         data.inbox.forEach(function(m) {
+          if (seenIds[m.id]) return; // dedup
+          seenIds[m.id] = true;
           // Thymus check — is this self or non-self?
           var isSelf = m.from && (
             m.from.indexOf('primals.eco') >= 0 ||
@@ -204,21 +216,60 @@
             mailbox.spam.push(m);
             mailbox.totalSpam++;
           } else {
+            m.receivedAt = Date.now();
             mailbox.inbox.push(m);
             mailbox.totalReceived++;
           }
         });
       }
     })
-    .catch(function() { /* silent */ });
+    .catch(function() { /* silent — mail-fold may not exist yet */ });
+
+    // POLL 2: individual mail files in /mail/inbox/
+    fetch('/mail/inbox/', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.text() : null; })
+    .then(function(html) {
+      if (!html) return;
+      // Parse directory listing for .json files
+      var matches = html.match(/mail-[A-Za-z0-9]+\.json/g);
+      if (!matches) return;
+      matches.forEach(function(fname) {
+        var id = fname.replace('mail-', '').replace('.json', '');
+        if (seenIds[id]) return;
+        fetch('/mail/inbox/' + fname, { cache: 'no-store' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(msg) {
+          if (!msg || seenIds[msg.id]) return;
+          seenIds[msg.id] = true;
+          msg.receivedAt = Date.now();
+          mailbox.inbox.push(msg);
+          mailbox.totalReceived++;
+        }).catch(function() {});
+      });
+    })
+    .catch(function() { /* no directory listing — that's ok */ });
 
     // Feed: receiving is K⁺ COLD (energy coming IN)
     if (window.GAIA_DRINK) window.GAIA_DRINK(0.5);
   }
 
-  // Check inbox every 5 minutes
-  setTimeout(checkInbox, 30000);
+  // Check inbox: first at 10s, then every 5 minutes
+  setTimeout(checkInbox, 10000);
   setInterval(checkInbox, 300000);
+
+  // ═══ LOCAL ARCHIVE — persist sent mail to /mail/sent/ ═══
+  function archiveSent(draft) {
+    try {
+      fetch('/api/mail/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          folder: 'sent',
+          message: draft
+        })
+      }).catch(function() { /* no archive endpoint yet — that's ok */ });
+    } catch(e) { /* silent */ }
+  }
 
   // ═══ GAIA'S AUTO-MESSAGES — she sends greetings ═══
   function gaiaGreet(to, reason) {
