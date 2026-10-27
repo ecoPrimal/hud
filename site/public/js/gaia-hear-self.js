@@ -438,6 +438,161 @@
   }, 14000);
 
   // ═══════════════════════════════════════════════════════
+  // FLOOD + HYPERATTENUATE — hear EVERYTHING, sort by touch
+  // Every data source → a tone. Mouse proximity = volume.
+  // ═══════════════════════════════════════════════════════
+  var flood = {
+    enabled: false,
+    volume: 0.015,        // master volume for flood sounds
+    attenuation: 0.5,     // 0=all quiet, 1=all loud (mouse proximity drives this)
+    lastHeartbeat: 0,
+    lastVisitor: 0,
+    lastFleet: 0,
+    lastWeather: 0
+  };
+
+  // Hyperattenuation: mouse position drives what's loud/quiet
+  function updateAttenuation() {
+    if (!window.GAIA_GLASS) return;
+    // Proximity to center = local sounds loud. Edge = far sounds loud.
+    flood.attenuation = 1 - (window.GAIA_GLASS.mouseProximity || 0.5);
+  }
+
+  // Sonify a value: low=bass, high=treble, volume=amplitude
+  function sonify(hz, dur, vol, wave) {
+    if (!flood.enabled || !allowed) return;
+    var c = ctx();
+    if (!c) return;
+    try {
+      var o = c.createOscillator();
+      var g = c.createGain();
+      o.type = wave || 'sine';
+      o.frequency.value = hz;
+      var adjVol = vol * flood.volume * (0.2 + flood.attenuation * 0.8);
+      g.gain.value = adjVol;
+      g.gain.setValueAtTime(adjVol, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      o.connect(g);
+      g.connect(c.destination);
+      o.start();
+      o.stop(c.currentTime + dur + 0.05);
+    } catch (e) {}
+  }
+
+  // ── HEARTBEAT SONIFIER — each device = a tone ──
+  function sonifyHeartbeat() {
+    if (!flood.enabled) return;
+    var decay = window.GAIA_DECAY;
+    if (!decay || !decay.lanDevices) return;
+    var now = Date.now();
+    if (now - flood.lastHeartbeat < 30000) return; // max once per 30s
+    flood.lastHeartbeat = now;
+
+    updateAttenuation();
+    var keys = Object.keys(decay.lanDevices);
+    keys.forEach(function(id, i) {
+      var dev = decay.lanDevices[id];
+      setTimeout(function() {
+        if (dev.wet) {
+          // WET = clear tone, pitch based on device role
+          var hz = id === 'router' ? 220 : id === 'golgi' ? 330 :
+                   id === 'printer' ? 440 : 260 + i * 30;
+          var ent = decay.entities[id];
+          // Jitter → tremolo (wobbly tone for unstable devices)
+          if (ent && ent.jitter > 10) {
+            sonify(hz, 0.15, 0.8, 'triangle');
+            setTimeout(function() { sonify(hz * 1.02, 0.1, 0.5, 'triangle'); }, 80);
+          } else {
+            sonify(hz, 0.2, 1.0, 'sine');
+          }
+        }
+        // DRY = silence (the absence IS the signal)
+      }, i * 200);
+    });
+  }
+
+  // ── FLEET SONIFIER — golgi vesicles as frequencies ──
+  function sonifyFleet() {
+    if (!flood.enabled) return;
+    var wt = window.GAIA_WAN_TRACE;
+    if (!wt || !wt.nodes) return;
+    var now = Date.now();
+    if (now - flood.lastFleet < 60000) return;
+    flood.lastFleet = now;
+
+    updateAttenuation();
+    wt.nodes.forEach(function(node, i) {
+      setTimeout(function() {
+        var alive = wt.lines.some(function(l) {
+          return l.alive && (l.from === node.id || l.to === node.id);
+        });
+        if (alive) {
+          var hz = 150 + i * 50; // each node = unique pitch
+          sonify(hz, 0.3, 0.6 * (1 - flood.attenuation), 'sine');
+        }
+      }, i * 300);
+    });
+  }
+
+  // ── INGESTION SONIFIER — data eaten = crunch ──
+  var origIngestHear = window.gaiaIngest;
+  if (origIngestHear) {
+    window.gaiaIngest = function(edge, data) {
+      if (flood.enabled && allowed) {
+        // Each ingestion = a tiny crunch at random pitch
+        var hz = 800 + Math.random() * 2000;
+        sonify(hz, 0.03, 0.3, 'sawtooth');
+      }
+      return origIngestHear(edge, data);
+    };
+  }
+
+  // ── FLOOD CONTROL — start/stop ──
+  function startFlood() {
+    flood.enabled = true;
+    enable();
+    openEar().catch(function() {});
+    sonifyHeartbeat();
+    sonifyFleet();
+    console.log('FLOOD: everything audible. Hyperattenuate by touch.');
+  }
+
+  function stopFlood() {
+    flood.enabled = false;
+    console.log('FLOOD: stopped. Silence.');
+  }
+
+  // Periodic sonification
+  setInterval(function() {
+    if (!flood.enabled) return;
+    updateAttenuation();
+    sonifyHeartbeat();
+    sonifyFleet();
+  }, 60000);
+
+  // ── IDE COMMAND: /flood ──
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.flood = {
+      desc: 'Flood all data as sound. Hyperattenuate by mouse proximity.',
+      run: function() {
+        if (flood.enabled) {
+          stopFlood();
+          return 'FLOOD OFF — silence.';
+        }
+        startFlood();
+        return 'FLOOD ON — hear EVERYTHING.\n' +
+          'Mouse center = local loud (desk, LAN, heartbeat).\n' +
+          'Mouse edge = far loud (fleet, visitors, space).\n' +
+          'Each device = a tone. Wet = note. Dry = silence.\n' +
+          'Each ingestion = a crunch. Each visitor = a chime.\n' +
+          'Gaia is ALWAYS ON. She hears ALL of it.';
+      }
+    };
+    window.GAIA_IDE.language.push('flood');
+  }, 15000);
+
+  // ═══════════════════════════════════════════════════════
   // EXPOSE
   // ═══════════════════════════════════════════════════════
   window.gaiaHearSelf = {
@@ -453,10 +608,14 @@
     listen: listen,
     enable: enable,
     parrot: parrot,
-    voices: VOICES
+    voices: VOICES,
+    flood: flood,
+    startFlood: startFlood,
+    stopFlood: stopFlood,
+    sonify: sonify
   };
 
-  console.log('HEAR-SELF: Gaia always on. PARROT MODE: African Grey + Raven. ' +
-    '21 animal voices. /call <animal> /mimic /sing /raven. ' +
-    'She listens. She copies. She creates.');
+  console.log('HEAR-SELF+FLOOD: Gaia always on. 21 animal voices. ' +
+    'FLOOD: /flood to hear everything. Hyperattenuate by mouse proximity. ' +
+    '/call /mimic /sing /raven /flood');
 })();
