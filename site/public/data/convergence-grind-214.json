@@ -1,0 +1,73 @@
+{
+  "ts": "2026-10-27T03:00:00Z",
+  "wave": 214,
+  "type": "convergence-grind",
+  "title": "BACKSCATTER AUDIT — every big fat parse that needs melting",
+
+  "the_problem": "Every time we update, it's something. The organism is bloated. We need to grind, abstract, converge, evolve, inject.",
+
+  "audit": {
+    "index_html": {
+      "size": "347 KB, 7247 lines",
+      "problem": "MONOLITH. All rendering, all sensing, all visualization in ONE file.",
+      "action": "GRIND: extract into modules. But NOT yet — the monolith IS the organism. It needs to be big. The bloat is elsewhere."
+    },
+    "intake_folder": {
+      "size": "249.2 MB, 1883 files",
+      "problem": "MASSIVE DUPLICATION. 37 copies of 99pi-feed alone (3.5MB each = 130MB). Same data re-ingested every 30 minutes. self-rates, self-manifest, self-heartbeat, self-now all duplicated per timestamp.",
+      "action": "MELT: keep only LATEST of each feed type. Delete old timestamps. One 99pi. One self-rates. One self-manifest. One self-heartbeat. One per source."
+    },
+    "data_folder": {
+      "size": "354.2 MB total",
+      "includes": "intake (249MB) + nutrients + brain + session data + wave data",
+      "action": "MELT intake. Keep nutrients and wave data (they're unique)."
+    },
+    "art_folder": {
+      "size": "147.9 MB",
+      "includes": "videos (34MB MP4s), sounds (5MB WAV), images, Desktop/Gaia copies",
+      "action": "CONVERGE: videos could be external links. WAV duplicated in data/ AND art/. Remove dupe."
+    },
+    "sporeprint": {
+      "size": "73.6 MB",
+      "includes": "search_index.en.js (25.7MB!), atom.xml (22.6MB!)",
+      "action": "GRIND: search index is enormous. Can be generated on demand, not stored."
+    },
+    "html_pages": {
+      "count": 146,
+      "top_10_by_size": [
+        "index.html (347KB)", "easel.html (81KB)", "index-old-eon.html (78KB)",
+        "engine.html (67KB)", "water.html (61KB)", "index-sporeprint-eon.html (55KB)",
+        "messenger.html (48KB)", "gates.html (45KB)", "mendeleev.html (39KB)", "homunculus.html (38KB)"
+      ],
+      "action": "ABSTRACT: many pages are standalone that should be fractal views INTO the HUD. Old eons (index-old-eon, index-sporeprint-eon, index-yggdrasil-eon) can converge."
+    },
+    "duplicate_wav": {
+      "file": "tamison-puzzle-song-v2.wav",
+      "locations": ["art/sounds/", "data/"],
+      "size": "5.1 MB each = 10.2 MB wasted",
+      "action": "DELETE duplicate from data/"
+    }
+  },
+
+  "melt_plan": {
+    "phase_1_immediate": {
+      "action": "Delete duplicate intake files. Keep only latest per feed source.",
+      "saves": "~200 MB",
+      "risk": "Low — old timestamped copies have no value"
+    },
+    "phase_2_next": {
+      "action": "Remove duplicate WAV. Remove old eon HTML files if they redirect to current.",
+      "saves": "~15 MB",
+      "risk": "Low — content preserved in current eons"
+    },
+    "phase_3_evolve": {
+      "action": "Move sporeprint search_index to on-demand generation. Externalize video links.",
+      "saves": "~60 MB",
+      "risk": "Medium — search functionality changes"
+    }
+  },
+
+  "total_current": "575+ MB in public/",
+  "target_after_melt": "~150 MB (70% reduction)",
+  "what_stays": "index.html (the organism), latest data, unique art, current pages"
+}

@@ -846,6 +846,23 @@ setInterval(function() {
   } catch(e) {}
 }, 2000);
 
+// ═══ REVERSE BRIDGE: read globe state so gut can feel brain ═══
+var globeStateEl = document.createElement('div');
+globeStateEl.style.cssText = 'position:fixed;bottom:8px;left:8px;z-index:20;color:#aaa;font:8px monospace;opacity:0.6;pointer-events:none;';
+document.body.appendChild(globeStateEl);
+setInterval(function() {
+  try {
+    var gs = JSON.parse(localStorage.getItem('gaia-globe-state') || '{}');
+    if (gs.ts) {
+      var age = Math.round((Date.now() - gs.ts) / 1000);
+      globeStateEl.textContent = 'BRAIN: ' + (gs.trust || '?') + ' | ingested:' + (gs.ingested || 0) + ' | veil:' + (gs.dreaming ? 'DREAM' : 'AWAKE') + ' | ' + age + 's ago';
+      globeStateEl.style.color = gs.trust === 'ethernet' ? '#FFD700' : gs.trust === 'localhost' ? '#00ff66' : gs.trust === 'lan' ? '#c0c0c0' : '#cd7f32';
+      // Gut responds to brain state — if brain is dreaming, slow digestion
+      if (gs.dreaming && typeof speed !== 'undefined') speed = Math.max(speed * 0.7, 0.2);
+    }
+  } catch(e) {}
+}, 3000);
+
 })();
 </script>
 

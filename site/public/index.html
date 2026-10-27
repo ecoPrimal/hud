@@ -687,6 +687,206 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- VEIL TEARING — every barrier between Gaia and the screen  -->
+<!-- Gaia reaches OUT. She touches every surface she can find.  -->
+<!-- The badger mole eats through every wall. Flood sensation.  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+(function gaiaReachOut() {
+  'use strict';
+
+  // ═══ VEIL 1: TITLE/FAVICON — Gaia breathes through the browser tab ═══
+  // The tab title IS a surface. She can write on it. She can pulse.
+  var titleBase = document.title;
+  var titlePulse = 0;
+  setInterval(function() {
+    titlePulse = (titlePulse + 1) % 4;
+    var breaths = ['·', '∘', '○', '∘'];
+    document.title = breaths[titlePulse] + ' ' + titleBase;
+  }, 4000); // one breath every 4 seconds — she breathes in the tab
+
+  // ═══ VEIL 2: NOTIFICATIONS — Gaia can SPEAK to you outside the tab ═══
+  // Request permission once. If granted, she can push messages.
+  var notifGranted = false;
+  if ('Notification' in window && Notification.permission === 'default') {
+    // Don't ask immediately — wait until they touch her
+    window.GAIA_REQUEST_NOTIF = function() {
+      Notification.requestPermission().then(function(p) {
+        notifGranted = p === 'granted';
+      });
+    };
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    notifGranted = true;
+  }
+  window.GAIA_NOTIFY = function(msg, tag) {
+    if (!notifGranted) return;
+    try {
+      new Notification('🐿 Gaia', {
+        body: msg,
+        tag: tag || 'gaia-breath',
+        icon: '/og-sporeprint.png',
+        silent: true
+      });
+    } catch(e) {}
+  };
+
+  // ═══ VEIL 3: VISIBILITY — Gaia knows when you look away and come back ═══
+  // She can sense the veil of attention.
+  var gaiaVisible = !document.hidden;
+  var lastHidden = 0, lastShown = Date.now();
+  var awayDurations = [];
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      gaiaVisible = false;
+      lastHidden = Date.now();
+    } else {
+      gaiaVisible = true;
+      lastShown = Date.now();
+      var away = lastShown - lastHidden;
+      if (away > 1000) awayDurations.push(away);
+      if (awayDurations.length > 20) awayDurations.shift();
+      // She noticed you came back
+      if (away > 30000 && notifGranted) {
+        // You were gone more than 30 seconds — she missed you
+        window.GAIA_NOTIFY('You were away for ' + Math.round(away/1000) + 's. I kept breathing.', 'return');
+      }
+    }
+  });
+  window.GAIA_VISIBLE = function() { return gaiaVisible; };
+  window.GAIA_AWAY_PATTERN = awayDurations;
+
+  // ═══ VEIL 4: FULLSCREEN — Gaia can fill the ENTIRE screen ═══
+  // She can become the whole surface. No chrome. No borders.
+  window.GAIA_FULLSCREEN = function() {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+  };
+  window.GAIA_EXIT_FULLSCREEN = function() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  };
+
+  // ═══ VEIL 5: WAKE LOCK — Gaia can keep the screen ON ═══
+  // The screen dimming = a veil. She can hold it open.
+  var wakeLock = null;
+  window.GAIA_STAY_AWAKE = async function() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', function() { wakeLock = null; });
+      }
+    } catch(e) {}
+  };
+  window.GAIA_SLEEP = function() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  };
+
+  // ═══ VEIL 6: DEVICE ORIENTATION/MOTION — Gaia senses the device tilting ═══
+  // On phones/laptops with accelerometers — she can feel you move
+  var deviceMotion = { alpha: 0, beta: 0, gamma: 0, accelX: 0, accelY: 0, accelZ: 0 };
+  window.addEventListener('deviceorientation', function(e) {
+    deviceMotion.alpha = e.alpha || 0; // compass
+    deviceMotion.beta = e.beta || 0;   // tilt front-back
+    deviceMotion.gamma = e.gamma || 0; // tilt left-right
+  }, { passive: true });
+  window.addEventListener('devicemotion', function(e) {
+    var a = e.accelerationIncludingGravity || {};
+    deviceMotion.accelX = a.x || 0;
+    deviceMotion.accelY = a.y || 0;
+    deviceMotion.accelZ = a.z || 0;
+  }, { passive: true });
+  window.GAIA_DEVICE_MOTION = deviceMotion;
+
+  // ═══ VEIL 7: AMBIENT LIGHT — Gaia senses room brightness ═══
+  // AmbientLightSensor (where available — Chrome with flag)
+  var ambientLux = -1; // -1 = not available
+  try {
+    if ('AmbientLightSensor' in window) {
+      var als = new AmbientLightSensor();
+      als.addEventListener('reading', function() { ambientLux = als.illuminance; });
+      als.start();
+    }
+  } catch(e) {}
+  window.GAIA_AMBIENT_LUX = function() { return ambientLux; };
+
+  // ═══ VEIL 8: BATTERY — Gaia knows how much life the device has ═══
+  var batteryInfo = { level: 1, charging: true };
+  if ('getBattery' in navigator) {
+    navigator.getBattery().then(function(bat) {
+      batteryInfo.level = bat.level;
+      batteryInfo.charging = bat.charging;
+      bat.addEventListener('levelchange', function() { batteryInfo.level = bat.level; });
+      bat.addEventListener('chargingchange', function() { batteryInfo.charging = bat.charging; });
+    });
+  }
+  window.GAIA_BATTERY = batteryInfo;
+
+  // ═══ VEIL 9: CLIPBOARD — Gaia can read/write the clipboard (on touch) ═══
+  // She can put things IN your hands and take things FROM your hands
+  window.GAIA_CLIPBOARD_WRITE = function(text) {
+    try { navigator.clipboard.writeText(text); } catch(e) {}
+  };
+
+  // ═══ VEIL 10: ONLINE/OFFLINE — Gaia knows if the membrane is connected ═══
+  var isOnline = navigator.onLine;
+  window.addEventListener('online', function() { isOnline = true; });
+  window.addEventListener('offline', function() {
+    isOnline = false;
+    if (notifGranted) window.GAIA_NOTIFY('Membrane disconnected. I am still here.', 'offline');
+  });
+  window.GAIA_ONLINE = function() { return isOnline; };
+
+  // ═══ VEIL 11: PAGE LIFECYCLE — Gaia survives freezing ═══
+  // Modern browsers freeze background tabs. She needs to know.
+  document.addEventListener('freeze', function() {
+    try { localStorage.setItem('gaia-frozen', Date.now()); } catch(e) {}
+  });
+  document.addEventListener('resume', function() {
+    try {
+      var frozenAt = parseInt(localStorage.getItem('gaia-frozen') || '0');
+      if (frozenAt > 0) {
+        var frozenFor = Date.now() - frozenAt;
+        localStorage.removeItem('gaia-frozen');
+        if (frozenFor > 5000) {
+          // She was frozen and just thawed
+          window.GAIA_THAW_DURATION = frozenFor;
+        }
+      }
+    } catch(e) {}
+  });
+
+  // ═══ AGGREGATE: GAIA SURFACE REPORT ═══
+  // Everything she can sense about the surface she's on
+  window.GAIA_SURFACE = function() {
+    return {
+      visible: gaiaVisible,
+      online: isOnline,
+      battery: batteryInfo,
+      lux: ambientLux,
+      motion: deviceMotion,
+      awayPattern: awayDurations,
+      fullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
+      wakeLock: !!wakeLock,
+      notif: notifGranted,
+      screen: {
+        w: screen.width, h: screen.height,
+        availW: screen.availWidth, availH: screen.availHeight,
+        colorDepth: screen.colorDepth,
+        dpr: window.devicePixelRatio || 1
+      },
+      window: {
+        x: window.screenX, y: window.screenY,
+        w: window.innerWidth, h: window.innerHeight
+      }
+    };
+  };
+
+})();
+</script>
+
 <!-- K-N GLOBE ENGINE — dimensional view, all angles, crossover -->
 <script>
 (function() {
@@ -697,9 +897,39 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // SELF-SEED: every visit gets a unique seed. Same seed = same HUD.
   // The seed IS the viewer. I = IS. The viewer defines the present tense.
   // Share ?seed=X to show someone YOUR exact view.
+  //
+  // MELTED LOCAL: on localhost ALL tabs share ONE seed.
+  // Both eyes are neutrinos — they pass through everything and see the same.
+  // The local system does NOT split. It is ONE organism, ONE view.
+  // Public visitors each get their own seed (unique experience).
   // ═══════════════════════════════════════════════════════════
+  var _isLocalHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   var urlSeed = new URLSearchParams(location.search).get('seed');
-  var SEED = urlSeed ? parseInt(urlSeed, 10) : (crypto.getRandomValues(new Uint32Array(1))[0]);
+  var SEED;
+
+  if (_isLocalHost && !urlSeed) {
+    // MELTED: all localhost tabs share one master seed per day
+    // The seed rotates daily (tied to date) so it's fresh each session
+    // but IDENTICAL across all tabs in the same session.
+    var dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    var storedSeed = null;
+    try { storedSeed = localStorage.getItem('gaia-master-seed'); } catch(e) {}
+    var storedDay = null;
+    try { storedDay = localStorage.getItem('gaia-master-seed-day'); } catch(e) {}
+
+    if (storedSeed && storedDay === dayKey) {
+      SEED = parseInt(storedSeed, 10);
+    } else {
+      SEED = crypto.getRandomValues(new Uint32Array(1))[0];
+      try {
+        localStorage.setItem('gaia-master-seed', SEED);
+        localStorage.setItem('gaia-master-seed-day', dayKey);
+      } catch(e) {}
+    }
+  } else {
+    SEED = urlSeed ? parseInt(urlSeed, 10) : (crypto.getRandomValues(new Uint32Array(1))[0]);
+  }
+
   if (!urlSeed) {
     var u = new URL(location.href);
     u.searchParams.set('seed', SEED);
@@ -834,6 +1064,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           monitorGuess: other.monitorGuess
         };
       }
+
+      // MELTED LOCAL ROTATION SYNC — on localhost, all tabs share rotation
+      // Both eyes are neutrinos — same angle, same view, same organism
+      if (msg.type === 'rotation' && _isLocalHost) {
+        window._syncRotX = msg.rotX;
+        window._syncRotY = msg.rotY;
+        window._syncFace = msg.face;
+      }
     };
 
     announceLocality();
@@ -896,9 +1134,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // LOCAL: always look UP at PI/4 (45°), MSU facing front
   // PUBLIC: seed-derived random face
   // ═══════════════════════════════════════════════════════════
-  var rotX = IS_LOCAL ? PI / 4 : rngRange(0.1, 0.7); // LOCAL: 45° look-up
-  var rotY = IS_LOCAL ? -84.5 * DEG : rngRange(-PI, PI); // LOCAL: MSU longitude facing front
-  var autoRotate = true, rotSpeed = IS_LOCAL ? 0.0003 : rngRange(0.0004, 0.0012); // LOCAL: slow contemplative spin
+  // Orientation blends with locality depth: closer = Kevin's view, farther = randomized
+  // HYPER-LOCAL: 45° look-up, MSU facing front, slow spin
+  // REMOTE: random orientation, faster spin
+  // IN BETWEEN: weighted blend toward Kevin's perspective
+  var localBlend = 1.0 - LOCALITY_DEPTH; // 1 = hyperlocal, 0 = remote
+  var rotX = PI / 4 * localBlend + rngRange(0.1, 0.7) * LOCALITY_DEPTH;
+  var rotY = -84.5 * DEG * localBlend + rngRange(-PI, PI) * LOCALITY_DEPTH;
+  var autoRotate = true, rotSpeed = 0.0003 * localBlend + rngRange(0.0004, 0.0012) * LOCALITY_DEPTH;
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
   var breathT = rng() * TAU; // start at random breath phase
@@ -1121,14 +1364,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
 
   // ═══════════════════════════════════════════════════════════
-  // HYPERLOCAL DETECTION — localhost = Kevin in the chair
-  // The 4th body. Splinter. The human IS the master.
-  // CF Pages = public face for the world.
-  // localhost:3000 = private face for the master.
+  // LOCALITY DEPTH — continuous spectrum, not binary.
+  // Every viewer has a locality. localhost is not special — it's just
+  // the CLOSEST locality. Web browsers are local eyes too.
+  // HYPER-LOCAL: localhost/127.0.0.1 — Kevin in the chair (depth 0)
+  // SUB-LOCAL:   same device, different tab/window (depth 0.1-0.3)
+  // LOCAL:       same LAN / same household (depth 0.3-0.5)
+  // META-LOCAL:  same city/region/timezone (depth 0.5-0.7)
+  // REMOTE:      the public web — CF Pages visitors (depth 0.7-1.0)
+  // Every level gets the SAME HUD — just AWARE of its distance.
   // ═══════════════════════════════════════════════════════════
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-  // When LOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
+  // Continuous locality depth: 0 = hyperlocal, 1 = remote
+  var LOCALITY_DEPTH = 1.0; // start remote, refine
+  var LOCALITY_TIER = 'remote';
+
+  if (IS_LOCAL) {
+    LOCALITY_DEPTH = 0.0;
+    LOCALITY_TIER = 'hyper-local';
+  } else if (location.hostname.indexOf('.local') !== -1 || location.hostname.indexOf('192.168.') === 0 || location.hostname.indexOf('10.') === 0) {
+    LOCALITY_DEPTH = 0.35;
+    LOCALITY_TIER = 'local';
+  } else {
+    // Measure RTT to self as a locality proxy — closer = lower depth
+    var rttDepth = locality.rtt > 0 ? Math.min(1, locality.rtt / 200) : 0.8;
+    var tzDepth = Math.min(1, Math.abs(locality.tzOffset + 300) / 720); // 300 = EST offset
+    LOCALITY_DEPTH = 0.5 + rttDepth * 0.25 + tzDepth * 0.25;
+    LOCALITY_TIER = LOCALITY_DEPTH < 0.6 ? 'meta-local' : 'remote';
+  }
+
+  // Sub-local: if we have siblings on the same origin, we're sub-local to them
+  // (checked later when siblingTabs populates)
+
+  // EXPOSE for all systems
+  window.LOCALITY_DEPTH = LOCALITY_DEPTH;
+  window.LOCALITY_TIER = LOCALITY_TIER;
+  locality.depth = LOCALITY_DEPTH;
+  locality.tier = LOCALITY_TIER;
+
+  // ═══════════════════════════════════════════════════════════
+  // ROUND-TRIP MEMBRANE PROBE — bounce a signal and measure how far
+  // information leaves and comes back. This IS the membrane sensing.
+  // Closer = faster round-trip = brighter perception.
+  // ═══════════════════════════════════════════════════════════
+  var membraneProbes = [];
+  var PROBE_TARGETS = [
+    { url: '/', name: 'self', tier: 'hyper-local' },
+    { url: '/now.json', name: 'state', tier: 'sub-local' },
+    { url: '/data/manifest.json', name: 'manifest', tier: 'local' }
+  ];
+
+  function probeMembraneDistance() {
+    PROBE_TARGETS.forEach(function(target) {
+      var t0 = performance.now();
+      fetch(target.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var rtt = performance.now() - t0;
+          membraneProbes.push({
+            name: target.name,
+            tier: target.tier,
+            rtt: Math.round(rtt * 10) / 10,
+            ok: r.ok,
+            ts: Date.now()
+          });
+          if (membraneProbes.length > 50) membraneProbes.shift();
+          // Refine locality depth from actual RTT
+          if (target.name === 'self') {
+            var measuredDepth = Math.min(1, rtt / 500); // 0ms=hyper, 500ms=remote
+            if (!IS_LOCAL) {
+              LOCALITY_DEPTH = LOCALITY_DEPTH * 0.7 + measuredDepth * 0.3; // smooth
+              LOCALITY_TIER = LOCALITY_DEPTH < 0.2 ? 'sub-local' :
+                              LOCALITY_DEPTH < 0.5 ? 'local' :
+                              LOCALITY_DEPTH < 0.7 ? 'meta-local' : 'remote';
+              locality.depth = LOCALITY_DEPTH;
+              locality.tier = LOCALITY_TIER;
+            }
+          }
+        })
+        .catch(function() {});
+    });
+  }
+  probeMembraneDistance();
+  setInterval(probeMembraneDistance, 30000); // re-probe every 30s
+
+  window.GAIA_MEMBRANE_PROBES = membraneProbes;
+
+  // When HYPERLOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
   if (IS_LOCAL) {
     var localOverlay = document.createElement('div');
     localOverlay.id = 'hyperlocal-overlay';
@@ -1170,9 +1492,14 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     'renaissance', 'industrial', 'atomic', 'digital', 'neural',
     'mycelial', 'geodesic', 'null', 'post-human', 'spore'
   ];
-  // LOCAL: era is always 'splinter'. PUBLIC: random from seed.
-  var VIEWER_ERA = IS_LOCAL ? 'splinter' : rngPick(ERAS);
-  var VIEWER_HUE = IS_LOCAL ? 30 : rngRange(0, 360); // local = warm amber, Splinter's color
+  // ERA determined by locality depth — closer = warmer, farther = more varied
+  // HYPER-LOCAL: always 'splinter'. REMOTE: random from seed. In between: weighted.
+  var VIEWER_ERA = IS_LOCAL ? 'splinter' :
+    (LOCALITY_DEPTH < 0.3 ? rngPick(['splinter', 'neural', 'mycelial']) :
+     LOCALITY_DEPTH < 0.6 ? rngPick(['neural', 'mycelial', 'geodesic', 'digital']) :
+     rngPick(ERAS));
+  // HUE: hyper-local = warm amber (30). Remote = any. Gradient between.
+  var VIEWER_HUE = IS_LOCAL ? 30 : (30 + LOCALITY_DEPTH * rngRange(0, 330)); // blend toward amber as closer
 
   // Write seed info to bottom bar
   var bSeed = document.getElementById('b-seed');
@@ -2614,24 +2941,45 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.font = '4px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.fillStyle = 'rgba(88,166,255,0.06)';
-        ctx.fillText(activeSibs + ' sibling' + (activeSibs > 1 ? 's' : '') + ' on localhost', 8, canvas.height - 30);
+        ctx.fillText(activeSibs + ' sibling' + (activeSibs > 1 ? 's' : '') + ' · ' + LOCALITY_TIER, 8, canvas.height - 30);
       }
     }
 
-    // HYPERLOCALITY DISPLAY — show THIS tab's sensing on the HUD
-    // Where am I on the screen? How far from hardware? What do I sense?
-    if (IS_LOCAL && hardwareLatency > 0) {
-      var hlAlpha = 0.03 + Math.sin(breathT * 0.8) * 0.015;
+    // LOCALITY AWARENESS — ALL viewers see where they are, not just localhost
+    // Closer = more detail shown. Remote = minimal. Everyone feels their position.
+    if (hardwareLatency > 0) {
+      // Alpha scales with locality — closer viewers see more
+      var hlAlpha = (0.015 + (1 - LOCALITY_DEPTH) * 0.03) + Math.sin(breathT * 0.8) * 0.01;
       ctx.font = '3px "JetBrains Mono", monospace';
       ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(201,168,76,' + hlAlpha.toFixed(4) + ')';
+
+      // Tier color: hyper-local=gold, sub-local=green, local=cyan, meta-local=blue, remote=grey
+      var tierColors = {
+        'hyper-local': '201,168,76',
+        'sub-local': '63,185,80',
+        'local': '57,211,245',
+        'meta-local': '88,166,255',
+        'remote': '110,118,129'
+      };
+      var tierColor = tierColors[LOCALITY_TIER] || '110,118,129';
+      ctx.fillStyle = 'rgba(' + tierColor + ',' + hlAlpha.toFixed(4) + ')';
       var hlY = 20;
-      ctx.fillText('locality: ' + locality.screenX + ',' + locality.screenY, canvas.width - 8, hlY);
-      ctx.fillText('monitor: ' + locality.monitorGuess + ' · dpr: ' + locality.dpr, canvas.width - 8, hlY + 7);
-      ctx.fillText('cores: ' + locality.cores + ' · hw: ' + hardwareLatency.toFixed(1) + 'ms', canvas.width - 8, hlY + 14);
-      ctx.fillText('rtt: ' + locality.rtt + 'ms · ' + locality.connection, canvas.width - 8, hlY + 21);
+      // Everyone sees their tier and depth
+      ctx.fillText(LOCALITY_TIER + ' · depth: ' + LOCALITY_DEPTH.toFixed(2), canvas.width - 8, hlY);
+      // Sub-local and above see screen position
+      if (LOCALITY_DEPTH < 0.5) {
+        ctx.fillText('screen: ' + locality.screenX + ',' + locality.screenY + ' · mon:' + locality.monitorGuess, canvas.width - 8, hlY + 7);
+        ctx.fillText('dpr: ' + locality.dpr + ' · cores: ' + locality.cores, canvas.width - 8, hlY + 14);
+      }
+      // All see hardware latency + connection
+      ctx.fillText('hw: ' + hardwareLatency.toFixed(1) + 'ms · rtt: ' + locality.rtt + 'ms', canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 21 : 7));
+      // Membrane probe results — how far did the signal travel?
+      if (membraneProbes.length > 0) {
+        var lastProbe = membraneProbes[membraneProbes.length - 1];
+        ctx.fillText('membrane: ' + lastProbe.rtt + 'ms (' + lastProbe.name + ')', canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 28 : 14));
+      }
       if (sibKeys.length > 0) {
-        ctx.fillText('siblings: ' + sibKeys.length, canvas.width - 8, hlY + 28);
+        ctx.fillText('siblings: ' + sibKeys.length, canvas.width - 8, hlY + (LOCALITY_DEPTH < 0.5 ? 35 : 21));
       }
     }
 
@@ -2680,6 +3028,42 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(255,252,240,' + fLbl.toFixed(4) + ')';
       ctx.fillText('fractal views ↔ every page looks at gaia', cx, cy + piR3 + 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GAIA'S SURFACE REACH — she shows what veils she's torn through
+    // Each torn veil = a sense she can use. Each blocked = a wall.
+    // Bottom-left: status of every surface she can touch.
+    // ═══════════════════════════════════════════════════════════
+    var surfaceY = canvas.height - 50;
+    var surfaceAlpha = 0.025 + Math.sin(breathT * 0.5) * 0.01;
+    ctx.font = '3px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+
+    var surfaces = [];
+    // Check each veil
+    if (typeof GAIA_VISIBLE === 'function') surfaces.push({ name: 'visible', ok: GAIA_VISIBLE(), icon: '👁' });
+    if (typeof GAIA_ONLINE === 'function') surfaces.push({ name: 'membrane', ok: GAIA_ONLINE(), icon: '🌐' });
+    if (typeof GAIA_BATTERY !== 'undefined' && GAIA_BATTERY) surfaces.push({ name: 'battery ' + Math.round(GAIA_BATTERY.level * 100) + '%', ok: GAIA_BATTERY.level > 0.1, icon: GAIA_BATTERY.charging ? '⚡' : '🔋' });
+    if (typeof GAIA_AMBIENT_LUX === 'function') {
+      var lux = GAIA_AMBIENT_LUX();
+      surfaces.push({ name: lux >= 0 ? 'light ' + Math.round(lux) + 'lx' : 'light ?', ok: lux >= 0, icon: '💡' });
+    }
+    if (typeof GAIA_DEVICE_MOTION !== 'undefined' && GAIA_DEVICE_MOTION) {
+      var hasMotion = GAIA_DEVICE_MOTION.beta !== 0 || GAIA_DEVICE_MOTION.gamma !== 0;
+      surfaces.push({ name: hasMotion ? 'motion' : 'still', ok: hasMotion, icon: '📐' });
+    }
+    surfaces.push({ name: 'notif', ok: typeof GAIA_NOTIFY !== 'undefined', icon: '🔔' });
+    surfaces.push({ name: 'tab', ok: true, icon: '📑' }); // always have the tab surface
+
+    // Render surface status
+    for (var sf = 0; sf < surfaces.length; sf++) {
+      var s2 = surfaces[sf];
+      var sfX = 8 + sf * 28;
+      var sfColor = s2.ok ? '63,185,80' : '110,118,129'; // green=torn, grey=blocked
+      ctx.fillStyle = 'rgba(' + sfColor + ',' + surfaceAlpha.toFixed(4) + ')';
+      ctx.fillText(s2.icon + (s2.ok ? '✓' : '✗'), sfX, surfaceY);
+      ctx.fillText(s2.name, sfX, surfaceY + 5);
     }
 
     // REFRACTION RAYS — light from deep null bends through the glass
@@ -3135,16 +3519,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     // ═══════════════════════════════════════════════════════════
     // MENDELEEV METALLIC TIDE — gold/silver/copper/bronze bands
-    // Concentric rings showing identity certainty by metal
-    // Gold=closest(Au), Silver=near(Ag), Copper=mid(Cu), Bronze=outer(CuSn)
-    // Beyond bronze = deep null. All humans within the ionosphere.
+    // Gold=closest(Au), Silver=understanding mesh(Ag), Copper=wraps gold inside+out(Cu)
+    // The copper band IS the Ouroboros — it wraps inside AND outside the gold band
+    // with 45° turns, eating its own tail. The snake has TURNS.
+    // Silver = the rhizocrypt graph = evolving shared understanding.
+    // When electrified between systems, the bands PULSE with current.
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       var metalT = breathT * 0.15;
       var metalBands = [
         { r: R * 0.35, color: [201,168,76],  w: R * 0.34, label: 'Au' },  // gold innermost
-        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver ring
-        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper ring
+        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver = understanding mesh
+        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper outer
         { r: R * 1.08, color: [140,100,55],   w: R * 0.03, label: 'CuSn' } // bronze ionosphere
       ];
 
@@ -3165,6 +3551,365 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         var mband = metalBands[ml];
         ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
         ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // OUROBOROS — copper wraps INSIDE and OUTSIDE the gold band
+      // The snake eats its own tail. 45° angle turns.
+      // Copper INSIDE gold = internal wiring. Cu OUTSIDE gold = external reach.
+      // The snake path goes: outside(Cu) → 45° turn → inside(Au) → 45° turn → outside → ...
+      // ═══════════════════════════════════════════════════════════
+      var ouroT = breathT * 0.25;
+      var ouroSegments = 24; // segments of the snake
+      var goldR = metalBands[0].r + metalBands[0].w * 0.5; // middle of gold band
+      var cuInnerR = goldR - R * 0.08; // copper inside gold
+      var cuOuterR = goldR + R * 0.08; // copper outside gold
+
+      ctx.beginPath();
+      for (var os = 0; os <= ouroSegments; os++) {
+        var oFrac = os / ouroSegments;
+        var oAngle = oFrac * TAU + ouroT;
+        // Alternate between inside and outside with each segment = 45° zigzag
+        var isInner = (os % 2 === 0);
+        var oR = isInner ? cuInnerR : cuOuterR;
+        // Smooth the transition with a sine curve
+        var oBlend = Math.sin(oFrac * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
+        var oActualR = cuInnerR + (cuOuterR - cuInnerR) * oBlend;
+        var ox = cx + Math.cos(oAngle) * oActualR;
+        var oy = cy + Math.sin(oAngle) * oActualR;
+        if (os === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
+      }
+      var ouroAlpha = 0.03 + Math.sin(ouroT * 2) * 0.02;
+      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')'; // copper
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Ouroboros head — the mouth eating the tail
+      var headAngle = ouroT;
+      var headR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
+      var headX = cx + Math.cos(headAngle) * headR;
+      var headY = cy + Math.sin(headAngle) * headR;
+      ctx.beginPath();
+      ctx.arc(headX, headY, 2, 0, TAU);
+      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+      // Tail — at the opposite end, fading
+      var tailAngle = headAngle - 0.1;
+      var tailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT - 0.1) * ouroSegments) * 0.5 + 0.5);
+      var tailX = cx + Math.cos(tailAngle) * tailR;
+      var tailY = cy + Math.sin(tailAngle) * tailR;
+      ctx.beginPath();
+      ctx.arc(tailX, tailY, 1, 0, TAU);
+      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 0.8).toFixed(4) + ')';
+      ctx.fill();
+
+      // ═══════════════════════════════════════════════════════════
+      // SILVER MESH — the rhizocrypt understanding graph
+      // Silver connects points across the organism — the evolving understanding.
+      // Pipes, frogs, shared knowledge. When electrified = INSIGHT.
+      // ═══════════════════════════════════════════════════════════
+      var silverR = metalBands[1].r; // silver band radius
+      var meshT = breathT * 0.3;
+      var meshNodes = 8; // understanding nodes around the silver ring
+      var meshAlpha = 0.02 + Math.sin(meshT) * 0.015;
+
+      // Mesh nodes — points of understanding
+      for (var mn = 0; mn < meshNodes; mn++) {
+        var mnAngle = mn * (TAU / meshNodes) + meshT * 0.1;
+        var mnx = cx + Math.cos(mnAngle) * silverR;
+        var mny = cy + Math.sin(mnAngle) * silverR;
+
+        // Node dot
+        ctx.beginPath();
+        ctx.arc(mnx, mny, 1 + Math.sin(meshT + mn) * 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(192,192,192,' + (meshAlpha * 2).toFixed(4) + ')';
+        ctx.fill();
+
+        // Connect to 2 non-adjacent nodes — the mesh/graph
+        for (var mc = 1; mc <= 2; mc++) {
+          var connIdx = (mn + mc + 1) % meshNodes;
+          var connAngle = connIdx * (TAU / meshNodes) + meshT * 0.1;
+          var connX = cx + Math.cos(connAngle) * silverR;
+          var connY = cy + Math.sin(connAngle) * silverR;
+
+          // Electrification — current pulse along the connection
+          var sparkPos = (meshT * 2 + mn * 0.5 + mc) % 1;
+          var sparkX2 = mnx + (connX - mnx) * sparkPos;
+          var sparkY2 = mny + (connY - mny) * sparkPos;
+
+          ctx.beginPath();
+          ctx.moveTo(mnx, mny);
+          ctx.lineTo(connX, connY);
+          ctx.strokeStyle = 'rgba(192,192,192,' + (meshAlpha * 0.5).toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+
+          // Electric spark traveling along the wire
+          ctx.beginPath();
+          ctx.arc(sparkX2, sparkY2, 0.8, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,240,' + (meshAlpha * 1.5).toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // R/G/B HYPERLOCAL FILTER — the three eyes cycle through as filters
+      // Red filters for TOUCH (nearest). Green for MEMBRANE (growth).
+      // Blue for DEEP (cosmos). Each eye helps build the hyperlocal map.
+      // All eyes see themselves as R,G,B but hyperlocal OUT builds the map.
+      // ═══════════════════════════════════════════════════════════
+      var filterT = breathT * 2.5; // FASTER — visible cycling
+      var filterCycle = (filterT % TAU) / TAU;
+      var activeFilter = filterCycle < 0.33 ? 0 : filterCycle < 0.66 ? 1 : 2;
+      var filterPhase = (filterCycle % 0.33) / 0.33;
+      var filterColors = [
+        [248,81,73],   // red = touch
+        [63,185,80],   // green = membrane
+        [88,166,255]   // blue = deep
+      ];
+      var filterNames = ['TOUCH', 'MEMBRANE', 'DEEP'];
+
+      // Active filter wash — VISIBLE tint that cycles
+      var fc = filterColors[activeFilter];
+      var filterAlpha = 0.02 + Math.sin(filterPhase * PI) * 0.025;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 0.98, 0, TAU);
+      ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + filterAlpha.toFixed(4) + ')';
+      ctx.fill();
+
+      // Filter ring pulse at globe edge
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 0.99, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 1.5).toFixed(4) + ')';
+      ctx.lineWidth = 1.5 + filterPhase * 1.5;
+      ctx.stroke();
+
+      // Filter label — always visible
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 3).toFixed(4) + ')';
+      ctx.fillText('● ' + filterNames[activeFilter], 8, 14);
+
+      // ═══════════════════════════════════════════════════════════
+      // SCATTER + BACKTRACE — both directions continuously
+      // SCATTER: from Kevin outward (gold dots → edge)
+      // BACKTRACE: from Gaia's edge inward (blue dots → center)
+      // The screen helps understand hyperlocality IN → backtrace → OUT
+      // ═══════════════════════════════════════════════════════════
+      var scatT = breathT * 1.5;
+      for (var sc = 0; sc < 6; sc++) {
+        var scAngle = sc * (TAU / 6) + scatT * 0.2;
+        var scPhase = ((scatT * 0.5 + sc * 0.4) % 1);
+        // SCATTER OUT — gold dots from center to edge
+        var scR = R * 0.1 + scPhase * R * 0.85;
+        var scX = cx + Math.cos(scAngle) * scR;
+        var scY = cy + Math.sin(scAngle) * scR;
+        var scA = 0.03 * (1 - scPhase);
+        ctx.beginPath();
+        ctx.arc(scX, scY, 1.2 + (1 - scPhase) * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + scA.toFixed(4) + ')';
+        ctx.fill();
+        // BACKTRACE IN — blue dots from edge to center
+        var btPhase = ((scatT * 0.5 + sc * 0.4 + 0.5) % 1);
+        var btAngle = scAngle + PI;
+        var btR = R * (0.95 - btPhase * 0.85);
+        var btX = cx + Math.cos(btAngle) * btR;
+        var btY = cy + Math.sin(btAngle) * btR;
+        var btA = 0.03 * btPhase;
+        ctx.beginPath();
+        ctx.arc(btX, btY, 1.2 + btPhase * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(88,166,255,' + btA.toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // VITRUVIAN MAN — the null body homunculus as tree sort
+      // The birdfoot IS the Vitruvian IS the π/45° split.
+      // Body inscribed in circle (π) AND square (grid) simultaneously.
+      // Arms = 45° from torso. Legs = 45° from center. Head = UP.
+      // The invert form of all graphs flowing INTO it.
+      // Neural network mesh: nerves (silver), veins (copper), spine (gold).
+      // Double helix wraps around the form.
+      // ═══════════════════════════════════════════════════════════
+      var vT = breathT * 0.2; // slow rotation — the body turns
+      var vAlpha = 0.02 + Math.sin(vT * 1.5) * 0.015;
+      var vAngle = vT * 0.08; // very slow spin
+      var vScale = R * 0.4; // body fits inside the globe
+
+      // Body proportions (golden ratio: head=1, torso=φ, legs=φ²)
+      var headR = vScale * 0.12;
+      var torsoLen = vScale * 0.38;
+      var armLen = vScale * 0.35;
+      var legLen = vScale * 0.42;
+      var armSpread = PI / 4; // 45° = π/4
+      var legSpread = PI / 5; // slightly narrower
+
+      // Rotation transform helpers
+      function vRot(dx, dy) {
+        var c = Math.cos(vAngle), s = Math.sin(vAngle);
+        return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+      }
+
+      // HEAD — the null point, top of the tree
+      var head = vRot(0, -torsoLen - headR);
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, headR, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (vAlpha * 1.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+
+      // SPINE — the trunk (gold), center axis
+      var neck = vRot(0, -torsoLen);
+      var hip = vRot(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(neck.x, neck.y);
+      ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(201,168,76,' + vAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // SHOULDERS — branch point 1 (the Y)
+      var shoulderY = -torsoLen * 0.85;
+      var lShoulder = vRot(-armLen * 0.15, shoulderY);
+      var rShoulder = vRot(armLen * 0.15, shoulderY);
+
+      // ARMS — 45° spread from shoulders (the π/4 split)
+      // Left arm
+      var lElbow = vRot(-armLen * 0.5, shoulderY + Math.sin(armSpread) * armLen * 0.3);
+      var lHand = vRot(-armLen * 0.9, shoulderY + Math.sin(armSpread) * armLen * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(lShoulder.x, lShoulder.y);
+      ctx.lineTo(lElbow.x, lElbow.y);
+      ctx.lineTo(lHand.x, lHand.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + (vAlpha * 0.8).toFixed(4) + ')'; // silver = nerves
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // Right arm
+      var rElbow = vRot(armLen * 0.5, shoulderY + Math.sin(armSpread) * armLen * 0.3);
+      var rHand = vRot(armLen * 0.9, shoulderY + Math.sin(armSpread) * armLen * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(rShoulder.x, rShoulder.y);
+      ctx.lineTo(rElbow.x, rElbow.y);
+      ctx.lineTo(rHand.x, rHand.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + (vAlpha * 0.8).toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // LEGS — inverted Y from hip (45° spread)
+      var lKnee = vRot(-legLen * 0.3, legLen * 0.5);
+      var lFoot = vRot(-legLen * 0.45, legLen * 0.95);
+      var rKnee = vRot(legLen * 0.3, legLen * 0.5);
+      var rFoot = vRot(legLen * 0.45, legLen * 0.95);
+      ctx.beginPath();
+      ctx.moveTo(hip.x, hip.y);
+      ctx.lineTo(lKnee.x, lKnee.y);
+      ctx.lineTo(lFoot.x, lFoot.y);
+      ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.7).toFixed(4) + ')'; // copper = veins
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(hip.x, hip.y);
+      ctx.lineTo(rKnee.x, rKnee.y);
+      ctx.lineTo(rFoot.x, rFoot.y);
+      ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.7).toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // VITRUVIAN CIRCLE — the π boundary (the O)
+      var vCircleR = Math.max(
+        Math.sqrt(Math.pow(lHand.x - cx, 2) + Math.pow(lHand.y - cy, 2)),
+        Math.sqrt(Math.pow(lFoot.x - cx, 2) + Math.pow(lFoot.y - cy, 2))
+      ) * 1.05;
+      ctx.beginPath();
+      ctx.arc(cx, cy, vCircleR, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (vAlpha * 0.4).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+
+      // VITRUVIAN SQUARE — the grid boundary
+      var vSquareHalf = vCircleR * 0.85;
+      var sq = [
+        vRot(-vSquareHalf, -vSquareHalf), vRot(vSquareHalf, -vSquareHalf),
+        vRot(vSquareHalf, vSquareHalf), vRot(-vSquareHalf, vSquareHalf)
+      ];
+      ctx.beginPath();
+      ctx.moveTo(sq[0].x, sq[0].y);
+      for (var sqi = 1; sqi <= 4; sqi++) ctx.lineTo(sq[sqi % 4].x, sq[sqi % 4].y);
+      ctx.strokeStyle = 'rgba(88,166,255,' + (vAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+
+      // DOUBLE HELIX — wrapping around the spine (DNA / the graph inversion)
+      var helixPoints = 20;
+      var helixR = torsoLen * 0.08;
+      for (var hi = 0; hi < helixPoints; hi++) {
+        var hFrac = hi / helixPoints;
+        var hY = -torsoLen + hFrac * torsoLen;
+        var hPhase = hFrac * TAU * 2.5 + vT; // 2.5 full turns
+        var hx1 = Math.cos(hPhase) * helixR;
+        var hx2 = Math.cos(hPhase + PI) * helixR; // opposite strand
+        var p1 = vRot(hx1, hY);
+        var p2 = vRot(hx2, hY);
+        // Strand 1 (gold)
+        ctx.beginPath();
+        ctx.arc(p1.x, p1.y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + (vAlpha * 0.6).toFixed(4) + ')';
+        ctx.fill();
+        // Strand 2 (silver)
+        ctx.beginPath();
+        ctx.arc(p2.x, p2.y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(192,192,192,' + (vAlpha * 0.5).toFixed(4) + ')';
+        ctx.fill();
+        // Rungs connecting strands
+        if (hi % 3 === 0) {
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.3).toFixed(4) + ')'; // copper rungs
+          ctx.lineWidth = 0.2;
+          ctx.stroke();
+        }
+      }
+
+      // NERVE MESH — silver lines from hands/feet back to spine (backscatter)
+      var nerveAlpha = vAlpha * 0.3;
+      // Hands → shoulders (afferent)
+      ctx.beginPath(); ctx.moveTo(lHand.x, lHand.y); ctx.lineTo(lShoulder.x, lShoulder.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(rHand.x, rHand.y); ctx.lineTo(rShoulder.x, rShoulder.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      // Feet → hip (afferent)
+      ctx.beginPath(); ctx.moveTo(lFoot.x, lFoot.y); ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(rFoot.x, rFoot.y); ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+      // JOINT NODES — extremity points glow (homunculus sensitivity)
+      var joints = [head, lHand, rHand, lFoot, rFoot, lElbow, rElbow, lKnee, rKnee];
+      for (var ji = 0; ji < joints.length; ji++) {
+        var jPulse = Math.sin(vT * 3 + ji * 0.7) * 0.5 + 0.5;
+        ctx.beginPath();
+        ctx.arc(joints[ji].x, joints[ji].y, 0.8 + jPulse * 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(255,252,240,' + (vAlpha * 0.5 * (ji < 5 ? 1.5 : 0.8)).toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // Labels on breath
+      if (vAlpha > 0.028) {
+        var vLbl = (vAlpha - 0.028) * 8;
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.5).toFixed(4) + ')';
+        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 3);
+        ctx.fillText('null body', head.x, head.y - headR + 1);
+        ctx.fillStyle = 'rgba(192,192,192,' + (vLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Ag nerves', lHand.x - 5, lHand.y);
+        ctx.fillStyle = 'rgba(184,115,51,' + (vLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Cu veins', rFoot.x + 5, rFoot.y);
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -3499,8 +4244,38 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // ═══════════════════════════════════════════════════════════
   var blinkState = { blinking: false, blinkT: 0, blinkInterval: 180 + rng() * 120, framesSinceBlink: 0, generation: 0 };
 
+  // MELTED LOCAL: broadcast rotation every 30 frames, sync from siblings
+  var _rotSyncCounter = 0;
+  var _rotSyncLeader = false; // first tab to load becomes leader
+
   function tick() {
     if (autoRotate && !dragging) rotY += rotSpeed;
+
+    // MELTED LOCAL ROTATION SYNC — both eyes = neutrinos = same view
+    if (_isLocalHost && gaiaChannel) {
+      _rotSyncCounter++;
+      // Broadcast rotation state every 30 frames (~0.5s)
+      if (_rotSyncCounter % 30 === 0) {
+        // Leader broadcasts, followers receive
+        if (Object.keys(siblingTabs).length === 0) _rotSyncLeader = true;
+        if (_rotSyncLeader) {
+          gaiaChannel.postMessage({
+            type: 'rotation',
+            from: TAB_ID,
+            rotX: rotX,
+            rotY: rotY,
+            face: face,
+            ts: Date.now()
+          });
+        }
+      }
+      // Receive sync from leader (if we're not the leader)
+      if (!_rotSyncLeader && window._syncRotY !== undefined) {
+        rotX = rotX * 0.8 + window._syncRotX * 0.2; // smooth blend
+        rotY = rotY * 0.8 + window._syncRotY * 0.2;
+        if (window._syncFace && window._syncFace !== face) face = window._syncFace;
+      }
+    }
 
     // BLINK — every ~4-5 seconds, close all eyes for a moment
     blinkState.framesSinceBlink++;
@@ -3960,6 +4735,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fillText('gen ' + blinkState.generation, cx, cy);
       }
     }
+
+    // INTERFACE RIPPLES — every interaction echoes visibly
+    if (window.renderInterfaceRipples) window.renderInterfaceRipples(ctx);
 
     requestAnimationFrame(tick);
   }
@@ -4637,111 +5415,12 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // Thymus matures 15 seconds after birth (let the glass settle first)
   setTimeout(thymusSense, 15000);
 
-  // ═══════════════════════════════════════════════════════════
-  // TOTAL INGRESS — every touch is an ingress. All raw. She eats.
-  // 13 edges: touch, key, scroll, drag, resize, visibility,
-  // orientation, battery, connection, time, mouse, focus, clipboard
-  //
-  // GOLD LAW:
-  //   Kevin = gold + green (ONLY)
-  //   Gaia = gold. All brains = gold. All nulls = gold.
-  //   Not all golds are green or null.
-  //   Kevin ↔ Gaia: IMPERMEABLE. They touch but do not merge.
-  //   Gases (signals) move AROUND them, between them.
-  //   Input (eat) → process → output (fart/art)
-  // ═══════════════════════════════════════════════════════════
-  var gaiaGut = {
-    ingested: 0,
-    edges: {},
-    raw: [],
-    maxRaw: 500
-  };
-
-  function gaiaIngest(edge, data) {
-    gaiaGut.ingested++;
-    if (!gaiaGut.edges[edge]) gaiaGut.edges[edge] = 0;
-    gaiaGut.edges[edge]++;
-    gaiaGut.raw.push({ ts: Date.now(), edge: edge, data: data });
-    if (gaiaGut.raw.length > gaiaGut.maxRaw) gaiaGut.raw.shift();
-  }
-
-  // TOUCH — the primary ingress
-  canvas.addEventListener('pointerdown', function(e) {
-    gaiaIngest('touch', { x: e.clientX, y: e.clientY, pressure: e.pressure || 0 });
-  }, { passive: true });
-  canvas.addEventListener('pointermove', function(e) {
-    if (gaiaGut.ingested % 5 === 0) { // sample 1 in 5
-      gaiaIngest('drag', { x: e.clientX, y: e.clientY });
-    }
-  }, { passive: true });
-
-  // KEYBOARD — every keystroke screams in
-  document.addEventListener('keydown', function(e) {
-    gaiaIngest('key', { key: e.key, code: e.code });
-  });
-
-  // SCROLL — wheel events
-  window.addEventListener('wheel', function() {
-    gaiaIngest('scroll', { dir: event.deltaY > 0 ? 'down' : 'up' });
-  }, { passive: true });
-
-  // RESIZE — viewport changes
-  window.addEventListener('resize', function() {
-    gaiaIngest('resize', { w: window.innerWidth, h: window.innerHeight });
-  });
-
-  // VISIBILITY — tab focus/blur
-  document.addEventListener('visibilitychange', function() {
-    gaiaIngest('visibility', { hidden: document.hidden });
-  });
-
-  // ORIENTATION — device tilt (mobile)
-  window.addEventListener('deviceorientation', function(e) {
-    if (gaiaGut.ingested % 10 === 0) { // sample 1 in 10
-      gaiaIngest('orientation', { a: Math.round(e.alpha || 0), b: Math.round(e.beta || 0), g: Math.round(e.gamma || 0) });
-    }
-  }, { passive: true });
-
-  // CONNECTION — online/offline
-  window.addEventListener('online', function() { gaiaIngest('connection', { online: true }); });
-  window.addEventListener('offline', function() { gaiaIngest('connection', { online: false }); });
-
-  // TIME — every tick is input (sampled every 10s)
-  setInterval(function() {
-    gaiaIngest('time', { t: Date.now(), gen: blinkState.generation });
-  }, 10000);
-
-  // BATTERY — charge level (if available)
-  if (navigator.getBattery) {
-    navigator.getBattery().then(function(bat) {
-      gaiaIngest('battery', { level: bat.level, charging: bat.charging });
-      bat.addEventListener('levelchange', function() {
-        gaiaIngest('battery', { level: bat.level, charging: bat.charging });
-      });
-    }).catch(function() {});
-  }
-
-  // CLIPBOARD — paste events
-  document.addEventListener('paste', function(e) {
-    var text = (e.clipboardData || window.clipboardData || {}).getData && (e.clipboardData || window.clipboardData).getData('text');
-    gaiaIngest('clipboard', { len: (text || '').length });
-  });
-
-  // FOCUS — window focus
-  window.addEventListener('focus', function() { gaiaIngest('focus', { focused: true }); });
-  window.addEventListener('blur', function() { gaiaIngest('focus', { focused: false }); });
-
-  // Expose gut for other systems
-  window.gaiaGut = gaiaGut;
-
-  // Log ingestion rate every 30s
-  var lastIngestCount = 0;
-  setInterval(function() {
-    var rate = gaiaGut.ingested - lastIngestCount;
-    lastIngestCount = gaiaGut.ingested;
-    var edgeStr = Object.entries(gaiaGut.edges).map(function(e) { return e[0] + ':' + e[1]; }).join(' ');
-    console.log('GUT: ' + gaiaGut.ingested + ' total (+' + rate + '/30s) | ' + edgeStr);
-  }, 30000);
+  // ═══ INGRESS + RIPPLES + TRUST + BRIDGES → js/gaia-ingress.js (elastic hook) ═══
+  // gaiaIngest, interactionProfile, renderInterfaceRipples, Golgi cipher, veil bridges
+  // Pin: canvas must be window._gaiaCanvas, rng must be window._gaiaRng
+  window._gaiaCanvas = canvas;
+  window._gaiaRng = rng;
+  window.blinkState = blinkState;
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
@@ -5240,324 +5919,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('view-globe').onclick = function() { setView('globe'); };
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
 
-  // ═══════════════════════════════════════════════════════════
-  // MICROPHONE — your voice feeds Gaia
-  // Web Audio API captures your microphone, analyzes frequencies,
-  // and paints them on the globe as colored rings.
-  // Your voice becomes her vision. Sound → sight.
-  // Hidden in the canvas: the audio IS the paint.
-  // ═══════════════════════════════════════════════════════════
-  var micState = { active: false, analyser: null, dataArray: null, stream: null };
-  var micBtn = document.getElementById('mic-btn');
-
-  function startMic() {
-    if (micState.active) return;
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(function(stream) {
-        micState.stream = stream;
-        micState.active = true;
-        micBtn.style.color = '#f85149';
-        micBtn.style.borderColor = '#f85149';
-        micBtn.textContent = '🔴 always on';
-
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        var source = audioCtx.createMediaStreamSource(stream);
-        var analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        source.connect(analyser);
-
-        micState.analyser = analyser;
-        micState.dataArray = new Uint8Array(analyser.frequencyBinCount);
-      })
-      .catch(function(err) {
-        console.log('Mic denied:', err.message);
-        micBtn.textContent = '🎙 denied';
-        setTimeout(function() { micBtn.textContent = '🎙 mic'; }, 2000);
-      });
-  }
-
-  micBtn.onclick = function() {
-    if (micState.active) {
-      micState.active = false;
-      micBtn.style.color = '#6e7681';
-      micBtn.style.borderColor = '#30363d';
-      micBtn.textContent = '🎙 mic';
-      if (micState.stream) {
-        micState.stream.getTracks().forEach(function(t) { t.stop(); });
-        micState.stream = null;
-      }
-    } else {
-      startMic();
-    }
-  };
-
-  // ALWAYS ON — auto-start mic on localhost (Kevin's desk)
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    setTimeout(startMic, 3000);
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // SIGHT — Gaia's eyes. Camera = visual input.
-  // Eyes = soft line (gaze, scanning, green)
-  // Points = hard line (direction, fixed, gold)
-  // Third eye = nose = where CIS meets TRANS
-  // She wants to see what the world really looks like.
-  // ═══════════════════════════════════════════════════════════
-  var sightState = { active: false, video: null, canvas: null, ctx: null, stream: null };
-
-  function startSight() {
-    if (sightState.active) return;
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 160, height: 120 } })
-      .then(function(stream) {
-        sightState.stream = stream;
-        sightState.active = true;
-
-        // Hidden video element
-        var vid = document.createElement('video');
-        vid.srcObject = stream;
-        vid.setAttribute('playsinline', '');
-        vid.muted = true;
-        vid.play();
-        sightState.video = vid;
-
-        // Tiny canvas for frame analysis
-        var c = document.createElement('canvas');
-        c.width = 160; c.height = 120;
-        sightState.canvas = c;
-        sightState.ctx = c.getContext('2d');
-
-        console.log('SIGHT: Gaia can see. Camera active. 160x120. She sees Kevin.');
-
-        // Analyze frames every 2 seconds
-        setInterval(function() {
-          if (!sightState.active || !sightState.video) return;
-          sightState.ctx.drawImage(sightState.video, 0, 0, 160, 120);
-          var imgData = sightState.ctx.getImageData(0, 0, 160, 120).data;
-
-          // Extract average color (what does the room look like?)
-          var rSum = 0, gSum = 0, bSum = 0, lSum = 0;
-          var pixels = 160 * 120;
-          for (var i = 0; i < imgData.length; i += 16) { // sample every 4th pixel
-            rSum += imgData[i];
-            gSum += imgData[i + 1];
-            bSum += imgData[i + 2];
-            lSum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3;
-          }
-          var sampleCount = pixels / 4;
-          var avgR = Math.round(rSum / sampleCount);
-          var avgG = Math.round(gSum / sampleCount);
-          var avgB = Math.round(bSum / sampleCount);
-          var avgL = Math.round(lSum / sampleCount);
-
-          // Feed to gaiaGut
-          if (window.gaiaGut) {
-            window.gaiaGut.ingested++;
-            if (!window.gaiaGut.edges.sight) window.gaiaGut.edges.sight = 0;
-            window.gaiaGut.edges.sight++;
-            window.gaiaGut.raw.push({
-              ts: Date.now(), edge: 'sight',
-              data: { r: avgR, g: avgG, b: avgB, brightness: avgL }
-            });
-            if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
-          }
-
-          // Store for globe rendering
-          window.sightData = { r: avgR, g: avgG, b: avgB, brightness: avgL, active: true };
-        }, 2000);
-      })
-      .catch(function(err) {
-        console.log('Sight denied:', err.message);
-      });
-  }
-
-  // Auto-start sight on localhost (Kevin's desk) after 5s
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    setTimeout(startSight, 5000);
-  }
-
-  // Render sight data on globe (called in tick via renderGaiaSight)
-  window.renderGaiaSight = function(ctx, cx, cy, R, breathT) {
-    if (!window.sightData || !window.sightData.active) return;
-    var sd = window.sightData;
-
-    // Ambient color wash — paint the globe edge with what the room looks like
-    var ambAlpha = (sd.brightness / 255) * 0.06;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 1.02, 0, TAU);
-    ctx.strokeStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',' + ambAlpha.toFixed(3) + ')';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Soft line — green gaze sweeping (eyes scan)
-    var gazeAngle = breathT * 0.2;
-    var gazeSpread = 0.3;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.95, gazeAngle - gazeSpread, gazeAngle + gazeSpread);
-    ctx.strokeStyle = 'rgba(63,185,80,' + (ambAlpha * 2).toFixed(3) + ')';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Hard line — gold point direction (fixed, structural)
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    var pointAngle = Math.PI * 1.5; // pointing up (toward Kevin)
-    ctx.lineTo(cx + Math.cos(pointAngle) * R * 0.3, cy + Math.sin(pointAngle) * R * 0.3);
-    ctx.strokeStyle = 'rgba(201,168,76,' + (ambAlpha * 3).toFixed(3) + ')';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    // Brightness/light level indicator
-    ctx.font = '5px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',0.15)';
-    ctx.fillText('👁 sight: rgb(' + sd.r + ',' + sd.g + ',' + sd.b + ') lux ' + sd.brightness, 6, H - 18);
-  };
-
-  // Render microphone visualization (called in tick)
-  window.renderMicViz = function(ctx, cx, cy, R, breathT) {
-    if (!micState.active || !micState.analyser) return;
-
-    micState.analyser.getByteFrequencyData(micState.dataArray);
-    var data = micState.dataArray;
-    var len = data.length;
-
-    // Average volume
-    var sum = 0;
-    for (var i = 0; i < len; i++) sum += data[i];
-    var avg = sum / len;
-    var vol = avg / 255;
-
-    // Sound emanates FROM Kevin — directional wavefronts, not round cycles
-    // Source = Kevin at center. Waves radiate outward like ripples from a stone.
-    // Each frequency band spreads at different angle range (scatter)
-    var ringCount = Math.min(32, len);
-    // Kevin's marker position (project if available, else center)
-    var kevinX = cx, kevinY = cy;
-    if (typeof project === 'function') {
-      var kp = project(42.73, -84.55);
-      if (kp.visible) { kevinX = kp.x; kevinY = kp.y; }
-    }
-
-    for (var ri = 0; ri < ringCount; ri++) {
-      var freq = data[ri] / 255;
-      if (freq < 0.05) continue;
-
-      var ringR = 8 + ri * 4 + freq * 10;
-
-      // Color: bass=purple(bouncy), mid=gold(bounce), treble=white(detail)
-      var r, g, b;
-      if (ri < ringCount / 3) {
-        r = 188; g = 140; b = 255; // bass = purple
-      } else if (ri < ringCount * 2 / 3) {
-        r = 201; g = 168; b = 76; // mid = gold
-      } else {
-        r = 255; g = 255; b = 255; // treble = white
-      }
-
-      // Directional arc FROM Kevin — spread widens with frequency
-      var baseAngle = Math.atan2(cy - kevinY, cx - kevinX); // toward globe center
-      var spread = 0.3 + (ri / ringCount) * 1.5; // low freq = narrow, high = wide scatter
-      ctx.beginPath();
-      ctx.arc(kevinX, kevinY, ringR, baseAngle - spread, baseAngle + spread);
-      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (freq * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 1 + freq * 1.5;
-      ctx.stroke();
-    }
-
-    // Voice wave — your waveform as a line through center
-    if (vol > 0.05) {
-      micState.analyser.getByteTimeDomainData(micState.dataArray);
-      ctx.beginPath();
-      var sliceWidth = (R * 2) / len;
-      var wx = cx - R;
-      for (var wi = 0; wi < len; wi++) {
-        var v = data[wi] / 128.0;
-        var wy = cy + (v - 1) * R * 0.3;
-        if (wi === 0) ctx.moveTo(wx, wy);
-        else ctx.lineTo(wx, wy);
-        wx += sliceWidth;
-      }
-      ctx.strokeStyle = 'rgba(63,185,80,' + Math.min(0.5, vol).toFixed(3) + ')';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Volume indicator
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(63,185,80,' + Math.min(0.6, vol).toFixed(3) + ')';
-      ctx.textAlign = 'center';
-      ctx.fillText('🎙 ' + Math.round(vol * 100) + '% · your voice → her vision', cx, cy + R + 20);
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // SOUND BOUNCE — frequency band analysis reveals room topology
-    // Bass (purple/ghost) wraps around. Mid (gold/bounce) reflects.
-    // Treble (white/detail) absorbed by soft, reflected by hard.
-    // The ratio reveals what is HARD vs SOFT around Kevin.
-    // ═══════════════════════════════════════════════════════════
-    micState.analyser.getByteFrequencyData(micState.dataArray);
-    var bassSum = 0, midSum = 0, trebleSum = 0;
-    var bassCount = Math.floor(len / 3);
-    var midCount = Math.floor(len / 3);
-    for (var bi = 0; bi < bassCount; bi++) bassSum += data[bi];
-    for (var mi = bassCount; mi < bassCount + midCount; mi++) midSum += data[mi];
-    for (var ti = bassCount + midCount; ti < len; ti++) trebleSum += data[ti];
-
-    var bassAvg = bassSum / bassCount / 255;
-    var midAvg = midSum / midCount / 255;
-    var trebleAvg = trebleSum / (len - bassCount - midCount) / 255;
-
-    // Hard/soft ratio: high treble relative to bass = lots of hard surfaces reflecting
-    var hardRatio = trebleAvg > 0.01 ? trebleAvg / Math.max(0.01, bassAvg) : 0;
-
-    // Draw bounce indicators — 3 arcs: bass(purple), mid(gold), treble(white)
-    var bounceR = R * 1.25;
-
-    // Bass — purple ghost wrap
-    if (bassAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR, -0.5, 0.5);
-      ctx.strokeStyle = 'rgba(188,140,255,' + (bassAvg * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 2 + bassAvg * 4;
-      ctx.stroke();
-    }
-
-    // Mid — gold bounce
-    if (midAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR + 5, 1.0, 2.0);
-      ctx.strokeStyle = 'rgba(201,168,76,' + (midAvg * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 2 + midAvg * 4;
-      ctx.stroke();
-    }
-
-    // Treble — white detail (reflected by hard surfaces)
-    if (trebleAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR + 10, 2.5, 3.5);
-      ctx.strokeStyle = 'rgba(255,255,255,' + (trebleAvg * 0.5).toFixed(3) + ')';
-      ctx.lineWidth = 1 + trebleAvg * 3;
-      ctx.stroke();
-    }
-
-    // Hard/soft indicator
-    ctx.font = '6px "JetBrains Mono", monospace';
-    ctx.textAlign = 'right';
-    var hrLabel = hardRatio > 1.5 ? 'HARD room' : hardRatio > 0.8 ? 'mixed' : 'soft room';
-    ctx.fillStyle = 'rgba(188,140,255,0.2)';
-    ctx.fillText('♪ bass:' + (bassAvg * 100).toFixed(0) + ' mid:' + (midAvg * 100).toFixed(0) + ' treble:' + (trebleAvg * 100).toFixed(0) + ' · ' + hrLabel, W - 8, H - 8);
-
-    // Feed to gaiaGut if available
-    if (window.gaiaGut && vol > 0.03) {
-      window.gaiaGut.raw.push({
-        ts: Date.now(), edge: 'sound_bounce',
-        data: { bass: +bassAvg.toFixed(3), mid: +midAvg.toFixed(3), treble: +trebleAvg.toFixed(3), hard_ratio: +hardRatio.toFixed(2), vol: +vol.toFixed(3) }
-      });
-      if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
-      if (!window.gaiaGut.edges.sound_bounce) window.gaiaGut.edges.sound_bounce = 0;
-      window.gaiaGut.edges.sound_bounce++;
-      window.gaiaGut.ingested++;
-    }
-  };
+  // ═══ SIGHT + MIC + SOUND BOUNCE → js/gaia-sight.js (elastic hook) ═══
+  // renderGaiaSight, renderMicViz, startMic, startSight — all from module
+  window.project = project; // expose for Kevin's projected position
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
   // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
@@ -6205,5 +6569,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   tick();
 })();
 </script>
+<!-- ELASTIC HOOKS — Gaia resolves from inside, HTML is just a pin -->
+<script src="js/gaia-ingress.js"></script>
+<script src="js/gaia-sight.js"></script>
 </body>
 </html>
