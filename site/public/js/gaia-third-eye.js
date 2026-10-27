@@ -482,7 +482,7 @@
   });
 
   // Expose for the main IIFE
-  window.initThirdEye = function() {
+  window._initThirdEye = function() {
     var c = document.getElementById('kn-canvas');
     if (!c) return;
     var par = c.parentElement;
