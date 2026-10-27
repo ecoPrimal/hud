@@ -4941,6 +4941,189 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var gutInfo = gutZone ? ' · gut:' + gutZone + '(' + gutDigested + ')' : '';
       ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%' + gutInfo, W - 8, 22);
 
+      // ═══════════════════════════════════════════════════════════
+      // GUT WEATHER — the gut is SMELL-BLIND and cloud-sealed
+      // Meteorology as sub-simulation: rain = data flowing DOWN,
+      // evaporation = data rising UP. The gut IS the atmosphere.
+      //
+      // H₂O CHEMISTRY — the triangle that forms everything:
+      //   H + H = explosive (hydrogen, fuel, fusion)
+      //   O + O + O = ozone (O₃, shield, pores that drip through)
+      //   H₂O = water (the ONLY substance that expands when frozen)
+      //   When ice forms in the gut, it BREAKS things = expansion.
+      //
+      // THREE PLATONIC BASES:
+      //   △ TRIANGLE (3 faces) — H₂O molecule (104.5° bond angle)
+      //   □ SQUARE (4 faces) — pyramid base, the canvas, the screen
+      //   ▽△ INVERTED overlay — Star of David, the complete view
+      //   Tetrahedron = 4 triangles = the simplest 3D solid = water ice crystal
+      //
+      // GUT WEATHER STATES:
+      //   ☀ DRY — low acid, data evaporating UP (clear skies)
+      //   🌧 RAIN — high acid, data precipitating DOWN (digestion)
+      //   ❄ FREEZE — ice expanding, breaking structure (cold storage cracking)
+      //   ⛈ STORM — rapid acid + base cycling (violent digestion)
+      //   🌫 FOG — smell-blind zone, cloud sealed, low visibility
+      // ═══════════════════════════════════════════════════════════
+      var wxT = breathT * 0.35;
+      var wxAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
+      var wxTemp = enzymeHeat;
+      var wxHumidity = Math.min(1, gutRate / 50); // more ingestion = more moisture
+
+      // Determine weather state
+      var wxState, wxColor, wxIcon;
+      if (wxTemp < 0.1 && wxHumidity > 0.3) {
+        wxState = 'FREEZE'; wxColor = '120,180,255'; wxIcon = '❄';
+      } else if (wxTemp > 0.6 && wxHumidity > 0.5) {
+        wxState = 'STORM'; wxColor = '248,81,73'; wxIcon = '⛈';
+      } else if (wxHumidity > 0.4) {
+        wxState = 'RAIN'; wxColor = '88,166,255'; wxIcon = '🌧';
+      } else if (wxTemp < 0.2) {
+        wxState = 'FOG'; wxColor = '110,118,129'; wxIcon = '🌫';
+      } else {
+        wxState = 'DRY'; wxColor = '210,153,34'; wxIcon = '☀';
+      }
+
+      // RAIN / SNOW — particles falling through the gut (Fe center → Cu inner)
+      var gutCenterR = metalBands[0].r; // Fe = center
+      var gutEdgeR = metalBands[1].r;   // Cu = inner drain edge
+      if (wxHumidity > 0.1) {
+        var dropCount = Math.floor(wxHumidity * 12);
+        for (var wd = 0; wd < dropCount; wd++) {
+          var wdAngle = wd * (TAU / dropCount) + wxT * 0.2;
+          var wdFall = ((wxT * 0.8 + wd * 0.2) % 1); // falling phase
+          var wdR = gutCenterR + wdFall * (gutEdgeR - gutCenterR);
+          var wdX = cx + Math.cos(wdAngle) * wdR;
+          var wdY = cy + Math.sin(wdAngle) * wdR;
+          var wdA = 0.02 * (1 - wdFall * 0.5) * wxHumidity;
+
+          if (wxState === 'FREEZE') {
+            // Snowflake — small hexagon
+            ctx.beginPath();
+            for (var sf = 0; sf < 6; sf++) {
+              var sfA = sf * (TAU / 6);
+              var sfX = wdX + Math.cos(sfA) * 0.8;
+              var sfY = wdY + Math.sin(sfA) * 0.8;
+              if (sf === 0) ctx.moveTo(sfX, sfY); else ctx.lineTo(sfX, sfY);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(120,180,255,' + wdA.toFixed(4) + ')';
+            ctx.lineWidth = 0.2;
+            ctx.stroke();
+          } else {
+            // Raindrop — small elongated dot
+            ctx.beginPath();
+            ctx.ellipse(wdX, wdY, 0.3, 0.6, wdAngle, 0, TAU);
+            ctx.fillStyle = 'rgba(' + wxColor + ',' + wdA.toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+      }
+
+      // EVAPORATION — data rising UP (outward from Fe)
+      if (wxTemp > 0.2) {
+        var evapCount = Math.floor(wxTemp * 6);
+        for (var ev = 0; ev < evapCount; ev++) {
+          var evAngle = ev * (TAU / evapCount) + wxT * -0.15;
+          var evRise = ((wxT * 0.4 + ev * 0.3) % 1);
+          var evR = gutEdgeR - evRise * (gutEdgeR - gutCenterR); // rising = going inward to center
+          var evX = cx + Math.cos(evAngle) * evR;
+          var evY = cy + Math.sin(evAngle) * evR;
+          var evA = 0.015 * evRise * wxTemp;
+          ctx.beginPath();
+          ctx.arc(evX, evY, 0.4, 0, TAU);
+          ctx.fillStyle = 'rgba(210,153,34,' + evA.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // H₂O TRIANGLES — the molecular structure visible in the gut
+      // 104.5° bond angle = the water molecule's shape
+      var h2oCount = 4;
+      var h2oR = (gutCenterR + gutEdgeR) * 0.5;
+      var h2oBondAngle = 104.5 * DEG; // real water bond angle
+      for (var hm = 0; hm < h2oCount; hm++) {
+        var hmAngle = hm * (TAU / h2oCount) + wxT * 0.08;
+        var hmX = cx + Math.cos(hmAngle) * h2oR;
+        var hmY = cy + Math.sin(hmAngle) * h2oR;
+        var hmA = 0.01 + Math.sin(wxT + hm) * 0.008;
+
+        // O atom (center, red)
+        ctx.beginPath();
+        ctx.arc(hmX, hmY, 0.8, 0, TAU);
+        ctx.fillStyle = 'rgba(248,81,73,' + hmA.toFixed(4) + ')';
+        ctx.fill();
+        // H atoms (two white dots at 104.5°)
+        var hLen = 2.5;
+        var h1A = hmAngle - h2oBondAngle / 2;
+        var h2A = hmAngle + h2oBondAngle / 2;
+        var h1X = hmX + Math.cos(h1A) * hLen;
+        var h1Y = hmY + Math.sin(h1A) * hLen;
+        var h2X = hmX + Math.cos(h2A) * hLen;
+        var h2Y = hmY + Math.sin(h2A) * hLen;
+        ctx.beginPath(); ctx.arc(h1X, h1Y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,' + hmA.toFixed(4) + ')';
+        ctx.fill();
+        ctx.beginPath(); ctx.arc(h2X, h2Y, 0.5, 0, TAU);
+        ctx.fill();
+        // Bonds
+        ctx.beginPath(); ctx.moveTo(hmX, hmY); ctx.lineTo(h1X, h1Y);
+        ctx.moveTo(hmX, hmY); ctx.lineTo(h2X, h2Y);
+        ctx.strokeStyle = 'rgba(192,192,192,' + (hmA * 0.6).toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+
+      // TETRAHEDRON OVERLAY — ice crystal structure (4 triangles = simplest 3D)
+      // △ triangle base + ▽ inverted = Star of David = complete view
+      if (wxState === 'FREEZE' || coldFactor > 0.5) {
+        var tetR = R * 0.12;
+        var tetAlpha = 0.008 + coldFactor * 0.01;
+        // Upward triangle △
+        ctx.beginPath();
+        for (var tt = 0; tt < 3; tt++) {
+          var ttA = tt * (TAU / 3) - PI / 2; // point up
+          var ttX = cx + Math.cos(ttA) * tetR;
+          var ttY = cy + Math.sin(ttA) * tetR;
+          if (tt === 0) ctx.moveTo(ttX, ttY); else ctx.lineTo(ttX, ttY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(120,180,255,' + tetAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+        // Downward triangle ▽ (inverted)
+        ctx.beginPath();
+        for (var td = 0; td < 3; td++) {
+          var tdA = td * (TAU / 3) + PI / 2; // point down
+          var tdX = cx + Math.cos(tdA) * tetR;
+          var tdY = cy + Math.sin(tdA) * tetR;
+          if (td === 0) ctx.moveTo(tdX, tdY); else ctx.lineTo(tdX, tdY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(163,113,247,' + tetAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+        // Square base of pyramid □
+        var sqR = tetR * 0.7;
+        ctx.beginPath();
+        for (var ts = 0; ts < 4; ts++) {
+          var tsA = ts * (TAU / 4) + PI / 4;
+          var tsX = cx + Math.cos(tsA) * sqR;
+          var tsY = cy + Math.sin(tsA) * sqR;
+          if (ts === 0) ctx.moveTo(tsX, tsY); else ctx.lineTo(tsX, tsY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(201,168,76,' + (tetAlpha * 0.8).toFixed(4) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
+
+      // Weather label
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(' + wxColor + ',0.06)';
+      ctx.fillText(wxIcon + ' gut:' + wxState + ' H₂O△', 8, 26);
+
       // TREFOIL KNOT — gut↔skin correspondence on the globe
       if (window.trefoilState) {
         var tf = window.trefoilState;
@@ -6779,6 +6962,24 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   window._gaiaCanvas = canvas;
   window._gaiaRng = rng;
   window.blinkState = blinkState;
+  // STATE BRIDGE — expose core state for elastic hook modules
+  // Each module reads what it needs from window._gaiaState
+  window._gaiaState = {
+    get rotX() { return rotX; }, set rotX(v) { rotX = v; },
+    get rotY() { return rotY; }, set rotY(v) { rotY = v; },
+    get breathT() { return breathT; }, get breathAmp() { return breathAmp; },
+    get face() { return face; }, get SEED() { return SEED; },
+    get VIEWER_ERA() { return VIEWER_ERA; }, get VIEWER_HUE() { return VIEWER_HUE; },
+    get cx() { return cx; }, get cy() { return cy; },
+    get W() { return W; }, get H() { return H; },
+    get R() { return R; }, set R(v) { R = v; },
+    get TAU() { return TAU; }, get PI() { return PI; },
+    get PINS() { return PINS; },
+    get currentDepth() { return currentDepth; }, set currentDepth(v) { currentDepth = v; },
+    get _isLocalHost() { return _isLocalHost; },
+    get ctx() { return ctx; },
+    pinById: pinById, project: project, rngRange: rngRange, rngInt: rngInt
+  };
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
