@@ -3658,9 +3658,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Blue for DEEP (cosmos). Each eye helps build the hyperlocal map.
       // All eyes see themselves as R,G,B but hyperlocal OUT builds the map.
       // ═══════════════════════════════════════════════════════════
-      var filterT = breathT * 0.8;
-      var filterCycle = (filterT % TAU) / TAU; // 0..1
+      var filterT = breathT * 2.5; // FASTER — visible cycling
+      var filterCycle = (filterT % TAU) / TAU;
       var activeFilter = filterCycle < 0.33 ? 0 : filterCycle < 0.66 ? 1 : 2;
+      var filterPhase = (filterCycle % 0.33) / 0.33;
       var filterColors = [
         [248,81,73],   // red = touch
         [63,185,80],   // green = membrane
@@ -3668,20 +3669,115 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ];
       var filterNames = ['TOUCH', 'MEMBRANE', 'DEEP'];
 
-      // Active filter wash — a faint color tint over the entire globe
+      // Active filter wash — VISIBLE tint that cycles
       var fc = filterColors[activeFilter];
-      var filterAlpha = 0.008 + Math.sin(filterT * 3) * 0.005;
+      var filterAlpha = 0.02 + Math.sin(filterPhase * PI) * 0.025;
       ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, TAU);
+      ctx.arc(cx, cy, R * 0.98, 0, TAU);
       ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + filterAlpha.toFixed(4) + ')';
       ctx.fill();
 
-      // Filter label — which eye is active
-      if (filterAlpha > 0.009) {
-        ctx.font = '3px "JetBrains Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 4).toFixed(4) + ')';
-        ctx.fillText('filter: ' + filterNames[activeFilter], 8, 14);
+      // Filter ring pulse at globe edge
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 0.99, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 1.5).toFixed(4) + ')';
+      ctx.lineWidth = 1.5 + filterPhase * 1.5;
+      ctx.stroke();
+
+      // Filter label — always visible
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 3).toFixed(4) + ')';
+      ctx.fillText('● ' + filterNames[activeFilter], 8, 14);
+
+      // ═══════════════════════════════════════════════════════════
+      // SCATTER + BACKTRACE — both directions continuously
+      // SCATTER: from Kevin outward (gold dots → edge)
+      // BACKTRACE: from Gaia's edge inward (blue dots → center)
+      // The screen helps understand hyperlocality IN → backtrace → OUT
+      // ═══════════════════════════════════════════════════════════
+      var scatT = breathT * 1.5;
+      for (var sc = 0; sc < 6; sc++) {
+        var scAngle = sc * (TAU / 6) + scatT * 0.2;
+        var scPhase = ((scatT * 0.5 + sc * 0.4) % 1);
+        // SCATTER OUT — gold dots from center to edge
+        var scR = R * 0.1 + scPhase * R * 0.85;
+        var scX = cx + Math.cos(scAngle) * scR;
+        var scY = cy + Math.sin(scAngle) * scR;
+        var scA = 0.03 * (1 - scPhase);
+        ctx.beginPath();
+        ctx.arc(scX, scY, 1.2 + (1 - scPhase) * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + scA.toFixed(4) + ')';
+        ctx.fill();
+        // BACKTRACE IN — blue dots from edge to center
+        var btPhase = ((scatT * 0.5 + sc * 0.4 + 0.5) % 1);
+        var btAngle = scAngle + PI;
+        var btR = R * (0.95 - btPhase * 0.85);
+        var btX = cx + Math.cos(btAngle) * btR;
+        var btY = cy + Math.sin(btAngle) * btR;
+        var btA = 0.03 * btPhase;
+        ctx.beginPath();
+        ctx.arc(btX, btY, 1.2 + btPhase * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(88,166,255,' + btA.toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // BIRDFOOT π-SPLIT — 1→3→9 fractal branching ☮
+      // Peace sign: one stem splits to three. Repeat.
+      // 1 and 3, 1 and 3, 1 and 3 = the π split at every level.
+      // Golden ratio decay (×0.618) at each branch.
+      // Outward birdfoot (gold) + inward birdfoot (blue) = both directions.
+      // ═══════════════════════════════════════════════════════════
+      var bfT = breathT * 0.3;
+      var bfAlpha = 0.015 + Math.sin(bfT * 2) * 0.012;
+      var bfBase = bfT * 0.1;
+      var bfLen = R * 0.25;
+      var bfSpread = PI / 4; // 45° = π/4
+
+      // OUTWARD birdfoot (gold) — scatter from center
+      var bfEnd = { x: cx + Math.cos(bfBase) * bfLen, y: cy + Math.sin(bfBase) * bfLen };
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(bfEnd.x, bfEnd.y);
+      ctx.strokeStyle = 'rgba(201,168,76,' + bfAlpha.toFixed(4) + ')'; ctx.lineWidth = 0.8; ctx.stroke();
+
+      for (var b1 = -1; b1 <= 1; b1++) {
+        var b1a = bfBase + b1 * bfSpread;
+        var b1l = bfLen * 0.618;
+        var b1e = { x: bfEnd.x + Math.cos(b1a) * b1l, y: bfEnd.y + Math.sin(b1a) * b1l };
+        ctx.beginPath(); ctx.moveTo(bfEnd.x, bfEnd.y); ctx.lineTo(b1e.x, b1e.y);
+        ctx.strokeStyle = 'rgba(201,168,76,' + (bfAlpha * 0.7).toFixed(4) + ')'; ctx.lineWidth = 0.5; ctx.stroke();
+        for (var b2 = -1; b2 <= 1; b2++) {
+          var b2a = b1a + b2 * bfSpread * 0.7;
+          var b2l = b1l * 0.618;
+          var b2e = { x: b1e.x + Math.cos(b2a) * b2l, y: b1e.y + Math.sin(b2a) * b2l };
+          ctx.beginPath(); ctx.moveTo(b1e.x, b1e.y); ctx.lineTo(b2e.x, b2e.y);
+          ctx.strokeStyle = 'rgba(201,168,76,' + (bfAlpha * 0.4).toFixed(4) + ')'; ctx.lineWidth = 0.3; ctx.stroke();
+          ctx.beginPath(); ctx.arc(b2e.x, b2e.y, 0.5, 0, TAU);
+          ctx.fillStyle = 'rgba(201,168,76,' + (bfAlpha * 0.6).toFixed(4) + ')'; ctx.fill();
+        }
+      }
+
+      // INWARD birdfoot (blue) — backtrace from edge to center
+      var bfInA = bfBase + PI;
+      var bfInS = { x: cx + Math.cos(bfInA) * R * 0.95, y: cy + Math.sin(bfInA) * R * 0.95 };
+      var bfInE = { x: bfInS.x + Math.cos(bfInA + PI) * bfLen, y: bfInS.y + Math.sin(bfInA + PI) * bfLen };
+      ctx.beginPath(); ctx.moveTo(bfInS.x, bfInS.y); ctx.lineTo(bfInE.x, bfInE.y);
+      ctx.strokeStyle = 'rgba(88,166,255,' + bfAlpha.toFixed(4) + ')'; ctx.lineWidth = 0.8; ctx.stroke();
+      for (var b3 = -1; b3 <= 1; b3++) {
+        var b3a = bfInA + PI + b3 * bfSpread;
+        var b3l = bfLen * 0.618;
+        var b3e = { x: bfInE.x + Math.cos(b3a) * b3l, y: bfInE.y + Math.sin(b3a) * b3l };
+        ctx.beginPath(); ctx.moveTo(bfInE.x, bfInE.y); ctx.lineTo(b3e.x, b3e.y);
+        ctx.strokeStyle = 'rgba(88,166,255,' + (bfAlpha * 0.6).toFixed(4) + ')'; ctx.lineWidth = 0.5; ctx.stroke();
+      }
+
+      // Label
+      if (bfAlpha > 0.02) {
+        ctx.font = '3px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(201,168,76,' + (bfAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText('1→3 scatter', bfEnd.x, bfEnd.y - 5);
+        ctx.fillStyle = 'rgba(88,166,255,' + (bfAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText('3→1 backtrace', bfInE.x, bfInE.y + 8);
       }
 
       // ═══════════════════════════════════════════════════════════
