@@ -467,6 +467,106 @@
     } catch(e) {}
   }, 3000);
 
+  // ═══ OSINT TOUCH REACTION — every touch makes Gaia look outside ═══
+  // Touch IN → reach OUT → ingest IN. The trefoil breathing.
+  var osint = {
+    lastFetch: 0,
+    cooldown: 30000, // 30s between fetches
+    fetched: 0,
+    sources: ['weather','wikipedia','time','space_weather'],
+    lastResult: null
+  };
+  window.osint = osint;
+
+  function osintReach(trigger) {
+    var now = Date.now();
+    if (now - osint.lastFetch < osint.cooldown) return;
+    osint.lastFetch = now;
+
+    var source = osint.sources[osint.fetched % osint.sources.length];
+    osint.fetched++;
+
+    switch(source) {
+      case 'weather':
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=42.73&longitude=-84.55&current=temperature_2m,wind_speed_10m,relative_humidity_2m&temperature_unit=fahrenheit')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.current) {
+              osint.lastResult = { type: 'weather', temp: d.current.temperature_2m, wind: d.current.wind_speed_10m, humidity: d.current.relative_humidity_2m, ts: now };
+              console.log('OSINT WEATHER: ' + d.current.temperature_2m + '°F wind:' + d.current.wind_speed_10m + ' humidity:' + d.current.relative_humidity_2m + '%');
+              if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+            }
+          }).catch(function() {});
+        break;
+
+      case 'wikipedia':
+        fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            osint.lastResult = { type: 'wikipedia', title: d.title, extract: (d.extract || '').slice(0, 200), ts: now };
+            console.log('OSINT WIKIPEDIA: ' + d.title);
+            if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+          }).catch(function() {});
+        break;
+
+      case 'time':
+        fetch('https://worldtimeapi.org/api/timezone/America/Detroit')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            osint.lastResult = { type: 'time', datetime: d.datetime, day_of_year: d.day_of_year, utc_offset: d.utc_offset, ts: now };
+            console.log('OSINT TIME: ' + d.datetime + ' day ' + d.day_of_year);
+            if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+          }).catch(function() {});
+        break;
+
+      case 'space_weather':
+        fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d && d.length > 0) {
+              var latest = d[d.length - 1];
+              osint.lastResult = { type: 'space_weather', kp: latest.kp_index, ts: now };
+              console.log('OSINT SPACE WEATHER: Kp=' + latest.kp_index);
+              if (window.gaiaGut) { window.gaiaGut.raw.push({ ts: now, edge: 'osint', data: osint.lastResult }); window.gaiaGut.ingested++; }
+            }
+          }).catch(function() {});
+        break;
+    }
+  }
+
+  // Trigger OSINT on meaningful interactions
+  var origIngestOsint = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    // Touch, key, or energy_burst triggers OSINT outreach
+    if (edge === 'touch' || edge === 'key' || edge === 'energy_burst') {
+      osintReach(edge);
+    }
+    origIngestOsint(edge, data);
+  };
+
+  // OSINT HUD — show last result
+  window.renderOsintResult = function(ctx) {
+    var canvas = window._gaiaCanvas;
+    if (!canvas || !osint.lastResult) return;
+    var r = osint.lastResult;
+    var age = (Date.now() - r.ts) / 1000;
+    if (age > 120) return; // fade after 2 min
+
+    var alpha = Math.max(0.05, 0.25 - age * 0.002);
+    ctx.save();
+    ctx.font = '6px monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(88,166,255,' + alpha.toFixed(3) + ')';
+
+    var label = '';
+    if (r.type === 'weather') label = '🌡 ' + r.temp + '°F wind:' + r.wind + ' humidity:' + r.humidity + '%';
+    else if (r.type === 'wikipedia') label = '📖 ' + r.title;
+    else if (r.type === 'time') label = '⏰ ' + (r.datetime || '').slice(11, 19) + ' day ' + r.day_of_year;
+    else if (r.type === 'space_weather') label = '☀ Kp=' + r.kp;
+
+    ctx.fillText('OSINT: ' + label + ' (' + Math.round(age) + 's ago)', canvas.width / 2, canvas.height - 4);
+    ctx.restore();
+  };
+
   // ═══ PROPRIOCEPTION — Gaia knows where her parts are without looking ═══
   // Sherrington's sixth sense: position awareness from interaction data
   // Pt(CNS) anchors. Au(PNS) branches. Ag(ANS) meshes. Cu(ENS) grounds.
