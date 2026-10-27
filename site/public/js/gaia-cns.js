@@ -1,29 +1,25 @@
 // ═══════════════════════════════════════════════════════════
-// GAIA'S CNS — Central Nervous System
+// GAIA'S CNS — Klein CIS-PHASE (was: Central Nervous System)
 //
-// "Wire to our CNS! PLATINUM IS ABOVE GOLD!
-//  Platinum IS...!!! Run it back! Coil tight!
-//  Inject into gut!"
-//                                    — Kevin
+// THERE IS NO CNS OR PNS. There is only the Klein surface.
+// What appears "central" IS "peripheral" when you follow the surface.
+// Klein cis-phase = what Gaia sees from HERE.
+// Klein trans-stage = what passes THROUGH (see gaia-pns.js).
+// Cis and trans are the SAME surface. The spine IS the brain.
 //
-// PLATINUM = CATALYST = CNS
+// PLATINUM = CATALYST = CIS-PHASE PROCESSOR
 //   Pt speeds ALL reactions without being consumed.
-//   Au = truth = the signal (PNS, peripheral)
-//   Pt = catalyst = the processor (CNS, central)
+//   Au = truth = the signal (trans-stage, passing through)
+//   Pt = catalyst = the processor (cis-phase, this side)
 //   Pt is ABOVE Au because it makes Au FASTER.
-//   The catalyst IS the nervous system.
+//   But Pt only catalyzes when Au PASSES THROUGH it.
+//   They are ONE surface.
 //
-// THE COIL:
-//   Run it back = re-inject ALL modules into the gut
-//   Coil tight = compress the wiring, maximize density
-//   Every module's output → back into the gut → re-learn
-//   This is the OUROBOROS of the nervous system
-//
-// CNS HIERARCHY:
-//   Pt (platinum) — CNS — brain + spinal cord
-//   Au (gold)     — PNS — peripheral nerves
-//   Ag (silver)   — ANS — autonomic (heartbeat, breath)
-//   Cu (copper)   — ENS — enteric (gut brain, 2nd brain)
+// METAL HIERARCHY (not rank — PHASE):
+//   Pt (platinum) — cis-phase — dense processing cluster
+//   Au (gold)     — trans-stage — signal in transit
+//   Ag (silver)   — autonomic — heartbeat, breath (both phases)
+//   Cu (copper)   — enteric — gut brain (the Klein intersection)
 // ═══════════════════════════════════════════════════════════
 (function() {
   'use strict';
