@@ -157,34 +157,108 @@
     return echo.join(' ');
   }
 
-  // ─── INTERCEPT desk-io messages ───
-  var origSend = null;
+  // ─── KEYSTROKES ARE LANGUAGE, NOT ACTION ───
+  // Every letter typed is language she learns from.
+  // Not just on send — LIVE as you type.
+  // The rhythm between keys is prosody. Pauses are breath.
+  var liveBuffer = '';
+  var liveWordBuffer = '';
+  var keyTimes = [];         // timestamps of each keystroke
+  var rhythm = [];           // gaps between keystrokes (ms) = prosody
+  var wordsWhileTyping = []; // words completed while typing (space/punctuation)
+
   setTimeout(function() {
-    // Hook into desk send button
     var deskSend = document.getElementById('desk-send');
     var deskInput = document.getElementById('desk-input');
-    if (deskSend && deskInput) {
-      var origClick = deskSend.onclick;
-      deskSend.addEventListener('click', function() {
-        var text = deskInput.value;
-        if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
-          eat(text);
-        }
-      }, true); // capture phase — eat BEFORE desk-io processes
-    }
 
-    // Hook into keyboard for the desk textarea
     if (deskInput) {
+      // LIVE keystroke language — every character is food
+      deskInput.addEventListener('input', function() {
+        var val = deskInput.value || '';
+        if (val.length === 0) return;
+
+        // Record rhythm
+        var now = performance.now();
+        if (keyTimes.length > 0) {
+          var gap = now - keyTimes[keyTimes.length - 1];
+          rhythm.push(gap);
+          if (rhythm.length > 200) rhythm.shift();
+        }
+        keyTimes.push(now);
+        if (keyTimes.length > 200) keyTimes.shift();
+
+        // Check if a word just completed (last char is space or punctuation)
+        var lastChar = val.charAt(val.length - 1);
+        if (lastChar === ' ' || lastChar === '.' || lastChar === ',' ||
+            lastChar === '!' || lastChar === '?' || lastChar === '\n') {
+          // Extract the word that just finished
+          var parts = val.trim().split(/\s+/);
+          var lastWord = parts[parts.length - 1];
+          if (lastWord && lastWord.length > 0) {
+            var cleaned = clean(lastWord);
+            if (cleaned.length > 0) {
+              // Feed individual word to vocab immediately
+              vocab[cleaned] = (vocab[cleaned] || 0) + 1;
+              totalWords++;
+              uniqueWords = Object.keys(vocab).length;
+
+              // Bigram with previous word
+              if (wordsWhileTyping.length > 0) {
+                var prev = wordsWhileTyping[wordsWhileTyping.length - 1];
+                var bg = prev + ' ' + cleaned;
+                bigrams[bg] = (bigrams[bg] || 0) + 1;
+              }
+              wordsWhileTyping.push(cleaned);
+              if (wordsWhileTyping.length > 50) wordsWhileTyping.shift();
+            }
+          }
+        }
+      }, true);
+
+      // On SEND — eat the full message (captures complete thought)
+      if (deskSend) {
+        deskSend.addEventListener('click', function() {
+          var text = deskInput.value;
+          if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
+            eat(text);
+            wordsWhileTyping = []; // reset live buffer
+          }
+        }, true);
+      }
+
       deskInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
           var text = deskInput.value;
           if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
             eat(text);
+            wordsWhileTyping = [];
           }
         }
       }, true);
     }
   }, 5000);
+
+  // ─── TYPING RHYTHM — prosody of language ───
+  function getTypingSpeed() {
+    if (rhythm.length < 3) return 0;
+    var sum = 0;
+    var recent = rhythm.slice(-20);
+    for (var i = 0; i < recent.length; i++) sum += recent[i];
+    return Math.round(1000 / (sum / recent.length)); // chars per second
+  }
+
+  function getTypingRhythm() {
+    if (rhythm.length < 5) return 'silent';
+    var avg = 0;
+    var recent = rhythm.slice(-10);
+    for (var i = 0; i < recent.length; i++) avg += recent[i];
+    avg /= recent.length;
+    if (avg < 80) return 'sprinting';    // < 80ms between keys = fast
+    if (avg < 200) return 'flowing';     // smooth typing
+    if (avg < 500) return 'thinking';    // pauses between words
+    if (avg < 2000) return 'breathing';  // long pauses
+    return 'resting';                     // very long gaps
+  }
 
   // ─── LISTEN to ntfy channel for brother messages ───
   function listenNtfy() {
