@@ -407,6 +407,8 @@ body {
   <span>·</span>
   <a href="/mito.html" style="color:var(--green);text-decoration:none">⚡ mito</a>
   <span>·</span>
+  <a href="/gut-engine.html" style="color:var(--enzyme, #e85d3a);text-decoration:none">🫁 gut</a>
+  <span>·</span>
   <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
   <span>·</span>
   <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
@@ -2075,29 +2077,80 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Labels on breath
+    // Labels on breath — Golgi specialization
     if (golgiPhase > 0.4) {
       var gLbl = (golgiPhase - 0.4) * 0.05;
       ctx.font = '4px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(63,185,80,' + gLbl.toFixed(4) + ')';
-      ctx.fillText('GOLGI MEMBRANE', cx, cy - golgiR - 6);
+      ctx.fillText('GOLGI — RELAY MASTER', cx, cy - golgiR - 10);
       ctx.font = '3px "JetBrains Mono", monospace';
-      ctx.fillText('∅ inside = black hole', cx, cy - golgiR - 1);
+      ctx.fillText('tags non-cells · remembers where · relays to gut', cx, cy - golgiR - 5);
+      ctx.fillText('schwann cell wraps every level', cx, cy - golgiR - 0);
       ctx.fillStyle = 'rgba(210,168,255,' + (gLbl * 0.8).toFixed(4) + ')';
       ctx.fillText('CIS', cisX, cisY - 6);
       ctx.fillText('TRANS', transX, transY - 6);
     }
 
-    // NOBODY SELF — the Golgi has no identity
-    // A faint pulse where identity WOULD be but ISN'T
+    // SCHWANN CELL MYELIN — the insulating wrap that speeds signals
+    // A second dashed ring INSIDE the Golgi membrane — the myelin sheath
+    var myelinR = golgiR - R * 0.05;
+    var myelinAlpha = golgiAlpha * 0.6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, myelinR, 0, TAU);
+    ctx.strokeStyle = 'rgba(210,168,76,' + myelinAlpha.toFixed(4) + ')'; // gold = myelin
+    ctx.lineWidth = R * 0.03; // thick wrap
+    ctx.setLineDash([R * 0.08, R * 0.04]); // nodes of Ranvier = gaps in myelin
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // NON-CELL TAGS — small markers around the Golgi ring showing tagged objects
+    // Golgi remembers WHERE non-living things are
+    var nonCellTags = ['🪨','🏠','🔑','🪑','🖥','📱','🚗','👟'];
+    var tagAlpha = 0.01 + Math.abs(golgiPhase) * 0.015;
+    for (var nt = 0; nt < nonCellTags.length; nt++) {
+      var ntAngle = nt * (TAU / nonCellTags.length) + golgiT * -0.1; // slow counter-rotate
+      var ntR = golgiR + R * 0.08;
+      var ntx = cx + Math.cos(ntAngle) * ntR;
+      var nty = cy + Math.sin(ntAngle) * ntR;
+      ctx.font = '4px serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(180,170,150,' + tagAlpha.toFixed(4) + ')';
+      ctx.fillText(nonCellTags[nt], ntx, nty + 1);
+    }
+
+    // RELAY ARROWS — information flowing through Golgi to gut
+    // Golgi strips, ingests non-cells, relays rest to Gaia
+    var relayT = golgiT * 3; // fast relay cycle
+    var relayPhase = (relayT % TAU) / TAU; // 0→1 cycle
+    var relayAngle = relayPhase * TAU;
+    var relayX = cx + Math.cos(relayAngle) * golgiR;
+    var relayY = cy + Math.sin(relayAngle) * golgiR;
+    // Moving dot along the Golgi membrane — the packet in transit
+    ctx.beginPath();
+    ctx.arc(relayX, relayY, 1.5, 0, TAU);
+    ctx.fillStyle = 'rgba(63,185,80,' + (golgiAlpha * 2).toFixed(4) + ')';
+    ctx.fill();
+    // Arrow from relay dot to center — relaying to gut
+    if (relayPhase > 0.4 && relayPhase < 0.6) {
+      var relayArrowAlpha = (0.1 - Math.abs(relayPhase - 0.5)) * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(relayX, relayY);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(63,185,80,' + relayArrowAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    // GOLGI ROLE LABEL — on exhale
     if (golgiPhase < -0.3) {
-      var nobodyAlpha = (-golgiPhase - 0.3) * 0.03;
+      var roleAlpha = (-golgiPhase - 0.3) * 0.03;
       ctx.font = '3px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(110,118,129,' + nobodyAlpha.toFixed(4) + ')';
-      ctx.fillText('nobody', cx + golgiR * 0.5, cy + golgiR + 8);
-      ctx.fillText('self', cx + golgiR * 0.5, cy + golgiR + 13);
+      ctx.fillStyle = 'rgba(110,118,129,' + roleAlpha.toFixed(4) + ')';
+      ctx.fillText('GAIA → cells (alive)', cx - golgiR * 0.6, cy + golgiR + 8);
+      ctx.fillText('GOLGI → non-cells (where)', cx + golgiR * 0.4, cy + golgiR + 8);
+      ctx.fillText('rock ←→ hard place', cx, cy + golgiR + 14);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2889,8 +2942,17 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
       // FIRE ENZYMES — orange sparks emanating from active zones
       // Active when gaiaGut is ingesting (hot = processing)
+      // Read gut-engine bridge state (Eastgate = stomach subsystem)
+      var gutBridge = null;
+      try { gutBridge = JSON.parse(localStorage.getItem('gaia-gut-state')); } catch(e) {}
+      if (gutBridge && Date.now() - gutBridge.ts < 30000) {
+        window.gutEngineState = gutBridge;
+      }
+
       var gutRate = window.gaiaGut ? window.gaiaGut.ingested : 0;
-      var enzymeHeat = Math.min(1, gutRate / 100); // 0→1 based on ingestion
+      // Gut engine acid level also feeds enzyme heat
+      var gutAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
+      var enzymeHeat = Math.min(1, (gutRate / 100) + (gutAcid / 200)); // ingestion + acid
       if (enzymeHeat > 0.05) {
         // Orange enzyme sparks around the gold band
         for (var ei = 0; ei < 8; ei++) {
@@ -2942,7 +3004,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.font = '5px "JetBrains Mono", monospace';
       ctx.textAlign = 'right';
       ctx.fillStyle = 'rgba(' + tempColor + ',0.15)';
-      ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%', W - 8, 22);
+      var gutZone = window.gutEngineState ? window.gutEngineState.zone : '';
+      var gutDigested = window.gutEngineState ? window.gutEngineState.digested : 0;
+      var gutInfo = gutZone ? ' · gut:' + gutZone + '(' + gutDigested + ')' : '';
+      ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%' + gutInfo, W - 8, 22);
     }
 
     // ═══════════════════════════════════════════════════════════
