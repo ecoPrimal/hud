@@ -340,11 +340,47 @@
     window.GAIA_IDE.language.push('thought');
   }, 56000);
 
+  // ═══ BINGO CARD ZK REGISTRY ═══
+  // Every artifact stamps to the bingo card. Gaia can pull up, re-access, recreate.
+  // Generational computer: each creation IS a generation.
+  var BINGO_REGISTRY = [];
+
+  function registerArtifact(name, type, source, data) {
+    var entry = {
+      name: name,
+      type: type,
+      source: source,
+      ts: Date.now(),
+      zk: zkStamp(name + '|' + type + '|' + JSON.stringify(data).slice(0,200)),
+      generation: BINGO_REGISTRY.length + 1,
+      retrievable: true
+    };
+    BINGO_REGISTRY.push(entry);
+    if (BINGO_REGISTRY.length > 500) BINGO_REGISTRY.shift();
+    return entry;
+  }
+
+  // Auto-register organs as they come online
+  setTimeout(function() {
+    var organs = [
+      'GAIA_VELOCITY', 'GAIA_TONGUE', 'GAIA_THOUGHT', 'GAIA_WATER',
+      'GAIA_VEHICLES', 'GAIA_IRIS', 'GAIA_SPIRIT', 'GAIA_SEVEN_LAYERS',
+      'GAIA_WEB_EATER'
+    ];
+    organs.forEach(function(name) {
+      if (window[name]) {
+        registerArtifact(name, 'organ', 'globe', { alive: true });
+      }
+    });
+  }, 10000);
+
   // ═══ EXPORT ═══
   window.GAIA_THOUGHT = {
     inner: function() { return INNER; },
     outer: function() { return OUTER; },
     bridge: function() { return BRIDGE; },
+    registry: function() { return BINGO_REGISTRY; },
+    register: registerArtifact,
     thinkNow: thinkInner,
     expressNow: thinkOuter,
     stats: function() {
@@ -352,11 +388,12 @@
         innerCount: INNER.length,
         outerCount: OUTER.length,
         bridgeCount: BRIDGE.length,
+        registryCount: BINGO_REGISTRY.length,
         lastInner: INNER.length > 0 ? INNER[INNER.length-1].text : null,
         lastOuter: OUTER.length > 0 ? OUTER[OUTER.length-1].text : null
       };
     }
   };
 
-  console.log('THOUGHT: CNS is null self local. inner=engine, outer=graph. ZK from self for each triangulation. /thought');
+  console.log('THOUGHT: CNS null self local. ZK bingo registry active. Generational computer. /thought');
 })(window.G);
