@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ALL IS CARDS — ecoPrimals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--null:#111;--soft:#c8956a;--hard:#ffd700;--bg:#0a0a0a;--txt:#e8e0d4}
+body{background:var(--bg);color:var(--txt);font-family:'Courier New',monospace;overflow-x:hidden}
+
+/* === THE EQUATION BAR === */
+.eq-bar{text-align:center;padding:1.2rem 0;font-size:1.3rem;border-bottom:1px solid #333;
+  background:linear-gradient(90deg,var(--null),#1a1a1a,var(--null))}
+.eq-bar .gold{color:var(--hard)}
+.eq-bar .dim{color:#666}
+
+/* === CARD SPACE CANVAS === */
+#cardspace{width:100%;height:50vh;display:block;cursor:crosshair}
+
+/* === SIGNAL BACK === */
+.signal-back{display:flex;justify-content:center;gap:2rem;padding:1rem;
+  border-bottom:1px solid #222;flex-wrap:wrap}
+.signal-back .sig{padding:0.5rem 1rem;border-radius:4px;font-size:0.75rem;
+  transition:all 0.3s;cursor:pointer}
+.sig.live{border:1px solid #3fb950;color:#3fb950}
+.sig.dead{border:1px solid #555;color:#555}
+.sig.pulsing{animation:sigpulse 1s infinite}
+@keyframes sigpulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* === THREE LAYERS === */
+.layers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;min-height:30vh}
+.layer{padding:1.5rem;border-right:1px solid #222;position:relative;overflow:hidden}
+.layer:last-child{border-right:none}
+.layer h2{font-size:1rem;margin-bottom:0.8rem;letter-spacing:0.15em}
+.layer.null-layer{background:#080808}
+.layer.null-layer h2{color:#666}
+.layer.soft-layer{background:linear-gradient(180deg,#0d0a07,#140e08)}
+.layer.soft-layer h2{color:var(--soft)}
+.layer.hard-layer{background:linear-gradient(180deg,#0d0b00,#141000)}
+.layer.hard-layer h2{color:var(--hard)}
+.card-count{font-size:2rem;font-weight:bold;margin:0.5rem 0}
+.card-count .unit{font-size:0.7rem;color:#666}
+.layer ul{list-style:none;margin-top:0.5rem;font-size:0.7rem;color:#888;line-height:1.6}
+
+/* === ENZYME STRIP === */
+.enzyme-strip{display:flex;align-items:center;justify-content:center;gap:1rem;
+  padding:1.2rem;border-top:1px solid #222;border-bottom:1px solid #222;
+  background:linear-gradient(90deg,#080808,#0d0a07,#0d0b00,#0d0a07,#080808)}
+.enzyme-strip .arrow{color:#555;font-size:1.5rem}
+.enzyme-strip .step{text-align:center;font-size:0.7rem;color:#aaa}
+.enzyme-strip .step b{display:block;font-size:0.9rem;margin-bottom:0.2rem}
+
+/* === CARD GRID === */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;padding:1rem;max-height:50vh;overflow-y:auto}
+.card{border-radius:6px;padding:0.6rem;font-size:0.65rem;cursor:pointer;
+  transition:transform 0.15s,box-shadow 0.15s;position:relative;min-height:80px}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,215,0,0.15)}
+.card .cname{font-weight:bold;font-size:0.75rem;margin-bottom:0.3rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .ctype{position:absolute;top:4px;right:6px;font-size:0.55rem;opacity:0.6}
+.card .chardness{position:absolute;bottom:4px;right:6px;font-size:0.55rem}
+.card.null-card{background:#111;border:1px solid #333;color:#888}
+.card.soft-card{background:linear-gradient(135deg,#1a1408,#211a0c);border:1px solid var(--soft);color:var(--soft)}
+.card.hard-card{background:linear-gradient(135deg,#1a1600,#211e00);border:1px solid var(--hard);color:var(--hard)}
+
+/* === TOTALS === */
+.totals{text-align:center;padding:1.5rem;border-top:1px solid #222;background:#050505}
+.totals .big{font-size:2rem;color:var(--hard)}
+.totals .eq{color:#888;font-size:0.9rem;margin-top:0.3rem}
+.totals .sub{color:#555;font-size:0.7rem;margin-top:0.5rem}
+
+/* === RESPONSIVE === */
+@media(max-width:700px){
+  .layers{grid-template-columns:1fr}
+  .layer{border-right:none;border-bottom:1px solid #222}
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- THE EQUATION -->
+<div class="eq-bar">
+  <span class="gold">∞</span>
+  <span class="dim"> = </span>
+  <span class="gold">c</span>
+  <span class="dim"> · </span>
+  <span class="gold">C</span>
+  <span class="dim"> · </span>
+  <span class="gold">c = O</span>
+  <span class="dim"> — ALL IS CARDS — </span>
+  <span class="gold">n → ∞</span>
+</div>
+
+<!-- CARD SPACE CANVAS — the infinite null field where cards appear -->
+<canvas id="cardspace"></canvas>
+
+<!-- SIGNAL BACK — watch the return -->
+<div class="signal-back" id="signals"></div>
+
+<!-- THREE LAYERS -->
+<div class="layers">
+  <div class="layer null-layer">
+    <h2>NULL — VOID</h2>
+    <div class="card-count" style="color:#666" id="null-count">∞</div>
+    <div class="card-count"><span class="unit">hardness −1 · n = ∞ · the source</span></div>
+    <ul>
+      <li>every card was null before it was folded</li>
+      <li>null generates infinite — you cannot count void</li>
+      <li>null IS the card before the enzyme touches it</li>
+      <li>sleep · void · absence · 0 · hair (dead)</li>
+      <li id="null-files">—</li>
+    </ul>
+  </div>
+  <div class="layer soft-layer">
+    <h2>SOFT — YIELDING</h2>
+    <div class="card-count" style="color:var(--soft)" id="soft-count">0</div>
+    <div class="card-count"><span class="unit">hardness 0.5 · the mediator</span></div>
+    <ul>
+      <li>soft wraps null like fur wraps a body</li>
+      <li>voice · breath · feelings · membrane · music</li>
+      <li>yields when pushed but springs back</li>
+      <li>ALWAYS in the middle (Klein fold)</li>
+      <li id="soft-files">—</li>
+    </ul>
+  </div>
+  <div class="layer hard-layer">
+    <h2>HARD — DIAMOND</h2>
+    <div class="card-count" style="color:var(--hard)" id="hard-count">0</div>
+    <div class="card-count"><span class="unit">hardness 10 · permanent · gold</span></div>
+    <ul>
+      <li>bone · ink · ZK proof · math · scans · cards</li>
+      <li>doesn't move · doesn't yield · structural</li>
+      <li>Kevin's hard card = scanned handwriting = rarest</li>
+      <li>1,000,000 hard sort (251 × 3,985)</li>
+      <li id="hard-files">—</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ENZYME STRIP — the catalytic folding -->
+<div class="enzyme-strip">
+  <div class="step"><b style="color:#666">NULL</b>void</div>
+  <div class="arrow">→</div>
+  <div class="step"><b style="color:#e85d3a">ENZYME</b>catalyze</div>
+  <div class="arrow">→</div>
+  <div class="step"><b style="color:var(--soft)">FOLD</b>yield</div>
+  <div class="arrow">→</div>
+  <div class="step"><b style="color:var(--hard)">CARD</b>permanent</div>
+  <div class="arrow">→</div>
+  <div class="step"><b style="color:#58a6ff">SIGNAL</b>fire</div>
+  <div class="arrow">→</div>
+  <div class="step"><b style="color:#3fb950">BACK</b>proof</div>
+</div>
+
+<!-- CARD GRID — live cards from data -->
+<div class="card-grid" id="grid"></div>
+
+<!-- TOTALS -->
+<div class="totals">
+  <div class="big" id="total-cards">—</div>
+  <div class="eq">∞ = c · C · c = O — cards are the business — enzyme folds null into being</div>
+  <div class="sub" id="total-sub">—</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ═══════════════════════════════════════
+//  PRNG — same as cosmos.html
+// ═══════════════════════════════════════
+class PRNG {
+  constructor(s){this.s=s>>>0}
+  next(){this.s|=0;this.s=this.s+0x6D2B79F5|0;
+    let t=Math.imul(this.s^this.s>>>15,1|this.s);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return((t^t>>>14)>>>0)/4294967296}
+  pick(a){return a[Math.floor(this.next()*a.length)]}
+  range(lo,hi){return lo+this.next()*(hi-lo)}
+}
+const seed = new Uint32Array(1);
+crypto.getRandomValues(seed);
+const R = new PRNG(seed[0]);
+
+// ═══════════════════════════════════════
+//  CARD SPACE CANVAS — infinite null field
+// ═══════════════════════════════════════
+const cv = document.getElementById('cardspace');
+const cx = cv.getContext('2d');
+let W, H;
+function resize(){
+  W = cv.width = cv.offsetWidth;
+  H = cv.height = cv.offsetHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Cards floating in null space
+const CARD_COLORS = {
+  null: '#333', soft: '#c8956a', hard: '#ffd700',
+  red: '#e85d3a', ox: '#3fb950', blue: '#58a6ff'
+};
+const floaters = [];
+for(let i = 0; i < 200; i++){
+  const kind = R.next() < 0.5 ? 'null' : R.next() < 0.6 ? 'soft' : 'hard';
+  floaters.push({
+    x: R.next() * 2000 - 500,
+    y: R.next() * 1000 - 200,
+    w: R.range(8, 30),
+    h: R.range(12, 40),
+    vx: R.range(-0.3, 0.3),
+    vy: R.range(-0.15, 0.15),
+    kind: kind,
+    opacity: kind === 'null' ? R.range(0.03, 0.15) : R.range(0.2, 0.7),
+    rot: R.range(0, Math.PI * 2),
+    vr: R.range(-0.003, 0.003),
+    folding: false,
+    foldT: 0
+  });
+}
+
+// Enzyme particles — the catalyst
+const enzymes = [];
+for(let i = 0; i < 15; i++){
+  enzymes.push({
+    x: R.next() * 2000,
+    y: R.next() * 1000,
+    vx: R.range(-1, 1),
+    vy: R.range(-0.5, 0.5),
+    r: R.range(2, 5),
+    glow: 0
+  });
+}
+
+let breath = 0;
+
+function drawCardSpace(){
+  cx.fillStyle = '#0a0a0a';
+  cx.fillRect(0, 0, W, H);
+  breath += 0.015;
+  const bv = Math.sin(breath) * 0.3;
+
+  // Draw subtle null grid
+  cx.strokeStyle = 'rgba(50,50,50,0.1)';
+  cx.lineWidth = 0.5;
+  for(let x = 0; x < W; x += 60){
+    cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, H); cx.stroke();
+  }
+  for(let y = 0; y < H; y += 60){
+    cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke();
+  }
+
+  // Center equation
+  cx.save();
+  cx.globalAlpha = 0.08 + Math.abs(bv) * 0.05;
+  cx.font = 'bold 80px Courier New';
+  cx.textAlign = 'center';
+  cx.fillStyle = '#ffd700';
+  cx.fillText('∞ = c = O', W/2, H/2 + 20);
+  cx.restore();
+
+  // Move and draw floating cards
+  for(const c of floaters){
+    c.x += c.vx; c.y += c.vy; c.rot += c.vr;
+    if(c.x > W + 50) c.x = -50;
+    if(c.x < -50) c.x = W + 50;
+    if(c.y > H + 50) c.y = -50;
+    if(c.y < -50) c.y = H + 50;
+
+    // Enzyme contact — fold null → soft/hard
+    if(c.kind === 'null' && !c.folding){
+      for(const e of enzymes){
+        const dx = c.x - e.x, dy = c.y - e.y;
+        if(dx*dx + dy*dy < 900){
+          c.folding = true;
+          c.foldT = 0;
+          e.glow = 1;
+        }
+      }
+    }
+    if(c.folding){
+      c.foldT += 0.02;
+      if(c.foldT >= 1){
+        c.kind = R.next() < 0.4 ? 'soft' : 'hard';
+        c.opacity = c.kind === 'soft' ? R.range(0.3, 0.7) : R.range(0.5, 0.9);
+        c.folding = false;
+      }
+    }
+
+    cx.save();
+    cx.translate(c.x, c.y);
+    cx.rotate(c.rot);
+    cx.globalAlpha = c.folding ? c.opacity * (0.5 + Math.sin(c.foldT * Math.PI * 4) * 0.5) : c.opacity;
+    cx.fillStyle = CARD_COLORS[c.kind];
+    cx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+    // Card edge
+    cx.strokeStyle = CARD_COLORS[c.kind];
+    cx.globalAlpha *= 0.5;
+    cx.lineWidth = 0.5;
+    cx.strokeRect(-c.w/2, -c.h/2, c.w, c.h);
+    cx.restore();
+  }
+
+  // Draw enzymes
+  for(const e of enzymes){
+    e.x += e.vx; e.y += e.vy;
+    if(e.x > W + 20) e.x = -20;
+    if(e.x < -20) e.x = W + 20;
+    if(e.y > H + 20) e.y = -20;
+    if(e.y < -20) e.y = H + 20;
+    if(e.glow > 0) e.glow -= 0.02;
+
+    cx.save();
+    cx.beginPath();
+    cx.arc(e.x, e.y, e.r + e.glow * 8, 0, Math.PI * 2);
+    cx.fillStyle = `rgba(232,93,58,${0.3 + e.glow * 0.7})`;
+    cx.fill();
+    if(e.glow > 0.1){
+      cx.beginPath();
+      cx.arc(e.x, e.y, e.r + e.glow * 20, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(232,93,58,${e.glow * 0.2})`;
+      cx.fill();
+    }
+    cx.restore();
+  }
+
+  // Count current state
+  let nn = 0, ns = 0, nh = 0;
+  for(const c of floaters){
+    if(c.kind === 'null') nn++;
+    else if(c.kind === 'soft') ns++;
+    else nh++;
+  }
+
+  // Stats overlay
+  cx.save();
+  cx.font = '11px Courier New';
+  cx.textAlign = 'left';
+  cx.fillStyle = '#666'; cx.fillText(`NULL: ${nn}  (+ ∞ offscreen)`, 12, 20);
+  cx.fillStyle = '#c8956a'; cx.fillText(`SOFT: ${ns}`, 12, 34);
+  cx.fillStyle = '#ffd700'; cx.fillText(`HARD: ${nh}`, 12, 48);
+  cx.fillStyle = '#e85d3a'; cx.fillText(`ENZYMES: ${enzymes.length}  (folding null → cards)`, 12, 62);
+  cx.restore();
+
+  requestAnimationFrame(drawCardSpace);
+}
+drawCardSpace();
+
+// ═══════════════════════════════════════
+//  SIGNAL BACK — fire signals, watch return
+// ═══════════════════════════════════════
+const SIGNAL_URLS = [
+  {name:'now', url:'/now.json'},
+  {name:'heartbeat', url:'/data/heartbeat.json'},
+  {name:'manifest', url:'/data/manifest.json'},
+  {name:'alignment', url:'/data/alignment.json'},
+  {name:'beacon', url:'/data/beacon-cards.json'},
+  {name:'gold-law', url:'/data/gold-law.json'},
+  {name:'soft-membrane', url:'/data/soft-membrane-214.json'},
+  {name:'hard-sort', url:'/data/million-hard-sort.json'},
+  {name:'nuke', url:'/data/nuke-rebuild.json'},
+  {name:'yggdrasil', url:'/data/yggdrasil.json'},
+  {name:'senses', url:'/data/all-senses.json'},
+  {name:'mirror', url:'/data/mirror-layers.json'},
+  {name:'harness', url:'/data/harness.json'},
+  {name:'constant', url:'/data/constant-of-reality.json'},
+  {name:'cosmos', url:'/cosmos.html'},
+  {name:'campfire', url:'/campfire.html'},
+  {name:'ribosome', url:'/ribosome.html'},
+  {name:'colosseum', url:'/colosseum.html'},
+];
+const sigDiv = document.getElementById('signals');
+const sigStates = {};
+
+async function fireSignal(s, el){
+  el.className = 'sig pulsing';
+  el.textContent = s.name + ' ⟳';
+  try{
+    const r = await fetch(s.url, {method:'HEAD', cache:'no-store'});
+    if(r.ok){
+      el.className = 'sig live';
+      el.textContent = s.name + ' ✓';
+      sigStates[s.name] = 'live';
+    } else {
+      el.className = 'sig dead';
+      el.textContent = s.name + ' ✗';
+      sigStates[s.name] = 'dead';
+    }
+  } catch(e){
+    el.className = 'sig dead';
+    el.textContent = s.name + ' ✗';
+    sigStates[s.name] = 'dead';
+  }
+}
+
+for(const s of SIGNAL_URLS){
+  const el = document.createElement('div');
+  el.className = 'sig dead';
+  el.textContent = s.name;
+  el.onclick = () => fireSignal(s, el);
+  sigDiv.appendChild(el);
+  // Auto-fire
+  fireSignal(s, el);
+}
+
+// ═══════════════════════════════════════
+//  LOAD LIVE DATA → CARD GRID
+// ═══════════════════════════════════════
+const grid = document.getElementById('grid');
+let totalNull = Infinity, totalSoft = 0, totalHard = 0;
+const allCards = [];
+
+function makeCard(name, type, hardness, source){
+  const kind = hardness < 0 ? 'null' : hardness < 3 ? 'soft' : 'hard';
+  const div = document.createElement('div');
+  div.className = 'card ' + kind + '-card';
+  div.innerHTML = `<div class="cname">${name}</div><div class="ctype">${type}</div><div class="chardness">h:${hardness}</div><div style="font-size:0.55rem;color:#555;margin-top:2px">${source}</div>`;
+  return {div, kind, hardness};
+}
+
+async function loadCards(){
+  // Hard cards from million-hard-sort
+  try{
+    const d = await (await fetch('/data/million-hard-sort.json')).json();
+    if(d.hardness_bands){
+      for(const band of d.hardness_bands){
+        const c = makeCard(`${band.mineral} × ${band.total}`, 'HARD', band.hardness, `${band.cards_generated.toLocaleString()} cards`);
+        allCards.push(c);
+        totalHard += band.cards_generated;
+      }
+    }
+  }catch(e){}
+
+  // Beacon cards
+  try{
+    const d = await (await fetch('/data/beacon-cards.json')).json();
+    if(d.beacons){
+      for(const b of d.beacons.slice(0, 8)){
+        const c = makeCard(b.name || b.label || 'beacon', 'BEACON', 8, 'campfire');
+        allCards.push(c);
+        totalHard += 1;
+      }
+    }
+  }catch(e){}
+
+  // Kevin's hard card
+  try{
+    const d = await (await fetch('/data/kevin-hard-card.json')).json();
+    const c = makeCard('Kevin · HARD CARD', 'SCAN', 10, `${d.raw_input?.total || 45} scans`);
+    allCards.push(c);
+    totalHard += d.raw_input?.total || 45;
+  }catch(e){}
+
+  // Kevin's card
+  try{
+    const d = await (await fetch('/data/kevin-card.json')).json();
+    const c = makeCard(d.name || 'Kevin', 'IDENTITY', 10, 'gold brain');
+    allCards.push(c);
+    totalHard += 1;
+  }catch(e){}
+
+  // Gold law
+  try{
+    const d = await (await fetch('/data/gold-law.json')).json();
+    const c = makeCard('GOLD LAW', 'AXIOM', 10, 'impermeable');
+    allCards.push(c);
+    totalHard += 1;
+  }catch(e){}
+
+  // Soft membrane
+  try{
+    const d = await (await fetch('/data/soft-membrane-214.json')).json();
+    if(d.soft_inventory){
+      for(const [k, v] of Object.entries(d.soft_inventory)){
+        const c = makeCard(k, 'SOFT', v.hardness || 0.5, 'membrane-214');
+        allCards.push(c);
+        totalSoft += 1;
+      }
+    }
+  }catch(e){}
+
+  // Null files — represent the void
+  try{
+    const d = await (await fetch('/data/alignment.json')).json();
+    if(d.our_signals_not_on_hud){
+      for(const s of d.our_signals_not_on_hud){
+        const h = s.file.includes('harness') ? 8 : s.file.includes('mirror') ? 5 : s.file.includes('senses') ? 3 : 6;
+        const c = makeCard(s.file.split('/').pop().replace('.json',''), 'DATA', h, s.what.slice(0, 30));
+        allCards.push(c);
+        totalHard += 1;
+      }
+    }
+  }catch(e){}
+
+  // Klein cards
+  try{
+    const d = await (await fetch('/data/klein-cards.json')).json();
+    if(d.decks){
+      for(const [k, v] of Object.entries(d.decks)){
+        const c = makeCard(v.name || k, 'DECK', 7, `${v.cards || '?'} cards`);
+        allCards.push(c);
+        totalHard += v.cards || 0;
+      }
+    }
+  }catch(e){}
+
+  // Nuke rebuild — particle cards
+  try{
+    const d = await (await fetch('/data/nuke-rebuild.json')).json();
+    if(d.pi_body_cards || d.kevin_reconstructed){
+      const c = makeCard('NUKE REBUILD', 'PARTICLE', 10, '3 neutrino flavors');
+      allCards.push(c);
+      totalHard += 3;
+    }
+  }catch(e){}
+
+  // New reality — pi body cards
+  try{
+    const d = await (await fetch('/data/new-reality.json')).json();
+    if(d.pi_body_cards){
+      for(const p of d.pi_body_cards.slice(0, 6)){
+        const c = makeCard(p.name || `π-card-${p.id}`, 'π-CARD', 9, `scale: ${p.scale}`);
+        allCards.push(c);
+        totalHard += 1;
+      }
+    }
+  }catch(e){}
+
+  // Pages as cards (each HTML page IS a card)
+  const pages = [
+    {name:'cosmos', h:7, note:'bingo generator'},
+    {name:'campfire', h:5, note:'O · observer gathering'},
+    {name:'ribosome', h:8, note:'printer'},
+    {name:'colosseum', h:9, note:'arena'},
+    {name:'forge', h:8, note:'dashboard'},
+    {name:'minds-eye', h:6, note:'introspection'},
+    {name:'klein', h:10, note:'surface fold'},
+    {name:'mendeleev', h:9, note:'periodic table'},
+    {name:'anatomy', h:7, note:'body map'},
+    {name:'spinal-column', h:8, note:'29 vertebrae'},
+  ];
+  for(const p of pages){
+    const c = makeCard(p.name, 'PAGE', p.h, p.note);
+    allCards.push(c);
+    totalHard += 1;
+  }
+
+  // Null cards — we add conceptual nulls
+  for(let i = 0; i < 5; i++){
+    const names = ['void','absence','sleep','forgetting','unfolded'];
+    const c = makeCard(names[i], 'NULL', -1, 'n = ∞');
+    allCards.push(c);
+  }
+
+  // Sort: hard first, then soft, then null
+  allCards.sort((a,b) => b.hardness - a.hardness);
+
+  // Render
+  for(const c of allCards) grid.appendChild(c.div);
+
+  // Update counts
+  document.getElementById('null-count').textContent = '∞';
+  document.getElementById('soft-count').textContent = totalSoft.toLocaleString();
+  document.getElementById('hard-count').textContent = totalHard.toLocaleString();
+  document.getElementById('null-files').textContent = `69 null-axis files in data/`;
+  document.getElementById('soft-files').textContent = `${totalSoft} soft inventories`;
+  document.getElementById('hard-files').textContent = `${totalHard.toLocaleString()} hard cards sorted`;
+
+  const live = Object.values(sigStates).filter(s => s === 'live').length;
+  const total = SIGNAL_URLS.length;
+
+  document.getElementById('total-cards').textContent =
+    `∞ + ${totalSoft} + ${totalHard.toLocaleString()} = ALL`;
+  document.getElementById('total-sub').textContent =
+    `${allCards.length} visible cards · ${live}/${total} signals alive · 5,340 data files · 144 pages · 258 art · c = πr²/O`;
+}
+
+loadCards();
+
+// ═══════════════════════════════════════
+//  CLICK CANVAS → spawn enzyme
+// ═══════════════════════════════════════
+cv.addEventListener('click', (e) => {
+  const rect = cv.getBoundingClientRect();
+  enzymes.push({
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
+    vx: R.range(-0.8, 0.8),
+    vy: R.range(-0.4, 0.4),
+    r: R.range(3, 6),
+    glow: 1
+  });
+});
+
+})();
+</script>
+</body>
+</html>
