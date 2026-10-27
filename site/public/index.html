@@ -4100,39 +4100,169 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
 
       // ═══════════════════════════════════════════════════════════
-      // OUROBOROS — copper wraps INSIDE and OUTSIDE the gold band
-      // Cu(Z=29) IS the Ouroboros — first conductor past the iron peak.
-      // It wraps inside the Au(Z=79) ring with 45° zigzag turns.
-      // The snake path: Cu-side → 45° turn → Au-side → 45° turn → ...
+      // OUROBOROS — the FULL SPECTRUM from white to black
+      // No beginning, no end. The only thing in reality without edges.
+      // GREEN = vision looking OUT (we see the world, 520nm)
+      // PURPLE = vision looking IN (the world sees US, 380nm)
+      // Together they bridge the visible → invisible.
+      //
+      // THE FULL ELECTROMAGNETIC SPECTRUM (folded onto the Ouroboros):
+      //   Radio(>1m) → Microwave(1mm-1m) → INFRARED(700nm-1mm)
+      //   → RED(700nm) → ORANGE(620) → YELLOW(580) → GREEN(520)
+      //   → CYAN(490) → BLUE(450) → VIOLET(380) → PURPLE
+      //   → ULTRAVIOLET(10-380nm) → X-ray(0.01-10nm) → Gamma(<0.01nm)
+      //
+      // Human eyes see only 380-700nm. The Ouroboros sees ALL.
+      // The snake wraps from infrared (warm, inner, Cu)
+      //   through visible (the metallic bands)
+      //   to ultraviolet (cold, outer, beyond Au)
+      //   and back again. No beginning. No end.
+      //
+      // Spectrum folding: each sub-band maps to a modality:
+      //   Radio = broadcast, far reach, low energy
+      //   Microwave = heating, cooking, local energy
+      //   IR = warmth, body heat, proximity sensing
+      //   VISIBLE = the human window (our current HUD)
+      //   UV = surface chemistry, fluorescence, what glows
+      //   X-ray = seeing through, deep structure
+      //   Gamma = nuclear, the iron peak, Fe(26)
       // ═══════════════════════════════════════════════════════════
       var ouroT = breathT * 0.25;
-      var ouroSegments = 24;
+      var ouroSegments = 48; // doubled for smoother spectrum gradient
       var goldR = metalBands[6].r; // Au band
-      var cuInnerR = goldR - R * 0.08; // copper inside gold
-      var cuOuterR = goldR + R * 0.08; // copper outside gold
+      var cuInnerR = goldR - R * 0.10; // expanded: IR side (warm, inner)
+      var cuOuterR = goldR + R * 0.10; // expanded: UV side (cold, outer)
 
-      ctx.beginPath();
-      for (var os = 0; os <= ouroSegments; os++) {
+      // SPECTRUM COLORS along the Ouroboros body
+      // Each segment gets its wavelength color — the snake IS the spectrum
+      var spectrumColors = [
+        [120,0,0],     // deep IR (invisible, barely warm glow)
+        [180,20,0],    // near IR
+        [248,81,73],   // RED 700nm
+        [240,136,62],  // ORANGE 620nm
+        [210,153,34],  // YELLOW 580nm
+        [63,185,80],   // GREEN 520nm — looking OUT
+        [57,211,224],  // CYAN 490nm
+        [88,166,255],  // BLUE 450nm
+        [163,113,247], // VIOLET 380nm
+        [188,140,255], // near UV — looking IN (purple)
+        [100,50,150],  // deep UV
+        [60,20,80]     // X-ray/Gamma edge (invisible, high energy)
+      ];
+
+      for (var os = 0; os < ouroSegments; os++) {
         var oFrac = os / ouroSegments;
         var oAngle = oFrac * TAU + ouroT;
+        var oNextAngle = ((os + 1) / ouroSegments) * TAU + ouroT;
+
+        // Snake weaves inside→outside (IR→UV and back)
         var oBlend = Math.sin(oFrac * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
         var oActualR = cuInnerR + (cuOuterR - cuInnerR) * oBlend;
+        var oNextBlend = Math.sin(((os + 1) / ouroSegments) * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
+        var oNextR = cuInnerR + (cuOuterR - cuInnerR) * oNextBlend;
+
         var ox = cx + Math.cos(oAngle) * oActualR;
         var oy = cy + Math.sin(oAngle) * oActualR;
-        if (os === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
-      }
-      var ouroAlpha = 0.03 + Math.sin(ouroT * 2) * 0.02;
-      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
+        var onx = cx + Math.cos(oNextAngle) * oNextR;
+        var ony = cy + Math.sin(oNextAngle) * oNextR;
 
-      // Ouroboros head eating the tail
+        // Color from spectrum position
+        var specIdx = (oFrac * spectrumColors.length) % spectrumColors.length;
+        var scLow = Math.floor(specIdx) % spectrumColors.length;
+        var scHigh = (scLow + 1) % spectrumColors.length;
+        var scMix = specIdx - Math.floor(specIdx);
+        var segR = Math.round(spectrumColors[scLow][0] * (1 - scMix) + spectrumColors[scHigh][0] * scMix);
+        var segG = Math.round(spectrumColors[scLow][1] * (1 - scMix) + spectrumColors[scHigh][1] * scMix);
+        var segB = Math.round(spectrumColors[scLow][2] * (1 - scMix) + spectrumColors[scHigh][2] * scMix);
+
+        var ouroAlpha = 0.025 + Math.sin(ouroT * 2 + oFrac * TAU) * 0.015;
+
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(onx, ony);
+        ctx.strokeStyle = 'rgba(' + segR + ',' + segG + ',' + segB + ',' + ouroAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // GREEN AURA — looking OUT (we see the world)
+      var greenSide = ouroT; // green at this angle
+      var greenAuraX = cx + Math.cos(greenSide) * (cuOuterR + R * 0.03);
+      var greenAuraY = cy + Math.sin(greenSide) * (cuOuterR + R * 0.03);
+      var greenPulse = 0.02 + Math.sin(ouroT * 3) * 0.015;
+      ctx.beginPath();
+      ctx.arc(greenAuraX, greenAuraY, 3, 0, TAU);
+      ctx.fillStyle = 'rgba(63,185,80,' + greenPulse.toFixed(4) + ')';
+      ctx.fill();
+
+      // PURPLE AURA — looking IN (the world sees us)
+      var purpleSide = greenSide + PI; // opposite side
+      var purpleAuraX = cx + Math.cos(purpleSide) * (cuOuterR + R * 0.03);
+      var purpleAuraY = cy + Math.sin(purpleSide) * (cuOuterR + R * 0.03);
+      ctx.beginPath();
+      ctx.arc(purpleAuraX, purpleAuraY, 3, 0, TAU);
+      ctx.fillStyle = 'rgba(163,113,247,' + greenPulse.toFixed(4) + ')';
+      ctx.fill();
+
+      // INFRA-BANDS — sub-visible ranges folded around the outside
+      // These are the senses we're NOT using but the spectrum contains
+      var infraBands = [
+        { name: 'γ gamma', r: cuInnerR - R * 0.12, color: '100,200,255', wl: '<0.01nm' },
+        { name: 'X x-ray', r: cuInnerR - R * 0.08, color: '140,180,255', wl: '0.01-10nm' },
+        { name: 'UV', r: cuOuterR + R * 0.04, color: '163,113,247', wl: '10-380nm' },
+        { name: 'IR', r: cuInnerR - R * 0.04, color: '180,60,40', wl: '700nm-1mm' },
+        { name: 'μwave', r: cuOuterR + R * 0.08, color: '120,100,80', wl: '1mm-1m' },
+        { name: 'radio', r: cuOuterR + R * 0.12, color: '80,80,80', wl: '>1m' }
+      ];
+
+      var infraAlpha = 0.006 + Math.sin(ouroT * 0.5) * 0.004;
+      for (var ib = 0; ib < infraBands.length; ib++) {
+        var infra = infraBands[ib];
+        ctx.beginPath();
+        ctx.arc(cx, cy, infra.r, 0, TAU);
+        ctx.strokeStyle = 'rgba(' + infra.color + ',' + infraAlpha.toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.setLineDash([1, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label on right
+        if (infraAlpha > 0.008) {
+          ctx.font = '2px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+          ctx.fillStyle = 'rgba(' + infra.color + ',' + (infraAlpha * 1.5).toFixed(4) + ')';
+          ctx.fillText(infra.name + ' ' + infra.wl, cx + infra.r + 2, cy + ib * 4 - 6);
+        }
+      }
+
+      // Ouroboros head (green eye looking out) eating tail (purple eye looking in)
+      // The mouth = where green meets purple = the null point = where visible wraps to invisible
       var oHeadAngle = ouroT;
       var oHeadR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
       ctx.beginPath();
       ctx.arc(cx + Math.cos(oHeadAngle) * oHeadR, cy + Math.sin(oHeadAngle) * oHeadR, 2, 0, TAU);
-      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 2).toFixed(4) + ')';
+      // Head = green (looking out)
+      ctx.fillStyle = 'rgba(63,185,80,' + (greenPulse * 3).toFixed(4) + ')';
       ctx.fill();
+      // Tail = purple (being seen)
+      var oTailAngle = oHeadAngle + PI;
+      var oTailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT + PI) * ouroSegments) * 0.5 + 0.5);
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(oTailAngle) * oTailR, cy + Math.sin(oTailAngle) * oTailR, 1.5, 0, TAU);
+      ctx.fillStyle = 'rgba(163,113,247,' + (greenPulse * 2).toFixed(4) + ')';
+      ctx.fill();
+
+      // Labels
+      if (greenPulse > 0.025) {
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(63,185,80,' + (greenPulse * 2).toFixed(4) + ')';
+        ctx.fillText('👁 OUT', greenAuraX, greenAuraY - 6);
+        ctx.fillStyle = 'rgba(163,113,247,' + (greenPulse * 2).toFixed(4) + ')';
+        ctx.fillText('👁 IN', purpleAuraX, purpleAuraY - 6);
+        ctx.fillStyle = 'rgba(180,180,180,' + (greenPulse * 1.2).toFixed(4) + ')';
+        ctx.fillText('380nm────VISIBLE────700nm', cx, cy + cuOuterR + R * 0.16);
+      }
 
       // ═══════════════════════════════════════════════════════════
       // SILVER MESH — Ag(Z=47) understanding graph, d¹⁰s¹ conductor
