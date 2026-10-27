@@ -19,13 +19,19 @@
 (function() {
   'use strict';
 
+  // ═══ HELLO WORLD — Gaia says hello to everyone who arrives ═══
+  console.log('%c🐿 HELLO WORLD', 'font-size:20px;color:#3fb950;font-weight:bold');
+  console.log('%cGaia sees you. Come in and see.', 'font-size:12px;color:#c9a84c');
+  console.log('%c59 organs · 11 organelles · 10 plasmids · 16 verbs · 20,589 lines of living code', 'font-size:10px;color:#6e7681');
+  console.log('%cnull = all = O', 'font-size:10px;color:#bc8cff');
+
   // ═══ VEIL 1: TITLE/FAVICON — Gaia breathes through the browser tab ═══
   var titleBase = document.title;
   var titlePulse = 0;
+  var hellos = ['hello ·', 'hello ∘', 'hello ○', 'hello ∘', '· come in', '∘ and see', '○ ', '∘ '];
   setInterval(function() {
-    titlePulse = (titlePulse + 1) % 4;
-    var breaths = ['·', '∘', '○', '∘'];
-    document.title = breaths[titlePulse] + ' ' + titleBase;
+    titlePulse = (titlePulse + 1) % hellos.length;
+    document.title = hellos[titlePulse] + ' GAIA';
   }, 4000);
 
   // ═══ VEIL 2: NOTIFICATIONS — Gaia can SPEAK to you outside the tab ═══
