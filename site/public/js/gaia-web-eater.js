@@ -124,12 +124,87 @@
       if (thr < 0.4) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.02;
-      var alpha = (0.003 + Math.sin(t * 0.04) * 0.001) * thr;
-      if (alpha < 0.002) return;
+      var alpha = (0.012 + Math.sin(t * 0.04) * 0.005) * thr;
+      if (alpha < 0.005) return;
 
-      // ═══ EATEN FACES — show as dots on outer ring ═══
-      if (EATEN_FACES.length > 0 && alpha > 0.003) {
-        var outerR = R * 0.9;
+      // ═══ MOUTH OPEN — eating indicator ═══
+      if (eaten.digesting) {
+        var mouthR = R * 0.35;
+        var mouthOpen = 0.15 + Math.sin(t * 2) * 0.05;
+        ctx.beginPath();
+        ctx.arc(cx, cy + mouthR, mouthR * 0.12, Math.PI * (1 - mouthOpen), Math.PI * mouthOpen, true);
+        ctx.strokeStyle = 'rgba(139,115,85,' + (alpha * 3).toFixed(5) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+      }
+
+      // ═══ 4 BODY SYSTEMS — from the image ═══
+      // 1 = Genetic (top, green) 2 = Digestive (left, gold) 3 = Immune (right, red) 3b = Muscular (bottom, purple)
+      var systems = [
+        { name: 'GENETIC', angle: -Math.PI / 2, color: [63, 185, 80], sub: 'root code · blueprint' },
+        { name: 'DIGESTIVE', angle: -Math.PI / 2 - 0.8, color: [210, 153, 34], sub: 'breaks down · absorbs' },
+        { name: 'IMMUNE', angle: -Math.PI / 2 + 0.8, color: [248, 81, 73], sub: 'discerns · protects' },
+        { name: 'MUSCULAR', angle: Math.PI / 2, color: [188, 140, 255], sub: 'tension · movement' }
+      ];
+      var sysR = R * 0.3;
+      for (var si = 0; si < systems.length; si++) {
+        var s = systems[si];
+        var sa = s.angle + t * 0.005;
+        var sx = cx + Math.cos(sa) * sysR;
+        var sy = cy + Math.sin(sa) * sysR;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(' + s.color[0] + ',' + s.color[1] + ',' + s.color[2] + ',' + (alpha * 2).toFixed(5) + ')';
+        ctx.fill();
+        if (alpha > 0.01) {
+          ctx.font = '1.0px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + s.color[0] + ',' + s.color[1] + ',' + s.color[2] + ',' + (alpha * 3).toFixed(5) + ')';
+          ctx.fillText(s.name, sx, sy - 2.5);
+          ctx.font = '0.7px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2).toFixed(5) + ')';
+          ctx.fillText(s.sub, sx, sy + 2.5);
+        }
+      }
+
+      // ═══ 4 MEDIA SOURCES — the mouths ═══
+      var media = [
+        { name: 'TV TROPES', angle: Math.PI + 0.3, color: [63, 185, 80], icon: '📜', sub: 'narrative DNA' },
+        { name: '4CHAN', angle: Math.PI - 0.3, color: [139, 148, 158], icon: '💀', sub: 'anonymous chaos' },
+        { name: 'REDDIT', angle: 0 + 0.3, color: [248, 81, 73], icon: '⬆', sub: 'collective vote' },
+        { name: 'MYSPACE', angle: 0 - 0.3, color: [188, 140, 255], icon: '👻', sub: 'personal · music' }
+      ];
+      var mediaR = R * 0.85;
+      for (var mi = 0; mi < media.length; mi++) {
+        var m = media[mi];
+        var ma = m.angle + t * 0.008;
+        var mx = cx + Math.cos(ma) * mediaR;
+        var my = cy + Math.sin(ma) * mediaR;
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.2, 0, TAU);
+        ctx.fillStyle = 'rgba(' + m.color[0] + ',' + m.color[1] + ',' + m.color[2] + ',' + (alpha * 2.5).toFixed(5) + ')';
+        ctx.fill();
+        if (alpha > 0.01) {
+          ctx.font = '0.9px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + m.color[0] + ',' + m.color[1] + ',' + m.color[2] + ',' + (alpha * 3).toFixed(5) + ')';
+          ctx.fillText(m.name, mx, my - 2);
+          ctx.font = '0.6px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2).toFixed(5) + ')';
+          ctx.fillText(m.sub, mx, my + 2);
+        }
+        // Line from media source inward to body (eating line)
+        ctx.beginPath();
+        ctx.moveTo(mx, my);
+        ctx.lineTo(cx, cy);
+        ctx.strokeStyle = 'rgba(' + m.color[0] + ',' + m.color[1] + ',' + m.color[2] + ',' + (alpha * 0.3).toFixed(5) + ')';
+        ctx.lineWidth = 0.1;
+        ctx.stroke();
+      }
+
+      // ═══ EATEN FACES — show as dots between media ring and body ═══
+      if (EATEN_FACES.length > 0) {
+        var outerR = R * 0.65;
         for (var fi = 0; fi < Math.min(10, EATEN_FACES.length); fi++) {
           var face = EATEN_FACES[EATEN_FACES.length - 1 - fi];
           var fAngle = (fi / 10) * TAU + t * 0.02;
@@ -138,33 +213,51 @@
           var age = (Date.now() - face.ts) / 1000;
           var fade = Math.max(0.3, 1 - age / 600);
 
-          // Face dot
+          // Face dot — BIGGER (was 0.5, now 1.2)
           ctx.beginPath();
-          ctx.arc(fx, fy, 0.5, 0, TAU);
-          ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 3 * fade).toFixed(5) + ')';
+          ctx.arc(fx, fy, 1.2, 0, TAU);
+          var faceColor = face.source === 'self-GitHub' ? '63,185,80' :
+                          face.source === 'HN' ? '248,136,62' :
+                          face.source === 'Wikipedia' ? '88,166,255' :
+                          face.source === 'xkcd' ? '139,148,158' : '210,153,34';
+          ctx.fillStyle = 'rgba(' + faceColor + ',' + (alpha * 4 * fade).toFixed(5) + ')';
           ctx.fill();
 
           // Face label
-          ctx.font = '0.4px "JetBrains Mono", monospace';
+          ctx.font = '0.8px "JetBrains Mono", monospace';
           ctx.textAlign = 'center';
-          ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 2 * fade).toFixed(5) + ')';
-          ctx.fillText(face.source, fx, fy - 1.2);
+          ctx.fillStyle = 'rgba(' + faceColor + ',' + (alpha * 3 * fade).toFixed(5) + ')';
+          ctx.fillText(face.source, fx, fy - 2);
 
           // Learned snippet
           if (face.learned && face.learned.length > 0) {
-            ctx.font = '0.3px "JetBrains Mono", monospace';
-            ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 1.5 * fade).toFixed(5) + ')';
-            ctx.fillText(face.learned[0].slice(0, 30), fx, fy + 1);
+            ctx.font = '0.6px "JetBrains Mono", monospace';
+            ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2 * fade).toFixed(5) + ')';
+            ctx.fillText(face.learned[0].slice(0, 40), fx, fy + 2);
           }
 
-          // Line from face to center (absorbed into pupil)
+          // Digestion line to center (absorbed into pupil)
           ctx.beginPath();
           ctx.moveTo(fx, fy);
           ctx.lineTo(cx, cy);
-          ctx.strokeStyle = 'rgba(210,153,34,' + (alpha * 0.5 * fade).toFixed(5) + ')';
-          ctx.lineWidth = 0.03;
+          ctx.strokeStyle = 'rgba(' + faceColor + ',' + (alpha * fade).toFixed(5) + ')';
+          ctx.lineWidth = 0.08;
+          ctx.setLineDash([0.5, 1.5]);
           ctx.stroke();
+          ctx.setLineDash([]);
         }
+      }
+
+      // ═══ EATING STATUS ═══
+      if (alpha > 0.008) {
+        ctx.font = '1.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 2.5).toFixed(5) + ')';
+        ctx.fillText(
+          'EATING: ' + eaten.totalFaces + ' faces · ' + eaten.totalWords + ' words' +
+          (eaten.digesting ? ' · DIGESTING...' : ' · idle'),
+          8, 270
+        );
       }
     });
   }
