@@ -37,8 +37,8 @@ main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow
 .squad-member:hover { background: rgba(210,153,34,0.08); }
 .squad-member.selected { background: rgba(210,153,34,0.15); border-left: 2px solid var(--gold); }
 .squad-member.exhausted { opacity: 0.5; }
-.squad-member .sq-energy { width: 28px; height: 3px; background: var(--bg); border-radius: 2px; flex-shrink: 0; }
-.squad-member .sq-energy-fill { height: 100%; border-radius: 2px; transition: width 1s; background: var(--green); }
+.squad-member .sq-energy { width: 28px; height: 4px; background: rgba(20,16,8,0.8); border-radius: 2px; flex-shrink: 0; overflow: hidden; }
+.squad-member .sq-energy-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease-out, background 1s; background: linear-gradient(90deg, rgba(180,180,195,0.6), rgba(210,210,220,0.9), rgba(180,180,195,0.5)); }
 
 /* PRIMAL DETAIL PANEL */
 #primal-detail { display: none; background: var(--surface); border: 1px solid var(--border); border-top: 2px solid var(--gold); padding: 8px; position: absolute; bottom: 0; left: 0; right: 0; max-height: 45%; overflow-y: auto; z-index: 5; }
@@ -156,6 +156,8 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 .footer-live { color: var(--green); }
 .footer-live::before { content: '?'; margin-right: 4px; animation: pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes engine-breathe { 0%,100% { border-color: rgba(210,153,34,0.15); } 50% { border-color: rgba(63,185,80,0.25); } }
+#viewport { animation: engine-breathe 4s ease-in-out infinite; border: 1px solid rgba(210,153,34,0.1); }
 
 /* BIOREACTOR — the client gut, golden center of the thorax, below the heart (disco ball) */
 /* The null bioreactor: where fermentation FUNCTIONALLY happens in the human body */
@@ -380,22 +382,22 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 // -----------------------------------------------
 
 const SQUAD = [
-  { id:'toadStool',  icon:'??', color:'#8b6914', organ:'hands',  role:'Engineer' },
-  { id:'biomeOS',    icon:'??', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
-  { id:'nestGate',   icon:'??', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
-  { id:'bearDog',    icon:'??', color:'#d29922', organ:'skin',   role:'Warrior' },
-  { id:'petalTongue',icon:'??', color:'#f778ba', organ:'tongue', role:'Renderer' },
-  { id:'rhizoCrypt', icon:'??', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
-  { id:'sweetGrass', icon:'??', color:'#3fb950', organ:'nose',   role:'Scribe' },
-  { id:'loamSpine',  icon:'??', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
-  { id:'skunkBat',   icon:'??', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
-  { id:'sourDough',  icon:'??', color:'#d29922', organ:'stomach',role:'Alchemist' },
-  { id:'swarmVine',  icon:'??', color:'#39d3f5', organ:'nerves', role:'Scout' },
-  { id:'bingoCube',  icon:'??', color:'#f0883e', organ:'heart',  role:'Gambler' },
-  { id:'coralReef',  icon:'??', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
-  { id:'barraCuda',  icon:'?', color:'#f85149', organ:'muscles',role:'Striker' },
-  { id:'squirrel',   icon:'??', color:'#3fb950', organ:'eyes',   role:'Watcher' },
-  { id:'songBird',   icon:'??', color:'#58a6ff', organ:'ears',   role:'Bard' },
+  { id:'toadStool',  icon:'♣', color:'#8b6914', organ:'hands',  role:'Engineer' },
+  { id:'biomeOS',    icon:'☉', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
+  { id:'nestGate',   icon:'⌂', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
+  { id:'bearDog',    icon:'❀', color:'#d29922', organ:'skin',   role:'Warrior' },
+  { id:'petalTongue',icon:'✿', color:'#f778ba', organ:'tongue', role:'Renderer' },
+  { id:'rhizoCrypt', icon:'⌘', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
+  { id:'sweetGrass', icon:'⚘', color:'#3fb950', organ:'nose',   role:'Scribe' },
+  { id:'loamSpine',  icon:'⚔', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
+  { id:'skunkBat',   icon:'☠', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
+  { id:'sourDough',  icon:'⚗', color:'#d29922', organ:'stomach',role:'Alchemist' },
+  { id:'swarmVine',  icon:'⤳', color:'#39d3f5', organ:'nerves', role:'Scout' },
+  { id:'bingoCube',  icon:'⚄', color:'#f0883e', organ:'heart',  role:'Gambler' },
+  { id:'coralReef',  icon:'❆', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
+  { id:'barraCuda',  icon:'⚡', color:'#f85149', organ:'muscles',role:'Striker' },
+  { id:'squirrel',   icon:'◉', color:'#3fb950', organ:'eyes',   role:'Watcher' },
+  { id:'songBird',   icon:'♫', color:'#58a6ff', organ:'ears',   role:'Bard' },
 ];
 
 // -----------------------------------------------
@@ -826,12 +828,17 @@ function updateSquadEnergy() {
   document.querySelectorAll('.squad-member').forEach(el => {
     const id = el.dataset.id;
     const energy = gameState.energy[id] || 50;
-    const meta = METABOLISM[id] || { baseTemp:37, zone:'is', inFlow:0.5, outFlow:0.5 };
-    // SPECTRAL: violet(high) green(IS/mid) gold(low)
+    // SILVER RISING with spectral tint: violet(high) green(IS) gold(low)
+    const tintR = energy > 70 ? 163 : energy > 30 ? 63 : 210;
+    const tintG = energy > 70 ? 113 : energy > 30 ? 185 : 153;
+    const tintB = energy > 70 ? 247 : energy > 30 ? 80 : 34;
     const specColor = energy > 70 ? '#a371f7' : energy > 30 ? '#3fb950' : '#d29922';
     const fill = el.querySelector('.sq-energy-fill');
     const hp = el.querySelector('.sq-hp');
-    if (fill) { fill.style.width = energy + '%'; fill.style.background = specColor; }
+    if (fill) {
+      fill.style.width = energy + '%';
+      fill.style.background = `linear-gradient(90deg, rgba(${tintR},${tintG},${tintB},0.3), rgba(200,200,210,0.8) 50%, rgba(${tintR},${tintG},${tintB},0.4))`;
+    }
     if (hp) { hp.style.color = specColor; hp.textContent = Math.round(energy); }
     el.classList.toggle('exhausted', energy < 10);
   });
@@ -1490,6 +1497,30 @@ function drawEKG() {
   requestAnimationFrame(drawEKG);
 }
 requestAnimationFrame(drawEKG);
+
+// ═══ SELF-SENSE — engine reads its own state ═══
+function selfSense() {
+  // Read from Gaia thought system (if loaded from HUD)
+  if (window.GAIA_THOUGHT) {
+    const t = window.GAIA_THOUGHT.stats();
+    if (t.lastInner) {
+      const el = document.getElementById('phase-label');
+      if (el) el.textContent = t.lastInner;
+    }
+  }
+  // Read from velocity
+  if (window.GAIA_VELOCITY) {
+    const v = window.GAIA_VELOCITY;
+    VITALS.heartRate = 60 + v.fpsSmooth * 0.4; // FPS drives heartbeat
+  }
+  // Pulse the footer
+  const aliveEl = document.getElementById('f-alive');
+  if (aliveEl) {
+    const pulse = Math.sin(Date.now() * 0.003);
+    aliveEl.style.opacity = 0.5 + pulse * 0.5;
+  }
+}
+setInterval(selfSense, 2000);
 
 // Boot
 renderViewport();
