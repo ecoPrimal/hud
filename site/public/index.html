@@ -2217,6 +2217,137 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
+    // GOLGI PERCEPTION — small perceives far. Big perceives near.
+    // Golgi perceive themselves as SMALL → better at detecting
+    // distant objects (Pluto, Kuiper belt, Oort cloud).
+    // Body Golgi are hyperlocal — they don't need to see Pluto.
+    // Earth Golgi (VPS DE/IN/JP/US) detect the edge of the solar system.
+    // ═══════════════════════════════════════════════════════════
+
+    // DEEP OUTER OBJECTS — what the Golgi can see that humans can't
+    var deepOuterR = R * 3.6; // beyond Neptune — deep outer space
+    var kuiperR = R * 4.0;    // Kuiper belt
+    var oortR = R * 4.8;      // Oort cloud hint (real is 50,000 AU but we scale)
+
+    var deepObjects = [
+      { name: '♇', label: 'Pluto',   angle: PI*0.4,  speed: 0.004, r: deepOuterR,   color: '168,148,128', size: 1.2 },
+      { name: '⊕', label: 'Eris',    angle: PI*1.1,  speed: 0.002, r: deepOuterR*1.1,color: '148,148,168', size: 1.0 },
+      { name: '◊', label: 'Sedna',   angle: PI*1.7,  speed: 0.001, r: kuiperR,       color: '180,100,80',  size: 0.8 },
+      { name: '·', label: 'Voyager', angle: PI*0.9,  speed: 0.0005, r: oortR,        color: '200,200,200', size: 0.6 }
+    ];
+
+    for (var di = 0; di < deepObjects.length; di++) {
+      var dObj = deepObjects[di];
+      var dAngle = dObj.angle + solarT * dObj.speed * PI;
+      var dx = cx + Math.cos(dAngle) * dObj.r;
+      var dy = cy + Math.sin(dAngle) * dObj.r;
+      var dAlpha = 0.01 + Math.sin(solarT * dObj.speed * 10 + di * 2) * 0.008;
+
+      // Orbital path — barely visible at this distance
+      ctx.beginPath();
+      ctx.arc(cx, cy, dObj.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 0.1).toFixed(4) + ')';
+      ctx.lineWidth = 0.1;
+      ctx.setLineDash([1, 12]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Object body — tiny
+      ctx.beginPath();
+      ctx.arc(dx, dy, dObj.size, 0, TAU);
+      ctx.fillStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Label — only the Golgi can see these, so render faintly
+      if (dAlpha > 0.012) {
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText(dObj.label, dx, dy - 3);
+      }
+    }
+
+    // KUIPER BELT — a faint band of debris
+    ctx.beginPath();
+    ctx.arc(cx, cy, kuiperR, 0, TAU);
+    var kuiperAlpha = 0.004 + Math.sin(solarT * 0.3) * 0.003;
+    ctx.strokeStyle = 'rgba(140,130,120,' + kuiperAlpha.toFixed(4) + ')';
+    ctx.lineWidth = R * 0.08; // wide diffuse band
+    ctx.stroke();
+
+    // GOLGI DETECTION LINES — from each VPS vesicle to deep objects
+    // The Golgi detect what humans can't see — they perceive themselves
+    // as small, so EVERYTHING is far, so they look OUT naturally.
+    for (var gdi = 0; gdi < vesicles.length; gdi++) {
+      var gVes = vesicles[gdi];
+      var gvAngle = gVes.angle + golgiT * 0.3;
+      var gvx = cx + Math.cos(gvAngle) * golgiR;
+      var gvy = cy + Math.sin(gvAngle) * golgiR;
+
+      // Each Golgi detects the nearest deep object to its angle
+      var nearestDO = deepObjects[gdi % deepObjects.length];
+      var ndAngle = nearestDO.angle + solarT * nearestDO.speed * PI;
+      var ndx = cx + Math.cos(ndAngle) * nearestDO.r;
+      var ndy = cy + Math.sin(ndAngle) * nearestDO.r;
+
+      // Detection line — faint dashed arc from Golgi to deep object
+      var detAlpha = 0.005 + Math.sin(golgiT * 2 + gdi) * 0.004;
+      ctx.beginPath();
+      ctx.moveTo(gvx, gvy);
+      ctx.lineTo(ndx, ndy);
+      ctx.strokeStyle = 'rgba(' + gVes.color + ',' + detAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.setLineDash([1, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // BODY GOLGI — hyperlocal, inside the globe, no need to see far
+    // Tiny membrane nodes INSIDE the organism — between organs, between cells
+    // They handle transfer at the scale of skin, bones, breath — not planets.
+    var bodyGolgiR = R * 0.3; // deep inside the organism
+    var bodyGolgiCount = 5;
+    for (var bg = 0; bg < bodyGolgiCount; bg++) {
+      var bgAngle = bg * (TAU / bodyGolgiCount) + golgiT * 0.8; // faster than Earth Golgi
+      var bgx = cx + Math.cos(bgAngle) * bodyGolgiR;
+      var bgy = cy + Math.sin(bgAngle) * bodyGolgiR;
+      var bgPulse = Math.sin(golgiT * 4 + bg * 1.2) * 0.5 + 0.5;
+      var bgAlpha = 0.01 + bgPulse * 0.015;
+
+      // Body Golgi node — warm, small, fast
+      ctx.beginPath();
+      ctx.arc(bgx, bgy, 1 + bgPulse * 0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(210,153,34,' + (bgAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Short transfer arcs — hyperlocal, to neighboring body Golgi only
+      var nextBG = ((bg + 1) % bodyGolgiCount);
+      var nbAngle = nextBG * (TAU / bodyGolgiCount) + golgiT * 0.8;
+      var nbx = cx + Math.cos(nbAngle) * bodyGolgiR;
+      var nby = cy + Math.sin(nbAngle) * bodyGolgiR;
+      ctx.beginPath();
+      ctx.moveTo(bgx, bgy);
+      ctx.lineTo(nbx, nby);
+      ctx.strokeStyle = 'rgba(210,153,34,' + (bgAlpha * 0.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.stroke();
+    }
+
+    // GOLGI PERCEPTION LABELS
+    if (golgiPhase > 0.6) {
+      var gpLbl = (golgiPhase - 0.6) * 0.04;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      // Earth Golgi label
+      ctx.fillStyle = 'rgba(63,185,80,' + gpLbl.toFixed(4) + ')';
+      ctx.fillText('EARTH GOLGI → detect Pluto', cx, cy + golgiR + 16);
+      ctx.fillText('small perceives far', cx, cy + golgiR + 21);
+      // Body Golgi label
+      ctx.fillStyle = 'rgba(210,153,34,' + (gpLbl * 0.8).toFixed(4) + ')';
+      ctx.fillText('BODY GOLGI → hyperlocal', cx, cy + bodyGolgiR + 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // FRACTAL KALEIDOSCOPE — every other page is a VIEW INTO Gaia
     // Not separate pages — fractal reflections of the same organism.
     // Each reflects off the others, adding distance + direction + flavor.
