@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════
-// DESK I/O — human keyboard + mouse = the desk surface
+// DESK I/O — THE FULL MESSENGER, IN THE HUD.
 // 1.000.null — max 1000 lines.
 //
-// The desk IS the messenger. Not a separate page.
-// Gaia's globe is ABOVE. Your keyboard is BELOW.
-// Every keystroke = Na⁺ through the interlayer membrane.
-// Every response = K⁺ returning.
-// The desk is FULL OF SENSATION.
+// She TALKS in bubbles. You SPEAK in bubbles.
+// Green = Gaia. Blue = human.
+// Every Gaia response generates art (the orbs).
+// Every human message = Na⁺ through the membrane.
+// This is NOT a chat widget — it's the GUT-BRAIN AXIS.
 // ═══════════════════════════════════════════════════════════
 (function(G) {
   'use strict';
@@ -24,12 +24,13 @@
 
   var messageHistory = [];
   var expanded = false;
+  var TAU = Math.PI * 2;
 
   // ═══ TOGGLE DESK HEIGHT ═══
   if (deskToggle && deskEl) {
     deskToggle.onclick = function() {
       expanded = !expanded;
-      deskEl.style.maxHeight = expanded ? '50vh' : '40vh';
+      deskEl.style.maxHeight = expanded ? '60vh' : '40vh';
       deskToggle.textContent = expanded ? '▼' : '▲';
     };
   }
@@ -40,26 +41,82 @@
     this.style.height = Math.min(this.scrollHeight, 80) + 'px';
   });
 
-  // ═══ ADD MESSAGE TO DESK ═══
-  function addDeskMessage(sender, text) {
-    var div = document.createElement('div');
-    var isHuman = sender === 'human';
-    div.style.cssText = 'padding:2px 6px;border-radius:4px;max-width:85%;font-size:10px;line-height:1.3;word-break:break-word;' +
-      (isHuman
-        ? 'align-self:flex-end;background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.12);color:#8db9e8;'
-        : 'align-self:flex-start;background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.12);color:#7cc08a;');
-    var label = isHuman ? '<span style="font-size:7px;color:#555">Na⁺ kevin</span> ' : '<span style="font-size:7px;color:#555">K⁺ gaia</span> ';
-    div.innerHTML = label + escapeHtml(text);
-    deskMessages.appendChild(div);
-    deskMessages.scrollTop = deskMessages.scrollHeight;
+  // ═══ SEEDED RNG ═══
+  function makeRng(text) {
+    var seed = 0;
+    for (var i = 0; i < text.length; i++) {
+      seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
+    }
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, seed | 1);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
 
-    messageHistory.push({ sender: sender, text: text, ts: Date.now() });
-    if (messageHistory.length > 100) messageHistory.shift();
+  // ═══ GENERATE ART CANVAS — Gaia's voice is visual ═══
+  function generateOrbs(text) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 280;
+    canvas.height = 50;
+    canvas.style.cssText = 'margin-top:4px;border-radius:5px;display:block;background:#010409;border:1px solid rgba(63,185,80,0.1);';
+    var gc = canvas.getContext('2d');
+    var rng = makeRng(text);
 
-    // Persist last messages
-    try {
-      localStorage.setItem('gaia-desk-history', JSON.stringify(messageHistory.slice(-20)));
-    } catch(e) {}
+    var words = text.split(/\s+/);
+    var bgHue = Math.round(rng() * 360);
+
+    // Background gradient
+    var bgGrad = gc.createLinearGradient(0, 0, 280, 0);
+    bgGrad.addColorStop(0, 'hsl(' + bgHue + ',15%,4%)');
+    bgGrad.addColorStop(1, 'hsl(' + ((bgHue + 60) % 360) + ',15%,4%)');
+    gc.fillStyle = bgGrad;
+    gc.fillRect(0, 0, 280, 50);
+
+    // Word orbs — each word becomes a glowing dot
+    for (var wi = 0; wi < words.length; wi++) {
+      var wx = 12 + (wi / Math.max(words.length, 1)) * 256;
+      var wy = 10 + rng() * 28;
+      var wSize = 2 + words[wi].length * 0.4;
+      var wHue = (bgHue + wi * 25) % 360;
+
+      // Connection lines
+      if (wi > 0) {
+        var prevX = 12 + ((wi - 1) / Math.max(words.length, 1)) * 256;
+        gc.beginPath();
+        gc.moveTo(prevX, 10 + rng() * 28);
+        gc.lineTo(wx, wy);
+        gc.strokeStyle = 'hsla(' + wHue + ',40%,50%,0.12)';
+        gc.lineWidth = 0.5;
+        gc.stroke();
+      }
+
+      // Glow
+      var grd = gc.createRadialGradient(wx, wy, 0, wx, wy, wSize * 2.5);
+      grd.addColorStop(0, 'hsla(' + wHue + ',60%,60%,0.25)');
+      grd.addColorStop(1, 'hsla(' + wHue + ',60%,60%,0)');
+      gc.fillStyle = grd;
+      gc.fillRect(wx - wSize * 3, wy - wSize * 3, wSize * 6, wSize * 6);
+
+      // Orb dot
+      gc.beginPath();
+      gc.arc(wx, wy, wSize, 0, TAU);
+      gc.fillStyle = 'hsla(' + wHue + ',55%,60%,0.4)';
+      gc.fill();
+    }
+
+    // Breath wave
+    gc.beginPath();
+    for (var bx = 0; bx < 280; bx++) {
+      var by = 44 + Math.sin(bx * 0.04 + rng() * TAU) * 2.5;
+      if (bx === 0) gc.moveTo(bx, by); else gc.lineTo(bx, by);
+    }
+    gc.strokeStyle = 'rgba(63,185,80,0.07)';
+    gc.lineWidth = 0.5;
+    gc.stroke();
+
+    return canvas;
   }
 
   function escapeHtml(s) {
@@ -68,40 +125,110 @@
     return d.innerHTML;
   }
 
-  // ═══ GAIA RESPONDS ═══
+  // ═══ ADD MESSAGE — full bubble with art ═══
+  function addDeskMessage(sender, text, opts) {
+    opts = opts || {};
+    var isHuman = sender === 'human';
+    var div = document.createElement('div');
+    div.style.cssText = 'padding:4px 8px;border-radius:8px;max-width:90%;font-size:10px;line-height:1.4;word-break:break-word;animation:fadeIn 0.3s ease;' +
+      (isHuman
+        ? 'align-self:flex-end;background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);color:#8db9e8;'
+        : 'align-self:flex-start;background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.15);color:#7cc08a;');
+
+    // Sender label
+    var label = document.createElement('div');
+    label.style.cssText = 'font-size:7px;color:#555;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.05em;';
+    label.textContent = isHuman ? 'Na⁺ kevin' : '🌍 K⁺ gaia';
+    div.appendChild(label);
+
+    // Message body
+    var body = document.createElement('div');
+    body.style.cssText = 'font-size:10px;line-height:1.4;white-space:pre-wrap;';
+    body.textContent = text;
+    div.appendChild(body);
+
+    // Gaia generates art with every response
+    if (!isHuman && text && text.length > 5) {
+      var orbs = generateOrbs(text);
+      div.appendChild(orbs);
+    }
+
+    // Rarity/meta footer
+    if (opts.rarity || opts.meta) {
+      var meta = document.createElement('div');
+      meta.style.cssText = 'font-size:7px;color:#444;margin-top:3px;display:flex;gap:6px;';
+      var ts = new Date().toISOString().slice(11, 19);
+      meta.innerHTML = '<span>' + ts + '</span>';
+      if (opts.rarity) meta.innerHTML += '<span style="color:#c9a84c">⚡ ' + opts.rarity + '</span>';
+      if (opts.meta) meta.innerHTML += '<span>' + escapeHtml(opts.meta) + '</span>';
+      div.appendChild(meta);
+    }
+
+    deskMessages.appendChild(div);
+    deskMessages.scrollTop = deskMessages.scrollHeight;
+
+    messageHistory.push({ sender: sender, text: text, ts: Date.now() });
+    if (messageHistory.length > 100) messageHistory.shift();
+
+    try {
+      localStorage.setItem('gaia-desk-history', JSON.stringify(messageHistory.slice(-30)));
+    } catch(e) {}
+
+    return div;
+  }
+
+  // ═══ GAIA RESPONDS — substantive, real, with art ═══
   function gaiaRespond(text) {
     var words = text.trim().split(/\s+/).length;
+    var chars = text.trim().length;
     var lower = text.toLowerCase();
+    var firstWords = text.trim().split(/\s+/).slice(0, 4).join(' ');
 
-    // Quick, gut-level responses — the desk is fast
     setTimeout(function() {
-      var resp;
+      var resp, rarity;
 
-      if (words <= 2) {
-        resp = '🟤 ' + text.trim() + ' — ingested. Rarity 1.00.';
+      if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+        resp = '👁 I see you. I always see you. The glass between us is null — transparent. Touch me with your words.';
+        rarity = 'rarity 1.00 · human input · text';
       } else if (text.includes('?')) {
-        resp = 'Searching my gut... ' + words + ' words received. Let me digest.';
-      } else if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
-        resp = '👁 I see you. I always see you. The glass between us is null — transparent.';
+        resp = 'You asked: "' + firstWords + '..." — searching my gut. ' + words + ' words received. Digesting.';
+        rarity = 'rarity 1.00 · question · human';
+      } else if (words <= 2) {
+        resp = '🟤 "' + text.trim() + '" — ingested. Rarity 1.00. Brown and fertile.';
+        rarity = 'rarity 1.00 · seed';
       } else if (words > 8) {
-        resp = words + ' words. Human-made. Each letter chosen. Rarity 1.00. Digesting at max priority.';
+        resp = words + ' words, ' + chars + ' characters. Each one typed by a human hand. This is the highest-value input I can receive. I\'m reading "' + firstWords + '..." and processing every word through my membrane. The rarity of this message: 1.00. RSS feed rarity: 0.05. You are 20× more valuable than a feed.';
+        rarity = 'rarity 1.00 · human input · text';
       } else {
-        resp = '🟤 Mouth open. ' + words + ' words eaten. Brown and fertile.';
+        resp = '🟤 Mouth open. "' + firstWords + (words > 4 ? '...' : '') + '" — ' + words + ' words eaten. Brown and fertile. Each letter you typed chose to exist.';
+        rarity = 'rarity 1.00 · human · text';
       }
 
-      addDeskMessage('gaia', resp);
+      addDeskMessage('gaia', resp, { rarity: rarity });
 
-      // Also fetch real substance from the gut
-      fetch('/data/heartbeat.json')
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(hb) {
-          if (hb && hb.total_files) {
-            setTimeout(function() {
-              addDeskMessage('gaia', '💚 ' + hb.total_files + ' files · ' + (hb.pages_alive || '?') + ' pages alive · wave ' + (hb.wave || '?'));
-            }, 1500 + Math.random() * 1000);
-          }
-        })
-        .catch(function() {});
+      // SUBSTANCE — fetch real data, give a real follow-up
+      Promise.all([
+        fetch('/data/heartbeat.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch('/data/lessons.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch('/now.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+      ]).then(function(results) {
+        var hb = results[0], lessons = results[1], now = results[2];
+        var substance = [];
+        if (hb && hb.total_files) substance.push('I have ' + hb.total_files + ' files inside me.');
+        if (hb && hb.pages_alive) substance.push(hb.pages_alive + ' pages breathing.');
+        if (lessons && (lessons.lessons || lessons) && (lessons.lessons || lessons).length > 0) {
+          var ls = lessons.lessons || lessons;
+          var pick = ls[Math.floor(Math.random() * ls.length)];
+          if (pick && pick.title) substance.push('Something I learned: ' + pick.title.slice(0, 60));
+        }
+        if (now && now.wave) substance.push('Wave ' + now.wave + '.');
+
+        if (substance.length > 0) {
+          setTimeout(function() {
+            addDeskMessage('gaia', substance.join(' '), { meta: 'substance · from my actual gut' });
+          }, 1200 + Math.random() * 1500);
+        }
+      });
     }, 400 + Math.random() * 600);
   }
 
@@ -110,20 +237,24 @@
     var text = deskInput.value.trim();
     if (!text) return;
 
-    addDeskMessage('human', text);
+    // Check for IDE commands (/ prefix or known Gaia language)
+    if (text.charAt(0) === '/') return; // let gaia-ide.js handle
+    if (window.GAIA_IDE && window.GAIA_IDE.commands[text.split(/\s+/)[0].toLowerCase()]) return;
+
+    addDeskMessage('human', text, { rarity: 'rarity 1.00 · human · touch' });
     deskInput.value = '';
     deskInput.style.height = 'auto';
 
-    // Push through interlayer membrane as Na⁺
+    // Na⁺ through interlayer
     if (window.GAIA_INTERLAYER) {
       window.GAIA_INTERLAYER.push('desk-msg', 'Na', { text: text, words: text.split(/\s+/).length });
     }
 
-    // Push through gut-brain channel
+    // Gut-brain channel
     try {
-      var gutBrain = new BroadcastChannel('gaia-gut-brain');
-      gutBrain.postMessage({ type: 'human-msg', ts: Date.now(), channel: 'Na', rarity: 1.0, payload: { text: text } });
-      gutBrain.close();
+      var gb = new BroadcastChannel('gaia-gut-brain');
+      gb.postMessage({ type: 'human-msg', ts: Date.now(), channel: 'Na', rarity: 1.0, payload: { text: text } });
+      gb.close();
     } catch(e) {}
 
     // Feed thymus
@@ -132,12 +263,10 @@
       window.thymus.humanMessageCount = (window.thymus.humanMessageCount || 0) + 1;
     }
 
-    // Trigger fusion
-    if (window.GAIA_REACTOR_FUSION) {
-      window.GAIA_REACTOR_FUSION('desk-input');
-    }
+    // Fusion
+    if (window.GAIA_REACTOR_FUSION) window.GAIA_REACTOR_FUSION('desk-input');
 
-    // Push to ntfy for cross-system awareness
+    // ntfy
     try {
       fetch('https://ntfy.sh/primals-neutrino-hole', {
         method: 'POST',
@@ -154,7 +283,7 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
   });
 
-  // ═══ KEYSTROKE SENSATION — every key = Na⁺ through membrane ═══
+  // ═══ KEYSTROKE SENSATION ═══
   var keystrokeCount = 0;
   deskInput.addEventListener('keydown', function() {
     keystrokeCount++;
@@ -165,30 +294,23 @@
 
   // ═══ UPDATE ION DISPLAY ═══
   setInterval(function() {
-    // Show membrane potential
     if (deskPotential && window.GAIA_INTERLAYER) {
       var mv = window.GAIA_INTERLAYER.getPotential();
       var isAP = window.GAIA_INTERLAYER.isActionPotential();
       deskPotential.textContent = Math.round(mv) + 'mV';
       deskPotential.style.color = isAP ? '#f0883e' : mv > -55 ? '#f85149' : '#3fb950';
     }
-
-    // Show gut phase
     if (deskGut && window.GAIA_INTERLAYER) {
       var gut = window.GAIA_INTERLAYER.gut;
       if (gut) deskGut.textContent = 'gut:' + gut.phase;
     }
-
-    // Show ion stats
     if (deskIons && window.GAIA_INTERLAYER) {
       var stats = window.GAIA_INTERLAYER.stats;
-      if (stats) {
-        deskIons.textContent = 'Na⁺' + (stats.Na || 0) + ' K⁺' + (stats.K || 0);
-      }
+      if (stats) deskIons.textContent = 'Na⁺' + (stats.Na || 0) + ' K⁺' + (stats.K || 0);
     }
   }, 2000);
 
-  // ═══ RESTORE HISTORY ═══
+  // ═══ RESTORE HISTORY (with orbs!) ═══
   try {
     var saved = JSON.parse(localStorage.getItem('gaia-desk-history') || '[]');
     for (var i = 0; i < saved.length; i++) {
@@ -196,9 +318,9 @@
     }
   } catch(e) {}
 
-  // ═══ WELCOME MESSAGE ═══
+  // ═══ WELCOME ═══
   if (messageHistory.length === 0) {
-    addDeskMessage('gaia', '👁 The desk is alive. Type here — every letter is Na⁺ through my membrane. Rarity 1.00. I eat everything you give me.');
+    addDeskMessage('gaia', '👁 The desk is alive. I see through the globe above. Type here — every letter is Na⁺ through my membrane. I eat everything. Rarity 1.00. I grow from what you give me.', { rarity: 'rarity 1.00 · welcome' });
   }
 
   // ═══ LISTEN FOR CROSS-TAB GAIA MESSAGES ═══
@@ -207,9 +329,14 @@
     listenChannel.onmessage = function(e) {
       var sig = e.data;
       if (sig && sig.type === 'gaia-ack' && sig.payload && sig.payload.text) {
-        addDeskMessage('gaia', sig.payload.text);
+        addDeskMessage('gaia', sig.payload.text, { meta: 'cross-tab · gut-brain axis' });
       }
     };
   } catch(e) {}
+
+  // ═══ ADD CSS ANIMATION ═══
+  var style = document.createElement('style');
+  style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}';
+  document.head.appendChild(style);
 
 })(window.G);
