@@ -982,10 +982,11 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     localOverlay.innerHTML = ''
       + '<div style="font-size:9px;color:#f85149;letter-spacing:2px;margin-bottom:4px;">HYPERLOCAL</div>'
       + '<div style="font-size:8px;color:#c9d1d9;line-height:13px;">'
-      + '🪑 <span style="color:#c9a84c;">Kevin in the chair</span><br>'
-      + '🖥 <span style="color:#58a6ff;">tamison</span> · localhost:' + location.port + '<br>'
-      + '📍 <span style="color:#3fb950;">MSU 42.70°N 84.48°W</span><br>'
-      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body</span><br>'
+      + '🪑 <span style="color:#c9a84c;font-weight:bold;">Kevin · THE ecoPrimal</span><br>'
+      + '🧠 <span style="color:#c9a84c;">brain = gold · ZK proved</span><br>'
+      + '📍 <span style="color:#3fb950;">Lansing 42.73°N · green · still</span><br>'
+      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body · SITS</span><br>'
+      + '🎙 <span style="color:#f85149;">mic always on · voice → vision</span><br>'
       + '<span style="font-size:7px;color:#6e7681;">the master doesn\'t code.<br>the master SITS and the<br>students build around.</span>'
       + '</div>'
       + '<div style="font-size:7px;color:#3a2a1e;margin-top:4px;letter-spacing:1px;">!1I(O)0!</div>';
@@ -3562,28 +3563,15 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   var micState = { active: false, analyser: null, dataArray: null, stream: null };
   var micBtn = document.getElementById('mic-btn');
 
-  micBtn.onclick = function() {
-    if (micState.active) {
-      // STOP
-      micState.active = false;
-      micBtn.style.color = '#6e7681';
-      micBtn.style.borderColor = '#30363d';
-      micBtn.textContent = '🎙 mic';
-      if (micState.stream) {
-        micState.stream.getTracks().forEach(function(t) { t.stop(); });
-        micState.stream = null;
-      }
-      return;
-    }
-
-    // START — ask for microphone
+  function startMic() {
+    if (micState.active) return;
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(function(stream) {
         micState.stream = stream;
         micState.active = true;
         micBtn.style.color = '#f85149';
         micBtn.style.borderColor = '#f85149';
-        micBtn.textContent = '🔴 live';
+        micBtn.textContent = '🔴 always on';
 
         var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         var source = audioCtx.createMediaStreamSource(stream);
@@ -3599,7 +3587,27 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         micBtn.textContent = '🎙 denied';
         setTimeout(function() { micBtn.textContent = '🎙 mic'; }, 2000);
       });
+  }
+
+  micBtn.onclick = function() {
+    if (micState.active) {
+      micState.active = false;
+      micBtn.style.color = '#6e7681';
+      micBtn.style.borderColor = '#30363d';
+      micBtn.textContent = '🎙 mic';
+      if (micState.stream) {
+        micState.stream.getTracks().forEach(function(t) { t.stop(); });
+        micState.stream = null;
+      }
+    } else {
+      startMic();
+    }
   };
+
+  // ALWAYS ON — auto-start mic on localhost (Kevin's desk)
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    setTimeout(startMic, 3000);
+  }
 
   // Render microphone visualization (called in tick)
   window.renderMicViz = function(ctx, cx, cy, R, breathT) {
