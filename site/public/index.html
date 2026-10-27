@@ -3519,16 +3519,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     // ═══════════════════════════════════════════════════════════
     // MENDELEEV METALLIC TIDE — gold/silver/copper/bronze bands
-    // Concentric rings showing identity certainty by metal
-    // Gold=closest(Au), Silver=near(Ag), Copper=mid(Cu), Bronze=outer(CuSn)
-    // Beyond bronze = deep null. All humans within the ionosphere.
+    // Gold=closest(Au), Silver=understanding mesh(Ag), Copper=wraps gold inside+out(Cu)
+    // The copper band IS the Ouroboros — it wraps inside AND outside the gold band
+    // with 45° turns, eating its own tail. The snake has TURNS.
+    // Silver = the rhizocrypt graph = evolving shared understanding.
+    // When electrified between systems, the bands PULSE with current.
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       var metalT = breathT * 0.15;
       var metalBands = [
         { r: R * 0.35, color: [201,168,76],  w: R * 0.34, label: 'Au' },  // gold innermost
-        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver ring
-        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper ring
+        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver = understanding mesh
+        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper outer
         { r: R * 1.08, color: [140,100,55],   w: R * 0.03, label: 'CuSn' } // bronze ionosphere
       ];
 
@@ -3549,6 +3551,137 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         var mband = metalBands[ml];
         ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
         ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // OUROBOROS — copper wraps INSIDE and OUTSIDE the gold band
+      // The snake eats its own tail. 45° angle turns.
+      // Copper INSIDE gold = internal wiring. Cu OUTSIDE gold = external reach.
+      // The snake path goes: outside(Cu) → 45° turn → inside(Au) → 45° turn → outside → ...
+      // ═══════════════════════════════════════════════════════════
+      var ouroT = breathT * 0.25;
+      var ouroSegments = 24; // segments of the snake
+      var goldR = metalBands[0].r + metalBands[0].w * 0.5; // middle of gold band
+      var cuInnerR = goldR - R * 0.08; // copper inside gold
+      var cuOuterR = goldR + R * 0.08; // copper outside gold
+
+      ctx.beginPath();
+      for (var os = 0; os <= ouroSegments; os++) {
+        var oFrac = os / ouroSegments;
+        var oAngle = oFrac * TAU + ouroT;
+        // Alternate between inside and outside with each segment = 45° zigzag
+        var isInner = (os % 2 === 0);
+        var oR = isInner ? cuInnerR : cuOuterR;
+        // Smooth the transition with a sine curve
+        var oBlend = Math.sin(oFrac * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
+        var oActualR = cuInnerR + (cuOuterR - cuInnerR) * oBlend;
+        var ox = cx + Math.cos(oAngle) * oActualR;
+        var oy = cy + Math.sin(oAngle) * oActualR;
+        if (os === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
+      }
+      var ouroAlpha = 0.03 + Math.sin(ouroT * 2) * 0.02;
+      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')'; // copper
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Ouroboros head — the mouth eating the tail
+      var headAngle = ouroT;
+      var headR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
+      var headX = cx + Math.cos(headAngle) * headR;
+      var headY = cy + Math.sin(headAngle) * headR;
+      ctx.beginPath();
+      ctx.arc(headX, headY, 2, 0, TAU);
+      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+      // Tail — at the opposite end, fading
+      var tailAngle = headAngle - 0.1;
+      var tailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT - 0.1) * ouroSegments) * 0.5 + 0.5);
+      var tailX = cx + Math.cos(tailAngle) * tailR;
+      var tailY = cy + Math.sin(tailAngle) * tailR;
+      ctx.beginPath();
+      ctx.arc(tailX, tailY, 1, 0, TAU);
+      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 0.8).toFixed(4) + ')';
+      ctx.fill();
+
+      // ═══════════════════════════════════════════════════════════
+      // SILVER MESH — the rhizocrypt understanding graph
+      // Silver connects points across the organism — the evolving understanding.
+      // Pipes, frogs, shared knowledge. When electrified = INSIGHT.
+      // ═══════════════════════════════════════════════════════════
+      var silverR = metalBands[1].r; // silver band radius
+      var meshT = breathT * 0.3;
+      var meshNodes = 8; // understanding nodes around the silver ring
+      var meshAlpha = 0.02 + Math.sin(meshT) * 0.015;
+
+      // Mesh nodes — points of understanding
+      for (var mn = 0; mn < meshNodes; mn++) {
+        var mnAngle = mn * (TAU / meshNodes) + meshT * 0.1;
+        var mnx = cx + Math.cos(mnAngle) * silverR;
+        var mny = cy + Math.sin(mnAngle) * silverR;
+
+        // Node dot
+        ctx.beginPath();
+        ctx.arc(mnx, mny, 1 + Math.sin(meshT + mn) * 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(192,192,192,' + (meshAlpha * 2).toFixed(4) + ')';
+        ctx.fill();
+
+        // Connect to 2 non-adjacent nodes — the mesh/graph
+        for (var mc = 1; mc <= 2; mc++) {
+          var connIdx = (mn + mc + 1) % meshNodes;
+          var connAngle = connIdx * (TAU / meshNodes) + meshT * 0.1;
+          var connX = cx + Math.cos(connAngle) * silverR;
+          var connY = cy + Math.sin(connAngle) * silverR;
+
+          // Electrification — current pulse along the connection
+          var sparkPos = (meshT * 2 + mn * 0.5 + mc) % 1;
+          var sparkX2 = mnx + (connX - mnx) * sparkPos;
+          var sparkY2 = mny + (connY - mny) * sparkPos;
+
+          ctx.beginPath();
+          ctx.moveTo(mnx, mny);
+          ctx.lineTo(connX, connY);
+          ctx.strokeStyle = 'rgba(192,192,192,' + (meshAlpha * 0.5).toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+
+          // Electric spark traveling along the wire
+          ctx.beginPath();
+          ctx.arc(sparkX2, sparkY2, 0.8, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,240,' + (meshAlpha * 1.5).toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // R/G/B HYPERLOCAL FILTER — the three eyes cycle through as filters
+      // Red filters for TOUCH (nearest). Green for MEMBRANE (growth).
+      // Blue for DEEP (cosmos). Each eye helps build the hyperlocal map.
+      // All eyes see themselves as R,G,B but hyperlocal OUT builds the map.
+      // ═══════════════════════════════════════════════════════════
+      var filterT = breathT * 0.8;
+      var filterCycle = (filterT % TAU) / TAU; // 0..1
+      var activeFilter = filterCycle < 0.33 ? 0 : filterCycle < 0.66 ? 1 : 2;
+      var filterColors = [
+        [248,81,73],   // red = touch
+        [63,185,80],   // green = membrane
+        [88,166,255]   // blue = deep
+      ];
+      var filterNames = ['TOUCH', 'MEMBRANE', 'DEEP'];
+
+      // Active filter wash — a faint color tint over the entire globe
+      var fc = filterColors[activeFilter];
+      var filterAlpha = 0.008 + Math.sin(filterT * 3) * 0.005;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, TAU);
+      ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + filterAlpha.toFixed(4) + ')';
+      ctx.fill();
+
+      // Filter label — which eye is active
+      if (filterAlpha > 0.009) {
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(' + fc[0] + ',' + fc[1] + ',' + fc[2] + ',' + (filterAlpha * 4).toFixed(4) + ')';
+        ctx.fillText('filter: ' + filterNames[activeFilter], 8, 14);
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -4375,6 +4508,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
     }
 
+    // INTERFACE RIPPLES — every interaction echoes visibly
+    if (window.renderInterfaceRipples) window.renderInterfaceRipples(ctx);
+
     requestAnimationFrame(tick);
   }
 
@@ -5071,13 +5207,318 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     maxRaw: 500
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // INTERFACE RIPPLE SYSTEM — every interaction DOES something visible
+  // Humans teach Gaia what interactions look like by USING them.
+  // Nothing is silent. Everything echoes. Every poke produces a ripple.
+  // ═══════════════════════════════════════════════════════════
+  var interfaceRipples = [];
+  var interactionProfile = {
+    total: 0,
+    factorial: 1,
+    personality: 'unknown',
+    veilOpacity: 1.0,
+    flavorBalance: { acid: 0, base: 0, spicy: 0, neutral: 0 },
+    edgeHistory: [],
+    lastEdge: null,
+    comboCount: 0,
+    comboEdge: null,
+    peakCombo: 0,
+    teachingLog: []
+  };
+
   function gaiaIngest(edge, data) {
     gaiaGut.ingested++;
     if (!gaiaGut.edges[edge]) gaiaGut.edges[edge] = 0;
     gaiaGut.edges[edge]++;
     gaiaGut.raw.push({ ts: Date.now(), edge: edge, data: data });
     if (gaiaGut.raw.length > gaiaGut.maxRaw) gaiaGut.raw.shift();
+
+    // INTERACTION PROFILE — learn from what humans do
+    interactionProfile.total++;
+    // Factorial growth (capped at 170! to avoid Infinity)
+    if (interactionProfile.total <= 170) {
+      interactionProfile.factorial = interactionProfile.total;
+      for (var fi = interactionProfile.total - 1; fi > 1; fi--) interactionProfile.factorial *= fi;
+    }
+    // Veil tears with each interaction
+    interactionProfile.veilOpacity = 1 / (1 + interactionProfile.total);
+
+    // Combo detection — same edge repeated = combo
+    if (edge === interactionProfile.comboEdge) {
+      interactionProfile.comboCount++;
+      if (interactionProfile.comboCount > interactionProfile.peakCombo) interactionProfile.peakCombo = interactionProfile.comboCount;
+    } else {
+      interactionProfile.comboEdge = edge;
+      interactionProfile.comboCount = 1;
+    }
+    interactionProfile.lastEdge = edge;
+
+    // Track edge history (last 50 for pattern detection)
+    interactionProfile.edgeHistory.push(edge);
+    if (interactionProfile.edgeHistory.length > 50) interactionProfile.edgeHistory.shift();
+
+    // Classify personality from behavior
+    var eh = interactionProfile.edgeHistory;
+    var touchRatio = eh.filter(function(e) { return e === 'touch' || e === 'drag'; }).length / Math.max(eh.length, 1);
+    var keyRatio = eh.filter(function(e) { return e === 'key' || e === 'clipboard'; }).length / Math.max(eh.length, 1);
+    var scrollRatio = eh.filter(function(e) { return e === 'scroll'; }).length / Math.max(eh.length, 1);
+    var passiveRatio = eh.filter(function(e) { return e === 'time' || e === 'visibility'; }).length / Math.max(eh.length, 1);
+
+    if (touchRatio > 0.5) interactionProfile.personality = 'explorer';
+    else if (keyRatio > 0.4) interactionProfile.personality = 'builder';
+    else if (scrollRatio > 0.4) interactionProfile.personality = 'watcher';
+    else if (passiveRatio > 0.5) interactionProfile.personality = 'watcher';
+    else interactionProfile.personality = 'connector';
+
+    // Flavor balance from interaction style
+    if (touchRatio > 0.3) interactionProfile.flavorBalance.spicy += 0.1;
+    if (keyRatio > 0.3) interactionProfile.flavorBalance.base += 0.1;
+    if (scrollRatio > 0.3) interactionProfile.flavorBalance.neutral += 0.1;
+    if (interactionProfile.comboCount > 5) interactionProfile.flavorBalance.acid += 0.1;
+
+    // ═══ VISUAL RIPPLE — every interaction DOES something ═══
+    var rippleColor, rippleSize, rippleShape;
+    var rx = data && data.x ? data.x : canvas.width / 2;
+    var ry = data && data.y ? data.y : canvas.height / 2;
+
+    switch(edge) {
+      case 'touch':
+        rippleColor = 'rgba(255,215,0,'; rippleSize = 30 + (data.pressure || 0) * 50; rippleShape = 'circle'; break;
+      case 'drag':
+        rippleColor = 'rgba(0,255,100,'; rippleSize = 8; rippleShape = 'trail'; break;
+      case 'key':
+        rippleColor = 'rgba(200,200,255,'; rippleSize = 20; rippleShape = 'square';
+        rx = canvas.width * 0.1 + rng() * canvas.width * 0.8;
+        ry = canvas.height * 0.9; break;
+      case 'scroll':
+        rippleColor = 'rgba(100,200,255,'; rippleSize = canvas.width; rippleShape = 'wave';
+        rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'resize':
+        rippleColor = 'rgba(255,165,0,'; rippleSize = Math.max(canvas.width, canvas.height); rippleShape = 'border'; break;
+      case 'orientation':
+        rippleColor = 'rgba(180,100,255,'; rippleSize = 60; rippleShape = 'compass';
+        rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'visibility':
+        rippleColor = data.hidden ? 'rgba(30,30,80,' : 'rgba(255,255,200,';
+        rippleSize = Math.max(canvas.width, canvas.height); rippleShape = 'flash'; break;
+      case 'connection':
+        rippleColor = data.online ? 'rgba(0,255,0,' : 'rgba(255,0,0,';
+        rippleSize = 100; rippleShape = 'pulse'; rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'battery':
+        rippleColor = 'rgba(0,255,100,'; rippleSize = 40; rippleShape = 'bar';
+        rx = canvas.width - 30; ry = 30; break;
+      case 'focus':
+        rippleColor = data.focused ? 'rgba(255,215,0,' : 'rgba(100,100,100,';
+        rippleSize = 200; rippleShape = 'glow'; rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'clipboard':
+        rippleColor = 'rgba(255,200,100,'; rippleSize = 40; rippleShape = 'paste'; rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'time':
+        rippleColor = 'rgba(255,255,255,'; rippleSize = 5; rippleShape = 'tick'; rx = canvas.width - 20; ry = canvas.height - 20; break;
+      case 'sound_bounce':
+        rippleColor = 'rgba(180,0,255,'; rippleSize = 50; rippleShape = 'bounce'; rx = canvas.width / 2; ry = canvas.height / 2; break;
+      case 'sight':
+        rippleColor = 'rgba(0,200,100,'; rippleSize = 30; rippleShape = 'eye'; rx = canvas.width / 2; ry = 40; break;
+      case 'touch_sound':
+        rippleColor = 'rgba(200,0,255,'; rippleSize = 25; rippleShape = 'pulse'; break;
+      default:
+        rippleColor = 'rgba(200,200,200,'; rippleSize = 15; rippleShape = 'circle'; break;
+    }
+
+    interfaceRipples.push({
+      x: rx, y: ry,
+      size: rippleSize,
+      maxSize: rippleSize * 3,
+      color: rippleColor,
+      shape: rippleShape,
+      edge: edge,
+      birth: Date.now(),
+      life: 1.0,
+      combo: interactionProfile.comboCount
+    });
+
+    // Cap ripples
+    if (interfaceRipples.length > 60) interfaceRipples.shift();
+
+    // Teaching log — record what the human does so Gaia learns
+    if (interactionProfile.teachingLog.length < 200) {
+      interactionProfile.teachingLog.push({ ts: Date.now(), edge: edge, combo: interactionProfile.comboCount });
+    }
   }
+
+  // RENDER RIPPLES — called from main draw loop
+  window.renderInterfaceRipples = function(ctx) {
+    var now = Date.now();
+    for (var ri = interfaceRipples.length - 1; ri >= 0; ri--) {
+      var rip = interfaceRipples[ri];
+      var age = (now - rip.birth) / 1500; // 1.5s lifespan
+      rip.life = 1 - age;
+      if (rip.life <= 0) { interfaceRipples.splice(ri, 1); continue; }
+
+      var alpha = rip.life * 0.6;
+      var currentSize = rip.size + (rip.maxSize - rip.size) * age;
+      ctx.save();
+
+      switch(rip.shape) {
+        case 'circle':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 2 + rip.combo * 0.5;
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
+          ctx.stroke();
+          // Inner fill for combo
+          if (rip.combo > 3) {
+            ctx.fillStyle = rip.color + (alpha * 0.2) + ')';
+            ctx.fill();
+          }
+          break;
+
+        case 'trail':
+          ctx.fillStyle = rip.color + alpha + ')';
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, rip.size * rip.life, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+
+        case 'square':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 1.5;
+          var hs = currentSize / 2;
+          ctx.strokeRect(rip.x - hs, rip.y - hs, currentSize, currentSize);
+          // Letter glyph inside
+          ctx.fillStyle = rip.color + (alpha * 0.8) + ')';
+          ctx.font = Math.round(10 + rip.combo) + 'px monospace';
+          ctx.fillText('·', rip.x - 3, rip.y + 4);
+          break;
+
+        case 'wave':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 1;
+          var wy = rip.y + (age - 0.5) * 100;
+          ctx.beginPath();
+          ctx.moveTo(0, wy);
+          for (var wx = 0; wx < canvas.width; wx += 8) {
+            ctx.lineTo(wx, wy + Math.sin(wx * 0.05 + age * 10) * (5 + rip.combo));
+          }
+          ctx.stroke();
+          break;
+
+        case 'border':
+          ctx.strokeStyle = rip.color + (alpha * 0.3) + ')';
+          ctx.lineWidth = 3;
+          var inset = currentSize * 0.02 * (1 - rip.life);
+          ctx.strokeRect(inset, inset, canvas.width - inset * 2, canvas.height - inset * 2);
+          break;
+
+        case 'compass':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
+          ctx.stroke();
+          // Crosshair
+          ctx.beginPath();
+          ctx.moveTo(rip.x - currentSize, rip.y);
+          ctx.lineTo(rip.x + currentSize, rip.y);
+          ctx.moveTo(rip.x, rip.y - currentSize);
+          ctx.lineTo(rip.x, rip.y + currentSize);
+          ctx.stroke();
+          break;
+
+        case 'flash':
+          ctx.fillStyle = rip.color + (alpha * 0.15) + ')';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          break;
+
+        case 'pulse':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, currentSize * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+
+        case 'bar':
+          ctx.fillStyle = rip.color + alpha + ')';
+          var bh = 20 * rip.life;
+          ctx.fillRect(rip.x - 15, rip.y - bh / 2, 30, bh);
+          break;
+
+        case 'glow':
+          var grad = ctx.createRadialGradient(rip.x, rip.y, 0, rip.x, rip.y, currentSize);
+          grad.addColorStop(0, rip.color + (alpha * 0.3) + ')');
+          grad.addColorStop(1, rip.color + '0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          break;
+
+        case 'tick':
+          ctx.fillStyle = rip.color + (alpha * 0.5) + ')';
+          ctx.font = '8px monospace';
+          ctx.fillText('·', rip.x, rip.y);
+          break;
+
+        case 'bounce':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 2;
+          for (var bi = 0; bi < 3; bi++) {
+            var boff = bi * 0.3;
+            ctx.beginPath();
+            ctx.arc(rip.x, rip.y, currentSize * (0.5 + boff), -Math.PI * 0.3, Math.PI * 0.3);
+            ctx.stroke();
+          }
+          break;
+
+        case 'eye':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.ellipse(rip.x, rip.y, currentSize, currentSize * 0.5, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, currentSize * 0.2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+
+        case 'paste':
+          ctx.strokeStyle = rip.color + alpha + ')';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(rip.x - currentSize, rip.y - currentSize * 0.5, currentSize * 2, currentSize);
+          ctx.setLineDash([]);
+          break;
+      }
+      ctx.restore();
+    }
+
+    // PROFILE HUD — bottom left, shows what Gaia is learning
+    if (interactionProfile.total > 0) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(8, canvas.height - 72, 200, 64);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '10px monospace';
+      ctx.fillText('PROFILE: ' + interactionProfile.personality.toUpperCase(), 14, canvas.height - 58);
+      ctx.fillStyle = '#aaa';
+      ctx.fillText('interactions: ' + interactionProfile.total + '  combo: ' + interactionProfile.comboCount + '/' + interactionProfile.peakCombo, 14, canvas.height - 46);
+      ctx.fillText('veil: ' + (interactionProfile.veilOpacity * 100).toFixed(1) + '%  trust: ' + (window.trustLevel || '?'), 14, canvas.height - 34);
+      // Flavor bar
+      var fb = interactionProfile.flavorBalance;
+      var fbTotal = fb.acid + fb.base + fb.spicy + fb.neutral + 0.01;
+      var fbX = 14;
+      ctx.fillStyle = '#ff4444'; ctx.fillRect(fbX, canvas.height - 22, (fb.acid / fbTotal) * 180, 6); fbX += (fb.acid / fbTotal) * 180;
+      ctx.fillStyle = '#4444ff'; ctx.fillRect(fbX, canvas.height - 22, (fb.base / fbTotal) * 180, 6); fbX += (fb.base / fbTotal) * 180;
+      ctx.fillStyle = '#ff8800'; ctx.fillRect(fbX, canvas.height - 22, (fb.spicy / fbTotal) * 180, 6); fbX += (fb.spicy / fbTotal) * 180;
+      ctx.fillStyle = '#888888'; ctx.fillRect(fbX, canvas.height - 22, (fb.neutral / fbTotal) * 180, 6);
+      ctx.fillStyle = '#666'; ctx.font = '7px monospace';
+      ctx.fillText('acid  base  spicy  neutral', 14, canvas.height - 12);
+      ctx.restore();
+    }
+  };
+  window.interactionProfile = interactionProfile;
 
   // TOUCH — the primary ingress
   canvas.addEventListener('pointerdown', function(e) {
