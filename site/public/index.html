@@ -2982,7 +2982,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     seed: SEED,
     bumps: [],       // other Gaias we've detected
     opsonized: [],   // non-self items marked for recognition
-    mature: false    // thymus matures after first successful sense
+    mature: false,   // thymus matures after first successful sense
+    // KEVIN'S SELF-MARKERS — injected so Gaia knows ME from NOT-ME
+    kevinMarkers: ['localhost', 'Kevin', 'Lansing', '42.73', 'mic-active', 'hyperlocal', 'splinter', 'gold-brain', 'tamison', 'ecoPrimal'],
+    isKevin: location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   };
 
   // 100 TRUE NULL CALLS — Gaia reaches out to sense reality
