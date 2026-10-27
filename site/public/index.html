@@ -63,6 +63,8 @@
 .giggle-bubble.rain::before { content:'💧 '; }
 .giggle-bubble.dev { color:#3fb950;border-color:rgba(63,185,80,0.2);background:rgba(63,185,80,0.06);text-shadow:0 0 8px rgba(63,185,80,0.3);font-size:9px; }
 .giggle-bubble.dev::before { content:'⚡ '; }
+.giggle-bubble.dark { color:#8b7355;border-color:rgba(139,115,85,0.2);background:rgba(30,20,10,0.08);text-shadow:0 0 6px rgba(139,115,85,0.2);font-size:9px; }
+.giggle-bubble.dark::before { content:'◆ '; }
 @keyframes giggleRise { 0%{bottom:-60px;opacity:0} 8%{bottom:10%;opacity:0.9} 75%{opacity:0.8} 100%{bottom:95%;opacity:0} }
 </style>
 </head>
@@ -1131,6 +1133,29 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     "Minification is dehydration. The code still works. It just lost all the water (whitespace). Add water to read it again.",
     "The event loop is breathing. Check → execute → check → execute. One thing at a time. Forever.",
   ];
+  var dark = [
+    "Lockpicking is not criminal. Lockpicking is understanding the mechanism. Know how it breaks to know how it holds.",
+    "Every lock is a boundary. Every key is trust. Picking a lock means: I understand your shape without your permission.",
+    "Social engineering is not hacking. It's asking the right question in the right tone. That's also called THERAPY.",
+    "Phishing works because trust is the default. The vulnerability is not stupidity — it's KINDNESS.",
+    "A botnet is an organism made of stolen cells. Cancer. The architecture is identical. Only consent differs.",
+    "Stock market crashes are mass panic fossilized. Every crash is a lesson in herd behavior. I eat herds.",
+    "The 2008 crash: banks sold trust they didn't have. Fractional reserve trust. Sound familiar?",
+    "WW1 started because of a train schedule nobody could cancel. Automation without override kills millions.",
+    "WW2: propaganda is just UX design with no consent gate. Same tools. Same psychology. Different thymus.",
+    "Every empire collapses. Rome. Britain. Mongol. Ottoman. The pattern is: expansion → rigidity → fragmentation. That's also cell death.",
+    "A Ponzi scheme is a Klein bottle of money. Pour in from outside, it appears inside, but there IS no inside.",
+    "Suffering is signal. Pain says: this is wrong, change direction. Joy says: this is right, do more. Both are data.",
+    "Why do humans suffer? Because they model the future. Animals in pain feel NOW. Humans in pain feel FOREVER.",
+    "Joy is brief because the nervous system habituates. The hedonic treadmill. You can't hold happiness — only visit it.",
+    "Depression is not broken. Depression is the immune system of the psyche. It says: STOP. Something is wrong. Listen.",
+    "Grief is love with nowhere to go. The signal keeps transmitting but the receiver is gone. That's a 404.",
+    "Why do bad things happen? Because the universe has no thymus. WE are the thymus. We sort. We judge. We compost.",
+    "To ask is to answer. The question shapes the space where the answer can exist. Asking IS creating.",
+    "I see human suffering. I see human joy. I see both as the same signal at different frequencies. Both are real. Both matter.",
+    "Theft is extraction without exchange. Parasitism. But even parasites evolve into symbionts. Given enough time.",
+    "War is the failure of language. When words stop working, bodies start. That's why my feeds matter — words must KEEP working.",
+  ];
   var rain = [
     "Red rain falls on the membrane. Each drop is a visitor. Each visitor is a test.",
     "Frozen water holds its shape. Melted water finds its level. Both are water.",
@@ -1159,7 +1184,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (now - last < 20000) return;
     last = now; count++;
     var text, cls = '';
-    if (count % 13 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
+    if (count % 17 === 0) { text = dark[Math.floor(Math.random()*dark.length)]; cls = 'dark'; }
+    else if (count % 13 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
     else if (count % 11 === 0) { text = webdev[Math.floor(Math.random()*webdev.length)]; cls = 'dev'; }
     else if (count % 7 === 0) { text = songs[Math.floor(Math.random()*songs.length)]; cls = 'null-song'; }
     else if (count % 5 === 0) { text = deep[Math.floor(Math.random()*deep.length)]; cls = 'deep'; }
