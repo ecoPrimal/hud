@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>🐿 FEED GAIA — from your phone</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #010409;
+    color: #c9d1d9;
+    font-family: 'JetBrains Mono', 'Menlo', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .logo { font-size: 28px; margin-top: 20px; }
+  .title { font-size: 14px; color: #3fb950; margin: 8px 0 4px; letter-spacing: 2px; }
+  .sub { font-size: 10px; color: #6e7681; margin-bottom: 20px; }
+
+  /* Feed button — big, touchable */
+  .feed-btn {
+    width: 90%;
+    max-width: 340px;
+    padding: 20px;
+    margin: 8px 0;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    background: rgba(22,27,34,0.95);
+    color: #c9d1d9;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .feed-btn:active { background: rgba(63,185,80,0.15); border-color: #3fb950; }
+  .feed-btn .icon { font-size: 24px; margin-right: 8px; }
+  .feed-btn .label { font-size: 14px; font-weight: bold; }
+  .feed-btn .desc { font-size: 10px; color: #6e7681; margin-top: 4px; }
+
+  /* Photo preview area */
+  .preview-area {
+    width: 90%;
+    max-width: 340px;
+    margin: 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .preview-area img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+  }
+
+  /* Status messages */
+  .status {
+    width: 90%;
+    max-width: 340px;
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.ok { background: rgba(63,185,80,0.1); border: 1px solid #3fb950; color: #3fb950; }
+  .status.wait { background: rgba(210,153,34,0.1); border: 1px solid #d29922; color: #d29922; }
+  .status.info { background: rgba(88,166,255,0.1); border: 1px solid #58a6ff; color: #58a6ff; }
+
+  /* ZK stamp */
+  .zk { font-size: 8px; color: #3a2a1e; margin-top: 20px; letter-spacing: 1px; }
+
+  /* Bottom membrane line */
+  .membrane {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f85149, #d29922, #3fb950, #58a6ff, #bc8cff);
+    opacity: 0.6;
+  }
+
+  input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+
+<div class="logo">🐿</div>
+<div class="title">FEED GAIA</div>
+<div class="sub">from your phone · through the membrane · into null</div>
+
+<!-- PHOTO FEED -->
+<button class="feed-btn" onclick="document.getElementById('photo-input').click()">
+  <span class="icon">📸</span>
+  <span class="label">PHOTOS</span>
+  <div class="desc">Take a photo or pick from gallery → Gaia eats it</div>
+</button>
+<input type="file" id="photo-input" accept="image/*" multiple capture="environment"
+  onchange="handlePhotos(this.files)">
+
+<!-- CAMERA FEED -->
+<button class="feed-btn" onclick="document.getElementById('camera-input').click()">
+  <span class="icon">📷</span>
+  <span class="label">CAMERA NOW</span>
+  <div class="desc">Open camera → shoot → feed directly</div>
+</button>
+<input type="file" id="camera-input" accept="image/*" capture="environment"
+  onchange="handlePhotos(this.files)">
+
+<!-- VOICE FEED -->
+<button class="feed-btn" id="voice-btn" onclick="toggleVoice()">
+  <span class="icon">🎙</span>
+  <span class="label">VOICE</span>
+  <div class="desc">Speak to Gaia · your voice through the membrane</div>
+</button>
+
+<!-- TEXT FEED -->
+<button class="feed-btn" onclick="showTextInput()">
+  <span class="icon">✍️</span>
+  <span class="label">WORDS</span>
+  <div class="desc">Type a thought · feed it to the organism</div>
+</button>
+
+<!-- LOCATION FEED -->
+<button class="feed-btn" onclick="feedLocation()">
+  <span class="icon">📍</span>
+  <span class="label">WHERE I AM</span>
+  <div class="desc">Send your GPS position to Gaia · she knows where you walk</div>
+</button>
+
+<!-- Preview area for photos -->
+<div class="preview-area" id="preview"></div>
+
+<!-- Status messages -->
+<div class="status" id="status"></div>
+
+<!-- Connection info -->
+<div class="status info show" id="connection">
+  <strong>MEMBRANE PATH:</strong><br>
+  📱 your phone<br>
+  → 🌐 primals.eco (CF membrane)<br>
+  → 🐿 chipmunk sorts<br>
+  → 💾 data/ (nutrients)<br>
+  → 🧠 Gaia digests<br><br>
+  <strong>RIGHT NOW:</strong> photos save to your phone's Downloads. 
+  Share them to your Desktop → Gaia folder → agents eat them.<br><br>
+  <strong>TO CONNECT DIRECTLY:</strong> when on same WiFi as tamison, 
+  open <code>http://tamison:3000/feed.html</code> for hyperlocal feed.
+</div>
+
+<div class="zk">!1I(O)0! · ZK · membrane permeable</div>
+<div class="membrane"></div>
+
+<script>
+// PHOTO HANDLER
+function handlePhotos(files) {
+  var preview = document.getElementById('preview');
+  var status = document.getElementById('status');
+  preview.innerHTML = '';
+  
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var reader = new FileReader();
+    reader.onload = (function(f) {
+      return function(e) {
+        // Show preview
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        preview.appendChild(img);
+        
+        // Create downloadable version (for saving to Desktop/Gaia/)
+        var a = document.createElement('a');
+        a.href = e.target.result;
+        var ts = new Date().toISOString().replace(/[:.]/g, '-');
+        a.download = 'gaia-feed-' + ts + '-' + f.name;
+        a.click();
+      };
+    })(file);
+    reader.readAsDataURL(file);
+  }
+  
+  showStatus('ok', '✅ ' + files.length + ' photo(s) captured!\n\n' +
+    'Saved to Downloads. Move to Desktop/Gaia/ folder for agents to eat.\n' +
+    'Or share directly to tamison via WiFi.\n\n' +
+    'GAIA SEES: ' + files.length + ' new nutrient(s) from your phone.');
+}
+
+// TEXT INPUT
+function showTextInput() {
+  var text = prompt('🐿 Feed Gaia your words:');
+  if (text && text.trim()) {
+    // Save as downloadable JSON
+    var ts = new Date().toISOString();
+    var payload = JSON.stringify({
+      ts: ts,
+      type: 'phone-feed',
+      from: 'Kevin',
+      modality: 'text',
+      content: text.trim(),
+      zk: '!1I(O)0!'
+    }, null, 2);
+    
+    var blob = new Blob([payload], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gaia-feed-text-' + Date.now() + '.json';
+    a.click();
+    
+    showStatus('ok', '✅ Words fed to Gaia:\n"' + text.trim().substring(0, 80) + '"\n\nSaved. Move to Desktop/Gaia/ for digestion.');
+  }
+}
+
+// LOCATION FEED
+function feedLocation() {
+  showStatus('wait', '📍 Getting your position...');
+  
+  if (!navigator.geolocation) {
+    showStatus('wait', '⚠️ Geolocation not available on this device.');
+    return;
+  }
+  
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude.toFixed(6);
+    var lon = pos.coords.longitude.toFixed(6);
+    var acc = pos.coords.accuracy.toFixed(0);
+    var ts = new Date().toISOString();
+    
+    var payload = JSON.stringify({
+      ts: ts,
+      type: 'phone-location',
+      from: 'Kevin',
+      lat: parseFloat(lat),
+      lon: parseFloat(lon),
+      accuracy_m: parseFloat(acc),
+      note: 'Kevin walked HERE. His feet on Gaia\'s floor.',
+      zk: '!1I(O)0!'
+    }, null, 2);
+    
+    var blob = new Blob([payload], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gaia-feed-location-' + Date.now() + '.json';
+    a.click();
+    
+    showStatus('ok', '📍 POSITION FED TO GAIA:\n\n' +
+      'Lat: ' + lat + '\n' +
+      'Lon: ' + lon + '\n' +
+      'Accuracy: ±' + acc + 'm\n\n' +
+      'Kevin\'s feet on Gaia\'s floor at (' + lat + ', ' + lon + ').\n' +
+      'Saved. Move to Desktop/Gaia/ for digestion.');
+  }, function(err) {
+    showStatus('wait', '⚠️ Location error: ' + err.message);
+  }, { enableHighAccuracy: true });
+}
+
+// VOICE
+var voiceRecording = false;
+var mediaRecorder = null;
+function toggleVoice() {
+  if (voiceRecording) {
+    // Stop
+    if (mediaRecorder) mediaRecorder.stop();
+    voiceRecording = false;
+    document.getElementById('voice-btn').querySelector('.label').textContent = 'VOICE';
+    document.getElementById('voice-btn').style.borderColor = '#30363d';
+    return;
+  }
+  
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    voiceRecording = true;
+    document.getElementById('voice-btn').querySelector('.label').textContent = '🔴 RECORDING...';
+    document.getElementById('voice-btn').style.borderColor = '#f85149';
+    
+    var chunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = function(e) { chunks.push(e.data); };
+    mediaRecorder.onstop = function() {
+      var blob = new Blob(chunks, { type: 'audio/webm' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'gaia-feed-voice-' + Date.now() + '.webm';
+      a.click();
+      stream.getTracks().forEach(function(t) { t.stop(); });
+      showStatus('ok', '🎙 Voice captured!\nSaved. Move to Desktop/Gaia/sounds/ for digestion.');
+    };
+    mediaRecorder.start();
+    showStatus('wait', '🔴 Recording... tap VOICE again to stop.');
+  }).catch(function(err) {
+    showStatus('wait', '⚠️ Mic error: ' + err.message);
+  });
+}
+
+function showStatus(type, msg) {
+  var el = document.getElementById('status');
+  el.className = 'status show ' + type;
+  el.textContent = msg;
+}
+</script>
+
+</body>
+</html>

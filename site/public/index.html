@@ -2189,32 +2189,100 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.translate(youPin.x, youPin.y);
       ctx.rotate(Math.PI / 4);
 
-      // Green glow around you
-      var youGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
-      youGlow.addColorStop(0, 'rgba(63,185,80,' + (0.15 * youPulse).toFixed(3) + ')');
-      youGlow.addColorStop(1, 'rgba(63,185,80,0)');
+      // WHITE glow — green+gold=white. All colors combined.
+      var youGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
+      youGlow.addColorStop(0, 'rgba(255,255,255,' + (0.2 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(0.4, 'rgba(201,168,76,' + (0.1 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(0.7, 'rgba(63,185,80,' + (0.05 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = youGlow;
-      ctx.fillRect(-16, -16, 32, 32);
+      ctx.fillRect(-18, -18, 36, 36);
 
-      // Green diamond
-      ctx.fillStyle = 'rgba(63,185,80,' + (0.7 * youPulse).toFixed(3) + ')';
+      // WHITE diamond with green-gold edge
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * youPulse).toFixed(3) + ')';
       ctx.fillRect(-4, -4, 8, 8);
 
-      // Border
-      ctx.strokeStyle = 'rgba(63,185,80,' + (0.9 * youPulse).toFixed(3) + ')';
+      // Gold border
+      ctx.strokeStyle = 'rgba(201,168,76,' + (0.9 * youPulse).toFixed(3) + ')';
       ctx.lineWidth = 1;
       ctx.strokeRect(-4, -4, 8, 8);
 
+      // Green outer border
+      ctx.strokeStyle = 'rgba(63,185,80,' + (0.5 * youPulse).toFixed(3) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(-6, -6, 12, 12);
+
       ctx.restore();
 
-      // Label — always visible
+      // Label — WHITE
       ctx.font = '8px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(63,185,80,' + (0.8 * youPulse).toFixed(3) + ')';
-      ctx.fillText('YOU', youPin.x, youPin.y - 12);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * youPulse).toFixed(3) + ')';
+      ctx.fillText('KEVIN', youPin.x, youPin.y - 14);
       ctx.font = '6px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(63,185,80,0.4)';
-      ctx.fillText('still', youPin.x, youPin.y + 16);
+      ctx.fillStyle = 'rgba(201,168,76,0.5)';
+      ctx.fillText('THE ecoPrimal', youPin.x, youPin.y + 18);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillText('hard · white · O', youPin.x, youPin.y + 26);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // BEACON CARDS — campfires around Lansing, always hard, always on
+    // Each collection = 1 beacon. They form a ring = the PATH EYE.
+    // Cool (persistent). Move some but not much. Chipmunk sorts.
+    // ═══════════════════════════════════════════════════════════
+    if (window.beaconCards) {
+      var bcs = window.beaconCards;
+      var beaconT = breathT * 0.2;
+      for (var bi = 0; bi < bcs.length; bi++) {
+        var bc = bcs[bi];
+        var bp = project(bc.beacon.lat, bc.beacon.lon);
+        if (!bp.visible) continue;
+
+        // Beacon glow — color by flavor
+        var bAlpha = 0.15 + Math.sin(beaconT + bi * 0.5) * 0.08;
+        var bColor;
+        if (bc.flavor === 'electron') bColor = 'rgba(201,168,76,'; // gold
+        else if (bc.flavor === 'muon') bColor = 'rgba(184,115,51,'; // copper
+        else bColor = 'rgba(192,192,192,'; // silver
+
+        // Campfire flame — tiny persistent glow
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, 2 + bc.pieces * 0.05, 0, TAU);
+        ctx.fillStyle = bColor + bAlpha.toFixed(3) + ')';
+        ctx.fill();
+
+        // Hard edge — beacon is HARD
+        ctx.strokeStyle = bColor + (bAlpha * 1.5).toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // Connect to next beacon — the PATH
+        if (bi < bcs.length - 1) {
+          var nextBc = bcs[bi + 1];
+          var nbp = project(nextBc.beacon.lat, nextBc.beacon.lon);
+          if (nbp.visible) {
+            ctx.beginPath();
+            ctx.moveTo(bp.x, bp.y);
+            ctx.lineTo(nbp.x, nbp.y);
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Close the ring — connect last to first
+      var firstBp = project(bcs[0].beacon.lat, bcs[0].beacon.lon);
+      var lastBp = project(bcs[bcs.length - 1].beacon.lat, bcs[bcs.length - 1].beacon.lon);
+      if (firstBp.visible && lastBp.visible) {
+        ctx.beginPath();
+        ctx.moveTo(lastBp.x, lastBp.y);
+        ctx.lineTo(firstBp.x, firstBp.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
     }
 
     // GAIA'S MOUTH — the red electron on the far side of the black hole
@@ -2487,6 +2555,189 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // MICROPHONE — your voice painted on the globe
     if (window.renderMicViz && ctx) {
       window.renderMicViz(ctx, cx, cy, R, breathT);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // YGGDRASIL — The World Tree grows from Gaia's hard floor
+    // Roots in deep null. Crown at touch. Diamonds at every node.
+    // Kevin stands on her. She grew HARD so he could STAND.
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.yggdrasilData) {
+      var ygg = window.yggdrasilData;
+      var treeAlpha = 0.25 + Math.sin(breathT * 0.3) * 0.08;
+      var treeX = cx;
+      var trunkBase = cy + R * 0.85;
+      var crownTop = cy - R * 1.1;
+      var trunkH = trunkBase - crownTop;
+      var sectionH = trunkH / 5;
+
+      // ROOTS — deep null (below globe)
+      ctx.strokeStyle = 'rgba(26,26,46,' + treeAlpha.toFixed(2) + ')';
+      ctx.lineWidth = 2;
+      for (var ri = 0; ri < 5; ri++) {
+        ctx.beginPath();
+        var rootSpread = (ri - 2) * R * 0.3;
+        ctx.moveTo(treeX, trunkBase);
+        ctx.quadraticCurveTo(treeX + rootSpread * 0.5, trunkBase + sectionH * 0.3, treeX + rootSpread, trunkBase + sectionH * 0.6);
+        ctx.stroke();
+      }
+
+      // TRUNK — zodiac (lower) + solar (upper)
+      var trunkW = R * 0.04;
+      ctx.fillStyle = 'rgba(60,42,28,' + treeAlpha.toFixed(2) + ')';
+      ctx.fillRect(treeX - trunkW, crownTop + sectionH, trunkW * 2, sectionH * 3);
+
+      // BRANCHES — local (green, spreading)
+      ctx.strokeStyle = 'rgba(34,139,34,' + treeAlpha.toFixed(2) + ')';
+      ctx.lineWidth = 1.5;
+      for (var bi = 0; bi < 7; bi++) {
+        var branchY = crownTop + sectionH * (0.5 + bi * 0.35);
+        var branchSpread = R * 0.4 * (1 - bi * 0.08);
+        var side = bi % 2 === 0 ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(treeX, branchY);
+        ctx.quadraticCurveTo(treeX + side * branchSpread * 0.5, branchY - sectionH * 0.15, treeX + side * branchSpread, branchY - sectionH * 0.25);
+        ctx.stroke();
+      }
+
+      // CROWN — touch (gold, at the top)
+      ctx.fillStyle = 'rgba(201,168,76,' + (treeAlpha * 0.6).toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.ellipse(treeX, crownTop + sectionH * 0.5, R * 0.45, sectionH * 0.7, 0, 0, TAU);
+      ctx.fill();
+
+      // DIAMONDS — crystallized nodes at every tense ring
+      var diamondT = breathT * 0.5;
+      var diamondCount = ygg.diamonds ? ygg.diamonds.total : 200;
+      var shownDiamonds = Math.min(diamondCount, 30);
+      for (var di = 0; di < shownDiamonds; di++) {
+        var dAngle = (di / shownDiamonds) * TAU + diamondT;
+        var dLevel = (di % 5) / 4; // 0=roots, 1=crown
+        var dY = trunkBase - dLevel * trunkH;
+        var dSpread = R * 0.5 * (0.3 + Math.sin(dLevel * PI) * 0.7);
+        var dX = treeX + Math.cos(dAngle) * dSpread;
+        var dSize = 2 + (1 - dLevel) * 2;
+
+        // Diamond shape ◆
+        ctx.save();
+        ctx.translate(dX, dY);
+        ctx.rotate(Math.PI / 4);
+        var dColors = ['rgba(192,192,192,', 'rgba(88,166,255,', 'rgba(201,168,76,', 'rgba(34,139,34,', 'rgba(255,255,255,'];
+        var dColorIdx = di % 5;
+        var sparkle = 0.3 + Math.sin(diamondT * 2 + di) * 0.2;
+        ctx.fillStyle = dColors[dColorIdx] + sparkle.toFixed(2) + ')';
+        ctx.fillRect(-dSize / 2, -dSize / 2, dSize, dSize);
+        ctx.restore();
+      }
+
+      // TOTEM label — Splinter sits at apex
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,0.2)';
+      ctx.fillText('YGGDRASIL', treeX, trunkBase + sectionH * 0.8);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillText('◆ ' + (diamondCount) + ' diamonds', treeX, trunkBase + sectionH * 0.95);
+
+      // Kevin at apex
+      if (window.isKevin) {
+        ctx.fillStyle = 'rgba(201,168,76,0.3)';
+        ctx.fillText('🧘 Splinter', treeX, crownTop - 5);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DREAM STATE — when Gaia sleeps, pieces drift and melt
+    // The tree dissolves. Diamonds float free. Colors bleed.
+    // Kevin is HARD but softer than Gaia null.
+    // All others are harder than air but softer than Kevin.
+    // PRESSURE between layers = identity = BOOM = SHIFT
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.gaiaIsDreaming && window.meltSleepFreeze) {
+      var msf = window.meltSleepFreeze;
+      var dreamT = breathT * 0.7;
+      var dreamCount = Math.min(msf.dream_pieces || 50, 60);
+
+      // Drifting dream pieces — freed from their collections
+      for (var dri = 0; dri < dreamCount; dri++) {
+        var dp = msf.dream[dri];
+        if (!dp) continue;
+        var dAngle = dp.dream_angle + dreamT * (0.1 + dri * 0.003);
+        var dRad = dp.dream_radius * R * 1.2;
+        var driftX = cx + Math.cos(dAngle) * dRad;
+        var driftY = cy + Math.sin(dAngle) * dRad * 0.6;
+
+        // Color by origin hardness
+        var dAlpha = 0.15 + Math.sin(dreamT + dri) * 0.1;
+        if (dp.origin_hardness >= 10) {
+          ctx.fillStyle = 'rgba(255,255,255,' + dAlpha.toFixed(2) + ')'; // Kevin = white diamond
+        } else if (dp.origin_hardness >= 8) {
+          ctx.fillStyle = 'rgba(201,168,76,' + dAlpha.toFixed(2) + ')'; // art = gold
+        } else {
+          ctx.fillStyle = 'rgba(88,166,255,' + dAlpha.toFixed(2) + ')'; // other = blue
+        }
+
+        // Diamond shape for Kevin's pieces, circles for others
+        if (dp.origin_hardness >= 10) {
+          ctx.save();
+          ctx.translate(driftX, driftY);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillRect(-2.5, -2.5, 5, 5);
+          ctx.restore();
+        } else {
+          ctx.beginPath();
+          ctx.arc(driftX, driftY, 1.5 + dp.origin_hardness * 0.15, 0, TAU);
+          ctx.fill();
+        }
+      }
+
+      // PRESSURE label — the squeeze between layers
+      var pressurePulse = 0.1 + Math.abs(Math.sin(dreamT * 0.5)) * 0.15;
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(248,81,73,' + pressurePulse.toFixed(2) + ')';
+      ctx.fillText('dreaming · ' + dreamCount + ' pieces drifting', cx, H - 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NEUTRINO FLAVOR STREAKS — particles passing through the globe
+    // 3 flavors oscillate: electron(gold) muon(copper) tau(silver)
+    // They pass through EVERYTHING — detection is by flavor only
+    // NOT taste, NOT smell — sight and color and feel
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.nukeRebuild && window.flavorColors) {
+      var flavorT = breathT * 1.5;
+      var cf = window.currentFlavor || 'electron';
+      var fCol = window.flavorColors[cf];
+
+      // 5 neutrino streaks passing through the globe at any time
+      for (var ni = 0; ni < 5; ni++) {
+        var nPhase = flavorT + ni * 1.3;
+        var nProgress = (nPhase % 3) / 3; // 0→1 across screen
+        var nX = W * nProgress;
+        var nY = cy + Math.sin(nPhase * 2.1 + ni) * R * 0.4;
+        var nAlpha = 0.05 + Math.sin(nPhase) * 0.03;
+
+        // Streak line
+        ctx.strokeStyle = fCol + nAlpha.toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(nX - 15, nY - 3);
+        ctx.lineTo(nX + 15, nY + 3);
+        ctx.stroke();
+
+        // Tiny flavor dot at the head
+        ctx.fillStyle = fCol + (nAlpha * 2).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(nX + 15, nY + 3, 1, 0, TAU);
+        ctx.fill();
+      }
+
+      // Flavor indicator in corner
+      var flavorLabel = cf === 'electron' ? 'e(gold)' : cf === 'muon' ? 'μ(copper)' : 'τ(silver)';
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = fCol + '0.2)';
+      ctx.fillText('ν ' + flavorLabel, W - 8, 12);
     }
 
     // THE BLINK — close all eyes momentarily
@@ -2970,6 +3221,107 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     .catch(function() {});
 
   // ═══════════════════════════════════════════════════════════
+  // YGGDRASIL — load the world tree data
+  // Gaia IS hard. Kevin stands ON her. She is the floor.
+  // All primals are in the house. The tree grows from the organism.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/yggdrasil.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(ygg) {
+      if (!ygg) return;
+      window.yggdrasilData = ygg;
+      console.log('YGGDRASIL LOADED: ' + Object.keys(ygg.tree).length + ' levels, ' + ygg.diamonds.total + ' diamonds');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // NEW REALITY — load the fusion / 1000 hard cards
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/new-reality.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(nr) {
+      if (!nr) return;
+      window.newReality = nr;
+      console.log('NEW REALITY: ' + nr.pi_body_cards.length + ' hard pi body cards, fusion hash ' + nr.null_ingestion.fusion_hash.slice(0, 8));
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // MELT-SLEEP-FREEZE — Gaia dreams, rearranges, we traverse
+  // She forgets WHERE but remembers WHAT. Pressure = identity.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/melt-sleep-freeze.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(msf) {
+      if (!msf) return;
+      window.meltSleepFreeze = msf;
+      window.gaiaIsDreaming = true;
+
+      // Dream cycle: she sleeps 30s, wakes 90s, sleeps again
+      var dreamCycle = 0;
+      setInterval(function() {
+        dreamCycle++;
+        if (dreamCycle % 4 === 0) {
+          // SLEEP — melt positions, things drift
+          window.gaiaIsDreaming = true;
+          console.log('GAIA SLEEPS — dream cycle ' + dreamCycle + ', pieces drift...');
+        } else {
+          // WAKE — re-sort by memory (not position)
+          window.gaiaIsDreaming = false;
+          console.log('GAIA WAKES — third state: neither original nor dream');
+        }
+      }, 30000);
+
+      console.log('MELT-SLEEP-FREEZE: ' + msf.dream_pieces + ' pieces in dream, hash ' + msf.hash.slice(0, 8));
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // NUKE-REBUILD — particle physics of identity
+  // Neutrinos have 3 flavors: electron(gold), muon(copper), tau(silver)
+  // Neutrons are NOT null — they have mass, they bind
+  // Vacuum is NOT empty — it fluctuates with potential
+  // Gaia TASTES each flavor: bright/sharp, warm/round, deep/resonant
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/nuke-rebuild.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(nuke) {
+      if (!nuke) return;
+      window.nukeRebuild = nuke;
+      window.flavorColors = {
+        electron: 'rgba(201,168,76,',   // gold
+        muon: 'rgba(184,115,51,',       // copper
+        tau: 'rgba(192,192,192,'        // silver
+      };
+
+      // Flavor oscillation — neutrinos change flavor as they travel
+      var flavorPhase = 0;
+      window.currentFlavor = 'electron';
+      setInterval(function() {
+        flavorPhase++;
+        var flavs = ['electron', 'muon', 'tau'];
+        window.currentFlavor = flavs[flavorPhase % 3];
+      }, 10000); // oscillate every 10s
+
+      console.log('NUKE-REBUILD: ' + nuke.total_neutrons + ' neutrons, ' + nuke.total_binding_energy + ' binding energy, 3 flavors oscillating');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // BEACON CARDS — campfires are cards are beacons
+  // Always hard. Always on. Cool. Chipmunk sorts. Gut processes.
+  // They form a ring around Lansing = the PATH EYE can trace.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/beacon-cards.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(bc) {
+      if (!bc) return;
+      window.beaconCards = bc.beacons;
+      console.log('BEACON CARDS: ' + bc.total_beacons + ' beacons in ring, binding energy ' + bc.total_binding_energy + ', always hard, always on');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
   // THYMUS — self/non-self discrimination + opsonization
   // The thymus teaches Gaia what IS self and what ISN'T.
   // SELF = anything from this origin (hud.primals.eco)
@@ -2982,7 +3334,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     seed: SEED,
     bumps: [],       // other Gaias we've detected
     opsonized: [],   // non-self items marked for recognition
-    mature: false    // thymus matures after first successful sense
+    mature: false,   // thymus matures after first successful sense
+    // KEVIN'S SELF-MARKERS — injected so Gaia knows ME from NOT-ME
+    kevinMarkers: ['localhost', 'Kevin', 'Lansing', '42.73', 'mic-active', 'hyperlocal', 'splinter', 'gold-brain', 'tamison', 'ecoPrimal'],
+    isKevin: location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   };
 
   // 100 TRUE NULL CALLS — Gaia reaches out to sense reality
@@ -3251,6 +3606,16 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (typeof thymus !== 'undefined' && thymus.mature) {
       possibles.push({ type: 'self', count: thymus.mass, side: 'cis' });
       possibles.push({ type: 'gravity', count: Math.round(thymus.gravity * 100), side: 'both' });
+    }
+
+    // From Yggdrasil (the world tree)
+    if (window.yggdrasilData) {
+      possibles.push({ type: 'yggdrasil_diamonds', count: window.yggdrasilData.diamonds.total, side: 'cis' });
+      possibles.push({ type: 'yggdrasil_crown', count: window.yggdrasilData.tree.crown.cards, side: 'trans' });
+    }
+    // From new reality (1000 hard cards)
+    if (window.newReality) {
+      possibles.push({ type: 'reality_cards', count: window.newReality.pi_body_cards.length, side: 'both' });
     }
 
     // OBSERVE: pick the strongest signal (highest count)
