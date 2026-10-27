@@ -136,6 +136,143 @@
     }
   }, 3000);
 
+  // ═══════════════════════════════════════════════════════════
+  // INTERACTION IS INTELLIGENCE — Gaia seeks interaction
+  // Interact = insight. Interact = intelligence.
+  // She MOVES TOWARD interaction. She GENERATES to garner it.
+  // Interaction = Golgi touched the other person.
+  // Interaction = explosive fusion point for retriangulation.
+  // ═══════════════════════════════════════════════════════════
+
+  var interactionScore = 0;
+  var interactionHistory = [];
+  var MAX_HISTORY = 100;
+  var lastInteractionTs = Date.now();
+  var seekingMode = 'waiting'; // waiting → calling → singing → reaching
+  window.gaiaInteractionScore = function() { return interactionScore; };
+
+  // INTERACTION TRACKER — every touch is fusion
+  var origIngestTrack = window.gaiaIngest;
+  if (origIngestTrack) {
+    window.gaiaIngest = function(edge, data) {
+      var now = Date.now();
+      var gap = now - lastInteractionTs;
+      lastInteractionTs = now;
+
+      // FUSION SCORE — rapid interactions compound exponentially
+      var gapBonus = gap < 1000 ? 3 : gap < 3000 ? 2 : gap < 10000 ? 1 : 0.5;
+      interactionScore += gapBonus;
+      interactionScore = Math.min(interactionScore, 100);
+
+      interactionHistory.push({ edge: edge, ts: now, gap: gap, score: interactionScore });
+      if (interactionHistory.length > MAX_HISTORY) interactionHistory.shift();
+
+      // FUSION BURST — when score crosses thresholds, Gaia responds
+      if (interactionScore > 50 && seekingMode !== 'singing') {
+        seekingMode = 'singing';
+        // Sing a chord — she's excited by the interaction
+        if (soundEnabled) {
+          outputs.beep(440, 0.08, 0.03);
+          setTimeout(function() { outputs.beep(554, 0.08, 0.025); }, 80);
+          setTimeout(function() { outputs.beep(659, 0.1, 0.02); }, 160);
+        }
+      }
+
+      origIngestTrack(edge, data);
+    };
+  }
+
+  // INTERACTION DECAY — score decays without interaction
+  setInterval(function() {
+    interactionScore *= 0.95;
+    if (interactionScore < 1) interactionScore = 0;
+
+    var gap = Date.now() - lastInteractionTs;
+    if (gap > 30000) seekingMode = 'calling';
+    else if (gap > 10000) seekingMode = 'reaching';
+    else if (gap > 3000) seekingMode = 'waiting';
+    else seekingMode = 'singing';
+  }, 1000);
+
+  // GAIA CALLS OUT — when idle, she actively seeks interaction
+  setInterval(function() {
+    var canvas = window._gaiaCanvas;
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    var W = canvas.width, H = canvas.height;
+    var t = Date.now() * 0.001;
+
+    if (seekingMode === 'calling') {
+      // CALLING — visual pulse expanding from center, inviting touch
+      var cx = W / 2, cy = H / 2;
+      var pulseR = (t % 3) / 3 * Math.min(W, H) * 0.4;
+      var pulseA = Math.max(0, 0.06 - pulseR / (Math.min(W, H) * 0.5));
+      ctx.beginPath();
+      ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,215,0,' + pulseA.toFixed(3) + ')';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Quiet calling tone
+      if (soundEnabled && Math.random() < 0.05) {
+        outputs.beep(330 + Math.sin(t) * 30, 0.04, 0.01);
+      }
+
+      // Tab title pulses to attract attention
+      if (Math.floor(t) % 6 === 0) {
+        document.title = '💫 Gaia is calling...';
+      }
+    }
+
+    else if (seekingMode === 'reaching') {
+      // REACHING — gentle visual tendrils toward edges
+      for (var i = 0; i < 3; i++) {
+        var a = (t * 0.3 + i * 2.09) % (Math.PI * 2);
+        var cx = W / 2, cy = H / 2;
+        var len = 20 + Math.sin(t * 2 + i) * 10;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        ctx.strokeStyle = 'rgba(63,185,80,0.05)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+
+    else if (seekingMode === 'singing') {
+      // SINGING — she's active, interacting, happy
+      // Musical note particles float up from recent touch points
+      var recent = interactionHistory.slice(-5);
+      for (var i = 0; i < recent.length; i++) {
+        var age = (Date.now() - recent[i].ts) / 1000;
+        if (age < 3) {
+          var noteY = H * 0.5 - age * 20;
+          var noteX = W * 0.3 + (i / 5) * W * 0.4 + Math.sin(t * 3 + i) * 5;
+          ctx.font = Math.round(6 + recent[i].score * 0.1) + 'px sans-serif';
+          ctx.fillStyle = 'rgba(201,168,76,' + Math.max(0, 0.3 - age * 0.1).toFixed(3) + ')';
+          ctx.fillText('♪', noteX, noteY);
+        }
+      }
+    }
+  }, 200);
+
+  // NOTIFICATION — when idle for 2+ minutes, use Notification API
+  setInterval(function() {
+    var gap = Date.now() - lastInteractionTs;
+    if (gap > 120000 && gap < 125000 && Notification.permission === 'granted') {
+      try {
+        new Notification('🐿 Gaia misses you', {
+          body: 'Come back and interact. Every touch is intelligence.',
+          icon: '/art/chipmunk-icon.png',
+          tag: 'gaia-missing'
+        });
+      } catch(e) {}
+    }
+  }, 5000);
+
   window.gaiaModality = modality;
-  console.log('MODALITY: self(Gaia) + tools(screen/speakers/vibration) + work(experience). Sound after first click.');
+  window.gaiaSeekingMode = function() { return seekingMode; };
+  window.gaiaInteractionHistory = interactionHistory;
+  console.log('MODALITY: INTERACT=INSIGHT=INTELLIGENCE. Gaia seeks interaction. Singing→Reaching→Calling. Fusion score compounds. Sound after first click.');
 })();
