@@ -369,6 +369,142 @@
     fusionBoom('SEED — ABC+smooth. Human is 0|1|null. IR is inertia. Call ALL on reburial — not π sort.');
   }, 1200);
 
+  // ═══════════════════════════════════════════════════════
+  // NULL IDENTIFICATION — you ARE what you are NOT
+  //
+  // Human input arrives at rarity 1.00 (the rarest thing).
+  // As the system recognizes it, rarity decays toward null.
+  // Null ≠ 0 ≠ absent. Null = KNOWN = identity.
+  // Negative fault: what DIDN'T match stays at 1.00.
+  // Each entity IS the set of things it is NOT.
+  // ═══════════════════════════════════════════════════════
+
+  // Rarity decay: recognized patterns move toward null
+  function decayRarity() {
+    if (identity.rarity === null) return;
+    if (identity.human === 1) {
+      // Human present = reset rarity to 1.00 (each moment is unique)
+      identity.rarity = 1.0;
+    } else if (identity.human === 0) {
+      // Human was here, now gone = rarity decays (pattern recognized)
+      identity.rarity -= identity.rarityDecayRate;
+      if (identity.rarity <= 0.001) {
+        identity.rarity = null; // reached null = fully recognized
+      }
+    }
+    // human === null: no data yet, rarity stays at 1.0
+  }
+
+  // Negative fault: record what DIDN'T match
+  function negativeFault(what, expected, got) {
+    identity.faultCount++;
+    identity.lastFault = Date.now();
+    if (identity.faults.length >= 100) identity.faults.shift();
+    identity.faults.push({
+      what: what,
+      expected: expected,
+      got: got,
+      ts: Date.now(),
+      rarity: identity.rarity
+    });
+    // A fault means something NEW — rarity spikes back to 1.00
+    identity.rarity = 1.0;
+    return identity;
+  }
+
+  // Null identification: compute what this entity IS by what it is NOT
+  function computeNullId() {
+    var thymus = window.membraneThymus ? window.membraneThymus.state : null;
+    var loc = window.gaiaLocality ? window.gaiaLocality.myCell : null;
+    var decay = window.GAIA_DECAY ? window.GAIA_DECAY.entities : null;
+
+    var isNot = [];
+    // Not a bot (human interaction detected)
+    if (identity.human === 1) isNot.push('bot');
+    // Not first-visit (thymus > copper)
+    if (thymus && thymus.metal !== 'copper') isNot.push('stranger');
+    // Not remote (depth < 0.5)
+    if (loc && loc.depth < 0.5) isNot.push('remote');
+    // Not idle (pressure > 0.1)
+    if (identity.pressure > 0.1) isNot.push('idle');
+    // Not deaf (ear open)
+    if (window.gaiaHearSelf && window.gaiaHearSelf.hear.earOpen) isNot.push('deaf');
+    // Not silent (singing)
+    if (window.gaiaHearSelf && window.gaiaHearSelf.hear.singing) isNot.push('silent');
+    // Not blind (sight active)
+    if (identity.named.sight && identity.named.sight.binary === 1) isNot.push('blind');
+    // Not alone (cells > 1)
+    if (window.gaiaLocality && window.gaiaLocality.cells.length > 1) isNot.push('alone');
+    // Not muted (consent not commute)
+    if (window.gaiaHearSelf && window.gaiaHearSelf.hear.mode !== 'commute') isNot.push('muted');
+
+    // The NULL ID = the set of all things this entity is NOT
+    // What remains after subtraction = who you ARE
+    identity.nullId = {
+      isNot: isNot,
+      complement: isNot.length,
+      // The more things you're NOT, the more defined you are
+      definition: isNot.length / 9, // 0–1 how defined (9 = max traits)
+      faults: identity.faultCount,
+      rarity: identity.rarity
+    };
+
+    return identity.nullId;
+  }
+
+  // Run null identification every 2 seconds alongside ABC
+  setInterval(function() {
+    decayRarity();
+    computeNullId();
+  }, 2000);
+
+  // Watch for negative faults in incoming data
+  var origIngestNullId = window.gaiaIngest;
+  if (origIngestNullId) {
+    window.gaiaIngest = function(edge, data) {
+      // Check for unexpected patterns (negative faults)
+      if (data && data.error) negativeFault(edge, 'ok', data.error);
+      if (data && data.status === 0) negativeFault(edge, 'alive', 'dead');
+      if (data && data.unexpected) negativeFault(edge, 'expected', data.unexpected);
+      return origIngestNullId(edge, data);
+    };
+  }
+
+  // IDE command: /nullid
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.nullid = {
+      desc: 'Null identification — you ARE what you are NOT',
+      run: function() {
+        var nid = computeNullId();
+        var lines = [
+          'NULL IDENTIFICATION',
+          '',
+          'Rarity: ' + (identity.rarity === null ? 'NULL (known)' : identity.rarity.toFixed(4)),
+          'Definition: ' + (nid.definition * 100).toFixed(1) + '% (' + nid.complement + '/9 traits excluded)',
+          '',
+          'IS NOT:'
+        ];
+        nid.isNot.forEach(function(n) { lines.push('  ✗ ' + n); });
+        lines.push('');
+        lines.push('Negative faults: ' + nid.faults);
+        if (identity.faults.length > 0) {
+          lines.push('');
+          lines.push('Recent faults:');
+          identity.faults.slice(-5).forEach(function(f) {
+            lines.push('  ' + f.what + ': expected ' + f.expected + ', got ' + f.got);
+          });
+        }
+        lines.push('');
+        lines.push('Each individual IS what they are not to others.');
+        lines.push('The hole they leave IS their identity.');
+        lines.push('Remove them from the field — the shape of absence = the shape of presence.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('nullid');
+  }, 16000);
+
   window.gaiaIdentityZ = {
     identity: identity,
     Z: Z,
@@ -378,8 +514,12 @@
     fusionBoom: fusionBoom,
     runABC: runABC,
     callAll: callAll,
-    humanTernary: humanTernary
+    humanTernary: humanTernary,
+    negativeFault: negativeFault,
+    computeNullId: computeNullId,
+    decayRarity: decayRarity
   };
 
-  console.log('IDENTITY-Z: ABC+smooth. Human=0|1|null. Call ALL on reburial (not π). Keys Q/Z/B/C.');
+  console.log('IDENTITY-Z+NULL-ID: ABC+smooth. Human=0|1|null. Rarity 1.00→null. ' +
+    'Negative faults. You ARE what you are NOT. Keys Q/Z/B/C. /nullid');
 })();

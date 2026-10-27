@@ -209,6 +209,16 @@
         rarity = 'rarity 1.00 · human · text';
       }
 
+      // Null identification: human input = rarity 1.00 → decays toward null as recognized
+      if (window.gaiaIdentityZ) {
+        window.gaiaIdentityZ.identity.rarity = 1.0;
+        var nid = window.gaiaIdentityZ.computeNullId();
+        if (nid) {
+          rarity += ' · nullId ' + nid.complement + '/9';
+          if (nid.definition > 0.7) rarity += ' · DEFINED';
+        }
+      }
+
       addDeskMessage('gaia', resp, { rarity: rarity });
 
       // Gaia responding = K⁺ outflow = cooling
