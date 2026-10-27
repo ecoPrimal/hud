@@ -827,7 +827,31 @@ function renderHand(){
 
 render();
 
+// DATA BRIDGE — share gut state with main HUD via localStorage
+setInterval(function() {
+  try {
+    var zone = getZone(depth);
+    var gutState = {
+      ts: Date.now(),
+      depth: Math.round(depth),
+      speed: +speed.toFixed(1),
+      acid: Math.round(acid),
+      digested: digested,
+      zone: zone ? zone.name : 'UNKNOWN',
+      zoneColor: zone ? zone.color : '#333',
+      hand: hand.length,
+      shapeMode: shapeMode
+    };
+    localStorage.setItem('gaia-gut-state', JSON.stringify(gutState));
+  } catch(e) {}
+}, 2000);
+
 })();
 </script>
+
+<!-- BACK LINK — the brain can see the gut -->
+<a href="/" style="position:fixed;top:8px;right:8px;z-index:20;color:#58a6ff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">← globe</a>
+<a href="/gallery.html" style="position:fixed;top:8px;right:60px;z-index:20;color:#bc8cff;text-decoration:none;font-size:10px;font-family:monospace;opacity:0.4">🧠 mind</a>
+
 </body>
 </html>
