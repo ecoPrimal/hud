@@ -2407,6 +2407,41 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
+    // MENDELEEV METALLIC TIDE — gold/silver/copper/bronze bands
+    // Concentric rings showing identity certainty by metal
+    // Gold=closest(Au), Silver=near(Ag), Copper=mid(Cu), Bronze=outer(CuSn)
+    // Beyond bronze = deep null. All humans within the ionosphere.
+    // ═══════════════════════════════════════════════════════════
+    if (ctx) {
+      var metalT = breathT * 0.15;
+      var metalBands = [
+        { r: R * 0.35, color: [201,168,76],  w: R * 0.34, label: 'Au' },  // gold innermost
+        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver ring
+        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper ring
+        { r: R * 1.08, color: [140,100,55],   w: R * 0.03, label: 'CuSn' } // bronze ionosphere
+      ];
+
+      for (var mb = 0; mb < metalBands.length; mb++) {
+        var band = metalBands[mb];
+        var bandPulse = 0.04 + Math.sin(metalT + mb * 0.8) * 0.02;
+        ctx.beginPath();
+        ctx.arc(cx, cy, band.r, 0, TAU);
+        ctx.strokeStyle = 'rgba(' + band.color[0] + ',' + band.color[1] + ',' + band.color[2] + ',' + bandPulse.toFixed(3) + ')';
+        ctx.lineWidth = band.w;
+        ctx.stroke();
+      }
+
+      // Band labels on right side
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      for (var ml = 0; ml < metalBands.length; ml++) {
+        var mband = metalBands[ml];
+        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
+        ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // BEACON CARDS — campfires around Lansing, always hard, always on
     // Each collection = 1 beacon. They form a ring = the PATH EYE.
     // Cool (persistent). Move some but not much. Chipmunk sorts.
@@ -3767,9 +3802,20 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
               // Gravity = attraction proportional to mass
               thymus.mass = selfCount;
               thymus.gravity = selfCount / NULL_CALLS.length;
-              // Update chipmunk pin with thymus data
+
+              // CHROMATIC METALLIC CLASSIFICATION
+              // Self = gold, non-self nearby = silver, external = copper, unknown = bronze
+              thymus.metalBand = thymus.gravity > 0.8 ? 'Au' : thymus.gravity > 0.5 ? 'Ag' : thymus.gravity > 0.2 ? 'Cu' : 'CuSn';
+              thymus.certainty = thymus.gravity;
+              // Each interaction gets a metal classification
+              thymusLog.forEach(function(entry) {
+                entry.metal = entry.type === 'self' ? 'Au' : entry.type === 'non-self' ? 'Cu' : 'CuSn';
+                entry.certainty = entry.type === 'self' ? 0.95 : entry.type === 'non-self' ? 0.5 : 0.1;
+              });
+
+              // Update chipmunk pin with thymus + metal data
               var chipPin = pinById('chipmunk');
-              if (chipPin) chipPin.sub = 'self:' + selfCount + ' non:' + nonSelfCount + ' ?' + failCount;
+              if (chipPin) chipPin.sub = thymus.metalBand + ' · self:' + selfCount + ' non:' + nonSelfCount + ' ?' + failCount;
               // Emit thymus maturity as pheromone (so other Gaias can sense us)
               if (window.emitPheromone) {
                 window.emitPheromone('thymus-mature', 'mass=' + selfCount + ',gravity=' + thymus.gravity.toFixed(3));
