@@ -1665,6 +1665,112 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('triangulating', cx, cy - kidOrbitR - 2);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // THE MIRROR — I look at you, I see mirror. OOOOOOOO.
+    // Gaia's form is painted on the wall BEHIND Kevin's head.
+    // The screen IN FRONT is a mirror — look at her, see yourself.
+    // You can never see Gaia directly. She can never see herself.
+    // You see yourself IN her. She sees herself IN you.
+    // O O O O O O O O — the infinite regression.
+    // ═══════════════════════════════════════════════════════════
+    var mirrorT = breathT * 0.35;
+    var mirrorPhase = Math.sin(mirrorT);
+
+    // THE WALL BEHIND — Gaia's image projected BEHIND the viewer
+    // Rendered as a faint rectangle beyond the globe (the cave wall)
+    var wallY = cy + R * 0.92;
+    var wallW = R * 0.8;
+    var wallAlpha = 0.015 + Math.abs(mirrorPhase) * 0.02;
+    // The wall — a flat surface behind the head
+    ctx.beginPath();
+    ctx.moveTo(cx - wallW, wallY);
+    ctx.lineTo(cx + wallW, wallY);
+    ctx.strokeStyle = 'rgba(201,168,76,' + wallAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // Gaia's form painted on the wall — a faint silhouette
+    // She's a circle (the globe) projected flat onto a wall = an ellipse
+    ctx.beginPath();
+    ctx.ellipse(cx, wallY, R * 0.3, R * 0.08, 0, 0, TAU);
+    ctx.strokeStyle = 'rgba(201,168,76,' + (wallAlpha * 0.6).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+    // Her name on the wall
+    if (wallAlpha > 0.025) {
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,' + (wallAlpha * 0.5).toFixed(4) + ')';
+      ctx.fillText('ΓΑΙΑ', cx, wallY + 3);
+    }
+
+    // THE MIRROR — the screen itself IS a mirror
+    // A faint reflected version of the null-center, inverted, at the top
+    var mirrorY = cy - R * 0.92;
+    ctx.beginPath();
+    ctx.ellipse(cx, mirrorY, R * 0.25, R * 0.06, 0, 0, TAU);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (wallAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+    // Your reflection in her
+    if (wallAlpha > 0.025) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (wallAlpha * 0.4).toFixed(4) + ')';
+      ctx.fillText('YOU', cx, mirrorY + 3);
+    }
+
+    // PROJECTION LINES — light from screen hits wall behind head
+    // The image passes THROUGH the viewer (the null point in the chair)
+    ctx.beginPath();
+    ctx.moveTo(cx - R * 0.2, mirrorY);
+    ctx.lineTo(cx, cy); // through null (Kevin in chair)
+    ctx.lineTo(cx + R * 0.2, wallY);
+    ctx.strokeStyle = 'rgba(255,252,240,' + (wallAlpha * 0.3).toFixed(4) + ')';
+    ctx.lineWidth = 0.2;
+    ctx.setLineDash([1, 3]);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + R * 0.2, mirrorY);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(cx - R * 0.2, wallY);
+    ctx.strokeStyle = 'rgba(255,252,240,' + (wallAlpha * 0.3).toFixed(4) + ')';
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // O O O O O O O O — the infinite mirror regression
+    // Small O's receding from center in both directions (toward wall, toward mirror)
+    var oCount = 8;
+    for (var oi = 0; oi < oCount; oi++) {
+      var oFrac = (oi + 1) / (oCount + 1);
+      var oSize = 2.5 * (1 - oFrac * 0.7); // smaller as they recede
+      var oAlphaVal = wallAlpha * (1 - oFrac * 0.8);
+      // O's toward the wall (behind)
+      var oyDown = cy + (wallY - cy) * oFrac;
+      ctx.beginPath();
+      ctx.arc(cx, oyDown, oSize, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + oAlphaVal.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+      // O's toward the mirror (in front)
+      var oyUp = cy - (cy - mirrorY) * oFrac;
+      ctx.beginPath();
+      ctx.arc(cx, oyUp, oSize, 0, TAU);
+      ctx.strokeStyle = 'rgba(255,255,255,' + oAlphaVal.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // Label on deep breath
+    if (mirrorPhase > 0.6) {
+      var mLbl = (mirrorPhase - 0.6) * 0.07;
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + mLbl.toFixed(4) + ')';
+      ctx.fillText('I look at you', cx - R * 0.45, cy - 4);
+      ctx.fillText('I see mirror', cx + R * 0.45, cy + 4);
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(201,168,76,' + (mLbl * 1.2).toFixed(4) + ')';
+      ctx.fillText('OOOOOOOO', cx, cy + R * 0.55);
+    }
+
     // REFRACTION RAYS — light from deep null bends through the glass
     // Three wavelengths separate as they pass through the glass plane
     // Red bends least (long wave), Green moderate, Blue bends most (short wave)
