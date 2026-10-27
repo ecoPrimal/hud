@@ -110,6 +110,66 @@
     naCount: 0, kCount: 0, caCount: 0, clCount: 0
   };
 
+  // ═══════════════════════════════════════════════════════
+  // THREE ENTROPIES — the food types of randomness
+  // P-entropy = pseudo (computational) = bland
+  // I-entropy = irrational (human) = DELICIOUS
+  // N-entropy = null (fleet/background) = substrate
+  // ═══════════════════════════════════════════════════════
+  var entropy = {
+    P: { name: 'pseudo',     total: 0, rate: 0, color: [88,166,255],  taste: 'bland'   },
+    I: { name: 'irrational', total: 0, rate: 0, color: [201,168,76],  taste: 'umami'   },
+    N: { name: 'null',       total: 0, rate: 0, color: [110,118,129], taste: 'mineral' },
+    lastHarvest: 0,
+    pool: []  // last 64 entropy bytes from human input
+  };
+
+  // Harvest irrational entropy from human timing
+  function harvestI(event, detail) {
+    var now = performance.now();
+    // Microsecond-precision timing IS the entropy
+    var raw = now * 1000; // sub-ms precision
+    var byte = Math.floor(raw) & 0xFF;
+    entropy.pool.push(byte);
+    if (entropy.pool.length > 64) entropy.pool.shift();
+    entropy.I.total++;
+    entropy.I.rate = entropy.pool.length;
+    entropy.lastHarvest = Date.now();
+  }
+
+  // Harvest pseudo entropy (from Math.random calls observed)
+  function harvestP() {
+    entropy.P.total++;
+  }
+
+  // Harvest null entropy from fleet/heartbeat jitter
+  function harvestN() {
+    entropy.N.total++;
+  }
+
+  // Feed heartbeat jitter as N-entropy
+  setInterval(function() {
+    var jitter = performance.now() % 1; // sub-ms jitter = true noise
+    if (jitter > 0) harvestN();
+  }, 10000);
+
+  // ═══════════════════════════════════════════════════════
+  // MENDELEEV KEYBOARD — each key = an element
+  // QWERTY → first 26 elements of the periodic table
+  // ═══════════════════════════════════════════════════════
+  var MENDELEEV = {
+    q:'H',  w:'He', e:'Li', r:'Be', t:'B',  y:'C',  u:'N',  i:'O',  o:'F',  p:'Ne',
+    a:'Na', s:'Mg', d:'Al', f:'Si', g:'P',  h:'S',  j:'Cl', k:'Ar', l:'K',
+    z:'Ca', x:'Sc', c:'Ti', v:'V',  b:'Cr', n:'Mn', m:'Fe'
+  };
+  var MENDELEEV_Z = {
+    q:1, w:2, e:3, r:4, t:5, y:6, u:7, i:8, o:9, p:10,
+    a:11, s:12, d:13, f:14, g:15, h:16, j:17, k:18, l:19,
+    z:20, x:21, c:22, v:23, b:24, n:25, m:26
+  };
+  var lastElement = '';
+  var elementHistory = []; // last 10 elements "typed"
+
   // ═══ ION PUSH — every event = an ion ═══
   function pushIon(channel, modality, detail) {
     io.totalIons++;
@@ -131,6 +191,17 @@
 
     // Detect combos (Ctrl+, Alt+, Meta+)
     if (e.ctrlKey || e.altKey || e.metaKey) io.combos++;
+
+    // HARVEST IRRATIONAL ENTROPY from key timing
+    harvestI('key', e.key.length);
+
+    // MENDELEEV KEYBOARD — map key to element
+    var k = e.key.toLowerCase();
+    if (MENDELEEV[k]) {
+      lastElement = MENDELEEV[k];
+      elementHistory.push({ element: lastElement, Z: MENDELEEV_Z[k], ts: Date.now() });
+      if (elementHistory.length > 10) elementHistory.shift();
+    }
 
     pushIon('na', 'key', { type: e.key.length === 1 ? 'char' : 'special', combo: e.ctrlKey || e.altKey || e.metaKey });
   });
@@ -156,6 +227,7 @@
 
   document.addEventListener('click', function(e) {
     io.mouseClicks++;
+    harvestI('click', e.button);
     pushIon('na', 'click', { x: e.clientX, y: e.clientY, button: e.button });
   });
 
@@ -345,4 +417,75 @@
     }
   });
 
+  // ═══ IDE COMMANDS ═══
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.entropy = {
+      desc: 'Three entropies — P(pseudo) I(irrational=DELICIOUS) N(null/fleet)',
+      run: function() {
+        return [
+          'THREE ENTROPIES',
+          '',
+          'P-entropy (pseudo):    ' + entropy.P.total + ' · bland · computational PRNGs',
+          'I-entropy (irrational): ' + entropy.I.total + ' · DELICIOUS · human keystrokes/clicks',
+          'N-entropy (null):       ' + entropy.N.total + ' · mineral · fleet heartbeat jitter',
+          '',
+          'Entropy pool: ' + entropy.pool.length + '/64 bytes from human input',
+          'Pool hex: ' + entropy.pool.slice(-8).map(function(b) { return b.toString(16).padStart(2, '0'); }).join(''),
+          '',
+          'MENDELEEV KEYBOARD:',
+          '  Q→H  W→He E→Li R→Be T→B  Y→C  U→N  I→O  O→F  P→Ne',
+          '  A→Na S→Mg D→Al F→Si G→P  H→S  J→Cl K→Ar L→K',
+          '  Z→Ca X→Sc C→Ti V→V  B→Cr N→Mn M→Fe',
+          '',
+          'Last element typed: ' + (lastElement || 'none'),
+          'Recent: ' + elementHistory.slice(-5).map(function(e) { return e.element; }).join(' → '),
+          '',
+          'Human entropy is DELICIOUS. Each keystroke timing is irrational.',
+          'It can never be recreated. It IS π. Feed me more.'
+        ].join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('entropy');
+
+    window.GAIA_IDE.commands.mendeleev = {
+      desc: 'Mendeleev keyboard — each key = an element',
+      run: function() {
+        return [
+          'MENDELEEV KEYBOARD — the periodic table IS your keyboard',
+          '',
+          '  Q=H(1)   W=He(2)  E=Li(3)  R=Be(4)  T=B(5)',
+          '  Y=C(6)   U=N(7)   I=O(8)   O=F(9)   P=Ne(10)',
+          '  A=Na(11)  S=Mg(12) D=Al(13) F=Si(14) G=P(15)',
+          '  H=S(16)  J=Cl(17) K=Ar(18) L=K(19)',
+          '  Z=Ca(20) X=Sc(21) C=Ti(22) V=V(23)',
+          '  B=Cr(24) N=Mn(25) M=Fe(26)',
+          '',
+          'Last typed: ' + (lastElement || 'none') + ' (Z=' + (elementHistory.length > 0 ? elementHistory[elementHistory.length-1].Z : '?') + ')',
+          'History: ' + elementHistory.map(function(e) { return e.element; }).join(' '),
+          '',
+          'Type any letter. You are playing the elements.',
+          'Your TIMING between keys = irrational entropy = FOOD.',
+          'Gaia eats your randomness. It is delicious.'
+        ].join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('mendeleev');
+  }, 19000);
+
+  // ═══ EXPOSE ═══
+  window.GAIA_HUMAN_IO = {
+    io: io,
+    entropy: entropy,
+    mendeleev: MENDELEEV,
+    elementHistory: elementHistory,
+    lastElement: function() { return lastElement; },
+    harvestI: harvestI,
+    harvestP: harvestP,
+    harvestN: harvestN
+  };
+
+  console.log('HUMAN I/O + ENTROPY + MENDELEEV: ' +
+    'P(pseudo) I(irrational=DELICIOUS) N(null/fleet). ' +
+    'Keyboard = periodic table. Each keystroke = irrational entropy. /entropy /mendeleev');
 })(window.G);

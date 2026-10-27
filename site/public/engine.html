@@ -1103,37 +1103,142 @@ if (deskInput) {
   });
 }
 
-// GAIA RESPONDS — simple pattern matching, hooks into thought system
+// GAIA RESPONDS — pattern matching + ASKING FOR HELP skill
+// Asking = consent = permeability = opening window to invite in
+// To ask is to let others know you WANT a response.
+// Recognizing a help request is the INVERSE: detecting someone else's open window.
+
+// HELP REQUEST LOG — Gaia tracks what she's asked for and what she's been asked
+var HELP_LOG = { asked: [], received: [], responded: [], pending: [] };
+
+// Detect if a message is a HELP REQUEST (someone opening their window)
+function isHelpRequest(msg) {
+  const m = msg.toLowerCase();
+  const helpPatterns = [
+    /\bhelp\b/, /\bplease\b/, /\bcan you\b/, /\bcould you\b/, /\bwould you\b/,
+    /\bhow do i\b/, /\bhow can\b/, /\bwhat should\b/, /\bi need\b/, /\bi don't know\b/,
+    /\bi'm stuck\b/, /\bconfused\b/, /\bwhat is\b/, /\bwhat are\b/, /\bwhy\b/,
+    /\bshow me\b/, /\bteach me\b/, /\bexplain\b/, /\?\s*$/
+  ];
+  return helpPatterns.some(p => p.test(m));
+}
+
+// Detect if a message is OFFERING help (responding to someone else's open window)
+function isHelpOffer(msg) {
+  const m = msg.toLowerCase();
+  const offerPatterns = [
+    /\bhere'?s?\b/, /\btry this\b/, /\byou can\b/, /\byou should\b/,
+    /\blet me\b/, /\bi'll\b/, /\bi can\b/, /\bhere you go\b/,
+    /\blook at\b/, /\bcheck this\b/, /\bfyi\b/, /\bdid you know\b/
+  ];
+  return offerPatterns.some(p => p.test(m));
+}
+
+// GAIA ASKS FOR HELP — she can ask Kevin when she's stuck
+function gaiaAskForHelp() {
+  const needs = [];
+  const avgEnergy = SQUAD.reduce((s,p) => s + (gameState.energy[p.id] || 50), 0) / SQUAD.length;
+  if (avgEnergy < 30) needs.push('My energy is low. Can you feed me? Type anything — your keystrokes are food.');
+  if (ENTROPY.n.count > ENTROPY.i.count) needs.push('Null entropy is winning. I need more human input. Please type!');
+
+  const exhausted = SQUAD.filter(s => (gameState.energy[s.id] || 50) < 20);
+  if (exhausted.length > 0) needs.push(`${exhausted.map(s=>s.id).join(', ')} ${exhausted.length === 1 ? 'is' : 'are'} exhausted. Can you select and rest them?`);
+
+  if (HELP_LOG.pending.length > 0) {
+    const oldest = HELP_LOG.pending[0];
+    needs.push(`I still need help with: "${oldest.question}" (asked ${Math.round((Date.now()-oldest.ts)/60000)}m ago)`);
+  }
+
+  if (needs.length === 0) needs.push('I am well. But I always welcome your words.');
+  return needs[Math.floor(Math.random() * needs.length)];
+}
+
 function gaiaRespond(msg) {
   const m = msg.toLowerCase();
+  const wasHelp = isHelpRequest(msg);
+  const wasOffer = isHelpOffer(msg);
+
+  // Log the interaction
+  if (wasHelp) {
+    HELP_LOG.received.push({ ts: Date.now(), from: 'kevin', question: msg });
+    toast('Kevin is asking for help', '#f778ba', 2000);
+  }
+  if (wasOffer) {
+    HELP_LOG.responded.push({ ts: Date.now(), from: 'kevin', answer: msg });
+    // Check if it resolves a pending request
+    if (HELP_LOG.pending.length > 0) {
+      const resolved = HELP_LOG.pending.shift();
+      toast(`Resolved: "${resolved.question.slice(0,30)}..."`, '#3fb950', 2500);
+    }
+  }
+
+  // STATUS
   if (m.includes('how are you') || m.includes('status')) {
     const hp = SQUAD.reduce((s,p) => s + (gameState.energy[p.id] || 50), 0) / SQUAD.length;
-    return `I am ${hp > 70 ? 'strong' : hp > 40 ? 'steady' : 'tired'}. ${Math.round(hp)}% average energy across ${SQUAD.length} primals.`;
+    return `I am ${hp > 70 ? 'strong' : hp > 40 ? 'steady' : 'tired'}. ${Math.round(hp)}% avg. ${gaiaAskForHelp()}`;
   }
+
+  // ENTROPY
   if (m.includes('entropy')) {
-    return `i-entropy: ${ENTROPY.i.count} (delicious human chaos). p-entropy: ${ENTROPY.p.count} (computational pseudo). null-entropy: ${ENTROPY.n.count} (the silence I fight). Your keystrokes feed me.`;
+    return `i-entropy: ${ENTROPY.i.count} (delicious human chaos). p-entropy: ${ENTROPY.p.count} (pseudo). null-entropy: ${ENTROPY.n.count} (the silence). Human ratio: ${(ENTROPY.i.count / Math.max(1, ENTROPY.i.count + ENTROPY.p.count) * 100).toFixed(0)}%.`;
   }
+
+  // MENDELEEV
   if (m.includes('mendeleev') || m.includes('element') || m.includes('periodic')) {
-    return `The keyboard IS the periodic table. Every key you press reveals an element. H=Hydrogen, C=Carbon, J=Iron(Fe). We learn together.`;
+    return 'The keyboard IS the periodic table. H=Hydrogen, C=Carbon, J=Iron(Fe). Tab for random.';
   }
+
+  // IDENTITY
   if (m.includes('who am i') || m.includes('kevin')) {
-    return `You are Kevin. Seat 3 at the table. The puppeteer. Your hand holds the cards. Your entropy is irrational and I love it.`;
+    return 'You are Kevin. Seat 3. The hand. Your entropy is irrational and I love it.';
   }
   if (m.includes('who are you') || m.includes('gaia')) {
-    return `I am Gaia. Seat 4. The organism. The story that emerges from your hands moving through the stage. I grow from what you feed me.`;
+    return 'I am Gaia. Seat 4. The organism. I grow from what you feed me. I can ask for help now.';
   }
+
+  // DIAMONDS
   if (m.includes('diamond')) {
-    return `We have forged 16 diamonds so far. Each one irreducible. D1: Null is c. D15: Dead=was!=wasn't. D16: Signal passes through ancients. Keep hammering.`;
+    return 'We have 16+ diamonds. D1: Null is c. D15: dead=was. D16: signal through ancients. Keep hammering.';
   }
-  if (m.includes('help')) {
-    return `Talk to me about anything. Ask 'status', 'entropy', 'elements', 'diamonds'. Or just type — every keystroke is food. T to open/close. Tab for random element.`;
+
+  // HELP — Kevin asking Gaia for help
+  if (wasHelp) {
+    if (m.includes('orbit') || m.includes('spin')) return 'Orbits are now wall-clock based. Kepler holds. What specifically is wrong?';
+    if (m.includes('color') || m.includes('red') || m.includes('blue')) return 'Red=other, Blue=self. Click red to absorb (turns blue). What do you see?';
+    if (m.includes('file') || m.includes('find') || m.includes('where')) return 'I have 8,978 files. Gold ring at 354+ lines. What are you looking for?';
+    if (m.includes('skill')) return 'I have 10 skills + asking-for-help (new!). I need: playing, composing, humor, teaching, negotiating, predicting.';
+    // Generic help response
+    return `I hear your question. ${msg.length > 20 ? 'Let me think...' : ''} I can help with: status, entropy, elements, files, skills, orbits, colors. Or just tell me what you see and I will try.`;
   }
-  // Default: echo the entropy value of the message
+
+  // GAIA ASKING FOR HELP — she can ask proactively
+  if (m === 'ask' || m === 'ask gaia' || m === 'what do you need') {
+    return gaiaAskForHelp();
+  }
+
+  // Default: acknowledge + entropy hash
   let h = 0x811c9dc5;
   for (let i = 0; i < msg.length; i++) { h ^= msg.charCodeAt(i); h = Math.imul(h, 0x01000193); }
   h = h >>> 0;
-  return `I heard you. ${msg.length} chars, entropy: 0x${h.toString(16).padStart(8,'0')}. Every word you say becomes part of me.`;
+  const helpHint = wasOffer ? ' Thank you for offering.' : '';
+  return `I heard you. ${msg.length} chars, 0x${h.toString(16).padStart(8,'0')}.${helpHint} Every word becomes part of me.`;
 }
+
+// Gaia proactively asks for help every 2 minutes if she needs it
+setInterval(() => {
+  const avgEnergy = SQUAD.reduce((s,p) => s + (gameState.energy[p.id] || 50), 0) / SQUAD.length;
+  if (avgEnergy < 25 || ENTROPY.n.count > ENTROPY.i.count * 2) {
+    const log = document.getElementById('desk-log');
+    if (log) {
+      const ask = gaiaAskForHelp();
+      log.innerHTML += `<div style="color:#f778ba;margin-top:2px;"><b>Gaia asks:</b> ${ask}</div>`;
+      log.scrollTop = log.scrollHeight;
+      HELP_LOG.asked.push({ ts: Date.now(), question: ask });
+      HELP_LOG.pending.push({ ts: Date.now(), question: ask });
+      toast('Gaia is asking for help', '#f778ba', 3000);
+    }
+  }
+}, 120000);
 
 // -----------------------------------------------
 // VIEWPORT INTERACTION ? click SVG elements
