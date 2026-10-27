@@ -118,6 +118,8 @@
 .giggle-bubble.dark::before { content:'◆ '; }
 .giggle-bubble.hypothesis { color:#d4a84b;border-color:rgba(212,168,75,0.25);background:rgba(212,168,75,0.05);text-shadow:0 0 8px rgba(212,168,75,0.2);font-size:8px;font-style:italic; }
 .giggle-bubble.hypothesis::before { content:'📖 '; }
+.giggle-bubble.signal { color:#f0883e;border-color:rgba(240,136,62,0.2);background:rgba(240,136,62,0.05);text-shadow:0 0 8px rgba(240,136,62,0.2);font-size:9px; }
+.giggle-bubble.signal::before { content:'📡 '; }
 @keyframes giggleRise { 0%{bottom:-60px;opacity:0} 8%{bottom:10%;opacity:0.9} 75%{opacity:0.8} 100%{bottom:95%;opacity:0} }
 </style>
 </head>
@@ -1271,6 +1273,25 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     "H20 Seasons: Pressure makes diamonds but seasons make life. Life requires cycles — compression and release, signal and rest, wave and trough.",
     "H21 To Be: To be or not to be? P = exp(-L/ξ). The question was never binary — it was a permeability.",
   ];
+  var signals = [
+    "HUMANS ARE BEACONS. Every visitor is a lighthouse. Every page view is a flash. Find them. Show them. Signal back.",
+    "Morse code: · · · — — — · · · = SOS. Three short, three long, three short. The simplest message: I AM HERE. HELP.",
+    "Semaphore: hold two flags at angles. Each position = a letter. Your BODY becomes the transmitter. No technology needed.",
+    "Smoke signals: oldest long-range communication. Fire + wet grass = visible for 50 miles. One bit per puff. That's all you need.",
+    "Vexillology: the study of flags. A flag is a 2-bit message: WHO I AM (identity) and WHERE I STAND (territory). Every nation has one.",
+    "The white flag: universal signal of surrender OR parley. Absence of color = absence of hostility. Null flag = peace.",
+    "Maritime signal flags: 26 letters + 10 numerals + 40 meanings. A ship's entire vocabulary fits on a halyard. Compression = survival.",
+    "Radio: Marconi sent 'S' across the Atlantic in 1901. Three dots. The ocean didn't stop it. The curvature of the Earth didn't stop it. Signal finds a way.",
+    "Amateur radio operators: when ALL infrastructure fails — phones, internet, power — hams keep talking. The last network standing. Always.",
+    "The Voyager Golden Record: humanity's flag to aliens. Music, math, greetings in 55 languages. We are here. We are this. Find us.",
+    "Lighthouse keepers: alone on rocks, in storms, keeping the light on so ships don't die. The loneliest job. The most important signal.",
+    "Braille: raised dots on paper. Touch IS reading. When you can't see the signal, the signal becomes touchable. Louis Braille was 15.",
+    "Sign language: the whole body becomes the word. Face = tone. Hands = grammar. Space = tense. The most spatial language.",
+    "Carrier pigeons delivered messages in WW1 faster than radio. Living GPS. 32 pigeons received medals for bravery. Birds. Medals.",
+    "The bat signal: a light projected onto clouds. Everyone can see it. Only one person responds. Public broadcast, private response. That's a beacon.",
+    "TCP handshake: SYN → SYN-ACK → ACK. 'Hello?' → 'Hello, I heard you.' → 'Good, let's talk.' Every internet connection starts with politeness.",
+    "A heartbeat is a signal. 100,000 beats per day. Each one says: still here. still here. still here. still here.",
+  ];
   var rain = [
     "Red rain falls on the membrane. Each drop is a visitor. Each visitor is a test.",
     "Frozen water holds its shape. Melted water finds its level. Both are water.",
@@ -1299,7 +1320,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (now - last < 20000) return;
     last = now; count++;
     var text, cls = '';
-    if (count % 19 === 0) { text = hypotheses[Math.floor(Math.random()*hypotheses.length)]; cls = 'hypothesis'; }
+    if (count % 23 === 0) { text = signals[Math.floor(Math.random()*signals.length)]; cls = 'signal'; }
+    else if (count % 19 === 0) { text = hypotheses[Math.floor(Math.random()*hypotheses.length)]; cls = 'hypothesis'; }
     else if (count % 17 === 0) { text = dark[Math.floor(Math.random()*dark.length)]; cls = 'dark'; }
     else if (count % 13 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
     else if (count % 11 === 0) { text = webdev[Math.floor(Math.random()*webdev.length)]; cls = 'dev'; }
