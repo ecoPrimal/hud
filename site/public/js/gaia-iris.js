@@ -79,7 +79,7 @@
       if (thr < 0.4) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.02;
-      var alpha = (0.003 + Math.sin(t * 0.08) * 0.002) * thr;
+      var alpha = (0.012 + Math.sin(t * 0.08) * 0.006) * thr;
       if (alpha < 0.002) return;
 
       updatePupil();
