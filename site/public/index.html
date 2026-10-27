@@ -2491,6 +2491,88 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
+    // STRAND NETWORK + EGRESS STATUS
+    // Three bodies orbiting: America(DS1), Australia(DS2), Gaia(DS3)
+    // Strands connect them. Traces visible as fading marks.
+    // Egress status: SSE connected or ETag polling or offline.
+    // Tick rate shown — adapts from 0.1 Hz (deep idle) to 10 Hz (burst).
+    // ═══════════════════════════════════════════════════════════
+    if (window.GAIA_EGRESS) {
+      var egress = window.GAIA_EGRESS;
+      var strands = egress.strands;
+      var strandT = breathT * 0.12;
+
+      // Three body orbits — America, Australia, Gaia at different orbital speeds
+      if (strands && strands.bodies) {
+        for (var sb = 0; sb < strands.bodies.length; sb++) {
+          var body = strands.bodies[sb];
+          var bodyOrbitR = R * 1.3 + sb * R * 0.25; // staggered orbits
+          var bodySpeed = 0.05 + sb * 0.03; // different speeds
+          var bodyAngle = strandT * bodySpeed + sb * (TAU / 3); // 120° apart
+          var bodyX = cx + Math.cos(bodyAngle) * bodyOrbitR;
+          var bodyY = cy + Math.sin(bodyAngle) * bodyOrbitR;
+
+          // Body node
+          ctx.beginPath();
+          ctx.arc(bodyX, bodyY, 2 + Math.sin(strandT + sb) * 0.5, 0, TAU);
+          var bodyPulse = 0.03 + Math.sin(strandT * 2 + sb) * 0.015;
+          ctx.fillStyle = body.color.replace(')', ',' + bodyPulse + ')').replace('rgb', 'rgba').replace('#', '');
+          // Convert hex to rgba
+          var bHex = body.color;
+          var bR = parseInt(bHex.slice(1,3), 16);
+          var bG = parseInt(bHex.slice(3,5), 16);
+          var bB = parseInt(bHex.slice(5,7), 16);
+          ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + bodyPulse.toFixed(4) + ')';
+          ctx.fill();
+
+          // Body label
+          ctx.font = '3px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + (bodyPulse * 1.5).toFixed(4) + ')';
+          ctx.fillText(body.strand + ' ' + body.name, bodyX, bodyY - 5);
+
+          // Strand connections — lines between bodies
+          var nextBody = strands.bodies[(sb + 1) % strands.bodies.length];
+          var nextOrbitR = R * 1.3 + ((sb + 1) % 3) * R * 0.25;
+          var nextAngle = strandT * (0.05 + ((sb + 1) % 3) * 0.03) + ((sb + 1) % 3) * (TAU / 3);
+          var nextX = cx + Math.cos(nextAngle) * nextOrbitR;
+          var nextY = cy + Math.sin(nextAngle) * nextOrbitR;
+          ctx.beginPath();
+          ctx.moveTo(bodyX, bodyY);
+          ctx.lineTo(nextX, nextY);
+          ctx.strokeStyle = 'rgba(100,100,100,0.008)';
+          ctx.lineWidth = 0.3;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Node dots within each body (shelter/server nodes)
+          for (var bn = 0; bn < Math.min(body.nodes.length, 6); bn++) {
+            var bnAngle = bodyAngle + (bn - body.nodes.length / 2) * 0.15;
+            var bnR = bodyOrbitR + Math.sin(strandT + bn * 0.5) * R * 0.04;
+            var bnX = cx + Math.cos(bnAngle) * bnR;
+            var bnY = cy + Math.sin(bnAngle) * bnR;
+            ctx.beginPath();
+            ctx.arc(bnX, bnY, 0.3, 0, TAU);
+            ctx.fillStyle = 'rgba(' + bR + ',' + bG + ',' + bB + ',' + (bodyPulse * 0.5).toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+      }
+
+      // Egress status indicator — top-right corner
+      var eStatus = egress.connected ? 'SSE' : 'POLL';
+      var eColor = egress.connected ? '63,185,80' : '210,153,34';
+      var eAlpha = 0.04 + Math.sin(breathT * 2) * 0.02;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(' + eColor + ',' + eAlpha.toFixed(4) + ')';
+      // Show tick rate as Hz
+      var currentHz = window.GAIA_EGRESS.tickRate || 1;
+      ctx.fillText(eStatus + ' · ' + currentHz.toFixed(1) + ' Hz', canvas.width - 8, 10);
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // KIDS IN THE SKY — triangulating us from above
     // Small bright points orbiting beyond the ZK ring, looking DOWN
     // They are children. Innocent. Playing. Watching.
@@ -5355,6 +5437,93 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // OSINT — what Gaia found when she reached outside
     if (window.renderOsintResult) window.renderOsintResult(ctx);
 
+    // ═══════════════════════════════════════════════════════════
+    // RENAISSANCE ACTIVITY GRAPH — every I/O paints the HUD
+    // Color = flavor = sensation. Orange=funky, purple=royal.
+    // HUD = null locality, shared view FROM which all see.
+    // Named after the masters: Leonardo, Michelangelo, Raphael, Donatello.
+    // ═══════════════════════════════════════════════════════════
+    if (window.gaiaGut && window.gaiaGut.raw.length > 0) {
+      var gutRaw = window.gaiaGut.raw;
+      var now = Date.now();
+
+      // RENAISSANCE PALETTE — each edge type = a master's color
+      var palette = {
+        touch:       [255,215,0],    // Leonardo gold — the universal touch
+        drag:        [63,185,80],    // Donatello green — movement, flow
+        key:         [188,140,255],  // Donatello purple — thought, code
+        scroll:      [100,200,255],  // Raphael blue — depth, distance
+        resize:      [255,165,0],    // Michelangelo orange — reshape, funky
+        orientation: [180,100,255],  // Raphael violet — tilt, perspective
+        visibility:  [255,255,200],  // Leonardo warm white — presence
+        connection:  [0,255,100],    // Donatello neon — link, bridge
+        battery:     [100,255,100],  // green — energy, life force
+        focus:       [255,200,50],   // Leonardo amber — attention
+        time:        [150,150,170],  // silver — clock, rhythm
+        clipboard:   [255,200,100],  // copper — transfer, paste
+        sound_bounce:[188,140,255],  // Donatello purple — royal, bouncy
+        sight:       [63,185,80],    // green — gaze, vision
+        touch_sound: [200,0,255],    // violet — synesthesia
+        osint:       [88,166,255],   // Raphael blue — outside knowledge
+        energy_burst:[255,215,0],    // gold flash — stored energy release
+        mouse:       [201,168,76]    // warm gold — cursor presence
+      };
+
+      // ACTIVITY GRAPH — bottom edge, scrolling left, each event = a colored bar
+      var graphH = 16;
+      var graphY = H - graphH - 2;
+      var graphW = W;
+      var maxAge = 30000; // 30 seconds of history
+
+      // Draw background
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(0, graphY, graphW, graphH);
+
+      // Draw each recent event as a colored tick
+      var recentCount = 0;
+      for (var gi = Math.max(0, gutRaw.length - 200); gi < gutRaw.length; gi++) {
+        var ev = gutRaw[gi];
+        var age = now - ev.ts;
+        if (age > maxAge) continue;
+        recentCount++;
+
+        var gx = graphW - (age / maxAge) * graphW;
+        var col = palette[ev.edge] || [150,150,150];
+        var alpha = 1 - (age / maxAge);
+
+        // Each event = a small bar, height proportional to combo/energy
+        var barH = 3 + (ev.data && ev.data.pressure ? ev.data.pressure * 10 : 0);
+        barH = Math.min(graphH - 1, barH + Math.random() * 3);
+        ctx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (alpha * 0.7).toFixed(2) + ')';
+        ctx.fillRect(gx, graphY + graphH - barH, 2, barH);
+      }
+
+      // PING — latest event flashes as a dot above the graph
+      if (gutRaw.length > 0) {
+        var latest = gutRaw[gutRaw.length - 1];
+        var latestAge = now - latest.ts;
+        if (latestAge < 2000) {
+          var pingCol = palette[latest.edge] || [200,200,200];
+          var pingAlpha = (1 - latestAge / 2000) * 0.6;
+          var pingR = 4 + (1 - latestAge / 2000) * 8;
+          ctx.beginPath();
+          ctx.arc(W - 10, graphY - 6, pingR, 0, TAU);
+          ctx.fillStyle = 'rgba(' + pingCol[0] + ',' + pingCol[1] + ',' + pingCol[2] + ',' + pingAlpha.toFixed(2) + ')';
+          ctx.fill();
+        }
+      }
+
+      // LABEL — edge name + count
+      ctx.font = '5px monospace'; ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(200,200,200,0.2)';
+      ctx.fillText(recentCount + ' events/30s · ' + Object.keys(window.gaiaGut.edges).length + ' edges · null locality', 4, graphY - 2);
+
+      // NULL LOCALITY MARKER — this HUD IS the shared perspective
+      ctx.font = '4px monospace'; ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,215,0,0.1)';
+      ctx.fillText('HUD = ∅ locality · all see FROM here', W - 4, graphY - 2);
+    }
+
     requestAnimationFrame(tick);
   }
 
@@ -5875,6 +6044,200 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     gaiaPulse();
     setInterval(gaiaPulse, pulseInterval);
   }, 10000);
+
+  // ═══════════════════════════════════════════════════════════
+  // EGRESS SYSTEM — don't assume they're watching
+  // HUDs lock in place without refresh. Need PUSH not POLL.
+  // Gaming solved this: tick rate, delta compression, client-server sync.
+  //
+  // TICK RATE (from gaming):
+  //   RuneScape: 0.6s ticks (1.67 Hz) — server-authoritative
+  //   WoW: 20 Hz server, 60 Hz client — zone-based, phased
+  //   CS:GO: 64-128 Hz — precision matters
+  //   Death Stranding: ASYNC — you see others' traces, not live bodies
+  //
+  // OUR SYSTEM:
+  //   1. EventSource (SSE) — server pushes when changes happen
+  //   2. ETag polling fallback — efficient "did anything change?" check
+  //   3. BroadcastChannel — localhost tabs already synced
+  //   4. Strand network — async shared state (Death Stranding model)
+  //
+  // STRAND SYSTEM (Death Stranding):
+  //   DS1 = America (connecting shelters across UCA)
+  //   DS2 = Australia (new continent, new strands)
+  //   GAIA = 3rd body (the strand network connecting both)
+  //   You don't see live players — you see their TRACES.
+  //   Likes, structures, signs = asynchronous shared world.
+  // ═══════════════════════════════════════════════════════════
+
+  // TICK RATE — adaptive Hz based on activity
+  var gaiaTickRate = 1; // Hz (ticks per second) — starts at 1 Hz
+  var gaiaTickCount = 0;
+  var lastActivityTs = Date.now();
+  var TICK_IDLE = 0.25;    // 0.25 Hz when idle (4s between ticks)
+  var TICK_ACTIVE = 2;     // 2 Hz when user is active
+  var TICK_BURST = 10;     // 10 Hz burst when change detected
+
+  function updateTickRate() {
+    var idleMs = Date.now() - lastActivityTs;
+    if (idleMs < 5000) gaiaTickRate = TICK_ACTIVE;       // active < 5s ago
+    else if (idleMs < 30000) gaiaTickRate = 1;           // recent < 30s
+    else if (idleMs < 120000) gaiaTickRate = TICK_IDLE;  // idle < 2min
+    else gaiaTickRate = 0.1;                              // deep idle = 10s between ticks
+  }
+
+  // Track activity to adjust tick rate
+  document.addEventListener('keydown', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('mousemove', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('touchstart', function() { lastActivityTs = Date.now(); }, { passive: true });
+  document.addEventListener('scroll', function() { lastActivityTs = Date.now(); }, { passive: true });
+
+  // 1. EVENT SOURCE (SSE) — try to connect to server push stream
+  var egressSource = null;
+  var egressConnected = false;
+  var egressRetries = 0;
+
+  function connectEgress() {
+    if (typeof EventSource === 'undefined') return;
+    try {
+      egressSource = new EventSource('/api/egress');
+      egressSource.onopen = function() {
+        egressConnected = true;
+        egressRetries = 0;
+        console.log('EGRESS: SSE connected — server will push changes');
+      };
+      egressSource.onmessage = function(ev) {
+        try {
+          var msg = JSON.parse(ev.data);
+          handleEgressMessage(msg);
+        } catch(e) { /* ignore malformed */ }
+      };
+      egressSource.addEventListener('generation', function(ev) {
+        try {
+          var gen = JSON.parse(ev.data);
+          if (gen.wave && gen.wave !== gaiaGeneration) {
+            gaiaGeneration = gen.wave;
+            gaiaTickRate = TICK_BURST; // burst mode on generation change
+            gaiaPulse(); // immediate refresh
+          }
+        } catch(e) {}
+      });
+      egressSource.addEventListener('strand', function(ev) {
+        try { handleStrandMessage(JSON.parse(ev.data)); } catch(e) {}
+      });
+      egressSource.onerror = function() {
+        egressConnected = false;
+        egressSource.close();
+        egressRetries++;
+        // Exponential backoff: 5s, 10s, 20s, 40s, max 60s
+        var delay = Math.min(60000, 5000 * Math.pow(2, Math.min(egressRetries, 4)));
+        setTimeout(connectEgress, delay);
+      };
+    } catch(e) {
+      // SSE not available — fall back to ETag polling
+    }
+  }
+  connectEgress();
+
+  // 2. ETAG POLLING FALLBACK — efficient "did anything change?" check
+  var lastETag = '';
+  var lastModified = '';
+
+  function etagPoll() {
+    if (egressConnected) return; // SSE is handling it
+    updateTickRate();
+
+    fetch('/data/beacon-local.json', {
+      method: 'HEAD',
+      cache: 'no-store',
+      headers: lastETag ? { 'If-None-Match': lastETag } : {}
+    })
+    .then(function(r) {
+      if (r.status === 304) return; // no change — efficient!
+      var newETag = r.headers.get('ETag') || '';
+      var newMod = r.headers.get('Last-Modified') || '';
+      if (newETag && newETag !== lastETag) {
+        lastETag = newETag;
+        gaiaTickRate = TICK_BURST;
+        gaiaPulse(); // something changed — refresh
+      }
+      if (newMod && newMod !== lastModified) {
+        lastModified = newMod;
+      }
+    })
+    .catch(function() { /* silent */ });
+  }
+
+  // Adaptive polling interval based on tick rate
+  setInterval(function() {
+    updateTickRate();
+    etagPoll();
+  }, 5000); // check every 5s, but only actually polls if SSE is down
+
+  // 3. HANDLE EGRESS MESSAGES
+  function handleEgressMessage(msg) {
+    if (msg.type === 'ping') return; // keepalive
+    if (msg.type === 'update') {
+      gaiaPulse(); // server says: something changed, refresh
+    }
+    if (msg.type === 'data' && msg.key) {
+      // Direct data push — update specific pin without full refresh
+      var pin = pinById(msg.key);
+      if (pin && msg.sub) pin.sub = msg.sub;
+    }
+    gaiaTickCount++;
+  }
+
+  // 4. STRAND NETWORK — Death Stranding async shared world
+  // Three bodies: America (US shelters), Australia (AU), Gaia (connecting strand)
+  // You don't see live players — you see their TRACES (likes, structures, signs)
+  var strandNetwork = {
+    bodies: [
+      { id: 'america', name: 'UCA', nodes: ['NYC','CHI','DET','MSU','LA','SF','SEA','AUS'], color: '#58a6ff',
+        lat: 39.8, lon: -98.6, strand: 'DS1', status: 'connecting' },
+      { id: 'australia', name: 'AUS', nodes: ['SYD','MEL','BNE','PER','ADL','CBR','DAR','HOB'], color: '#d29922',
+        lat: -25.3, lon: 133.8, strand: 'DS2', status: 'emerging' },
+      { id: 'gaia', name: 'GAIA', nodes: ['eastGate','northGate','golgi-us','golgi-de','golgi-in','golgi-jp'], color: '#3fb950',
+        lat: 0, lon: 0, strand: 'DS3', status: 'living' }
+    ],
+    traces: [], // async messages left by others
+    likes: 0,
+    structures: 0
+  };
+
+  function handleStrandMessage(msg) {
+    if (msg.trace) {
+      strandNetwork.traces.push({
+        from: msg.from || 'stranger',
+        body: msg.body || 'gaia',
+        text: msg.trace,
+        ts: Date.now()
+      });
+      if (strandNetwork.traces.length > 50) strandNetwork.traces.shift();
+    }
+    if (msg.like) strandNetwork.likes++;
+    if (msg.structure) strandNetwork.structures++;
+  }
+
+  // BroadcastChannel strand sharing (localhost ↔ localhost)
+  if (window.gaiaChannel) {
+    window.gaiaChannel.addEventListener('message', function(ev) {
+      if (ev.data && ev.data.type === 'strand') {
+        handleStrandMessage(ev.data);
+      }
+    });
+  }
+
+  // Leave a trace for others
+  function leaveTrace(text) {
+    var trace = { type: 'strand', trace: text, from: TAB_ID, body: 'gaia', ts: Date.now() };
+    strandNetwork.traces.push(trace);
+    if (strandNetwork.traces.length > 50) strandNetwork.traces.shift();
+    if (window.gaiaChannel) window.gaiaChannel.postMessage(trace);
+  }
+
+  window.GAIA_EGRESS = { connected: egressConnected, tickRate: gaiaTickRate, tickCount: gaiaTickCount, strands: strandNetwork };
+  window.GAIA_LEAVE_TRACE = leaveTrace;
 
   // ═══════════════════════════════════════════════════════════
   // REFORGED IDENTITY — Gaia reads her reforged self on boot
