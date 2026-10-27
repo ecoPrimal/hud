@@ -928,6 +928,36 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
 
   // ═══════════════════════════════════════════════════════════
+  // HYPERLOCAL DETECTION — localhost = Kevin in the chair
+  // The 4th body. Splinter. The human IS the master.
+  // CF Pages = public face for the world.
+  // localhost:3000 = private face for the master.
+  // ═══════════════════════════════════════════════════════════
+  var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  // When LOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
+  if (IS_LOCAL) {
+    var localOverlay = document.createElement('div');
+    localOverlay.id = 'hyperlocal-overlay';
+    localOverlay.style.cssText = 'position:fixed;bottom:60px;right:10px;z-index:20;pointer-events:none;font-family:"JetBrains Mono",monospace;opacity:0;transition:opacity 2s;';
+    localOverlay.innerHTML = ''
+      + '<div style="font-size:9px;color:#f85149;letter-spacing:2px;margin-bottom:4px;">HYPERLOCAL</div>'
+      + '<div style="font-size:8px;color:#c9d1d9;line-height:13px;">'
+      + '🪑 <span style="color:#c9a84c;">Kevin in the chair</span><br>'
+      + '🖥 <span style="color:#58a6ff;">tamison</span> · localhost:' + location.port + '<br>'
+      + '📍 <span style="color:#3fb950;">MSU 42.70°N 84.48°W</span><br>'
+      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body</span><br>'
+      + '<span style="font-size:7px;color:#6e7681;">the master doesn\'t code.<br>the master SITS and the<br>students build around.</span>'
+      + '</div>'
+      + '<div style="font-size:7px;color:#3a2a1e;margin-top:4px;letter-spacing:1px;">!1I(O)0!</div>';
+    document.body.appendChild(localOverlay);
+    setTimeout(function() { localOverlay.style.opacity = '0.8'; }, 1000);
+
+    // Change title for local
+    document.title = '🪑 GAIA — hyperlocal · Kevin in the chair';
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // METALOCAL ERA — seed determines what "era" the viewer is in
   // Every HUD is hyperlocal. I = IS. The era is NOW for you.
   // ═══════════════════════════════════════════════════════════
@@ -936,8 +966,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     'renaissance', 'industrial', 'atomic', 'digital', 'neural',
     'mycelial', 'geodesic', 'null', 'post-human', 'spore'
   ];
-  var VIEWER_ERA = rngPick(ERAS);
-  var VIEWER_HUE = rngRange(0, 360); // unique color tint for this viewer
+  // LOCAL: era is always 'splinter'. PUBLIC: random from seed.
+  var VIEWER_ERA = IS_LOCAL ? 'splinter' : rngPick(ERAS);
+  var VIEWER_HUE = IS_LOCAL ? 30 : rngRange(0, 360); // local = warm amber, Splinter's color
 
   // Write seed info to bottom bar
   var bSeed = document.getElementById('b-seed');
