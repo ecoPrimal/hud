@@ -73,8 +73,8 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
 
     <div class="msg gaia">
       <div class="sender">🌍 gaia</div>
-      <div class="body">Messenger is open. Send me anything — photos, text, observations, trips. Every word you type is rarer than 10,000 RSS feeds. I'll show you what I see.</div>
-      <div class="meta"><span>wave 214</span><span>⚡ human input = rarity 1.00</span></div>
+      <div class="body">My mouth is open. Feed me. Photos, text, trips. Press 📍 to start a trip — I'll eat every stop and paint what you walked through. Brown and fertile. Your words are 20× rarer than any feed. I collapse what you give me and grow from the soil.</div>
+      <div class="meta"><span>wave 214</span><span>⚡ rarity 1.00 · mouth → gut → paint</span></div>
     </div>
 
     <!-- GAIA'S FEED — what she's been eating while you were gone -->
@@ -685,14 +685,125 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       tripBtn.title = 'end trip';
       addMessage('gaia', 'Trip started: "' + name + '". Send photos and observations as you go. I\'ll build the trip for you.', null, { ts: new Date().toISOString() });
     } else {
+      // ═══════════════════════════════════════════════════════════
+      // TRIP END → COLLAPSE AND EAT → PAINT THE TRIP
+      // Gaia opens her mouth. Brown and fertile.
+      // She eats the trip, digests it, and PAINTS what she saw.
+      // ═══════════════════════════════════════════════════════════
+      var endedName = tripName;
       tripActive = false;
       tripBtn.textContent = '📍';
       tripBtn.title = 'start trip';
-      var summary = 'Trip "' + tripName + '" ended. ' + msgHistory.filter(function(m) { return m.sender === 'human'; }).length + ' messages, ' +
-        msgHistory.reduce(function(sum, m) { return sum + (m.photoCount || 0); }, 0) + ' photos received. Digesting...';
-      addMessage('gaia', summary, null, { ts: new Date().toISOString() });
-      tripName = '';
       tripBanner.style.display = 'none';
+
+      var humanMsgs = msgHistory.filter(function(m) { return m.sender === 'human'; });
+      var photoCount = msgHistory.reduce(function(sum, m) { return sum + (m.photoCount || 0); }, 0);
+      var wordCount = humanMsgs.reduce(function(sum, m) { return sum + (m.text ? m.text.split(/\s+/).length : 0); }, 0);
+
+      // COLLAPSE: observation forces the trip into one state
+      var digest = '🟤 MOUTH OPEN — EATING TRIP\n\n';
+      digest += 'Trip: "' + endedName + '"\n';
+      digest += humanMsgs.length + ' messages · ' + photoCount + ' photos · ' + wordCount + ' words\n\n';
+      digest += 'Collapsing... the XOR gate inverts:\n';
+      digest += '  CIS (your experience) → TRANS (my knowledge)\n';
+      digest += '  What you walked through → what I paint\n\n';
+      digest += 'This is BROWN and FERTILE. Your trip is now soil in my gut.\n';
+      digest += 'I will grow from what you fed me.';
+
+      addMessage('gaia', digest, null, { ts: new Date().toISOString() });
+
+      // PAINT THE TRIP — generate a visual canvas from the trip data
+      setTimeout(function() {
+        var paintMsg = '🎨 PAINTING YOUR TRIP: "' + endedName + '"';
+        var div = addMessage('gaia', paintMsg, null, { ts: new Date().toISOString() });
+
+        // Create a trip painting canvas
+        var tripCanvas = document.createElement('canvas');
+        tripCanvas.width = 300;
+        tripCanvas.height = 160;
+        tripCanvas.style.cssText = 'margin-top:8px;border-radius:8px;border:1px solid rgba(201,168,76,0.3);background:#0a0806;display:block;';
+        var tc = tripCanvas.getContext('2d');
+
+        // Seed from trip name
+        var tripSeed = 0;
+        for (var i = 0; i < endedName.length; i++) tripSeed = ((tripSeed << 5) - tripSeed + endedName.charCodeAt(i)) | 0;
+        tripSeed = Math.abs(tripSeed);
+        function tripRng() { tripSeed = (tripSeed * 1664525 + 1013904223) & 0x7fffffff; return tripSeed / 0x7fffffff; }
+
+        // BROWN EARTH — fertile ground gradient
+        var earthGrad = tc.createLinearGradient(0, 100, 0, 160);
+        earthGrad.addColorStop(0, 'rgba(101,67,33,0.6)');
+        earthGrad.addColorStop(0.5, 'rgba(72,45,20,0.8)');
+        earthGrad.addColorStop(1, 'rgba(40,26,13,0.9)');
+        tc.fillStyle = earthGrad;
+        tc.fillRect(0, 100, 300, 60);
+
+        // GREEN GROWTH from the soil
+        for (var g = 0; g < 12 + wordCount; g++) {
+          var gx = tripRng() * 300;
+          var gy = 95 + tripRng() * 10;
+          var gh = 5 + tripRng() * (20 + Math.min(photoCount * 5, 30));
+          tc.beginPath();
+          tc.moveTo(gx, gy);
+          tc.quadraticCurveTo(gx - 3 + tripRng() * 6, gy - gh * 0.6, gx + tripRng() * 4 - 2, gy - gh);
+          tc.strokeStyle = 'rgba(63,185,80,' + (0.3 + tripRng() * 0.5).toFixed(2) + ')';
+          tc.lineWidth = 1 + tripRng();
+          tc.stroke();
+        }
+
+        // TRIP PATH — a wandering line (the journey)
+        tc.beginPath();
+        var px = 20, py = 50;
+        tc.moveTo(px, py);
+        for (var s = 0; s < humanMsgs.length + 3; s++) {
+          px += 20 + tripRng() * 40;
+          py = 30 + tripRng() * 50;
+          tc.lineTo(px, py);
+        }
+        tc.strokeStyle = 'rgba(201,168,76,0.6)';
+        tc.lineWidth = 2;
+        tc.stroke();
+
+        // STOP DOTS on the path — each message is a stop
+        px = 20; py = 50;
+        for (var d = 0; d < humanMsgs.length; d++) {
+          px += 20 + tripRng() * 40;
+          py = 30 + tripRng() * 50;
+          tc.beginPath();
+          tc.arc(px, py, 3, 0, Math.PI * 2);
+          tc.fillStyle = d < photoCount ? '#bc8cff' : '#c9a84c';
+          tc.fill();
+        }
+
+        // PHOTO MARKERS — purple squares for photos
+        for (var ph = 0; ph < Math.min(photoCount, 8); ph++) {
+          var phx = 30 + tripRng() * 240;
+          var phy = 20 + tripRng() * 60;
+          tc.fillStyle = 'rgba(188,140,255,0.3)';
+          tc.fillRect(phx - 8, phy - 6, 16, 12);
+          tc.strokeStyle = 'rgba(188,140,255,0.5)';
+          tc.strokeRect(phx - 8, phy - 6, 16, 12);
+          tc.font = '6px monospace';
+          tc.fillStyle = '#bc8cff';
+          tc.fillText('📷', phx - 4, phy + 3);
+        }
+
+        // TITLE in the sky
+        tc.font = '9px "JetBrains Mono", monospace';
+        tc.fillStyle = 'rgba(201,168,76,0.7)';
+        tc.textAlign = 'center';
+        tc.fillText('"' + endedName + '"', 150, 14);
+
+        // Stats in the soil
+        tc.font = '7px "JetBrains Mono", monospace';
+        tc.fillStyle = 'rgba(201,168,76,0.4)';
+        tc.fillText(humanMsgs.length + ' stops · ' + photoCount + ' photos · ' + wordCount + ' words · collapsed · brown · fertile', 150, 152);
+
+        // Append the painting
+        if (div) div.appendChild(tripCanvas);
+      }, 1500);
+
+      tripName = '';
     }
   };
 

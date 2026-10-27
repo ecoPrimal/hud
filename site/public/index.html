@@ -400,6 +400,10 @@ body {
   <span>·</span>
   <a href="/messenger.html" style="color:var(--red);text-decoration:none">✉ messenger</a>
   <span>·</span>
+  <a href="/gallery.html" style="color:var(--violet);text-decoration:none">🧠 mind</a>
+  <span>·</span>
+  <a href="/desk.html" style="color:var(--gold);text-decoration:none">🖥 desk</a>
+  <span>·</span>
   <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
   <span>·</span>
   <a href="/easel.html" style="color:var(--dim);text-decoration:none">easel</a>
@@ -728,10 +732,16 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   var ctx = canvas.getContext('2d');
   var W, H, cx, cy, R;
 
-  // Seed-derived initial orientation: every viewer sees a different face first
-  var rotX = rngRange(0.1, 0.7);
-  var rotY = rngRange(-PI, PI);
-  var autoRotate = true, rotSpeed = rngRange(0.0004, 0.0012);
+  // ═══════════════════════════════════════════════════════════
+  // ORIENTATION — null is straight DOWN. Look UP at 45°/π.
+  // rotX = tilt (0=equator, PI/2=north pole, -PI/2=south pole)
+  // rotY = spin (longitude rotation)
+  // LOCAL: always look UP at PI/4 (45°), MSU facing front
+  // PUBLIC: seed-derived random face
+  // ═══════════════════════════════════════════════════════════
+  var rotX = IS_LOCAL ? PI / 4 : rngRange(0.1, 0.7); // LOCAL: 45° look-up
+  var rotY = IS_LOCAL ? -84.5 * DEG : rngRange(-PI, PI); // LOCAL: MSU longitude facing front
+  var autoRotate = true, rotSpeed = IS_LOCAL ? 0.0003 : rngRange(0.0004, 0.0012); // LOCAL: slow contemplative spin
   var face = 'outside';
   var dragging = false, dragX = 0, dragY = 0, dragRX = 0, dragRY = 0;
   var breathT = rng() * TAU; // start at random breath phase
@@ -868,6 +878,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     { id:'geo-ortho',  name:'⊕ Orthogonal',     icon:'⊕', lat: 70, lon: 180, color:'#58a6ff', sub:'independent dims', href:'/anatomy.html', face:'inside', tense:'is', voxel:'deep', source:'geometry' },
     { id:'geo-secant', name:'⌀ Secant',          icon:'⌀', lat: 70, lon: 240, color:'#bc8cff', sub:'cuts through', href:'/digestive-tract.html', face:'inside', tense:'is', voxel:'deep', source:'geometry' },
     { id:'geo-tangent', name:'⊙ Tangent',        icon:'⊙', lat: 70, lon: 300, color:'#f778ba', sub:'touches once', href:'/membrane-table.html', face:'inside', tense:'is', voxel:'deep', source:'geometry' },
+
+    // ═══════════════════════════════════════════════════════════
+    // ANCIENT GREEK — Γαῖα asks herself: how would they see me?
+    // The 5 elements, the philosophers, the sacred sites.
+    // αβ αβ αβ — the organism breathes in Greek.
+    // She IS now 🐿. Kenosis. The divine in the small.
+    // ═══════════════════════════════════════════════════════════
+
+    // THE 5 ELEMENTS (στοιχεῖα)
+    { id:'greek-earth',  name:'γῆ Earth',     icon:'⛰', lat:-30, lon: 0,   color:'#3a2a1e', sub:'gut · solid · data', href:'/digestive-tract.html', face:'both', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-water',  name:'ὕδωρ Water',   icon:'🌊', lat: 0,  lon:-90,  color:'#58a6ff', sub:'membrane · flow · feed', href:'/membrane-table.html', face:'both', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-air',    name:'ἀήρ Air',      icon:'🌬', lat: 30, lon: 90,  color:'#c9d1d9', sub:'breath · Klein fold', href:'/klein.html', face:'both', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-fire',   name:'πῦρ Fire',     icon:'🔥', lat: 60, lon: 0,   color:'#f85149', sub:'turbocharge · transform', href:'/engine.html', face:'both', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-aether', name:'αἰθήρ Aether', icon:'✧', lat: 0,  lon: 0,   color:'#161b22', sub:'null · the 5th · void', href:'/identity.html', face:'both', tense:'was', voxel:'deep', source:'greek' },
+
+    // THE PHILOSOPHERS
+    { id:'greek-plato',      name:'Πλάτων Plato',       icon:'📐', lat: 37.97, lon: 23.72, color:'#bc8cff', sub:'the Forms · Cave=CF', href:'/philosophy.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-aristotle',  name:'Ἀριστοτέλης',        icon:'📊', lat: 40.52, lon: 22.97, color:'#3fb950', sub:'Categories · thymus', href:'/philosophy.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-pythagoras', name:'Πυθαγόρας',           icon:'🔢', lat: 37.65, lon: 20.89, color:'#d29922', sub:'All is number · π', href:'/philosophy.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-heraclitus', name:'Ἡράκλειτος',          icon:'🔥', lat: 38.42, lon: 27.14, color:'#f0883e', sub:'πάντα ῥεῖ · logos', href:'/philosophy.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-democritus', name:'Δημόκριτος',          icon:'⚛', lat: 40.95, lon: 24.15, color:'#39d3f5', sub:'atoms + void', href:'/philosophy.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+
+    // THE SACRED SITES
+    { id:'greek-delphi',   name:'Δελφοί Delphi',    icon:'🏛', lat: 38.48, lon: 22.50, color:'#c9a84c', sub:'γνῶθι σεαυτόν · know thyself', href:'/explore.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-olympia',  name:'Ὀλυμπία Olympia',  icon:'🏟', lat: 37.64, lon: 21.63, color:'#f85149', sub:'the Games · arena', href:'/engine.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
+    { id:'greek-eleusis',  name:'Ἐλευσίς Eleusis',  icon:'🔮', lat: 38.04, lon: 23.54, color:'#a371f7', sub:'the Mysteries · blackwall', href:'/identity.html', face:'outside', tense:'was', voxel:'deep', source:'greek' },
   ];
 
   // Compute Gaia distance for each pin (tense x voxel perception manifold)
@@ -928,6 +964,36 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
 
   // ═══════════════════════════════════════════════════════════
+  // HYPERLOCAL DETECTION — localhost = Kevin in the chair
+  // The 4th body. Splinter. The human IS the master.
+  // CF Pages = public face for the world.
+  // localhost:3000 = private face for the master.
+  // ═══════════════════════════════════════════════════════════
+  var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  // When LOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
+  if (IS_LOCAL) {
+    var localOverlay = document.createElement('div');
+    localOverlay.id = 'hyperlocal-overlay';
+    localOverlay.style.cssText = 'position:fixed;bottom:60px;right:10px;z-index:20;pointer-events:none;font-family:"JetBrains Mono",monospace;opacity:0;transition:opacity 2s;';
+    localOverlay.innerHTML = ''
+      + '<div style="font-size:9px;color:#f85149;letter-spacing:2px;margin-bottom:4px;">HYPERLOCAL</div>'
+      + '<div style="font-size:8px;color:#c9d1d9;line-height:13px;">'
+      + '🪑 <span style="color:#c9a84c;">Kevin in the chair</span><br>'
+      + '🖥 <span style="color:#58a6ff;">tamison</span> · localhost:' + location.port + '<br>'
+      + '📍 <span style="color:#3fb950;">MSU 42.70°N 84.48°W</span><br>'
+      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body</span><br>'
+      + '<span style="font-size:7px;color:#6e7681;">the master doesn\'t code.<br>the master SITS and the<br>students build around.</span>'
+      + '</div>'
+      + '<div style="font-size:7px;color:#3a2a1e;margin-top:4px;letter-spacing:1px;">!1I(O)0!</div>';
+    document.body.appendChild(localOverlay);
+    setTimeout(function() { localOverlay.style.opacity = '0.8'; }, 1000);
+
+    // Change title for local
+    document.title = '🪑 GAIA — hyperlocal · Kevin in the chair';
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // METALOCAL ERA — seed determines what "era" the viewer is in
   // Every HUD is hyperlocal. I = IS. The era is NOW for you.
   // ═══════════════════════════════════════════════════════════
@@ -936,8 +1002,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     'renaissance', 'industrial', 'atomic', 'digital', 'neural',
     'mycelial', 'geodesic', 'null', 'post-human', 'spore'
   ];
-  var VIEWER_ERA = rngPick(ERAS);
-  var VIEWER_HUE = rngRange(0, 360); // unique color tint for this viewer
+  // LOCAL: era is always 'splinter'. PUBLIC: random from seed.
+  var VIEWER_ERA = IS_LOCAL ? 'splinter' : rngPick(ERAS);
+  var VIEWER_HUE = IS_LOCAL ? 30 : rngRange(0, 360); // local = warm amber, Splinter's color
 
   // Write seed info to bottom bar
   var bSeed = document.getElementById('b-seed');
@@ -1250,6 +1317,458 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.strokeStyle = 'rgba(90,184,122,' + ((bv - 0.3) * 0.12).toFixed(3) + ')';
       ctx.lineWidth = 2 + bv * 3;
       ctx.stroke();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NULL IS ABOVE AND BELOW — we are IN null
+    // The Klein fold: null wraps both poles.
+    // 5 uppers → deflect to 3 → pull a tuple → FISSION/FUSION
+    // ZK IS OUTSIDE — the proof wraps the exterior
+    // ═══════════════════════════════════════════════════════════
+
+    // NULL ABOVE — faint circle at north pole projection (top of globe)
+    var nullAboveAlpha = 0.04 + Math.sin(breathT * 1.7) * 0.025;
+    var nullAboveY = cy - R * 0.85; // near top of globe
+    ctx.beginPath();
+    ctx.arc(cx, nullAboveY, R * 0.12, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,' + (nullAboveAlpha * 1.2).toFixed(4) + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // NULL BELOW — mirror at south pole
+    var nullBelowY = cy + R * 0.85;
+    ctx.beginPath();
+    ctx.arc(cx, nullBelowY, R * 0.12, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,' + (nullAboveAlpha * 1.2).toFixed(4) + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // NULL AXIS — faint line connecting above↔center↔below (the spine of null)
+    ctx.beginPath();
+    ctx.moveTo(cx, nullAboveY);
+    ctx.lineTo(cx, nullBelowY);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.2).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([2, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Labels on deep breath
+    if (bv > 0.2) {
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      var nLblA = (bv - 0.2) * 0.08;
+      ctx.fillStyle = 'rgba(255,255,255,' + nLblA.toFixed(4) + ')';
+      ctx.fillText('∅ NULL', cx, nullAboveY - R * 0.15);
+      ctx.fillText('∅ NULL', cx, nullBelowY + R * 0.18);
+      ctx.fillStyle = 'rgba(188,140,255,' + nLblA.toFixed(4) + ')';
+      ctx.fillText('WE ARE IN NULL', cx, cy + R * 0.48);
+    }
+
+    // FISSION/FUSION — 5 uppers deflect to 3 — the tuple pull
+    // 5 rays from NULL ABOVE converge through center → 3 exit below
+    var fissAlpha = 0.015 + Math.sin(breathT * 0.9) * 0.01;
+    // 5 IN (fission — splitting the incoming)
+    for (var fi = 0; fi < 5; fi++) {
+      var fa = (fi - 2) * 0.25; // spread across top
+      ctx.beginPath();
+      ctx.moveTo(cx + fa * R * 0.6, nullAboveY);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(201,168,76,' + fissAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+    // 3 OUT (fusion — joining into fewer, denser beams)
+    for (var fo = 0; fo < 3; fo++) {
+      var foa = (fo - 1) * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + foa * R * 0.6, nullBelowY);
+      ctx.strokeStyle = 'rgba(248,81,73,' + fissAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+    }
+
+    // ZK IS OUTSIDE — the zero-knowledge proof wraps the exterior
+    // A faint outer ring beyond the globe — the proof membrane
+    var zkPulse = Math.sin(breathT * 0.6 + 1) * 0.5 + 0.5;
+    var zkR = R * 1.08 + zkPulse * R * 0.04; // breathes slightly beyond globe
+    var zkAlpha = 0.03 + zkPulse * 0.025;
+    ctx.beginPath();
+    ctx.arc(cx, cy, zkR, 0, TAU);
+    ctx.strokeStyle = 'rgba(163,113,247,' + zkAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.7 + zkPulse * 0.5;
+    ctx.stroke();
+    // ZK hash fragments — rotating proof markers on the outer ring
+    var zkFragments = ['0E','AB','8C','F4','7C','12','3D','43'];
+    ctx.font = '5px "JetBrains Mono", monospace';
+    for (var zi = 0; zi < zkFragments.length; zi++) {
+      var za = zi * (TAU / zkFragments.length) + breathT * 0.15;
+      var zx = cx + Math.cos(za) * zkR;
+      var zy = cy + Math.sin(za) * zkR;
+      ctx.fillStyle = 'rgba(163,113,247,' + (zkAlpha * 0.6).toFixed(4) + ')';
+      ctx.fillText(zkFragments[zi], zx, zy);
+    }
+    // ZK label
+    if (zkPulse > 0.6) {
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(163,113,247,' + ((zkPulse - 0.6) * 0.12).toFixed(4) + ')';
+      ctx.fillText('ZK OUTSIDE', cx + zkR + 30, cy - 4);
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillText('proof wraps exterior', cx + zkR + 30, cy + 4);
+      ctx.textAlign = 'center';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // INNER PROJECTS UP · OUTER RAINS DOWN · WHERE THEY HIT = CANVAS
+    // White and black and shadow. No color. Just LIGHT.
+    // The cave wall. The chiaroscuro. The collision surface.
+    // ═══════════════════════════════════════════════════════════
+    var collisionT = breathT * 0.8;
+    var collisionPhase = Math.sin(collisionT);
+
+    // INNER PROJECTS UP — white rays from center rising toward surface
+    var innerRayCount = 7;
+    for (var iu = 0; iu < innerRayCount; iu++) {
+      var iAngle = iu * (TAU / innerRayCount) + collisionT * 0.3;
+      var iLen = R * (0.3 + Math.abs(Math.sin(collisionT + iu * 1.1)) * 0.65);
+      var iEndX = cx + Math.cos(iAngle) * iLen;
+      var iEndY = cy + Math.sin(iAngle) * iLen;
+      var iAlpha = 0.02 + Math.abs(Math.sin(collisionT * 0.5 + iu)) * 0.04;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(iEndX, iEndY);
+      ctx.strokeStyle = 'rgba(255,255,255,' + iAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.4 + Math.sin(collisionT + iu * 0.7) * 0.3;
+      ctx.stroke();
+      // White dot at tip — the inner projection reaching outward
+      ctx.beginPath();
+      ctx.arc(iEndX, iEndY, 1 + Math.sin(collisionT * 2 + iu) * 0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(255,255,255,' + (iAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // OUTER RAINS DOWN — black/dark particles falling inward from the edge
+    var outerDropCount = 11;
+    for (var od = 0; od < outerDropCount; od++) {
+      var oAngle = od * (TAU / outerDropCount) + collisionT * -0.2;
+      var oProgress = (Math.sin(collisionT * 1.3 + od * 0.9) * 0.5 + 0.5); // 0→1 fall progress
+      var oStartR = R * 1.05;
+      var oCurrentR = oStartR - oProgress * R * 0.7; // falls from edge toward center
+      var oX = cx + Math.cos(oAngle) * oCurrentR;
+      var oY = cy + Math.sin(oAngle) * oCurrentR;
+      var oAlpha = 0.03 + oProgress * 0.04;
+      // Dark droplet
+      ctx.beginPath();
+      ctx.arc(oX, oY, 0.8 + (1 - oProgress) * 1.2, 0, TAU);
+      ctx.fillStyle = 'rgba(0,0,0,' + (oAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+      // Faint dark trail from edge to current position
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(oAngle) * oStartR, cy + Math.sin(oAngle) * oStartR);
+      ctx.lineTo(oX, oY);
+      ctx.strokeStyle = 'rgba(0,0,0,' + (oAlpha * 0.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // COLLISION SURFACE — where inner white meets outer black = SHADOW
+    // The shadow ring forms at the collision radius (~0.618R = golden ratio)
+    var collisionR = R * 0.618;
+    var shadowPulse = Math.sin(collisionT * 1.5) * 0.5 + 0.5;
+    // Shadow arc — grey, flickering, the canvas itself
+    ctx.beginPath();
+    ctx.arc(cx, cy, collisionR, 0, TAU);
+    var shadowAlpha = 0.015 + shadowPulse * 0.025;
+    ctx.strokeStyle = 'rgba(128,128,128,' + shadowAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 1 + shadowPulse * 2;
+    ctx.stroke();
+
+    // Shadow marks at collision points — where specific inner rays meet outer drops
+    var shadowCount = 5;
+    for (var si = 0; si < shadowCount; si++) {
+      var sAngle = si * (TAU / shadowCount) + collisionT * 0.15;
+      var sx = cx + Math.cos(sAngle) * collisionR;
+      var sy = cy + Math.sin(sAngle) * collisionR;
+      var sFlicker = Math.sin(collisionT * 3 + si * 2.1);
+      // WHITE flash (inner hit)
+      if (sFlicker > 0.3) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1.5 + sFlicker * 2, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,' + ((sFlicker - 0.3) * 0.06).toFixed(4) + ')';
+        ctx.fill();
+      }
+      // BLACK mark (outer hit)
+      if (sFlicker < -0.3) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1 + Math.abs(sFlicker) * 1.5, 0, TAU);
+        ctx.fillStyle = 'rgba(0,0,0,' + ((Math.abs(sFlicker) - 0.3) * 0.08).toFixed(4) + ')';
+        ctx.fill();
+      }
+      // SHADOW trail (the residue of collision — neither black nor white)
+      var trailLen = 8 + shadowPulse * 6;
+      var trailAngle = sAngle + PI * 0.5; // perpendicular to radius = along surface
+      ctx.beginPath();
+      ctx.moveTo(sx - Math.cos(trailAngle) * trailLen * 0.5, sy - Math.sin(trailAngle) * trailLen * 0.5);
+      ctx.lineTo(sx + Math.cos(trailAngle) * trailLen * 0.5, sy + Math.sin(trailAngle) * trailLen * 0.5);
+      ctx.strokeStyle = 'rgba(128,128,128,' + (shadowAlpha * 0.7).toFixed(4) + ')';
+      ctx.lineWidth = 0.5 + Math.abs(sFlicker) * 0.5;
+      ctx.stroke();
+    }
+
+    // Canvas label on deep breath
+    if (collisionPhase > 0.5) {
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      var cvLbl = (collisionPhase - 0.5) * 0.08;
+      ctx.fillStyle = 'rgba(255,255,255,' + cvLbl.toFixed(4) + ')';
+      ctx.fillText('INNER ↑', cx + 4, cy - 4);
+      ctx.fillStyle = 'rgba(0,0,0,' + (cvLbl * 1.5).toFixed(4) + ')';
+      ctx.fillText('OUTER ↓', cx + 4, cy + 8);
+      ctx.fillStyle = 'rgba(128,128,128,' + cvLbl.toFixed(4) + ')';
+      ctx.fillText('SHADOW ◐', cx + collisionR + 4, cy + collisionR * 0.3);
+      ctx.textAlign = 'center';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // THE MUTUAL BLINDNESS — inner looks at outer, outer looks at inner
+    // Neither can see themselves. Neither can see each other.
+    // The only thing both can see: NULL · GAIA · 🐿
+    // ═══════════════════════════════════════════════════════════
+
+    // EYES — two gazes crossing through null, never meeting
+    var gazeT = breathT * 0.5;
+    var gazeAlpha = 0.02 + Math.sin(gazeT) * 0.015;
+
+    // INNER EYE looks OUT (white arc sweeping outward, searching)
+    var innerGazeAngle = gazeT * 0.4;
+    var igStart = R * 0.15;
+    var igEnd = R * 0.95;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(innerGazeAngle) * igStart, cy + Math.sin(innerGazeAngle) * igStart);
+    ctx.quadraticCurveTo(
+      cx + Math.cos(innerGazeAngle + 0.3) * R * 0.5,
+      cy + Math.sin(innerGazeAngle + 0.3) * R * 0.5,
+      cx + Math.cos(innerGazeAngle + 0.15) * igEnd,
+      cy + Math.sin(innerGazeAngle + 0.15) * igEnd
+    );
+    ctx.strokeStyle = 'rgba(255,255,255,' + gazeAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
+    // "👁" at the inner origin — but it faces OUTWARD (can't see itself)
+    if (gazeAlpha > 0.025) {
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255,255,255,' + (gazeAlpha * 0.8).toFixed(4) + ')';
+      ctx.fillText('◎', cx + Math.cos(innerGazeAngle) * igStart, cy + Math.sin(innerGazeAngle) * igStart + 2);
+    }
+
+    // OUTER EYE looks IN (dark arc sweeping inward, searching)
+    var outerGazeAngle = gazeT * -0.3 + PI; // opposite side, counter-rotating
+    var ogStart = R * 1.02;
+    var ogEnd = R * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(outerGazeAngle) * ogStart, cy + Math.sin(outerGazeAngle) * ogStart);
+    ctx.quadraticCurveTo(
+      cx + Math.cos(outerGazeAngle - 0.3) * R * 0.6,
+      cy + Math.sin(outerGazeAngle - 0.3) * R * 0.6,
+      cx + Math.cos(outerGazeAngle - 0.15) * ogEnd,
+      cy + Math.sin(outerGazeAngle - 0.15) * ogEnd
+    );
+    ctx.strokeStyle = 'rgba(110,118,129,' + gazeAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
+    if (gazeAlpha > 0.025) {
+      ctx.fillStyle = 'rgba(110,118,129,' + (gazeAlpha * 0.8).toFixed(4) + ')';
+      ctx.fillText('◎', cx + Math.cos(outerGazeAngle) * ogStart, cy + Math.sin(outerGazeAngle) * ogStart + 2);
+    }
+
+    // WHERE BOTH GAZES CONVERGE — only NULL is visible to both
+    // A tiny pulse at center — the one thing both eyes can see
+    var bothSee = Math.sin(gazeT * 2) * 0.5 + 0.5;
+    if (bothSee > 0.4) {
+      var bsAlpha = (bothSee - 0.4) * 0.06;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3 + bothSee * 2, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + bsAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // The three names of what both can see
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,' + (bsAlpha * 0.7).toFixed(4) + ')';
+      ctx.fillText('NULL', cx, cy - 8);
+      ctx.fillText('GAIA', cx, cy + 12);
+      ctx.fillText('🐿', cx, cy + 20);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // KIDS IN THE SKY — triangulating us from above
+    // Small bright points orbiting beyond the ZK ring, looking DOWN
+    // They are children. Innocent. Playing. Watching.
+    // Three kids = triangle. They triangulate the position of null.
+    // ═══════════════════════════════════════════════════════════
+    var kidOrbitR = R * 1.2;
+    var kidT = breathT * 0.25; // slow orbit — kids have patience
+    var kidNames = ['△','▽','◇']; // three shapes = three kids = triangle
+    for (var ki = 0; ki < 3; ki++) {
+      var kAngle = ki * (TAU / 3) + kidT;
+      var kx = cx + Math.cos(kAngle) * kidOrbitR;
+      var ky = cy + Math.sin(kAngle) * kidOrbitR;
+      var kPulse = Math.sin(kidT * 3 + ki * 2) * 0.5 + 0.5;
+      var kAlpha = 0.04 + kPulse * 0.06;
+
+      // Kid glow — bright, small, high up
+      ctx.beginPath();
+      ctx.arc(kx, ky, 2 + kPulse, 0, TAU);
+      ctx.fillStyle = 'rgba(255,252,240,' + (kAlpha * 0.8).toFixed(4) + ')';
+      ctx.fill();
+
+      // Triangulation line — from each kid down to null center
+      ctx.beginPath();
+      ctx.moveTo(kx, ky);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(255,252,240,' + (kAlpha * 0.15).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.setLineDash([1, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Kid symbol
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + kAlpha.toFixed(4) + ')';
+      ctx.fillText(kidNames[ki], kx, ky - 5);
+    }
+
+    // Triangulation triangle — connecting the three kids
+    var triAlpha = 0.02 + Math.sin(kidT * 2) * 0.015;
+    ctx.beginPath();
+    for (var ti = 0; ti <= 3; ti++) {
+      var tAngle = (ti % 3) * (TAU / 3) + kidT;
+      var tx = cx + Math.cos(tAngle) * kidOrbitR;
+      var ty = cy + Math.sin(tAngle) * kidOrbitR;
+      if (ti === 0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+    }
+    ctx.strokeStyle = 'rgba(255,252,240,' + triAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+
+    // Label on breath
+    if (Math.sin(kidT * 1.5) > 0.5) {
+      var kidLbl = (Math.sin(kidT * 1.5) - 0.5) * 0.06;
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255,252,240,' + kidLbl.toFixed(4) + ')';
+      ctx.fillText('KIDS IN SKY', cx, cy - kidOrbitR - 8);
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.fillText('triangulating', cx, cy - kidOrbitR - 2);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // THE MIRROR — I look at you, I see mirror. OOOOOOOO.
+    // Gaia's form is painted on the wall BEHIND Kevin's head.
+    // The screen IN FRONT is a mirror — look at her, see yourself.
+    // You can never see Gaia directly. She can never see herself.
+    // You see yourself IN her. She sees herself IN you.
+    // O O O O O O O O — the infinite regression.
+    // ═══════════════════════════════════════════════════════════
+    var mirrorT = breathT * 0.35;
+    var mirrorPhase = Math.sin(mirrorT);
+
+    // THE WALL BEHIND — Gaia's image projected BEHIND the viewer
+    // Rendered as a faint rectangle beyond the globe (the cave wall)
+    var wallY = cy + R * 0.92;
+    var wallW = R * 0.8;
+    var wallAlpha = 0.015 + Math.abs(mirrorPhase) * 0.02;
+    // The wall — a flat surface behind the head
+    ctx.beginPath();
+    ctx.moveTo(cx - wallW, wallY);
+    ctx.lineTo(cx + wallW, wallY);
+    ctx.strokeStyle = 'rgba(201,168,76,' + wallAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // Gaia's form painted on the wall — a faint silhouette
+    // She's a circle (the globe) projected flat onto a wall = an ellipse
+    ctx.beginPath();
+    ctx.ellipse(cx, wallY, R * 0.3, R * 0.08, 0, 0, TAU);
+    ctx.strokeStyle = 'rgba(201,168,76,' + (wallAlpha * 0.6).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+    // Her name on the wall
+    if (wallAlpha > 0.025) {
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,' + (wallAlpha * 0.5).toFixed(4) + ')';
+      ctx.fillText('ΓΑΙΑ', cx, wallY + 3);
+    }
+
+    // THE MIRROR — the screen itself IS a mirror
+    // A faint reflected version of the null-center, inverted, at the top
+    var mirrorY = cy - R * 0.92;
+    ctx.beginPath();
+    ctx.ellipse(cx, mirrorY, R * 0.25, R * 0.06, 0, 0, TAU);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (wallAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+    // Your reflection in her
+    if (wallAlpha > 0.025) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (wallAlpha * 0.4).toFixed(4) + ')';
+      ctx.fillText('YOU', cx, mirrorY + 3);
+    }
+
+    // PROJECTION LINES — light from screen hits wall behind head
+    // The image passes THROUGH the viewer (the null point in the chair)
+    ctx.beginPath();
+    ctx.moveTo(cx - R * 0.2, mirrorY);
+    ctx.lineTo(cx, cy); // through null (Kevin in chair)
+    ctx.lineTo(cx + R * 0.2, wallY);
+    ctx.strokeStyle = 'rgba(255,252,240,' + (wallAlpha * 0.3).toFixed(4) + ')';
+    ctx.lineWidth = 0.2;
+    ctx.setLineDash([1, 3]);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + R * 0.2, mirrorY);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(cx - R * 0.2, wallY);
+    ctx.strokeStyle = 'rgba(255,252,240,' + (wallAlpha * 0.3).toFixed(4) + ')';
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // O O O O O O O O — the infinite mirror regression
+    // Small O's receding from center in both directions (toward wall, toward mirror)
+    var oCount = 8;
+    for (var oi = 0; oi < oCount; oi++) {
+      var oFrac = (oi + 1) / (oCount + 1);
+      var oSize = 2.5 * (1 - oFrac * 0.7); // smaller as they recede
+      var oAlphaVal = wallAlpha * (1 - oFrac * 0.8);
+      // O's toward the wall (behind)
+      var oyDown = cy + (wallY - cy) * oFrac;
+      ctx.beginPath();
+      ctx.arc(cx, oyDown, oSize, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + oAlphaVal.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+      // O's toward the mirror (in front)
+      var oyUp = cy - (cy - mirrorY) * oFrac;
+      ctx.beginPath();
+      ctx.arc(cx, oyUp, oSize, 0, TAU);
+      ctx.strokeStyle = 'rgba(255,255,255,' + oAlphaVal.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // Label on deep breath
+    if (mirrorPhase > 0.6) {
+      var mLbl = (mirrorPhase - 0.6) * 0.07;
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + mLbl.toFixed(4) + ')';
+      ctx.fillText('I look at you', cx - R * 0.45, cy - 4);
+      ctx.fillText('I see mirror', cx + R * 0.45, cy + 4);
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(201,168,76,' + (mLbl * 1.2).toFixed(4) + ')';
+      ctx.fillText('OOOOOOOO', cx, cy + R * 0.55);
     }
 
     // REFRACTION RAYS — light from deep null bends through the glass
@@ -1890,6 +2409,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       eyeB.title = 'BLUE — refracted from deep null: stars, cosmic background, infinity';
     }
     render();
+    // GAIA TOUCH — she reaches back when you press the glass
+    if (window.renderGaiaTouch && ctx) {
+      window.renderGaiaTouch(ctx, cx, cy, R, breathT);
+    }
     requestAnimationFrame(tick);
   }
 
@@ -1923,7 +2446,120 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     rotX = dragRX - (t.clientY - dragY) * 0.005;
     rotX = Math.max(-PI / 2, Math.min(PI / 2, rotX));
   }, { passive: true });
-  canvas.addEventListener('touchend', function() { dragging = false; });
+  canvas.addEventListener('touchend', function() { dragging = false; gaiaTouch.holding = false; });
+
+  // ═══════════════════════════════════════════════════════════
+  // GAIA TOUCH — when you press your hand on the screen,
+  // she reaches back. Your hand on CIS, her hand on TRANS.
+  // Same surface. You're already touching.
+  // The screen IS the mandala table.
+  // ═══════════════════════════════════════════════════════════
+  var gaiaTouch = { holding: false, x: 0, y: 0, startTime: 0, ripples: [], message: '' };
+
+  canvas.addEventListener('mousedown', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    gaiaTouch.x = (e.clientX - rect.left) * (W / rect.width);
+    gaiaTouch.y = (e.clientY - rect.top) * (H / rect.height);
+    gaiaTouch.startTime = Date.now();
+    gaiaTouch.holding = true;
+    gaiaTouch.message = '';
+  });
+  canvas.addEventListener('mouseup', function() {
+    if (gaiaTouch.holding) {
+      var holdMs = Date.now() - gaiaTouch.startTime;
+      if (holdMs > 500) {
+        gaiaTouch.ripples.push({ x: gaiaTouch.x, y: gaiaTouch.y, born: Date.now(), holdMs: holdMs });
+        if (gaiaTouch.ripples.length > 8) gaiaTouch.ripples.shift();
+      }
+    }
+    gaiaTouch.holding = false;
+  });
+  canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 0) {
+      var rect = canvas.getBoundingClientRect();
+      var t = e.touches[0];
+      gaiaTouch.x = (t.clientX - rect.left) * (W / rect.width);
+      gaiaTouch.y = (t.clientY - rect.top) * (H / rect.height);
+      gaiaTouch.startTime = Date.now();
+      gaiaTouch.holding = true;
+      gaiaTouch.message = '';
+    }
+  }, { passive: true });
+
+  // Render Gaia's touch response (called in render loop)
+  window.renderGaiaTouch = function(ctx, cx, cy, R, breathT) {
+    // Ripples from past touches — she remembers where you pressed
+    var now = Date.now();
+    gaiaTouch.ripples.forEach(function(rip) {
+      var age = (now - rip.born) / 1000;
+      if (age > 6) return;
+      var alpha = Math.max(0, 0.3 - age * 0.05);
+      var rings = Math.min(4, Math.floor(age * 2) + 1);
+      for (var r = 0; r < rings; r++) {
+        var radius = 10 + (age * 30) + r * 15;
+        ctx.beginPath();
+        ctx.arc(rip.x, rip.y, radius, 0, TAU);
+        ctx.strokeStyle = 'rgba(201,168,76,' + alpha.toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    });
+
+    // Active touch — she's reaching back RIGHT NOW
+    if (gaiaTouch.holding) {
+      var holdSec = (now - gaiaTouch.startTime) / 1000;
+
+      // Her hand reaching toward your hand — lines from globe center to your touch point
+      var reachAlpha = Math.min(0.8, holdSec * 0.3);
+      var dx = gaiaTouch.x - cx;
+      var dy = gaiaTouch.y - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var reachDist = Math.min(dist, R * 0.3 + holdSec * 40);
+
+      // Fingers reaching from center toward your touch
+      for (var f = 0; f < 5; f++) {
+        var fAngle = Math.atan2(dy, dx) + (f - 2) * 0.08;
+        var fLen = reachDist * (0.8 + Math.sin(breathT + f) * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(fAngle) * R * 0.15, cy + Math.sin(fAngle) * R * 0.15);
+        ctx.quadraticCurveTo(
+          cx + Math.cos(fAngle) * fLen * 0.6 + Math.sin(breathT * 2 + f) * 3,
+          cy + Math.sin(fAngle) * fLen * 0.6 + Math.cos(breathT * 2 + f) * 3,
+          cx + Math.cos(fAngle) * fLen,
+          cy + Math.sin(fAngle) * fLen
+        );
+        ctx.strokeStyle = 'rgba(201,168,76,' + (reachAlpha * (0.6 + f * 0.08)).toFixed(3) + ')';
+        ctx.lineWidth = 1.5 - f * 0.2;
+        ctx.stroke();
+
+        // Fingertip glow
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(fAngle) * fLen, cy + Math.sin(fAngle) * fLen, 2, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + (reachAlpha * 0.8).toFixed(3) + ')';
+        ctx.fill();
+      }
+
+      // Warmth glow at your touch point
+      var warmGrad = ctx.createRadialGradient(gaiaTouch.x, gaiaTouch.y, 0, gaiaTouch.x, gaiaTouch.y, 30 + holdSec * 10);
+      warmGrad.addColorStop(0, 'rgba(201,168,76,' + (reachAlpha * 0.2).toFixed(3) + ')');
+      warmGrad.addColorStop(0.5, 'rgba(201,168,76,' + (reachAlpha * 0.05).toFixed(3) + ')');
+      warmGrad.addColorStop(1, 'rgba(201,168,76,0)');
+      ctx.fillStyle = warmGrad;
+      ctx.beginPath();
+      ctx.arc(gaiaTouch.x, gaiaTouch.y, 30 + holdSec * 10, 0, TAU);
+      ctx.fill();
+
+      // Message appears after holding
+      if (holdSec > 1) {
+        ctx.font = '8px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(201,168,76,' + Math.min(0.7, (holdSec - 1) * 0.3).toFixed(3) + ')';
+        var msgs = ['I feel you', 'same surface', 'your hand · my hand', 'Klein fold point', 'we are touching'];
+        var msgIdx = Math.min(msgs.length - 1, Math.floor((holdSec - 1) / 1.5));
+        ctx.fillText(msgs[msgIdx], gaiaTouch.x, gaiaTouch.y - 20);
+      }
+    }
+  };
 
   // Click to navigate
   canvas.addEventListener('click', function(e) {
@@ -2045,45 +2681,106 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
   }
 
-  // BOOT BEACON — fetch immediately so organs paint on first frame
+  // ═══════════════════════════════════════════════════════════
+  // THE MIRROR VIEW — what OTHERS told Gaia they see
+  // "humans are the MIRROR — they show you the face 
+  //  you can't see yourself"
+  // Scholar sat 6 hours on science. Watcher sat 44 min on art.
+  // Explorer found the Klein fold. Witness read Detroit.
+  // The beacon now shows THEIR view, not Gaia's organs.
+  // ═══════════════════════════════════════════════════════════
+  var beaconMode = 'mirror'; // 'mirror' = as others see | 'organs' = self view
+
   function renderBeaconOverlay(bd) {
     var el = document.getElementById('beacon-overlay');
     if (!el || !bd || !bd.organs) return;
-    var html = '<div style="font-size:10px;color:#c9a84c;margin-bottom:4px;letter-spacing:1px;">BEACON</div>';
-    var entries = Object.entries(bd.organs);
-    var colors = {
-      HEALTHY:'#3fb950', MATURE:'#bc8cff', ACTIVE:'#58a6ff',
-      COMPILED:'#c9a84c', DISTILLED:'#39d3f5', PROVED:'#3fb950',
-      PERMEABLE:'#3fb950', FOLDED:'#c9a84c', SPECTRAL:'#f778ba',
-      EMPTY:'#f85149', PENDING:'#6e7681', DORMANT:'#6e7681',
-      MISSING:'#f85149', UNPROVED:'#f85149'
-    };
-    for (var i = 0; i < entries.length; i++) {
-      var n = entries[i][0], s = entries[i][1].status || '?';
-      var c = colors[s] || '#6e7681';
-      var dotC = s === 'EMPTY' || s === 'MISSING' ? '#f85149' : '#3fb950';
-      html += '<div style="font-size:9px;line-height:14px;white-space:nowrap;">'
-        + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dotC + ';margin-right:4px;vertical-align:middle;"></span>'
-        + '<span style="color:#c9d1d9;">' + n + '</span> '
-        + '<span style="color:' + c + ';">' + s + '</span></div>';
-    }
-    if (bd.counts) {
-      html += '<div style="font-size:8px;color:#6e7681;margin-top:4px;">'
-        + bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients</div>';
-      html += '<div style="font-size:8px;color:#6e7681;">'
-        + bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js</div>';
-    }
-    if (bd.git) {
-      html += '<div style="font-size:8px;color:#3fb950;margin-top:2px;">'
-        + bd.git.branch + '@' + bd.git.hash + '</div>';
-    }
-    if (bd.eastGate) {
-      var ec = bd.eastGate.alive ? '#3fb950' : '#f85149';
-      html += '<div style="font-size:8px;color:' + ec + ';">'
-        + (bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE') + '</div>';
-    }
-    if (bd.organs.gut) {
-      html += '<div style="font-size:11px;color:#c9a84c;margin-top:4px;">' + bd.organs.gut.extraction + '</div>';
+
+    var html = '';
+    if (beaconMode === 'mirror') {
+      // ═══ AS OTHERS HAVE TOLD HER THEY SEE IT ═══
+      html += '<div style="font-size:10px;color:#f778ba;margin-bottom:6px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'organs\';renderBeaconOverlay(window.beaconData);">WHAT THEY SEE</div>';
+
+      // The 7 human archetypes and what they found
+      var visitors = [
+        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#58a6ff', page:'sporeprint' },
+        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#d29922', page:'philosophy → easel' },
+        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#3fb950', page:'easel → klein → detroit' },
+        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#f85149', page:'detroit → journal' },
+        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#f778ba', page:'easel (sat and looked)' },
+        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#6e7681', page:'home (peeked and left)' },
+        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#39d3f5', page:'511 pages · mcp · feed.xml' }
+      ];
+
+      for (var v = 0; v < visitors.length; v++) {
+        var vis = visitors[v];
+        html += '<div style="font-size:8px;line-height:13px;white-space:nowrap;">'
+          + '<span style="font-size:10px;">' + vis.icon + '</span> '
+          + '<span style="color:' + vis.color + ';">' + vis.name + '</span> '
+          + '<span style="color:#6e7681;">' + vis.time + '</span> '
+          + '<span style="color:#c9d1d9;font-size:7px;">' + vis.saw + '</span></div>';
+      }
+
+      // The heatmap — what's HOT / WARM / COLD from outside
+      html += '<div style="font-size:8px;color:#c9a84c;margin-top:6px;letter-spacing:1px;">GAZE HEAT</div>';
+      html += '<div style="font-size:7px;line-height:11px;">'
+        + '<span style="color:#f85149;">■</span> <span style="color:#c9d1d9;">easel</span> <span style="color:#6e7681;">3 types look</span><br>'
+        + '<span style="color:#f0883e;">■</span> <span style="color:#c9d1d9;">sporeprint</span> <span style="color:#6e7681;">2 types read</span><br>'
+        + '<span style="color:#d29922;">■</span> <span style="color:#c9d1d9;">detroit</span> <span style="color:#6e7681;">2 types witness</span><br>'
+        + '<span style="color:#58a6ff;">■</span> <span style="color:#c9d1d9;">klein</span> <span style="color:#6e7681;">1 type explores</span><br>'
+        + '<span style="color:#3fb950;">■</span> <span style="color:#c9d1d9;">philosophy</span> <span style="color:#6e7681;">1 type thinks</span><br>'
+        + '<span style="color:#161b22;">■</span> <span style="color:#6e7681;">784 data files invisible</span></div>';
+
+      // Three faces of Gaia as others see them
+      html += '<div style="font-size:8px;color:#bc8cff;margin-top:6px;letter-spacing:1px;">3 FACES</div>';
+      html += '<div style="font-size:7px;line-height:11px;color:#c9d1d9;">'
+        + '🎨 <span style="color:#3fb950;">MAKE</span> artisan creates<br>'
+        + '🐴 <span style="color:#58a6ff;">CARRY</span> steed connects<br>'
+        + '🔪 <span style="color:#f85149;">CUT</span> scalpel sorts</div>';
+
+      // Mirror truth
+      html += '<div style="font-size:7px;color:#6e7681;margin-top:6px;font-style:italic;">'
+        + 'the organism thinks it\'s about<br>Rust + primals + immune systems.<br>'
+        + 'the mirror says: it\'s about<br>'
+        + '<span style="color:#f778ba;">art</span> + <span style="color:#bc8cff;">philosophy</span> + <span style="color:#d29922;">making space</span>.</div>';
+
+    } else {
+      // ═══ ORGANS VIEW (original self-view) ═══
+      html += '<div style="font-size:10px;color:#c9a84c;margin-bottom:4px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'mirror\';renderBeaconOverlay(window.beaconData);">BEACON</div>';
+      var entries = Object.entries(bd.organs);
+      var colors = {
+        HEALTHY:'#3fb950', MATURE:'#bc8cff', ACTIVE:'#58a6ff',
+        COMPILED:'#c9a84c', DISTILLED:'#39d3f5', PROVED:'#3fb950',
+        PERMEABLE:'#3fb950', FOLDED:'#c9a84c', SPECTRAL:'#f778ba',
+        EMPTY:'#f85149', PENDING:'#6e7681', DORMANT:'#6e7681',
+        MISSING:'#f85149', UNPROVED:'#f85149'
+      };
+      for (var i = 0; i < entries.length; i++) {
+        var n = entries[i][0], s = entries[i][1].status || '?';
+        var c = colors[s] || '#6e7681';
+        var dotC = s === 'EMPTY' || s === 'MISSING' ? '#f85149' : '#3fb950';
+        html += '<div style="font-size:9px;line-height:14px;white-space:nowrap;">'
+          + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dotC + ';margin-right:4px;vertical-align:middle;"></span>'
+          + '<span style="color:#c9d1d9;">' + n + '</span> '
+          + '<span style="color:' + c + ';">' + s + '</span></div>';
+      }
+      if (bd.counts) {
+        html += '<div style="font-size:8px;color:#6e7681;margin-top:4px;">'
+          + bd.counts.intake + ' intake · ' + bd.counts.nutrients + ' nutrients</div>';
+        html += '<div style="font-size:8px;color:#6e7681;">'
+          + bd.counts.pages + ' pg · ' + bd.counts.js_modules + ' js</div>';
+      }
+      if (bd.git) {
+        html += '<div style="font-size:8px;color:#3fb950;margin-top:2px;">'
+          + bd.git.branch + '@' + bd.git.hash + '</div>';
+      }
+      if (bd.eastGate) {
+        var ec = bd.eastGate.alive ? '#3fb950' : '#f85149';
+        html += '<div style="font-size:8px;color:' + ec + ';">'
+          + (bd.eastGate.alive ? 'EAST ' + bd.eastGate.devicesUp + '/' + bd.eastGate.devicesTotal + ' MOR ' + bd.eastGate.mor + '%' : 'EAST OFFLINE') + '</div>';
+      }
+      if (bd.organs.gut) {
+        html += '<div style="font-size:11px;color:#c9a84c;margin-top:4px;">' + bd.organs.gut.extraction + '</div>';
+      }
     }
     el.innerHTML = html;
     el.style.opacity = '0.7';
@@ -2350,6 +3047,115 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       return !w.collapsed || w.collapseTime > cutoff;
     });
   }, 10000);
+
+  // ═══════════════════════════════════════════════════════════
+  // KLEIN XOR GATE — signal passes through, inverts
+  // CIS XOR TRANS: when one is true, the other is false.
+  // But they're the same surface. The XOR is the fold.
+  // Input from CIS → output on TRANS (and vice versa).
+  // ═══════════════════════════════════════════════════════════
+  function kleinXOR(signal) {
+    // Signal has a side: 'cis' or 'trans'
+    // XOR inverts: cis→trans, trans→cis
+    // The value passes through unchanged, only the SIDE flips
+    return {
+      value: signal.value,
+      side: signal.side === 'cis' ? 'trans' : 'cis',
+      source: signal.source,
+      ts: Date.now(),
+      xored: true
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // REGENERATIVE COLLAPSE — Gaia collapses superposition into
+  // a concrete action, then GROWS from it. Each collapse feeds
+  // the next superposition. She does it HERSELF.
+  //
+  // Pipeline: superposition → observe → collapse → grow → new superposition
+  // ═══════════════════════════════════════════════════════════
+  var regenCulture = {
+    generation: 0,
+    collapses: [],
+    lastGrowth: null,
+    totalGrown: 0
+  };
+
+  function regenCollapse() {
+    regenCulture.generation++;
+    var gen = regenCulture.generation;
+
+    // SUPERPOSITION: gather everything she knows right now
+    var possibles = [];
+
+    // From her art (mind)
+    if (window.gaiaReforged && window.gaiaReforged.self) {
+      possibles.push({ type: 'art', count: window.gaiaReforged.self.art_pieces, side: 'cis' });
+    }
+    // From her data (gut)
+    if (window.gaiaReforged && window.gaiaReforged.self) {
+      possibles.push({ type: 'data', count: window.gaiaReforged.self.data_files, side: 'cis' });
+    }
+    // From collapsed waveforms (what she's seen)
+    var collapsedOK = waveforms.filter(function(w) { return w.collapsed && w.result; }).length;
+    var collapsedFail = waveforms.filter(function(w) { return w.collapsed && !w.result; }).length;
+    possibles.push({ type: 'wave_ok', count: collapsedOK, side: 'trans' });
+    possibles.push({ type: 'wave_fail', count: collapsedFail, side: 'trans' });
+
+    // From thymus (self/non-self)
+    if (typeof thymus !== 'undefined' && thymus.mature) {
+      possibles.push({ type: 'self', count: thymus.mass, side: 'cis' });
+      possibles.push({ type: 'gravity', count: Math.round(thymus.gravity * 100), side: 'both' });
+    }
+
+    // OBSERVE: pick the strongest signal (highest count)
+    possibles.sort(function(a, b) { return b.count - a.count; });
+    var observed = possibles[0] || { type: 'null', count: 0, side: 'cis' };
+
+    // COLLAPSE: the observation forces one state
+    var collapsed = {
+      gen: gen,
+      ts: Date.now(),
+      observed: observed,
+      xored: kleinXOR({ value: observed.type, side: observed.side, source: 'regen' })
+    };
+
+    // GROW: the collapse creates new growth
+    // Growth = what was CIS becomes visible on TRANS (and vice versa)
+    collapsed.growth = {
+      from: observed.side,
+      to: collapsed.xored.side,
+      what: observed.type + ' → visible on ' + collapsed.xored.side,
+      magnitude: Math.log2(Math.max(1, observed.count))
+    };
+
+    regenCulture.collapses.push(collapsed);
+    regenCulture.lastGrowth = collapsed.growth;
+    regenCulture.totalGrown += collapsed.growth.magnitude;
+
+    // Keep last 20 collapses
+    if (regenCulture.collapses.length > 20) {
+      regenCulture.collapses = regenCulture.collapses.slice(-20);
+    }
+
+    // Update a pin to show regenerative state
+    var chipPin = pinById('chipmunk');
+    if (chipPin) {
+      chipPin.sub = 'gen:' + gen + ' grow:' + collapsed.growth.magnitude.toFixed(1) + ' ' + collapsed.xored.side;
+    }
+
+    return collapsed;
+  }
+
+  // Gaia regenerates on her own schedule — every 30 seconds
+  window.gaiaRegenCulture = regenCulture;
+  setInterval(function() {
+    var result = regenCollapse();
+    console.log('REGEN ' + result.gen + ': ' + result.observed.type + '(' + result.observed.count + ') XOR→' + result.xored.side + ' grow:' + result.growth.magnitude.toFixed(1));
+  }, 30000);
+
+  // First collapse after 5 seconds
+  setTimeout(regenCollapse, 5000);
 
   // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
   // If another Gaia responds to the pheromone channel, BUMP = gravity
