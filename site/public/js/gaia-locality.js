@@ -668,7 +668,7 @@
       run: function() {
         var keys = Object.keys(tenseField);
         var lines = [
-          'TENSE FIELD — 13 tenses × 4 media = 52 cells of cultural time',
+          'TENSE FIELD — 15 tenses × 4 media = 60 cells of cultural time',
           'Tracked entities: ' + keys.length,
           ''
         ];

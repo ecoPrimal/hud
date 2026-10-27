@@ -453,6 +453,96 @@
     }
   };
 
-  console.log('WEB EATER + PI COMPETITION: faces + ' + piEaters.length +
-    ' discoverers. Calculus invented 6× independently. π discovered 7× independently. /eat /pi');
+  // ═══ INSECT SWARM VISUALIZATION ═══
+  // Draw active insect swarms orbiting the globe
+  // Each insect type has a distinct path and behavior
+  if (G && G.drawModules) {
+    G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx || !window.GAIA_TAXONOMY) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.3) return;
+
+      var tax = window.GAIA_TAXONOMY;
+      var cx = g.cx || g.W / 2, cy = g.cy || g.H / 2, R = g.R || Math.min(g.W, g.H) * 0.38;
+      var t = breathT || Date.now() / 1000;
+      var swarms = tax.current_swarms || [];
+      var alpha = 0.015 * thr;
+
+      for (var si = 0; si < swarms.length; si++) {
+        var sw = swarms[si];
+        if (sw.status !== 'active' || sw.count === 0) continue;
+        var spec = tax.insects.species[sw.insect];
+        if (!spec) continue;
+
+        var c = spec.color || '#c9d1d9';
+        var r1 = parseInt(c.slice(1, 3), 16), g1 = parseInt(c.slice(3, 5), 16), b1 = parseInt(c.slice(5, 7), 16);
+
+        // Each swarm member orbits at a different phase
+        for (var i = 0; i < sw.count; i++) {
+          var phase = (i / sw.count) * Math.PI * 2;
+          var orbitR = R * (1.05 + si * 0.06);
+          var speed = 0.3 + si * 0.1;
+          var angle = t * speed + phase;
+
+          // Insects wobble — not perfect circles
+          var wobble = Math.sin(t * 2.3 + i * 1.7) * R * 0.02;
+          var ix = cx + Math.cos(angle) * (orbitR + wobble);
+          var iy = cy + Math.sin(angle) * (orbitR + wobble) * 0.4; // flattened orbit
+
+          // Draw insect as a tiny dot with trail
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = 'rgba(' + r1 + ',' + g1 + ',' + b1 + ',1)';
+          ctx.beginPath();
+          ctx.arc(ix, iy, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Trail
+          var trail = 3;
+          for (var tr = 1; tr <= trail; tr++) {
+            var ta = angle - tr * 0.08;
+            var tx = cx + Math.cos(ta) * (orbitR + wobble);
+            var ty = cy + Math.sin(ta) * (orbitR + wobble) * 0.4;
+            ctx.globalAlpha = alpha * (1 - tr / (trail + 1));
+            ctx.beginPath();
+            ctx.arc(tx, ty, 0.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      // SNAKE SIZE BARS — show file sizes as actual snake-shaped bars
+      // Only draw on inside face or when health data loaded
+      var health = window.GAIA_HEALTH;
+      if (health && health.anacondas && health.anacondas.length > 0 && g.face === 'inside') {
+        var startY = cy - R * 0.6;
+        ctx.globalAlpha = 0.03 * thr;
+        for (var ai = 0; ai < Math.min(health.anacondas.length, 5); ai++) {
+          var a = health.anacondas[ai];
+          var snakeLen = Math.min(a.lines / 7000 * R * 1.5, R * 1.5);
+          var sy = startY + ai * 14;
+          var sx = cx - snakeLen / 2;
+
+          // Sinusoidal snake body
+          ctx.strokeStyle = '#f85149';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          for (var sn = 0; sn < snakeLen; sn += 2) {
+            ctx.lineTo(sx + sn, sy + Math.sin((sn + t * 20) * 0.1) * 3);
+          }
+          ctx.stroke();
+
+          // Label
+          ctx.fillStyle = '#f85149';
+          ctx.font = '5px monospace';
+          ctx.fillText(a.file.replace('.js', '') + ' ' + a.lines, sx + snakeLen + 4, sy + 2);
+        }
+        ctx.globalAlpha = 1;
+      }
+    });
+  }
+
+  console.log('WEB EATER + PI COMPETITION + INSECT SWARMS: faces + ' + piEaters.length +
+    ' discoverers + taxonomy. /eat /pi /fauna');
 })(window.G);
