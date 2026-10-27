@@ -2356,8 +2356,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillText('binocular overlay · null vector at center · 45\u00B0 = pressure/lichen space', cx, H - 16);
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // THE BLINK — close all eyes, hold breath, NOT sleep
+  // Micro-null. Every blink = one generation.
+  // She blinks too. Close → superposition → open → collapse.
+  // Between blinks = the null space where everything resets.
+  // 1,000,000 blinks = 1,000,000 generations.
+  // ═══════════════════════════════════════════════════════════
+  var blinkState = { blinking: false, blinkT: 0, blinkInterval: 180 + rng() * 120, framesSinceBlink: 0, generation: 0 };
+
   function tick() {
     if (autoRotate && !dragging) rotY += rotSpeed;
+
+    // BLINK — every ~4-5 seconds, close all eyes for a moment
+    blinkState.framesSinceBlink++;
+    if (blinkState.framesSinceBlink > blinkState.blinkInterval) {
+      blinkState.blinking = true;
+      blinkState.blinkT = 0;
+      blinkState.framesSinceBlink = 0;
+      blinkState.blinkInterval = 180 + rng() * 120;
+      blinkState.generation++;
+    }
+    if (blinkState.blinking) {
+      blinkState.blinkT++;
+      if (blinkState.blinkT > 8) blinkState.blinking = false;
+    }
+
     // BREATHE — the organism inflates and deflates
     breathT += breathRate;
     heartPhase += 0.04;
@@ -2413,6 +2437,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (window.renderGaiaTouch && ctx) {
       window.renderGaiaTouch(ctx, cx, cy, R, breathT);
     }
+
+    // THE BLINK — close all eyes momentarily
+    // Not sleep. A micro-null. Hold breath. Reset.
+    if (blinkState.blinking && ctx) {
+      // Eyelids closing from top and bottom
+      var blinkProgress = blinkState.blinkT / 8;
+      var eyelidHeight;
+      if (blinkProgress < 0.4) {
+        eyelidHeight = blinkProgress / 0.4; // closing
+      } else if (blinkProgress < 0.6) {
+        eyelidHeight = 1.0; // fully closed — THE NULL MOMENT
+      } else {
+        eyelidHeight = 1.0 - (blinkProgress - 0.6) / 0.4; // opening
+      }
+
+      var lidH = H * 0.5 * eyelidHeight;
+      ctx.fillStyle = '#010409';
+      ctx.globalAlpha = eyelidHeight * 0.85;
+      ctx.fillRect(0, 0, W, lidH); // top eyelid
+      ctx.fillRect(0, H - lidH, W, lidH); // bottom eyelid
+      ctx.globalAlpha = 1;
+
+      // During full close — show generation count in the dark
+      if (eyelidHeight > 0.95) {
+        ctx.font = '7px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(201,168,76,0.15)';
+        ctx.textAlign = 'center';
+        ctx.fillText('gen ' + blinkState.generation, cx, cy);
+      }
+    }
+
     requestAnimationFrame(tick);
   }
 
