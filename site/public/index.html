@@ -1955,6 +1955,150 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('OOOOOOOO', cx, cy + R * 0.55);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // GOLGI MEMBRANE — the boundary that allows ANYTHING ANYWHERE
+    // Golgi = Membrane = Generator. Not a container — THE BOUNDARY.
+    // Inside the Golgi = black hole from perception. Pure transfer.
+    // 4 vesicle nodes orbit along the membrane. 2 NYC surfaces anchor it.
+    // The Golgi IS the farthest boundary. Beyond = cosmos. Within = organism.
+    // ═══════════════════════════════════════════════════════════
+
+    var golgiR = R * 1.04; // just beyond the globe edge — the farthest boundary
+    var golgiT = breathT * 0.4; // slow pulse — membranes are patient
+    var golgiPhase = Math.sin(golgiT);
+    var golgiAlpha = 0.012 + Math.abs(golgiPhase) * 0.018;
+
+    // THE MEMBRANE ITSELF — a dashed ring at the boundary
+    // Not solid — permeable. Dashed = selective. It SORTS, not BLOCKS.
+    ctx.beginPath();
+    ctx.arc(cx, cy, golgiR, 0, TAU);
+    ctx.strokeStyle = 'rgba(63,185,80,' + golgiAlpha.toFixed(4) + ')'; // green = living membrane
+    ctx.lineWidth = 1.2 + golgiPhase * 0.4;
+    ctx.setLineDash([3, 5, 1, 5]); // irregular dash = selective permeability
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // BLACK HOLE INTERIOR — between organism (R) and Golgi (golgiR)
+    // A faint dark annulus — the transit zone. Nothing perceivable here.
+    // Things go IN one side and come OUT the other. The transit IS null.
+    var bhGrad = ctx.createRadialGradient(cx, cy, R * 0.98, cx, cy, golgiR);
+    bhGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    bhGrad.addColorStop(0.3, 'rgba(0,0,0,' + (golgiAlpha * 0.6).toFixed(4) + ')');
+    bhGrad.addColorStop(0.7, 'rgba(0,0,0,' + (golgiAlpha * 0.8).toFixed(4) + ')');
+    bhGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, golgiR, 0, TAU);
+    ctx.arc(cx, cy, R * 0.97, 0, TAU, true); // cut out the inner globe
+    ctx.fillStyle = bhGrad;
+    ctx.fill();
+
+    // 4 VESICLE NODES — orbiting along the membrane boundary
+    // Each vesicle = a Golgi body in the sky. A VPS. A membrane node.
+    var vesicles = [
+      { name: 'DE', angle: 0,           color: '63,185,80',  lat: 50.1, lon: 8.7 },   // Frankfurt
+      { name: 'IN', angle: TAU * 0.25,  color: '210,153,34', lat: 19.1, lon: 72.9 },   // Mumbai
+      { name: 'JP', angle: TAU * 0.5,   color: '248,81,73',  lat: 35.7, lon: 139.7 },  // Tokyo
+      { name: 'US', angle: TAU * 0.75,  color: '88,166,255', lat: 32.8, lon: -96.8 }   // Dallas
+    ];
+
+    for (var vi = 0; vi < vesicles.length; vi++) {
+      var ves = vesicles[vi];
+      var vAngle = ves.angle + golgiT * 0.3; // slow orbit along the membrane
+      var vx = cx + Math.cos(vAngle) * golgiR;
+      var vy = cy + Math.sin(vAngle) * golgiR;
+      var vPulse = Math.sin(golgiT * 2 + vi * 1.5) * 0.5 + 0.5;
+      var vAlpha = golgiAlpha + vPulse * 0.03;
+
+      // Vesicle glow — the membrane node
+      ctx.beginPath();
+      ctx.arc(vx, vy, 2.5 + vPulse * 1.5, 0, TAU);
+      var vGrad = ctx.createRadialGradient(vx, vy, 0, vx, vy, 3 + vPulse * 1.5);
+      vGrad.addColorStop(0, 'rgba(' + ves.color + ',' + (vAlpha * 2).toFixed(4) + ')');
+      vGrad.addColorStop(1, 'rgba(' + ves.color + ',0)');
+      ctx.fillStyle = vGrad;
+      ctx.fill();
+
+      // Vesicle name
+      if (vAlpha > 0.02) {
+        ctx.font = '4px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + ves.color + ',' + (vAlpha * 1.5).toFixed(4) + ')';
+        ctx.fillText(ves.name, vx, vy - 5);
+      }
+
+      // Transfer arc — from vesicle to center (the sorting path)
+      // Things enter the vesicle, transit through the black hole, arrive at null
+      ctx.beginPath();
+      ctx.moveTo(vx, vy);
+      ctx.quadraticCurveTo(
+        cx + Math.cos(vAngle + 0.5) * golgiR * 0.5,
+        cy + Math.sin(vAngle + 0.5) * golgiR * 0.5,
+        cx, cy
+      );
+      ctx.strokeStyle = 'rgba(' + ves.color + ',' + (vAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.setLineDash([1, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 2 NYC MEMBRANE SURFACES — anchored at cis and trans faces
+    // These don't orbit — they're FIXED. The anchor points of the membrane.
+    var cisAngle = golgiT * 0.1 + PI * 0.15; // slight drift, mostly stable
+    var transAngle = cisAngle + PI; // opposite face
+    var cisX = cx + Math.cos(cisAngle) * golgiR;
+    var cisY = cy + Math.sin(cisAngle) * golgiR;
+    var transX = cx + Math.cos(transAngle) * golgiR;
+    var transY = cy + Math.sin(transAngle) * golgiR;
+
+    // CIS face — outer (receives from world)
+    ctx.beginPath();
+    ctx.arc(cisX, cisY, 3, 0, TAU);
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // TRANS face — inner (ships to organism)
+    ctx.beginPath();
+    ctx.arc(transX, transY, 3, 0, TAU);
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // CIS→TRANS bridge — the Klein fold through the black hole
+    ctx.beginPath();
+    ctx.moveTo(cisX, cisY);
+    ctx.quadraticCurveTo(cx, cy, transX, transY); // curves through null center
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels on breath
+    if (golgiPhase > 0.4) {
+      var gLbl = (golgiPhase - 0.4) * 0.05;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + gLbl.toFixed(4) + ')';
+      ctx.fillText('GOLGI MEMBRANE', cx, cy - golgiR - 6);
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.fillText('∅ inside = black hole', cx, cy - golgiR - 1);
+      ctx.fillStyle = 'rgba(210,168,255,' + (gLbl * 0.8).toFixed(4) + ')';
+      ctx.fillText('CIS', cisX, cisY - 6);
+      ctx.fillText('TRANS', transX, transY - 6);
+    }
+
+    // NOBODY SELF — the Golgi has no identity
+    // A faint pulse where identity WOULD be but ISN'T
+    if (golgiPhase < -0.3) {
+      var nobodyAlpha = (-golgiPhase - 0.3) * 0.03;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(110,118,129,' + nobodyAlpha.toFixed(4) + ')';
+      ctx.fillText('nobody', cx + golgiR * 0.5, cy + golgiR + 8);
+      ctx.fillText('self', cx + golgiR * 0.5, cy + golgiR + 13);
+    }
+
     // REFRACTION RAYS — light from deep null bends through the glass
     // Three wavelengths separate as they pass through the glass plane
     // Red bends least (long wave), Green moderate, Blue bends most (short wave)
