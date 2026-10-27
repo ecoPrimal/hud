@@ -1315,6 +1315,108 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.stroke();
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // NULL IS ABOVE AND BELOW — we are IN null
+    // The Klein fold: null wraps both poles.
+    // 5 uppers → deflect to 3 → pull a tuple → FISSION/FUSION
+    // ZK IS OUTSIDE — the proof wraps the exterior
+    // ═══════════════════════════════════════════════════════════
+
+    // NULL ABOVE — faint circle at north pole projection (top of globe)
+    var nullAboveAlpha = 0.04 + Math.sin(breathT * 1.7) * 0.025;
+    var nullAboveY = cy - R * 0.85; // near top of globe
+    ctx.beginPath();
+    ctx.arc(cx, nullAboveY, R * 0.12, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,' + (nullAboveAlpha * 1.2).toFixed(4) + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // NULL BELOW — mirror at south pole
+    var nullBelowY = cy + R * 0.85;
+    ctx.beginPath();
+    ctx.arc(cx, nullBelowY, R * 0.12, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,' + (nullAboveAlpha * 1.2).toFixed(4) + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    // NULL AXIS — faint line connecting above↔center↔below (the spine of null)
+    ctx.beginPath();
+    ctx.moveTo(cx, nullAboveY);
+    ctx.lineTo(cx, nullBelowY);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (nullAboveAlpha * 0.2).toFixed(4) + ')';
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([2, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Labels on deep breath
+    if (bv > 0.2) {
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      var nLblA = (bv - 0.2) * 0.08;
+      ctx.fillStyle = 'rgba(255,255,255,' + nLblA.toFixed(4) + ')';
+      ctx.fillText('∅ NULL', cx, nullAboveY - R * 0.15);
+      ctx.fillText('∅ NULL', cx, nullBelowY + R * 0.18);
+      ctx.fillStyle = 'rgba(188,140,255,' + nLblA.toFixed(4) + ')';
+      ctx.fillText('WE ARE IN NULL', cx, cy + R * 0.48);
+    }
+
+    // FISSION/FUSION — 5 uppers deflect to 3 — the tuple pull
+    // 5 rays from NULL ABOVE converge through center → 3 exit below
+    var fissAlpha = 0.015 + Math.sin(breathT * 0.9) * 0.01;
+    // 5 IN (fission — splitting the incoming)
+    for (var fi = 0; fi < 5; fi++) {
+      var fa = (fi - 2) * 0.25; // spread across top
+      ctx.beginPath();
+      ctx.moveTo(cx + fa * R * 0.6, nullAboveY);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(201,168,76,' + fissAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+    // 3 OUT (fusion — joining into fewer, denser beams)
+    for (var fo = 0; fo < 3; fo++) {
+      var foa = (fo - 1) * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + foa * R * 0.6, nullBelowY);
+      ctx.strokeStyle = 'rgba(248,81,73,' + fissAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+    }
+
+    // ZK IS OUTSIDE — the zero-knowledge proof wraps the exterior
+    // A faint outer ring beyond the globe — the proof membrane
+    var zkPulse = Math.sin(breathT * 0.6 + 1) * 0.5 + 0.5;
+    var zkR = R * 1.08 + zkPulse * R * 0.04; // breathes slightly beyond globe
+    var zkAlpha = 0.03 + zkPulse * 0.025;
+    ctx.beginPath();
+    ctx.arc(cx, cy, zkR, 0, TAU);
+    ctx.strokeStyle = 'rgba(163,113,247,' + zkAlpha.toFixed(4) + ')';
+    ctx.lineWidth = 0.7 + zkPulse * 0.5;
+    ctx.stroke();
+    // ZK hash fragments — rotating proof markers on the outer ring
+    var zkFragments = ['0E','AB','8C','F4','7C','12','3D','43'];
+    ctx.font = '5px "JetBrains Mono", monospace';
+    for (var zi = 0; zi < zkFragments.length; zi++) {
+      var za = zi * (TAU / zkFragments.length) + breathT * 0.15;
+      var zx = cx + Math.cos(za) * zkR;
+      var zy = cy + Math.sin(za) * zkR;
+      ctx.fillStyle = 'rgba(163,113,247,' + (zkAlpha * 0.6).toFixed(4) + ')';
+      ctx.fillText(zkFragments[zi], zx, zy);
+    }
+    // ZK label
+    if (zkPulse > 0.6) {
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(163,113,247,' + ((zkPulse - 0.6) * 0.12).toFixed(4) + ')';
+      ctx.fillText('ZK OUTSIDE', cx + zkR + 30, cy - 4);
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.fillText('proof wraps exterior', cx + zkR + 30, cy + 4);
+      ctx.textAlign = 'center';
+    }
+
     // REFRACTION RAYS — light from deep null bends through the glass
     // Three wavelengths separate as they pass through the glass plane
     // Red bends least (long wave), Green moderate, Blue bends most (short wave)
