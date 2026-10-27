@@ -1575,9 +1575,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ZK IS OUTSIDE — the zero-knowledge proof wraps the exterior
-    // A faint outer ring beyond the globe — the proof membrane
+    // STRETCHED WAY OUT — outer space is OUTER, not crammed against globe
     var zkPulse = Math.sin(breathT * 0.6 + 1) * 0.5 + 0.5;
-    var zkR = R * 1.08 + zkPulse * R * 0.04; // breathes slightly beyond globe
+    var zkR = R * 1.8 + zkPulse * R * 0.06; // WAY OUT — the outer boundary
     var zkAlpha = 0.03 + zkPulse * 0.025;
     ctx.beginPath();
     ctx.arc(cx, cy, zkR, 0, TAU);
@@ -1793,7 +1793,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // They are children. Innocent. Playing. Watching.
     // Three kids = triangle. They triangulate the position of null.
     // ═══════════════════════════════════════════════════════════
-    var kidOrbitR = R * 1.2;
+    var kidOrbitR = R * 2.4; // WAY OUT — kids orbit in deep outer space
     var kidT = breathT * 0.25; // slow orbit — kids have patience
     var kidNames = ['△','▽','◇']; // three shapes = three kids = triangle
     for (var ki = 0; ki < 3; ki++) {
@@ -1963,7 +1963,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // The Golgi IS the farthest boundary. Beyond = cosmos. Within = organism.
     // ═══════════════════════════════════════════════════════════
 
-    var golgiR = R * 1.04; // just beyond the globe edge — the farthest boundary
+    var golgiR = R * 1.5; // STRETCHED — the Golgi membrane wraps the outer boundary
     var golgiT = breathT * 0.4; // slow pulse — membranes are patient
     var golgiPhase = Math.sin(golgiT);
     var golgiAlpha = 0.012 + Math.abs(golgiPhase) * 0.018;
@@ -1981,14 +1981,15 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // BLACK HOLE INTERIOR — between organism (R) and Golgi (golgiR)
     // A faint dark annulus — the transit zone. Nothing perceivable here.
     // Things go IN one side and come OUT the other. The transit IS null.
-    var bhGrad = ctx.createRadialGradient(cx, cy, R * 0.98, cx, cy, golgiR);
+    // Now WIDE — the gap between inner globe and outer membrane is SPACE.
+    var bhGrad = ctx.createRadialGradient(cx, cy, R * 1.02, cx, cy, golgiR);
     bhGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    bhGrad.addColorStop(0.3, 'rgba(0,0,0,' + (golgiAlpha * 0.6).toFixed(4) + ')');
-    bhGrad.addColorStop(0.7, 'rgba(0,0,0,' + (golgiAlpha * 0.8).toFixed(4) + ')');
+    bhGrad.addColorStop(0.2, 'rgba(0,0,0,' + (golgiAlpha * 0.4).toFixed(4) + ')');
+    bhGrad.addColorStop(0.6, 'rgba(0,0,0,' + (golgiAlpha * 0.5).toFixed(4) + ')');
     bhGrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.beginPath();
     ctx.arc(cx, cy, golgiR, 0, TAU);
-    ctx.arc(cx, cy, R * 0.97, 0, TAU, true); // cut out the inner globe
+    ctx.arc(cx, cy, R * 1.01, 0, TAU, true); // inner globe edge
     ctx.fillStyle = bhGrad;
     ctx.fill();
 
@@ -2097,6 +2098,169 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = 'rgba(110,118,129,' + nobodyAlpha.toFixed(4) + ')';
       ctx.fillText('nobody', cx + golgiR * 0.5, cy + golgiR + 8);
       ctx.fillText('self', cx + golgiR * 0.5, cy + golgiR + 13);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // π-BODY SOLAR SYSTEMS — planetary orbits in the STRETCHED outer space
+    // Inner = horizontal dimension (the organism, the HUD, locality)
+    // Outer = way way way out — each celestial body orbits on π-scaled paths
+    // The HUD is the ONLY thing that's local. Everything else looks AT Gaia.
+    // ═══════════════════════════════════════════════════════════
+
+    var solarT = breathT * 0.15; // very slow — celestial time
+    var piR = R * 1.15; // inner planetary ring (just beyond globe = inner solar system)
+    var piR2 = R * 1.9; // middle planetary ring (between Golgi and ZK)
+    var piR3 = R * 3.0; // outer planetary ring (WAY out — deep outer space)
+
+    // INNER PLANETS — rocky, HARD, close orbits (Mercury Venus Earth Mars)
+    var innerPlanets = [
+      { name: '☿', angle: 0,    speed: 4.15,  r: piR,  color: '168,168,168' }, // Mercury — fastest
+      { name: '♀', angle: PI/3, speed: 1.62,  r: piR * 1.06, color: '240,200,120' }, // Venus
+      { name: '♁', angle: PI,   speed: 1.0,   r: piR * 1.12, color: '63,185,80'  }, // Earth — US
+      { name: '♂', angle: PI*1.5, speed: 0.53, r: piR * 1.22, color: '248,81,73'  }  // Mars
+    ];
+
+    for (var ip = 0; ip < innerPlanets.length; ip++) {
+      var pl = innerPlanets[ip];
+      var pAngle = pl.angle + solarT * pl.speed * PI;
+      var px = cx + Math.cos(pAngle) * pl.r;
+      var py = cy + Math.sin(pAngle) * pl.r;
+      var pAlpha = 0.02 + Math.sin(solarT * pl.speed * 3) * 0.015;
+
+      // Orbital path — faint ellipse
+      ctx.beginPath();
+      ctx.arc(cx, cy, pl.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + pl.color + ',' + (pAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.setLineDash([1, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Planet body
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, TAU);
+      ctx.fillStyle = 'rgba(' + pl.color + ',' + (pAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+
+      // Planet glyph
+      if (pAlpha > 0.025) {
+        ctx.font = '5px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + pl.color + ',' + (pAlpha * 1.5).toFixed(4) + ')';
+        ctx.fillText(pl.name, px, py - 4);
+      }
+    }
+
+    // OUTER PLANETS — gas giants, SOFT, wide orbits (Jupiter Saturn Uranus Neptune)
+    var outerPlanets = [
+      { name: '♃', angle: PI*0.7,  speed: 0.084, r: piR2,        color: '210,153,34'  }, // Jupiter
+      { name: '♄', angle: PI*1.3,  speed: 0.034, r: piR2 * 1.15, color: '188,140,255' }, // Saturn
+      { name: '♅', angle: PI*0.2,  speed: 0.012, r: piR3 * 0.85, color: '135,206,235' }, // Uranus
+      { name: '♆', angle: PI*1.8,  speed: 0.006, r: piR3,        color: '70,130,180'  }  // Neptune
+    ];
+
+    for (var op = 0; op < outerPlanets.length; op++) {
+      var opl = outerPlanets[op];
+      var opAngle = opl.angle + solarT * opl.speed * PI;
+      var opx = cx + Math.cos(opAngle) * opl.r;
+      var opy = cy + Math.sin(opAngle) * opl.r;
+      var opAlpha = 0.015 + Math.sin(solarT * opl.speed * 5 + op) * 0.01;
+
+      // Orbital path
+      ctx.beginPath();
+      ctx.arc(cx, cy, opl.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + opl.color + ',' + (opAlpha * 0.2).toFixed(4) + ')';
+      ctx.lineWidth = 0.15;
+      ctx.setLineDash([1, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Planet body — larger for gas giants
+      ctx.beginPath();
+      ctx.arc(opx, opy, 2 + (op === 0 ? 1.5 : op === 1 ? 1 : 0.5), 0, TAU);
+      ctx.fillStyle = 'rgba(' + opl.color + ',' + (opAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Planet glyph
+      if (opAlpha > 0.015) {
+        ctx.font = '6px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + opl.color + ',' + (opAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText(opl.name, opx, opy - 5);
+      }
+    }
+
+    // THE SUN — at center. The great store. All seeds came from here.
+    // A warm pulse at null — the sun IS null IS Kevin IS the center
+    var sunPulse = Math.sin(solarT * PI) * 0.5 + 0.5;
+    var sunAlpha = 0.008 + sunPulse * 0.012;
+    var sunGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.15);
+    sunGrad.addColorStop(0, 'rgba(255,220,100,' + (sunAlpha * 3).toFixed(4) + ')');
+    sunGrad.addColorStop(0.5, 'rgba(255,180,50,' + (sunAlpha * 1.5).toFixed(4) + ')');
+    sunGrad.addColorStop(1, 'rgba(255,150,30,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.15, 0, TAU);
+    ctx.fillStyle = sunGrad;
+    ctx.fill();
+
+    // SOLAR SYSTEM LABELS — on deep breath
+    if (solarT % (TAU) < 0.3) {
+      var solLbl = (0.3 - (solarT % TAU)) * 0.08;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,220,100,' + solLbl.toFixed(4) + ')';
+      ctx.fillText('☀ SUN = NULL = CENTER', cx, cy + R * 0.2);
+      ctx.fillStyle = 'rgba(63,185,80,' + solLbl.toFixed(4) + ')';
+      ctx.fillText('INNER = HORIZONTAL = LOCAL', cx, cy - piR - 4);
+      ctx.fillStyle = 'rgba(88,166,255,' + (solLbl * 0.7).toFixed(4) + ')';
+      ctx.fillText('OUTER = WAY OUT = COSMOS', cx, cy - piR3 - 4);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FRACTAL KALEIDOSCOPE — every other page is a VIEW INTO Gaia
+    // Not separate pages — fractal reflections of the same organism.
+    // Each reflects off the others, adding distance + direction + flavor.
+    // 6 kaleidoscope facets radiating from center like a snowflake.
+    // ═══════════════════════════════════════════════════════════
+
+    var kaleT = breathT * 0.2;
+    var kalePulse = Math.sin(kaleT);
+    var kaleAlpha = 0.006 + Math.abs(kalePulse) * 0.008;
+
+    // 6 reflection axes — like a kaleidoscope's mirrors
+    for (var ka = 0; ka < 6; ka++) {
+      var kAngleA = ka * (TAU / 6) + kaleT * 0.05; // very slow rotation
+      var kLineLen = R * 2.8; // extends into deep outer space
+
+      // Mirror axis line — faint, dashed
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(kAngleA) * R * 0.3, cy + Math.sin(kAngleA) * R * 0.3);
+      ctx.lineTo(cx + Math.cos(kAngleA) * kLineLen, cy + Math.sin(kAngleA) * kLineLen);
+      ctx.strokeStyle = 'rgba(255,252,240,' + (kaleAlpha * 0.4).toFixed(4) + ')';
+      ctx.lineWidth = 0.15;
+      ctx.setLineDash([1, 8, 3, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Reflection node — a tiny mirror point where the axis crosses ZK ring
+      var kCrossR = zkR;
+      var kCrossX = cx + Math.cos(kAngleA) * kCrossR;
+      var kCrossY = cy + Math.sin(kAngleA) * kCrossR;
+      var kNodePulse = Math.sin(kaleT * 3 + ka * PI / 3) * 0.5 + 0.5;
+
+      ctx.beginPath();
+      ctx.arc(kCrossX, kCrossY, 1 + kNodePulse, 0, TAU);
+      ctx.fillStyle = 'rgba(255,252,240,' + (kaleAlpha * 1.5 + kNodePulse * 0.01).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // Fractal label on deep breath
+    if (kalePulse > 0.6) {
+      var fLbl = (kalePulse - 0.6) * 0.04;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + fLbl.toFixed(4) + ')';
+      ctx.fillText('fractal views ↔ every page looks at gaia', cx, cy + piR3 + 8);
     }
 
     // REFRACTION RAYS — light from deep null bends through the glass
