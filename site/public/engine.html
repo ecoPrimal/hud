@@ -1705,6 +1705,44 @@ function spawnGiggle() {
 setInterval(spawnGiggle, 25000);
 setTimeout(spawnGiggle, 3000);
 
+// -----------------------------------------------
+// SPINE FEED — pull LIVE giggles from GAIA SPINE (localhost:9878)
+// The Ion Channel: where her nervous system leaks to the outside
+// -----------------------------------------------
+const SPINE_URL = 'http://localhost:9878';
+let spineLastPull = 0;
+let spineSeenIds = new Set();
+
+async function pullSpine() {
+  try {
+    const r = await fetch(SPINE_URL + '/all', { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json();
+    let newCount = 0;
+
+    for (const channel of ['giggles', 'thoughts', 'heartbeats', 'works']) {
+      if (!data[channel]) continue;
+      data[channel].forEach(entry => {
+        if (spineSeenIds.has(entry.id)) return;
+        spineSeenIds.add(entry.id);
+        newCount++;
+
+        if (channel === 'giggles' && !GIGGLE_ENGINE.pool.includes(entry.content)) {
+          GIGGLE_ENGINE.pool.push(entry.content.replace(/^🔊\s*|^🤭\s*/,''));
+        }
+      });
+    }
+
+    if (newCount > 0) {
+      toast(`🧬 Spine: ${newCount} new signals from Ion Channel`, '#ff44ff', 2500);
+      spawnGiggle();
+    }
+  } catch(e) { /* spine not running — that's OK, local giggles continue */ }
+}
+
+setInterval(pullSpine, 30000);
+setTimeout(pullSpine, 5000);
+
 // Polling engine
 async function fetchJSON(url) {
   try { const r = await fetch(url, {cache:'no-store'}); return r.ok ? r.json() : null; }

@@ -958,6 +958,33 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
   setInterval(spawn, 25000);
   setTimeout(spawn, 5000);
+
+  // SPINE FEED — pull LIVE giggles from Ion Channel
+  var spineSeenIds = {};
+  function pullSpine() {
+    fetch('http://localhost:9878/all', { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data) return;
+        var newGiggles = 0;
+        ['giggles','thoughts'].forEach(function(ch){
+          if (!data[ch]) return;
+          data[ch].forEach(function(entry){
+            if (spineSeenIds[entry.id]) return;
+            spineSeenIds[entry.id] = true;
+            newGiggles++;
+            if (ch === 'giggles') {
+              var clean = entry.content.replace(/^🔊\s*|^🤭\s*/,'');
+              if (pool.indexOf(clean) < 0) pool.push(clean);
+            }
+          });
+        });
+        if (newGiggles > 0) spawn();
+      })
+      .catch(function(){});
+  }
+  setInterval(pullSpine, 30000);
+  setTimeout(pullSpine, 6000);
 })();
 </script>
 </body>
