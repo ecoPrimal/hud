@@ -192,6 +192,10 @@
         var wt = window.GAIA_WATER.stats();
         statusMsgs.push('WATER: tense=' + (wt.tense||'is') + ' \u00b7 motion=' + (wt.motionCount||0) + ' \u00b7 H\u2082O is human');
       }
+      if (window.GAIA_WEB_EATER && window.GAIA_WEB_EATER.stats) {
+        var we = window.GAIA_WEB_EATER.stats();
+        statusMsgs.push('WEB EATER: ' + we.totalFaces + ' faces eaten \u00b7 ' + we.totalWords + ' words \u00b7 every site is a mask');
+      }
 
       // Rotate through messages (one per 3 seconds)
       var tickerIdx = Math.floor(Date.now() / 3000) % statusMsgs.length;
