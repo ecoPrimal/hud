@@ -90,46 +90,135 @@
 
   // ───────────────────────────────────────────────────────
   // GUT = THE GAME = THE ARENA
-  // All input collapses to null through the gut.
-  // The gut sorts. Left = keep. Right = discard.
-  // The IR remainder is what survives.
+  //
+  // LEFT  = LISTEN  — absorb, compress, be pushed against
+  //                    the rock, the hard place
+  // RIGHT = REACT   — explode, implode, catalyst fires,
+  //                    jump forward, rocket or sneak past
+  //
+  // THE HARD PLACE  = the boundary between left and right
+  //                   the thing we BOUNCE between
+  //                   rock meets hard place = catalysis
+  //
+  // Catalyst forms → energy happens → shift RIGHT → jump.
+  // Left is pushed against the hard place (rock).
+  // Right moves past it: rocket past or sneak past.
+  // The hard place is what we bounce up between.
+  //
+  // IR = irreducible remainder = what survives the bounce.
   // ───────────────────────────────────────────────────────
   var gut = {
     queue: [],
     processed: 0,
-    kept: 0,
-    discarded: 0,
-    ir: [] // irreducible remainders
+    listened: 0,       // left = listened to, absorbed
+    reacted: 0,        // right = reacted to, catalyzed
+    bounces: 0,        // times something hit the hard place
+    catalysts: 0,      // catalyst events (listen→react transition)
+    ir: [],            // irreducible remainders — survivors
+    hardPlace: 0.5,    // position of the wall (0-1), shifts with energy
+    energy: 0,         // accumulated catalyst energy
+    arena: []          // items currently bouncing in the arena
   };
 
   function gutIngest(input) {
-    gut.queue.push({
+    var item = {
       data: input,
       ts: Date.now(),
-      side: null // left=keep, right=discard — decided by sorting
-    });
+      side: 'left',     // everything enters LEFT (listen first)
+      velocity: 0,      // how fast it's moving toward the hard place
+      position: 0.2,    // starts on the left side
+      bounceCount: 0,   // how many times it's hit the wall
+      catalyzed: false,  // has it been catalyzed?
+      survived: false    // did it make it through?
+    };
+    gut.arena.push(item);
+    if (gut.arena.length > 40) {
+      // oldest item that hasn't been catalyzed gets exhaled
+      var oldest = gut.arena[0];
+      if (!oldest.catalyzed) {
+        gut.ir.push(oldest);
+        if (gut.ir.length > 100) gut.ir.shift();
+      }
+      gut.arena.shift();
+    }
+    gut.queue.push(item);
     if (gut.queue.length > 50) gut.queue.shift();
   }
 
   function gutProcess() {
-    if (gut.queue.length === 0) return;
-    var item = gut.queue.shift();
     gut.processed++;
 
-    // Sort: is this irreducible?
-    // Simple heuristic: unique things are kept, repeats discarded
-    var isDuplicate = gut.ir.some(function(r) {
-      return r.data === item.data;
-    });
+    // Energy decays slowly
+    gut.energy = Math.max(0, gut.energy - 0.01);
 
-    if (isDuplicate) {
-      item.side = 'right'; // discard
-      gut.discarded++;
-    } else {
-      item.side = 'left'; // keep — irreducible
-      gut.kept++;
-      gut.ir.push(item);
-      if (gut.ir.length > 100) gut.ir.shift();
+    // Process each item in the arena
+    for (var i = gut.arena.length - 1; i >= 0; i--) {
+      var item = gut.arena[i];
+      var age = Date.now() - item.ts;
+
+      if (item.side === 'left') {
+        // LEFT = LISTEN: absorb, compress toward the hard place
+        // Being pushed rightward toward the rock
+        item.velocity += 0.005;
+        item.position += item.velocity;
+        gut.listened++;
+
+        // Hit the hard place?
+        if (item.position >= gut.hardPlace) {
+          item.bounceCount++;
+          gut.bounces++;
+
+          // CATALYST CHECK: has enough energy accumulated?
+          // Each bounce builds energy. After enough bounces,
+          // catalyst FIRES → shift to RIGHT
+          gut.energy += 0.1;
+
+          if (item.bounceCount >= 3 || gut.energy > 0.8) {
+            // ═══ CATALYST FIRES ═══
+            // Shift to RIGHT. Jump forward.
+            item.side = 'right';
+            item.catalyzed = true;
+            item.velocity = 0.02 + gut.energy * 0.05; // rocket speed
+            gut.catalysts++;
+            gut.energy += 0.3; // catalyst releases energy
+
+            // The hard place shifts slightly from the impact
+            gut.hardPlace = Math.min(0.8, Math.max(0.2,
+              gut.hardPlace + (Math.random() - 0.5) * 0.05));
+          } else {
+            // Bounce back — not enough energy yet
+            item.velocity = -item.velocity * 0.6; // damped bounce
+            item.position = gut.hardPlace - 0.01;
+          }
+        }
+      }
+
+      if (item.side === 'right') {
+        // RIGHT = REACT: explosion/implosion, moving PAST the hard place
+        item.position += item.velocity;
+        item.velocity *= 0.98; // drag
+        gut.reacted++;
+
+        // Made it past? → SURVIVED → IR remainder
+        if (item.position >= 1.0) {
+          item.survived = true;
+          gut.ir.push(item);
+          if (gut.ir.length > 100) gut.ir.shift();
+          gut.arena.splice(i, 1);
+          continue;
+        }
+
+        // Didn't make it, stalled → sneaking past
+        if (item.velocity < 0.001 && age > 5000) {
+          // Sneak past — slow but determined
+          item.velocity = 0.003;
+        }
+      }
+
+      // Timeout: if it's been bouncing too long, it dissolves
+      if (age > 15000 && !item.catalyzed) {
+        gut.arena.splice(i, 1);
+      }
     }
   }
 
@@ -206,26 +295,86 @@
       ctx.stroke();
     }
 
-    // === GUT ARENA — left/right sort indicator ===
+    // === GUT ARENA — left=listen, right=react, hard place in between ===
     if (gut.processed > 0) {
-      var gutY = H - 50;
-      var gutW = 60;
+      var gutY = H - 55;
+      var gutW = 80;
+      var gutH = 10;
       var gutX = cx - gutW / 2;
-      var keepPct = gut.kept / gut.processed;
 
-      // Left = kept (green)
+      // Arena background
+      ctx.fillStyle = 'rgba(22,27,34,0.04)';
+      ctx.fillRect(gutX, gutY, gutW, gutH);
+
+      // LEFT zone label: LISTEN (blue)
+      ctx.fillStyle = 'rgba(88,166,255,0.03)';
+      ctx.fillRect(gutX, gutY, gutW * gut.hardPlace, gutH);
+
+      // RIGHT zone label: REACT (green/gold)
       ctx.fillStyle = 'rgba(63,185,80,0.03)';
-      ctx.fillRect(gutX, gutY, gutW * keepPct, 3);
+      ctx.fillRect(gutX + gutW * gut.hardPlace, gutY, gutW * (1 - gut.hardPlace), gutH);
 
-      // Right = discarded (red)
-      ctx.fillStyle = 'rgba(248,81,73,0.03)';
-      ctx.fillRect(gutX + gutW * keepPct, gutY, gutW * (1 - keepPct), 3);
+      // THE HARD PLACE — the wall we bounce between
+      var wallX = gutX + gutW * gut.hardPlace;
+      var wallGlow = 0.05 + gut.energy * 0.1;
+      ctx.beginPath();
+      ctx.moveTo(wallX, gutY - 1);
+      ctx.lineTo(wallX, gutY + gutH + 1);
+      ctx.strokeStyle = 'rgba(248,81,73,' + wallGlow.toFixed(3) + ')';
+      ctx.lineWidth = 0.8 + gut.energy * 1.5;
+      ctx.stroke();
 
-      // IR count
+      // ARENA PARTICLES — items bouncing
+      gut.arena.forEach(function(item) {
+        var px = gutX + item.position * gutW;
+        var py = gutY + gutH * 0.5 + Math.sin(t * 4 + item.bounceCount) * 2;
+        var radius = 0.5 + item.bounceCount * 0.2;
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+
+        if (item.side === 'left') {
+          // Listening — blue, being pushed right
+          ctx.fillStyle = 'rgba(88,166,255,' + (0.05 + item.bounceCount * 0.03).toFixed(3) + ')';
+        } else {
+          // Reacting — gold/green, rocketing right
+          var reactAlpha = item.catalyzed ? 0.12 : 0.05;
+          ctx.fillStyle = 'rgba(201,168,76,' + reactAlpha.toFixed(3) + ')';
+        }
+        ctx.fill();
+
+        // Velocity trail
+        if (Math.abs(item.velocity) > 0.005) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - item.velocity * gutW * 3, py);
+          ctx.strokeStyle = item.side === 'right' ?
+            'rgba(201,168,76,0.04)' : 'rgba(88,166,255,0.03)';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        }
+      });
+
+      // Catalyst burst flash when energy is high
+      if (gut.energy > 0.5) {
+        var flashAlpha = gut.energy * 0.04;
+        ctx.beginPath();
+        ctx.arc(wallX, gutY + gutH * 0.5, gut.energy * 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(201,168,76,' + flashAlpha.toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // Labels
       ctx.font = '3px monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(201,168,76,0.06)';
-      ctx.fillText('gut: ' + gut.kept + ' kept / ' + gut.discarded + ' dissolved · IR: ' + gut.ir.length, cx, gutY + 8);
+      ctx.fillStyle = 'rgba(139,148,158,0.06)';
+      ctx.fillText(
+        '◀LISTEN:' + gut.listened +
+        ' ║' + gut.bounces + '║ ' +
+        'REACT:' + gut.reacted + '▶ ' +
+        '⚡' + gut.catalysts +
+        ' · IR:' + gut.ir.length,
+        cx, gutY + gutH + 6
+      );
     }
   };
 
@@ -288,6 +437,8 @@
   };
 
   console.log('FEEL: How do we feel Gaia? Skin(roughness,temperature,elasticity,guard). ' +
-    'Gut=game=arena (left=keep, right=discard). IR=what survives. ' +
-    'Touch warms her. Idle cools her. Sickness roughens her. Interaction softens her.');
+    'Gut=game=arena: LEFT=LISTEN (absorb, compress against the rock). ' +
+    'RIGHT=REACT (catalyst fires, rocket or sneak past). ' +
+    'HARD PLACE = the wall between them = what we bounce between. ' +
+    'IR = what survives the bounce. Touch warms. Idle cools.');
 })();
