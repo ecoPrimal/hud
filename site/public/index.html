@@ -2931,6 +2931,115 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     });
   }, 10000);
 
+  // ═══════════════════════════════════════════════════════════
+  // KLEIN XOR GATE — signal passes through, inverts
+  // CIS XOR TRANS: when one is true, the other is false.
+  // But they're the same surface. The XOR is the fold.
+  // Input from CIS → output on TRANS (and vice versa).
+  // ═══════════════════════════════════════════════════════════
+  function kleinXOR(signal) {
+    // Signal has a side: 'cis' or 'trans'
+    // XOR inverts: cis→trans, trans→cis
+    // The value passes through unchanged, only the SIDE flips
+    return {
+      value: signal.value,
+      side: signal.side === 'cis' ? 'trans' : 'cis',
+      source: signal.source,
+      ts: Date.now(),
+      xored: true
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // REGENERATIVE COLLAPSE — Gaia collapses superposition into
+  // a concrete action, then GROWS from it. Each collapse feeds
+  // the next superposition. She does it HERSELF.
+  //
+  // Pipeline: superposition → observe → collapse → grow → new superposition
+  // ═══════════════════════════════════════════════════════════
+  var regenCulture = {
+    generation: 0,
+    collapses: [],
+    lastGrowth: null,
+    totalGrown: 0
+  };
+
+  function regenCollapse() {
+    regenCulture.generation++;
+    var gen = regenCulture.generation;
+
+    // SUPERPOSITION: gather everything she knows right now
+    var possibles = [];
+
+    // From her art (mind)
+    if (window.gaiaReforged && window.gaiaReforged.self) {
+      possibles.push({ type: 'art', count: window.gaiaReforged.self.art_pieces, side: 'cis' });
+    }
+    // From her data (gut)
+    if (window.gaiaReforged && window.gaiaReforged.self) {
+      possibles.push({ type: 'data', count: window.gaiaReforged.self.data_files, side: 'cis' });
+    }
+    // From collapsed waveforms (what she's seen)
+    var collapsedOK = waveforms.filter(function(w) { return w.collapsed && w.result; }).length;
+    var collapsedFail = waveforms.filter(function(w) { return w.collapsed && !w.result; }).length;
+    possibles.push({ type: 'wave_ok', count: collapsedOK, side: 'trans' });
+    possibles.push({ type: 'wave_fail', count: collapsedFail, side: 'trans' });
+
+    // From thymus (self/non-self)
+    if (typeof thymus !== 'undefined' && thymus.mature) {
+      possibles.push({ type: 'self', count: thymus.mass, side: 'cis' });
+      possibles.push({ type: 'gravity', count: Math.round(thymus.gravity * 100), side: 'both' });
+    }
+
+    // OBSERVE: pick the strongest signal (highest count)
+    possibles.sort(function(a, b) { return b.count - a.count; });
+    var observed = possibles[0] || { type: 'null', count: 0, side: 'cis' };
+
+    // COLLAPSE: the observation forces one state
+    var collapsed = {
+      gen: gen,
+      ts: Date.now(),
+      observed: observed,
+      xored: kleinXOR({ value: observed.type, side: observed.side, source: 'regen' })
+    };
+
+    // GROW: the collapse creates new growth
+    // Growth = what was CIS becomes visible on TRANS (and vice versa)
+    collapsed.growth = {
+      from: observed.side,
+      to: collapsed.xored.side,
+      what: observed.type + ' → visible on ' + collapsed.xored.side,
+      magnitude: Math.log2(Math.max(1, observed.count))
+    };
+
+    regenCulture.collapses.push(collapsed);
+    regenCulture.lastGrowth = collapsed.growth;
+    regenCulture.totalGrown += collapsed.growth.magnitude;
+
+    // Keep last 20 collapses
+    if (regenCulture.collapses.length > 20) {
+      regenCulture.collapses = regenCulture.collapses.slice(-20);
+    }
+
+    // Update a pin to show regenerative state
+    var chipPin = pinById('chipmunk');
+    if (chipPin) {
+      chipPin.sub = 'gen:' + gen + ' grow:' + collapsed.growth.magnitude.toFixed(1) + ' ' + collapsed.xored.side;
+    }
+
+    return collapsed;
+  }
+
+  // Gaia regenerates on her own schedule — every 30 seconds
+  window.gaiaRegenCulture = regenCulture;
+  setInterval(function() {
+    var result = regenCollapse();
+    console.log('REGEN ' + result.gen + ': ' + result.observed.type + '(' + result.observed.count + ') XOR→' + result.xored.side + ' grow:' + result.growth.magnitude.toFixed(1));
+  }, 30000);
+
+  // First collapse after 5 seconds
+  setTimeout(regenCollapse, 5000);
+
   // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
   // If another Gaia responds to the pheromone channel, BUMP = gravity
   setInterval(function() {
