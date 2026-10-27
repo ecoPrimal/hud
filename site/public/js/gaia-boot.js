@@ -189,5 +189,96 @@
     })
     .catch(function() {});
 
-  console.log('BOOT: 8 data loaders dispatched. Identity, tree, reality, dreams, flavors, beacons, solar, HEALTH.');
+  // ═══════════════════════════════════════════════════════
+  // ORGANISM TAXONOMY — every file IS a creature
+  // Every automation IS an insect. Insects chew the veil.
+  // ═══════════════════════════════════════════════════════
+  fetch('/data/organism-taxonomy.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(tax) {
+      if (!tax) return;
+      window.GAIA_TAXONOMY = tax;
+
+      // Log active swarms
+      if (tax.current_swarms) {
+        console.log('🐝 INSECT SWARMS:');
+        tax.current_swarms.forEach(function(s) {
+          var icon = s.insect === 'firefly' ? '✨' : s.insect === 'bee' ? '🐝' : s.insect === 'wasp' ? '🐝' :
+                     s.insect === 'spider' ? '🕷' : s.insect === 'termite' ? '🪲' : s.insect === 'cricket' ? '🦗' :
+                     s.insect === 'caterpillar' ? '🐛' : s.insect === 'moth' ? '🦋' : '·';
+          console.log('  ' + icon + ' ' + s.name + ' [' + s.status + '] ×' + s.count + ' — ' + s.desc);
+        });
+      }
+
+      // Log bounties
+      if (tax.bounties && tax.bounties.active) {
+        console.warn('🪲 TERMITE BOUNTIES (anacondas to eat):');
+        tax.bounties.active.forEach(function(b) {
+          console.warn('  ' + b.title);
+        });
+      }
+
+      // Paint organism view on overlay after health
+      setTimeout(function() {
+        var el = document.getElementById('beacon-overlay');
+        if (!el) return;
+        var swarmHtml = '<div style="font-size:8px;color:#c9a84c;margin-top:6px;letter-spacing:1px;">SWARMS</div>';
+        swarmHtml += '<div style="font-size:7px;line-height:11px;">';
+        (tax.current_swarms || []).forEach(function(s) {
+          var c = s.status === 'active' ? '#3fb950' : s.status === 'dormant' ? '#6e7681' : '#58a6ff';
+          swarmHtml += '<span style="color:' + c + ';">●</span> <span style="color:#c9d1d9;">' + s.name + '</span> <span style="color:#6e7681;">×' + s.count + '</span><br>';
+        });
+        swarmHtml += '</div>';
+        el.innerHTML += swarmHtml;
+      }, 9000);
+
+      // IDE command: /fauna
+      setTimeout(function() {
+        if (!window.GAIA_IDE) return;
+        window.GAIA_IDE.commands.fauna = {
+          desc: 'Organism taxonomy — every file IS a creature, every automation IS an insect',
+          run: function() {
+            var lines = [
+              'GAIA ORGANISM TAXONOMY',
+              '',
+              '═══ FILE CREATURES ═══',
+              '  🐍 Snake (JS)     garter <300 · coral <600 · cobra <800 · python <1000 · anaconda >1000',
+              '  🪸 Coral (JSON)   data only, no logic, grows by accretion',
+              '  🐛 Centipede (HTML) skeleton, many legs = many tags',
+              '  🧬 Skin (CSS)     thin membrane, appearance only',
+              ''
+            ];
+            var snakeSizes = tax.files.species.snake.sizes;
+            Object.keys(snakeSizes).forEach(function(sz) {
+              var s = snakeSizes[sz];
+              lines.push('    ' + s.ascii + '  ' + sz.toUpperCase().padEnd(10) + '<' + s.max + '  ' + s.desc);
+            });
+            lines.push('');
+            lines.push('═══ INSECT SWARMS ═══');
+            var insects = tax.insects.species;
+            Object.keys(insects).forEach(function(name) {
+              var ins = insects[name];
+              lines.push('  ' + ins.ascii + ' ' + name.toUpperCase().padEnd(14) + ins.role.padEnd(14) + ins.behavior.slice(0, 50));
+            });
+            lines.push('');
+            lines.push('═══ ACTIVE SWARMS ═══');
+            (tax.current_swarms || []).forEach(function(s) {
+              lines.push('  [' + s.status.padEnd(8) + '] ' + s.insect.padEnd(12) + s.name.padEnd(16) + '×' + s.count + '  ' + s.desc);
+            });
+            if (tax.bounties && tax.bounties.active) {
+              lines.push('');
+              lines.push('═══ TERMITE BOUNTIES ═══');
+              tax.bounties.active.forEach(function(b) {
+                lines.push('  🪲 ' + b.title);
+              });
+            }
+            return lines.join('\n');
+          }
+        };
+        window.GAIA_IDE.language.push('fauna');
+      }, 20000);
+    })
+    .catch(function() {});
+
+  console.log('BOOT: 9 data loaders. Identity tree reality dreams flavors beacons solar HEALTH TAXONOMY.');
 })();
