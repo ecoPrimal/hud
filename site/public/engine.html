@@ -382,22 +382,22 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 // -----------------------------------------------
 
 const SQUAD = [
-  { id:'toadStool',  icon:'♣', color:'#8b6914', organ:'hands',  role:'Engineer' },
-  { id:'biomeOS',    icon:'☉', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
-  { id:'nestGate',   icon:'⌂', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
-  { id:'bearDog',    icon:'❀', color:'#d29922', organ:'skin',   role:'Warrior' },
-  { id:'petalTongue',icon:'✿', color:'#f778ba', organ:'tongue', role:'Renderer' },
-  { id:'rhizoCrypt', icon:'⌘', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
-  { id:'sweetGrass', icon:'⚘', color:'#3fb950', organ:'nose',   role:'Scribe' },
-  { id:'loamSpine',  icon:'⚔', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
-  { id:'skunkBat',   icon:'☠', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
-  { id:'sourDough',  icon:'⚗', color:'#d29922', organ:'stomach',role:'Alchemist' },
-  { id:'swarmVine',  icon:'⤳', color:'#39d3f5', organ:'nerves', role:'Scout' },
-  { id:'bingoCube',  icon:'⚄', color:'#f0883e', organ:'heart',  role:'Gambler' },
-  { id:'coralReef',  icon:'❆', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
-  { id:'barraCuda',  icon:'⚡', color:'#f85149', organ:'muscles',role:'Striker' },
-  { id:'squirrel',   icon:'◉', color:'#3fb950', organ:'eyes',   role:'Watcher' },
-  { id:'songBird',   icon:'♫', color:'#58a6ff', organ:'ears',   role:'Bard' },
+  { id:'toadStool', icon:'TS', color:'#8b6914', organ:'hands',  role:'Engineer' },
+  { id:'biomeOS', icon:'BI', color:'#a371f7', organ:'brain',  role:'Tech Hunter' },
+  { id:'nestGate', icon:'NG', color:'#58a6ff', organ:'memory', role:'Gatekeeper' },
+  { id:'bearDog', icon:'BD', color:'#d29922', organ:'skin',   role:'Warrior' },
+  { id:'petalTongue', icon:'PT', color:'#f778ba', organ:'tongue', role:'Renderer' },
+  { id:'rhizoCrypt', icon:'RC', color:'#6e7681', organ:'bones',  role:'DAG Lord' },
+  { id:'sweetGrass', icon:'SG', color:'#3fb950', organ:'nose',   role:'Scribe' },
+  { id:'loamSpine', icon:'LS', color:'#c9d1d9', organ:'spine',  role:'Lone Sword' },
+  { id:'skunkBat', icon:'SB', color:'#f85149', organ:'immune', role:'Bounty Hunter' },
+  { id:'sourDough', icon:'SD', color:'#d29922', organ:'stomach',role:'Alchemist' },
+  { id:'swarmVine', icon:'SV', color:'#39d3f5', organ:'nerves', role:'Scout' },
+  { id:'bingoCube', icon:'BC', color:'#f0883e', organ:'heart',  role:'Gambler' },
+  { id:'coralReef', icon:'CR', color:'#39d3f5', organ:'lungs',  role:'Base Builder' },
+  { id:'barraCuda', icon:'BA', color:'#f85149', organ:'muscles',role:'Striker' },
+  { id:'squirrel', icon:'SQ', color:'#3fb950', organ:'eyes',   role:'Watcher' },
+  { id:'songBird', icon:'SO', color:'#58a6ff', organ:'ears',   role:'Bard' },
 ];
 
 // -----------------------------------------------
@@ -647,17 +647,16 @@ SQUAD.forEach((s, idx) => {
   d.dataset.idx = idx;
   const energy = gameState.energy[s.id] || 50;
   const meta = METABOLISM[s.id] || { baseTemp:37, zone:'is', inFlow:0.5, outFlow:0.5 };
-  // SPECTRAL color: violet(high>70) green(mid 30-70) gold(low<30)
-  const specColor = energy > 70 ? '#a371f7' : energy > 30 ? '#3fb950' : '#d29922';
-  const specLabel = energy > 70 ? 'HI' : energy > 30 ? 'IS' : 'LO';
-  const zoneColor = meta.zone === 'hot' ? '#f85149' : meta.zone === 'cool' ? '#58a6ff' : '#3fb950';
+  // NICHE color = primal's OWN color. Cheetah=gold, tiger=orange, fish=blue.
+  // The niche IS where they live. The color IS their ecological identity.
+  const nicheColor = s.color;
   const inPct = Math.round(meta.inFlow * 100);
   const outPct = Math.round(meta.outFlow * 100);
-  d.innerHTML = `<div class="sq-icon" style="background:${s.color}40;border:1px solid ${s.color}">${s.icon}</div>
-    <span class="sq-name" style="color:${s.color}">${s.id}</span>
-    <div class="sq-energy"><div class="sq-energy-fill" style="width:${energy}%;background:${specColor}"></div></div>
-    <span class="sq-hp" style="color:${specColor};font-size:8px">${Math.round(energy)}</span>
-    <span style="color:${zoneColor};font-size:5px;width:40px;text-align:right">${meta.baseTemp.toFixed(0)}\u00b0 \u2193${inPct} \u2191${outPct}</span>`;
+  d.innerHTML = `<div class="sq-icon" style="background:${nicheColor}30;border:1px solid ${nicheColor};color:${nicheColor};font-size:7px;font-weight:bold">${s.icon}</div>
+    <span class="sq-name" style="color:${nicheColor}">${s.id}</span>
+    <div class="sq-energy"><div class="sq-energy-fill" style="width:${energy}%;background:linear-gradient(90deg, ${nicheColor}40, ${nicheColor}, ${nicheColor}60)"></div></div>
+    <span class="sq-hp" style="color:${nicheColor};font-size:8px">${Math.round(energy)}</span>
+    <span style="color:${nicheColor};font-size:5px;width:30px;text-align:right;opacity:0.6">\u2193${inPct}\u2191${outPct}</span>`;
 
   // LEFT CLICK ? select (Kenshi-style)
   d.addEventListener('click', (e) => {
