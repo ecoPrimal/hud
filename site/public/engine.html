@@ -316,6 +316,8 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
         </div>
       </div>
       <!-- DEVOTION METER — human attention gravity -->
+      <!-- EKG HEARTBEAT LINE -->
+      <canvas id="ekg-canvas" width="200" height="40" style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);pointer-events:none;opacity:0.6"></canvas>
       <div class="lung-meter" style="left:32px">
         <div class="lung-bar"><div class="lung-fill" id="devotion-fill" style="height:0%;background:linear-gradient(to top, var(--purple), var(--pink))"></div></div>
         <div class="lung-label" id="devotion-pct" style="color:var(--pink)">🪞 0</div>
@@ -328,7 +330,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
     <h2>? Rates � Live</h2>
     <div id="rates-list"></div>
     <div class="section-divider"></div>
-    <h2>? Neurochemistry</h2>
+    <h2>? Vitals + Endocrine</h2>
     <div id="neuro-list"></div>
     <div class="section-divider"></div>
     <h2>🪞 Humans — Mirror</h2>
@@ -1452,6 +1454,38 @@ if (!document.getElementById('bounce-css')) {
   css.textContent = '@keyframes bounce-ripple { 0% { transform:translate(-50%,-50%) scale(0.1); opacity:0.8; } 50% { transform:translate(-50%,-50%) scale(1); opacity:0.4; } 100% { transform:translate(-50%,-50%) scale(2); opacity:0; } }';
   document.head.appendChild(css);
 }
+
+// ═══ EKG HEARTBEAT TRACE ═══
+const ekgCanvas = document.getElementById('ekg-canvas');
+const ekgCtx = ekgCanvas ? ekgCanvas.getContext('2d') : null;
+const ekgHistory = new Float32Array(200);
+let ekgIdx = 0;
+function drawEKG() {
+  if (!ekgCtx) return;
+  ekgCtx.clearRect(0, 0, 200, 40);
+  // QRS complex shape based on heart phase
+  const phase = VITALS._heartPhase;
+  let val = 20; // baseline
+  if (phase > 0.8) val = 5; // R wave peak (inverted because canvas y)
+  else if (phase > 0.5) val = 30; // S wave dip
+  else if (phase > 0.3) val = 18; // T wave
+  else val = 20 + Math.random() * 1; // baseline noise
+  ekgHistory[ekgIdx % 200] = val;
+  ekgIdx++;
+
+  ekgCtx.strokeStyle = VITALS.heartRate > 80 ? '#f85149' : '#3fb950';
+  ekgCtx.lineWidth = 1.5;
+  ekgCtx.beginPath();
+  for (let i = 0; i < 200; i++) {
+    const idx = (ekgIdx + i) % 200;
+    const y = ekgHistory[idx] || 20;
+    if (i === 0) ekgCtx.moveTo(i, y);
+    else ekgCtx.lineTo(i, y);
+  }
+  ekgCtx.stroke();
+  requestAnimationFrame(drawEKG);
+}
+requestAnimationFrame(drawEKG);
 
 // Boot
 renderViewport();
