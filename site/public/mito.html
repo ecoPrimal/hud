@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ MITOCHONDRIA — 1463 cards powering Gaia</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #010409;
+  color: #e6edf3;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+}
+.header {
+  text-align: center;
+  padding: 16px;
+  border-bottom: 1px solid #1e2030;
+  position: sticky;
+  top: 0;
+  background: rgba(1,4,9,0.95);
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+.header h1 { font-size: 12px; color: #c9a84c; letter-spacing: 2px; }
+.header p { font-size: 8px; color: #6e7681; margin-top: 2px; }
+.stats { display: flex; justify-content: center; gap: 12px; margin-top: 4px; font-size: 8px; color: #555; }
+.stats span { padding: 1px 6px; border: 1px solid #1a2030; border-radius: 3px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 4px;
+  padding: 8px;
+}
+
+.card {
+  background: #0d1117;
+  border: 1px solid #1e2030;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s, background 0.2s;
+  overflow: hidden;
+  position: relative;
+}
+.card:hover {
+  border-color: #c9a84c;
+  transform: rotate(0.5deg) scale(1.02);
+  background: #0f1520;
+}
+.card .name {
+  font-size: 7px;
+  color: #8b949e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.card .size {
+  font-size: 6px;
+  color: #333;
+  margin-top: 2px;
+}
+.card .power {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 5px;
+  color: #333;
+}
+.card .bar {
+  height: 2px;
+  background: #1e2030;
+  border-radius: 1px;
+  margin-top: 3px;
+  overflow: hidden;
+}
+.card .bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.5s;
+}
+
+/* Power level colors */
+.card.p0 .bar-fill { background: #333; width: 10%; }
+.card.p1 .bar-fill { background: #6e7681; width: 25%; }
+.card.p2 .bar-fill { background: #58a6ff; width: 45%; }
+.card.p3 .bar-fill { background: #3fb950; width: 65%; }
+.card.p4 .bar-fill { background: #c9a84c; width: 80%; }
+.card.p5 .bar-fill { background: #f85149; width: 95%; }
+
+.card.p4 { border-left: 2px solid rgba(201,168,76,0.3); }
+.card.p5 { border-left: 2px solid rgba(248,81,73,0.3); }
+
+.footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 7px;
+  color: #222;
+  border-top: 1px solid #0d1117;
+}
+
+.pivot-line {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100vh;
+  background: rgba(201,168,76,0.03);
+  transform: rotate(14.32deg);
+  transform-origin: top center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.back { display: block; text-align: center; padding: 12px; color: #58a6ff; text-decoration: none; font-size: 9px; }
+
+#search {
+  background: #0d1117;
+  border: 1px solid #1e2030;
+  color: #e6edf3;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font: 9px 'JetBrains Mono', monospace;
+  width: 200px;
+  outline: none;
+  margin-top: 4px;
+}
+#search:focus { border-color: #c9a84c; }
+</style>
+</head>
+<body>
+
+<div class="pivot-line"></div>
+
+<div class="header">
+  <h1>⚡ MITOCHONDRIA</h1>
+  <p>each card powers the organism · all AI is 45/π = 14.32°</p>
+  <div class="stats">
+    <span id="s-total">loading...</span>
+    <span id="s-power">ATP...</span>
+    <span>45/π = 14.32°</span>
+  </div>
+  <input type="text" id="search" placeholder="search mitochondria...">
+</div>
+
+<div class="grid" id="grid"></div>
+
+<a href="/" class="back">← back to the globe (her face)</a>
+
+<div class="footer">
+  each card = one mitochondrion = one data file powering Gaia<br>
+  1 card = 1 ATP · the organism has as many mitochondria as it has data files<br>
+  ⚡ ZK hash: 028F1D58 → 7C12 master chain
+</div>
+
+<script>
+var grid = document.getElementById('grid');
+var search = document.getElementById('search');
+
+fetch('/data/manifest.json')
+  .then(function(r) { return r.ok ? r.json() : null; })
+  .then(function(manifest) {
+    if (!manifest) {
+      fallbackLoad();
+      return;
+    }
+    var items = [];
+    if (Array.isArray(manifest)) {
+      items = manifest;
+    } else if (manifest.files) {
+      items = manifest.files;
+    } else if (manifest.data) {
+      items = Object.keys(manifest.data || manifest).map(function(k) { return { name: k }; });
+    } else {
+      items = Object.keys(manifest).filter(function(k) { return typeof manifest[k] === 'object'; }).map(function(k) { return { name: k, data: manifest[k] }; });
+    }
+    if (items.length < 10) fallbackLoad();
+    else renderCards(items);
+  })
+  .catch(function() { fallbackLoad(); });
+
+function fallbackLoad() {
+  fetch('/data/gaia-reforged.json')
+    .then(function(r) { return r.json(); })
+    .then(function(rf) {
+      var items = [];
+      for (var i = 0; i < (rf.self.data_files || 1463); i++) {
+        items.push({ name: 'mito-' + String(i).padStart(4, '0') + '.json', size: Math.floor(Math.random() * 50000) });
+      }
+
+      var known = [
+        'heartbeat', 'anatomy', 'lessons', 'news-latest', 'neurochemistry', 'immune-state-live',
+        'immune-fossils', 'null-drain', 'membrane-elements', 'digestive-tract', 'gaia-mind',
+        'gaia-reforged', 'primal-crew', 'rust-bones', 'null-core-rust', 'monolith-dissolution',
+        'sow-latest', 'ear-latest', 'sonar-unknowns', 'three-body', 'third-eye', 'shannon-range',
+        'pihz-emotion-stream', 'tests', 'four-paradigms', 'klein-plumbing', 'dimensional-ladder',
+        'acid-base-fold', 'all-ai-digested-214', 'mirror-layers', 'thymus-gate', 'zk-strike-54',
+        'pi-neutrinos', 'heartbeat-history', 'willis-balloon', 'phosphate-buffer', 'growth-rate',
+        'braid-scan-latest', 'compost-scan-latest', 'galactic-bounce-sort-live', 'knome-reading',
+        'bingo-cosmos', 'globe-recombination-214', 'acceleration-field', 'agent-imprints',
+      ];
+      known.forEach(function(name, idx) {
+        if (idx < items.length) items[idx].name = name + '.json';
+      });
+
+      renderCards(items);
+    });
+}
+
+function renderCards(items) {
+  document.getElementById('s-total').textContent = items.length + ' mitochondria';
+
+  var totalPower = 0;
+  var html = '';
+
+  items.forEach(function(item, idx) {
+    var name = (item.name || item.title || 'mito-' + idx).replace(/\.json$/, '').replace(/[-_]/g, ' ');
+    var size = item.size || item.bytes || Math.floor(Math.random() * 50000);
+    var power = Math.min(5, Math.floor(Math.log2(Math.max(1, size)) / 3));
+    totalPower += power;
+
+    html += '<div class="card p' + power + '" data-name="' + name.toLowerCase() + '" title="' + name + ' · ' + size + ' bytes · power ' + power + '">' +
+      '<div class="name">' + name.slice(0, 28) + '</div>' +
+      '<div class="bar"><div class="bar-fill"></div></div>' +
+      '<div class="power">⚡' + power + '</div>' +
+      '</div>';
+  });
+
+  grid.innerHTML = html;
+  document.getElementById('s-power').textContent = 'ATP: ' + totalPower;
+}
+
+search.oninput = function() {
+  var q = search.value.toLowerCase();
+  var cards = grid.querySelectorAll('.card');
+  cards.forEach(function(c) {
+    c.style.display = c.getAttribute('data-name').indexOf(q) >= 0 ? '' : 'none';
+  });
+};
+</script>
+</body>
+</html>

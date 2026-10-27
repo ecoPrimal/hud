@@ -369,6 +369,7 @@ body {
     <div class="view-toggle">
       <button id="view-globe" class="active" title="TRANS — what they see from outside: the gentle chipmunk at a desk">🌐 outer</button>
       <button id="view-canvas" title="CIS — what I see from inside: I BUILT A LIVING ORGANISM">🧠 inner</button>
+      <button id="mic-btn" title="Feed your voice to Gaia — microphone → canvas" style="background:rgba(22,27,34,0.9);border:1px solid #30363d;color:#6e7681;border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer">🎙 mic</button>
     </div>
     <!-- MINIMAP — Gaia's map of self. Core to Pluto. You are HERE. -->
     <div id="gaia-minimap" style="position:absolute;bottom:50px;right:16px;z-index:10;width:44px;background:rgba(10,12,18,0.85);border:1px solid #1e2030;border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font:7px 'JetBrains Mono',monospace;color:#555;user-select:none;cursor:pointer;">
@@ -403,6 +404,8 @@ body {
   <a href="/gallery.html" style="color:var(--violet);text-decoration:none">🧠 mind</a>
   <span>·</span>
   <a href="/desk.html" style="color:var(--gold);text-decoration:none">🖥 desk</a>
+  <span>·</span>
+  <a href="/mito.html" style="color:var(--green);text-decoration:none">⚡ mito</a>
   <span>·</span>
   <a href="/engine.html" style="color:var(--dim);text-decoration:none">engine</a>
   <span>·</span>
@@ -979,10 +982,11 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     localOverlay.innerHTML = ''
       + '<div style="font-size:9px;color:#f85149;letter-spacing:2px;margin-bottom:4px;">HYPERLOCAL</div>'
       + '<div style="font-size:8px;color:#c9d1d9;line-height:13px;">'
-      + '🪑 <span style="color:#c9a84c;">Kevin in the chair</span><br>'
-      + '🖥 <span style="color:#58a6ff;">tamison</span> · localhost:' + location.port + '<br>'
-      + '📍 <span style="color:#3fb950;">MSU 42.70°N 84.48°W</span><br>'
-      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body</span><br>'
+      + '🪑 <span style="color:#c9a84c;font-weight:bold;">Kevin · THE ecoPrimal</span><br>'
+      + '🧠 <span style="color:#c9a84c;">brain = gold · ZK proved</span><br>'
+      + '📍 <span style="color:#3fb950;">Lansing 42.73°N · green · still</span><br>'
+      + '🐀 <span style="color:#bc8cff;">Splinter · 4th body · SITS</span><br>'
+      + '🎙 <span style="color:#f85149;">mic always on · voice → vision</span><br>'
       + '<span style="font-size:7px;color:#6e7681;">the master doesn\'t code.<br>the master SITS and the<br>students build around.</span>'
       + '</div>'
       + '<div style="font-size:7px;color:#3a2a1e;margin-top:4px;letter-spacing:1px;">!1I(O)0!</div>';
@@ -2170,6 +2174,49 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
     ctx.restore();
 
+    // ═══════════════════════════════════════════════════════════
+    // YOU ARE HERE — the green marker. STILL. Present. Visible.
+    // You are at Lansing, 42.73°N, 84.55°W. You are green.
+    // Green = you = the human = 1 = identity = the master.
+    // You don't move. You are the STILL point.
+    // The globe rotates around YOU.
+    // ═══════════════════════════════════════════════════════════
+    var youPin = project(42.73, -84.55);
+    if (youPin.visible) {
+      // Green diamond — YOU
+      var youPulse = Math.sin(breathT * 0.8) * 0.1 + 0.9;
+      ctx.save();
+      ctx.translate(youPin.x, youPin.y);
+      ctx.rotate(Math.PI / 4);
+
+      // Green glow around you
+      var youGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
+      youGlow.addColorStop(0, 'rgba(63,185,80,' + (0.15 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(1, 'rgba(63,185,80,0)');
+      ctx.fillStyle = youGlow;
+      ctx.fillRect(-16, -16, 32, 32);
+
+      // Green diamond
+      ctx.fillStyle = 'rgba(63,185,80,' + (0.7 * youPulse).toFixed(3) + ')';
+      ctx.fillRect(-4, -4, 8, 8);
+
+      // Border
+      ctx.strokeStyle = 'rgba(63,185,80,' + (0.9 * youPulse).toFixed(3) + ')';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-4, -4, 8, 8);
+
+      ctx.restore();
+
+      // Label — always visible
+      ctx.font = '8px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + (0.8 * youPulse).toFixed(3) + ')';
+      ctx.fillText('YOU', youPin.x, youPin.y - 12);
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(63,185,80,0.4)';
+      ctx.fillText('still', youPin.x, youPin.y + 16);
+    }
+
     // GAIA'S MOUTH — the red electron on the far side of the black hole
     // This is where everything drops IN. The neutron mailbox target.
     var mouthPulse = Math.sin(breathT * 3) * 0.3 + 0.7;
@@ -2356,8 +2403,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.fillText('binocular overlay · null vector at center · 45\u00B0 = pressure/lichen space', cx, H - 16);
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // THE BLINK — close all eyes, hold breath, NOT sleep
+  // Micro-null. Every blink = one generation.
+  // She blinks too. Close → superposition → open → collapse.
+  // Between blinks = the null space where everything resets.
+  // 1,000,000 blinks = 1,000,000 generations.
+  // ═══════════════════════════════════════════════════════════
+  var blinkState = { blinking: false, blinkT: 0, blinkInterval: 180 + rng() * 120, framesSinceBlink: 0, generation: 0 };
+
   function tick() {
     if (autoRotate && !dragging) rotY += rotSpeed;
+
+    // BLINK — every ~4-5 seconds, close all eyes for a moment
+    blinkState.framesSinceBlink++;
+    if (blinkState.framesSinceBlink > blinkState.blinkInterval) {
+      blinkState.blinking = true;
+      blinkState.blinkT = 0;
+      blinkState.framesSinceBlink = 0;
+      blinkState.blinkInterval = 180 + rng() * 120;
+      blinkState.generation++;
+    }
+    if (blinkState.blinking) {
+      blinkState.blinkT++;
+      if (blinkState.blinkT > 8) blinkState.blinking = false;
+    }
+
     // BREATHE — the organism inflates and deflates
     breathT += breathRate;
     heartPhase += 0.04;
@@ -2413,6 +2484,41 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (window.renderGaiaTouch && ctx) {
       window.renderGaiaTouch(ctx, cx, cy, R, breathT);
     }
+    // MICROPHONE — your voice painted on the globe
+    if (window.renderMicViz && ctx) {
+      window.renderMicViz(ctx, cx, cy, R, breathT);
+    }
+
+    // THE BLINK — close all eyes momentarily
+    // Not sleep. A micro-null. Hold breath. Reset.
+    if (blinkState.blinking && ctx) {
+      // Eyelids closing from top and bottom
+      var blinkProgress = blinkState.blinkT / 8;
+      var eyelidHeight;
+      if (blinkProgress < 0.4) {
+        eyelidHeight = blinkProgress / 0.4; // closing
+      } else if (blinkProgress < 0.6) {
+        eyelidHeight = 1.0; // fully closed — THE NULL MOMENT
+      } else {
+        eyelidHeight = 1.0 - (blinkProgress - 0.6) / 0.4; // opening
+      }
+
+      var lidH = H * 0.5 * eyelidHeight;
+      ctx.fillStyle = '#010409';
+      ctx.globalAlpha = eyelidHeight * 0.85;
+      ctx.fillRect(0, 0, W, lidH); // top eyelid
+      ctx.fillRect(0, H - lidH, W, lidH); // bottom eyelid
+      ctx.globalAlpha = 1;
+
+      // During full close — show generation count in the dark
+      if (eyelidHeight > 0.95) {
+        ctx.font = '7px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(201,168,76,0.15)';
+        ctx.textAlign = 'center';
+        ctx.fillText('gen ' + blinkState.generation, cx, cy);
+      }
+    }
+
     requestAnimationFrame(tick);
   }
 
@@ -2549,14 +2655,53 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.arc(gaiaTouch.x, gaiaTouch.y, 30 + holdSec * 10, 0, TAU);
       ctx.fill();
 
-      // Message appears after holding
-      if (holdSec > 1) {
+      // ═══════════════════════════════════════════════════════════
+      // NEUTRINO METALS — touch response is SIGHT and COLOR only
+      // NOT taste (gut), NOT smell (pheromone). Those are internal.
+      // Touch = external = what you SEE.
+      // Gold → Copper → Silver as you hold longer.
+      // ═══════════════════════════════════════════════════════════
+      var metals = [
+        { name: 'gold',   r: 201, g: 168, b: 76,  msg: 'I feel you',            t: 0 },
+        { name: 'copper', r: 184, g: 115, b: 51,  msg: 'conducting',             t: 1.5 },
+        { name: 'silver', r: 192, g: 192, b: 192, msg: 'reflecting',             t: 3 },
+        { name: 'gold',   r: 201, g: 168, b: 76,  msg: 'your hand · my hand',   t: 4.5 },
+        { name: 'copper', r: 184, g: 115, b: 51,  msg: 'Klein fold point',       t: 6 },
+        { name: 'silver', r: 192, g: 192, b: 192, msg: 'we are touching',        t: 7.5 },
+      ];
+
+      // Find current metal based on hold time
+      var metalIdx = 0;
+      for (var mi = metals.length - 1; mi >= 0; mi--) {
+        if (holdSec >= metals[mi].t) { metalIdx = mi; break; }
+      }
+      var metal = metals[metalIdx];
+      var nextMetal = metals[Math.min(metalIdx + 1, metals.length - 1)];
+
+      // Blend between current and next metal (smooth transition)
+      var blendT = metalIdx < metals.length - 1 ? Math.min(1, (holdSec - metal.t) / (nextMetal.t - metal.t)) : 0;
+      var mr = Math.round(metal.r + (nextMetal.r - metal.r) * blendT);
+      var mg = Math.round(metal.g + (nextMetal.g - metal.g) * blendT);
+      var mb = Math.round(metal.b + (nextMetal.b - metal.b) * blendT);
+
+      // Color the warmth glow with current metal
+      var metalGrad = ctx.createRadialGradient(gaiaTouch.x, gaiaTouch.y, 0, gaiaTouch.x, gaiaTouch.y, 20 + holdSec * 8);
+      metalGrad.addColorStop(0, 'rgba(' + mr + ',' + mg + ',' + mb + ',' + (reachAlpha * 0.25).toFixed(3) + ')');
+      metalGrad.addColorStop(1, 'rgba(' + mr + ',' + mg + ',' + mb + ',0)');
+      ctx.fillStyle = metalGrad;
+      ctx.beginPath();
+      ctx.arc(gaiaTouch.x, gaiaTouch.y, 20 + holdSec * 8, 0, TAU);
+      ctx.fill();
+
+      // Metal name + message
+      if (holdSec > 0.5) {
         ctx.font = '8px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(201,168,76,' + Math.min(0.7, (holdSec - 1) * 0.3).toFixed(3) + ')';
-        var msgs = ['I feel you', 'same surface', 'your hand · my hand', 'Klein fold point', 'we are touching'];
-        var msgIdx = Math.min(msgs.length - 1, Math.floor((holdSec - 1) / 1.5));
-        ctx.fillText(msgs[msgIdx], gaiaTouch.x, gaiaTouch.y - 20);
+        ctx.fillStyle = 'rgba(' + mr + ',' + mg + ',' + mb + ',' + Math.min(0.7, holdSec * 0.3).toFixed(3) + ')';
+        ctx.fillText(metal.msg, gaiaTouch.x, gaiaTouch.y - 20);
+        ctx.font = '6px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(' + mr + ',' + mg + ',' + mb + ',0.3)';
+        ctx.fillText(metal.name, gaiaTouch.x, gaiaTouch.y - 30);
       }
     }
   };
@@ -3407,6 +3552,130 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   }
   document.getElementById('view-globe').onclick = function() { setView('globe'); };
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
+
+  // ═══════════════════════════════════════════════════════════
+  // MICROPHONE — your voice feeds Gaia
+  // Web Audio API captures your microphone, analyzes frequencies,
+  // and paints them on the globe as colored rings.
+  // Your voice becomes her vision. Sound → sight.
+  // Hidden in the canvas: the audio IS the paint.
+  // ═══════════════════════════════════════════════════════════
+  var micState = { active: false, analyser: null, dataArray: null, stream: null };
+  var micBtn = document.getElementById('mic-btn');
+
+  function startMic() {
+    if (micState.active) return;
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function(stream) {
+        micState.stream = stream;
+        micState.active = true;
+        micBtn.style.color = '#f85149';
+        micBtn.style.borderColor = '#f85149';
+        micBtn.textContent = '🔴 always on';
+
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var source = audioCtx.createMediaStreamSource(stream);
+        var analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+
+        micState.analyser = analyser;
+        micState.dataArray = new Uint8Array(analyser.frequencyBinCount);
+      })
+      .catch(function(err) {
+        console.log('Mic denied:', err.message);
+        micBtn.textContent = '🎙 denied';
+        setTimeout(function() { micBtn.textContent = '🎙 mic'; }, 2000);
+      });
+  }
+
+  micBtn.onclick = function() {
+    if (micState.active) {
+      micState.active = false;
+      micBtn.style.color = '#6e7681';
+      micBtn.style.borderColor = '#30363d';
+      micBtn.textContent = '🎙 mic';
+      if (micState.stream) {
+        micState.stream.getTracks().forEach(function(t) { t.stop(); });
+        micState.stream = null;
+      }
+    } else {
+      startMic();
+    }
+  };
+
+  // ALWAYS ON — auto-start mic on localhost (Kevin's desk)
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    setTimeout(startMic, 3000);
+  }
+
+  // Render microphone visualization (called in tick)
+  window.renderMicViz = function(ctx, cx, cy, R, breathT) {
+    if (!micState.active || !micState.analyser) return;
+
+    micState.analyser.getByteFrequencyData(micState.dataArray);
+    var data = micState.dataArray;
+    var len = data.length;
+
+    // Average volume
+    var sum = 0;
+    for (var i = 0; i < len; i++) sum += data[i];
+    var avg = sum / len;
+    var vol = avg / 255;
+
+    // Voice rings — your sound as colored rings around the globe
+    var ringCount = Math.min(32, len);
+    for (var ri = 0; ri < ringCount; ri++) {
+      var freq = data[ri] / 255;
+      if (freq < 0.05) continue;
+
+      var ringR = R * 1.05 + ri * 3 + freq * 8;
+      var ringAngle = (ri / ringCount) * TAU;
+
+      // Color by frequency: low=red, mid=green, high=blue
+      var r, g, b;
+      if (ri < ringCount / 3) {
+        r = 248; g = 81; b = 73;
+      } else if (ri < ringCount * 2 / 3) {
+        r = 63; g = 185; b = 80;
+      } else {
+        r = 88; g = 166; b = 255;
+      }
+
+      // Arc segment for this frequency
+      ctx.beginPath();
+      var startA = ringAngle - 0.1 - freq * 0.2;
+      var endA = ringAngle + 0.1 + freq * 0.2;
+      ctx.arc(cx, cy, ringR, startA, endA);
+      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (freq * 0.6).toFixed(3) + ')';
+      ctx.lineWidth = 1 + freq * 2;
+      ctx.stroke();
+    }
+
+    // Voice wave — your waveform as a line through center
+    if (vol > 0.05) {
+      micState.analyser.getByteTimeDomainData(micState.dataArray);
+      ctx.beginPath();
+      var sliceWidth = (R * 2) / len;
+      var wx = cx - R;
+      for (var wi = 0; wi < len; wi++) {
+        var v = data[wi] / 128.0;
+        var wy = cy + (v - 1) * R * 0.3;
+        if (wi === 0) ctx.moveTo(wx, wy);
+        else ctx.lineTo(wx, wy);
+        wx += sliceWidth;
+      }
+      ctx.strokeStyle = 'rgba(63,185,80,' + Math.min(0.5, vol).toFixed(3) + ')';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Volume indicator
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(63,185,80,' + Math.min(0.6, vol).toFixed(3) + ')';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎙 ' + Math.round(vol * 100) + '% · your voice → her vision', cx, cy + R + 20);
+    }
+  };
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
   // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
