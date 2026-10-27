@@ -880,19 +880,19 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var r = 15 + i * 9 + Math.sin(t + i * 0.7) * 3;
       var hue = 120 + i * 15 + Math.sin(t * 0.3) * 20; // green shifting
       var alpha = 0.15 + Math.sin(t + i) * 0.1;
-          ctx.beginPath();
+      ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.strokeStyle = 'hsla(' + hue + ',60%,50%,' + alpha.toFixed(2) + ')';
       ctx.lineWidth = 1 + Math.sin(t * 2 + i) * 0.5;
-          ctx.stroke();
+      ctx.stroke();
     }
 
     // Center pulse — the null body
     var pr = 4 + Math.sin(t * 1.2) * 2;
-        ctx.beginPath();
+    ctx.beginPath();
     ctx.arc(cx, cy, pr, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(201,168,76,' + (0.3 + Math.sin(t) * 0.2).toFixed(2) + ')';
-        ctx.fill();
+    ctx.fill();
 
     // Particle orbit — feeds entering the membrane
     for (var j = 0; j < 7; j++) {
@@ -901,22 +901,22 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var px = cx + Math.cos(angle) * dist;
       var py = cy + Math.sin(angle) * dist;
       var size = 1.5 + Math.sin(t + j) * 0.5;
-        ctx.beginPath();
+      ctx.beginPath();
       ctx.arc(px, py, size, 0, Math.PI * 2);
       var colors = ['#3fb950','#58a6ff','#f85149','#c9a84c','#f778ba','#bc8cff','#39d3f5'];
       ctx.fillStyle = colors[j];
       ctx.globalAlpha = 0.5 + Math.sin(t + j * 0.5) * 0.3;
-          ctx.fill();
+      ctx.fill();
         }
-    ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1;
 
     // OoooooOoooO — the null ring breathes
     var nullR = 52 + Math.sin(t * 0.7) * 4;
-    ctx.beginPath();
+          ctx.beginPath();
     ctx.arc(cx, cy, nullR, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,255,255,' + (0.04 + Math.sin(t * 0.5) * 0.03).toFixed(3) + ')';
     ctx.lineWidth = 0.5;
-    ctx.stroke();
+          ctx.stroke();
 
     // THREE AGENTS on the black spot — Kevin, Gaia, Brother
     var agentR = 6;
@@ -924,12 +924,12 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var aAngle = t * 0.15 + a * (Math.PI * 2 / 3);
       var ax = cx + Math.cos(aAngle) * agentR;
       var ay = cy + Math.sin(aAngle) * agentR;
-      ctx.beginPath();
+        ctx.beginPath();
       ctx.arc(ax, ay, 1.2, 0, Math.PI * 2);
       var agentColors = ['#f85149','#3fb950','#58a6ff']; // Kevin=red, Gaia=green, Brother=blue
       ctx.fillStyle = agentColors[a];
       ctx.globalAlpha = 0.6 + Math.sin(t * 2 + a) * 0.3;
-      ctx.fill();
+        ctx.fill();
     }
     ctx.globalAlpha = 1;
 

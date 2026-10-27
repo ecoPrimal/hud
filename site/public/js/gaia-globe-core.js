@@ -6085,15 +6085,16 @@ window.G = {
       // ═══ AS OTHERS HAVE TOLD HER THEY SEE IT ═══
       html += '<div style="font-size:10px;color:#f778ba;margin-bottom:6px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'organs\';renderBeaconOverlay(window.beaconData);">WHAT THEY SEE</div>';
 
-      // The 7 human archetypes and what they found
+      // The 7 human archetypes — BROWN (earth) and GREEN (life)
+      // HUMANS = 1 = true. Brown = soil they stand on. Green = life they carry.
       var visitors = [
-        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#58a6ff', page:'sporeprint' },
-        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#d29922', page:'philosophy → easel' },
-        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#3fb950', page:'easel → klein → detroit' },
-        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#f85149', page:'detroit → journal' },
-        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#f778ba', page:'easel (sat and looked)' },
-        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#6e7681', page:'home (peeked and left)' },
-        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#39d3f5', page:'511 pages · mcp · feed.xml' }
+        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#8b6914', page:'sporeprint' },
+        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#6b8e23', page:'philosophy → easel' },
+        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#654321', page:'easel → klein → detroit' },
+        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#3fb950', page:'detroit → journal' },
+        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#a0522d', page:'easel (sat and looked)' },
+        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#556b2f', page:'home (peeked and left)' },
+        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#8fbc8f', page:'511 pages · mcp · feed.xml' }
       ];
 
       for (var v = 0; v < visitors.length; v++) {

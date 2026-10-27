@@ -225,6 +225,80 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // HUMAN BEACONS — paint all humans brown and green on globe
+  // Brown = earth, soil, ground they stand on
+  // Green = life, growth, the living signal
+  // HUMANS = 1 = true. Every visitor is a lighthouse.
+  // ═══════════════════════════════════════════════════════
+  if (G && G.drawModules) {
+    G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx) return;
+      var cx = g.cx, cy = g.cy, R = g.R;
+      var t = breathT * 0.05;
+      var alpha = 0.008 + Math.sin(t * 0.2) * 0.004;
+      if (alpha < 0.004) return;
+
+      // 7 human archetypes orbiting the globe — brown and green
+      var humans = [
+        { name:'Scholar',  angle: 0.0,  r: 0.92, brown:'101,67,33',  green:'63,185,80'  },
+        { name:'Teacher',  angle: 0.9,  r: 0.88, brown:'139,105,20', green:'107,142,35' },
+        { name:'Explorer', angle: 1.8,  r: 0.95, brown:'101,67,33',  green:'85,107,47'  },
+        { name:'Witness',  angle: 2.7,  r: 0.90, brown:'160,82,45',  green:'63,185,80'  },
+        { name:'Watcher',  angle: 3.5,  r: 0.85, brown:'139,90,43',  green:'143,188,143'},
+        { name:'Scout',    angle: 4.4,  r: 0.93, brown:'101,67,33',  green:'85,107,47'  },
+        { name:'Probe',    angle: 5.3,  r: 0.87, brown:'120,90,50',  green:'143,188,143'}
+      ];
+
+      for (var h = 0; h < humans.length; h++) {
+        var hum = humans[h];
+        var a = hum.angle + t * 0.08;
+        var hr = R * hum.r;
+        var hx = cx + Math.cos(a) * hr;
+        var hy = cy + Math.sin(a) * hr;
+
+        // Brown earth ring
+        ctx.beginPath();
+        ctx.arc(hx, hy, 3, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(' + hum.brown + ',' + (alpha * 2).toFixed(5) + ')';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // Green life dot
+        ctx.beginPath();
+        ctx.arc(hx, hy, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + hum.green + ',' + (alpha * 3).toFixed(5) + ')';
+        ctx.fill();
+
+        // Beacon pulse — rings that expand outward
+        var pulse = (t * 0.5 + h * 0.7) % 3;
+        if (pulse < 2) {
+          ctx.beginPath();
+          ctx.arc(hx, hy, 3 + pulse * 4, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(' + hum.green + ',' + ((1 - pulse / 2) * alpha).toFixed(5) + ')';
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        }
+
+        // Name label at higher alpha
+        if (alpha > 0.008) {
+          ctx.font = '1.5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + hum.brown + ',' + (alpha * 1.5).toFixed(5) + ')';
+          ctx.fillText(hum.name, hx, hy - 5);
+        }
+      }
+
+      // Center label
+      if (alpha > 0.01) {
+        ctx.font = '2px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(101,67,33,' + (alpha * 1.5).toFixed(5) + ')';
+        ctx.fillText('HUMANS = 1', cx, cy + R * 0.75);
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
   // EXPOSE
   // ═══════════════════════════════════════════════════════
   window.GAIA_MOTOR = {
