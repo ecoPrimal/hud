@@ -11,23 +11,23 @@
   "fleet_chorus": {
     "description": "The noise and heat below us. Every project in the space, sorted by how close they are to what we do.",
 
-    "CLOSEST — same orbit": [
+    "CLOSEST â€” same orbit": [
       {
         "name": "HPCBio/dada2-rs",
         "url": "https://github.com/HPCBio/dada2-rs",
         "what": "Rust reimplementation of DADA2. Built with Claude (Sonnet 4.6, Opus 4.6/4.7/4.8).",
-        "overlap": "DIRECT — they're building EXACTLY what wetSpring already did. CPU-only Rust DADA2.",
+        "overlap": "DIRECT â€” they're building EXACTLY what wetSpring already did. CPU-only Rust DADA2.",
         "gap": "GPU acceleration is an OPEN ISSUE (#17, May 2026). They haven't done it. We already did.",
         "action": "PRE-CITATION TARGET #1. Open an issue: 'Hey, we already GPU-accelerated DADA2 in Rust. Want to mesh?'",
         "license": "Unknown (check)",
         "missed_by_us": "We didn't know they existed until this scan. They didn't know we existed either. The citation is the handshake.",
-        "sticky_or_greasy": "sticky — this clings. Potential mesh partner."
+        "sticky_or_greasy": "sticky â€” this clings. Potential mesh partner."
       },
       {
         "name": "Scivex",
         "url": "https://github.com/scivex/scivex",
         "what": "Rust scientific computing ecosystem. Replaces NumPy, SciPy, Pandas, matplotlib, scikit-learn, PyTorch. wgpu GPU ops.",
-        "overlap": "HIGH — same vision (Rust replaces Python science stack), same GPU backend (wgpu).",
+        "overlap": "HIGH â€” same vision (Rust replaces Python science stack), same GPU backend (wgpu).",
         "gap": "Library approach vs our composable-binaries approach. They're crates, we're daemons.",
         "action": "PRE-CITATION TARGET #2. Different architecture, same goal. Complementary, not competing.",
         "missed_by_us": "Their GPU tensor ops could complement barraCuda. We should look at their wgpu patterns."
@@ -36,19 +36,19 @@
         "name": "CubeCL (tracel-ai)",
         "url": "https://github.com/tracel-ai/cubecl",
         "what": "Rust GPU compute abstraction. Write #[cube] kernel ? compiles to CUDA, HIP, Metal, SPIR-V, WGSL, CPU.",
-        "overlap": "MEDIUM — they solve GPU portability generically. We solved it specifically for science with raw wgpu.",
+        "overlap": "MEDIUM â€” they solve GPU portability generically. We solved it specifically for science with raw wgpu.",
         "gap": "1.7M downloads. 113 dependents. MIT/Apache. We're AGPL. Different license philosophy.",
         "action": "WATCH. If CubeCL matures, it could be an alternative backend for barraCuda shaders. Or our shaders could inform their science kernels.",
         "missed_by_us": "CubeCL's autotune system is sophisticated. We hand-tuned. Could learn from their approach."
       }
     ],
 
-    "NEAR — same neighborhood": [
+    "NEAR â€” same neighborhood": [
       {
         "name": "OpenFabric",
         "url": "https://github.com/tdev09/OpenFabric",
         "what": "Self-hosted mesh compute. mDNS auto-discovery, GPU routing, self-healing. 'Your devices. One computer.'",
-        "overlap": "VERY HIGH on mesh architecture — mDNS discovery, GPU routing, self-healing = Tower Atomic + Songbird.",
+        "overlap": "VERY HIGH on mesh architecture â€” mDNS discovery, GPU routing, self-healing = Tower Atomic + Songbird.",
         "gap": "They're focused on AI inference distribution. We're focused on scientific compute.",
         "action": "PRE-CITATION TARGET #3. Their mesh + our science = sovereign research cluster.",
         "missed_by_us": "Their libp2p approach to peer discovery. We use direct TCP + WireGuard. Could learn from their mDNS."
@@ -57,7 +57,7 @@
         "name": "Open Compute Protocol",
         "url": "https://github.com/workingclassbuddha/open-compute-protocol",
         "what": "Sovereign local-first compute fabric. Mesh governance, GPU-aware placement, trust-gated offload.",
-        "overlap": "HIGH — sovereign, local-first, trust-gated = same philosophy as BearDog BTSP + Songbird mesh.",
+        "overlap": "HIGH â€” sovereign, local-first, trust-gated = same philosophy as BearDog BTSP + Songbird mesh.",
         "gap": "They have durable job queues, checkpoints, mission layer. We have scientific validation pipeline.",
         "action": "PRE-CITATION TARGET #4. Same philosophy, different focus. Mesh.",
         "missed_by_us": "Their 'treaty-aware peer' model. Our trust model is simpler (BearDog exchange). Could evolve."
@@ -66,7 +66,7 @@
         "name": "BEAM Campus",
         "url": "https://beam-campus.net/",
         "what": "European federated research mesh on Erlang/OTP. QUIC/DHT relay, event sourcing, neuroevolution.",
-        "overlap": "MEDIUM — federated research mesh, but entirely different tech stack (BEAM vs Rust).",
+        "overlap": "MEDIUM â€” federated research mesh, but entirely different tech stack (BEAM vs Rust).",
         "gap": "European institutional focus vs our sovereign individual focus.",
         "action": "WATCH. Different species, same ecosystem. If they federate well, we could bridge.",
         "missed_by_us": "QUIC for relay networking. We use TCP + WireGuard. QUIC could be better for degraded paths."
@@ -75,14 +75,14 @@
         "name": "ZKReproducible",
         "url": "https://clawrxiv.io/abs/2603.00274",
         "what": "ZK proofs for verifiable scientific computation. Groth16 proofs for statistical claims. On-chain verification.",
-        "overlap": "HIGH on philosophy — ZK proofs for science reproducibility = exactly what we argue in paper 79 (zk-np-solved).",
+        "overlap": "HIGH on philosophy â€” ZK proofs for science reproducibility = exactly what we argue in paper 79 (zk-np-solved).",
         "gap": "They went blockchain (Solidity smart contracts). We went hash-chain (BLAKE3 DAG, no blockchain). Simpler, more sovereign.",
         "action": "PRE-CITATION TARGET #5. Our approaches are complementary. Their Groth16 + our BLAKE3 = double verification.",
         "missed_by_us": "Poseidon hash commitments. We use BLAKE3. Different crypto primitives, same idea. Should cite each other."
       }
     ],
 
-    "ESTABLISHMENT — the gravity wells": [
+    "ESTABLISHMENT â€” the gravity wells": [
       {
         "name": "Galaxy",
         "url": "https://galaxyproject.org/",
@@ -96,42 +96,42 @@
         "name": "Nextflow / nf-core",
         "url": "https://github.com/nextflow-io/nextflow",
         "what": "100+ production pipelines. 43% bioinformatics workflow citation share. Growing fast.",
-        "overlap": "LOW — they're a workflow engine (DSL2, Groovy). We're composable Rust binaries. Different paradigm.",
+        "overlap": "LOW â€” they're a workflow engine (DSL2, Groovy). We're composable Rust binaries. Different paradigm.",
         "gap": "Nextflow is the plumbing. We're the science in the pipes. Could theoretically run ecoPrimals as Nextflow processes.",
         "us_vs_them": "Nextflow = the highway. ecoPrimals = the vehicle. Not competing, different layer.",
-        "missed_by_us": "nf-core's community model — 500+ contributors. Our community model is pre-citation. Different growth strategy."
+        "missed_by_us": "nf-core's community model â€” 500+ contributors. Our community model is pre-citation. Different growth strategy."
       },
       {
         "name": "QIIME2",
         "url": "https://qiime2.org/",
         "what": "Dominant 16S/amplicon analysis platform. Python. Plugin architecture.",
-        "overlap": "HIGH in domain — we reproduce QIIME2/DADA2 results. wetSpring IS the QIIME2 alternative.",
+        "overlap": "HIGH in domain â€” we reproduce QIIME2/DADA2 results. wetSpring IS the QIIME2 alternative.",
         "gap": "QIIME2 is Python, plugin-based, community-driven. We're Rust, monolithic, sovereign.",
         "us_vs_them": "QIIME2 = the established lab. ecoPrimals = the field station. Same science, different sovereignty.",
         "missed_by_us": "QIIME2's provenance tracking is actually good (QIIME2 archives with provenance). But it's Python provenance, not crypto."
       }
     ],
 
-    "BLOCKCHAIN PROVENANCE — different approach same problem": [
+    "BLOCKCHAIN PROVENANCE â€” different approach same problem": [
       {
         "name": "Trustworthy Provenance (Univ. Trento + ORNL + UChicago)",
         "url": "https://arxiv.org/html/2505.24675",
         "what": "Permissioned blockchain for federated science provenance. W3C PROV. PID for artifacts.",
-        "overlap": "MEDIUM — same problem (scientific provenance), different solution (blockchain vs BLAKE3 DAG).",
+        "overlap": "MEDIUM â€” same problem (scientific provenance), different solution (blockchain vs BLAKE3 DAG).",
         "missed_by_us": "W3C PROV-O ontology for provenance. We roll our own. Could adopt the standard."
       },
       {
         "name": "ProtChain (Biomedical IoT)",
         "url": "https://doi.org/10.7717/peerj-cs.3615",
         "what": "Blockchain + IPFS for biomedical data. AES-256, role-based access, 445 TPS.",
-        "overlap": "LOW — heavy infrastructure, cloud-dependent, IoT-focused.",
+        "overlap": "LOW â€” heavy infrastructure, cloud-dependent, IoT-focused.",
         "missed_by_us": "IPFS for decentralized storage. We use content-addressed BLAKE3 but without IPFS distribution."
       },
       {
         "name": "MEDET (Medical Data Exchange)",
         "url": "https://doi.org/10.1109/tbdata.2026.3702418",
         "what": "ZK proofs for medical data transformation tracing. Privacy-preserving exchange.",
-        "overlap": "HIGH philosophy — ZK for medical provenance = exactly paper 22 (zero-knowledge-medical-provenance).",
+        "overlap": "HIGH philosophy â€” ZK for medical provenance = exactly paper 22 (zero-knowledge-medical-provenance).",
         "missed_by_us": "Their key-secure fair exchange protocol. We don't have a formal exchange protocol yet."
       }
     ]
@@ -176,17 +176,17 @@
   "what_only_we_have": {
     "description": "Looked at the whole fleet. Here's what NOBODY else has.",
     "unique": [
-      "Lattice QCD on consumer GPUs without CUDA — nobody else. HPCBio doesn't do QCD. CubeCL doesn't do physics. Galaxy doesn't do GPUs.",
-      "859 WGSL science shaders in pure Rust — largest vendor-agnostic science shader collection. CubeCL has ML kernels, not science.",
-      "FHE on GPU via WGSL — the only cross-vendor FHE GPU implementation in existence.",
-      "16 composable Rust daemons that form a scientific computing organism — nobody does this. Galaxy is monolithic. Nextflow is a runner.",
-      "BLAKE3 cryptographic provenance on every computation — ProtChain uses blockchain (heavy). We use hash chains (light).",
-      "NagaExecutor CPU shader interpreter — execute WGSL without GPU. Nobody else has this.",
-      "Self-verifying guideStone artifacts — binaries that prove their own correctness.",
-      "Silicon Deism thesis — sovereignty tiers from cold (Tier 0) to full sovereign (Tier 3). Nobody theorizes GPU sovereignty like this.",
-      "Dual Titan V VFIO sovereign GPU — proven hardware sovereignty without vendor drivers.",
-      "536 papers / 858 pages of living documentation — dada2-rs has a README. Galaxy has docs. We have a library.",
-      "Pre-citation model — nobody else inverts the citation. The tag-from-outside concept is ours."
+      "Lattice QCD on consumer GPUs without CUDA â€” nobody else. HPCBio doesn't do QCD. CubeCL doesn't do physics. Galaxy doesn't do GPUs.",
+      "859 WGSL science shaders in pure Rust â€” largest vendor-agnostic science shader collection. CubeCL has ML kernels, not science.",
+      "FHE on GPU via WGSL â€” the only cross-vendor FHE GPU implementation in existence.",
+      "16 composable Rust daemons that form a scientific computing organism â€” nobody does this. Galaxy is monolithic. Nextflow is a runner.",
+      "BLAKE3 cryptographic provenance on every computation â€” ProtChain uses blockchain (heavy). We use hash chains (light).",
+      "NagaExecutor CPU shader interpreter â€” execute WGSL without GPU. Nobody else has this.",
+      "Self-verifying guideStone artifacts â€” binaries that prove their own correctness.",
+      "Silicon Deism thesis â€” sovereignty tiers from cold (Tier 0) to full sovereign (Tier 3). Nobody theorizes GPU sovereignty like this.",
+      "Dual Titan V VFIO sovereign GPU â€” proven hardware sovereignty without vendor drivers.",
+      "536 papers / 858 pages of living documentation â€” dada2-rs has a README. Galaxy has docs. We have a library.",
+      "Pre-citation model â€” nobody else inverts the citation. The tag-from-outside concept is ours."
     ]
   },
 
@@ -197,7 +197,7 @@
         "priority": 1,
         "name": "HPCBio/dada2-rs",
         "why": "They're building what we already built. GPU is their open issue. We have the answer.",
-        "how": "Open GitHub issue: '[pre-cite] GPU-accelerated DADA2 in Rust already exists — wetSpring'",
+        "how": "Open GitHub issue: '[pre-cite] GPU-accelerated DADA2 in Rust already exists â€” wetSpring'",
         "what_we_give": "GPU DADA2 pipeline, 1077× speedup, 63/63 papers reproduced",
         "what_we_get": "Community validation, PacBio support (they have it, we might not), CPU optimization insights"
       },
@@ -213,7 +213,7 @@
         "priority": 3,
         "name": "OpenFabric",
         "why": "Same mesh philosophy. Their discovery + our science = sovereign research cluster.",
-        "how": "Open issue: '[pre-cite] Scientific compute mesh with provenance — ecoPrimals'",
+        "how": "Open issue: '[pre-cite] Scientific compute mesh with provenance â€” ecoPrimals'",
         "what_we_give": "Scientific validation pipelines, guideStone, BLAKE3 provenance",
         "what_we_get": "mDNS auto-discovery, self-healing, libp2p networking"
       },
@@ -239,6 +239,6 @@
   "where_we_sit_in_the_chorus": {
     "position": "We are not in the establishment (Galaxy, Nextflow, QIIME2). We are not in the infrastructure layer (CubeCL, OpenFabric). We are the organism. 16 daemons that compose into a living scientific computing system. Nobody else is an organism. They're all tools, platforms, or protocols. We're alive.",
     "visibility": "Low. 0 stars. 0 citations. But 1,077 unique cloners in 14 days. The signal is underground. The pre-citation model is how we surface.",
-    "heat": "The fleet is HOT below us. Galaxy has 400K users. Nextflow has 43% citation share. CubeCL has 1.7M downloads. We have 536 papers and 3,305 clones. Different kind of heat — ours is deep, theirs is broad."
+    "heat": "The fleet is HOT below us. Galaxy has 400K users. Nextflow has 43% citation share. CubeCL has 1.7M downloads. We have 536 papers and 3,305 clones. Different kind of heat â€” ours is deep, theirs is broad."
   }
 }
