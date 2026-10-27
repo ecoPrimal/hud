@@ -657,6 +657,34 @@
   // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
+  // IDE command: /tense
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.tense = {
+      desc: 'Tense field — IS/WAS/WILL/COULD/MIGHT/WERE per entity',
+      run: function() {
+        var keys = Object.keys(tenseField);
+        var lines = [
+          'TENSE FIELD — 13 tenses × 4 media = 52 cells of cultural time',
+          'Tracked entities: ' + keys.length,
+          ''
+        ];
+        keys.slice(0, 15).forEach(function(k) {
+          var tf = tenseField[k];
+          var shift = tf.lastShift;
+          lines.push(k + ':');
+          MEDIA.forEach(function(m) { lines.push('  ' + m + ': ' + tf[m]); });
+          if (shift) lines.push('  LAST SHIFT: ' + shift.from + '→' + shift.to + ' (' + shift.media + ')');
+          lines.push('');
+        });
+        lines.push('Freedom bounded by π. IQR [' + PI_FLOOR + ',' + PI_CEIL + '] = metastability.');
+        lines.push('Only track LAST shift. Change radiates through KNN.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('tense');
+  }, 18000);
+
   window.gaiaLocality = {
     fiveRule: FIVE_RULE,
     gaiaBody: gaiaBody,
@@ -671,10 +699,14 @@
     piCeil: PI_CEIL,
     cells: cells,
     myCell: MY_CELL,
-    disclosure: disclosureFromDepth
+    disclosure: disclosureFromDepth,
+    tenseField: tenseField,
+    setTense: setTense,
+    TENSES: TENSES,
+    TENSE_FREEDOM: TENSE_FREEDOM
   };
 
-  console.log('LOCALITY+RADIAL: 5 does not exist. π-IQR [3,5]. Scalpel at 4. ' +
+  console.log('LOCALITY+RADIAL+TENSE: π-IQR [3,5]. Scalpel at 4. ' +
     cells.length + ' cells. ME depth=' + MY_CELL.depth.toFixed(2) + '. ' +
-    'Progressive reveal: distance → disclosure. /body');
+    '13 tenses × 4 media = 52 cells. /tense /body');
 })();
