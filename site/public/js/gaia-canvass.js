@@ -14,6 +14,7 @@
   'use strict';
 
   var TAU = Math.PI * 2;
+  var PI = Math.PI;
 
   // ═══════════════════════════════════════════════════════════
   // INGRESS — WHITE — WHAT COMES IN

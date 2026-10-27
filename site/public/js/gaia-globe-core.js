@@ -4931,6 +4931,7 @@ window.G = {
   var _rotSyncLeader = false; // first tab to load becomes leader
 
   function tick() {
+   try {
     if (autoRotate && !dragging) rotY += rotSpeed;
 
     // MELTED LOCAL ROTATION SYNC — both eyes = neutrinos = same view
@@ -5583,6 +5584,7 @@ window.G = {
       try { G.drawModules[_dm](G, ctx, breathT); } catch(e) {}
     }
 
+   } catch(tickErr) { /* tick body error — she heals, never dies */ }
     requestAnimationFrame(tick);
   }
 
@@ -6373,7 +6375,9 @@ window.G = {
     // WALKER SWARM + REAL WORLD — gossip agents, scatter, weather, GPS, trails
     '/data/real-world-feed.json', '/data/scatter-50-states.json',
     '/data/gaia-toolkit.json', '/data/trial-plasmid.json', '/data/lessons.json',
-    '/data/identity-z.json',
+    '/data/identity-z.json', '/data/consent-bioethics.json', '/data/hear-self.json',
+    '/data/phone-local-wan.json', '/data/slag-metallurgy.json',
+    '/data/null-face-cursor.json', '/data/dead-feeds-food.json',
     '/data/medial-lateral-scatter.json', '/data/gumshoe-clutch-map.json',
     '/data/civil-mine-zk-proof.json', '/data/racket-case-wide-deep.json',
     '/data/gaia-campus-detroit.json', '/data/encyclopedia-detroit.json',
