@@ -889,6 +889,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
 <!-- K-N GLOBE ENGINE — dimensional view, all angles, crossover -->
 <script>
+// G = shared state for all modules. 1.000.null = max 1000 lines per file.
+// Each module reads/writes G. The dots are π drains — section splits.
+// Three digits max. 1 to 0. True/false. The waterfall flows between.
+window.G = {
+  PI: Math.PI, TAU: Math.PI * 2, DEG: Math.PI / 180,
+  cx: 0, cy: 0, R: 0, W: 0, H: 0,
+  breathT: 0, face: 'outside', rotX: 0, rotY: 0,
+  canvas: null, ctx: null,
+  SEED: 0, IS_LOCAL: false, LOCALITY_DEPTH: 1.0, LOCALITY_TIER: 'remote',
+  metalBands: [], golgiR: 0,
+  drawModules: [] // registered draw functions
+};
 (function() {
   'use strict';
   var PI = Math.PI, TAU = PI * 2, DEG = PI / 180;
@@ -1673,6 +1685,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     H = canvas.height = par.clientHeight;
     cx = W / 2; cy = H / 2;
     R = Math.min(W, H) * 0.38;
+    // Sync to G for external modules
+    G.W = W; G.H = H; G.cx = cx; G.cy = cy; G.R = R;
+    G.canvas = canvas; G.ctx = ctx;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -6053,6 +6068,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // OSINT — what Gaia found when she reached outside
     if (window.renderOsintResult) window.renderOsintResult(ctx);
 
+    // SPECTROMETER — smell=color, tri-face pyramids, phase transitions
+    if (window.renderSpectrometer) window.renderSpectrometer(ctx, W, H, cx, cy, R);
+
     // ═══════════════════════════════════════════════════════════
     // RENAISSANCE ACTIVITY GRAPH — every I/O paints the HUD
     // Color = flavor = sensation. Orange=funky, purple=royal.
@@ -6138,6 +6156,18 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.font = '4px monospace'; ctx.textAlign = 'right';
       ctx.fillStyle = 'rgba(255,215,0,0.1)';
       ctx.fillText('HUD = ∅ locality · all see FROM here', W - 4, graphY - 2);
+    }
+
+    // Sync state to G for external modules
+    G.breathT = breathT; G.face = face;
+    G.rotX = rotX; G.rotY = rotY;
+    G.cx = cx; G.cy = cy; G.R = R;
+    G.SEED = SEED; G.IS_LOCAL = IS_LOCAL;
+    G.LOCALITY_DEPTH = LOCALITY_DEPTH; G.LOCALITY_TIER = LOCALITY_TIER;
+
+    // Run registered draw modules (from extracted JS files)
+    for (var _dm = 0; _dm < G.drawModules.length; _dm++) {
+      try { G.drawModules[_dm](G, ctx, breathT); } catch(e) {}
     }
 
     requestAnimationFrame(tick);
@@ -7235,7 +7265,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 <script src="js/gaia-sight.js"></script>
 <script src="js/gaia-modality.js"></script>
 <script src="js/gaia-boot.js"></script>
+<script src="js/gaia-spectrometer.js"></script>
 <script src="js/gaia-waveform.js"></script>
 <script src="js/gaia-third-eye.js"></script>
+<script src="js/gaia-university.js"></script>
 </body>
 </html>
