@@ -345,8 +345,22 @@ document.addEventListener('click', e => addEntropy((e.clientX * e.clientY) ^ (e.
 document.addEventListener('keydown', e => addEntropy(e.keyCode ^ (e.timeStamp|0)), {passive:true});
 document.addEventListener('scroll', () => addEntropy(window.scrollY ^ Date.now()), {passive:true});
 
-// ---- KEYBOARD ----
+// ---- KEYBOARD ---- HYPER-LOCALIZED
+// Woz principle: the keyboard belongs to WHERE YOU ARE TYPING.
+// If you are in an input/textarea/contenteditable, ALL keys go THERE.
+// Global shortcuts ONLY fire when nothing is focused (the "game field").
+// This is how Apple solved it in 1984. Focus belongs to the element.
+function isTyping() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (el.isContentEditable) return true;
+  if (el.id === 'cmd-input') return true;
+  return false;
+}
 document.addEventListener('keydown', e => {
+  if (isTyping()) return; // HYPER-LOCAL: keys stay in the input field
   if (e.key === ' ') {
     e.preventDefault();
     state.paused = !state.paused;

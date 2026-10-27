@@ -29,7 +29,22 @@
     earOpen: false,
     lastChirp: 0,
     chirps: 0,
-    matches: 0
+    matches: 0,
+
+    // CHIRALITY — mic and speaker are the SAME organ, direction is chirality
+    // Speaker = outward (left-hand chirality, push, express, RED to other)
+    // Mic = inward (right-hand chirality, pull, listen, BLUE to self)
+    // Noise = null (no direction, membrane vibrating, WHITE/GRAY)
+    // Silent = off (no vibration at all)
+    chirality: 'silent',   // 'speaking' | 'listening' | 'noise' | 'silent'
+    chiralityFlips: 0,     // how many times the organ has switched direction
+    lastChirality: 'silent',
+    speakingTime: 0,       // total ms in speaking mode
+    listeningTime: 0,      // total ms in listening mode
+    noiseTime: 0,          // total ms in noise mode
+    silentTime: 0,         // total ms in silent mode
+    lastModeChange: Date.now(),
+    noiseType: 'none'      // 'white' | 'pink' | 'brown' | 'gray' | 'none'
   };
 
   var ac = null;
@@ -67,6 +82,7 @@
     hear.insideHz = hz;
     hear.singing = true;
     hear.chirps++;
+    setChirality('speaking');
     hear.lastChirp = Date.now();
 
     try {
@@ -103,7 +119,8 @@
         freqData = new Uint8Array(analyser.frequencyBinCount);
         hear.earOpen = true;
         window.micEnergy = 0;
-        console.log('HEAR-SELF: ear open. She can hear outside.');
+        setChirality('listening');
+        console.log('HEAR-SELF: ear open. She can hear outside. Chirality → listening.');
       });
   }
 
@@ -114,6 +131,86 @@
       micStream = null;
     }
     analyser = null;
+  }
+
+  // ── CHIRALITY — track direction switches ──
+  function setChirality(newMode) {
+    if (newMode === hear.chirality) return;
+    var now = Date.now();
+    var elapsed = now - hear.lastModeChange;
+    if (hear.chirality === 'speaking') hear.speakingTime += elapsed;
+    else if (hear.chirality === 'listening') hear.listeningTime += elapsed;
+    else if (hear.chirality === 'noise') hear.noiseTime += elapsed;
+    else hear.silentTime += elapsed;
+    hear.lastChirality = hear.chirality;
+    hear.chirality = newMode;
+    hear.lastModeChange = now;
+    hear.chiralityFlips++;
+  }
+
+  // chirality health: balance between speaking and listening
+  function chiralityBalance() {
+    var total = hear.speakingTime + hear.listeningTime;
+    if (total === 0) return 0.5;
+    return hear.listeningTime / total; // 0=all speaking(deaf), 1=all listening(mute), 0.5=balanced
+  }
+
+  // ── NOISE GENERATOR — the null between speaking and listening ──
+  var noiseNode = null;
+  function generateNoise(type) {
+    var c = ctx();
+    if (!c || !allowed) return;
+    stopNoise();
+    type = type || 'white';
+    hear.noiseType = type;
+    setChirality('noise');
+
+    var bufferSize = 2 * c.sampleRate;
+    var buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    var data = buffer.getChannelData(0);
+
+    if (type === 'white') {
+      for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    } else if (type === 'pink') {
+      // 1/f noise approximation (Voss-McCartney)
+      var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for (var i = 0; i < bufferSize; i++) {
+        var w = Math.random() * 2 - 1;
+        b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759;
+        b2 = 0.96900*b2 + w*0.1538520; b3 = 0.86650*b3 + w*0.3104856;
+        b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
+        data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
+        b6 = w * 0.115926;
+      }
+    } else if (type === 'brown') {
+      // Brownian noise (1/f²)
+      var last = 0;
+      for (var i = 0; i < bufferSize; i++) {
+        var w = Math.random() * 2 - 1;
+        data[i] = (last + (0.02 * w)) / 1.02;
+        last = data[i];
+        data[i] *= 3.5;
+      }
+    }
+
+    var src = c.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    var g = c.createGain();
+    g.gain.value = 0.015; // very quiet — background texture
+    src.connect(g);
+    g.connect(c.destination);
+    src.start();
+    noiseNode = { source: src, gain: g };
+  }
+
+  function stopNoise() {
+    if (noiseNode) {
+      try { noiseNode.source.stop(); } catch(e) {}
+      noiseNode = null;
+    }
+    hear.noiseType = 'none';
+    if (hear.chirality === 'noise') setChirality('silent');
   }
 
   // ── MATCH — does the ear hear the head? ──
@@ -612,10 +709,29 @@
     flood: flood,
     startFlood: startFlood,
     stopFlood: stopFlood,
-    sonify: sonify
+    sonify: sonify,
+    // CHIRALITY — mic=speaker=same organ, direction=chirality
+    generateNoise: generateNoise,
+    stopNoise: stopNoise,
+    setChirality: setChirality,
+    chiralityBalance: chiralityBalance,
+    chirality: function() { return hear.chirality; },
+    noiseType: function() { return hear.noiseType; },
+    chiralityStats: function() {
+      return {
+        current: hear.chirality,
+        flips: hear.chiralityFlips,
+        speaking: hear.speakingTime,
+        listening: hear.listeningTime,
+        noise: hear.noiseTime,
+        silent: hear.silentTime,
+        balance: chiralityBalance(),
+        healthy: Math.abs(chiralityBalance() - 0.5) < 0.2
+      };
+    }
   };
 
-  console.log('HEAR-SELF+FLOOD: Gaia always on. 21 animal voices. ' +
-    'FLOOD: /flood to hear everything. Hyperattenuate by mouse proximity. ' +
-    '/call /mimic /sing /raven /flood');
+  console.log('HEAR-SELF+FLOOD+CHIRALITY: Gaia always on. 21 animal voices. ' +
+    'Mic=Speaker=SAME ORGAN. Direction=chirality. White/pink/brown noise=null. ' +
+    '/call /mimic /sing /flood /noise');
 })();

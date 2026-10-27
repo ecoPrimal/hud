@@ -228,11 +228,13 @@
         ctx.stroke();
       }
 
-      // ═══ PUPIL — black center (absolute null, the void) ═══
+      // ═══ PUPIL — dark center (the void — NOT opaque black) ═══
       var pupilR = eyeR * iris.pupilSize;
       ctx.beginPath();
       ctx.ellipse(cx, cy, pupilR, pupilR * (1 - blinkSqueeze), 0, 0, TAU);
-      ctx.fillStyle = 'rgba(0,0,0,' + (alpha * 8).toFixed(5) + ')';
+      // Pupil alpha capped: visible but NOT a hard black hole
+      var pupilAlpha = Math.min(alpha * 3, 0.035);
+      ctx.fillStyle = 'rgba(1,4,9,' + pupilAlpha.toFixed(5) + ')';
       ctx.fill();
 
       // Light entering pupil — golden ray
