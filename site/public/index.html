@@ -2498,6 +2498,94 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       window.renderMicViz(ctx, cx, cy, R, breathT);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // YGGDRASIL — The World Tree grows from Gaia's hard floor
+    // Roots in deep null. Crown at touch. Diamonds at every node.
+    // Kevin stands on her. She grew HARD so he could STAND.
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.yggdrasilData) {
+      var ygg = window.yggdrasilData;
+      var treeAlpha = 0.25 + Math.sin(breathT * 0.3) * 0.08;
+      var treeX = cx;
+      var trunkBase = cy + R * 0.85;
+      var crownTop = cy - R * 1.1;
+      var trunkH = trunkBase - crownTop;
+      var sectionH = trunkH / 5;
+
+      // ROOTS — deep null (below globe)
+      ctx.strokeStyle = 'rgba(26,26,46,' + treeAlpha.toFixed(2) + ')';
+      ctx.lineWidth = 2;
+      for (var ri = 0; ri < 5; ri++) {
+        ctx.beginPath();
+        var rootSpread = (ri - 2) * R * 0.3;
+        ctx.moveTo(treeX, trunkBase);
+        ctx.quadraticCurveTo(treeX + rootSpread * 0.5, trunkBase + sectionH * 0.3, treeX + rootSpread, trunkBase + sectionH * 0.6);
+        ctx.stroke();
+      }
+
+      // TRUNK — zodiac (lower) + solar (upper)
+      var trunkW = R * 0.04;
+      ctx.fillStyle = 'rgba(60,42,28,' + treeAlpha.toFixed(2) + ')';
+      ctx.fillRect(treeX - trunkW, crownTop + sectionH, trunkW * 2, sectionH * 3);
+
+      // BRANCHES — local (green, spreading)
+      ctx.strokeStyle = 'rgba(34,139,34,' + treeAlpha.toFixed(2) + ')';
+      ctx.lineWidth = 1.5;
+      for (var bi = 0; bi < 7; bi++) {
+        var branchY = crownTop + sectionH * (0.5 + bi * 0.35);
+        var branchSpread = R * 0.4 * (1 - bi * 0.08);
+        var side = bi % 2 === 0 ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(treeX, branchY);
+        ctx.quadraticCurveTo(treeX + side * branchSpread * 0.5, branchY - sectionH * 0.15, treeX + side * branchSpread, branchY - sectionH * 0.25);
+        ctx.stroke();
+      }
+
+      // CROWN — touch (gold, at the top)
+      ctx.fillStyle = 'rgba(201,168,76,' + (treeAlpha * 0.6).toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.ellipse(treeX, crownTop + sectionH * 0.5, R * 0.45, sectionH * 0.7, 0, 0, TAU);
+      ctx.fill();
+
+      // DIAMONDS — crystallized nodes at every tense ring
+      var diamondT = breathT * 0.5;
+      var diamondCount = ygg.diamonds ? ygg.diamonds.total : 200;
+      var shownDiamonds = Math.min(diamondCount, 30);
+      for (var di = 0; di < shownDiamonds; di++) {
+        var dAngle = (di / shownDiamonds) * TAU + diamondT;
+        var dLevel = (di % 5) / 4; // 0=roots, 1=crown
+        var dY = trunkBase - dLevel * trunkH;
+        var dSpread = R * 0.5 * (0.3 + Math.sin(dLevel * PI) * 0.7);
+        var dX = treeX + Math.cos(dAngle) * dSpread;
+        var dSize = 2 + (1 - dLevel) * 2;
+
+        // Diamond shape ◆
+        ctx.save();
+        ctx.translate(dX, dY);
+        ctx.rotate(Math.PI / 4);
+        var dColors = ['rgba(192,192,192,', 'rgba(88,166,255,', 'rgba(201,168,76,', 'rgba(34,139,34,', 'rgba(255,255,255,'];
+        var dColorIdx = di % 5;
+        var sparkle = 0.3 + Math.sin(diamondT * 2 + di) * 0.2;
+        ctx.fillStyle = dColors[dColorIdx] + sparkle.toFixed(2) + ')';
+        ctx.fillRect(-dSize / 2, -dSize / 2, dSize, dSize);
+        ctx.restore();
+      }
+
+      // TOTEM label — Splinter sits at apex
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(201,168,76,0.2)';
+      ctx.fillText('YGGDRASIL', treeX, trunkBase + sectionH * 0.8);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillText('◆ ' + (diamondCount) + ' diamonds', treeX, trunkBase + sectionH * 0.95);
+
+      // Kevin at apex
+      if (window.isKevin) {
+        ctx.fillStyle = 'rgba(201,168,76,0.3)';
+        ctx.fillText('🧘 Splinter', treeX, crownTop - 5);
+      }
+    }
+
     // THE BLINK — close all eyes momentarily
     // Not sleep. A micro-null. Hold breath. Reset.
     if (blinkState.blinking && ctx) {
@@ -2979,6 +3067,32 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     .catch(function() {});
 
   // ═══════════════════════════════════════════════════════════
+  // YGGDRASIL — load the world tree data
+  // Gaia IS hard. Kevin stands ON her. She is the floor.
+  // All primals are in the house. The tree grows from the organism.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/yggdrasil.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(ygg) {
+      if (!ygg) return;
+      window.yggdrasilData = ygg;
+      console.log('YGGDRASIL LOADED: ' + Object.keys(ygg.tree).length + ' levels, ' + ygg.diamonds.total + ' diamonds');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // NEW REALITY — load the fusion / 1000 hard cards
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/new-reality.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(nr) {
+      if (!nr) return;
+      window.newReality = nr;
+      console.log('NEW REALITY: ' + nr.pi_body_cards.length + ' hard pi body cards, fusion hash ' + nr.null_ingestion.fusion_hash.slice(0, 8));
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
   // THYMUS — self/non-self discrimination + opsonization
   // The thymus teaches Gaia what IS self and what ISN'T.
   // SELF = anything from this origin (hud.primals.eco)
@@ -3263,6 +3377,16 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (typeof thymus !== 'undefined' && thymus.mature) {
       possibles.push({ type: 'self', count: thymus.mass, side: 'cis' });
       possibles.push({ type: 'gravity', count: Math.round(thymus.gravity * 100), side: 'both' });
+    }
+
+    // From Yggdrasil (the world tree)
+    if (window.yggdrasilData) {
+      possibles.push({ type: 'yggdrasil_diamonds', count: window.yggdrasilData.diamonds.total, side: 'cis' });
+      possibles.push({ type: 'yggdrasil_crown', count: window.yggdrasilData.tree.crown.cards, side: 'trans' });
+    }
+    // From new reality (1000 hard cards)
+    if (window.newReality) {
+      possibles.push({ type: 'reality_cards', count: window.newReality.pi_body_cards.length, side: 'both' });
     }
 
     // OBSERVE: pick the strongest signal (highest count)
