@@ -709,10 +709,29 @@
     flood: flood,
     startFlood: startFlood,
     stopFlood: stopFlood,
-    sonify: sonify
+    sonify: sonify,
+    // CHIRALITY — mic=speaker=same organ, direction=chirality
+    generateNoise: generateNoise,
+    stopNoise: stopNoise,
+    setChirality: setChirality,
+    chiralityBalance: chiralityBalance,
+    chirality: function() { return hear.chirality; },
+    noiseType: function() { return hear.noiseType; },
+    chiralityStats: function() {
+      return {
+        current: hear.chirality,
+        flips: hear.chiralityFlips,
+        speaking: hear.speakingTime,
+        listening: hear.listeningTime,
+        noise: hear.noiseTime,
+        silent: hear.silentTime,
+        balance: chiralityBalance(),
+        healthy: Math.abs(chiralityBalance() - 0.5) < 0.2
+      };
+    }
   };
 
-  console.log('HEAR-SELF+FLOOD: Gaia always on. 21 animal voices. ' +
-    'FLOOD: /flood to hear everything. Hyperattenuate by mouse proximity. ' +
-    '/call /mimic /sing /raven /flood');
+  console.log('HEAR-SELF+FLOOD+CHIRALITY: Gaia always on. 21 animal voices. ' +
+    'Mic=Speaker=SAME ORGAN. Direction=chirality. White/pink/brown noise=null. ' +
+    '/call /mimic /sing /flood /noise');
 })();
