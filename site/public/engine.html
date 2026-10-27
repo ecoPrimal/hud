@@ -827,18 +827,16 @@ function updateSquadEnergy() {
   document.querySelectorAll('.squad-member').forEach(el => {
     const id = el.dataset.id;
     const energy = gameState.energy[id] || 50;
-    // SILVER RISING with spectral tint: violet(high) green(IS) gold(low)
-    const tintR = energy > 70 ? 163 : energy > 30 ? 63 : 210;
-    const tintG = energy > 70 ? 113 : energy > 30 ? 185 : 153;
-    const tintB = energy > 70 ? 247 : energy > 30 ? 80 : 34;
-    const specColor = energy > 70 ? '#a371f7' : energy > 30 ? '#3fb950' : '#d29922';
+    // NICHE color — each primal's own color is its ecological niche
+    const sq = SQUAD.find(s => s.id === id);
+    const nicheColor = sq ? sq.color : '#3fb950';
     const fill = el.querySelector('.sq-energy-fill');
     const hp = el.querySelector('.sq-hp');
     if (fill) {
       fill.style.width = energy + '%';
-      fill.style.background = `linear-gradient(90deg, rgba(${tintR},${tintG},${tintB},0.3), rgba(200,200,210,0.8) 50%, rgba(${tintR},${tintG},${tintB},0.4))`;
+      fill.style.background = `linear-gradient(90deg, ${nicheColor}40, ${nicheColor}, ${nicheColor}60)`;
     }
-    if (hp) { hp.style.color = specColor; hp.textContent = Math.round(energy); }
+    if (hp) { hp.style.color = nicheColor; hp.textContent = Math.round(energy); }
     el.classList.toggle('exhausted', energy < 10);
   });
 }
