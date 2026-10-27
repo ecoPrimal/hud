@@ -182,7 +182,8 @@
         var deployed = Object.keys(patrols).filter(function(k) { return patrols[k].deployed; }).length;
         ctx.fillText(
           'VEHICLES: ' + deployed + '/16 deployed \u00b7 6 axes \u00b7 7 vehicle types \u00b7 non-self locomotion',
-          8, 304
+          8, -999
+        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });

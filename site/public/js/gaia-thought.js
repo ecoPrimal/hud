@@ -272,7 +272,8 @@
         ctx.fillText(
           'THOUGHT: ' + INNER.length + ' inner \u00b7 ' + OUTER.length + ' outer \u00b7 ' +
           BRIDGE.length + ' bridge \u00b7 CNS=null self local',
-          8, 298
+          8, -999
+        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });

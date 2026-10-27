@@ -125,7 +125,8 @@
         ctx.fillText(
           '7 LAYERS: depth ' + currentDepth + ' · ' + TENSES[currentDepth] +
           ' · desk→globe→hand→earth→solar→galaxy→BOOM',
-          8, 292
+          8, -999
+        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });
