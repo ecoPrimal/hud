@@ -55,10 +55,13 @@ canvas{display:block;width:100%;height:100%}
       <div>SPEED <span class="hud-val" id="hud-speed">0</span>
         <div class="hud-bar"><div class="hud-bar-fill" id="bar-speed" style="width:0;background:var(--green)"></div></div>
       </div>
-      <div>ACID <span class="hud-val" id="hud-acid">100</span>%
-        <div class="hud-bar"><div class="hud-bar-fill" id="bar-acid" style="width:100%;background:var(--acid)"></div></div>
+      <div>ACID <span class="hud-val" id="hud-acid">0</span>%
+        <div class="hud-bar"><div class="hud-bar-fill" id="bar-acid" style="width:0;background:var(--acid)"></div></div>
       </div>
-      <div>CARDS <span class="hud-val" id="hud-cards">0</span> digested</div>
+      <div>θ <span class="hud-val" id="hud-theta">0.00</span>
+        <span style="color:#666">α<span id="hud-alpha">0</span> β<span id="hud-beta">0</span> γ<span id="hud-gamma">0</span></span>
+      </div>
+      <div>INGESTED <span class="hud-val" id="hud-cards">0</span> | CURRENT <span class="hud-val" id="hud-current">—</span></div>
       <div>HEAD <span class="hud-val" id="hud-head">—</span></div>
     </div>
     <div class="hud-right">
@@ -66,6 +69,7 @@ canvas{display:block;width:100%;height:100%}
       <div id="hud-round" style="color:var(--enzyme)">●</div>
       <div id="hud-zone">MOUTH</div>
       <div id="hud-c">c = πr²/O</div>
+      <div id="hud-phase" style="color:#666">α — not yet beta</div>
     </div>
   </div>
 </div>
@@ -141,14 +145,19 @@ const TOTAL_LEN=ZONES.reduce((s,z)=>s+z.len,0);
 // ═══════════════════════════════════════
 //  PLAYER STATE
 // ═══════════════════════════════════════
-let depth=0; // distance into the gut (0 → TOTAL_LEN)
+let depth=0;
 let speed=0;
-let steerX=0, steerY=0; // -1..1 from tilt/mouse/touch
-let acid=100;
+let steerX=0, steerY=0;
+let acid=0; // START AT 0 — you BUILD acid by ingesting. stomach PRODUCES it.
 let digested=0;
 let headAlpha=0, headBeta=0, headGamma=0;
 let pushForce=0;
-let hand=[]; // cards in hand
+let hand=[];
+let theta=0; // θ — the ANGLE OF INGESTION. steer+head combined.
+let biting=false; // active BITE/INGEST — hold click or E key
+let currentMix=0; // mixed current turbulence 0..1
+let phase='alpha'; // alpha → beta → next
+let phaseTasks=0; // tasks done in current phase
 
 function getZone(d){
   let acc=0;
@@ -197,6 +206,30 @@ function spawnEnzyme(x,y){
 }
 
 // ═══════════════════════════════════════
+//  ACID PARTICLES — visible churning
+// ═══════════════════════════════════════
+const acidDrops=[];
+for(let i=0;i<80;i++){
+  acidDrops.push({
+    a:R.next()*TAU, r:R.range(0.1,0.95),
+    va:R.range(-0.02,0.02), vr:R.range(-0.005,0.005),
+    size:R.range(1,4), opacity:R.range(0.1,0.5)
+  });
+}
+
+// ═══════════════════════════════════════
+//  MIXED CURRENTS — turbulent flow
+// ═══════════════════════════════════════
+const currents=[];
+for(let i=0;i<30;i++){
+  currents.push({
+    a:R.next()*TAU, r:R.range(0.3,0.9),
+    len:R.range(20,60), va:R.range(0.01,0.04)*(R.next()<0.5?1:-1),
+    color:R.pick(['#c8a02030','#e85d3a20','#3fb95020','#58a6ff20'])
+  });
+}
+
+// ═══════════════════════════════════════
 //  GUT WALL GENERATION — round tube
 // ═══════════════════════════════════════
 const WALL_SEGMENTS=200;
@@ -217,27 +250,27 @@ function getWallRadius(d,angle){
 //  INPUT — STEER / TURN / PUSH / HEAD
 // ═══════════════════════════════════════
 
-// Device orientation — head movement
+// Device orientation — head movement → θ
 window.addEventListener('deviceorientation',(e)=>{
   headAlpha=e.alpha||0;
   headBeta=e.beta||0;
   headGamma=e.gamma||0;
-  // Gamma (-90..90) → steerX, Beta (-180..180) → steerY
   steerX=Math.max(-1,Math.min(1,(e.gamma||0)/45));
   steerY=Math.max(-1,Math.min(1,((e.beta||0)-45)/45));
 });
 
-// Mouse — steer
+// Mouse — steer + θ
 cv.addEventListener('mousemove',(e)=>{
   steerX=(e.clientX/W-0.5)*2;
   steerY=(e.clientY/H-0.5)*2;
 });
 
-// Touch — steer + push
+// Touch — steer + BITE (hold = ingest)
 let touchDown=false;
 cv.addEventListener('touchstart',(e)=>{
   e.preventDefault();
   touchDown=true;
+  biting=true;
   const t=e.touches[0];
   steerX=(t.clientX/W-0.5)*2;
   steerY=(t.clientY/H-0.5)*2;
@@ -249,19 +282,26 @@ cv.addEventListener('touchmove',(e)=>{
   steerX=(t.clientX/W-0.5)*2;
   steerY=(t.clientY/H-0.5)*2;
 });
-cv.addEventListener('touchend',()=>{touchDown=false;pushForce=0});
+cv.addEventListener('touchend',()=>{touchDown=false;biting=false;pushForce=0});
 
-// Click — push + enzyme boom
-cv.addEventListener('click',(e)=>{
-  pushForce=3;
+// CLICK = BITE (ingest the nearest card)
+cv.addEventListener('mousedown',(e)=>{
+  biting=true;
+  pushForce=2;
   spawnEnzyme(e.clientX, e.clientY);
-  setTimeout(()=>pushForce=0, 200);
 });
+cv.addEventListener('mouseup',()=>{biting=false;pushForce=0});
 
-// Keyboard — WASD / arrows
+// Keyboard — WASD / arrows / E=BITE / Q=spit
 const keys={};
-window.addEventListener('keydown',(e)=>{keys[e.key]=true});
-window.addEventListener('keyup',(e)=>{keys[e.key]=false});
+window.addEventListener('keydown',(e)=>{
+  keys[e.key]=true;
+  if(e.key==='e'||e.key==='E') biting=true;
+});
+window.addEventListener('keyup',(e)=>{
+  keys[e.key]=false;
+  if(e.key==='e'||e.key==='E') biting=false;
+});
 
 // Scroll/wheel — depth
 cv.addEventListener('wheel',(e)=>{
@@ -280,6 +320,14 @@ function update(){
   breath+=0.02;
   const bv=Math.sin(breath);
 
+  // ── θ (THETA) — the angle of ingestion ──
+  // θ = atan2(steerY, steerX) combined with head orientation
+  // θ IS the sign — it tells you WHERE you're pointed in the gut
+  theta=Math.atan2(steerY, steerX);
+  // Head orientation modulates θ
+  const headMod=(headGamma/90)*PI*0.5; // gamma tilts θ
+  theta+=headMod;
+
   // Keyboard steering
   if(keys['a']||keys['ArrowLeft'])  steerX=Math.max(-1,steerX-0.05);
   if(keys['d']||keys['ArrowRight']) steerX=Math.min(1,steerX+0.05);
@@ -287,7 +335,7 @@ function update(){
   if(keys['s']||keys['ArrowDown'])  speed-=0.1;
   if(keys[' ']){pushForce=2;spawnEnzyme(W/2,H/2)}
 
-  // Peristalsis auto-push (the gut pushes you forward)
+  // Peristalsis auto-push
   const {zone,pct}=getZone(depth);
   const periPush=0.3+Math.sin(breath*0.7)*0.2;
   speed+=periPush*0.02 + pushForce*0.05;
@@ -299,49 +347,93 @@ function update(){
   // Move
   depth+=speed;
   if(depth<0){depth=0;speed=0}
-  if(depth>TOTAL_LEN){depth=0;speed=2;digested++} // loop around — back to mouth!
+  if(depth>TOTAL_LEN){
+    depth=0;speed=2;
+    phaseTasks++;
+    // Phase progression: alpha (5 loops) → beta (10) → next
+    if(phase==='alpha'&&phaseTasks>=5){phase='beta';phaseTasks=0}
+    else if(phase==='beta'&&phaseTasks>=10){phase='v1';phaseTasks=0}
+  }
 
-  // Acid decay in stomach, regen elsewhere
-  if(zone.name==='STOMACH') acid=Math.max(0,acid-0.03);
-  else acid=Math.min(100,acid+0.01);
+  // ── ACID — you BUILD it by ingesting. stomach PRODUCES more. ──
+  // Acid is NOT free. You earn it. It starts at 0.
+  // Stomach zone: acid production +0.08/frame
+  // Ingesting a card: +5 acid (soft) or +10 acid (hard) or +2 (null)
+  // Acid naturally decays -0.02/frame everywhere (metabolic cost)
+  // Acid > 50% = OPERATIONAL — dissolves cards faster, visible churning
+  if(zone.name==='STOMACH'||zone.name==='DUODENUM'){
+    acid=Math.min(100, acid+0.08); // stomach/duodenum produce acid
+  }
+  acid=Math.max(0, acid-0.02); // metabolic cost — always draining
+
+  // ── MIXED CURRENTS — turbulence ──
+  // Current strength depends on zone + speed + acid
+  const zoneCurrentBase=zone.name==='STOMACH'?0.8:zone.name==='DUODENUM'?0.9:
+    zone.name==='JEJUNUM'?0.5:zone.name==='COLON'?0.3:0.4;
+  currentMix=zoneCurrentBase*(0.5+Math.abs(speed)*0.1)*(0.5+acid*0.005);
+  currentMix=Math.min(1,currentMix);
+
+  // Update currents
+  for(const c of currents){
+    c.a+=c.va*(0.5+currentMix*0.5);
+  }
+
+  // Update acid drops — churn harder when acid is high
+  for(const d of acidDrops){
+    d.a+=d.va*(0.5+acid*0.01);
+    d.r+=d.vr;
+    if(d.r<0.05||d.r>0.98){d.vr*=-1;d.r=Math.max(0.05,Math.min(0.98,d.r))}
+  }
 
   // Steer decay
   steerX*=0.95;
   steerY*=0.95;
 
-  // Digest cards near player
-  const playerAngle=Math.atan2(steerY,steerX);
+  // ── DIGEST cards — ONLY when BITING (active ingest) ──
   for(const c of gutCards){
     if(!c.alive)continue;
     const dd=Math.abs(c.depth-depth);
-    if(dd<40){
-      // Close enough to digest
-      c.digestT+=0.01;
-      if(c.digestT>=1){
-        c.alive=false;
-        digested++;
-        // Add to hand
-        if(hand.length<8){
-          hand.push({name:c.name,kind:c.kind,hardness:c.hardness});
-          renderHand();
+    if(dd<50){
+      // Card is near — highlight it
+      c.near=true;
+      if(biting && dd<35){
+        // ACTIVELY INGESTING — bite speed depends on acid level
+        const biteSpeed=0.008+acid*0.0004; // more acid = faster digestion
+        c.digestT+=biteSpeed;
+        if(c.digestT>=1){
+          c.alive=false;
+          digested++;
+          phaseTasks++;
+          // Acid reward — ingestion PRODUCES acid!
+          if(c.kind==='hard') acid=Math.min(100,acid+10);
+          else if(c.kind==='soft') acid=Math.min(100,acid+5);
+          else acid=Math.min(100,acid+2);
+          // Add to hand
+          if(hand.length<8){
+            hand.push({name:c.name,kind:c.kind,hardness:c.hardness});
+            renderHand();
+          }
+          // Enzyme boom
+          const cx2=W/2+(c.r*Math.cos(c.angle))*getWallRadius(c.depth,c.angle);
+          const cy2=H/2+(c.r*Math.sin(c.angle))*getWallRadius(c.depth,c.angle);
+          spawnEnzyme(cx2,cy2);
+          // Respawn further ahead
+          setTimeout(()=>{
+            c.depth=depth+R.range(200,800);
+            if(c.depth>TOTAL_LEN)c.depth-=TOTAL_LEN;
+            c.angle=R.next()*TAU;
+            c.alive=true;
+            c.digestT=0;
+            c.near=false;
+            const nk=R.next()<0.35?'null':R.next()<0.5?'soft':'hard';
+            c.kind=nk;
+            c.name=R.pick(nk==='null'?CARD_NAMES_NULL:nk==='soft'?CARD_NAMES_SOFT:CARD_NAMES_HARD);
+            c.hardness=nk==='null'?-1:nk==='soft'?R.range(0.1,3):R.range(5,10);
+          },2000);
         }
-        // Enzyme boom on digest
-        const cx2=W/2+(c.r*Math.cos(c.angle))*getWallRadius(c.depth,c.angle);
-        const cy2=H/2+(c.r*Math.sin(c.angle))*getWallRadius(c.depth,c.angle);
-        spawnEnzyme(cx2,cy2);
-        // Respawn
-        setTimeout(()=>{
-          c.depth=depth+R.range(200,800);
-          if(c.depth>TOTAL_LEN)c.depth-=TOTAL_LEN;
-          c.angle=R.next()*TAU;
-          c.alive=true;
-          c.digestT=0;
-          const nk=R.next()<0.35?'null':R.next()<0.5?'soft':'hard';
-          c.kind=nk;
-          c.name=R.pick(nk==='null'?CARD_NAMES_NULL:nk==='soft'?CARD_NAMES_SOFT:CARD_NAMES_HARD);
-          c.hardness=nk==='null'?-1:nk==='soft'?R.range(0.1,3):R.range(5,10);
-        },2000);
       }
+    } else {
+      c.near=false;
     }
   }
 
@@ -433,6 +525,85 @@ function render(){
   cx.arc(centerX,centerY,wallR,0,TAU);
   cx.fill();
 
+  // ── ACID DROPS — visible churning when acid > 0 ──
+  if(acid>0){
+    const acidAlpha=Math.min(0.6,acid*0.006);
+    for(const d of acidDrops){
+      const ax=centerX+Math.cos(d.a)*d.r*wallR;
+      const ay=centerY+Math.sin(d.a)*d.r*wallR;
+      cx.save();
+      cx.globalAlpha=d.opacity*acidAlpha;
+      cx.fillStyle=acid>50?'#c8a020':'#806010';
+      if(shapeMode==='round'){
+        cx.beginPath();cx.arc(ax,ay,d.size*(0.8+acid*0.005),0,TAU);cx.fill();
+      }else{
+        const s=d.size*(0.8+acid*0.005);
+        cx.fillRect(ax-s/2,ay-s/2,s,s);
+      }
+      cx.restore();
+    }
+    // Acid haze when OPERATIONAL (>50%)
+    if(acid>50){
+      cx.save();
+      const hazeGrad=cx.createRadialGradient(centerX,centerY,0,centerX,centerY,wallR*0.8);
+      hazeGrad.addColorStop(0,`rgba(200,160,32,${(acid-50)*0.003})`);
+      hazeGrad.addColorStop(1,'transparent');
+      cx.fillStyle=hazeGrad;
+      cx.fillRect(0,0,W,H);
+      cx.restore();
+    }
+  }
+
+  // ── MIXED CURRENTS — turbulent flow lines ──
+  for(const c of currents){
+    const cx1=centerX+Math.cos(c.a)*c.r*wallR;
+    const cy1=centerY+Math.sin(c.a)*c.r*wallR;
+    const cx2=centerX+Math.cos(c.a+0.3)*c.r*wallR*1.05;
+    const cy2=centerY+Math.sin(c.a+0.3)*c.r*wallR*1.05;
+    cx.save();
+    cx.globalAlpha=currentMix*0.6;
+    cx.beginPath();
+    cx.moveTo(cx1,cy1);
+    cx.quadraticCurveTo(
+      centerX+Math.cos(c.a+0.15)*(c.r+0.1)*wallR,
+      centerY+Math.sin(c.a+0.15)*(c.r+0.1)*wallR,
+      cx2,cy2
+    );
+    cx.strokeStyle=c.color;
+    cx.lineWidth=2;
+    cx.stroke();
+    cx.restore();
+  }
+
+  // ── θ INDICATOR — shows ingestion angle ──
+  cx.save();
+  const thetaX=centerX+Math.cos(theta)*35;
+  const thetaY=centerY+Math.sin(theta)*35;
+  cx.beginPath();
+  cx.moveTo(centerX,centerY);
+  cx.lineTo(thetaX,thetaY);
+  cx.strokeStyle=biting?'#e85d3a':'#c8a02060';
+  cx.lineWidth=biting?2:1;
+  cx.stroke();
+  // θ dot
+  cx.beginPath();
+  cx.arc(thetaX,thetaY,biting?5:3,0,TAU);
+  cx.fillStyle=biting?'#e85d3a':'#c8a02080';
+  cx.fill();
+  // BITE indicator
+  if(biting){
+    cx.beginPath();
+    cx.arc(centerX,centerY,20+Math.sin(frame*0.3)*5,0,TAU);
+    cx.strokeStyle='#e85d3a80';
+    cx.lineWidth=2;
+    cx.stroke();
+    cx.font='8px Courier New';
+    cx.fillStyle='#e85d3a';
+    cx.textAlign='center';
+    cx.fillText('BITE',centerX,centerY-25);
+  }
+  cx.restore();
+
   // Draw cards in the gut
   for(const c of gutCards){
     if(!c.alive)continue;
@@ -454,18 +625,33 @@ function render(){
     const colors={null:'#444',soft:'#c8956a',hard:'#ffd700'};
     cx.fillStyle=colors[c.kind]||'#888';
 
+    // Near-card glow (can bite this one)
+    if(c.near){
+      cx.beginPath();
+      cx.arc(0,0,cardSize*0.8+Math.sin(frame*0.2)*4,0,TAU);
+      cx.strokeStyle=biting?'#e85d3aaa':'#ffffff40';
+      cx.lineWidth=biting?2:1;
+      cx.stroke();
+    }
+
     if(shapeMode==='round'){
       cx.beginPath();
       cx.arc(0,0,cardSize/2,0,TAU);
       cx.fill();
       cx.strokeStyle=colors[c.kind];
-      cx.lineWidth=0.5;
+      cx.lineWidth=c.near?1.5:0.5;
       cx.stroke();
     }else{
       cx.fillRect(-cardSize/2,-cardSize*0.7,cardSize,cardSize*1.4);
       cx.strokeStyle=colors[c.kind];
-      cx.lineWidth=0.5;
+      cx.lineWidth=c.near?1.5:0.5;
       cx.strokeRect(-cardSize/2,-cardSize*0.7,cardSize,cardSize*1.4);
+    }
+
+    // Digest progress bar on card
+    if(c.digestT>0&&c.digestT<1){
+      cx.fillStyle='#e85d3a';
+      cx.fillRect(-cardSize/2, cardSize*0.6, cardSize*c.digestT, 2);
     }
 
     // Card name
@@ -590,13 +776,24 @@ function render(){
   document.getElementById('hud-depth').textContent=Math.floor(depth);
   document.getElementById('hud-speed').textContent=speed.toFixed(1);
   document.getElementById('hud-acid').textContent=Math.floor(acid);
+  document.getElementById('hud-theta').textContent=(theta/PI).toFixed(2)+'π';
+  document.getElementById('hud-alpha').textContent=Math.floor(headAlpha);
+  document.getElementById('hud-beta').textContent=Math.floor(headBeta);
+  document.getElementById('hud-gamma').textContent=Math.floor(headGamma);
   document.getElementById('hud-cards').textContent=digested;
+  document.getElementById('hud-current').textContent=
+    currentMix>0.6?'CHURNING':currentMix>0.3?'MIXED':'LAMINAR';
   document.getElementById('hud-head').textContent=
-    `α${Math.floor(headAlpha)} β${Math.floor(headBeta)} γ${Math.floor(headGamma)}`;
+    biting?'BITING':'IDLE';
   document.getElementById('hud-zone').textContent=zone.name;
+  document.getElementById('hud-phase').textContent=
+    phase==='alpha'?`α ALPHA (${phaseTasks}/5 loops)`:
+    phase==='beta'?`β BETA (${phaseTasks}/10 loops)`:
+    `✓ v1 (${phaseTasks} loops)`;
 
   document.getElementById('bar-speed').style.width=Math.min(100,Math.abs(speed)*12.5)+'%';
   document.getElementById('bar-acid').style.width=acid+'%';
+  document.getElementById('bar-acid').style.background=acid>50?'var(--acid)':'#806010';
 
   // Steer dot
   const dot=document.getElementById('steer-dot');
