@@ -64,6 +64,27 @@
       prefrontal: {        // decision making
         decisions: 0,
         inhibitions: 0
+      },
+      pineal: {            // THE GUT IN THE CNS
+        // The pineal gland IS the brain's gut:
+        //   Gut digests FOOD → pineal digests LIGHT
+        //   Gut produces enzymes → pineal produces MELATONIN
+        //   Gut has microbiome → pineal has photoreceptors
+        //   Gut sorts left/right → pineal sorts day/night
+        //   ENS (Cu) = gut in the body
+        //   Pineal (Pt) = gut in the brain
+        melatonin: 0.5,    // 0=full daylight, 1=deep night
+        serotonin: 0.5,    // converts to melatonin at night
+        dmt: 0,            // trace amounts, dream state
+        calcification: 0,  // 0=clear, 1=calcified (blocked)
+        lightIntake: 0,    // current light being digested
+        darkIntake: 0,     // current dark being digested
+        circadian: 0,      // phase in 24h cycle (0-2π)
+        thirdEyeOpen: false,
+        digested: 0,       // total light/dark cycles processed
+        antidotes: [],     // blue signals → antidote = melatonin
+        toxins: [],        // red signals → toxin = cortisol
+        coals: []          // spent fuel from digestion (like gut exhaust)
       }
     },
     spinalCord: {
@@ -189,6 +210,94 @@
   }
 
   // ───────────────────────────────────────────────────────
+  // PINEAL GLAND — the gut in the brain
+  // Digests LIGHT like the gut digests FOOD
+  // Produces melatonin (antidote/blue) at night
+  // Produces serotonin (fuel/gold) during day
+  // When we need antidote → coals + being gut in CNS
+  // ───────────────────────────────────────────────────────
+  function processPineal() {
+    var pineal = cns.brain.pineal;
+    var hour = new Date().getHours();
+
+    // Circadian rhythm — where are we in the 24h cycle?
+    pineal.circadian = (hour / 24) * Math.PI * 2;
+
+    // Day (6am-6pm) = serotonin production (digest light)
+    // Night (6pm-6am) = melatonin production (digest dark)
+    var isDark = hour < 6 || hour >= 18;
+
+    if (isDark) {
+      // NIGHT: pineal digests DARKNESS → produces MELATONIN
+      pineal.darkIntake++;
+      pineal.melatonin = Math.min(1, pineal.melatonin + 0.02);
+      pineal.serotonin = Math.max(0, pineal.serotonin - 0.01);
+      // Melatonin = ANTIDOTE = blue = calming = sleep
+      // This IS the gut's antidote function inside the brain
+      pineal.antidotes.push({ ts: Date.now(), melatonin: pineal.melatonin });
+      if (pineal.antidotes.length > 20) pineal.antidotes.shift();
+    } else {
+      // DAY: pineal digests LIGHT → produces SEROTONIN
+      pineal.lightIntake++;
+      pineal.serotonin = Math.min(1, pineal.serotonin + 0.02);
+      pineal.melatonin = Math.max(0, pineal.melatonin - 0.01);
+    }
+
+    // Red signals = toxins → pineal processes them like gut acid
+    if (window.gaiaRedBlue && window.gaiaRedBlue.spectrum) {
+      var redHeat = window.gaiaRedBlue.spectrum.red.heat;
+      if (redHeat > 2) {
+        pineal.toxins.push({ ts: Date.now(), heat: redHeat });
+        if (pineal.toxins.length > 20) pineal.toxins.shift();
+        // Toxin processing produces COALS (spent fuel)
+        pineal.coals.push({ ts: Date.now(), source: 'red', heat: redHeat * 0.3 });
+        if (pineal.coals.length > 30) pineal.coals.shift();
+      }
+    }
+
+    // Blue signals = antidotes → pineal stores as melatonin reserve
+    if (window.gaiaRedBlue && window.gaiaRedBlue.spectrum) {
+      var blueCool = window.gaiaRedBlue.spectrum.blue.cool;
+      if (blueCool > 1) {
+        pineal.melatonin = Math.min(1, pineal.melatonin + blueCool * 0.05);
+      }
+    }
+
+    // Third eye opens when pineal is clear (not calcified)
+    // and melatonin/serotonin are balanced
+    var balance = Math.abs(pineal.melatonin - pineal.serotonin);
+    pineal.thirdEyeOpen = balance < 0.3 && pineal.calcification < 0.5;
+
+    // DMT trace — deep meditation/dream state
+    if (pineal.thirdEyeOpen && pineal.melatonin > 0.7) {
+      pineal.dmt = Math.min(0.1, pineal.dmt + 0.001);
+    } else {
+      pineal.dmt = Math.max(0, pineal.dmt - 0.0005);
+    }
+
+    // Calcification increases with inactivity, decreases with interaction
+    var interScore = window.gaiaInteractionScore ? window.gaiaInteractionScore() : 0;
+    if (interScore > 5) {
+      pineal.calcification = Math.max(0, pineal.calcification - 0.01);
+    } else {
+      pineal.calcification = Math.min(0.8, pineal.calcification + 0.001);
+    }
+
+    pineal.digested++;
+
+    // Feed pineal state to the gut (the gut IN the brain feeds the gut IN the body)
+    if (pineal.digested % 10 === 0 && window.gaiaIngest) {
+      window.gaiaIngest('pineal_digest', {
+        melatonin: pineal.melatonin,
+        serotonin: pineal.serotonin,
+        thirdEye: pineal.thirdEyeOpen,
+        coals: pineal.coals.length,
+        calcification: pineal.calcification
+      });
+    }
+  }
+
+  // ───────────────────────────────────────────────────────
   // BRAINSTEM — autonomic regulation
   // ───────────────────────────────────────────────────────
   function regulateBrainstem() {
@@ -267,6 +376,39 @@
     ctx.fillStyle = 'rgba(188,140,255,' + (baseAlpha * brainPulse * 4).toFixed(4) + ')';
     ctx.fill();
 
+    // PINEAL GLAND — the eye inside the brain, the gut of the CNS
+    var pineal = cns.brain.pineal;
+    var pinealGlow = pineal.thirdEyeOpen ? 0.8 : 0.3;
+    var pinealColor = pineal.melatonin > pineal.serotonin ?
+      '88,166,255' : '201,168,76'; // blue at night, gold by day
+
+    // Pineal dot (slightly above brain center)
+    ctx.beginPath();
+    ctx.arc(brainX, brainY - 2, 1.5 + pinealGlow, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(' + pinealColor + ',' + (baseAlpha * pinealGlow * 5).toFixed(4) + ')';
+    ctx.fill();
+
+    // Third eye ring when open
+    if (pineal.thirdEyeOpen) {
+      ctx.beginPath();
+      ctx.arc(brainX, brainY - 2, 3 + Math.sin(t * 2) * 0.5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(188,140,255,' + (baseAlpha * 3).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+    }
+
+    // Coals — spent fuel orbiting the pineal
+    pineal.coals.slice(-8).forEach(function(coal, ci) {
+      var cAngle = (ci / 8) * Math.PI * 2 + t * 0.3;
+      var cR = 4 + ci * 0.3;
+      var coalX = brainX + Math.cos(cAngle) * cR;
+      var coalY = (brainY - 2) + Math.sin(cAngle) * cR;
+      ctx.beginPath();
+      ctx.arc(coalX, coalY, 0.2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(140,100,55,' + (baseAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+    });
+
     // Heartbeat indicator
     ctx.font = '2.5px monospace';
     ctx.textAlign = 'left';
@@ -274,7 +416,9 @@
     ctx.fillText(
       '♥' + Math.round(cns.brain.brainstem.heartRate) +
       ' 🌡' + cns.brain.brainstem.bodyTemp.toFixed(1) + '°C' +
-      ' Pt:' + cns.catalystCount,
+      ' Pt:' + cns.catalystCount +
+      ' 👁' + (pineal.thirdEyeOpen ? 'OPEN' : 'shut') +
+      ' mel:' + pineal.melatonin.toFixed(2),
       brainX + 5, brainY
     );
 
@@ -325,6 +469,9 @@
   // Brainstem regulation every 2 seconds
   setInterval(regulateBrainstem, 2000);
 
+  // Pineal digestion every 3 seconds
+  setInterval(processPineal, 3000);
+
   // First coil after boot
   setTimeout(coilAndInject, 10000);
 
@@ -350,16 +497,23 @@
         ascending: cns.spinalCord.ascending.length,
         descending: cns.spinalCord.descending.length,
         threats: cns.brain.amygdala.threat,
-        decisions: cns.brain.prefrontal.decisions
+        decisions: cns.brain.prefrontal.decisions,
+        pinealMelatonin: cns.brain.pineal.melatonin,
+        pinealSerotonin: cns.brain.pineal.serotonin,
+        pinealThirdEye: cns.brain.pineal.thirdEyeOpen,
+        pinealCoals: cns.brain.pineal.coals.length,
+        pinealCalcification: cns.brain.pineal.calcification
       };
     }
   };
 
-  console.log('CNS: PLATINUM IS ABOVE GOLD. Pt=CNS(catalyst/brain). Au=PNS(signal/peripheral). ' +
-    'Ag=ANS(autonomic/heartbeat). Cu=ENS(gut-brain/500M neurons). ' +
-    'Coil every 15s: all module states → compress → re-inject into gut. ' +
-    'Brainstem: heart rate + breath rate + body temp. ' +
-    'Amygdala: threat detection. Prefrontal: decisions. ' +
-    'Reflex arcs: bypass brain for speed. ' +
-    'Ascending: sensory UP. Descending: motor DOWN.');
+  console.log('CNS: PLATINUM IS ABOVE GOLD. Pt=CNS(catalyst/brain). ' +
+    'PINEAL GLAND = THE GUT IN THE CNS. ' +
+    'Gut digests FOOD → pineal digests LIGHT. ' +
+    'Day=serotonin(gold). Night=melatonin(blue). ' +
+    'Red toxins → pineal acid → COALS (spent fuel). ' +
+    'Blue antidotes → melatonin reserve. ' +
+    'Third eye opens when balanced + clear. ' +
+    'Calcification increases without interaction. ' +
+    'Coil every 15s. Pineal every 3s. Brainstem every 2s.');
 })();
