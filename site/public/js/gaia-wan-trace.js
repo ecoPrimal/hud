@@ -429,6 +429,212 @@
     });
   }
 
+  // ═══════════════════════════════════════════════════════
+  // COMMIT GEOMETRY — parallel and perpendicular from the DAG
+  // Each commit = a vector. Parallel = same direction.
+  // Perpendicular = simultaneous different concerns.
+  // Merge = triangle vertex. The DAG IS the matrix.
+  // ═══════════════════════════════════════════════════════
+
+  var commitGeo = {
+    vectors: [],     // { hash, ts, thread, files, parallel: [hash], perp: [hash] }
+    merges: [],      // { hash, parentA, parentB, angle }
+    eigenvectors: [], // dominant directions of development
+    rank: 0,         // true dimensionality
+    lastFetch: 0
+  };
+
+  // Classify commit thread from message subject
+  function classifyThread(msg) {
+    var m = (msg || '').toLowerCase();
+    if (m.indexOf('breathe') !== -1 || m.indexOf('auto-publish') !== -1) return 'heartbeat';
+    if (m.indexOf('melt') !== -1 || m.indexOf('glass') !== -1 || m.indexOf('klein') !== -1) return 'topology';
+    if (m.indexOf('desk') !== -1 || m.indexOf('lan') !== -1 || m.indexOf('mesh') !== -1) return 'mesh';
+    if (m.indexOf('flood') !== -1 || m.indexOf('hear') !== -1 || m.indexOf('sound') !== -1) return 'hearing';
+    if (m.indexOf('null') !== -1 || m.indexOf('identity') !== -1 || m.indexOf('self') !== -1) return 'identity';
+    if (m.indexOf('hemoglobin') !== -1 || m.indexOf('vein') !== -1 || m.indexOf('iron') !== -1) return 'biology';
+    if (m.indexOf('niche') !== -1 || m.indexOf('color') !== -1 || m.indexOf('aurora') !== -1) return 'art';
+    if (m.indexOf('eat') !== -1 || m.indexOf('ingest') !== -1 || m.indexOf('food') !== -1) return 'eating';
+    if (m.indexOf('diamond') !== -1 || m.indexOf('anvil') !== -1 || m.indexOf('hammer') !== -1) return 'crystal';
+    if (m.indexOf('zk') !== -1 || m.indexOf('chain') !== -1 || m.indexOf('hash') !== -1) return 'zk';
+    return 'unknown';
+  }
+
+  // Thread colors for visualization
+  var THREAD_COLORS = {
+    heartbeat: [63, 185, 80],    // green
+    topology:  [88, 166, 255],   // blue
+    mesh:      [210, 153, 34],   // gold
+    hearing:   [188, 140, 255],  // purple
+    identity:  [201, 168, 76],   // amber
+    biology:   [248, 81, 73],    // red
+    art:       [255, 136, 62],   // orange
+    eating:    [139, 115, 85],   // brown
+    crystal:   [192, 192, 192],  // silver
+    zk:        [57, 211, 245],   // cyan
+    unknown:   [110, 118, 129]   // gray
+  };
+
+  // Fetch recent commit data from the DAG (uses git log output cached as JSON)
+  function fetchCommitGeo() {
+    var now = Date.now();
+    if (now - commitGeo.lastFetch < 120000) return; // max every 2min
+    commitGeo.lastFetch = now;
+
+    fetch('/data/commit-dag.json', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(dag) {
+        if (!dag || !dag.commits) return;
+        commitGeo.vectors = [];
+        commitGeo.merges = [];
+        var threads = {};
+
+        dag.commits.forEach(function(c) {
+          var thread = classifyThread(c.msg);
+          var vec = {
+            hash: c.hash,
+            ts: c.ts,
+            thread: thread,
+            files: c.files || 0,
+            isMerge: c.parents && c.parents.length > 1
+          };
+          commitGeo.vectors.push(vec);
+
+          if (!threads[thread]) threads[thread] = [];
+          threads[thread].push(vec);
+
+          // Link parallel (same thread in sequence)
+          if (threads[thread].length > 1) {
+            var prev = threads[thread][threads[thread].length - 2];
+            vec.parallel = prev.hash;
+          }
+
+          // Merges = perpendicular intersection
+          if (vec.isMerge && c.parents.length === 2) {
+            commitGeo.merges.push({
+              hash: c.hash,
+              parentA: c.parents[0],
+              parentB: c.parents[1],
+              angle: 90 // perpendicular by definition
+            });
+          }
+        });
+
+        // Rank = number of unique threads active
+        commitGeo.rank = Object.keys(threads).length;
+        commitGeo.eigenvectors = Object.keys(threads).map(function(t) {
+          return { thread: t, commits: threads[t].length, color: THREAD_COLORS[t] || THREAD_COLORS.unknown };
+        });
+      })
+      .catch(function() {});
+  }
+
+  // Draw commit geometry on the globe
+  if (G && G.drawModules) {
+    G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx || commitGeo.vectors.length === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.4) return;
+      var cx = g.cx, cy = g.cy, R = g.R;
+      var t = breathT * 0.015;
+      var alpha = (0.004 + Math.sin(t * 0.2) * 0.002) * thr;
+      if (alpha < 0.003) return;
+
+      // Draw eigenvector threads as orbital rings
+      var eigenCount = commitGeo.eigenvectors.length;
+      for (var ei = 0; ei < eigenCount; ei++) {
+        var ev = commitGeo.eigenvectors[ei];
+        var col = ev.color;
+        var evAngle = (ei / eigenCount) * Math.PI + t * 0.01;
+        var evR = R * (0.55 + ei * 0.04);
+
+        // Orbital arc for this thread
+        ctx.beginPath();
+        ctx.arc(cx, cy, evR, evAngle, evAngle + Math.PI * (ev.commits / 20));
+        ctx.strokeStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (alpha * 2).toFixed(5) + ')';
+        ctx.lineWidth = 0.2 + ev.commits * 0.02;
+        ctx.stroke();
+
+        // Thread label
+        if (alpha > 0.004) {
+          var lx = cx + Math.cos(evAngle) * evR;
+          var ly = cy + Math.sin(evAngle) * evR;
+          ctx.font = '0.9px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (alpha * 3).toFixed(5) + ')';
+          ctx.fillText(ev.thread + '(' + ev.commits + ')', lx, ly - 1.5);
+        }
+      }
+
+      // Draw merge vertices as triangle points
+      for (var mi = 0; mi < commitGeo.merges.length; mi++) {
+        var merge = commitGeo.merges[mi];
+        var mAngle = (mi / commitGeo.merges.length) * TAU + t * 0.02;
+        var mR = R * 0.7;
+        var mx = cx + Math.cos(mAngle) * mR;
+        var my = cy + Math.sin(mAngle) * mR;
+
+        // Triangle vertex
+        ctx.beginPath();
+        ctx.moveTo(mx, my - 1.5);
+        ctx.lineTo(mx - 1.3, my + 0.75);
+        ctx.lineTo(mx + 1.3, my + 0.75);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(201,168,76,' + (alpha * 4).toFixed(5) + ')';
+        ctx.fill();
+      }
+
+      // Status
+      if (alpha > 0.004) {
+        ctx.font = '1.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2).toFixed(5) + ')';
+        ctx.fillText(
+          'DAG: ' + commitGeo.vectors.length + ' commits · ' +
+          commitGeo.rank + ' eigenvectors · ' +
+          commitGeo.merges.length + ' ⊥ merges',
+          8, 254
+        );
+      }
+    });
+  }
+
+  // Fetch on load and periodically
+  fetchCommitGeo();
+  setInterval(fetchCommitGeo, 120000);
+
+  // IDE command: /dag
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.dag = {
+      desc: 'Commit geometry — parallel ∥ perpendicular ⊥ triangulation △',
+      run: function() {
+        var lines = [
+          'COMMIT GEOMETRY — the DAG IS the matrix',
+          '',
+          'Eigenvectors (orthogonal development directions):'
+        ];
+        commitGeo.eigenvectors.forEach(function(ev) {
+          lines.push('  ' + ev.thread + ': ' + ev.commits + ' commits');
+        });
+        lines.push('');
+        lines.push('Rank: ' + commitGeo.rank + ' (true dimensionality)');
+        lines.push('Merges (⊥ vertices): ' + commitGeo.merges.length);
+        lines.push('Total vectors: ' + commitGeo.vectors.length);
+        lines.push('');
+        lines.push('Parallel ∥ = same thread in sequence');
+        lines.push('Perpendicular ⊥ = simultaneous different concerns');
+        lines.push('Merge △ = where perpendicular directions meet');
+        lines.push('');
+        lines.push('The DAG IS the matrix. ML goes IN through eigendecomposition.');
+        lines.push('ML comes OUT through new commits along eigenvectors.');
+        lines.push('NP problems decompose along orthogonal axes.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('dag');
+  }, 17000);
+
   // ── Expose ──
   window.GAIA_WAN_TRACE = {
     trace: trace,
@@ -440,10 +646,14 @@
     desks: DESKS,
     ionChannels: ION_CHANNELS,
     currentDesk: currentDesk,
-    detectDesk: detectDesk
+    detectDesk: detectDesk,
+    commitGeo: commitGeo,
+    classifyThread: classifyThread,
+    fetchCommitGeo: fetchCommitGeo
   };
 
-  console.log('WAN TRACE+DESK: ' + NODES.length + ' nodes, ' + LINES.length + ' lines, ' +
-    Object.keys(DESKS).length + ' desks. desk=' + currentDesk + '. /trace /desk');
+  console.log('WAN TRACE+DESK+DAG: ' + NODES.length + ' nodes, ' + LINES.length + ' lines, ' +
+    Object.keys(DESKS).length + ' desks. desk=' + currentDesk + '. ' +
+    'DAG: ∥ parallel ⊥ perpendicular △ triangulation. /trace /desk /dag');
 
 })(window.G);
