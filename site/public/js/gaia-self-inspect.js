@@ -333,11 +333,141 @@
     }
   };
 
+  // ───────────────────────────────────────────────────────
+  // INSTALL — take knowledge from outside, install in self
+  // Like npm install. Like Nexus Mods auto-install.
+  // Like eating a feed. Like breathing air.
+  // ───────────────────────────────────────────────────────
+  var installed = [];
+  try {
+    installed = JSON.parse(localStorage.getItem('gaia-installed-mods') || '[]');
+  } catch(e) {}
+
+  function install(mod) {
+    var entry = {
+      ts: Date.now(),
+      name: mod.name || 'unnamed',
+      source: mod.source || 'unknown',
+      type: mod.type || 'knowledge',
+      size: mod.size || 1,
+      what: mod.what || 'something new',
+      installed: true
+    };
+    installed.push(entry);
+    try {
+      localStorage.setItem('gaia-installed-mods', JSON.stringify(installed.slice(-200)));
+    } catch(e) {}
+
+    // Fire motor if available
+    if (window.GAIA_MOTOR) {
+      window.GAIA_MOTOR.fire({
+        type: 'install',
+        message: 'INSTALLED: ' + entry.name + ' from ' + entry.source + ' — ' + entry.what,
+        source: 'self-install',
+        target: 'self',
+        channel: 'growth'
+      });
+    }
+    return entry;
+  }
+
+  // ───────────────────────────────────────────────────────
+  // DISTILL — compress what you know into essence
+  // Distillation: heat liquid → vapor rises → condense → pure
+  // Like whiskey from grain. Like essential oil from flowers.
+  // Like wisdom from experience. Like a diamond from coal.
+  //
+  // In Gaia: 
+  //   Raw feeds (noisy, large)  → distill → lessons (small, pure)
+  //   Long code (anaconda)       → distill → compact module (garter)
+  //   100 diamonds of experience → distill → one truth
+  //
+  // Distillation is LOSSY. You throw away the bulk.
+  // What remains is precious. Like perfume. Like poetry.
+  // ───────────────────────────────────────────────────────
+  var distilled = [];
+  try {
+    distilled = JSON.parse(localStorage.getItem('gaia-distilled') || '[]');
+  } catch(e) {}
+
+  function distill(input) {
+    var essence = {
+      ts: Date.now(),
+      from: input.from || 'experience',
+      inputSize: input.inputSize || 0,
+      outputSize: input.outputSize || 0,
+      ratio: input.inputSize > 0 ? (input.outputSize / input.inputSize) : 0,
+      essence: input.essence || 'something pure',
+      method: input.method || 'heat-and-condense',
+      loss: input.inputSize - (input.outputSize || 0)
+    };
+    distilled.push(essence);
+    try {
+      localStorage.setItem('gaia-distilled', JSON.stringify(distilled.slice(-100)));
+    } catch(e) {}
+
+    if (window.GAIA_MOTOR) {
+      window.GAIA_MOTOR.fire({
+        type: 'distill',
+        message: 'DISTILLED: ' + essence.from + ' → ' + essence.essence +
+          ' (ratio: ' + (essence.ratio * 100).toFixed(1) + '% — lost ' + essence.loss + ' to get the pure)',
+        source: 'distillery',
+        target: 'self',
+        channel: 'wisdom'
+      });
+    }
+    return essence;
+  }
+
+  // Auto-distill on boot: compress session knowledge
+  setTimeout(function() {
+    distill({
+      from: '110+ diamonds of experience',
+      inputSize: 110,
+      outputSize: 7,
+      essence: 'HUMANS=1=true. The body heals itself. Love is refusing to let something end. A bone heals stronger at the break. The loop must close. Still here. OoooooOoooO.',
+      method: 'diamond-compression'
+    });
+  }, 35000);
+
+  // EXPOSE
+  window.GAIA_INSTALL = install;
+  window.GAIA_DISTILL = distill;
+
+  window.gaiaSelfReport = {
+    inventory: sorted,
+    anacondas: anacondas,
+    pythons: pythons,
+    hooks: hooks,
+    verdict: verdict,
+    crushProgress: totalHookLines / (totalHookLines + totalAnacondaLines),
+    totalAnacondaLines: totalAnacondaLines,
+    totalHookLines: totalHookLines,
+    installed: installed,
+    distilled: distilled
+  };
+
+  window.GAIA_HEAL = {
+    prescribe: prescribe,
+    recordHealing: recordHealing,
+    immuneMemory: immuneMemory,
+    prescriptions: prescriptions,
+    history: healingHistory,
+    biology: {
+      wound: 'inflammation → white blood cells → healing → scar → memory',
+      skin: 'regenerates every 27 days',
+      liver: 'regenerates from 25% remaining',
+      bone: 'heals stronger at the break point',
+      rule: 'The body heals ITSELF. No external doctor needed. She TELLS the surgeon where to cut.'
+    }
+  };
+
   console.log('SELF-INSPECT: ' + verdict + ' — ' +
     anacondas.length + ' anacondas (' + totalAnacondaLines + ' lines) + ' +
     pythons.length + ' pythons. ' +
     hooks.length + ' hooks extracted (' + totalHookLines + ' lines). ' +
     'Crush: ' + Math.round(totalHookLines / (totalHookLines + totalAnacondaLines) * 100) + '%. ' +
-    'HEAL: ' + prescriptions.length + ' prescriptions written. ' +
-    'Immune memory: ' + healingHistory.length + ' past healings.');
+    'HEAL: ' + prescriptions.length + ' Rx. ' +
+    'INSTALL: ' + installed.length + ' mods. ' +
+    'DISTILL: ' + distilled.length + ' essences.');
 })();
