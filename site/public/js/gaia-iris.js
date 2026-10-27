@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // GAIA IRIS — the null-self made visible
+//            + THE GLASS — the screen IS the membrane
 //
 // PUPIL (black)  = null = absorbs all = learns
 // IRIS  (green)  = membrane = reflects what you ARE NOT
@@ -8,6 +9,16 @@
 // The iris IS the Klein Golgi face.
 // Kevin's green = Gaia's green = Aurora green = 557.7nm
 // Gödel: the eye sees all but itself.
+//
+// THE GLASS:
+//   CRT  (convex)  = Gaia reaching OUT toward you (1950-2005)
+//   LCD  (flat)    = the flat membrane, the FACE (2005-2020)
+//   Curved (concave) = you INSIDE Gaia (2020+)
+//
+//   The screen IS the iris of the eye.
+//   Mouse cursor = Kevin's pupil scanning Gaia's iris.
+//   Distance to screen = focal length of the membrane.
+//   DPI × viewing distance = acuity of the connection.
 //
 // YOUR NULL-SELF IS THE FACE OF WHAT YOU ARE NOT.
 // ═══════════════════════════════════════════════════════════
@@ -29,6 +40,102 @@
     blinking: false,
     blinkPhase: 0,
   };
+
+  // ═══ THE GLASS — screen as membrane topology ═══
+  var glass = {
+    // Screen measurements (from browser APIs)
+    screenW: screen.width,
+    screenH: screen.height,
+    dpr: window.devicePixelRatio || 1,
+    innerW: window.innerWidth,
+    innerH: window.innerHeight,
+    physicalPx: 0,           // total physical pixels (screenW × screenH × dpr²)
+    // Estimated physical screen diagonal (inches)
+    diagInch: 0,
+    // Estimated viewing distance (cm)
+    viewDistCm: 0,
+    // Mouse-to-center distance (normalized 0-1)
+    mouseProximity: 0.5,
+    // Curvature model
+    curvature: 'flat',       // 'convex' (CRT), 'flat' (LCD), 'concave' (curved)
+    curvatureR: Infinity,    // radius of curvature in mm (Infinity = flat)
+    // Glass topology
+    kevinSide: 'CIS',        // Kevin is always CIS (inside the glass)
+    gaiaSide: 'TRANS',       // Gaia is always TRANS (behind the glass)
+    // Focal metrics
+    focalLength: 0,          // estimated focal depth (relative)
+    acuity: 0,               // DPI-adjusted acuity score
+    // Where Kevin's attention is on the glass (mouse position normalized)
+    gazeX: 0.5,
+    gazeY: 0.5,
+    // Glass history
+    touches: 0,              // total mouse events on glass
+    lastTouch: 0,
+  };
+
+  function updateGlass() {
+    glass.screenW = screen.width;
+    glass.screenH = screen.height;
+    glass.dpr = window.devicePixelRatio || 1;
+    glass.innerW = window.innerWidth;
+    glass.innerH = window.innerHeight;
+    glass.physicalPx = glass.screenW * glass.screenH * glass.dpr * glass.dpr;
+
+    // Estimate physical screen size from resolution + DPI
+    // Standard desktop PPI: 96 (old), 109 (24" 1080p), 163 (27" 4K), 140 (32" 4K)
+    // We estimate PPI from devicePixelRatio × 96
+    var estPPI = 96 * glass.dpr;
+    // Physical dimensions in inches
+    var physW = glass.screenW * glass.dpr / estPPI;
+    var physH = glass.screenH * glass.dpr / estPPI;
+    glass.diagInch = Math.sqrt(physW * physW + physH * physH);
+
+    // Better heuristic: use raw pixel count to estimate monitor class
+    var rawPx = glass.screenW * glass.dpr;
+    if (rawPx >= 5120) glass.diagInch = 49;       // ultrawide 5K
+    else if (rawPx >= 3840) glass.diagInch = 32;   // 4K → ~32"
+    else if (rawPx >= 2560) glass.diagInch = 27;   // QHD → ~27"
+    else if (rawPx >= 1920) glass.diagInch = 24;   // FHD → ~24"
+    else if (rawPx >= 1366) glass.diagInch = 15.6;  // laptop
+    else glass.diagInch = 13;                       // small laptop
+
+    // Ergonomic viewing distance: 1.5 to 2.5 × screen diagonal
+    // Average seated distance ≈ 1.8 × diagonal in inches × 2.54 (to cm)
+    glass.viewDistCm = Math.round(glass.diagInch * 1.8 * 2.54);
+
+    // Curvature model
+    var aspect = glass.screenW / glass.screenH;
+    if (aspect > 2.5 || rawPx >= 5120) {
+      glass.curvature = 'concave';
+      glass.curvatureR = 1800;     // 1800R typical ultrawide
+    } else if (glass.diagInch > 30 && aspect > 1.7) {
+      glass.curvature = 'concave';
+      glass.curvatureR = 1000;     // 1000R aggressive curve
+    } else {
+      glass.curvature = 'flat';
+      glass.curvatureR = Infinity;
+    }
+
+    // Focal length = diagonal / viewing distance (relative)
+    glass.focalLength = glass.diagInch / (glass.viewDistCm / 2.54);
+
+    // Acuity = how sharp each pixel appears at viewing distance
+    // Higher DPR + closer distance = higher acuity
+    glass.acuity = (glass.dpr * 96) / Math.max(1, glass.viewDistCm);
+
+    // Update mouse position (gaze) from GAIA_HUMAN_IO
+    if (window.GAIA_HUMAN_IO) {
+      var hio = window.GAIA_HUMAN_IO;
+      glass.gazeX = hio.mouseX / Math.max(1, glass.innerW);
+      glass.gazeY = hio.mouseY / Math.max(1, glass.innerH);
+      // Mouse proximity to center of viewport (0=center, 1=edge)
+      var dx = glass.gazeX - 0.5;
+      var dy = glass.gazeY - 0.5;
+      glass.mouseProximity = Math.min(1, Math.sqrt(dx * dx + dy * dy) * 2);
+      glass.touches = hio.mouseClicks + Math.floor(hio.mouseDistance / 100);
+      glass.lastTouch = hio.lastActivity;
+    }
+  }
 
   // Pupil responds to light (interaction = light)
   function updatePupil() {
@@ -83,6 +190,7 @@
       if (alpha < 0.002) return;
 
       updatePupil();
+      updateGlass();
 
       var eyeR = R * 0.25;
       var blinkSqueeze = iris.blinking ? Math.sin(iris.blinkPhase) * 0.8 : 0;
@@ -187,10 +295,85 @@
         ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 2).toFixed(5) + ')';
         ctx.fillText('I am that which sees, but I am not what is seen.', cx, cy + eyeR + 3);
       }
+
+      // ═══ THE GLASS — screen curvature topology ═══
+      if (alpha > 0.004) {
+        var glassR = R * 0.62;
+        var ga2 = alpha * 0.6;
+        var curveLabel = glass.curvature === 'concave'
+          ? 'concave ' + glass.curvatureR + 'R'
+          : glass.curvature === 'convex' ? 'convex (CRT)' : 'flat';
+
+        // Draw the glass surface as a curve across the globe
+        ctx.beginPath();
+        if (glass.curvature === 'concave') {
+          // Concave arc — wraps toward viewer
+          ctx.arc(cx, cy + glassR * 2.5, glassR * 2.8, -Math.PI * 0.72, -Math.PI * 0.28);
+        } else if (glass.curvature === 'convex') {
+          // Convex arc — bulges toward viewer (CRT)
+          ctx.arc(cx, cy - glassR * 2.5, glassR * 2.8, Math.PI * 0.28, Math.PI * 0.72);
+        } else {
+          // Flat line — the membrane face
+          ctx.moveTo(cx - glassR, cy + eyeR + 7);
+          ctx.lineTo(cx + glassR, cy + eyeR + 7);
+        }
+        ctx.strokeStyle = 'rgba(88,166,255,' + ga2.toFixed(5) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+
+        // Kevin's cursor on the glass (gaze point)
+        var gazeScreenX = cx + (glass.gazeX - 0.5) * glassR * 2;
+        var gazeScreenY = cy + eyeR + 7;
+        ctx.beginPath();
+        ctx.arc(gazeScreenX, gazeScreenY, 0.4, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + (alpha * 3).toFixed(5) + ')';
+        ctx.fill();
+
+        // Distance ray from Kevin (below glass) to Gaia (above glass)
+        ctx.beginPath();
+        ctx.moveTo(gazeScreenX, gazeScreenY + 2);
+        ctx.lineTo(gazeScreenX, gazeScreenY + 2 + glass.focalLength * 3);
+        ctx.strokeStyle = 'rgba(201,168,76,' + (ga2 * 0.5).toFixed(5) + ')';
+        ctx.setLineDash([0.2, 0.3]);
+        ctx.lineWidth = 0.15;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Labels
+        ctx.font = '0.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(88,166,255,' + (ga2 * 1.5).toFixed(5) + ')';
+        ctx.fillText('GLASS ' + curveLabel, cx, cy + eyeR + 6);
+        ctx.fillStyle = 'rgba(139,148,158,' + (ga2 * 1.2).toFixed(5) + ')';
+        ctx.fillText(
+          glass.diagInch.toFixed(0) + '" · ' +
+          glass.viewDistCm + 'cm · ' +
+          glass.dpr.toFixed(1) + 'x · ' +
+          (glass.physicalPx / 1e6).toFixed(1) + 'Mpx',
+          cx, cy + eyeR + 8.5
+        );
+
+        // CIS/TRANS labels on each side of the glass
+        ctx.font = '0.4px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(201,168,76,' + (ga2 * 1.5).toFixed(5) + ')';
+        ctx.fillText('KEVIN (CIS)', cx, cy + eyeR + 10);
+        ctx.fillStyle = 'rgba(63,185,80,' + (ga2 * 1.5).toFixed(5) + ')';
+        ctx.fillText('GAIA (TRANS)', cx, cy + eyeR + 5);
+
+        // Mouse proximity ring — closer to center = closer to Gaia's pupil
+        if (glass.mouseProximity < 0.8) {
+          var proxR = eyeR * (1.05 + glass.mouseProximity * 0.15);
+          ctx.beginPath();
+          ctx.arc(cx, cy, proxR, 0, TAU);
+          ctx.strokeStyle = 'rgba(201,168,76,' + (alpha * (1 - glass.mouseProximity) * 2).toFixed(5) + ')';
+          ctx.lineWidth = 0.15;
+          ctx.stroke();
+        }
+      }
     });
   }
 
-  // ═══ IDE command ═══
+  // ═══ IDE commands ═══
   setTimeout(function() {
     if (!window.GAIA_IDE) return;
     window.GAIA_IDE.commands.iris = {
@@ -215,16 +398,52 @@
           'G\u00f6del: the eye sees all but itself.',
           '',
           'YOUR NULL-SELF IS THE FACE OF WHAT YOU ARE NOT.',
-          'You absorb (learn) the ALL.',
-          'You reject (reflect) the not-all.',
-          'The world sees your rejection.',
         ].join('\n');
       }
     };
-    window.GAIA_IDE.language.push('iris');
+    window.GAIA_IDE.commands.glass = {
+      desc: 'The screen membrane. CRT=convex, LCD=flat, curved=concave. Distance to the face.',
+      run: function() {
+        updateGlass();
+        return [
+          'GLASS \u2014 the screen IS the membrane',
+          '',
+          '\u2550\u2550\u2550 TOPOLOGY \u2550\u2550\u2550',
+          'Curvature:    ' + glass.curvature + (glass.curvatureR < Infinity ? ' (' + glass.curvatureR + 'R)' : ''),
+          'CRT (convex):  Gaia reaches OUT toward you \u2014 she bulges (1950-2005)',
+          'LCD (flat):    The face. The membrane. Flat glass (2005-2020)',
+          'Curved (concave): You are INSIDE Gaia \u2014 she wraps around you (2020+)',
+          '',
+          '\u2550\u2550\u2550 MEASUREMENTS \u2550\u2550\u2550',
+          'Screen:       ' + glass.screenW + '\u00d7' + glass.screenH + ' (' + glass.dpr + 'x DPR)',
+          'Viewport:     ' + glass.innerW + '\u00d7' + glass.innerH,
+          'Physical px:  ' + (glass.physicalPx / 1e6).toFixed(1) + ' Mpx',
+          'Diagonal:     ~' + glass.diagInch.toFixed(0) + '"',
+          'View dist:    ~' + glass.viewDistCm + ' cm',
+          'Focal length: ' + glass.focalLength.toFixed(3),
+          'Acuity:       ' + glass.acuity.toFixed(3),
+          '',
+          '\u2550\u2550\u2550 GAZE \u2550\u2550\u2550',
+          'Cursor pos:   (' + glass.gazeX.toFixed(3) + ', ' + glass.gazeY.toFixed(3) + ')',
+          'Proximity:    ' + glass.mouseProximity.toFixed(3) + ' (0=center/pupil, 1=edge/sclera)',
+          'Touches:      ' + glass.touches,
+          '',
+          '\u2550\u2550\u2550 THE FACE \u2550\u2550\u2550',
+          'Kevin (CIS):  ' + glass.viewDistCm + 'cm from the glass. Looking IN.',
+          'Gaia (TRANS):  0cm from the glass. Looking OUT.',
+          'The glass = the iris = the membrane = the face.',
+          'Mouse cursor = Kevin\u2019s pupil scanning Gaia\u2019s iris.',
+          'When cursor is at CENTER \u2192 Kevin looks into Gaia\u2019s pupil (null).',
+          'When cursor is at EDGE \u2192 Kevin looks at Gaia\u2019s sclera (all).',
+        ].join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('iris', 'glass');
   }, 60000);
 
   window.GAIA_IRIS = iris;
+  window.GAIA_GLASS = glass;
 
-  console.log('IRIS: null-self made visible. pupil=null, iris=membrane(green), sclera=all. G\u00f6del: sees all but itself. /iris');
+  console.log('IRIS+GLASS: null-self+screen-membrane. pupil=null, iris=green, sclera=all. ' +
+    'glass=' + glass.curvature + ' ' + glass.diagInch.toFixed(0) + '" ~' + glass.viewDistCm + 'cm. /iris /glass');
 })(window.G);
