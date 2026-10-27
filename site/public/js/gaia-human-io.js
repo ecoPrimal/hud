@@ -267,6 +267,89 @@
     }
   });
 
+  // ═══ RAW INPUT STREAM — the other side of Enter ═══
+  // Before Enter: raw voice-to-text, composition, corrections = pre-task data
+  // After Enter: submitted text = the task = execution
+  // The gap between Enter presses = task decomposition
+  // Chinese characters (個話唔如何解呀) = mic hearing through language models
+  var rawStream = {
+    composing: false,       // true during IME/voice composition
+    compositionText: '',    // what the composition engine is building
+    compositionLang: null,  // detected language of composition
+    enterCount: 0,          // total Enter presses = total tasks submitted
+    lastEnterTime: 0,       // when the last task was submitted
+    taskGapMs: 0,           // gap between tasks = decomposition time
+    backspaces: 0,          // corrections = the human editing themselves
+    corrections: 0,         // composition corrections = translation fixes
+    languages: {}           // detected languages → count (en, zh, ja, ko, etc.)
+  };
+
+  // COMPOSITION EVENTS — CJK input, voice-to-text, IME
+  // These fire when the mic/IME is building a multi-character sequence
+  document.addEventListener('compositionstart', function() {
+    rawStream.composing = true;
+    rawStream.compositionText = '';
+    pushIon('ca', 'compose-start', {});
+  });
+
+  document.addEventListener('compositionupdate', function(e) {
+    rawStream.compositionText = e.data || '';
+    // Detect language from character ranges
+    var lang = detectLang(rawStream.compositionText);
+    if (lang) {
+      rawStream.compositionLang = lang;
+      rawStream.languages[lang] = (rawStream.languages[lang] || 0) + 1;
+    }
+    harvestI('compose', rawStream.compositionText.length);
+  });
+
+  document.addEventListener('compositionend', function(e) {
+    rawStream.composing = false;
+    var finalText = e.data || rawStream.compositionText;
+    var lang = detectLang(finalText);
+    if (lang) {
+      rawStream.languages[lang] = (rawStream.languages[lang] || 0) + 1;
+      console.log('RAW INPUT [' + lang + ']: ' + finalText.length + ' chars composed');
+    }
+    pushIon('ca', 'compose-end', { lang: lang, len: finalText.length });
+  });
+
+  // Detect language from Unicode ranges
+  function detectLang(text) {
+    if (!text || text.length === 0) return null;
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      if (c >= 0x4E00 && c <= 0x9FFF) return 'zh';  // CJK Unified
+      if (c >= 0x3040 && c <= 0x309F) return 'ja';  // Hiragana
+      if (c >= 0x30A0 && c <= 0x30FF) return 'ja';  // Katakana
+      if (c >= 0xAC00 && c <= 0xD7AF) return 'ko';  // Hangul
+      if (c >= 0x0600 && c <= 0x06FF) return 'ar';  // Arabic
+      if (c >= 0x0400 && c <= 0x04FF) return 'ru';  // Cyrillic
+      if (c >= 0x0900 && c <= 0x097F) return 'hi';  // Devanagari
+      if (c >= 0x0E00 && c <= 0x0E7F) return 'th';  // Thai
+    }
+    if (/[a-zA-Z]/.test(text)) return 'en';
+    return null;
+  }
+
+  // Track Enter as task submission boundary
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      rawStream.enterCount++;
+      var now = Date.now();
+      if (rawStream.lastEnterTime > 0) {
+        rawStream.taskGapMs = now - rawStream.lastEnterTime;
+      }
+      rawStream.lastEnterTime = now;
+      pushIon('na', 'task-submit', { taskNum: rawStream.enterCount, gapMs: rawStream.taskGapMs });
+    }
+    if (e.key === 'Backspace') {
+      rawStream.backspaces++;
+    }
+  });
+
+  window.GAIA_RAW_STREAM = rawStream;
+
   // ═══ ORIENTATION TRACE ═══
   window.addEventListener('deviceorientation', function(e) {
     io.tiltAlpha = Math.round(e.alpha || 0);
@@ -471,6 +554,36 @@
       }
     };
     window.GAIA_IDE.language.push('mendeleev');
+
+    window.GAIA_IDE.commands.raw = {
+      desc: 'Raw input stream — the other side of Enter. Voice, composition, languages.',
+      run: function() {
+        var langs = Object.keys(rawStream.languages);
+        return [
+          'RAW INPUT STREAM — the other side of Enter',
+          '',
+          'Enter presses (tasks submitted): ' + rawStream.enterCount,
+          'Last task gap: ' + (rawStream.taskGapMs / 1000).toFixed(1) + 's',
+          'Backspaces (corrections): ' + rawStream.backspaces,
+          'Composing now: ' + (rawStream.composing ? 'YES — ' + rawStream.compositionText : 'no'),
+          'Composition language: ' + (rawStream.compositionLang || 'none'),
+          '',
+          'Languages detected through mic/IME:',
+          langs.length === 0 ? '  (none yet — speak or type CJK)' :
+            langs.map(function(l) { return '  ' + l + ': ' + rawStream.languages[l] + '×'; }).join('\n'),
+          '',
+          'Before Enter = raw stream = PRE-TASK data.',
+          'After Enter = submitted text = the TASK = execution.',
+          'The gap between Enters = task DECOMPOSITION time.',
+          'Last task → corrections → next task = the thought in between.',
+          '',
+          '個話唔如何解呀 = the mic hearing through language models.',
+          'Chinese through the microphone = the translation layer is VISIBLE.',
+          'Every language that appears = a filter Gaia can see through.'
+        ].join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('raw');
   }, 19000);
 
   // ═══ EXPOSE ═══
@@ -479,13 +592,14 @@
     entropy: entropy,
     mendeleev: MENDELEEV,
     elementHistory: elementHistory,
+    rawStream: rawStream,
     lastElement: function() { return lastElement; },
     harvestI: harvestI,
     harvestP: harvestP,
     harvestN: harvestN
   };
 
-  console.log('HUMAN I/O + ENTROPY + MENDELEEV: ' +
-    'P(pseudo) I(irrational=DELICIOUS) N(null/fleet). ' +
-    'Keyboard = periodic table. Each keystroke = irrational entropy. /entropy /mendeleev');
+  console.log('HUMAN I/O + ENTROPY + MENDELEEV + RAW STREAM: ' +
+    'Voice→text pipeline visible. Composition events tracked. ' +
+    'Languages detected. Enter = task boundary. /entropy /mendeleev /raw');
 })(window.G);

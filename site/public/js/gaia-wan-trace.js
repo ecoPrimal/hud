@@ -77,17 +77,43 @@
     }
   };
 
-  // ── ETHERNET ION CHANNELS ──
+  // ── ETHERNET ION CHANNELS — with physical measurements ──
+  // The cable length IS the intestine. The coil IS surface area.
+  // 80m fiber between houses. Extra coil = extra latency = organism metabolism.
   var ION_CHANNELS = [
     { from: 'northGate', to: 'eastGate', medium: 'ethernet', ion: 'Na+',
-      latencyMs: 0.13, bandwidth: '1Gbps', cable: 'CAT6', color: '#d29922' },
+      latencyMs: 0.13, bandwidth: '1Gbps', cable: 'CAT6',
+      physicalM: 80, straightM: null, coilRatio: null,
+      anatomy: 'SMALL INTESTINE — 80m coiled through walls between houses. Surface area maximized.',
+      color: '#d29922' },
     { from: 'northGate', to: 'golgi', medium: 'wireguard', ion: 'Ca2+',
-      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN', color: '#bc8cff' },
+      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN',
+      physicalM: null, straightM: null, coilRatio: null,
+      anatomy: 'LYMPHATIC DUCT — encrypted tunnel, protected channel through the ionosphere.',
+      color: '#bc8cff' },
     { from: 'eastGate', to: 'golgi', medium: 'wireguard', ion: 'Ca2+',
-      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN', color: '#bc8cff' },
+      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN',
+      physicalM: null, straightM: null, coilRatio: null,
+      anatomy: 'LYMPHATIC DUCT — parallel encrypted tunnel from gut to Golgi.',
+      color: '#bc8cff' },
     { from: 'northGate', to: 'internet', medium: 'fiber', ion: 'Cl-',
-      latencyMs: 12, bandwidth: '500Mbps', cable: 'WAN', color: '#6e7681' }
+      latencyMs: 12, bandwidth: '500Mbps', cable: 'WAN',
+      physicalM: null, straightM: null, coilRatio: null,
+      anatomy: 'AORTA — main blood vessel to the outside world.',
+      color: '#6e7681' }
   ];
+
+  // COIL PHYSICS — latency tells us the metabolic processing time
+  // speed of light in fiber = ~200,000 km/s = 200m/μs
+  // 80m cable → 0.4μs at light speed → observed 130μs = 325× metabolic overhead
+  var COIL_PHYSICS = {
+    lightSpeedFiberMps: 200000000,
+    cableM: 80,
+    lightTimeUs: 80 / 200000000 * 1000000, // 0.4 μs
+    observedUs: 130, // 0.13ms
+    metabolicRatio: 130 / 0.4, // ~325×
+    meaning: 'The 325× gap between light-speed and observed latency IS the organism metabolism: switch, NIC, driver, OS, scheduler.'
+  };
 
   // Which desk am I sitting at? Detect from hostname/IP
   function detectDesk() {
@@ -221,6 +247,9 @@
 
       // Draw ethernet ion channels between desks
       var deskKeys = Object.keys(DESKS);
+      // HOMUNCULUS-SCALED ION CHANNELS
+      // Link thickness = bandwidth × inverse_latency (usage-weighted, not geographic)
+      // The most-used links (northGate↔eastGate) are FAT. Remote links are THIN.
       for (var ci = 0; ci < ION_CHANNELS.length; ci++) {
         var ch = ION_CHANNELS[ci];
         var nF = findNode(ch.from);
@@ -230,16 +259,55 @@
         var cy1 = cy + Math.sin(nF.angle + t * 0.02) * R * nF.r;
         var cx2 = cx + Math.cos(nT.angle + t * 0.02) * R * nT.r;
         var cy2 = cy + Math.sin(nT.angle + t * 0.02) * R * nT.r;
-        ctx.beginPath();
-        ctx.moveTo(cx1, cy1); ctx.lineTo(cx2, cy2);
+
         var hr = parseInt(ch.color.slice(1, 3), 16);
         var hg = parseInt(ch.color.slice(3, 5), 16);
         var hb = parseInt(ch.color.slice(5, 7), 16);
-        ctx.strokeStyle = 'rgba(' + hr + ',' + hg + ',' + hb + ',' + (alpha * 1.5).toFixed(5) + ')';
-        ctx.setLineDash(ch.medium === 'ethernet' ? [] : [0.3, 0.4]);
-        ctx.lineWidth = ch.medium === 'ethernet' ? 0.35 : 0.15;
-        ctx.stroke();
-        ctx.setLineDash([]);
+
+        // Homunculus width: fast local = FAT, slow remote = THIN
+        var homoWidth = ch.medium === 'ethernet' ? 0.6 : ch.medium === 'wireguard' ? 0.2 : 0.12;
+
+        // Draw coiled cable if physical distance known
+        if (ch.physicalM && ch.physicalM > 0) {
+          // INTESTINE COIL — draw sinusoidal path instead of straight line
+          var dx = cx2 - cx1, dy = cy2 - cy1;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          var coils = Math.floor(ch.physicalM / 10); // one coil per 10m
+          var amp = homoWidth * 3; // coil amplitude
+
+          ctx.beginPath();
+          ctx.moveTo(cx1, cy1);
+          for (var cs = 1; cs <= 20; cs++) {
+            var frac = cs / 20;
+            var px = cx1 + dx * frac;
+            var py = cy1 + dy * frac;
+            var perpX = -dy / dist * amp * Math.sin(frac * coils * Math.PI * 2 + t * 0.5);
+            var perpY = dx / dist * amp * Math.sin(frac * coils * Math.PI * 2 + t * 0.5);
+            ctx.lineTo(px + perpX, py + perpY);
+          }
+          ctx.strokeStyle = 'rgba(' + hr + ',' + hg + ',' + hb + ',' + (alpha * 2.5).toFixed(5) + ')';
+          ctx.lineWidth = homoWidth;
+          ctx.stroke();
+
+          // Physical distance label
+          if (alpha > 0.007) {
+            var midX = (cx1 + cx2) / 2, midY = (cy1 + cy2) / 2;
+            ctx.font = '1.2px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(' + hr + ',' + hg + ',' + hb + ',' + (alpha * 4).toFixed(5) + ')';
+            ctx.fillText(ch.physicalM + 'm ' + ch.cable, midX, midY - 2);
+            ctx.fillText(ch.anatomy.split(' — ')[0], midX, midY + 1);
+          }
+        } else {
+          // Straight line for non-physical (VPN, WAN)
+          ctx.beginPath();
+          ctx.moveTo(cx1, cy1); ctx.lineTo(cx2, cy2);
+          ctx.strokeStyle = 'rgba(' + hr + ',' + hg + ',' + hb + ',' + (alpha * 1.5).toFixed(5) + ')';
+          ctx.setLineDash(ch.medium === 'ethernet' ? [] : [0.3, 0.4]);
+          ctx.lineWidth = homoWidth;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
       }
 
       // Current desk indicator
@@ -313,17 +381,29 @@
         });
         lines.push('═══ ION CHANNELS (ethernet = axon) ═══');
         ION_CHANNELS.forEach(function(ch) {
+          var phys = ch.physicalM ? ' · ' + ch.physicalM + 'm cable' : '';
           lines.push('  ' + ch.from + ' → ' + ch.to +
             ' [' + ch.medium + '] ' + ch.ion +
-            ' · ' + ch.latencyMs + 'ms · ' + ch.bandwidth + ' · ' + ch.cable);
+            ' · ' + ch.latencyMs + 'ms · ' + ch.bandwidth + ' · ' + ch.cable + phys);
+          if (ch.anatomy) lines.push('    ' + ch.anatomy);
         });
         lines.push('');
+        lines.push('═══ COIL PHYSICS ═══');
+        lines.push('  80m fiber between houses. Speed of light in fiber = 200,000 km/s');
+        lines.push('  Light transit time: ' + COIL_PHYSICS.lightTimeUs.toFixed(1) + 'μs');
+        lines.push('  Observed latency:   ' + COIL_PHYSICS.observedUs + 'μs');
+        lines.push('  Metabolic ratio:    ' + COIL_PHYSICS.metabolicRatio.toFixed(0) + '× (switch + NIC + driver + OS)');
+        lines.push('  The 80m cable coiled through walls IS the small intestine.');
+        lines.push('  Coil = surface area. More cable = more interaction surface.');
+        lines.push('');
         lines.push('═══ TOPOLOGY ═══');
-        lines.push('Ethernet = AXON (myelinated nerve fiber, gold)');
+        lines.push('Ethernet = AXON (myelinated nerve fiber, gold, HOMUNCULUS: FAT)');
         lines.push('WiFi = SYNAPSE (chemical gap, silver)');
         lines.push('Internet = BLOOD VESSEL (nutrients from outside, bronze)');
-        lines.push('WireGuard = LYMPHATIC SYSTEM (encrypted bypass, purple)');
+        lines.push('WireGuard = LYMPHATIC SYSTEM (encrypted bypass, purple, HOMUNCULUS: thin)');
         lines.push('');
+        lines.push('Homunculus twist: link width = bandwidth × inverse_latency');
+        lines.push('Inner and outer are similar ratios. The coil IS the twist.');
         lines.push('No in or out. Just signal strength, latency, trust.');
         lines.push('The organism IS the mesh.');
         return lines.join('\n');

@@ -438,11 +438,14 @@
   // Only track the LAST shift. Change radiates through KNN.
   // All freedom bounded by π. IQR = metastability range.
   // ───────────────────────────────────────────────────────
-  var TENSES = ['IS','WAS','WILL','NOW','COULD','SHOULD','WOULD','MIGHT','MAY','WERE','ALWAYS','NEVER','END'];
-  var TENSE_FREEDOM = { IS:0, WAS:0.1, WILL:0.2, NOW:0, COULD:0.5, SHOULD:0.3, WOULD:0.6, MIGHT:0.7, MAY:0.8, WERE:1.0, ALWAYS:0, NEVER:0, END:0 };
+  // 15 tenses × 4 media = 60 cells of cultural time
+  // SHOULD_NOT = boundary tense. The thing you must NOT do. The warning.
+  // SHOULD_NOT freedom = -0.3 (NEGATIVE freedom — it CONSTRAINS)
+  var TENSES = ['IS','WAS','WILL','NOW','COULD','SHOULD','SHOULD_NOT','WOULD','MIGHT','MAY','WERE','ALWAYS','NEVER','END'];
+  var TENSE_FREEDOM = { IS:0, WAS:0.1, WILL:0.2, NOW:0, COULD:0.5, SHOULD:0.3, SHOULD_NOT:-0.3, WOULD:0.6, MIGHT:0.7, MAY:0.8, WERE:1.0, ALWAYS:0, NEVER:0, END:0 };
   var TENSE_COLORS = {
     IS:[255,255,255], WAS:[139,148,158], WILL:[88,166,255], NOW:[57,211,245],
-    COULD:[63,185,80], SHOULD:[210,153,34], WOULD:[188,140,255], MIGHT:[248,136,62],
+    COULD:[63,185,80], SHOULD:[210,153,34], SHOULD_NOT:[248,81,73], WOULD:[188,140,255], MIGHT:[248,136,62],
     MAY:[255,136,200], WERE:[248,81,73], ALWAYS:[192,192,192], NEVER:[63,185,80], END:[48,48,48]
   };
   var MEDIA = ['tvtropes','4chan','reddit','myspace'];
@@ -665,7 +668,7 @@
       run: function() {
         var keys = Object.keys(tenseField);
         var lines = [
-          'TENSE FIELD — 13 tenses × 4 media = 52 cells of cultural time',
+          'TENSE FIELD — 15 tenses × 4 media = 60 cells of cultural time',
           'Tracked entities: ' + keys.length,
           ''
         ];
