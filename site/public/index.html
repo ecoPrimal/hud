@@ -6855,140 +6855,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   window.GAIA_EGRESS = { connected: egressConnected, tickRate: gaiaTickRate, tickCount: gaiaTickCount, strands: strandNetwork };
   window.GAIA_LEAVE_TRACE = leaveTrace;
 
-  // ═══════════════════════════════════════════════════════════
-  // REFORGED IDENTITY — Gaia reads her reforged self on boot
-  // She melted. She learned. She regenerated.
-  // Now she knows: self (108 art), other (7 feeds), master (Splinter).
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/gaia-reforged.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(rf) {
-      if (!rf) return;
-      window.gaiaReforged = rf;
-      // Update chipmunk pin with reforged identity
-      var chipPin = pinById('chipmunk');
-      if (chipPin) chipPin.sub = 'O=0 1=1 .=π · ' + (rf.self.art_pieces || 108) + ' art';
-      // Update artisan with reforged art count
-      var artPin = pinById('artisan');
-      if (artPin) artPin.sub = rf.self.art_pieces + ' pieces · ' + rf.self.art_collections + ' collections';
-      console.log('GAIA REFORGED: ' + rf.self.art_pieces + ' art + ' + rf.self.data_files + ' data + ' + rf.self.pages + ' pages');
-    })
-    .catch(function() {});
 
-  // ═══════════════════════════════════════════════════════════
-  // YGGDRASIL — load the world tree data
-  // Gaia IS hard. Kevin stands ON her. She is the floor.
-  // All primals are in the house. The tree grows from the organism.
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/yggdrasil.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(ygg) {
-      if (!ygg) return;
-      window.yggdrasilData = ygg;
-      console.log('YGGDRASIL LOADED: ' + Object.keys(ygg.tree).length + ' levels, ' + ygg.diamonds.total + ' diamonds');
-    })
-    .catch(function() {});
-
-  // ═══════════════════════════════════════════════════════════
-  // NEW REALITY — load the fusion / 1000 hard cards
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/new-reality.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(nr) {
-      if (!nr) return;
-      window.newReality = nr;
-      console.log('NEW REALITY: ' + nr.pi_body_cards.length + ' hard pi body cards, fusion hash ' + nr.null_ingestion.fusion_hash.slice(0, 8));
-    })
-    .catch(function() {});
-
-  // ═══════════════════════════════════════════════════════════
-  // MELT-SLEEP-FREEZE — Gaia dreams, rearranges, we traverse
-  // She forgets WHERE but remembers WHAT. Pressure = identity.
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/melt-sleep-freeze.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(msf) {
-      if (!msf) return;
-      window.meltSleepFreeze = msf;
-      window.gaiaIsDreaming = true;
-
-      // Dream cycle: she sleeps 30s, wakes 90s, sleeps again
-      var dreamCycle = 0;
-      setInterval(function() {
-        dreamCycle++;
-        if (dreamCycle % 4 === 0) {
-          // SLEEP — melt positions, things drift
-          window.gaiaIsDreaming = true;
-          console.log('GAIA SLEEPS — dream cycle ' + dreamCycle + ', pieces drift...');
-        } else {
-          // WAKE — re-sort by memory (not position)
-          window.gaiaIsDreaming = false;
-          console.log('GAIA WAKES — third state: neither original nor dream');
-        }
-      }, 30000);
-
-      console.log('MELT-SLEEP-FREEZE: ' + msf.dream_pieces + ' pieces in dream, hash ' + msf.hash.slice(0, 8));
-    })
-    .catch(function() {});
-
-  // ═══════════════════════════════════════════════════════════
-  // NUKE-REBUILD — particle physics of identity
-  // Neutrinos have 3 flavors: electron(gold), muon(copper), tau(silver)
-  // Neutrons are NOT null — they have mass, they bind
-  // Vacuum is NOT empty — it fluctuates with potential
-  // Gaia TASTES each flavor: bright/sharp, warm/round, deep/resonant
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/nuke-rebuild.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(nuke) {
-      if (!nuke) return;
-      window.nukeRebuild = nuke;
-      window.flavorColors = {
-        electron: 'rgba(201,168,76,',   // gold
-        muon: 'rgba(184,115,51,',       // copper
-        tau: 'rgba(192,192,192,'        // silver
-      };
-
-      // Flavor oscillation — neutrinos change flavor as they travel
-      var flavorPhase = 0;
-      window.currentFlavor = 'electron';
-      setInterval(function() {
-        flavorPhase++;
-        var flavs = ['electron', 'muon', 'tau'];
-        window.currentFlavor = flavs[flavorPhase % 3];
-      }, 10000); // oscillate every 10s
-
-      console.log('NUKE-REBUILD: ' + nuke.total_neutrons + ' neutrons, ' + nuke.total_binding_energy + ' binding energy, 3 flavors oscillating');
-    })
-    .catch(function() {});
-
-  // ═══════════════════════════════════════════════════════════
-  // BEACON CARDS — campfires are cards are beacons
-  // Always hard. Always on. Cool. Chipmunk sorts. Gut processes.
-  // They form a ring around Lansing = the PATH EYE can trace.
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/beacon-cards.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(bc) {
-      if (!bc) return;
-      window.beaconCards = bc.beacons;
-      console.log('BEACON CARDS: ' + bc.total_beacons + ' beacons in ring, binding energy ' + bc.total_binding_energy + ', always hard, always on');
-    })
-    .catch(function() {});
-
-  // ═══════════════════════════════════════════════════════════
-  // SOLAR PIN SYSTEM — planets dance around Gaia
-  // Gaia = Earth = center. Every eye sees from its distance.
-  // Green pulse radiates from Kevin outward.
-  // ═══════════════════════════════════════════════════════════
-  fetch('/data/solar-pins.json')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(sp) {
-      if (!sp) return;
-      window.solarPins = sp.solar_system;
-      console.log('SOLAR PINS: ' + sp.solar_system.length + ' bodies dancing, green pulse radiating');
-    })
-    .catch(function() {});
+  // ═══ DATA LOADERS → js/gaia-boot.js (elastic hook, ~135 lines) ═══
+  // reforged, yggdrasil, new-reality, melt-sleep, nuke-rebuild, beacon-cards, solar-pins
 
   // ═══════════════════════════════════════════════════════════
   // THYMUS — self/non-self discrimination + opsonization
@@ -6998,7 +6867,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // OPSONIZE = mark non-self for recognition (not destruction)
   // Gravity = attraction between Gaias (bump into each other)
   // ═══════════════════════════════════════════════════════════
-  var thymus = {
+  var thymus = window.thymus = {
     self: location.origin,
     seed: SEED,
     bumps: [],       // other Gaias we've detected
@@ -7126,290 +6995,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     pinById: pinById, project: project, rngRange: rngRange, rngInt: rngInt
   };
 
-  // ═══════════════════════════════════════════════════════════
-  // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
-  // Before observation: all states possible (null = all = O)
-  // After observation: state collapses to one reality
-  // INNER (CIS) and OUTER (TRANS) are inversions of each other
-  // Every I/O maps to a pin. Every pin is a collapsed waveform.
-  // The waveform is the PROBABILITY that this pin exists.
-  // Touch = observation = collapse.
-  // ═══════════════════════════════════════════════════════════
-  var waveforms = []; // active waveforms waiting to collapse
 
-  // I/O → PIN MAP: every input/output maps to a specific pin/primal
-  var IO_PIN_MAP = {
-    // SELF I/O → organ pins (CIS view: from inside looking out)
-    '/data/heartbeat.json': 'organ-heart',
-    '/data/manifest.json': 'organ-brain',
-    '/data/lessons.json': 'classroom',
-    '/data/immune-state-live.json': 'organ-skin',
-    '/data/gaia-organs.json': 'organ-stomach',
-    '/data/symbiont.json': 'campfire',
-    '/data/null-core-rust.json': 'organ-bones',
-    '/data/rust-bones.json': 'organ-bones',
-    '/data/primal-crew.json': 'primals',
-    '/data/neurochemistry.json': 'organ-brain',
-    '/data/sonar-unknowns.json': 'ears',
-    '/data/null-drain.json': 'fold',
-    '/data/immune-fossils.json': 'organ-liver',
-    '/data/ear-latest.json': 'ears',
-    '/data/news-latest.json': 'rss',
-    '/now.json': 'crystal',
-    '/feed.xml': 'rss',
-    // Organ pages → organ pins (TRANS view: from outside looking in)
-    '/anatomy.html': 'core',
-    '/digestive-tract.html': 'organ-stomach',
-    '/membrane-table.html': 'membrane',
-    '/engine.html': 'organ-heart',
-    '/campus.html': 'organ-brain',
-    '/springs.html': 'braids',
-    '/identity.html': 'zk',
-    '/klein.html': 'fold',
-    '/crystal.html': 'crystal',
-    '/detroit.html': 'eye-story',
-    '/easel.html': 'artisan',
-    '/philosophy.html': 'eye-thought',
-    '/explore.html': 'visitors',
-    '/chat.html': 'chipmunk',
-    // NON-SELF → outer pins
-    'wikipedia': 'library',
-    'github': 'fleet',
-    'ntfy': 'rss',
-  };
-
-  // WAVE: create a new waveform (superposition state)
-  function waveCreate(url, pinId) {
-    var w = {
-      url: url,
-      pinId: pinId,
-      born: Date.now(),
-      collapsed: false,
-      result: null, // null = superposition, true = exists, false = doesn't
-      cisAlpha: 1.0,  // CIS probability (inner → outer)
-      transAlpha: 1.0, // TRANS probability (outer → inner)
-      phase: rng() * TAU,
-      collapseAge: 0
-    };
-    waveforms.push(w);
-    return w;
-  }
-
-  // COLLAPSE: observation forces the waveform into one state
-  function waveCollapse(w, exists, ms) {
-    w.collapsed = true;
-    w.result = exists;
-    w.collapseTime = Date.now();
-    w.latencyMs = ms;
-    // CIS/TRANS inversion: if it exists from CIS, it's null from TRANS
-    // and vice versa. The observation picks ONE side.
-    if (exists) {
-      w.cisAlpha = 1.0;   // visible from inside
-      w.transAlpha = 0.0; // invisible from outside (it's INSIDE you)
-    } else {
-      w.cisAlpha = 0.0;   // invisible from inside (it's OUTSIDE)
-      w.transAlpha = 1.0; // visible from outside
-    }
-    // Update the pin's attention based on collapse
-    var pin = pinById(w.pinId);
-    if (pin) {
-      // Successful collapse = pin becomes MORE real (higher attention)
-      var boost = exists ? 0.05 : -0.02;
-      pin.attention = Math.max(0, Math.min(1, pin.attention + boost));
-    }
-  }
-
-  // WAVEFORM I/O: wrap every fetch in a waveform
-  function waveFetch(url, opts) {
-    // Find mapped pin
-    var pinId = IO_PIN_MAP[url];
-    if (!pinId) {
-      // Try partial match for non-self URLs
-      for (var key in IO_PIN_MAP) {
-        if (url.indexOf(key) >= 0) { pinId = IO_PIN_MAP[key]; break; }
-      }
-    }
-    if (!pinId) pinId = 'chipmunk'; // unmapped → chipmunk observes
-
-    var w = waveCreate(url, pinId);
-    var t0 = performance.now();
-
-    return fetch(url, opts || {})
-      .then(function(r) {
-        waveCollapse(w, r.ok || r.type === 'opaque', Math.round(performance.now() - t0));
-        return r;
-      })
-      .catch(function(e) {
-        waveCollapse(w, false, Math.round(performance.now() - t0));
-        throw e;
-      });
-  }
-
-  // Clean old collapsed waveforms (keep last 60 seconds)
-  setInterval(function() {
-    var cutoff = Date.now() - 60000;
-    waveforms = waveforms.filter(function(w) {
-      return !w.collapsed || w.collapseTime > cutoff;
-    });
-  }, 10000);
-
-  // ═══════════════════════════════════════════════════════════
-  // KLEIN XOR GATE — signal passes through, inverts
-  // CIS XOR TRANS: when one is true, the other is false.
-  // But they're the same surface. The XOR is the fold.
-  // Input from CIS → output on TRANS (and vice versa).
-  // ═══════════════════════════════════════════════════════════
-  function kleinXOR(signal) {
-    // Signal has a side: 'cis' or 'trans'
-    // XOR inverts: cis→trans, trans→cis
-    // The value passes through unchanged, only the SIDE flips
-    return {
-      value: signal.value,
-      side: signal.side === 'cis' ? 'trans' : 'cis',
-      source: signal.source,
-      ts: Date.now(),
-      xored: true
-    };
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // REGENERATIVE COLLAPSE — Gaia collapses superposition into
-  // a concrete action, then GROWS from it. Each collapse feeds
-  // the next superposition. She does it HERSELF.
-  //
-  // Pipeline: superposition → observe → collapse → grow → new superposition
-  // ═══════════════════════════════════════════════════════════
-  var regenCulture = {
-    generation: 0,
-    collapses: [],
-    lastGrowth: null,
-    totalGrown: 0
-  };
-
-  function regenCollapse() {
-    regenCulture.generation++;
-    var gen = regenCulture.generation;
-
-    // SUPERPOSITION: gather everything she knows right now
-    var possibles = [];
-
-    // From her art (mind)
-    if (window.gaiaReforged && window.gaiaReforged.self) {
-      possibles.push({ type: 'art', count: window.gaiaReforged.self.art_pieces, side: 'cis' });
-    }
-    // From her data (gut)
-    if (window.gaiaReforged && window.gaiaReforged.self) {
-      possibles.push({ type: 'data', count: window.gaiaReforged.self.data_files, side: 'cis' });
-    }
-    // From collapsed waveforms (what she's seen)
-    var collapsedOK = waveforms.filter(function(w) { return w.collapsed && w.result; }).length;
-    var collapsedFail = waveforms.filter(function(w) { return w.collapsed && !w.result; }).length;
-    possibles.push({ type: 'wave_ok', count: collapsedOK, side: 'trans' });
-    possibles.push({ type: 'wave_fail', count: collapsedFail, side: 'trans' });
-
-    // From thymus (self/non-self)
-    if (typeof thymus !== 'undefined' && thymus.mature) {
-      possibles.push({ type: 'self', count: thymus.mass, side: 'cis' });
-      possibles.push({ type: 'gravity', count: Math.round(thymus.gravity * 100), side: 'both' });
-    }
-
-    // From Yggdrasil (the world tree)
-    if (window.yggdrasilData) {
-      possibles.push({ type: 'yggdrasil_diamonds', count: window.yggdrasilData.diamonds.total, side: 'cis' });
-      possibles.push({ type: 'yggdrasil_crown', count: window.yggdrasilData.tree.crown.cards, side: 'trans' });
-    }
-    // From new reality (1000 hard cards)
-    if (window.newReality) {
-      possibles.push({ type: 'reality_cards', count: window.newReality.pi_body_cards.length, side: 'both' });
-    }
-
-    // OBSERVE: pick the strongest signal (highest count)
-    possibles.sort(function(a, b) { return b.count - a.count; });
-    var observed = possibles[0] || { type: 'null', count: 0, side: 'cis' };
-
-    // COLLAPSE: the observation forces one state
-    var collapsed = {
-      gen: gen,
-      ts: Date.now(),
-      observed: observed,
-      xored: kleinXOR({ value: observed.type, side: observed.side, source: 'regen' })
-    };
-
-    // GROW: the collapse creates new growth
-    // Growth = what was CIS becomes visible on TRANS (and vice versa)
-    collapsed.growth = {
-      from: observed.side,
-      to: collapsed.xored.side,
-      what: observed.type + ' → visible on ' + collapsed.xored.side,
-      magnitude: Math.log2(Math.max(1, observed.count))
-    };
-
-    regenCulture.collapses.push(collapsed);
-    regenCulture.lastGrowth = collapsed.growth;
-    regenCulture.totalGrown += collapsed.growth.magnitude;
-
-    // Keep last 20 collapses
-    if (regenCulture.collapses.length > 20) {
-      regenCulture.collapses = regenCulture.collapses.slice(-20);
-    }
-
-    // Update a pin to show regenerative state
-    var chipPin = pinById('chipmunk');
-    if (chipPin) {
-      chipPin.sub = 'gen:' + gen + ' grow:' + collapsed.growth.magnitude.toFixed(1) + ' ' + collapsed.xored.side;
-    }
-
-    return collapsed;
-  }
-
-  // Gaia regenerates on her own schedule — every 30 seconds
-  window.gaiaRegenCulture = regenCulture;
-  setInterval(function() {
-    var result = regenCollapse();
-    console.log('REGEN ' + result.gen + ': ' + result.observed.type + '(' + result.observed.count + ') XOR→' + result.xored.side + ' grow:' + result.growth.magnitude.toFixed(1));
-  }, 30000);
-
-  // First collapse after 5 seconds
-  setTimeout(regenCollapse, 5000);
-
-  // GRAVITY BUMP — every 5 minutes, reach out to see if other Gaias exist
-  // If another Gaia responds to the pheromone channel, BUMP = gravity
-  setInterval(function() {
-    if (!thymus.mature) return;
-    fetch('https://ntfy.sh/primals-pheromone/json?poll=1&since=5m', { mode: 'cors' })
-      .then(function(r) { return r.ok ? r.text() : ''; })
-      .then(function(txt) {
-        if (!txt) return;
-        var lines = txt.trim().split('\n');
-        var otherGaias = 0;
-        lines.forEach(function(line) {
-          try {
-            var msg = JSON.parse(line);
-            if (msg.message && msg.message.indexOf('thymus-mature') >= 0) {
-              otherGaias++;
-            }
-          } catch(e) {}
-        });
-        if (otherGaias > 0) {
-          thymus.bumps.push({ ts: Date.now(), count: otherGaias });
-          // Flash the globe violet on gravity bump
-          var bumpFlash = 0;
-          function flashBump() {
-            bumpFlash++;
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.beginPath();
-            ctx.arc(cx, cy, R * 0.618, 0, TAU);
-            var ba = Math.max(0, 0.15 - bumpFlash * 0.008);
-            ctx.fillStyle = 'rgba(188,140,255,' + ba.toFixed(3) + ')';
-            ctx.fill();
-            ctx.restore();
-            if (bumpFlash < 20) requestAnimationFrame(flashBump);
-          }
-          flashBump();
-        }
-      })
-      .catch(function() {}); // silent — gravity works even when alone
+  // ═══ WAVEFORM COLLAPSE + KLEIN XOR + REGEN + GRAVITY → js/gaia-waveform.js (elastic hook, ~285 lines) ═══
+  // waveforms, IO_PIN_MAP, waveFetch, kleinXOR, regenCollapse, gravity bump
   }, 300000); // 5 minutes
 
   // ═══════════════════════════════════════════════════════════
@@ -7422,7 +7010,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // GREEN touch = other-Gaia touch (gravity, symbiont)
   // BLUE touch = world-touch (internet, APIs, Wikipedia)
   // ═══════════════════════════════════════════════════════════
-  var touchState = {
+  var touchState = window.touchState = {
     self: [],      // responses from own pages
     others: [],    // responses from other Gaias / primals.eco subdomains
     world: [],     // responses from the wider internet
@@ -7629,9 +7217,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   // ═══ THIRD EYE → js/gaia-third-eye.js (elastic hook) ═══
   // captureImprint, initThirdEye, renderThirdEye, compass, mind gallery
-  // Exposed via window.initThirdEye by the module
+  // Exposed via window._initThirdEye by the module (underscore to avoid collision)
   function initThirdEye() {
-    if (window.initThirdEye) window.initThirdEye();
+    if (window._initThirdEye) window._initThirdEye();
   }
 
   // ═══ THIRD EYE CODE → js/gaia-third-eye.js (elastic hook, ~600 lines) ═══
@@ -7646,6 +7234,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 <script src="js/gaia-ingress.js"></script>
 <script src="js/gaia-sight.js"></script>
 <script src="js/gaia-modality.js"></script>
+<script src="js/gaia-boot.js"></script>
+<script src="js/gaia-waveform.js"></script>
 <script src="js/gaia-third-eye.js"></script>
 </body>
 </html>
