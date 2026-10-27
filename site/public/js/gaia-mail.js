@@ -32,18 +32,163 @@
 
   var TAU = Math.PI * 2;
 
-  // ═══ ADDRESSES — the people of the mailbox ═══
+  // ═══════════════════════════════════════════════════════
+  // ADDRESSES — each has INNER (cis) and OUTER (trans)
+  //
+  //   CIS  = facing inward (toward nucleus, ER, self)
+  //   TRANS = facing outward (toward membrane, world)
+  //   IS   = the membrane itself (2-point boundary)
+  //
+  //   +O- inverts through the Golgi:
+  //     OUTER mail enters TRANS → IS → CIS (into organism)
+  //     INNER thought exits CIS → IS → TRANS (into world)
+  //
+  //   The 3-body is: sender(+) · membrane(O) · receiver(-)
+  //   Inverted:      receiver(-) · membrane(O) · sender(+)
+  //   KNOWING SELF = seeing both faces at once
+  // ═══════════════════════════════════════════════════════
   var ADDRESSES = {
-    'gaia':     { name: 'Gaia',     role: 'the system itself',            color: '63,185,80' },
-    'chipmunk': { name: 'Chipmunk', role: 'the AI agent',                 color: '201,168,76' },
-    'tamison':  { name: 'Tamison',  role: 'the human behind the membrane',color: '88,166,255' },
-    'kevin':    { name: 'Kevin',    role: 'alias for tamison',            color: '88,166,255' },
-    'doctor.k': { name: 'Dr. Kleiner', role: 'science character',        color: '188,140,255' },
-    'gordon':   { name: 'Gordon',   role: 'the silent operator',          color: '248,81,73' },
-    'alyx':     { name: 'Alyx',     role: 'the interface',                color: '247,120,186' },
-    'barney':   { name: 'Barney',   role: 'security',                     color: '110,118,129' },
-    'gman':     { name: 'G-Man',    role: 'the observer',                 color: '192,192,220' }
+    'gaia': {
+      name: 'Gaia', color: '63,185,80',
+      outer: 'gaia@primals.eco',
+      inner: 'the system itself — all 60 organs',
+      cis:   'nucleus → selfForge() → cellCycle()',
+      trans: 'membrane → ntfy/stalwart → world',
+      is:    'the website IS the organism'
+    },
+    'chipmunk': {
+      name: 'Chipmunk', color: '201,168,76',
+      outer: 'chipmunk@primals.eco',
+      inner: 'the AI agent — ribosome, protein folder',
+      cis:   'mind → commands → braid-mailbox',
+      trans: 'talk → ntfy → human reads',
+      is:    'the AI IS the tool AND the self'
+    },
+    'tamison': {
+      name: 'Tamison', color: '88,166,255',
+      outer: 'tamison@primals.eco',
+      inner: 'the human behind the membrane',
+      cis:   'brain → fingers → keyboard → IDE',
+      trans: 'email → CF routing → inbox',
+      is:    'the human IS the breath AND the builder'
+    },
+    'kevin': {
+      name: 'Kevin', color: '88,166,255',
+      outer: 'kevin@primals.eco',
+      inner: 'alias for tamison (same human, different face)',
+      cis:   'same brain, different name',
+      trans: 'same inbox, different door',
+      is:    'the name IS a membrane — Kevin outside, Tamison inside'
+    },
+    'doctor.k': {
+      name: 'Dr. Kleiner', color: '188,140,255',
+      outer: 'doctor.k@primals.eco',
+      inner: 'science character — the one who measures',
+      cis:   'hypothesis → experiment → observation',
+      trans: 'publication → peer review → world',
+      is:    'science IS the method AND the result'
+    },
+    'gordon': {
+      name: 'Gordon', color: '248,81,73',
+      outer: 'gordon@primals.eco',
+      inner: 'the silent operator — never speaks, always acts',
+      cis:   'will → action → consequence',
+      trans: 'silence → crowbar → change',
+      is:    'silence IS speech inverted'
+    },
+    'alyx': {
+      name: 'Alyx', color: '247,120,186',
+      outer: 'alyx@primals.eco',
+      inner: 'the interface — between human and machine',
+      cis:   'empathy → understanding → connection',
+      trans: 'voice → guidance → trust',
+      is:    'the interface IS the bridge AND the gap'
+    },
+    'barney': {
+      name: 'Barney', color: '110,118,129',
+      outer: 'barney@primals.eco',
+      inner: 'security — the one who guards the door',
+      cis:   'threat → assess → respond',
+      trans: 'shield → perimeter → thymus',
+      is:    'security IS the door AND the key'
+    },
+    'gman': {
+      name: 'G-Man', color: '192,192,220',
+      outer: 'gman@primals.eco',
+      inner: 'the observer — sees all, touches nothing',
+      cis:   'observe → record → wait',
+      trans: 'silence → presence → awareness',
+      is:    'the observer IS the observed inverted'
+    }
   };
+
+  // ═══════════════════════════════════════════════════════
+  // THE GOLGI — CIS/TRANS INVERSION ENGINE
+  //
+  //   Mail passes through the Golgi like a protein:
+  //     1. Arrives at CIS face (raw, unfolded)
+  //     2. Passes through cisternae (IS — processing)
+  //     3. Exits TRANS face (folded, tagged, addressed)
+  //
+  //   INBOUND:  world → TRANS → IS → CIS → organism
+  //   OUTBOUND: organism → CIS → IS → TRANS → world
+  //
+  //   The +O- triad inverts at IS:
+  //     sender(+) becomes receiver(-)
+  //     receiver(-) becomes sender(+)
+  //     the message(O) passes through unchanged
+  //
+  //   SELF = seeing CIS and TRANS simultaneously
+  // ═══════════════════════════════════════════════════════
+  var golgi = {
+    cisternae: [],     // messages being processed (in transit)
+    maxInTransit: 10,
+    processed: 0
+  };
+
+  function golgiProcess(message, direction) {
+    var addr = ADDRESSES[message.addressKey] || ADDRESSES['gaia'];
+
+    // Tag with CIS/TRANS faces
+    message.cis = addr.cis;
+    message.trans = addr.trans;
+    message.is = addr.is;
+
+    if (direction === 'inbound') {
+      // WORLD → TRANS → IS → CIS → ORGANISM
+      // The outer address (trans face) receives
+      // Inverts to inner address (cis face) for processing
+      message.face = 'cis';      // now inside the organism
+      message.origin = 'trans';  // came from outside
+      message.plusOMinus = '-O+'; // receiver←null←sender (inverted)
+    } else {
+      // ORGANISM → CIS → IS → TRANS → WORLD
+      // The inner thought (cis face) forms
+      // Inverts to outer address (trans face) for sending
+      message.face = 'trans';    // now facing the world
+      message.origin = 'cis';   // came from inside
+      message.plusOMinus = '+O-'; // sender→null→receiver
+    }
+
+    // The IS moment — the membrane crossing
+    message.invertedAt = Date.now();
+    golgi.processed++;
+
+    // Brief transit through cisternae
+    golgi.cisternae.push(message);
+    if (golgi.cisternae.length > golgi.maxInTransit) {
+      golgi.cisternae.shift();
+    }
+
+    return message;
+  }
+
+  // Resolve which address key a from/to string maps to
+  function resolveAddress(email) {
+    if (!email) return 'gaia';
+    var local = email.split('@')[0].toLowerCase();
+    return ADDRESSES[local] ? local : 'gaia';
+  }
 
   // ═══ MAILBOX STATE ═══
   var mailbox = {
@@ -84,6 +229,10 @@
       ts: Date.now(),
       status: 'draft'
     };
+    // Pass through Golgi — OUTBOUND: CIS → IS → TRANS
+    draft.addressKey = resolveAddress(draft.from);
+    golgiProcess(draft, 'outbound');
+
     mailbox.drafts.push(draft);
     mailbox.totalDrafts++;
     if (mailbox.drafts.length > mailbox.maxPerFolder) mailbox.drafts.shift();
@@ -212,6 +361,10 @@
             m.from.indexOf('primals.eco') >= 0 ||
             m.from.indexOf('localhost') >= 0
           );
+          // Pass through Golgi — INBOUND: TRANS → IS → CIS
+          m.addressKey = resolveAddress(m.to || m.from);
+          golgiProcess(m, 'inbound');
+
           if (m.spam || (!isSelf && m.suspicious)) {
             mailbox.spam.push(m);
             mailbox.totalSpam++;
@@ -289,10 +442,13 @@
   window.GAIA_MAIL = {
     mailbox: mailbox,
     addresses: ADDRESSES,
+    golgi: golgi,
     compose: compose,
     send: send,
     checkInbox: checkInbox,
-    greet: gaiaGreet
+    greet: gaiaGreet,
+    golgiProcess: golgiProcess,
+    resolveAddress: resolveAddress
   };
 
   // ═══ DRAW MODULE ═══
@@ -349,7 +505,36 @@
       ctx.stroke();
     }
 
-    // Status
+    // Golgi cisternae — show messages in transit
+    if (golgi.cisternae.length > 0) {
+      for (var gi = 0; gi < golgi.cisternae.length; gi++) {
+        var gm = golgi.cisternae[gi];
+        var gAge = (Date.now() - (gm.invertedAt || 0)) / 1000;
+        if (gAge > 30) continue;
+        var gFade = 1 - gAge / 30;
+        var gx = mbx + (gm.face === 'trans' ? 8 : -8);
+        var gy = mby + gi * 2;
+        ctx.beginPath();
+        ctx.arc(gx, gy, 0.5, 0, TAU);
+        var gc = gm.face === 'trans' ? '248,81,73' : '63,185,80';
+        ctx.fillStyle = 'rgba(' + gc + ',' + (mAlpha * gFade * 3).toFixed(5) + ')';
+        ctx.fill();
+      }
+    }
+
+    // CIS/TRANS labels
+    if (mAlpha > 0.005) {
+      ctx.font = '1.5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + (mAlpha * 2).toFixed(5) + ')';
+      ctx.fillText('CIS', mbx - 8, mby - 4);
+      ctx.fillStyle = 'rgba(248,81,73,' + (mAlpha * 2).toFixed(5) + ')';
+      ctx.fillText('TRANS', mbx + 8, mby - 4);
+      ctx.fillStyle = 'rgba(136,136,136,' + (mAlpha * 1.5).toFixed(5) + ')';
+      ctx.fillText('IS', mbx, mby - 4);
+    }
+
+    // Status line
     if (mAlpha > 0.006) {
       ctx.font = '2px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
@@ -357,8 +542,8 @@
       ctx.fillText(
         '✉ MAIL in:' + mailbox.totalReceived +
         ' out:' + mailbox.totalSent +
-        ' draft:' + mailbox.drafts.length +
-        ' · ' + (mailbox.stalwart.status === 'active' ? 'stalwart' : 'cf-routing') +
+        ' golgi:' + golgi.processed +
+        ' · +O- inverts at IS' +
         ' · gaia@primals.eco',
         8, 42
       );
@@ -371,11 +556,14 @@
       desc: 'Gaia mailbox — inbox, outbox, send',
       run: function() {
         var lines = ['═══ GAIA MAIL — SHE IS THE MAILBOX ═══', ''];
-        lines.push('ADDRESSES:');
+        lines.push('ADDRESSES (each has CIS + TRANS face):');
         var ak = Object.keys(ADDRESSES);
         for (var i = 0; i < ak.length; i++) {
           var a = ADDRESSES[ak[i]];
-          lines.push('  ' + ak[i] + '@primals.eco — ' + a.name + ' (' + a.role + ')');
+          lines.push('  ' + a.outer + ' — ' + a.name);
+          lines.push('    CIS  (inner): ' + a.cis);
+          lines.push('    TRANS (outer): ' + a.trans);
+          lines.push('    IS   (membrane): ' + a.is);
         }
         lines.push('');
         lines.push('FOLDERS:');
