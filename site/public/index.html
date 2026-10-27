@@ -2189,32 +2189,41 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.translate(youPin.x, youPin.y);
       ctx.rotate(Math.PI / 4);
 
-      // Green glow around you
-      var youGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
-      youGlow.addColorStop(0, 'rgba(63,185,80,' + (0.15 * youPulse).toFixed(3) + ')');
-      youGlow.addColorStop(1, 'rgba(63,185,80,0)');
+      // WHITE glow — green+gold=white. All colors combined.
+      var youGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
+      youGlow.addColorStop(0, 'rgba(255,255,255,' + (0.2 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(0.4, 'rgba(201,168,76,' + (0.1 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(0.7, 'rgba(63,185,80,' + (0.05 * youPulse).toFixed(3) + ')');
+      youGlow.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = youGlow;
-      ctx.fillRect(-16, -16, 32, 32);
+      ctx.fillRect(-18, -18, 36, 36);
 
-      // Green diamond
-      ctx.fillStyle = 'rgba(63,185,80,' + (0.7 * youPulse).toFixed(3) + ')';
+      // WHITE diamond with green-gold edge
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * youPulse).toFixed(3) + ')';
       ctx.fillRect(-4, -4, 8, 8);
 
-      // Border
-      ctx.strokeStyle = 'rgba(63,185,80,' + (0.9 * youPulse).toFixed(3) + ')';
+      // Gold border
+      ctx.strokeStyle = 'rgba(201,168,76,' + (0.9 * youPulse).toFixed(3) + ')';
       ctx.lineWidth = 1;
       ctx.strokeRect(-4, -4, 8, 8);
 
+      // Green outer border
+      ctx.strokeStyle = 'rgba(63,185,80,' + (0.5 * youPulse).toFixed(3) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(-6, -6, 12, 12);
+
       ctx.restore();
 
-      // Label — always visible
+      // Label — WHITE
       ctx.font = '8px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(63,185,80,' + (0.8 * youPulse).toFixed(3) + ')';
-      ctx.fillText('YOU', youPin.x, youPin.y - 12);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * youPulse).toFixed(3) + ')';
+      ctx.fillText('KEVIN', youPin.x, youPin.y - 14);
       ctx.font = '6px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(63,185,80,0.4)';
-      ctx.fillText('still', youPin.x, youPin.y + 16);
+      ctx.fillStyle = 'rgba(201,168,76,0.5)';
+      ctx.fillText('THE ecoPrimal', youPin.x, youPin.y + 18);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillText('hard · white · O', youPin.x, youPin.y + 26);
     }
 
     // GAIA'S MOUTH — the red electron on the far side of the black hole
