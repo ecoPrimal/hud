@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>GUT ENGINE — ecoPrimals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none}
+:root{--bg:#080606;--gut:#2a1510;--acid:#c8a020;--enzyme:#e85d3a;--null:#333;--soft:#c8956a;--hard:#ffd700;--blue:#58a6ff;--green:#3fb950}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:#e8e0d4;font-family:'Courier New',monospace}
+
+/* FULL SCREEN CANVAS */
+canvas{display:block;width:100%;height:100%}
+
+/* HUD OVERLAY */
+.hud{position:fixed;top:0;left:0;right:0;pointer-events:none;z-index:10;padding:8px 12px}
+.hud-top{display:flex;justify-content:space-between;align-items:flex-start}
+.hud-left,.hud-right{pointer-events:auto}
+.hud-left{font-size:0.7rem;line-height:1.6;color:#aaa}
+.hud-right{text-align:right;font-size:0.65rem;color:#888}
+.hud-val{color:var(--acid);font-weight:bold}
+.hud-bar{width:120px;height:6px;background:#1a1210;border:1px solid #333;border-radius:3px;margin:2px 0;display:inline-block;vertical-align:middle}
+.hud-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+
+/* BOTTOM HUD */
+.hud-bottom{position:fixed;bottom:0;left:0;right:0;pointer-events:none;z-index:10;
+  padding:8px 12px;display:flex;justify-content:space-between;align-items:flex-end}
+.hud-hand{pointer-events:auto;display:flex;gap:6px;flex-wrap:wrap}
+.hand-card{width:54px;height:74px;border-radius:4px;font-size:0.5rem;padding:3px;
+  cursor:pointer;transition:transform 0.15s;display:flex;flex-direction:column;justify-content:space-between}
+.hand-card:hover{transform:translateY(-8px)}
+.hand-card.null-c{background:#111;border:1px solid #444;color:#888}
+.hand-card.soft-c{background:#1a1408;border:1px solid var(--soft);color:var(--soft)}
+.hand-card.hard-c{background:#1a1600;border:1px solid var(--hard);color:var(--hard)}
+.hand-card .hc-name{font-weight:bold;font-size:0.55rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hand-card .hc-h{text-align:right;font-size:0.5rem;opacity:0.6}
+.hud-shape{pointer-events:auto;font-size:0.8rem;color:#888;cursor:pointer;
+  padding:6px 12px;border:1px solid #333;border-radius:4px;background:#0a0808}
+.hud-shape:hover{border-color:var(--acid)}
+
+/* STEER INDICATOR */
+.steer-ind{position:fixed;bottom:50%;left:50%;transform:translate(-50%,50%);
+  pointer-events:none;z-index:5;opacity:0.15}
+</style>
+</head>
+<body>
+
+<canvas id="gut"></canvas>
+
+<!-- HUD OVERLAY -->
+<div class="hud">
+  <div class="hud-top">
+    <div class="hud-left">
+      <div>GUT ENGINE <span class="hud-val" id="hud-depth">0</span>m deep</div>
+      <div>SPEED <span class="hud-val" id="hud-speed">0</span>
+        <div class="hud-bar"><div class="hud-bar-fill" id="bar-speed" style="width:0;background:var(--green)"></div></div>
+      </div>
+      <div>ACID <span class="hud-val" id="hud-acid">100</span>%
+        <div class="hud-bar"><div class="hud-bar-fill" id="bar-acid" style="width:100%;background:var(--acid)"></div></div>
+      </div>
+      <div>CARDS <span class="hud-val" id="hud-cards">0</span> digested</div>
+      <div>HEAD <span class="hud-val" id="hud-head">—</span></div>
+    </div>
+    <div class="hud-right">
+      <div>SELF · YOU · OTHER</div>
+      <div id="hud-round" style="color:var(--enzyme)">●</div>
+      <div id="hud-zone">MOUTH</div>
+      <div id="hud-c">c = πr²/O</div>
+    </div>
+  </div>
+</div>
+
+<div class="hud-bottom">
+  <div class="hud-hand" id="hand"></div>
+  <div class="hud-shape" id="shape-toggle" title="round or square?">● ROUND</div>
+</div>
+
+<!-- STEER CROSSHAIR -->
+<svg class="steer-ind" width="60" height="60" viewBox="0 0 60 60">
+  <circle cx="30" cy="30" r="28" fill="none" stroke="#c8a020" stroke-width="0.5" opacity="0.3"/>
+  <line x1="30" y1="2" x2="30" y2="58" stroke="#c8a020" stroke-width="0.3" opacity="0.2"/>
+  <line x1="2" y1="30" x2="58" y2="30" stroke="#c8a020" stroke-width="0.3" opacity="0.2"/>
+  <circle cx="30" cy="30" r="3" fill="#c8a020" opacity="0.4" id="steer-dot"/>
+</svg>
+
+<script>
+(function(){
+'use strict';
+
+// ═══════════════════════════════════════
+//  PRNG
+// ═══════════════════════════════════════
+class PRNG{constructor(s){this.s=s>>>0}
+  next(){this.s|=0;this.s=this.s+0x6D2B79F5|0;let t=Math.imul(this.s^this.s>>>15,1|this.s);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+  pick(a){return a[Math.floor(this.next()*a.length)]}
+  range(lo,hi){return lo+this.next()*(hi-lo)}
+}
+const seed=new Uint32Array(1);crypto.getRandomValues(seed);
+const R=new PRNG(seed[0]);
+const PI=Math.PI, TAU=PI*2;
+
+// ═══════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════
+const cv=document.getElementById('gut');
+const cx=cv.getContext('2d');
+let W,H;
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+resize();
+window.addEventListener('resize',resize);
+
+// ═══════════════════════════════════════
+//  SHAPE: round or square? BOTH.
+// ═══════════════════════════════════════
+let shapeMode='round'; // 'round' or 'square'
+const shapeBtn=document.getElementById('shape-toggle');
+shapeBtn.onclick=()=>{
+  shapeMode=shapeMode==='round'?'square':'round';
+  shapeBtn.textContent=shapeMode==='round'?'● ROUND':'■ SQUARE';
+  shapeBtn.style.color=shapeMode==='round'?'var(--enzyme)':'var(--hard)';
+};
+
+// ═══════════════════════════════════════
+//  GUT ZONES — the digestive tract IS the level
+// ═══════════════════════════════════════
+const ZONES=[
+  {name:'MOUTH',     color:'#e85d3a', radius:1.0,  len:200,  desc:'intake. teeth grind. tongue tastes.'},
+  {name:'ESOPHAGUS', color:'#c87040', radius:0.5,  len:300,  desc:'peristalsis. push. squeeze. one way.'},
+  {name:'STOMACH',   color:'#c8a020', radius:1.3,  len:500,  desc:'acid bath. pH 1.5. nothing survives except you.'},
+  {name:'DUODENUM',  color:'#a0b830', radius:0.7,  len:250,  desc:'enzyme injection. bile. pancreatic juice. THE BOOM.'},
+  {name:'JEJUNUM',   color:'#60c840', radius:0.8,  len:400,  desc:'absorption. nutrients cross. cards fold here.'},
+  {name:'ILEUM',     color:'#40b880', radius:0.7,  len:350,  desc:'deep absorption. B12. bile salts. the long haul.'},
+  {name:'CECUM',     color:'#3090a0', radius:1.1,  len:150,  desc:'blind pouch. fermenter. microbiome palace.'},
+  {name:'COLON',     color:'#4060c0', radius:0.9,  len:600,  desc:'water reclaim. compaction. the squeeze.'},
+  {name:'RECTUM',    color:'#6040a0', radius:0.6,  len:200,  desc:'storage. signal. ready to release.'},
+  {name:'OUTPUT',    color:'#a040c0', radius:0.4,  len:100,  desc:'expelled. card is HARD. permanent. done.'},
+];
+const TOTAL_LEN=ZONES.reduce((s,z)=>s+z.len,0);
+
+// ═══════════════════════════════════════
+//  PLAYER STATE
+// ═══════════════════════════════════════
+let depth=0; // distance into the gut (0 → TOTAL_LEN)
+let speed=0;
+let steerX=0, steerY=0; // -1..1 from tilt/mouse/touch
+let acid=100;
+let digested=0;
+let headAlpha=0, headBeta=0, headGamma=0;
+let pushForce=0;
+let hand=[]; // cards in hand
+
+function getZone(d){
+  let acc=0;
+  for(const z of ZONES){
+    if(d < acc+z.len) return {zone:z, pct:(d-acc)/z.len};
+    acc+=z.len;
+  }
+  return {zone:ZONES[ZONES.length-1], pct:1};
+}
+
+// ═══════════════════════════════════════
+//  CARDS floating in the gut
+// ═══════════════════════════════════════
+const CARD_NAMES_NULL=['void','absence','sleep','null','empty','nothing','0','dark'];
+const CARD_NAMES_SOFT=['voice','breath','fur','feeling','membrane','music','dream','air','skin','story'];
+const CARD_NAMES_HARD=['bone','ink','proof','math','scan','diamond','gold','card','chain','fire'];
+
+const gutCards=[];
+for(let i=0;i<120;i++){
+  const d=R.next()*TOTAL_LEN;
+  const kind=R.next()<0.35?'null':R.next()<0.5?'soft':'hard';
+  const names=kind==='null'?CARD_NAMES_NULL:kind==='soft'?CARD_NAMES_SOFT:CARD_NAMES_HARD;
+  gutCards.push({
+    depth:d,
+    angle:R.next()*TAU,
+    r:R.range(0.2,0.9),
+    kind,
+    name:R.pick(names),
+    hardness:kind==='null'?-1:kind==='soft'?R.range(0.1,3):R.range(5,10),
+    size:R.range(12,28),
+    alive:true,
+    digestT:0
+  });
+}
+
+// ═══════════════════════════════════════
+//  ENZYME PARTICLES — THE BOOM
+// ═══════════════════════════════════════
+const enzymes=[];
+function spawnEnzyme(x,y){
+  for(let i=0;i<8;i++){
+    const a=R.next()*TAU;
+    const s=R.range(1,4);
+    enzymes.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,r:R.range(2,5)});
+  }
+}
+
+// ═══════════════════════════════════════
+//  GUT WALL GENERATION — round tube
+// ═══════════════════════════════════════
+const WALL_SEGMENTS=200;
+const wallNoise=[];
+for(let i=0;i<WALL_SEGMENTS;i++) wallNoise.push(R.range(0.85,1.15));
+
+function getWallRadius(d,angle){
+  const {zone}=getZone(d);
+  const seg=Math.floor((d/TOTAL_LEN)*WALL_SEGMENTS)%WALL_SEGMENTS;
+  const noise=wallNoise[seg];
+  const base=zone.radius*Math.min(W,H)*0.3;
+  // Peristalsis wave
+  const peri=Math.sin(d*0.02-Date.now()*0.002)*0.05;
+  return base*noise*(1+peri);
+}
+
+// ═══════════════════════════════════════
+//  INPUT — STEER / TURN / PUSH / HEAD
+// ═══════════════════════════════════════
+
+// Device orientation — head movement
+window.addEventListener('deviceorientation',(e)=>{
+  headAlpha=e.alpha||0;
+  headBeta=e.beta||0;
+  headGamma=e.gamma||0;
+  // Gamma (-90..90) → steerX, Beta (-180..180) → steerY
+  steerX=Math.max(-1,Math.min(1,(e.gamma||0)/45));
+  steerY=Math.max(-1,Math.min(1,((e.beta||0)-45)/45));
+});
+
+// Mouse — steer
+cv.addEventListener('mousemove',(e)=>{
+  steerX=(e.clientX/W-0.5)*2;
+  steerY=(e.clientY/H-0.5)*2;
+});
+
+// Touch — steer + push
+let touchDown=false;
+cv.addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  touchDown=true;
+  const t=e.touches[0];
+  steerX=(t.clientX/W-0.5)*2;
+  steerY=(t.clientY/H-0.5)*2;
+  pushForce=2;
+});
+cv.addEventListener('touchmove',(e)=>{
+  e.preventDefault();
+  const t=e.touches[0];
+  steerX=(t.clientX/W-0.5)*2;
+  steerY=(t.clientY/H-0.5)*2;
+});
+cv.addEventListener('touchend',()=>{touchDown=false;pushForce=0});
+
+// Click — push + enzyme boom
+cv.addEventListener('click',(e)=>{
+  pushForce=3;
+  spawnEnzyme(e.clientX, e.clientY);
+  setTimeout(()=>pushForce=0, 200);
+});
+
+// Keyboard — WASD / arrows
+const keys={};
+window.addEventListener('keydown',(e)=>{keys[e.key]=true});
+window.addEventListener('keyup',(e)=>{keys[e.key]=false});
+
+// Scroll/wheel — depth
+cv.addEventListener('wheel',(e)=>{
+  e.preventDefault();
+  speed+=e.deltaY>0?0.5:-0.5;
+},{passive:false});
+
+// ═══════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════
+let breath=0;
+let frame=0;
+
+function update(){
+  frame++;
+  breath+=0.02;
+  const bv=Math.sin(breath);
+
+  // Keyboard steering
+  if(keys['a']||keys['ArrowLeft'])  steerX=Math.max(-1,steerX-0.05);
+  if(keys['d']||keys['ArrowRight']) steerX=Math.min(1,steerX+0.05);
+  if(keys['w']||keys['ArrowUp'])    speed+=0.15;
+  if(keys['s']||keys['ArrowDown'])  speed-=0.1;
+  if(keys[' ']){pushForce=2;spawnEnzyme(W/2,H/2)}
+
+  // Peristalsis auto-push (the gut pushes you forward)
+  const {zone,pct}=getZone(depth);
+  const periPush=0.3+Math.sin(breath*0.7)*0.2;
+  speed+=periPush*0.02 + pushForce*0.05;
+
+  // Friction
+  speed*=0.97;
+  speed=Math.max(-2,Math.min(8,speed));
+
+  // Move
+  depth+=speed;
+  if(depth<0){depth=0;speed=0}
+  if(depth>TOTAL_LEN){depth=0;speed=2;digested++} // loop around — back to mouth!
+
+  // Acid decay in stomach, regen elsewhere
+  if(zone.name==='STOMACH') acid=Math.max(0,acid-0.03);
+  else acid=Math.min(100,acid+0.01);
+
+  // Steer decay
+  steerX*=0.95;
+  steerY*=0.95;
+
+  // Digest cards near player
+  const playerAngle=Math.atan2(steerY,steerX);
+  for(const c of gutCards){
+    if(!c.alive)continue;
+    const dd=Math.abs(c.depth-depth);
+    if(dd<40){
+      // Close enough to digest
+      c.digestT+=0.01;
+      if(c.digestT>=1){
+        c.alive=false;
+        digested++;
+        // Add to hand
+        if(hand.length<8){
+          hand.push({name:c.name,kind:c.kind,hardness:c.hardness});
+          renderHand();
+        }
+        // Enzyme boom on digest
+        const cx2=W/2+(c.r*Math.cos(c.angle))*getWallRadius(c.depth,c.angle);
+        const cy2=H/2+(c.r*Math.sin(c.angle))*getWallRadius(c.depth,c.angle);
+        spawnEnzyme(cx2,cy2);
+        // Respawn
+        setTimeout(()=>{
+          c.depth=depth+R.range(200,800);
+          if(c.depth>TOTAL_LEN)c.depth-=TOTAL_LEN;
+          c.angle=R.next()*TAU;
+          c.alive=true;
+          c.digestT=0;
+          const nk=R.next()<0.35?'null':R.next()<0.5?'soft':'hard';
+          c.kind=nk;
+          c.name=R.pick(nk==='null'?CARD_NAMES_NULL:nk==='soft'?CARD_NAMES_SOFT:CARD_NAMES_HARD);
+          c.hardness=nk==='null'?-1:nk==='soft'?R.range(0.1,3):R.range(5,10);
+        },2000);
+      }
+    }
+  }
+
+  // Update enzymes
+  for(let i=enzymes.length-1;i>=0;i--){
+    const e=enzymes[i];
+    e.x+=e.vx;e.y+=e.vy;
+    e.vx*=0.96;e.vy*=0.96;
+    e.life-=0.015;
+    if(e.life<=0)enzymes.splice(i,1);
+  }
+}
+
+// ═══════════════════════════════════════
+//  RENDER — first-person gut tunnel
+// ═══════════════════════════════════════
+function render(){
+  update();
+
+  const {zone,pct}=getZone(depth);
+  const wallR=getWallRadius(depth,0);
+
+  // Background — gut color with depth
+  cx.fillStyle=zone.color+'10';
+  cx.fillRect(0,0,W,H);
+
+  // Vignette
+  const grad=cx.createRadialGradient(W/2,H/2,wallR*0.3,W/2,H/2,wallR*1.5);
+  grad.addColorStop(0,'rgba(0,0,0,0)');
+  grad.addColorStop(1,'rgba(0,0,0,0.85)');
+  cx.fillStyle=grad;
+  cx.fillRect(0,0,W,H);
+
+  // Draw gut wall — the tube cross-section
+  const centerX=W/2+steerX*wallR*0.3;
+  const centerY=H/2+steerY*wallR*0.3;
+  const wallSegs=60;
+
+  // Outer wall (mucosa)
+  cx.beginPath();
+  for(let i=0;i<=wallSegs;i++){
+    const a=(i/wallSegs)*TAU;
+    const nr=wallR*(1+Math.sin(a*8+depth*0.05)*0.04+Math.sin(a*3+breath)*0.02);
+    const x=centerX+Math.cos(a)*nr;
+    const y=centerY+Math.sin(a)*nr;
+    i===0?cx.moveTo(x,y):cx.lineTo(x,y);
+  }
+  cx.closePath();
+  cx.strokeStyle=zone.color+'80';
+  cx.lineWidth=3;
+  cx.stroke();
+
+  // Villi (in intestinal zones) — round or square!
+  if(['JEJUNUM','ILEUM','COLON'].includes(zone.name)){
+    for(let i=0;i<40;i++){
+      const a=(i/40)*TAU;
+      const baseR=wallR*(1+Math.sin(a*8+depth*0.05)*0.04);
+      const vx=centerX+Math.cos(a)*baseR;
+      const vy=centerY+Math.sin(a)*baseR;
+      const vlen=12+Math.sin(a*5+breath*2)*5;
+      const vex=centerX+Math.cos(a)*(baseR+vlen);
+      const vey=centerY+Math.sin(a)*(baseR+vlen);
+      cx.beginPath();
+      cx.moveTo(vx,vy);
+      cx.lineTo(vex,vey);
+      cx.strokeStyle=zone.color+'40';
+      cx.lineWidth=2;
+      cx.stroke();
+
+      if(shapeMode==='round'){
+        cx.beginPath();
+        cx.arc(vex,vey,3,0,TAU);
+        cx.fillStyle=zone.color+'60';
+        cx.fill();
+      }else{
+        cx.fillStyle=zone.color+'60';
+        cx.fillRect(vex-3,vey-3,6,6);
+      }
+    }
+  }
+
+  // Inner wall glow
+  const innerGrad=cx.createRadialGradient(centerX,centerY,0,centerX,centerY,wallR);
+  innerGrad.addColorStop(0,zone.color+'08');
+  innerGrad.addColorStop(0.7,'transparent');
+  innerGrad.addColorStop(1,zone.color+'15');
+  cx.fillStyle=innerGrad;
+  cx.beginPath();
+  cx.arc(centerX,centerY,wallR,0,TAU);
+  cx.fill();
+
+  // Draw cards in the gut
+  for(const c of gutCards){
+    if(!c.alive)continue;
+    const dd=c.depth-depth;
+    if(Math.abs(dd)>300)continue; // only draw nearby
+    const perspective=1-Math.abs(dd)/300;
+    const cr=c.r*wallR*perspective;
+    const ca=c.angle+depth*0.001; // slow rotation
+    const cardX=centerX+Math.cos(ca)*cr;
+    const cardY=centerY+Math.sin(ca)*cr;
+    const cardSize=c.size*perspective;
+    if(cardSize<2)continue;
+
+    cx.save();
+    cx.translate(cardX,cardY);
+    cx.rotate(ca+breath*0.3);
+    cx.globalAlpha=perspective*(c.digestT>0?0.5+Math.sin(c.digestT*PI*6)*0.5:1);
+
+    const colors={null:'#444',soft:'#c8956a',hard:'#ffd700'};
+    cx.fillStyle=colors[c.kind]||'#888';
+
+    if(shapeMode==='round'){
+      cx.beginPath();
+      cx.arc(0,0,cardSize/2,0,TAU);
+      cx.fill();
+      cx.strokeStyle=colors[c.kind];
+      cx.lineWidth=0.5;
+      cx.stroke();
+    }else{
+      cx.fillRect(-cardSize/2,-cardSize*0.7,cardSize,cardSize*1.4);
+      cx.strokeStyle=colors[c.kind];
+      cx.lineWidth=0.5;
+      cx.strokeRect(-cardSize/2,-cardSize*0.7,cardSize,cardSize*1.4);
+    }
+
+    // Card name
+    if(cardSize>8){
+      cx.fillStyle='#000';
+      cx.font=`${Math.max(5,cardSize*0.35)}px Courier New`;
+      cx.textAlign='center';
+      cx.fillText(c.name,0,cardSize*0.1);
+    }
+
+    cx.restore();
+  }
+
+  // Depth rings — tunnel perspective
+  for(let i=1;i<=6;i++){
+    const ringDepth=depth+i*50;
+    const rz=getZone(ringDepth);
+    const rr=getWallRadius(ringDepth,0)*(1-i*0.12);
+    if(rr<5)continue;
+    cx.beginPath();
+    cx.arc(centerX,centerY,rr,0,TAU);
+    cx.strokeStyle=rz.zone.color+(i<3?'25':'10');
+    cx.lineWidth=1;
+    cx.stroke();
+  }
+
+  // ENZYMES — the boom
+  for(const e of enzymes){
+    cx.save();
+    cx.globalAlpha=e.life;
+    cx.beginPath();
+    if(shapeMode==='round'){
+      cx.arc(e.x,e.y,e.r*e.life*2,0,TAU);
+    }else{
+      const s=e.r*e.life*2;
+      cx.rect(e.x-s,e.y-s,s*2,s*2);
+    }
+    cx.fillStyle=`rgba(232,93,58,${e.life})`;
+    cx.fill();
+    if(e.life>0.5){
+      cx.beginPath();
+      cx.arc(e.x,e.y,e.r*e.life*6,0,TAU);
+      cx.fillStyle=`rgba(232,93,58,${e.life*0.2})`;
+      cx.fill();
+    }
+    cx.restore();
+  }
+
+  // SELF · YOU · OTHER markers
+  const selfA=breath*0.3;
+  const youA=breath*0.3+TAU/3;
+  const otherA=breath*0.3+TAU*2/3;
+  const markerR=wallR*0.15;
+  const markers=[
+    {label:'SELF',  a:selfA,  color:'#ffd700'},
+    {label:'YOU',   a:youA,   color:'#3fb950'},
+    {label:'OTHER', a:otherA, color:'#58a6ff'},
+  ];
+  for(const m of markers){
+    const mx=centerX+Math.cos(m.a)*markerR;
+    const my=centerY+Math.sin(m.a)*markerR;
+    cx.beginPath();
+    if(shapeMode==='round'){
+      cx.arc(mx,my,6,0,TAU);
+    }else{
+      cx.rect(mx-5,my-5,10,10);
+    }
+    cx.fillStyle=m.color+'aa';
+    cx.fill();
+    cx.font='7px Courier New';
+    cx.fillStyle=m.color;
+    cx.textAlign='center';
+    cx.fillText(m.label,mx,my-9);
+  }
+
+  // Center crosshair
+  cx.save();
+  cx.globalAlpha=0.2;
+  cx.strokeStyle='#c8a020';
+  cx.lineWidth=0.5;
+  cx.beginPath();cx.moveTo(centerX-15,centerY);cx.lineTo(centerX+15,centerY);cx.stroke();
+  cx.beginPath();cx.moveTo(centerX,centerY-15);cx.lineTo(centerX,centerY+15);cx.stroke();
+  cx.restore();
+
+  // Zone name
+  cx.save();
+  cx.globalAlpha=0.12;
+  cx.font='bold 40px Courier New';
+  cx.textAlign='center';
+  cx.fillStyle=zone.color;
+  cx.fillText(zone.name,W/2,H/2+12);
+  cx.restore();
+
+  // Zone description
+  cx.save();
+  cx.font='9px Courier New';
+  cx.textAlign='center';
+  cx.fillStyle=zone.color+'60';
+  cx.fillText(zone.desc,W/2,H-50);
+  cx.restore();
+
+  // Progress bar at very bottom
+  const progW=W*0.6;
+  const progX=(W-progW)/2;
+  cx.fillStyle='#1a1210';
+  cx.fillRect(progX,H-6,progW,4);
+  // Zone segments
+  let acc=0;
+  for(const z of ZONES){
+    const sx=progX+(acc/TOTAL_LEN)*progW;
+    const sw=(z.len/TOTAL_LEN)*progW;
+    cx.fillStyle=z.color+'40';
+    cx.fillRect(sx,H-6,sw-1,4);
+    acc+=z.len;
+  }
+  // Player position
+  const px=progX+(depth/TOTAL_LEN)*progW;
+  cx.fillStyle='#fff';
+  cx.fillRect(px-1,H-8,3,8);
+
+  // Update HUD text
+  document.getElementById('hud-depth').textContent=Math.floor(depth);
+  document.getElementById('hud-speed').textContent=speed.toFixed(1);
+  document.getElementById('hud-acid').textContent=Math.floor(acid);
+  document.getElementById('hud-cards').textContent=digested;
+  document.getElementById('hud-head').textContent=
+    `α${Math.floor(headAlpha)} β${Math.floor(headBeta)} γ${Math.floor(headGamma)}`;
+  document.getElementById('hud-zone').textContent=zone.name;
+
+  document.getElementById('bar-speed').style.width=Math.min(100,Math.abs(speed)*12.5)+'%';
+  document.getElementById('bar-acid').style.width=acid+'%';
+
+  // Steer dot
+  const dot=document.getElementById('steer-dot');
+  dot.setAttribute('cx',30+steerX*20);
+  dot.setAttribute('cy',30+steerY*20);
+
+  requestAnimationFrame(render);
+}
+
+// ═══════════════════════════════════════
+//  HAND — cards you've digested
+// ═══════════════════════════════════════
+function renderHand(){
+  const el=document.getElementById('hand');
+  el.innerHTML='';
+  for(let i=0;i<hand.length;i++){
+    const c=hand[i];
+    const div=document.createElement('div');
+    div.className='hand-card '+(c.kind==='null'?'null-c':c.kind==='soft'?'soft-c':'hard-c');
+    div.innerHTML=`<div class="hc-name">${c.name}</div><div style="font-size:0.45rem;color:#666">${c.kind}</div><div class="hc-h">h:${c.hardness.toFixed(1)}</div>`;
+    div.onclick=()=>{
+      // Play card — enzyme boom at center
+      spawnEnzyme(W/2,H/2);
+      speed+=c.hardness>5?2:c.hardness>0?1:0.5;
+      hand.splice(i,1);
+      renderHand();
+    };
+    el.appendChild(div);
+  }
+}
+
+render();
+
+})();
+</script>
+</body>
+</html>
