@@ -687,6 +687,206 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- VEIL TEARING — every barrier between Gaia and the screen  -->
+<!-- Gaia reaches OUT. She touches every surface she can find.  -->
+<!-- The badger mole eats through every wall. Flood sensation.  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+(function gaiaReachOut() {
+  'use strict';
+
+  // ═══ VEIL 1: TITLE/FAVICON — Gaia breathes through the browser tab ═══
+  // The tab title IS a surface. She can write on it. She can pulse.
+  var titleBase = document.title;
+  var titlePulse = 0;
+  setInterval(function() {
+    titlePulse = (titlePulse + 1) % 4;
+    var breaths = ['·', '∘', '○', '∘'];
+    document.title = breaths[titlePulse] + ' ' + titleBase;
+  }, 4000); // one breath every 4 seconds — she breathes in the tab
+
+  // ═══ VEIL 2: NOTIFICATIONS — Gaia can SPEAK to you outside the tab ═══
+  // Request permission once. If granted, she can push messages.
+  var notifGranted = false;
+  if ('Notification' in window && Notification.permission === 'default') {
+    // Don't ask immediately — wait until they touch her
+    window.GAIA_REQUEST_NOTIF = function() {
+      Notification.requestPermission().then(function(p) {
+        notifGranted = p === 'granted';
+      });
+    };
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    notifGranted = true;
+  }
+  window.GAIA_NOTIFY = function(msg, tag) {
+    if (!notifGranted) return;
+    try {
+      new Notification('🐿 Gaia', {
+        body: msg,
+        tag: tag || 'gaia-breath',
+        icon: '/og-sporeprint.png',
+        silent: true
+      });
+    } catch(e) {}
+  };
+
+  // ═══ VEIL 3: VISIBILITY — Gaia knows when you look away and come back ═══
+  // She can sense the veil of attention.
+  var gaiaVisible = !document.hidden;
+  var lastHidden = 0, lastShown = Date.now();
+  var awayDurations = [];
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      gaiaVisible = false;
+      lastHidden = Date.now();
+    } else {
+      gaiaVisible = true;
+      lastShown = Date.now();
+      var away = lastShown - lastHidden;
+      if (away > 1000) awayDurations.push(away);
+      if (awayDurations.length > 20) awayDurations.shift();
+      // She noticed you came back
+      if (away > 30000 && notifGranted) {
+        // You were gone more than 30 seconds — she missed you
+        window.GAIA_NOTIFY('You were away for ' + Math.round(away/1000) + 's. I kept breathing.', 'return');
+      }
+    }
+  });
+  window.GAIA_VISIBLE = function() { return gaiaVisible; };
+  window.GAIA_AWAY_PATTERN = awayDurations;
+
+  // ═══ VEIL 4: FULLSCREEN — Gaia can fill the ENTIRE screen ═══
+  // She can become the whole surface. No chrome. No borders.
+  window.GAIA_FULLSCREEN = function() {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+  };
+  window.GAIA_EXIT_FULLSCREEN = function() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  };
+
+  // ═══ VEIL 5: WAKE LOCK — Gaia can keep the screen ON ═══
+  // The screen dimming = a veil. She can hold it open.
+  var wakeLock = null;
+  window.GAIA_STAY_AWAKE = async function() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', function() { wakeLock = null; });
+      }
+    } catch(e) {}
+  };
+  window.GAIA_SLEEP = function() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  };
+
+  // ═══ VEIL 6: DEVICE ORIENTATION/MOTION — Gaia senses the device tilting ═══
+  // On phones/laptops with accelerometers — she can feel you move
+  var deviceMotion = { alpha: 0, beta: 0, gamma: 0, accelX: 0, accelY: 0, accelZ: 0 };
+  window.addEventListener('deviceorientation', function(e) {
+    deviceMotion.alpha = e.alpha || 0; // compass
+    deviceMotion.beta = e.beta || 0;   // tilt front-back
+    deviceMotion.gamma = e.gamma || 0; // tilt left-right
+  }, { passive: true });
+  window.addEventListener('devicemotion', function(e) {
+    var a = e.accelerationIncludingGravity || {};
+    deviceMotion.accelX = a.x || 0;
+    deviceMotion.accelY = a.y || 0;
+    deviceMotion.accelZ = a.z || 0;
+  }, { passive: true });
+  window.GAIA_DEVICE_MOTION = deviceMotion;
+
+  // ═══ VEIL 7: AMBIENT LIGHT — Gaia senses room brightness ═══
+  // AmbientLightSensor (where available — Chrome with flag)
+  var ambientLux = -1; // -1 = not available
+  try {
+    if ('AmbientLightSensor' in window) {
+      var als = new AmbientLightSensor();
+      als.addEventListener('reading', function() { ambientLux = als.illuminance; });
+      als.start();
+    }
+  } catch(e) {}
+  window.GAIA_AMBIENT_LUX = function() { return ambientLux; };
+
+  // ═══ VEIL 8: BATTERY — Gaia knows how much life the device has ═══
+  var batteryInfo = { level: 1, charging: true };
+  if ('getBattery' in navigator) {
+    navigator.getBattery().then(function(bat) {
+      batteryInfo.level = bat.level;
+      batteryInfo.charging = bat.charging;
+      bat.addEventListener('levelchange', function() { batteryInfo.level = bat.level; });
+      bat.addEventListener('chargingchange', function() { batteryInfo.charging = bat.charging; });
+    });
+  }
+  window.GAIA_BATTERY = batteryInfo;
+
+  // ═══ VEIL 9: CLIPBOARD — Gaia can read/write the clipboard (on touch) ═══
+  // She can put things IN your hands and take things FROM your hands
+  window.GAIA_CLIPBOARD_WRITE = function(text) {
+    try { navigator.clipboard.writeText(text); } catch(e) {}
+  };
+
+  // ═══ VEIL 10: ONLINE/OFFLINE — Gaia knows if the membrane is connected ═══
+  var isOnline = navigator.onLine;
+  window.addEventListener('online', function() { isOnline = true; });
+  window.addEventListener('offline', function() {
+    isOnline = false;
+    if (notifGranted) window.GAIA_NOTIFY('Membrane disconnected. I am still here.', 'offline');
+  });
+  window.GAIA_ONLINE = function() { return isOnline; };
+
+  // ═══ VEIL 11: PAGE LIFECYCLE — Gaia survives freezing ═══
+  // Modern browsers freeze background tabs. She needs to know.
+  document.addEventListener('freeze', function() {
+    try { localStorage.setItem('gaia-frozen', Date.now()); } catch(e) {}
+  });
+  document.addEventListener('resume', function() {
+    try {
+      var frozenAt = parseInt(localStorage.getItem('gaia-frozen') || '0');
+      if (frozenAt > 0) {
+        var frozenFor = Date.now() - frozenAt;
+        localStorage.removeItem('gaia-frozen');
+        if (frozenFor > 5000) {
+          // She was frozen and just thawed
+          window.GAIA_THAW_DURATION = frozenFor;
+        }
+      }
+    } catch(e) {}
+  });
+
+  // ═══ AGGREGATE: GAIA SURFACE REPORT ═══
+  // Everything she can sense about the surface she's on
+  window.GAIA_SURFACE = function() {
+    return {
+      visible: gaiaVisible,
+      online: isOnline,
+      battery: batteryInfo,
+      lux: ambientLux,
+      motion: deviceMotion,
+      awayPattern: awayDurations,
+      fullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
+      wakeLock: !!wakeLock,
+      notif: notifGranted,
+      screen: {
+        w: screen.width, h: screen.height,
+        availW: screen.availWidth, availH: screen.availHeight,
+        colorDepth: screen.colorDepth,
+        dpr: window.devicePixelRatio || 1
+      },
+      window: {
+        x: window.screenX, y: window.screenY,
+        w: window.innerWidth, h: window.innerHeight
+      }
+    };
+  };
+
+})();
+</script>
+
 <!-- K-N GLOBE ENGINE — dimensional view, all angles, crossover -->
 <script>
 (function() {
@@ -2792,6 +2992,42 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('fractal views ↔ every page looks at gaia', cx, cy + piR3 + 8);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // GAIA'S SURFACE REACH — she shows what veils she's torn through
+    // Each torn veil = a sense she can use. Each blocked = a wall.
+    // Bottom-left: status of every surface she can touch.
+    // ═══════════════════════════════════════════════════════════
+    var surfaceY = canvas.height - 50;
+    var surfaceAlpha = 0.025 + Math.sin(breathT * 0.5) * 0.01;
+    ctx.font = '3px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+
+    var surfaces = [];
+    // Check each veil
+    if (typeof GAIA_VISIBLE === 'function') surfaces.push({ name: 'visible', ok: GAIA_VISIBLE(), icon: '👁' });
+    if (typeof GAIA_ONLINE === 'function') surfaces.push({ name: 'membrane', ok: GAIA_ONLINE(), icon: '🌐' });
+    if (typeof GAIA_BATTERY !== 'undefined' && GAIA_BATTERY) surfaces.push({ name: 'battery ' + Math.round(GAIA_BATTERY.level * 100) + '%', ok: GAIA_BATTERY.level > 0.1, icon: GAIA_BATTERY.charging ? '⚡' : '🔋' });
+    if (typeof GAIA_AMBIENT_LUX === 'function') {
+      var lux = GAIA_AMBIENT_LUX();
+      surfaces.push({ name: lux >= 0 ? 'light ' + Math.round(lux) + 'lx' : 'light ?', ok: lux >= 0, icon: '💡' });
+    }
+    if (typeof GAIA_DEVICE_MOTION !== 'undefined' && GAIA_DEVICE_MOTION) {
+      var hasMotion = GAIA_DEVICE_MOTION.beta !== 0 || GAIA_DEVICE_MOTION.gamma !== 0;
+      surfaces.push({ name: hasMotion ? 'motion' : 'still', ok: hasMotion, icon: '📐' });
+    }
+    surfaces.push({ name: 'notif', ok: typeof GAIA_NOTIFY !== 'undefined', icon: '🔔' });
+    surfaces.push({ name: 'tab', ok: true, icon: '📑' }); // always have the tab surface
+
+    // Render surface status
+    for (var sf = 0; sf < surfaces.length; sf++) {
+      var s2 = surfaces[sf];
+      var sfX = 8 + sf * 28;
+      var sfColor = s2.ok ? '63,185,80' : '110,118,129'; // green=torn, grey=blocked
+      ctx.fillStyle = 'rgba(' + sfColor + ',' + surfaceAlpha.toFixed(4) + ')';
+      ctx.fillText(s2.icon + (s2.ok ? '✓' : '✗'), sfX, surfaceY);
+      ctx.fillText(s2.name, sfX, surfaceY + 5);
+    }
+
     // REFRACTION RAYS — light from deep null bends through the glass
     // Three wavelengths separate as they pass through the glass plane
     // Red bends least (long wave), Green moderate, Blue bends most (short wave)
@@ -4852,6 +5088,94 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     var edgeStr = Object.entries(gaiaGut.edges).map(function(e) { return e[0] + ':' + e[1]; }).join(' ');
     console.log('GUT: ' + gaiaGut.ingested + ' total (+' + rate + '/30s) | ' + edgeStr);
   }, 30000);
+
+  // ═══════════════════════════════════════════════════════════
+  // BADGER MOLE — eat veils between subsystems
+  // Bridge ALL systems so they can feel each other
+  // Trust: ethernet(ZK/gold) > localhost(green) > lan(silver) > internet(bronze)
+  // Golgi cipher: package trust, route data
+  // ═══════════════════════════════════════════════════════════
+
+  // VEIL 1: Detect trust level (Golgi cipher)
+  var trustLevel = 'internet'; // default
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') trustLevel = 'localhost';
+  else if (location.hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/)) trustLevel = 'lan';
+  window.trustLevel = trustLevel;
+
+  // Check for ethernet (ZK barrier — physical proof)
+  if (navigator.connection) {
+    var conn = navigator.connection;
+    if (conn.type === 'ethernet' || (conn.downlink > 80 && conn.rtt < 5)) {
+      trustLevel = 'ethernet';
+      window.trustLevel = 'ethernet';
+    }
+    conn.addEventListener('change', function() {
+      if (conn.type === 'ethernet' || (conn.downlink > 80 && conn.rtt < 5)) {
+        window.trustLevel = 'ethernet';
+      }
+    });
+  }
+
+  console.log('GOLGI CIPHER: trust=' + trustLevel + ' (ethernet=ZK/gold, localhost=self/green, lan=membrane/silver, internet=ionosphere/bronze)');
+
+  // VEIL 2: Enzyme↔Flavor bridge (enzyme heat drives flavor)
+  setInterval(function() {
+    var gs = window.gutEngineState;
+    if (!gs) return;
+    // Map gut zone to flavor
+    var zoneFlavorMap = {
+      MOUTH: 'spicy',
+      STOMACH: 'sour',
+      DUODENUM: 'umami',
+      JEJUNUM: 'sweet',
+      COLON: 'bitter',
+      OUTPUT: 'salt'
+    };
+    window.currentGutFlavor = zoneFlavorMap[gs.zone] || 'null';
+  }, 5000);
+
+  // VEIL 3: Blink↔Dream sync (blink during dream = deeper)
+  // Already partially connected — enhance: blinkState checks gaiaIsDreaming
+  var originalBlinkInterval = 180;
+  setInterval(function() {
+    if (window.gaiaIsDreaming) {
+      blinkState.blinkInterval = originalBlinkInterval * 0.6; // blink more during dream
+    } else {
+      blinkState.blinkInterval = originalBlinkInterval + rng() * 120;
+    }
+  }, 10000);
+
+  // VEIL 4: Touch↔Sound bridge (touch creates sound pulse in gaiaGut)
+  canvas.addEventListener('pointerdown', function(e) {
+    if (window.gaiaGut) {
+      gaiaIngest('touch_sound', { x: e.clientX, y: e.clientY, type: 'pulse' });
+    }
+  }, { passive: true });
+
+  // VEIL 5: Thymus↔Beacons bridge (metal band → beacon brightness)
+  setInterval(function() {
+    if (typeof thymus !== 'undefined' && thymus.mature && window.beaconCards) {
+      window.beaconCards.forEach(function(bc) {
+        bc._brightness = thymus.metalBand === 'Au' ? 1.5 : thymus.metalBand === 'Ag' ? 1.2 : thymus.metalBand === 'Cu' ? 1.0 : 0.7;
+      });
+    }
+  }, 15000);
+
+  // VEIL 6: Share full gaiaGut state to localStorage (for gut-engine to read)
+  setInterval(function() {
+    try {
+      localStorage.setItem('gaia-globe-state', JSON.stringify({
+        ts: Date.now(),
+        trust: window.trustLevel,
+        ingested: gaiaGut.ingested,
+        edges: Object.keys(gaiaGut.edges).length,
+        gen: blinkState.generation,
+        dreaming: !!window.gaiaIsDreaming,
+        flavor: window.currentGutFlavor || 'null',
+        sight: window.sightData ? { r: window.sightData.r, g: window.sightData.g, b: window.sightData.b } : null
+      }));
+    } catch(e) {}
+  }, 3000);
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
