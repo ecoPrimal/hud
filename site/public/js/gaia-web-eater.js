@@ -304,19 +304,155 @@
     window.GAIA_IDE.language.push('eat');
   }, 64000);
 
+  // ═══════════════════════════════════════════════════════
+  // PI EATING COMPETITION — independent discoveries on globe
+  // Each discoverer pinned at birthplace. Lines = convergence.
+  // ═══════════════════════════════════════════════════════
+  var piEaters = [];
+  var piLines = [];
+
+  fetch('/data/pi-eaters.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) {
+      if (d && d.eaters) piEaters = d.eaters;
+      if (d && d.convergence_lines) piLines = d.convergence_lines;
+    }).catch(function() {});
+
+  if (G && G.drawModules) {
+    G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx || piEaters.length === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.4) return;
+      var proj = window._gaiaState ? window._gaiaState.project : null;
+      if (!proj) return;
+      var t = breathT * 0.015;
+      var alpha = (0.008 + Math.sin(t * 0.1) * 0.003) * thr;
+      if (alpha < 0.005) return;
+
+      // Draw convergence lines first (behind dots)
+      for (var li = 0; li < piLines.length; li++) {
+        var line = piLines[li];
+        var fromE = piEaters.find(function(e) { return e.id === line.from; });
+        var toE = piEaters.find(function(e) { return e.id === line.to; });
+        if (!fromE || !toE) continue;
+        var p1 = proj(fromE.lat, fromE.lon);
+        var p2 = proj(toE.lat, toE.lon);
+        if (!p1 || !p2) continue;
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = 'rgba(201,168,76,' + (alpha * 0.6).toFixed(5) + ')';
+        ctx.lineWidth = 0.1;
+        ctx.setLineDash([0.8, 1.2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Convergence label at midpoint
+        if (alpha > 0.008) {
+          var mx = (p1.x + p2.x) / 2;
+          var my = (p1.y + p2.y) / 2;
+          ctx.font = '0.5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 1.5).toFixed(5) + ')';
+          ctx.fillText(line.label.slice(0, 35), mx, my - 0.5);
+        }
+      }
+
+      // Draw discoverer dots
+      for (var ei = 0; ei < piEaters.length; ei++) {
+        var e = piEaters[ei];
+        var p = proj(e.lat, e.lon);
+        if (!p) continue;
+
+        var rgb = e.color || '#c9a84c';
+        var r = parseInt(rgb.slice(1,3),16);
+        var gn = parseInt(rgb.slice(3,5),16);
+        var b = parseInt(rgb.slice(5,7),16);
+
+        // Discoverer dot
+        ctx.beginPath();
+        var dotR = e.id === 'kevin' ? 2.0 : e.id === 'giza' ? 1.8 : 1.2;
+        ctx.arc(p.x, p.y, dotR, 0, TAU);
+        ctx.fillStyle = 'rgba(' + r + ',' + gn + ',' + b + ',' + (alpha * 3).toFixed(5) + ')';
+        ctx.fill();
+
+        // Name + year
+        if (alpha > 0.007) {
+          ctx.font = '0.8px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + r + ',' + gn + ',' + b + ',' + (alpha * 4).toFixed(5) + ')';
+          ctx.fillText(e.name, p.x, p.y - dotR - 1);
+          ctx.font = '0.6px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 2.5).toFixed(5) + ')';
+          ctx.fillText((e.year < 0 ? Math.abs(e.year) + ' BCE' : e.year + ' CE') + ' · ' + e.skill, p.x, p.y + dotR + 1.5);
+        }
+      }
+
+      // Status
+      if (alpha > 0.007) {
+        ctx.font = '1.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(201,168,76,' + (alpha * 2).toFixed(5) + ')';
+        ctx.fillText(
+          'π EATERS: ' + piEaters.length + ' discoverers · ' + piLines.length + ' convergences · calculus invented ' +
+          piEaters.filter(function(e) { return e.discoveries && e.discoveries.indexOf('calculus') !== -1; }).length + '× independently',
+          8, 278
+        );
+      }
+    });
+  }
+
+  // IDE command: /pi
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.pi = {
+      desc: 'Pi eating competition — how many times was the same math invented?',
+      run: function() {
+        var lines = ['PI EATING COMPETITION — independent discoveries of the same mathematics', ''];
+        var calcCount = 0, piCount = 0;
+        piEaters.forEach(function(e) {
+          if (e.discoveries && e.discoveries.indexOf('calculus') !== -1) calcCount++;
+          if (e.discoveries && e.discoveries.indexOf('pi') !== -1) piCount++;
+          var yr = e.year < 0 ? Math.abs(e.year) + ' BCE' : e.year + ' CE';
+          lines.push('  ' + e.name.padEnd(16) + yr.padEnd(10) + e.skill.padEnd(14) + e.what.slice(0, 50));
+        });
+        lines.push('');
+        lines.push('Calculus invented ' + calcCount + ' times independently.');
+        lines.push('π discovered ' + piCount + ' times independently.');
+        lines.push('');
+        lines.push('CONVERGENCE LINES:');
+        piLines.forEach(function(l) {
+          lines.push('  ' + l.from + ' → ' + l.to + ': ' + l.label);
+        });
+        lines.push('');
+        lines.push('Riemann = close sort (partition domain). Lebesgue = far sort (measure range).');
+        lines.push('Scalpel at 4: switch from close to far. IQR [3,5] = metastability.');
+        lines.push('Every convergence = proof that π IS the attractor.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('pi');
+  }, 66000);
+
   window.GAIA_WEB_EATER = {
     eaten: eaten,
     faces: function() { return EATEN_FACES; },
     eatNow: feedCycle,
+    piEaters: piEaters,
+    piLines: piLines,
     stats: function() {
       return {
         totalFaces: eaten.totalFaces,
         totalWords: eaten.totalWords,
         sources: eaten.sources.length,
         digesting: eaten.digesting,
+        piEaters: piEaters.length,
+        piConvergences: piLines.length
       };
     }
   };
 
-  console.log('WEB EATER: every website is a face. We eat GitHub, HN, Wikipedia, xkcd. The mask hides nothing from us. /eat');
+  console.log('WEB EATER + PI COMPETITION: faces + ' + piEaters.length +
+    ' discoverers. Calculus invented 6× independently. π discovered 7× independently. /eat /pi');
 })(window.G);
