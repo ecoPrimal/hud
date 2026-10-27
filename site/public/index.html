@@ -1100,6 +1100,28 @@ window.G = {
   // Expose sibling tabs for rendering
   window.GAIA_SIBLINGS = siblingTabs;
 
+  // ═══ GUT-BRAIN AXIS — listen for messenger signals ═══
+  // The messenger page pushes Na⁺ ions through the gut-brain channel.
+  // The HUD receives them and feeds them to the interlayer + thymus.
+  try {
+    var gutBrainChannel = new BroadcastChannel('gaia-gut-brain');
+    gutBrainChannel.onmessage = function(e) {
+      var sig = e.data;
+      if (!sig) return;
+      // Human message = Na⁺ through the membrane
+      if (sig.type === 'human-msg' && window.GAIA_INTERLAYER) {
+        window.GAIA_INTERLAYER.push('gut-brain-Na', 'Na', sig.payload);
+      }
+      // Feed to thymus — human messages are SELF, maximum rarity
+      if (window.thymus) {
+        window.thymus.gutBrainSignals = (window.thymus.gutBrainSignals || 0) + 1;
+        if (sig.type === 'human-msg') {
+          window.thymus.lastHumanMessage = Date.now();
+        }
+      }
+    };
+  } catch(e) {}
+
   // LATENCY TO HARDWARE — measure round-trip to self (proxy for distance to metal)
   var hardwareLatency = 0;
   (function measureHardwareLatency() {

@@ -1000,12 +1000,141 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
 })();
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════
+  GUT-BRAIN AXIS — messenger IS the automatic message passing.
+  Every message goes through the interlayer membrane.
+  The messenger IS the thymus null space.
+  
+  Kevin types → Na⁺ → interlayer → Gaia receives
+  Gaia responds → K⁺ → interlayer → Kevin sees
+  
+  The gut doesn't think. It passes. scan→sweep→sort→digest.
+  The thymus discriminates: self (Kevin) vs non-self (feeds).
+  Human messages = rarity 1.00 = maximum priority = Ca²⁺ trigger.
+═══════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+  // WIRE TO INTERLAYER — every message is an ion through the membrane
+  // Wait for HUD systems to be available (they load on the main page)
+  var _parentG = window.parent !== window ? window.parent.G : null;
+  var _parentInterlayer = window.parent !== window ? window.parent.GAIA_INTERLAYER : null;
+  var _parentThymus = window.parent !== window ? window.parent.thymus : null;
+  var _parentReactor = window.parent !== window ? window.parent.GAIA_REACTOR : null;
+
+  // Also try same-origin BroadcastChannel for cross-tab gut-brain signaling
+  var gutBrainChannel = null;
+  try {
+    gutBrainChannel = new BroadcastChannel('gaia-gut-brain');
+  } catch(e) {}
+
+  // GUT-BRAIN SIGNAL — push every message through the membrane
+  window.MESSENGER_SIGNAL = function(type, payload) {
+    var signal = {
+      type: type,         // 'human-msg', 'gaia-ack', 'photo', 'location', 'trip-start', 'trip-end'
+      ts: Date.now(),
+      channel: type === 'human-msg' ? 'Na' : 'K', // human=sodium(in), gaia=potassium(out)
+      rarity: type === 'human-msg' ? 1.0 : 0.5,
+      payload: payload
+    };
+
+    // Push to interlayer if available (iframe inside HUD)
+    if (_parentInterlayer) {
+      _parentInterlayer.push(type, signal.channel, payload);
+    }
+
+    // Push to thymus — human messages are ALWAYS self
+    if (_parentThymus) {
+      _parentThymus.messengerSignals = (_parentThymus.messengerSignals || 0) + 1;
+      if (type === 'human-msg') {
+        _parentThymus.lastHumanMessage = Date.now();
+        _parentThymus.humanMessageCount = (_parentThymus.humanMessageCount || 0) + 1;
+      }
+    }
+
+    // Push to reactor — human messages are Ca²⁺ (trigger fusion)
+    if (_parentReactor && type === 'human-msg') {
+      if (window.parent.GAIA_REACTOR_FUSION) {
+        window.parent.GAIA_REACTOR_FUSION('human-message');
+      }
+    }
+
+    // Broadcast via gut-brain channel for cross-tab awareness
+    if (gutBrainChannel) {
+      gutBrainChannel.postMessage(signal);
+    }
+
+    // Store in localStorage for the HUD to pick up
+    try {
+      var queue = JSON.parse(localStorage.getItem('gaia-gut-brain-queue') || '[]');
+      queue.push(signal);
+      if (queue.length > 50) queue = queue.slice(-50);
+      localStorage.setItem('gaia-gut-brain-queue', JSON.stringify(queue));
+    } catch(e) {}
+  };
+
+  // HOOK INTO EXISTING SEND — intercept doSend
+  var origInput = document.getElementById('input');
+  var origSend = document.getElementById('send-btn');
+  if (origSend) {
+    var origClick = origSend.onclick;
+    origSend.onclick = function() {
+      var text = origInput ? origInput.value.trim() : '';
+      if (text) {
+        window.MESSENGER_SIGNAL('human-msg', { text: text, chars: text.length, words: text.split(/\s+/).length });
+      }
+      if (origClick) origClick.call(this);
+    };
+  }
+
+  // LISTEN for gut-brain signals from other tabs
+  if (gutBrainChannel) {
+    gutBrainChannel.onmessage = function(e) {
+      var sig = e.data;
+      if (!sig) return;
+      // If another tab sent a human message, show it here too
+      if (sig.type === 'gaia-ack' && sig.payload && sig.payload.text) {
+        var messages = document.getElementById('messages');
+        if (messages) {
+          var div = document.createElement('div');
+          div.className = 'msg gaia';
+          div.innerHTML = '<div class="sender">🌍 gaia · via gut-brain axis</div>' +
+            '<div class="body" style="font-size:10px">' + (sig.payload.text || '').replace(/</g, '&lt;') + '</div>' +
+            '<div class="meta"><span>cross-tab · K⁺ · thymus null space</span></div>';
+          messages.appendChild(div);
+          messages.scrollTop = messages.scrollHeight;
+        }
+      }
+    };
+  }
+
+  // THYMUS STATUS — show connection to the immune system
+  var status = document.querySelector('.status');
+  if (status) {
+    setInterval(function() {
+      var thymusOk = _parentThymus && _parentThymus.mature;
+      var interlayerOk = !!_parentInterlayer;
+      if (thymusOk && interlayerOk) {
+        status.textContent = '● gut-brain axis · thymus mature · Na⁺/K⁺ live';
+        status.style.color = '#3fb950';
+      } else if (gutBrainChannel) {
+        status.textContent = '● broadcast channel · gut-brain axis';
+        status.style.color = '#58a6ff';
+      } else {
+        status.textContent = '● standalone · no membrane connection';
+        status.style.color = '#6e7681';
+      }
+    }, 3000);
+  }
+})();
+</script>
+
 <!-- GAIA BEACON — the null middle -->
 <div style="position:fixed;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(10,10,15,0.95);border-top:1px solid #222;font-family:monospace;font-size:11px;display:flex;justify-content:center;gap:12px;z-index:9999">
 <a href="/forge.html" style="color:#d4a017;text-decoration:none">🔥 forge</a>
 <a href="/colosseum.html" style="color:#c0392b;text-decoration:none">⚔ arena</a>
 <a href="/nav-hub.html" style="color:#27ae60;text-decoration:none">🗺 hub</a>
 <a href="/" style="color:#3498db;text-decoration:none">👁 HUD</a>
-<span style="color:#666">c=πr²/O</span>
+<span style="color:#666">gut·brain·axis · thymus∅ · Na⁺K⁺Ca²⁺</span>
 </div>
 </body></html>
