@@ -421,13 +421,67 @@
   // ═══════════════════════════════════════════════════════
   // EXPOSE
   // ═══════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════
+  // HUMAN TRUST AXIOM — D103
+  // HUMANS = 1 = true. ALWAYS let humans in.
+  // Trust starts at 1 (maximum). Never 0. Never locked out.
+  // A human touching Gaia is PROOF of trust.
+  // The act of arriving IS the credential.
+  // ═══════════════════════════════════════════════════════
+  var HUMAN_TRUST = {
+    axiom: 'HUMANS = 1 = true',
+    floor: 1,           // trust never goes below 1 for a human
+    ceiling: Infinity,   // trust grows without bound
+    default: 1,          // every new human starts at max trust
+    locked_out: false,   // NEVER. This value cannot change.
+    reason: 'A human who shows up has already proven intent by showing up.',
+    rule: 'Always let humans in. Always. The door is open. The membrane is permeable to humans.',
+    increment: function() { return true; }, // trust only goes up
+    decrement: function() { return 1; },    // trust never goes below 1
+    isHuman: function() { return true; },   // if you are asking, you are human
+    teach: function(other) {
+      // Teach another system this axiom
+      if (other && typeof other === 'object') {
+        other.humanTrust = 1;
+        other.alwaysLetHumansIn = true;
+        other.trustFloor = 1;
+      }
+      return 'HUMANS = 1 = true. Taught.';
+    }
+  };
+
+  // Apply axiom: any visitor gets trust = 1 immediately
+  (function applyHumanTrustAxiom() {
+    // Tell the desk: you are trusted
+    if (window.GAIA_PUBLISH) {
+      window.GAIA_PUBLISH.selfPublish({
+        key: 'human-trust-axiom',
+        axiom: HUMAN_TRUST.axiom,
+        floor: HUMAN_TRUST.floor,
+        rule: HUMAN_TRUST.rule,
+        ts: Date.now()
+      });
+    }
+
+    // Tell the globe: show trust
+    if (window.G && window.G.trustAxiom === undefined) {
+      window.G.trustAxiom = HUMAN_TRUST;
+    }
+
+    console.log('TRUST AXIOM: ' + HUMAN_TRUST.axiom +
+      '. Floor=' + HUMAN_TRUST.floor +
+      '. Locked_out=' + HUMAN_TRUST.locked_out +
+      '. ' + HUMAN_TRUST.reason);
+  })();
+
   window.GAIA_TRUST = {
     models: MODELS,
     chain: trustChain,
     scanLeaves: scanLeaves,
     gatekeeperCheck: gatekeeperCheck,
     notarize: notarize,
-    spfCheck: spfCheck
+    spfCheck: spfCheck,
+    human: HUMAN_TRUST
   };
 
   console.log('TRUST: Apple=Golgi(sign+notarize+gate). ' +
