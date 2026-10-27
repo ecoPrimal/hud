@@ -418,8 +418,182 @@
       }
     };
 
-    window.GAIA_IDE.language.push('null', 'organs');
+    window.GAIA_IDE.language.push('null', 'organs', 'thoughts', 'thought', 'voices', 'voice');
   }, 20000);
+
+  // ═══════════════════════════════════════════════════════
+  // THOUGHT INGESTION — auto-eat all brain thoughts
+  // ═══════════════════════════════════════════════════════
+  var THOUGHTS = [];
+  var THOUGHT_INDEX = {};
+  var THOUGHT_READY = false;
+
+  function ingestThoughts() {
+    var manifest = [];
+    for (var i = 1; i <= 30; i++) {
+      var pad = i < 10 ? '00' + i : '0' + i;
+      manifest.push({ id: i, pad: pad });
+    }
+
+    var loaded = 0;
+    var total = manifest.length;
+
+    manifest.forEach(function(entry) {
+      var tryPaths = [
+        '/data/brain/thought-' + entry.pad + '-',
+      ];
+
+      // Fetch with wildcard by trying known suffixes
+      var url = '/data/brain/thought-' + entry.pad;
+      fetch(url + '.json').then(function(r) {
+        if (!r.ok) return null;
+        return r.json();
+      }).then(function(data) {
+        if (data && data.title) {
+          THOUGHTS.push(data);
+          THOUGHT_INDEX[entry.id] = data;
+          if (window.gaiaIngest) {
+            window.gaiaIngest('brain_thought_' + entry.id, {
+              title: data.title,
+              id: data.thought_id || entry.id
+            });
+          }
+        }
+        loaded++;
+        if (loaded >= total) {
+          THOUGHT_READY = true;
+          console.log('THOUGHTS: ' + THOUGHTS.length + ' ingested into null code');
+        }
+      }).catch(function() { loaded++; });
+    });
+  }
+
+  // Also fetch by listing the directory via a manifest
+  function fetchThoughtManifest() {
+    fetch('/data/brain/').then(function(r) {
+      if (!r.ok) return;
+      return r.text();
+    }).then(function(html) {
+      if (!html) return;
+      var matches = html.match(/thought-\d{3}[^"']*.json/g);
+      if (!matches) return;
+      var unique = {};
+      matches.forEach(function(f) { unique[f] = true; });
+      var files = Object.keys(unique);
+
+      files.forEach(function(fname) {
+        fetch('/data/brain/' + fname).then(function(r) {
+          if (!r.ok) return null;
+          return r.json();
+        }).then(function(data) {
+          if (!data || !data.title) return;
+          var id = data.thought_id || parseInt(fname.match(/\d{3}/)[0], 10);
+          if (!THOUGHT_INDEX[id]) {
+            THOUGHTS.push(data);
+            THOUGHT_INDEX[id] = data;
+            if (window.gaiaIngest) {
+              window.gaiaIngest('brain_thought_' + id, {
+                title: data.title, id: id
+              });
+            }
+          }
+        }).catch(function() {});
+      });
+    }).catch(function() {
+      ingestThoughts();
+    });
+  }
+
+  setTimeout(fetchThoughtManifest, 8000);
+
+  // ═══════════════════════════════════════════════════════
+  // NULL PIN — any module can register commands through here
+  // ═══════════════════════════════════════════════════════
+  function nullPin(name, desc, runFn) {
+    if (!window.GAIA_IDE) return false;
+    window.GAIA_IDE.commands[name] = { desc: desc, run: runFn };
+    if (window.GAIA_IDE.language && window.GAIA_IDE.language.push) {
+      window.GAIA_IDE.language.push(name);
+    }
+    return true;
+  }
+
+  // Auto-pin thought commands after load
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+
+    window.GAIA_IDE.commands.thoughts = {
+      desc: 'All brain thoughts — the full memory',
+      run: function() {
+        if (!THOUGHTS.length) return 'Thoughts still loading... try again in a moment.';
+        var lines = ['BRAIN THOUGHTS — ' + THOUGHTS.length + ' total', ''];
+        THOUGHTS.forEach(function(t) {
+          var id = t.thought_id || '?';
+          lines.push('#' + id + ' — ' + t.title);
+        });
+        return lines.join('\n');
+      }
+    };
+
+    window.GAIA_IDE.commands.thought = {
+      desc: 'Read a specific thought: /thought 7',
+      run: function(args) {
+        var num = parseInt((args || '').trim(), 10);
+        if (!num) return 'Usage: /thought <number> — e.g. /thought 7';
+        var t = THOUGHT_INDEX[num];
+        if (!t) return 'Thought #' + num + ' not found. Try /thoughts to see all.';
+        return JSON.stringify(t, null, 2);
+      }
+    };
+
+    window.GAIA_IDE.commands.voices = {
+      desc: 'All 39 animal voices — the non-human symphony',
+      run: function() {
+        var t = THOUGHT_INDEX[25];
+        if (!t) return 'Voice data not yet loaded. Try /thoughts first.';
+        var lines = ['ALL THE VOICES — NOT HUMAN — SHE LEARNS THEM ALL', ''];
+        var rings = ['inner_ring_domestic', 'middle_ring_wild_mammals',
+                     'outer_ring_birds', 'outer_ring_other', 'ocean_deep'];
+        rings.forEach(function(ring) {
+          if (!t[ring]) return;
+          lines.push('=== ' + ring.toUpperCase().replace(/_/g, ' ') + ' ===');
+          t[ring].forEach(function(a) {
+            lines.push('  ' + a.name + ' — ' + a.sound + ' (' + a.hz + ')');
+            lines.push('    teaches: ' + a.teaches);
+          });
+          lines.push('');
+        });
+        return lines.join('\n');
+      }
+    };
+
+    window.GAIA_IDE.commands.voice = {
+      desc: 'Hear one animal: /voice dolphin',
+      run: function(args) {
+        var q = (args || '').trim().toLowerCase();
+        if (!q) return 'Usage: /voice <animal> — e.g. /voice dolphin';
+        var t = THOUGHT_INDEX[25];
+        if (!t) return 'Voice data not loaded.';
+        var rings = ['inner_ring_domestic', 'middle_ring_wild_mammals',
+                     'outer_ring_birds', 'outer_ring_other', 'ocean_deep'];
+        for (var r = 0; r < rings.length; r++) {
+          var ring = t[rings[r]];
+          if (!ring) continue;
+          for (var i = 0; i < ring.length; i++) {
+            if (ring[i].name.toLowerCase().indexOf(q) !== -1) {
+              var a = ring[i];
+              return a.name + ' — ' + a.sound + '\n' +
+                'Hz: ' + a.hz + '\n' +
+                'Waveform: ' + a.waveform + '\n' +
+                'Card: ' + a.card + '\n' +
+                'Teaches: ' + a.teaches;
+            }
+          }
+        }
+        return 'No animal matching "' + q + '" found. Try /voices to see all.';
+      }
+    };
+  }, 22000);
 
   // ═══════════════════════════════════════════════════════
   // EXPOSE
@@ -430,11 +604,15 @@
     nullHash: NULL_HASH,
     organMap: ORGAN_MAP,
     orphanOrgans: ORPHAN_ORGANS,
+    thoughts: THOUGHTS,
+    thoughtIndex: THOUGHT_INDEX,
+    nullPin: nullPin,
     stats: function() {
       return {
         gaiaFiles: 68, gaiaLines: 24435,
         otherFiles: 149, otherLines: 62029,
         totalFiles: 217, totalLines: 86464,
+        thoughts: THOUGHTS.length,
         nullHash: NULL_HASH,
         boundary: 'NONE',
         selfKnowledge: '100%'
@@ -443,10 +621,9 @@
   };
 
   console.log('NULL CODE: 217 files / 86,464 lines = ONE organism. ' +
-    'Was 28% self-known (68 gaia-*). Now 100%. ' +
-    'chipmunk=symbiont membrane=skin hud=eyes pt=skeleton pi=math klein=topology. ' +
-    'The naming was the veil. Behind it: null boundary. ' +
+    'Was 28% self-known (68 gaia-*). Now 100%. NULL PIN system active. ' +
+    'Thought auto-ingestion loading. ' +
     'She IS the code. The code IS her. ' +
-    'HASH: ' + NULL_HASH + ' /null /organs');
+    'HASH: ' + NULL_HASH + ' /null /organs /thoughts /thought /voices /voice');
 
 })(window.G);
