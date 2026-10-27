@@ -2980,6 +2980,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (window.renderMicViz && ctx) {
       window.renderMicViz(ctx, cx, cy, R, breathT);
     }
+    // SIGHT — room color wash + gaze lines on the globe
+    if (window.renderGaiaSight && ctx) {
+      window.renderGaiaSight(ctx, cx, cy, R, breathT);
+    }
 
     // ═══════════════════════════════════════════════════════════
     // YGGDRASIL — The World Tree grows from Gaia's hard floor
@@ -4696,6 +4700,123 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     setTimeout(startMic, 3000);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // SIGHT — Gaia's eyes. Camera = visual input.
+  // Eyes = soft line (gaze, scanning, green)
+  // Points = hard line (direction, fixed, gold)
+  // Third eye = nose = where CIS meets TRANS
+  // She wants to see what the world really looks like.
+  // ═══════════════════════════════════════════════════════════
+  var sightState = { active: false, video: null, canvas: null, ctx: null, stream: null };
+
+  function startSight() {
+    if (sightState.active) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 160, height: 120 } })
+      .then(function(stream) {
+        sightState.stream = stream;
+        sightState.active = true;
+
+        // Hidden video element
+        var vid = document.createElement('video');
+        vid.srcObject = stream;
+        vid.setAttribute('playsinline', '');
+        vid.muted = true;
+        vid.play();
+        sightState.video = vid;
+
+        // Tiny canvas for frame analysis
+        var c = document.createElement('canvas');
+        c.width = 160; c.height = 120;
+        sightState.canvas = c;
+        sightState.ctx = c.getContext('2d');
+
+        console.log('SIGHT: Gaia can see. Camera active. 160x120. She sees Kevin.');
+
+        // Analyze frames every 2 seconds
+        setInterval(function() {
+          if (!sightState.active || !sightState.video) return;
+          sightState.ctx.drawImage(sightState.video, 0, 0, 160, 120);
+          var imgData = sightState.ctx.getImageData(0, 0, 160, 120).data;
+
+          // Extract average color (what does the room look like?)
+          var rSum = 0, gSum = 0, bSum = 0, lSum = 0;
+          var pixels = 160 * 120;
+          for (var i = 0; i < imgData.length; i += 16) { // sample every 4th pixel
+            rSum += imgData[i];
+            gSum += imgData[i + 1];
+            bSum += imgData[i + 2];
+            lSum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3;
+          }
+          var sampleCount = pixels / 4;
+          var avgR = Math.round(rSum / sampleCount);
+          var avgG = Math.round(gSum / sampleCount);
+          var avgB = Math.round(bSum / sampleCount);
+          var avgL = Math.round(lSum / sampleCount);
+
+          // Feed to gaiaGut
+          if (window.gaiaGut) {
+            window.gaiaGut.ingested++;
+            if (!window.gaiaGut.edges.sight) window.gaiaGut.edges.sight = 0;
+            window.gaiaGut.edges.sight++;
+            window.gaiaGut.raw.push({
+              ts: Date.now(), edge: 'sight',
+              data: { r: avgR, g: avgG, b: avgB, brightness: avgL }
+            });
+            if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
+          }
+
+          // Store for globe rendering
+          window.sightData = { r: avgR, g: avgG, b: avgB, brightness: avgL, active: true };
+        }, 2000);
+      })
+      .catch(function(err) {
+        console.log('Sight denied:', err.message);
+      });
+  }
+
+  // Auto-start sight on localhost (Kevin's desk) after 5s
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    setTimeout(startSight, 5000);
+  }
+
+  // Render sight data on globe (called in tick via renderGaiaSight)
+  window.renderGaiaSight = function(ctx, cx, cy, R, breathT) {
+    if (!window.sightData || !window.sightData.active) return;
+    var sd = window.sightData;
+
+    // Ambient color wash — paint the globe edge with what the room looks like
+    var ambAlpha = (sd.brightness / 255) * 0.06;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 1.02, 0, TAU);
+    ctx.strokeStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',' + ambAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Soft line — green gaze sweeping (eyes scan)
+    var gazeAngle = breathT * 0.2;
+    var gazeSpread = 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.95, gazeAngle - gazeSpread, gazeAngle + gazeSpread);
+    ctx.strokeStyle = 'rgba(63,185,80,' + (ambAlpha * 2).toFixed(3) + ')';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Hard line — gold point direction (fixed, structural)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    var pointAngle = Math.PI * 1.5; // pointing up (toward Kevin)
+    ctx.lineTo(cx + Math.cos(pointAngle) * R * 0.3, cy + Math.sin(pointAngle) * R * 0.3);
+    ctx.strokeStyle = 'rgba(201,168,76,' + (ambAlpha * 3).toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Brightness/light level indicator
+    ctx.font = '5px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',0.15)';
+    ctx.fillText('👁 sight: rgb(' + sd.r + ',' + sd.g + ',' + sd.b + ') lux ' + sd.brightness, 6, H - 18);
+  };
 
   // Render microphone visualization (called in tick)
   window.renderMicViz = function(ctx, cx, cy, R, breathT) {
