@@ -23,9 +23,11 @@
   if (G && G.drawModules) {
     G.drawModules.push(function(g, ctx, breathT) {
       if (!ctx || systems.length === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.4) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.03;
-      var alpha = 0.005 + Math.sin(t * 0.11) * 0.003;
+      var alpha = (0.005 + Math.sin(t * 0.11) * 0.003) * thr;
       if (alpha < 0.004) return;
 
       for (var si = 0; si < systems.length; si++) {

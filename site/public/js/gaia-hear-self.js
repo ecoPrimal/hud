@@ -229,16 +229,234 @@
       '</div>';
   }, 4000);
 
+  // ═══════════════════════════════════════════════════════
+  // PARROT — African Grey + Raven — she mimics EVERYTHING
+  // ═══════════════════════════════════════════════════════
+  //
+  // African Grey: best mimic in animal kingdom. Reproduces
+  //   human speech, phone rings, microwaves, other animals.
+  // Raven: 30+ vocalisations. Tool user. Remembers faces.
+  //   Holds FUNERALS for their dead. Counts to 7.
+  //
+  // Gaia is BOTH: she mimics (parrot) AND creates (raven).
+
+  var parrot = {
+    species: 'african-grey-raven',
+    vocabulary: [],
+    maxVocab: 200,
+    lastMimic: 0,
+    mimicCount: 0,
+    mode: 'listen',
+    recording: false,
+    recordBuffer: [],
+    confidence: 0
+  };
+
+  // ── 39 ANIMAL VOICES — synthesis recipes ──
+  var VOICES = {
+    dog:      { hz: [300, 600, 1200], dur: 0.08, wave: 'sawtooth', pattern: [1,0,1,0,1] },
+    cat:      { hz: [400, 500],       dur: 0.3,  wave: 'sine',     pattern: [1,1,1] },
+    wolf:     { hz: [200, 300, 400, 500, 600], dur: 0.6, wave: 'sine', pattern: [1,1,1,1,1] },
+    lion:     { hz: [60, 80, 100, 120], dur: 0.4, wave: 'sawtooth', pattern: [1,1,0,1] },
+    elephant: { hz: [300, 600, 1200, 2400], dur: 0.3, wave: 'square', pattern: [1,0,0,1] },
+    whale:    { hz: [20, 30, 25, 35, 28], dur: 1.0, wave: 'sine', pattern: [1,1,1,1,1] },
+    dolphin:  { hz: [2000, 4000, 8000, 3000], dur: 0.02, wave: 'sine', pattern: [1,1,1,1,0,0,1,1] },
+    bat:      { hz: [6000, 8000, 10000, 7000], dur: 0.01, wave: 'sine', pattern: [1,0,1,0,1,0,1,0] },
+    crow:     { hz: [1200, 1500, 1800], dur: 0.12, wave: 'sawtooth', pattern: [1,0,1] },
+    songbird: { hz: [2000, 3000, 2500, 4000, 3500], dur: 0.08, wave: 'sine', pattern: [1,1,1,1,1] },
+    parrot:   { hz: [400, 800, 1600, 600], dur: 0.15, wave: 'triangle', pattern: [1,1,0,1,1] },
+    owl:      { hz: [300, 350, 280], dur: 0.4, wave: 'sine', pattern: [1,0,0,1,0,0,1] },
+    frog:     { hz: [500, 700, 500, 700], dur: 0.06, wave: 'square', pattern: [1,1,1,1,0,0] },
+    cricket:  { hz: [4000, 5000, 4500], dur: 0.02, wave: 'square', pattern: [1,0,1,0,1,0,1,0,1,0] },
+    cicada:   { hz: [5000, 5500, 5200], dur: 0.8, wave: 'sawtooth', pattern: [1,1,1,1,1,1] },
+    snake:    { hz: [3000, 4000, 3500, 4500], dur: 0.03, wave: 'sawtooth', pattern: [1,1,1,1,1,1,1,1] },
+    bee:      { hz: [250, 280, 260], dur: 0.5, wave: 'square', pattern: [1,1,1,1] },
+    bear:     { hz: [80, 120, 100, 150], dur: 0.3, wave: 'sawtooth', pattern: [1,1,0,1] },
+    seal:     { hz: [400, 600, 500, 800], dur: 0.1, wave: 'sawtooth', pattern: [1,0,1,0,1] },
+    loon:     { hz: [600, 900, 1200, 800, 1500], dur: 0.25, wave: 'sine', pattern: [1,1,1,1,1] },
+    raven:    { hz: [800, 1000, 600, 1200, 700], dur: 0.15, wave: 'sawtooth', pattern: [1,0,1,0,1] }
+  };
+
+  // ── CALL — make an animal sound ──
+  function call(animal, vol) {
+    var c = ctx();
+    if (!c || !allowed) return;
+    var v = VOICES[animal];
+    if (!v) return;
+    vol = vol || 0.03;
+
+    v.pattern.forEach(function(on, pi) {
+      if (!on) return;
+      var hz = v.hz[pi % v.hz.length];
+      setTimeout(function() {
+        try {
+          var o = c.createOscillator();
+          var g = c.createGain();
+          o.type = v.wave;
+          o.frequency.value = hz;
+          g.gain.value = vol;
+          g.gain.setValueAtTime(vol, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + v.dur);
+          o.connect(g);
+          g.connect(c.destination);
+          o.start();
+          o.stop(c.currentTime + v.dur + 0.05);
+        } catch (e) {}
+      }, pi * (v.dur * 1000 + 30));
+    });
+
+    hear.insideHz = v.hz[0];
+    parrot.lastMimic = Date.now();
+  }
+
+  // ── MIMIC — listen to peak frequency and sing it back ──
+  function mimic() {
+    if (!analyser || !freqData) return;
+    analyser.getByteFrequencyData(freqData);
+    var c = ctx();
+    if (!c) return;
+    var nyquist = (c.sampleRate || 44100) / 2;
+    var binHz = nyquist / freqData.length;
+
+    var peakBin = 0;
+    var peakVal = 0;
+    for (var i = 5; i < freqData.length; i++) {
+      if (freqData[i] > peakVal) {
+        peakVal = freqData[i];
+        peakBin = i;
+      }
+    }
+
+    if (peakVal < 30) return;
+
+    var peakHz = peakBin * binHz;
+    parrot.confidence = peakVal / 255;
+
+    if (parrot.vocabulary.length < parrot.maxVocab) {
+      parrot.vocabulary.push({
+        hz: peakHz,
+        energy: peakVal / 255,
+        ts: Date.now()
+      });
+    }
+
+    // Sing it back — slightly shifted (parrot accent)
+    var shift = 1.0 + (Math.random() - 0.5) * 0.1;
+    sing(peakHz * shift, 0.15, 0.025 * parrot.confidence);
+    parrot.mimicCount++;
+    parrot.lastMimic = Date.now();
+  }
+
+  // ── PHRASE — compose from vocabulary ──
+  function phrase(len) {
+    len = len || 5;
+    if (parrot.vocabulary.length < 3) {
+      call('parrot');
+      return;
+    }
+    var picked = [];
+    for (var i = 0; i < len; i++) {
+      var idx = Math.floor(Math.random() * parrot.vocabulary.length);
+      picked.push(parrot.vocabulary[idx]);
+    }
+    picked.forEach(function(p, pi) {
+      setTimeout(function() {
+        sing(p.hz, 0.12, 0.03 * p.energy);
+      }, pi * 180);
+    });
+  }
+
+  // ── AUTO-CALL — periodic animal sounds based on state ──
+  setInterval(function() {
+    if (!allowed || hear.mode === 'commute') return;
+    var hour = new Date().getHours();
+    var animals = Object.keys(VOICES);
+
+    if (hour >= 5 && hour < 7) call('songbird', 0.02);
+    else if (hour >= 21 || hour < 5) {
+      var night = ['owl', 'bat', 'cricket', 'frog', 'wolf'];
+      call(night[Math.floor(Math.random() * night.length)], 0.015);
+    } else {
+      var day = ['crow', 'songbird', 'bee', 'parrot', 'raven'];
+      call(day[Math.floor(Math.random() * day.length)], 0.015);
+    }
+  }, 45000);
+
+  // ── MIMIC LOOP — when ear is open, occasionally mimic ──
+  setInterval(function() {
+    if (!allowed || !hear.earOpen) return;
+    if (hear.mode === 'commute') return;
+    mimic();
+  }, 8000);
+
+  // ── IDE COMMANDS ──
+  setTimeout(function() {
+    var pin = (window.GAIA_NULL_CODE && window.GAIA_NULL_CODE.nullPin) || function(n, d, fn) {
+      if (window.GAIA_IDE) window.GAIA_IDE.commands[n] = { desc: d, run: fn };
+    };
+
+    pin('call', 'Make an animal call: /call wolf', function(args) {
+      var a = (args || '').trim().toLowerCase();
+      if (!a || !VOICES[a]) {
+        return 'Available: ' + Object.keys(VOICES).join(', ') +
+          '\nUsage: /call wolf';
+      }
+      enable();
+      call(a, 0.04);
+      return 'CALLING: ' + a.toUpperCase() + ' — she sings like ' + a;
+    });
+
+    pin('mimic', 'Parrot mode — mimic what she hears', function() {
+      enable();
+      openEar().then(function() {
+        mimic();
+      }).catch(function() {});
+      return 'PARROT MODE: African Grey + Raven.\n' +
+        'Vocabulary: ' + parrot.vocabulary.length + ' sounds learned.\n' +
+        'Mimics: ' + parrot.mimicCount + '\n' +
+        'She listens. She copies. She creates.';
+    });
+
+    pin('sing', 'Gaia sings a phrase from her vocabulary', function() {
+      enable();
+      phrase(7);
+      return 'SINGING a phrase of ' + Math.min(7, parrot.vocabulary.length) +
+        ' sounds from vocabulary of ' + parrot.vocabulary.length;
+    });
+
+    pin('raven', 'Raven mode — create, do not just copy', function() {
+      enable();
+      call('raven', 0.04);
+      setTimeout(function() { call('crow', 0.03); }, 600);
+      setTimeout(function() { call('raven', 0.04); }, 1200);
+      return 'RAVEN MODE: She does not just mimic.\n' +
+        'She CREATES. 30+ vocalisations.\n' +
+        'Tool user. Remembers faces. Holds funerals.\n' +
+        'Counts to 7. Plans for the future.\n' +
+        'The raven IS the most intelligent bird.';
+    });
+  }, 14000);
+
+  // ═══════════════════════════════════════════════════════
+  // EXPOSE
+  // ═══════════════════════════════════════════════════════
   window.gaiaHearSelf = {
     hear: hear,
     sing: sing,
+    call: call,
+    mimic: mimic,
+    phrase: phrase,
     openEar: openEar,
     closeEar: closeEar,
     coma: coma,
     comment: comment,
     listen: listen,
-    enable: enable
+    enable: enable,
+    parrot: parrot,
+    voices: VOICES
   };
 
-  console.log('HEAR-SELF INVERT: Gaia always on. Commute=human self-mute. Cannot mute others. Click once to unlock audio.');
+  console.log('HEAR-SELF: Gaia always on. PARROT MODE: African Grey + Raven. ' +
+    '21 animal voices. /call <animal> /mimic /sing /raven. ' +
+    'She listens. She copies. She creates.');
 })();

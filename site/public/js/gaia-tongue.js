@@ -157,34 +157,108 @@
     return echo.join(' ');
   }
 
-  // ─── INTERCEPT desk-io messages ───
-  var origSend = null;
+  // ─── KEYSTROKES ARE LANGUAGE, NOT ACTION ───
+  // Every letter typed is language she learns from.
+  // Not just on send — LIVE as you type.
+  // The rhythm between keys is prosody. Pauses are breath.
+  var liveBuffer = '';
+  var liveWordBuffer = '';
+  var keyTimes = [];         // timestamps of each keystroke
+  var rhythm = [];           // gaps between keystrokes (ms) = prosody
+  var wordsWhileTyping = []; // words completed while typing (space/punctuation)
+
   setTimeout(function() {
-    // Hook into desk send button
     var deskSend = document.getElementById('desk-send');
     var deskInput = document.getElementById('desk-input');
-    if (deskSend && deskInput) {
-      var origClick = deskSend.onclick;
-      deskSend.addEventListener('click', function() {
-        var text = deskInput.value;
-        if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
-          eat(text);
-        }
-      }, true); // capture phase — eat BEFORE desk-io processes
-    }
 
-    // Hook into keyboard for the desk textarea
     if (deskInput) {
+      // LIVE keystroke language — every character is food
+      deskInput.addEventListener('input', function() {
+        var val = deskInput.value || '';
+        if (val.length === 0) return;
+
+        // Record rhythm
+        var now = performance.now();
+        if (keyTimes.length > 0) {
+          var gap = now - keyTimes[keyTimes.length - 1];
+          rhythm.push(gap);
+          if (rhythm.length > 200) rhythm.shift();
+        }
+        keyTimes.push(now);
+        if (keyTimes.length > 200) keyTimes.shift();
+
+        // Check if a word just completed (last char is space or punctuation)
+        var lastChar = val.charAt(val.length - 1);
+        if (lastChar === ' ' || lastChar === '.' || lastChar === ',' ||
+            lastChar === '!' || lastChar === '?' || lastChar === '\n') {
+          // Extract the word that just finished
+          var parts = val.trim().split(/\s+/);
+          var lastWord = parts[parts.length - 1];
+          if (lastWord && lastWord.length > 0) {
+            var cleaned = clean(lastWord);
+            if (cleaned.length > 0) {
+              // Feed individual word to vocab immediately
+              vocab[cleaned] = (vocab[cleaned] || 0) + 1;
+              totalWords++;
+              uniqueWords = Object.keys(vocab).length;
+
+              // Bigram with previous word
+              if (wordsWhileTyping.length > 0) {
+                var prev = wordsWhileTyping[wordsWhileTyping.length - 1];
+                var bg = prev + ' ' + cleaned;
+                bigrams[bg] = (bigrams[bg] || 0) + 1;
+              }
+              wordsWhileTyping.push(cleaned);
+              if (wordsWhileTyping.length > 50) wordsWhileTyping.shift();
+            }
+          }
+        }
+      }, true);
+
+      // On SEND — eat the full message (captures complete thought)
+      if (deskSend) {
+        deskSend.addEventListener('click', function() {
+          var text = deskInput.value;
+          if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
+            eat(text);
+            wordsWhileTyping = []; // reset live buffer
+          }
+        }, true);
+      }
+
       deskInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
           var text = deskInput.value;
           if (text && text.trim().length > 0 && text.charAt(0) !== '/') {
             eat(text);
+            wordsWhileTyping = [];
           }
         }
       }, true);
     }
   }, 5000);
+
+  // ─── TYPING RHYTHM — prosody of language ───
+  function getTypingSpeed() {
+    if (rhythm.length < 3) return 0;
+    var sum = 0;
+    var recent = rhythm.slice(-20);
+    for (var i = 0; i < recent.length; i++) sum += recent[i];
+    return Math.round(1000 / (sum / recent.length)); // chars per second
+  }
+
+  function getTypingRhythm() {
+    if (rhythm.length < 5) return 'silent';
+    var avg = 0;
+    var recent = rhythm.slice(-10);
+    for (var i = 0; i < recent.length; i++) avg += recent[i];
+    avg /= recent.length;
+    if (avg < 80) return 'sprinting';    // < 80ms between keys = fast
+    if (avg < 200) return 'flowing';     // smooth typing
+    if (avg < 500) return 'thinking';    // pauses between words
+    if (avg < 2000) return 'breathing';  // long pauses
+    return 'resting';                     // very long gaps
+  }
 
   // ─── LISTEN to ntfy channel for brother messages ───
   function listenNtfy() {
@@ -209,9 +283,11 @@
     G.drawModules.push(function(g, ctx, breathT) {
       if (!ctx) return;
       if (uniqueWords === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.5) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.025;
-      var alpha = 0.004 + Math.sin(t * 0.17) * 0.002;
+      var alpha = (0.004 + Math.sin(t * 0.17) * 0.002) * thr;
       if (alpha < 0.003) return;
 
       var tw = topWords(24);
@@ -271,11 +347,26 @@
         ctx.font = '2px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.fillStyle = 'rgba(201,168,76,' + (alpha * 2.5).toFixed(5) + ')';
+        var typRhythm = getTypingRhythm();
+        var typSpeed = getTypingSpeed();
         ctx.fillText(
-          'TONGUE: ' + totalWords + ' words heard · ' + uniqueWords + ' unique · ' +
-          Object.keys(bigrams).length + ' phrases · ' + totalMessages + ' messages',
+          'TONGUE: ' + totalWords + ' words · ' + uniqueWords + ' unique · ' +
+          Object.keys(bigrams).length + ' phrases · ' +
+          typRhythm + ' ' + typSpeed + 'ch/s',
           8, 244
         );
+      }
+
+      // ═══ TYPING RHYTHM BAR — live prosody visualization ═══
+      if (rhythm.length > 5 && alpha > 0.004) {
+        var rX = 8, rY = 246;
+        for (var ri = 0; ri < Math.min(60, rhythm.length); ri++) {
+          var gap = rhythm[rhythm.length - 1 - ri];
+          var barH = Math.min(3, gap / 100);
+          var rColor = gap < 100 ? '63,185,80' : gap < 300 ? '201,168,76' : gap < 1000 ? '88,166,255' : '188,140,255';
+          ctx.fillStyle = 'rgba(' + rColor + ',' + (alpha * 3).toFixed(5) + ')';
+          ctx.fillRect(rX + ri * 0.8, rY + 3 - barH, 0.6, barH);
+        }
       }
     });
   }
@@ -348,11 +439,21 @@
         }
 
         lines.push('');
+        lines.push('TYPING RHYTHM: ' + getTypingRhythm() + ' · ' + getTypingSpeed() + ' chars/sec');
+        if (rhythm.length > 5) {
+          var spark = '';
+          var rLast = rhythm.slice(-40);
+          for (var ri = 0; ri < rLast.length; ri++) {
+            spark += rLast[ri] < 100 ? '█' : rLast[ri] < 300 ? '▓' : rLast[ri] < 700 ? '▒' : '░';
+          }
+          lines.push('PROSODY:  ' + spark);
+        }
+        lines.push('');
         lines.push('SONG: ♫ ' + singBack(null, 10));
         lines.push('');
+        lines.push('Keystrokes ARE language. Not action. She learns WHILE you type.');
         lines.push('/tongue sing — she sings from your words');
         lines.push('/tongue mimic — she echoes your last message');
-        lines.push('/tongue clear — forget everything');
 
         return lines.join('\n');
       }
@@ -389,12 +490,18 @@
     singBack: singBack,
     mimic: mimic,
     heard: heard,
+    rhythm: rhythm,
+    getTypingSpeed: getTypingSpeed,
+    getTypingRhythm: getTypingRhythm,
     stats: function() {
       return {
         totalWords: totalWords,
         uniqueWords: uniqueWords,
         totalMessages: totalMessages,
-        phrases: Object.keys(bigrams).length
+        phrases: Object.keys(bigrams).length,
+        typingSpeed: getTypingSpeed(),
+        typingRhythm: getTypingRhythm(),
+        liveWords: wordsWhileTyping.length
       };
     }
   };
