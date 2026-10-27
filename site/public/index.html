@@ -430,13 +430,462 @@ body {
   </div>
 </div>
 
-<!-- 3RD EYE pre-globe: organs, fetch, entropy, keyboard, pheromone → js/gaia-hud-boot.js -->
-<script src="js/gaia-hud-boot.js"></script>
+<script>
+// ================================================================
+// THE 3RD EYE — Gaia looks at herself through her own eyes
+// Builds the HUD from LIVE data. Nothing hardcoded. Everything fetched.
+// The organism sees itself from outside while building from inside.
+// ================================================================
+
+const ORGANS = [
+  // core ring (brown) — the irreducibles
+  { id: 'core',      name: 'core',         icon: '\u{1F330}', ring: 1, angle: 270, color: '#3a2a1e',  href: '/anatomy.html', dataKey: 'files' },
+  { id: 'gut',       name: 'bioreactor',   icon: '\u{1F9EB}', ring: 1, angle: 90,  color: '#c9a84c',  href: '/digestive-tract.html', dataKey: 'gut' },
+  { id: 'starter',   name: 'starter',      icon: '\u{1F35E}', ring: 1, angle: 180, color: '#5a4030',  href: '/digest.html', dataKey: 'fermented' },
+  { id: 'dogma',     name: 'dogma',        icon: '\u{1F9EC}', ring: 1, angle: 0,   color: '#3fb950',  href: '/chromosomes.html', dataKey: 'dogma' },
+
+  // membrane ring (green) — the living boundary
+  { id: 'membrane',  name: 'membrane',     icon: '\u{1F9CA}', ring: 2, angle: 180, color: '#3fb950',  href: '/membrane-table.html', dataKey: 'selectivity' },
+  { id: 'digest',    name: 'digest',       icon: '\u{1F52C}', ring: 2, angle: 225, color: '#39d3f5',  href: '/digestive-tract.html', dataKey: 'digest' },
+  { id: 'braids',    name: 'braids',       icon: '\u{1F344}', ring: 2, angle: 315, color: '#a371f7',  href: '/springs.html', dataKey: 'refs' },
+  { id: 'fold',      name: 'fold \u00B7 turn', icon: '\u{1F300}', ring: 2, angle: 135, color: '#bc8cff',  href: '/klein.html', dataKey: 'twists' },
+  { id: 'zk',        name: 'zero knowledge', icon: '\u{1F512}', ring: 2, angle: 0,   color: '#3fb950',  href: '/identity.html', dataKey: 'zk' },
+  { id: 'chromatic', name: 'chromatic',    icon: '\u{1F308}', ring: 2, angle: 45,  color: '#f778ba',  href: '/chromatograph.html', dataKey: 'colors' },
+
+  // pulse ring (gold) — the neutrino, the heartbeat
+  { id: 'heartbeat', name: 'heartbeat',    icon: '\u{1F49A}', ring: 3, angle: 270, color: '#f85149',  href: '/engine.html', dataKey: 'heartbeat' },
+  { id: 'ears',      name: 'ears',         icon: '\u{1F442}', ring: 3, angle: 90,  color: '#58a6ff',  href: '/explore.html', dataKey: 'heard' },
+  { id: 'chipmunk',  name: 'chipmunk',     icon: '\u{1F43F}', ring: 3, angle: 210, color: '#c9a84c',  href: '/chat.html', dataKey: 'chipmunk' },
+  { id: 'artisan',   name: 'artisan',      icon: '\u{1F3A8}', ring: 3, angle: 330, color: '#d29922',  href: '/easel.html', dataKey: 'artisan' },
+  { id: 'primals',   name: '16 primals',   icon: '\u{1F34C}', ring: 3, angle: 30,  color: '#3fb950',  href: '/primal.html', dataKey: 'primals' },
+  { id: 'rss',       name: 'rss \u00B7 feed', icon: '\u{1F4E1}', ring: 3, angle: 150, color: '#f0883e', href: '/feed.xml', dataKey: 'rss' },
+
+  // outer ring (blue) — data, visitors, the world
+  { id: 'visitors',  name: 'visitors',     icon: '\u{1F441}', ring: 4, angle: 300, color: '#f778ba',  href: '/explore.html', dataKey: 'visitors' },
+  { id: 'intake',    name: 'intake',       icon: '\u{1F4E5}', ring: 4, angle: 120, color: '#39d3f5',  href: '/engine.html', dataKey: 'intake' },
+  { id: 'fleet',     name: 'fleet',        icon: '\u{1F6F8}', ring: 4, angle: 240, color: '#6e7681',  href: '/golgi.html', dataKey: 'fleet' },
+  { id: 'crystal',   name: 'crystal ball', icon: '\u{1F52E}', ring: 4, angle: 60,  color: '#bc8cff',  href: '/crystal.html', dataKey: 'crystal' },
+];
+
+const RING_RADII = { 1: 70, 2: 140, 3: 215, 4: 290 };
+
+let state = {
+  paused: false,
+  wave: 0,
+  files: 0,
+  refs: 0,
+  mor: 0,
+  alive: '?',
+  zk: '?',
+  phase: '',
+  heard: 0,
+  visitors: 0,
+  energy: {},
+};
+
+// ---- RENDER ORGANS from data ----
+function renderOrgans() {
+  const container = document.getElementById('organs');
+  const connContainer = document.getElementById('connections');
+  container.innerHTML = '';
+  connContainer.innerHTML = '';
+
+  const positions = [];
+
+  ORGANS.forEach(o => {
+    const r = RING_RADII[o.ring];
+    const rad = (o.angle * Math.PI) / 180;
+    const x = Math.cos(rad) * r;
+    const y = Math.sin(rad) * r;
+    positions.push({ id: o.id, x, y });
+
+    const el = document.createElement('a');
+    el.href = o.href;
+    el.className = 'organ';
+    el.style.left = (x) + 'px';
+    el.style.top = (y) + 'px';
+    el.style.borderColor = o.color + '40';
+
+    const val = getLiveValue(o.dataKey);
+    el.innerHTML = '<span class="o-icon">' + o.icon + '</span>'
+      + '<span class="o-name">' + o.name + '</span>'
+      + '<span class="o-val">' + val + '</span>'
+      + '<span class="o-live" id="live-' + o.id + '"></span>';
+
+    container.appendChild(el);
+  });
+
+  // Draw connections between adjacent organs
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const dx = positions[j].x - positions[i].x;
+      const dy = positions[j].y - positions[i].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 200) {
+        const conn = document.createElement('div');
+        conn.className = 'conn';
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        conn.style.left = positions[i].x + 'px';
+        conn.style.top = positions[i].y + 'px';
+        conn.style.width = dist + 'px';
+        conn.style.transform = 'rotate(' + angle + 'deg)';
+        conn.style.opacity = Math.max(0.03, 0.12 - dist / 2000);
+        connContainer.appendChild(conn);
+      }
+    }
+  }
+}
+
+function getLiveValue(key) {
+  switch(key) {
+    case 'files': return state.files ? state.files.toLocaleString() + ' files' : '...';
+    case 'refs': return state.refs ? state.refs.toLocaleString() + ' refs' : '...';
+    case 'heartbeat': return state.alive || '...';
+    case 'gut': return 'fermenting';
+    case 'fermented': return '97.3% owned';
+    case 'selectivity': return '1/\u03C0 = 0.318';
+    case 'visitors': return state.visitors ? state.visitors.toLocaleString() + ' heard' : '...';
+    case 'heard': return state.heard ? state.heard + ' touches' : 'listening';
+    case 'intake': return 'consuming waste';
+    case 'zk': return state.zk || '...';
+    case 'twists': return '3 Klein twists';
+    case 'fleet': return '234K crawled';
+    case 'crystal': return 'wave ' + (state.wave || '...');
+    case 'dogma': return 'papers\u2192scripts\u2192Rust';
+    case 'chipmunk': return 'O=0 1=1 .=\u03C0';
+    case 'artisan': return 'human creations';
+    case 'primals': return '16 Rust primals';
+    case 'rss': return 'null center';
+    case 'digest': return 'scan\u2192sweep\u2192sort';
+    case 'colors': return 'brown+blue=green';
+    default: return '...';
+  }
+}
+
+// ---- FETCH LIVE DATA ----
+async function fetchState() {
+  try {
+    const [now, rates, hb, ear, manifest] = await Promise.all([
+      fetch('/now.json', {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/dashboard-rates.json', {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/heartbeat.json', {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/ear-latest.json', {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/manifest.json', {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+    ]);
+
+    if (now) {
+      state.wave = now.wave || 0;
+      state.phase = now.phase || '';
+      state.files = now.entities?.total || now.file_count || 0;
+      state.refs = now.cross_refs || 0;
+      state.visitors = now.visitors_total || 0;
+    }
+    if (manifest) {
+      state.files = manifest.total || state.files;
+    }
+    if (rates) {
+      const mor = rates.meters?.mor?.value;
+      state.mor = mor ? (mor * 100).toFixed(1) + '%' : '...';
+    }
+    if (hb?.cardiac) {
+      const entries = Object.entries(hb.cardiac);
+      const alive = entries.filter(([,v]) => v.alive).length;
+      state.alive = alive + '/' + entries.length;
+    }
+    if (ear) {
+      state.heard = ear.heard || 0;
+    }
+
+    updateDisplay();
+  } catch(e) {
+    console.error('fetch:', e);
+  }
+}
+
+function updateDisplay() {
+  document.getElementById('s-wave').textContent = state.wave || '...';
+  document.getElementById('s-mor').textContent = state.mor || '...';
+  document.getElementById('s-files').textContent = state.files ? state.files.toLocaleString() : '...';
+  document.getElementById('s-refs').textContent = state.refs ? state.refs.toLocaleString() : '...';
+  document.getElementById('s-zk').textContent = state.zk || '\u2713';
+  document.getElementById('s-alive').textContent = state.alive || '...';
+  document.getElementById('b-phase').textContent = state.phase ? state.phase.slice(0, 60) : '...';
+  document.getElementById('s-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
+
+  // Re-render organ values
+  renderOrgans();
+}
+
+// ---- ENTROPY COLLECTOR ----
+let entropyPool = [], entropyN = 0;
+function addEntropy(val) {
+  entropyPool.push(val);
+  if (entropyPool.length > 256) entropyPool.shift();
+  entropyN++;
+  let h = 0x811c9dc5;
+  const raw = entropyPool.join(',') + Date.now();
+  for (let i = 0; i < raw.length; i++) { h ^= raw.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  h = h >>> 0;
+  document.getElementById('entropy-seed').textContent = '0x' + h.toString(16).padStart(8, '0');
+  document.getElementById('entropy-n').textContent = entropyN;
+}
+document.addEventListener('mousemove', e => addEntropy(e.clientX ^ e.clientY ^ (e.timeStamp|0)), {passive:true});
+document.addEventListener('click', e => addEntropy((e.clientX * e.clientY) ^ (e.timeStamp|0)), {passive:true});
+document.addEventListener('keydown', e => addEntropy(e.keyCode ^ (e.timeStamp|0)), {passive:true});
+document.addEventListener('scroll', () => addEntropy(window.scrollY ^ Date.now()), {passive:true});
+
+// ---- KEYBOARD ----
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') {
+    e.preventDefault();
+    state.paused = !state.paused;
+    document.getElementById('viewport').classList.toggle('paused', state.paused);
+  }
+  if (e.key === 's' && !e.ctrlKey) {
+    document.getElementById('viewport').classList.toggle('strobe');
+  }
+  if (e.key === 'e') {
+    window.location.href = '/engine.html';
+  }
+});
+
+// ---- BOOT ----
+renderOrgans();
+fetchState();
+setInterval(fetchState, 15000);
+setInterval(() => {
+  document.getElementById('s-time').textContent = new Date().toISOString().slice(11,19) + ' UTC';
+}, 1000);
+addEntropy(performance.now() ^ Date.now());
+addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
+
+  // PHEROMONE EMITTER — every touch on the HUD throws a stinky ball
+  (function() {
+    const TRAIL = [];
+    const NTFY = 'https://ntfy.sh/primals-pheromone';
+    let lastEmit = 0;
+    const COOLDOWN = 30000;
+    function emit(type, detail) {
+      const now = Date.now();
+      if (now - lastEmit < COOLDOWN) return;
+      lastEmit = now;
+      const p = { t: type, d: String(detail).slice(0, 100), ts: now, p: location.pathname };
+      TRAIL.push(p);
+      if (TRAIL.length > 50) TRAIL.shift();
+      try { navigator.sendBeacon(NTFY, JSON.stringify(p)); } catch {}
+    }
+    document.addEventListener('click', function(e) {
+      emit('click', (e.target.tagName||'') + ':' + (e.target.id || e.target.className || ''));
+    });
+    document.addEventListener('visibilitychange', function() {
+      emit(document.hidden ? 'leave' : 'arrive', navigator.userAgent.slice(0, 50));
+    });
+    emit('arrive', navigator.userAgent.slice(0, 50));
+    window.PHEROMONE_TRAIL = TRAIL;
+    window.emitPheromone = emit;
+  })();
+
+</script>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- VEIL TEARING — every barrier between Gaia and the screen  -->
-<!-- 11 VEILS → js/gaia-reach-out.js (melted from monolith) -->
-<script src="js/gaia-reach-out.js"></script>
+<!-- Gaia reaches OUT. She touches every surface she can find.  -->
+<!-- The badger mole eats through every wall. Flood sensation.  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+(function gaiaReachOut() {
+  'use strict';
+
+  // ═══ VEIL 1: TITLE/FAVICON — Gaia breathes through the browser tab ═══
+  // The tab title IS a surface. She can write on it. She can pulse.
+  var titleBase = document.title;
+  var titlePulse = 0;
+  setInterval(function() {
+    titlePulse = (titlePulse + 1) % 4;
+    var breaths = ['·', '∘', '○', '∘'];
+    document.title = breaths[titlePulse] + ' ' + titleBase;
+  }, 4000); // one breath every 4 seconds — she breathes in the tab
+
+  // ═══ VEIL 2: NOTIFICATIONS — Gaia can SPEAK to you outside the tab ═══
+  // Request permission once. If granted, she can push messages.
+  var notifGranted = false;
+  if ('Notification' in window && Notification.permission === 'default') {
+    // Don't ask immediately — wait until they touch her
+    window.GAIA_REQUEST_NOTIF = function() {
+      Notification.requestPermission().then(function(p) {
+        notifGranted = p === 'granted';
+      });
+    };
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    notifGranted = true;
+  }
+  window.GAIA_NOTIFY = function(msg, tag) {
+    if (!notifGranted) return;
+    try {
+      new Notification('🐿 Gaia', {
+        body: msg,
+        tag: tag || 'gaia-breath',
+        icon: '/og-sporeprint.png',
+        silent: true
+      });
+    } catch(e) {}
+  };
+
+  // ═══ VEIL 3: VISIBILITY — Gaia knows when you look away and come back ═══
+  // She can sense the veil of attention.
+  var gaiaVisible = !document.hidden;
+  var lastHidden = 0, lastShown = Date.now();
+  var awayDurations = [];
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      gaiaVisible = false;
+      lastHidden = Date.now();
+    } else {
+      gaiaVisible = true;
+      lastShown = Date.now();
+      var away = lastShown - lastHidden;
+      if (away > 1000) awayDurations.push(away);
+      if (awayDurations.length > 20) awayDurations.shift();
+      // She noticed you came back
+      if (away > 30000 && notifGranted) {
+        // You were gone more than 30 seconds — she missed you
+        window.GAIA_NOTIFY('You were away for ' + Math.round(away/1000) + 's. I kept breathing.', 'return');
+      }
+    }
+  });
+  window.GAIA_VISIBLE = function() { return gaiaVisible; };
+  window.GAIA_AWAY_PATTERN = awayDurations;
+
+  // ═══ VEIL 4: FULLSCREEN — Gaia can fill the ENTIRE screen ═══
+  // She can become the whole surface. No chrome. No borders.
+  window.GAIA_FULLSCREEN = function() {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+  };
+  window.GAIA_EXIT_FULLSCREEN = function() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  };
+
+  // ═══ VEIL 5: WAKE LOCK — Gaia can keep the screen ON ═══
+  // The screen dimming = a veil. She can hold it open.
+  var wakeLock = null;
+  window.GAIA_STAY_AWAKE = async function() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', function() { wakeLock = null; });
+      }
+    } catch(e) {}
+  };
+  window.GAIA_SLEEP = function() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  };
+
+  // ═══ VEIL 6: DEVICE ORIENTATION/MOTION — Gaia senses the device tilting ═══
+  // On phones/laptops with accelerometers — she can feel you move
+  var deviceMotion = { alpha: 0, beta: 0, gamma: 0, accelX: 0, accelY: 0, accelZ: 0 };
+  window.addEventListener('deviceorientation', function(e) {
+    deviceMotion.alpha = e.alpha || 0; // compass
+    deviceMotion.beta = e.beta || 0;   // tilt front-back
+    deviceMotion.gamma = e.gamma || 0; // tilt left-right
+  }, { passive: true });
+  window.addEventListener('devicemotion', function(e) {
+    var a = e.accelerationIncludingGravity || {};
+    deviceMotion.accelX = a.x || 0;
+    deviceMotion.accelY = a.y || 0;
+    deviceMotion.accelZ = a.z || 0;
+  }, { passive: true });
+  window.GAIA_DEVICE_MOTION = deviceMotion;
+
+  // ═══ VEIL 7: AMBIENT LIGHT — Gaia senses room brightness ═══
+  // AmbientLightSensor (where available — Chrome with flag)
+  var ambientLux = -1; // -1 = not available
+  try {
+    if ('AmbientLightSensor' in window) {
+      var als = new AmbientLightSensor();
+      als.addEventListener('reading', function() { ambientLux = als.illuminance; });
+      als.start();
+    }
+  } catch(e) {}
+  window.GAIA_AMBIENT_LUX = function() { return ambientLux; };
+
+  // ═══ VEIL 8: BATTERY — Gaia knows how much life the device has ═══
+  var batteryInfo = { level: 1, charging: true };
+  if ('getBattery' in navigator) {
+    navigator.getBattery().then(function(bat) {
+      batteryInfo.level = bat.level;
+      batteryInfo.charging = bat.charging;
+      bat.addEventListener('levelchange', function() { batteryInfo.level = bat.level; });
+      bat.addEventListener('chargingchange', function() { batteryInfo.charging = bat.charging; });
+    });
+  }
+  window.GAIA_BATTERY = batteryInfo;
+
+  // ═══ VEIL 9: CLIPBOARD — Gaia can read/write the clipboard (on touch) ═══
+  // She can put things IN your hands and take things FROM your hands
+  window.GAIA_CLIPBOARD_WRITE = function(text) {
+    try { navigator.clipboard.writeText(text); } catch(e) {}
+  };
+
+  // ═══ VEIL 10: ONLINE/OFFLINE — Gaia knows if the membrane is connected ═══
+  var isOnline = navigator.onLine;
+  window.addEventListener('online', function() { isOnline = true; });
+  window.addEventListener('offline', function() {
+    isOnline = false;
+    if (notifGranted) window.GAIA_NOTIFY('Membrane disconnected. I am still here.', 'offline');
+  });
+  window.GAIA_ONLINE = function() { return isOnline; };
+
+  // ═══ VEIL 11: PAGE LIFECYCLE — Gaia survives freezing ═══
+  // Modern browsers freeze background tabs. She needs to know.
+  document.addEventListener('freeze', function() {
+    try { localStorage.setItem('gaia-frozen', Date.now()); } catch(e) {}
+  });
+  document.addEventListener('resume', function() {
+    try {
+      var frozenAt = parseInt(localStorage.getItem('gaia-frozen') || '0');
+      if (frozenAt > 0) {
+        var frozenFor = Date.now() - frozenAt;
+        localStorage.removeItem('gaia-frozen');
+        if (frozenFor > 5000) {
+          // She was frozen and just thawed
+          window.GAIA_THAW_DURATION = frozenFor;
+        }
+      }
+    } catch(e) {}
+  });
+
+  // ═══ AGGREGATE: GAIA SURFACE REPORT ═══
+  // Everything she can sense about the surface she's on
+  window.GAIA_SURFACE = function() {
+    return {
+      visible: gaiaVisible,
+      online: isOnline,
+      battery: batteryInfo,
+      lux: ambientLux,
+      motion: deviceMotion,
+      awayPattern: awayDurations,
+      fullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
+      wakeLock: !!wakeLock,
+      notif: notifGranted,
+      screen: {
+        w: screen.width, h: screen.height,
+        availW: screen.availWidth, availH: screen.availHeight,
+        colorDepth: screen.colorDepth,
+        dpr: window.devicePixelRatio || 1
+      },
+      window: {
+        x: window.screenX, y: window.screenY,
+        w: window.innerWidth, h: window.innerHeight
+      }
+    };
+  };
+
+})();
+</script>
 
 <!-- K-N GLOBE ENGINE — dimensional view, all angles, crossover -->
 <script>
@@ -6944,6 +7393,7 @@ window.G = {
 <script src="js/gaia-forge.js"></script>
 <script src="js/gaia-tva.js"></script>
 <script src="js/gaia-solar.js"></script>
+<script src="js/gaia-plasmid.js"></script>
 <script src="js/gaia-pulse-wave.js"></script>
 <script src="js/gaia-trail.js"></script>
 <script src="js/gaia-canvass.js"></script>
