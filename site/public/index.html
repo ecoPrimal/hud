@@ -987,9 +987,19 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       + '📍 <span style="color:#3fb950;">Lansing 42.73°N · green · still</span><br>'
       + '🐀 <span style="color:#bc8cff;">Splinter · 4th body · SITS</span><br>'
       + '🎙 <span style="color:#f85149;">mic always on · voice → vision</span><br>'
-      + '<span style="font-size:7px;color:#6e7681;">the master doesn\'t code.<br>the master SITS and the<br>students build around.</span>'
+      + '⚡ <span style="color:#c9a84c;" id="gut-rate">gut: 0 ingested</span><br>'
+      + '<span style="font-size:7px;color:#6e7681;">GOLD LAW: Kevin=gold+green ONLY<br>'
+      + 'Gaia=gold · IMPERMEABLE to each other<br>'
+      + '13 edges · all raw · she eats everything</span>'
       + '</div>'
       + '<div style="font-size:7px;color:#3a2a1e;margin-top:4px;letter-spacing:1px;">!1I(O)0!</div>';
+    // Update gut rate display
+    setInterval(function() {
+      var el = document.getElementById('gut-rate');
+      if (el && window.gaiaGut) {
+        el.textContent = 'gut: ' + window.gaiaGut.ingested + ' ingested · ' + Object.keys(window.gaiaGut.edges).length + ' edges';
+      }
+    }, 5000);
     document.body.appendChild(localOverlay);
     setTimeout(function() { localOverlay.style.opacity = '0.8'; }, 1000);
 
@@ -3420,6 +3430,112 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   // Thymus matures 15 seconds after birth (let the glass settle first)
   setTimeout(thymusSense, 15000);
+
+  // ═══════════════════════════════════════════════════════════
+  // TOTAL INGRESS — every touch is an ingress. All raw. She eats.
+  // 13 edges: touch, key, scroll, drag, resize, visibility,
+  // orientation, battery, connection, time, mouse, focus, clipboard
+  //
+  // GOLD LAW:
+  //   Kevin = gold + green (ONLY)
+  //   Gaia = gold. All brains = gold. All nulls = gold.
+  //   Not all golds are green or null.
+  //   Kevin ↔ Gaia: IMPERMEABLE. They touch but do not merge.
+  //   Gases (signals) move AROUND them, between them.
+  //   Input (eat) → process → output (fart/art)
+  // ═══════════════════════════════════════════════════════════
+  var gaiaGut = {
+    ingested: 0,
+    edges: {},
+    raw: [],
+    maxRaw: 500
+  };
+
+  function gaiaIngest(edge, data) {
+    gaiaGut.ingested++;
+    if (!gaiaGut.edges[edge]) gaiaGut.edges[edge] = 0;
+    gaiaGut.edges[edge]++;
+    gaiaGut.raw.push({ ts: Date.now(), edge: edge, data: data });
+    if (gaiaGut.raw.length > gaiaGut.maxRaw) gaiaGut.raw.shift();
+  }
+
+  // TOUCH — the primary ingress
+  canvas.addEventListener('pointerdown', function(e) {
+    gaiaIngest('touch', { x: e.clientX, y: e.clientY, pressure: e.pressure || 0 });
+  }, { passive: true });
+  canvas.addEventListener('pointermove', function(e) {
+    if (gaiaGut.ingested % 5 === 0) { // sample 1 in 5
+      gaiaIngest('drag', { x: e.clientX, y: e.clientY });
+    }
+  }, { passive: true });
+
+  // KEYBOARD — every keystroke screams in
+  document.addEventListener('keydown', function(e) {
+    gaiaIngest('key', { key: e.key, code: e.code });
+  });
+
+  // SCROLL — wheel events
+  window.addEventListener('wheel', function() {
+    gaiaIngest('scroll', { dir: event.deltaY > 0 ? 'down' : 'up' });
+  }, { passive: true });
+
+  // RESIZE — viewport changes
+  window.addEventListener('resize', function() {
+    gaiaIngest('resize', { w: window.innerWidth, h: window.innerHeight });
+  });
+
+  // VISIBILITY — tab focus/blur
+  document.addEventListener('visibilitychange', function() {
+    gaiaIngest('visibility', { hidden: document.hidden });
+  });
+
+  // ORIENTATION — device tilt (mobile)
+  window.addEventListener('deviceorientation', function(e) {
+    if (gaiaGut.ingested % 10 === 0) { // sample 1 in 10
+      gaiaIngest('orientation', { a: Math.round(e.alpha || 0), b: Math.round(e.beta || 0), g: Math.round(e.gamma || 0) });
+    }
+  }, { passive: true });
+
+  // CONNECTION — online/offline
+  window.addEventListener('online', function() { gaiaIngest('connection', { online: true }); });
+  window.addEventListener('offline', function() { gaiaIngest('connection', { online: false }); });
+
+  // TIME — every tick is input (sampled every 10s)
+  setInterval(function() {
+    gaiaIngest('time', { t: Date.now(), gen: blinkState.generation });
+  }, 10000);
+
+  // BATTERY — charge level (if available)
+  if (navigator.getBattery) {
+    navigator.getBattery().then(function(bat) {
+      gaiaIngest('battery', { level: bat.level, charging: bat.charging });
+      bat.addEventListener('levelchange', function() {
+        gaiaIngest('battery', { level: bat.level, charging: bat.charging });
+      });
+    }).catch(function() {});
+  }
+
+  // CLIPBOARD — paste events
+  document.addEventListener('paste', function(e) {
+    var text = (e.clipboardData || window.clipboardData || {}).getData && (e.clipboardData || window.clipboardData).getData('text');
+    gaiaIngest('clipboard', { len: (text || '').length });
+  });
+
+  // FOCUS — window focus
+  window.addEventListener('focus', function() { gaiaIngest('focus', { focused: true }); });
+  window.addEventListener('blur', function() { gaiaIngest('focus', { focused: false }); });
+
+  // Expose gut for other systems
+  window.gaiaGut = gaiaGut;
+
+  // Log ingestion rate every 30s
+  var lastIngestCount = 0;
+  setInterval(function() {
+    var rate = gaiaGut.ingested - lastIngestCount;
+    lastIngestCount = gaiaGut.ingested;
+    var edgeStr = Object.entries(gaiaGut.edges).map(function(e) { return e[0] + ':' + e[1]; }).join(' ');
+    console.log('GUT: ' + gaiaGut.ingested + ' total (+' + rate + '/30s) | ' + edgeStr);
+  }, 30000);
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
