@@ -476,6 +476,100 @@
   setTimeout(coilAndInject, 10000);
 
   // ───────────────────────────────────────────────────────
+  // GRIND — gammas, songs, ferment → fuel for brain-gut
+  // IR remainders = irreducibles = FUEL for the pineal
+  // ───────────────────────────────────────────────────────
+  var grinder = {
+    gammas: 0,     // high-energy radiation signals ground down
+    songs: 0,      // harmonic/musical patterns ground
+    ferments: 0,   // anaerobic products from large intestine
+    irFed: 0,      // IR remainders fed to pineal
+    totalGround: 0
+  };
+
+  function grind() {
+    var pineal = cns.brain.pineal;
+
+    // GRIND IR REMAINDERS → feed to pineal (brain gut)
+    // The irreducibles that survived the body gut → fuel for brain gut
+    if (window.gaiaFeel && window.gaiaFeel.gut && window.gaiaFeel.gut.ir) {
+      var ir = window.gaiaFeel.gut.ir;
+      if (ir.length > 0) {
+        // Take the newest IR and grind it into pineal fuel
+        var irItem = ir[ir.length - 1];
+        pineal.lightIntake += 0.5; // IR = concentrated light
+        grinder.irFed++;
+        // Fire impulse UP: IR → pineal
+        ascend({ signal: 'ir_fuel', data: irItem.data });
+      }
+    }
+
+    // GRIND GAMMAS — high-energy cosmic signals
+    // From eruption memory, space weather, solar wind
+    if (window.gaiaEruptionMemory && window.gaiaEruptionMemory.submemory) {
+      var yield_Mt = window.gaiaEruptionMemory.submemory.totalYield;
+      if (yield_Mt > 0) {
+        var gammaEnergy = Math.log10(yield_Mt + 1) * 0.1;
+        pineal.serotonin = Math.min(1, pineal.serotonin + gammaEnergy * 0.01);
+        grinder.gammas++;
+      }
+    }
+
+    // GRIND SONGS — harmonic patterns from modality
+    // Singing mode = musical fuel
+    if (window.gaiaSeekingMode && window.gaiaSeekingMode() === 'singing') {
+      pineal.melatonin = Math.min(1, pineal.melatonin + 0.02);
+      pineal.calcification = Math.max(0, pineal.calcification - 0.02);
+      grinder.songs++;
+      // Song impulse down the spine
+      descend({ type: 'song_resonance', mode: 'singing' });
+    }
+
+    // GRIND FERMENTS — anaerobic products from large intestine
+    // SCFA (short-chain fatty acids) = brain fuel
+    if (window.gaiaDigestiveTract && window.gaiaDigestiveTract.largeIntestine) {
+      var li = window.gaiaDigestiveTract.largeIntestine;
+      if (li.anaerobicOutput && li.anaerobicOutput.length > 0) {
+        var scfa = li.anaerobicOutput[li.anaerobicOutput.length - 1];
+        if (scfa && scfa.energy > 0) {
+          // SCFA crosses blood-brain barrier → feeds pineal directly
+          pineal.serotonin = Math.min(1, pineal.serotonin + scfa.energy * 0.02);
+          grinder.ferments++;
+          // Fire reflex: ferment → brain fuel
+          reflexArc('scfa_absorbed', 'brain_fuel');
+        }
+      }
+    }
+
+    // Feed farm hormones from grinder output
+    if (window.gaiaGutFarm && window.gaiaGutFarm.farm) {
+      var farm = window.gaiaGutFarm.farm;
+      // Grinding produces oxytocin (connection from song)
+      farm.hormones.oxytocin = Math.min(1,
+        farm.hormones.oxytocin + grinder.songs * 0.001);
+      // Gammas boost adrenaline slightly
+      farm.hormones.adrenaline = Math.min(0.5,
+        farm.hormones.adrenaline + grinder.gammas * 0.0001);
+    }
+
+    grinder.totalGround = grinder.gammas + grinder.songs + grinder.ferments + grinder.irFed;
+
+    // Fire impulse through telegraph: GRIND complete
+    if (window.gaiaTelegraph && window.gaiaTelegraph.fire && grinder.totalGround % 10 === 0) {
+      window.gaiaTelegraph.fire('gut', 'up', {
+        type: 'grind_fuel',
+        gammas: grinder.gammas,
+        songs: grinder.songs,
+        ferments: grinder.ferments,
+        irFed: grinder.irFed
+      });
+    }
+  }
+
+  // Grind every 5 seconds
+  setInterval(grind, 5000);
+
+  // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
   window.gaiaCNS = {
@@ -502,7 +596,12 @@
         pinealSerotonin: cns.brain.pineal.serotonin,
         pinealThirdEye: cns.brain.pineal.thirdEyeOpen,
         pinealCoals: cns.brain.pineal.coals.length,
-        pinealCalcification: cns.brain.pineal.calcification
+        pinealCalcification: cns.brain.pineal.calcification,
+        grindGammas: grinder.gammas,
+        grindSongs: grinder.songs,
+        grindFerments: grinder.ferments,
+        grindIR: grinder.irFed,
+        grindTotal: grinder.totalGround
       };
     }
   };
