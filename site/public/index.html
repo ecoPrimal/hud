@@ -2586,6 +2586,59 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // DREAM STATE — when Gaia sleeps, pieces drift and melt
+    // The tree dissolves. Diamonds float free. Colors bleed.
+    // Kevin is HARD but softer than Gaia null.
+    // All others are harder than air but softer than Kevin.
+    // PRESSURE between layers = identity = BOOM = SHIFT
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.gaiaIsDreaming && window.meltSleepFreeze) {
+      var msf = window.meltSleepFreeze;
+      var dreamT = breathT * 0.7;
+      var dreamCount = Math.min(msf.dream_pieces || 50, 60);
+
+      // Drifting dream pieces — freed from their collections
+      for (var dri = 0; dri < dreamCount; dri++) {
+        var dp = msf.dream[dri];
+        if (!dp) continue;
+        var dAngle = dp.dream_angle + dreamT * (0.1 + dri * 0.003);
+        var dRad = dp.dream_radius * R * 1.2;
+        var driftX = cx + Math.cos(dAngle) * dRad;
+        var driftY = cy + Math.sin(dAngle) * dRad * 0.6;
+
+        // Color by origin hardness
+        var dAlpha = 0.15 + Math.sin(dreamT + dri) * 0.1;
+        if (dp.origin_hardness >= 10) {
+          ctx.fillStyle = 'rgba(255,255,255,' + dAlpha.toFixed(2) + ')'; // Kevin = white diamond
+        } else if (dp.origin_hardness >= 8) {
+          ctx.fillStyle = 'rgba(201,168,76,' + dAlpha.toFixed(2) + ')'; // art = gold
+        } else {
+          ctx.fillStyle = 'rgba(88,166,255,' + dAlpha.toFixed(2) + ')'; // other = blue
+        }
+
+        // Diamond shape for Kevin's pieces, circles for others
+        if (dp.origin_hardness >= 10) {
+          ctx.save();
+          ctx.translate(driftX, driftY);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillRect(-2.5, -2.5, 5, 5);
+          ctx.restore();
+        } else {
+          ctx.beginPath();
+          ctx.arc(driftX, driftY, 1.5 + dp.origin_hardness * 0.15, 0, TAU);
+          ctx.fill();
+        }
+      }
+
+      // PRESSURE label — the squeeze between layers
+      var pressurePulse = 0.1 + Math.abs(Math.sin(dreamT * 0.5)) * 0.15;
+      ctx.font = '7px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(248,81,73,' + pressurePulse.toFixed(2) + ')';
+      ctx.fillText('dreaming · ' + dreamCount + ' pieces drifting', cx, H - 8);
+    }
+
     // THE BLINK — close all eyes momentarily
     // Not sleep. A micro-null. Hold breath. Reset.
     if (blinkState.blinking && ctx) {
@@ -3089,6 +3142,36 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       if (!nr) return;
       window.newReality = nr;
       console.log('NEW REALITY: ' + nr.pi_body_cards.length + ' hard pi body cards, fusion hash ' + nr.null_ingestion.fusion_hash.slice(0, 8));
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // MELT-SLEEP-FREEZE — Gaia dreams, rearranges, we traverse
+  // She forgets WHERE but remembers WHAT. Pressure = identity.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/melt-sleep-freeze.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(msf) {
+      if (!msf) return;
+      window.meltSleepFreeze = msf;
+      window.gaiaIsDreaming = true;
+
+      // Dream cycle: she sleeps 30s, wakes 90s, sleeps again
+      var dreamCycle = 0;
+      setInterval(function() {
+        dreamCycle++;
+        if (dreamCycle % 4 === 0) {
+          // SLEEP — melt positions, things drift
+          window.gaiaIsDreaming = true;
+          console.log('GAIA SLEEPS — dream cycle ' + dreamCycle + ', pieces drift...');
+        } else {
+          // WAKE — re-sort by memory (not position)
+          window.gaiaIsDreaming = false;
+          console.log('GAIA WAKES — third state: neither original nor dream');
+        }
+      }, 30000);
+
+      console.log('MELT-SLEEP-FREEZE: ' + msf.dream_pieces + ' pieces in dream, hash ' + msf.hash.slice(0, 8));
     })
     .catch(function() {});
 
