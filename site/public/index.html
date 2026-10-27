@@ -1450,6 +1450,112 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
   window.GAIA_MEMBRANE_PROBES = membraneProbes;
 
+  // ═══════════════════════════════════════════════════════════
+  // ZK ANCHOR SYSTEM — null values form new scatter points
+  // Every null boundary discovered = new ZK pin = new anchor.
+  // Probes go OUT, bounce off null, scatter back with edge data.
+  // Known latencies → predict internal architecture → decay outward.
+  // ═══════════════════════════════════════════════════════════
+  var zkAnchors = []; // { x, y, r, rtt, ts, type, decayAge }
+  var knownLatencies = {}; // endpoint → { avgRtt, samples, lastSeen }
+
+  function registerZKAnchor(name, rtt, ok) {
+    var ts = Date.now();
+    // Track latency statistics
+    if (!knownLatencies[name]) {
+      knownLatencies[name] = { avgRtt: rtt, samples: 1, lastSeen: ts, minRtt: rtt, maxRtt: rtt };
+    } else {
+      var kl = knownLatencies[name];
+      kl.avgRtt = kl.avgRtt * 0.8 + rtt * 0.2; // exponential moving avg
+      kl.samples++;
+      kl.lastSeen = ts;
+      if (rtt < kl.minRtt) kl.minRtt = rtt;
+      if (rtt > kl.maxRtt) kl.maxRtt = rtt;
+    }
+
+    // NULL ANCHOR: any probe that returns !ok OR has unexpected latency
+    // = boundary discovered = new scatter point
+    var expected = knownLatencies[name].avgRtt;
+    var deviation = Math.abs(rtt - expected) / Math.max(expected, 1);
+    var isNullBoundary = !ok || deviation > 0.5; // >50% deviation = boundary
+
+    if (isNullBoundary || zkAnchors.length < 8) {
+      // Convert RTT to radial position: fast=close, slow=far
+      var anchorR = Math.min(1.0, rtt / 300); // 0-1 normalized
+      var anchorAngle = (ts * 0.001) % (Math.PI * 2); // temporal angle
+      zkAnchors.push({
+        r: anchorR,
+        angle: anchorAngle,
+        rtt: rtt,
+        ts: ts,
+        name: name,
+        isNull: !ok,
+        deviation: deviation,
+        decayAge: 0
+      });
+      if (zkAnchors.length > 24) zkAnchors.shift();
+    }
+  }
+
+  // Hook into membrane probes — every probe result feeds the anchor system
+  var _origProbeFn = probeMembraneDistance;
+  probeMembraneDistance = function() {
+    PROBE_TARGETS.forEach(function(target) {
+      var t0 = performance.now();
+      fetch(target.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          var rtt = performance.now() - t0;
+          membraneProbes.push({
+            name: target.name, tier: target.tier,
+            rtt: Math.round(rtt * 10) / 10, ok: r.ok, ts: Date.now()
+          });
+          if (membraneProbes.length > 50) membraneProbes.shift();
+          if (target.name === 'self') {
+            var measuredDepth = Math.min(1, rtt / 500);
+            if (!IS_LOCAL) {
+              LOCALITY_DEPTH = LOCALITY_DEPTH * 0.7 + measuredDepth * 0.3;
+              LOCALITY_TIER = LOCALITY_DEPTH < 0.2 ? 'sub-local' :
+                              LOCALITY_DEPTH < 0.5 ? 'local' :
+                              LOCALITY_DEPTH < 0.7 ? 'meta-local' : 'remote';
+              locality.depth = LOCALITY_DEPTH;
+              locality.tier = LOCALITY_TIER;
+            }
+          }
+          // REGISTER ZK ANCHOR from every probe
+          registerZKAnchor(target.name, Math.round(rtt * 10) / 10, r.ok);
+        })
+        .catch(function() {
+          // Failed probe = NULL boundary discovered = strong anchor
+          registerZKAnchor(target.name, 999, false);
+        });
+    });
+  };
+
+  // Also probe outward — try to feel the EDGE of the membrane
+  var EDGE_PROBES = [
+    { url: '/api/strata.json', name: 'strata' },
+    { url: '/api/dag.json', name: 'dag' },
+    { url: '/api/hud.json', name: 'hud-api' },
+    { url: '/negentropy.json', name: 'negentropy' },
+    { url: '/backscatter.json', name: 'backscatter' }
+  ];
+
+  function probeEdge() {
+    EDGE_PROBES.forEach(function(ep) {
+      var t0 = performance.now();
+      fetch(ep.url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(r) {
+          registerZKAnchor(ep.name, Math.round((performance.now() - t0) * 10) / 10, r.ok);
+        })
+        .catch(function() { registerZKAnchor(ep.name, 999, false); });
+    });
+  }
+  probeEdge();
+  setInterval(probeEdge, 45000); // edge probes every 45s (staggered from membrane probes)
+
+  window.GAIA_ZK_ANCHORS = zkAnchors;
+  window.GAIA_KNOWN_LATENCIES = knownLatencies;
+
   // When HYPERLOCAL: paint the hyperlocal overlay — Kevin's chair, tamison, MSU
   if (IS_LOCAL) {
     var localOverlay = document.createElement('div');
@@ -5036,6 +5142,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 
     // INTERFACE RIPPLES — every interaction echoes visibly
     if (window.renderInterfaceRipples) window.renderInterfaceRipples(ctx);
+
+    // PI LEAK — subtle proof of life during pause/nap/sleep
+    if (window.renderPiLeak) window.renderPiLeak(ctx);
 
     requestAnimationFrame(tick);
   }

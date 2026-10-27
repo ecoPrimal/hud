@@ -467,6 +467,104 @@
     } catch(e) {}
   }, 3000);
 
+  // ═══ PAUSE/STORE ENGINE — silence is not nothing, it's storage ═══
+  var pauseState = {
+    state: 'ACTIVE',
+    lastInteraction: Date.now(),
+    storedEnergy: 0,
+    piRate: 1.0,
+    timeBuckets: { second: 0, minute: 0, hour: 0, day: 0, season: 0 },
+    sessionStart: Date.now(),
+    burstReady: false
+  };
+  window.pauseState = pauseState;
+
+  // Detect pause states
+  setInterval(function() {
+    var gap = Date.now() - pauseState.lastInteraction;
+    var prevState = pauseState.state;
+
+    if (document.hidden) { pauseState.state = 'AWAY'; pauseState.piRate = 0.01; }
+    else if (gap < 3000) { pauseState.state = 'ACTIVE'; pauseState.piRate = 1.0; }
+    else if (gap < 5000) { pauseState.state = 'HOVERING'; pauseState.piRate = 0.5; }
+    else if (gap < 15000) { pauseState.state = 'PAUSE'; pauseState.piRate = 0.2; }
+    else if (gap < 60000) { pauseState.state = 'NAP'; pauseState.piRate = 0.08; }
+    else { pauseState.state = 'SLEEP'; pauseState.piRate = 0.03; }
+
+    // Store energy during non-active states
+    if (pauseState.state !== 'ACTIVE') {
+      pauseState.storedEnergy += (1 - pauseState.piRate) * 0.5;
+      pauseState.burstReady = pauseState.storedEnergy > 5;
+    }
+
+    // Fill time buckets with π
+    var dt = 1; // 1 second tick
+    var pi = Math.PI * pauseState.piRate * dt;
+    pauseState.timeBuckets.second = Math.min(Math.PI, pauseState.timeBuckets.second + pi);
+    pauseState.timeBuckets.minute += pi / 60;
+    pauseState.timeBuckets.hour += pi / 3600;
+    var sessionHours = (Date.now() - pauseState.sessionStart) / 3600000;
+    pauseState.timeBuckets.day = Math.PI * sessionHours * 24;
+    pauseState.timeBuckets.season = Math.PI * sessionHours * 24 * 90;
+
+    // ENERGY BURST — when returning from pause
+    if (prevState !== 'ACTIVE' && pauseState.state === 'ACTIVE' && pauseState.burstReady) {
+      var burst = pauseState.storedEnergy * (1 + gap / 10000);
+      pauseState.storedEnergy = 0;
+      pauseState.burstReady = false;
+
+      // Trigger burst ripple
+      if (window.gaiaIngest) {
+        window.gaiaIngest('energy_burst', { burst: burst, gap: gap, fromState: prevState });
+      }
+      console.log('ENERGY BURST: ' + burst.toFixed(1) + ' stored energy released after ' + (gap / 1000).toFixed(0) + 's ' + prevState);
+    }
+  }, 1000);
+
+  // Track last interaction in pause engine
+  var origIngest2 = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    pauseState.lastInteraction = Date.now();
+    origIngest2(edge, data);
+  };
+
+  // PI LEAK RENDERER — subtle changes during pause/nap/sleep
+  window.renderPiLeak = function(ctx) {
+    var canvas = window._gaiaCanvas;
+    if (!canvas) return;
+    var ps = pauseState;
+    if (ps.state === 'ACTIVE') return; // no leak needed when active
+
+    var t = Date.now() * 0.001;
+
+    // Pi trickle — subtle color shifts that prove it's alive
+    var leakAlpha = ps.piRate * 0.15;
+    var leakHue = (t * 20) % 360;
+    var r = Math.round(128 + 127 * Math.sin(leakHue * 0.0174));
+    var g = Math.round(128 + 127 * Math.sin((leakHue + 120) * 0.0174));
+    var b = Math.round(128 + 127 * Math.sin((leakHue + 240) * 0.0174));
+
+    // Subtle edge glow that shifts — "I'm still alive"
+    ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + leakAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.35, t % (Math.PI * 2), (t % (Math.PI * 2)) + 0.5);
+    ctx.stroke();
+
+    // State label — top right
+    ctx.font = '6px monospace'; ctx.textAlign = 'right';
+    var stateColor = ps.state === 'PAUSE' ? '#c9a84c' : ps.state === 'NAP' ? '#58a6ff' : ps.state === 'SLEEP' ? '#6e40c9' : '#333';
+    ctx.fillStyle = stateColor;
+    ctx.fillText(ps.state + ' · π×' + ps.piRate + ' · stored:' + ps.storedEnergy.toFixed(1), canvas.width - 8, 12);
+
+    // Energy bar — fills as energy stores
+    if (ps.storedEnergy > 0) {
+      var barW = Math.min(100, ps.storedEnergy * 2);
+      ctx.fillStyle = 'rgba(255,215,0,0.15)';
+      ctx.fillRect(canvas.width - 8 - barW, 14, barW, 3);
+    }
+  };
+
   // Boot when canvas is ready
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindEdges);
   else bindEdges();
