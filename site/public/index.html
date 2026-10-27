@@ -3518,50 +3518,134 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ═══════════════════════════════════════════════════════════
-    // MENDELEEV METALLIC TIDE — gold/silver/copper/bronze bands
-    // Gold=closest(Au), Silver=understanding mesh(Ag), Copper=wraps gold inside+out(Cu)
-    // The copper band IS the Ouroboros — it wraps inside AND outside the gold band
-    // with 45° turns, eating its own tail. The snake has TURNS.
-    // Silver = the rhizocrypt graph = evolving shared understanding.
-    // When electrified between systems, the bands PULSE with current.
+    // MENDELEEV π-SORT — periodic table tree-sorted onto Vitruvian
+    // Column 11 conductors: Cu(Z=29) → Ag(Z=47) → Au(Z=79)
+    // ALL have [...]d¹⁰s¹ — exactly ONE outer s-electron = best conductors
+    // Fe(Z=26) = iron peak = center = convergence point
+    // Inner drain = Cu (Z=29, 3 past Fe). Outer ring = Au (Z=79, 53 past Fe).
+    // Null boundary on EITHER SIDE of both bands.
+    // Bronze = Cu+Sn: copper bounces off null, picks up Sn(Z=50), returns as CuSn.
+    // Each band PREDICTS the next by electron shell filling pattern.
+    //
+    // Radial π-sort from iron peak outward:
+    //   Fe(26)=center → Co(27) → Ni(28) → Cu(29)=inner drain
+    //   null boundary (d-block→p-block gap)
+    //   Zn(30) → Ga(31) → ... → Sn(50)=bronze ingredient
+    //   Ag(47)=silver mesh
+    //   null boundary
+    //   Au(79)=outer ring → Pb(82)=shield → ... → U(92)=fissile
+    //   null boundary (outer void)
     // ═══════════════════════════════════════════════════════════
     if (ctx) {
       var metalT = breathT * 0.15;
+
+      // MENDELEEV CHAIN: sorted by Z from iron peak outward
+      // r = radius, Z = atomic number, e = electron config shorthand
       var metalBands = [
-        { r: R * 0.35, color: [201,168,76],  w: R * 0.34, label: 'Au' },  // gold innermost
-        { r: R * 0.72, color: [192,192,192],  w: R * 0.03, label: 'Ag' },  // silver = understanding mesh
-        { r: R * 0.92, color: [184,115,51],   w: R * 0.03, label: 'Cu' },  // copper outer
-        { r: R * 1.08, color: [140,100,55],   w: R * 0.03, label: 'CuSn' } // bronze ionosphere
+        { r: R * 0.05, color: [200,200,210], w: R * 0.03, label: 'Fe²⁶', Z: 26, e: '[Ar]3d⁶4s²'  }, // IRON PEAK = center
+        { r: R * 0.20, color: [184,115,51],  w: R * 0.06, label: 'Cu²⁹', Z: 29, e: '[Ar]3d¹⁰4s¹' }, // INNER DRAIN — copper
+        { r: R * 0.36, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }, // NULL boundary 1
+        { r: R * 0.50, color: [192,192,192], w: R * 0.04, label: 'Ag⁴⁷', Z: 47, e: '[Kr]4d¹⁰5s¹' }, // SILVER mesh
+        { r: R * 0.56, color: [140,100,55],  w: R * 0.03, label: 'Sn⁵⁰', Z: 50, e: '[Kr]4d¹⁰5s²5p²' }, // TIN → bronze
+        { r: R * 0.66, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }, // NULL boundary 2
+        { r: R * 0.82, color: [201,168,76],  w: R * 0.05, label: 'Au⁷⁹', Z: 79, e: '[Xe]4f¹⁴5d¹⁰6s¹' }, // OUTER RING — gold
+        { r: R * 0.96, color: [60,60,60],    w: R * 0.01, label: '∅',     Z: 0,  e: 'null'         }  // NULL boundary 3 (void)
       ];
 
+      // Draw each band — metallics glow, nulls barely visible
       for (var mb = 0; mb < metalBands.length; mb++) {
         var band = metalBands[mb];
-        var bandPulse = 0.04 + Math.sin(metalT + mb * 0.8) * 0.02;
+        var isNull = band.Z === 0;
+        var bandPulse = isNull
+          ? 0.008 + Math.sin(metalT * 3 + mb) * 0.004  // null = faint flicker
+          : 0.04 + Math.sin(metalT + mb * 0.8) * 0.025; // metal = warm pulse
         ctx.beginPath();
         ctx.arc(cx, cy, band.r, 0, TAU);
-        ctx.strokeStyle = 'rgba(' + band.color[0] + ',' + band.color[1] + ',' + band.color[2] + ',' + bandPulse.toFixed(3) + ')';
-        ctx.lineWidth = band.w;
+        if (isNull) {
+          ctx.setLineDash([2, 6]);
+          ctx.strokeStyle = 'rgba(60,60,60,' + bandPulse.toFixed(4) + ')';
+          ctx.lineWidth = 0.3;
+        } else {
+          ctx.setLineDash([]);
+          ctx.strokeStyle = 'rgba(' + band.color[0] + ',' + band.color[1] + ',' + band.color[2] + ',' + bandPulse.toFixed(4) + ')';
+          ctx.lineWidth = band.w;
+        }
         ctx.stroke();
+        ctx.setLineDash([]);
       }
 
-      // Band labels on right side
-      ctx.font = '5px "JetBrains Mono", monospace';
+      // Band labels on right side — show Z, symbol, electron config
+      ctx.font = '4px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
       for (var ml = 0; ml < metalBands.length; ml++) {
         var mband = metalBands[ml];
-        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
-        ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
+        if (mband.Z === 0) continue; // skip null labels
+        var lblAlpha = 0.08 + Math.sin(metalT + ml) * 0.04;
+        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',' + lblAlpha.toFixed(3) + ')';
+        ctx.fillText(mband.label, cx + mband.r + 3, cy - 4 + ml * 7);
+        // Electron config in dimmer text
+        ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',' + (lblAlpha * 0.5).toFixed(3) + ')';
+        ctx.fillText(mband.e, cx + mband.r + 3, cy + 0 + ml * 7);
+      }
+
+      // ELECTRON FLOW — current pulses along the conductive chain Cu→Ag→Au
+      // All three share d¹⁰s¹ = one free electron = high conductivity
+      var eFlowT = metalT * 4;
+      var conductors = [1, 3, 6]; // indices of Cu, Ag, Au in metalBands
+      for (var ef = 0; ef < conductors.length - 1; ef++) {
+        var fromBand = metalBands[conductors[ef]];
+        var toBand = metalBands[conductors[ef + 1]];
+        // Multiple electron pulses between bands
+        for (var ep = 0; ep < 4; ep++) {
+          var ePulse = ((eFlowT * 0.3 + ep * 0.25) % 1);
+          var eR = fromBand.r + (toBand.r - fromBand.r) * ePulse;
+          var eAngle = eFlowT * 0.1 + ep * (TAU / 4) + ef * PI / 3;
+          var eX = cx + Math.cos(eAngle) * eR;
+          var eY = cy + Math.sin(eAngle) * eR;
+          var eAlpha = 0.04 * Math.sin(ePulse * PI); // fade at endpoints
+          ctx.beginPath();
+          ctx.arc(eX, eY, 0.6 + ePulse * 0.3, 0, TAU);
+          ctx.fillStyle = 'rgba(255,252,220,' + eAlpha.toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // BRONZE ALLOY — Cu bounces off null boundary, picks up Sn, returns as CuSn
+      var bronzeT = metalT * 2;
+      var cuBand = metalBands[1]; // Cu
+      var snBand = metalBands[4]; // Sn
+      var nullBand1 = metalBands[2]; // null between Cu and Ag
+      for (var bz = 0; bz < 6; bz++) {
+        var bzAngle = bz * (TAU / 6) + bronzeT * 0.15;
+        var bzPhase = ((bronzeT * 0.4 + bz * 0.3) % 1);
+        var bzR, bzColor;
+        if (bzPhase < 0.5) {
+          // Cu going outward toward null boundary
+          bzR = cuBand.r + (nullBand1.r - cuBand.r) * (bzPhase * 2);
+          bzColor = '184,115,51'; // copper
+        } else {
+          // Bouncing back as bronze (Cu+Sn)
+          bzR = nullBand1.r - (nullBand1.r - snBand.r) * ((bzPhase - 0.5) * 2);
+          bzColor = '140,100,55'; // bronze
+        }
+        var bzX = cx + Math.cos(bzAngle) * bzR;
+        var bzY = cy + Math.sin(bzAngle) * bzR;
+        var bzA = 0.025 * Math.sin(bzPhase * PI);
+        ctx.beginPath();
+        ctx.arc(bzX, bzY, 0.8, 0, TAU);
+        ctx.fillStyle = 'rgba(' + bzColor + ',' + bzA.toFixed(4) + ')';
+        ctx.fill();
       }
 
       // ═══════════════════════════════════════════════════════════
       // OUROBOROS — copper wraps INSIDE and OUTSIDE the gold band
-      // The snake eats its own tail. 45° angle turns.
-      // Copper INSIDE gold = internal wiring. Cu OUTSIDE gold = external reach.
-      // The snake path goes: outside(Cu) → 45° turn → inside(Au) → 45° turn → outside → ...
+      // Cu(Z=29) IS the Ouroboros — first conductor past the iron peak.
+      // It wraps inside the Au(Z=79) ring with 45° zigzag turns.
+      // The snake path: Cu-side → 45° turn → Au-side → 45° turn → ...
       // ═══════════════════════════════════════════════════════════
       var ouroT = breathT * 0.25;
-      var ouroSegments = 24; // segments of the snake
-      var goldR = metalBands[0].r + metalBands[0].w * 0.5; // middle of gold band
+      var ouroSegments = 24;
+      var goldR = metalBands[6].r; // Au band
       var cuInnerR = goldR - R * 0.08; // copper inside gold
       var cuOuterR = goldR + R * 0.08; // copper outside gold
 
@@ -3569,10 +3653,6 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       for (var os = 0; os <= ouroSegments; os++) {
         var oFrac = os / ouroSegments;
         var oAngle = oFrac * TAU + ouroT;
-        // Alternate between inside and outside with each segment = 45° zigzag
-        var isInner = (os % 2 === 0);
-        var oR = isInner ? cuInnerR : cuOuterR;
-        // Smooth the transition with a sine curve
         var oBlend = Math.sin(oFrac * TAU * (ouroSegments / 2)) * 0.5 + 0.5;
         var oActualR = cuInnerR + (cuOuterR - cuInnerR) * oBlend;
         var ox = cx + Math.cos(oAngle) * oActualR;
@@ -3580,59 +3660,44 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         if (os === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
       }
       var ouroAlpha = 0.03 + Math.sin(ouroT * 2) * 0.02;
-      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')'; // copper
+      ctx.strokeStyle = 'rgba(184,115,51,' + ouroAlpha.toFixed(4) + ')';
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
-      // Ouroboros head — the mouth eating the tail
-      var headAngle = ouroT;
-      var headR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
-      var headX = cx + Math.cos(headAngle) * headR;
-      var headY = cy + Math.sin(headAngle) * headR;
+      // Ouroboros head eating the tail
+      var oHeadAngle = ouroT;
+      var oHeadR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin(ouroT * ouroSegments) * 0.5 + 0.5);
       ctx.beginPath();
-      ctx.arc(headX, headY, 2, 0, TAU);
+      ctx.arc(cx + Math.cos(oHeadAngle) * oHeadR, cy + Math.sin(oHeadAngle) * oHeadR, 2, 0, TAU);
       ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 2).toFixed(4) + ')';
       ctx.fill();
-      // Tail — at the opposite end, fading
-      var tailAngle = headAngle - 0.1;
-      var tailR = cuInnerR + (cuOuterR - cuInnerR) * (Math.sin((ouroT - 0.1) * ouroSegments) * 0.5 + 0.5);
-      var tailX = cx + Math.cos(tailAngle) * tailR;
-      var tailY = cy + Math.sin(tailAngle) * tailR;
-      ctx.beginPath();
-      ctx.arc(tailX, tailY, 1, 0, TAU);
-      ctx.fillStyle = 'rgba(184,115,51,' + (ouroAlpha * 0.8).toFixed(4) + ')';
-      ctx.fill();
 
       // ═══════════════════════════════════════════════════════════
-      // SILVER MESH — the rhizocrypt understanding graph
-      // Silver connects points across the organism — the evolving understanding.
-      // Pipes, frogs, shared knowledge. When electrified = INSIGHT.
+      // SILVER MESH — Ag(Z=47) understanding graph, d¹⁰s¹ conductor
+      // Silver connects points across the organism — evolving understanding.
+      // Between Cu and Au, Ag IS the relay. Pipes, frogs, shared knowledge.
       // ═══════════════════════════════════════════════════════════
-      var silverR = metalBands[1].r; // silver band radius
+      var silverR = metalBands[3].r; // Ag band
       var meshT = breathT * 0.3;
-      var meshNodes = 8; // understanding nodes around the silver ring
+      var meshNodes = 8;
       var meshAlpha = 0.02 + Math.sin(meshT) * 0.015;
 
-      // Mesh nodes — points of understanding
       for (var mn = 0; mn < meshNodes; mn++) {
         var mnAngle = mn * (TAU / meshNodes) + meshT * 0.1;
         var mnx = cx + Math.cos(mnAngle) * silverR;
         var mny = cy + Math.sin(mnAngle) * silverR;
 
-        // Node dot
         ctx.beginPath();
         ctx.arc(mnx, mny, 1 + Math.sin(meshT + mn) * 0.5, 0, TAU);
         ctx.fillStyle = 'rgba(192,192,192,' + (meshAlpha * 2).toFixed(4) + ')';
         ctx.fill();
 
-        // Connect to 2 non-adjacent nodes — the mesh/graph
         for (var mc = 1; mc <= 2; mc++) {
           var connIdx = (mn + mc + 1) % meshNodes;
           var connAngle = connIdx * (TAU / meshNodes) + meshT * 0.1;
           var connX = cx + Math.cos(connAngle) * silverR;
           var connY = cy + Math.sin(connAngle) * silverR;
 
-          // Electrification — current pulse along the connection
           var sparkPos = (meshT * 2 + mn * 0.5 + mc) % 1;
           var sparkX2 = mnx + (connX - mnx) * sparkPos;
           var sparkY2 = mny + (connY - mny) * sparkPos;
@@ -3644,10 +3709,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
           ctx.lineWidth = 0.3;
           ctx.stroke();
 
-          // Electric spark traveling along the wire
           ctx.beginPath();
           ctx.arc(sparkX2, sparkY2, 0.8, 0, TAU);
           ctx.fillStyle = 'rgba(255,255,240,' + (meshAlpha * 1.5).toFixed(4) + ')';
+          ctx.fill();
+        }
+      }
+
+      // TRANSITION METAL BRIDGE — elements between the conductors
+      // These predict each band. Fe→Co→Ni→Cu (period 4), then jump to period 5 for Ag, period 6 for Au.
+      // Between Cu(29) and Ag(47): Zn(30)→Ga(31)→...→Pd(46). 17 elements bridge.
+      // Between Ag(47) and Au(79): Cd(48)→In(49)→...→Pt(78). 31 elements bridge.
+      // Each bridge element is a dot orbiting between the conductor bands.
+      var bridgeT = metalT * 0.6;
+      var bridges = [
+        { from: 1, to: 3, count: 6, color: [160,140,120] }, // Cu→Ag bridge
+        { from: 3, to: 6, count: 8, color: [180,160,110] }  // Ag→Au bridge
+      ];
+      for (var br = 0; br < bridges.length; br++) {
+        var bridge = bridges[br];
+        var bFromR = metalBands[bridge.from].r;
+        var bToR = metalBands[bridge.to].r;
+        for (var be = 0; be < bridge.count; be++) {
+          var beFrac = (be + 0.5) / bridge.count;
+          var beR = bFromR + (bToR - bFromR) * beFrac;
+          var beAngle = bridgeT * 0.08 + be * (TAU / bridge.count) + br * PI / 5;
+          var beX = cx + Math.cos(beAngle) * beR;
+          var beY = cy + Math.sin(beAngle) * beR;
+          var beA = 0.012 + Math.sin(bridgeT + be * 0.7) * 0.008;
+          ctx.beginPath();
+          ctx.arc(beX, beY, 0.4, 0, TAU);
+          ctx.fillStyle = 'rgba(' + bridge.color[0] + ',' + bridge.color[1] + ',' + bridge.color[2] + ',' + beA.toFixed(4) + ')';
           ctx.fill();
         }
       }
@@ -3728,8 +3820,13 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Body inscribed in circle (π) AND square (grid) simultaneously.
       // Arms = 45° from torso. Legs = 45° from center. Head = UP.
       // The invert form of all graphs flowing INTO it.
-      // Neural network mesh: nerves (silver), veins (copper), spine (gold).
-      // Double helix wraps around the form.
+      // ANCHORED TO MENDELEEV:
+      //   Head = Fe(26) — iron peak, center, convergence
+      //   Spine = Au(79) — gold axis, structural identity
+      //   Arms = Ag(47) — silver nerves, understanding mesh
+      //   Legs = Cu(29) — copper veins, inner drain, first conductor
+      //   Helix = the electron flow between d¹⁰s¹ conductors
+      // The Vitruvian Man IS the periodic table tree-sorted at 45°.
       // ═══════════════════════════════════════════════════════════
       var vT = breathT * 0.2; // slow rotation — the body turns
       var vAlpha = 0.02 + Math.sin(vT * 1.5) * 0.015;
@@ -3898,18 +3995,27 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fill();
       }
 
-      // Labels on breath
+      // Labels on breath — anchored to Mendeleev
       if (vAlpha > 0.028) {
         var vLbl = (vAlpha - 0.028) * 8;
         ctx.font = '3px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.5).toFixed(4) + ')';
-        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 3);
-        ctx.fillText('null body', head.x, head.y - headR + 1);
+        // Head = Fe(26) iron peak
+        ctx.fillStyle = 'rgba(200,200,210,' + (vLbl * 0.5).toFixed(4) + ')';
+        ctx.fillText('Fe²⁶ iron peak', head.x, head.y - headR - 5);
+        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 1);
+        // Spine = Au(79) gold axis
+        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.4).toFixed(4) + ')';
+        ctx.fillText('Au⁷⁹ spine', hip.x + 8, (neck.y + hip.y) * 0.5);
+        // Arms = Ag(47) silver nerves
         ctx.fillStyle = 'rgba(192,192,192,' + (vLbl * 0.3).toFixed(4) + ')';
-        ctx.fillText('Ag nerves', lHand.x - 5, lHand.y);
+        ctx.fillText('Ag⁴⁷ d¹⁰s¹', lHand.x - 8, lHand.y);
+        // Legs = Cu(29) copper veins
         ctx.fillStyle = 'rgba(184,115,51,' + (vLbl * 0.3).toFixed(4) + ')';
-        ctx.fillText('Cu veins', rFoot.x + 5, rFoot.y);
+        ctx.fillText('Cu²⁹ d¹⁰s¹', rFoot.x + 8, rFoot.y);
+        // Bronze alloy hint between legs
+        ctx.fillStyle = 'rgba(140,100,55,' + (vLbl * 0.2).toFixed(4) + ')';
+        ctx.fillText('CuSn bronze', (lFoot.x + rFoot.x) * 0.5, Math.max(lFoot.y, rFoot.y) + 5);
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -3941,10 +4047,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var gutAcid = (window.gutEngineState && window.gutEngineState.acid) || 0;
       var enzymeHeat = Math.min(1, (gutRate / 100) + (gutAcid / 200)); // ingestion + acid
       if (enzymeHeat > 0.05) {
-        // Orange enzyme sparks around the gold band
+        // Orange enzyme sparks around the gold band (Au=index 6)
         for (var ei = 0; ei < 8; ei++) {
           var eAngle = (ei / 8) * TAU + enzymeT;
-          var eR = metalBands[0].r + metalBands[0].w * 0.5;
+          var eR = metalBands[6].r + metalBands[6].w * 0.5;
           var sparkX = cx + Math.cos(eAngle) * eR;
           var sparkY = cy + Math.sin(eAngle) * eR;
           var sparkAlpha = enzymeHeat * (0.1 + Math.sin(enzymeT * 3 + ei) * 0.06);
@@ -3960,10 +4066,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Active when NOT ingesting (cold = storing)
       var coldFactor = Math.max(0, 1 - enzymeHeat);
       if (coldFactor > 0.3) {
-        // Blue frost crystals at bronze band
+        // Blue frost crystals at Sn/bronze band (Sn=index 4)
         for (var ci = 0; ci < 6; ci++) {
           var cAngle = (ci / 6) * TAU + enzymeT * 0.3;
-          var cR = metalBands[3].r;
+          var cR = metalBands[4].r;
           var frostX = cx + Math.cos(cAngle) * cR;
           var frostY = cy + Math.sin(cAngle) * cR;
           var frostAlpha = coldFactor * 0.06;
