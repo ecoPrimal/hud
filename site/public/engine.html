@@ -846,9 +846,19 @@ setInterval(regenEnergy, 5000);
 // -----------------------------------------------
 // KEYBOARD SHORTCUTS ? Kenshi + Dark Souls + hud-interact
 // -----------------------------------------------
+// HYPER-LOCALIZED INPUT — Woz principle: keys belong to WHERE YOU ARE.
+// Apple 1984, Steam Big Picture, every game engine since Quake.
+// If focus is in ANY text input, keys stay THERE. Period.
+function isTyping() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (el.isContentEditable) return true;
+  return false;
+}
 document.addEventListener('keydown', (e) => {
-  // Don't capture when typing in command bar
-  if (document.activeElement?.id === 'cmd-input') return;
+  if (isTyping()) return; // HYPER-LOCAL: keyboard stays in the focused element
 
   // 1-9: select primal by index (Kenshi number keys)
   if (e.key >= '1' && e.key <= '9') {

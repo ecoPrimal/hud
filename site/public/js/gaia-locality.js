@@ -433,6 +433,100 @@
   setInterval(buildNNGraph, 30000);
 
   // ───────────────────────────────────────────────────────
+  // TENSE FIELD — 13 tenses × 4 media = 52 cells of cultural time
+  // Every entity has a TENSE, not just a state.
+  // Only track the LAST shift. Change radiates through KNN.
+  // All freedom bounded by π. IQR = metastability range.
+  // ───────────────────────────────────────────────────────
+  var TENSES = ['IS','WAS','WILL','NOW','COULD','SHOULD','WOULD','MIGHT','MAY','WERE','ALWAYS','NEVER','END'];
+  var TENSE_FREEDOM = { IS:0, WAS:0.1, WILL:0.2, NOW:0, COULD:0.5, SHOULD:0.3, WOULD:0.6, MIGHT:0.7, MAY:0.8, WERE:1.0, ALWAYS:0, NEVER:0, END:0 };
+  var TENSE_COLORS = {
+    IS:[255,255,255], WAS:[139,148,158], WILL:[88,166,255], NOW:[57,211,245],
+    COULD:[63,185,80], SHOULD:[210,153,34], WOULD:[188,140,255], MIGHT:[248,136,62],
+    MAY:[255,136,200], WERE:[248,81,73], ALWAYS:[192,192,192], NEVER:[63,185,80], END:[48,48,48]
+  };
+  var MEDIA = ['tvtropes','4chan','reddit','myspace'];
+
+  // Each entity has a tense per media channel
+  var tenseField = {};  // { entityId: { tvtropes:'IS', '4chan':'WAS', ... , lastShift:{from,to,when,media} } }
+
+  function setTense(entityId, media, newTense) {
+    if (!tenseField[entityId]) {
+      tenseField[entityId] = { lastShift: null };
+      MEDIA.forEach(function(m) { tenseField[entityId][m] = 'IS'; });
+    }
+    var old = tenseField[entityId][media];
+    if (old === newTense) return; // no shift
+    tenseField[entityId][media] = newTense;
+    tenseField[entityId].lastShift = { from: old, to: newTense, when: Date.now(), media: media };
+
+    // RADIATE through KNN — change propagates to neighbors
+    radiateShift(entityId, old, newTense, media);
+  }
+
+  function radiateShift(entityId, fromTense, toTense, media) {
+    // Find this entity's nearest neighbors in the NN graph
+    var neighbors = [];
+    for (var ei = 0; ei < nnGraph.edges.length; ei++) {
+      var e = nnGraph.edges[ei];
+      if (e.from === entityId) neighbors.push({ id: e.to, dist: e.distance });
+      else if (e.to === entityId) neighbors.push({ id: e.from, dist: e.distance });
+    }
+
+    // Each neighbor's relative tense shifts based on distance
+    for (var ni = 0; ni < neighbors.length; ni++) {
+      var nb = neighbors[ni];
+      var freedom = TENSE_FREEDOM[toTense] || 0;
+      // π-bounded radiation: only propagate if within IQR range
+      var scaledDist = (nb.dist / 20000) * 10; // normalize to 0-10 scale
+      if (scaledDist < PI_FLOOR) continue;      // too close, trivial
+      if (scaledDist > PI_CEIL) continue;        // too far, out of range
+
+      // The neighbor shifts toward the SAME direction but dampened
+      var nbField = tenseField[nb.id];
+      if (!nbField) continue;
+      var nbTense = nbField[media];
+      var nbFreedom = TENSE_FREEDOM[nbTense] || 0;
+
+      // If source gained freedom (IS→COULD), neighbors gain partial freedom
+      // If source lost freedom (COULD→IS), neighbors lose partial freedom
+      if (freedom > nbFreedom + 0.3) {
+        // Source is more free — neighbor shifts toward more free
+        var nextIdx = Math.min(TENSES.indexOf(nbTense) + 1, TENSES.length - 3);
+        nbField[media] = TENSES[nextIdx];
+      } else if (freedom < nbFreedom - 0.3) {
+        // Source is more bound — neighbor shifts toward more bound
+        var prevIdx = Math.max(TENSES.indexOf(nbTense) - 1, 0);
+        nbField[media] = TENSES[prevIdx];
+      }
+      // Within 0.3 = metastable, no shift (the IQR peace zone)
+    }
+  }
+
+  // Ingest events → tense shifts
+  var origIngestTense = window.gaiaIngest;
+  if (origIngestTense) {
+    window.gaiaIngest = function(edge, data) {
+      // Entity alive = IS. Entity dead = WAS. Entity predicted = WILL.
+      if (data && data.entity) {
+        if (data.status === 1 || data.alive) setTense(data.entity, 'reddit', 'IS');
+        else if (data.status === 0 || data.dead) setTense(data.entity, 'reddit', 'WAS');
+      }
+      return origIngestTense(edge, data);
+    };
+  }
+
+  // Heartbeat → tense shifts for LAN devices
+  setInterval(function() {
+    var decay = window.GAIA_DECAY;
+    if (!decay || !decay.lanDevices) return;
+    Object.keys(decay.lanDevices).forEach(function(id) {
+      var dev = decay.lanDevices[id];
+      setTense(id, 'reddit', dev.wet ? 'IS' : 'WAS');
+    });
+  }, 30000);
+
+  // ───────────────────────────────────────────────────────
   // RADIAL CELLS — every visitor = a cell on the globe
   // Progressive reveal: distance → disclosure level
   // Each cell starts as NULL BODY, fills by proximity
