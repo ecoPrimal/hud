@@ -103,6 +103,40 @@
         ctx.fillText(layer.subtitle, detailX, detailY + 3);
       }
 
+      // ═══ OORT CLOUD — outermost purple boundary, L6→L7 transition ═══
+      if (alpha > 0.002) {
+        var oortR = R * 1.25;
+        var oortPulse = 0.5 + Math.sin(t * 0.04) * 0.3;
+        // Purple haze — diffuse outer glow
+        ctx.beginPath();
+        ctx.arc(cx, cy, oortR, 0, TAU);
+        ctx.strokeStyle = 'rgba(163,113,247,' + (alpha * 1.5 * oortPulse).toFixed(5) + ')';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([0.5, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Icy bodies — scattered dots in the Oort shell
+        for (var oi = 0; oi < 12; oi++) {
+          var oAngle = TAU * oi / 12 + t * 0.002 + Math.sin(oi * 2.7) * 0.3;
+          var oR = oortR + Math.sin(t * 0.01 + oi * 1.3) * 4;
+          var ox = cx + Math.cos(oAngle) * oR;
+          var oy = cy + Math.sin(oAngle) * oR;
+          ctx.beginPath();
+          ctx.arc(ox, oy, 0.2 + Math.sin(t * 0.05 + oi) * 0.1, 0, TAU);
+          ctx.fillStyle = 'rgba(180,160,220,' + (alpha * 2 * oortPulse).toFixed(5) + ')';
+          ctx.fill();
+        }
+
+        // Label
+        if (alpha > 0.004) {
+          ctx.font = '0.7px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(163,113,247,' + (alpha * 2.5).toFixed(5) + ')';
+          ctx.fillText('OORT CLOUD \u00b7 \u03c0\u00b2 \u00b7 purple boundary \u00b7 frozen memories', cx, cy - oortR - 2);
+        }
+      }
+
       // ═══ VEIN MESH — mines/caves going DOWN, aurora going UP, green IS flat ═══
       if (alpha > 0.003) {
         // Detroit Salt Mine: 1200ft below = going DOWN (pupil/null/black)

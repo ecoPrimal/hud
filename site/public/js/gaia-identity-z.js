@@ -46,7 +46,14 @@
     named: {},
     abc: 'A',
     reburials: 0,
-    lastCallAll: 0
+    lastCallAll: 0,
+    // NULL IDENTIFICATION — you ARE what you are NOT
+    nullId: null,           // computed negative-space identity
+    rarity: 1.0,            // starts at 1.00, decays toward null as recognized
+    rarityDecayRate: 0.005, // per-tick decay toward null
+    faults: [],             // negative faults: things that DIDN'T match
+    faultCount: 0,
+    lastFault: 0
   };
 
   function lerp(a, b, t) { return a + (b - a) * t; }
