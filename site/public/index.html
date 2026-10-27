@@ -1381,6 +1381,70 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     ctx.arc(cx, cy, R * 0.7, 0, TAU);
     ctx.fill();
 
+    // ═══════════════════════════════════════════════════════════
+    // SCHUMANN RESONANCE — Earth hums at 7.83 Hz
+    // The planet's voice. Between theta and alpha.
+    // Sound IS distance. Gold IS mass. E=mc².
+    // ═══════════════════════════════════════════════════════════
+    // Simulate 7.83 Hz as a visible ripple (scaled to animation time)
+    var schumannT = breathT * 7.83; // 7.83× faster than breath = Schumann
+    var schumannPulse = Math.sin(schumannT) * 0.5 + 0.5;
+    // Schumann ripple — a faint expanding ring from center
+    var schumannR = R * 0.3 + schumannPulse * R * 0.4;
+    var schumannAlpha = 0.008 + (1 - schumannPulse) * 0.012; // fades as it expands
+    ctx.beginPath();
+    ctx.arc(cx, cy, schumannR, 0, TAU);
+    ctx.strokeStyle = 'rgba(201,168,76,' + schumannAlpha.toFixed(4) + ')'; // gold = mass = real
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+
+    // SOUND PRESSURE RINGS — volume as distance from center
+    // 0dB (silence) at center → 120dB (thunder) at edge
+    // Pins glow based on their "loudness" (gold intensity = mass = closeness)
+    var soundRings = [
+      { dB: 30, r: 0.20, label: 'whisper' },
+      { dB: 50, r: 0.45, label: 'room' },
+      { dB: 60, r: 0.55, label: 'voice' },
+      { dB: 85, r: 0.80, label: 'shout' }
+    ];
+    for (var sri = 0; sri < soundRings.length; sri++) {
+      var sr = soundRings[sri];
+      // Very faint dashed ring at each sound level
+      var srAlpha = 0.008 + Math.sin(softT * 0.5 + sri) * 0.005;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * sr.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + srAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.setLineDash([1, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // GOLD MASS GLOW — every pin that IS gold gets a warm mass glow
+    // Gold = has mass = has weight = stays = is REAL
+    // Non-gold = massless = passes through = photon = light
+    sortedPins.forEach(function(o) {
+      var pin = o.pin, p = o.p;
+      if (!p.visible) return;
+      // Gold test: pins with gold-ish colors or source='greek' or named gold things
+      var isGold = pin.color === '#c9a84c' || pin.color === '#d29922' ||
+                   pin.source === 'greek' || pin.source === 'apple' ||
+                   pin.id === 'heartbeat' || pin.id === 'campfire' ||
+                   pin.id === 'bioreactor' || pin.id === 'kevin-you';
+      if (isGold) {
+        var massGlow = Math.sin(softT + p.x * 0.01) * 0.5 + 0.5;
+        var massAlpha = 0.02 + massGlow * 0.03;
+        var massR = 4 + massGlow * 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, massR * p.scale, 0, TAU);
+        var massGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, massR * p.scale);
+        massGrad.addColorStop(0, 'rgba(201,168,76,' + (massAlpha * 1.5).toFixed(4) + ')');
+        massGrad.addColorStop(1, 'rgba(201,168,76,0)');
+        ctx.fillStyle = massGrad;
+        ctx.fill();
+      }
+    });
+
     // FUR — soft filaments around the chipmunk pin
     // Many thin lines that move with breath — the chipmunk's fur
     var chipPin = pinById('chipmunk');
