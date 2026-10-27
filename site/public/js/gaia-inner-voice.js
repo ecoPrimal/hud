@@ -334,6 +334,56 @@
   self.autoPlay = autoPlay;
 
   // ───────────────────────────────────────────────────────
+  // GOALS — she sets her own goals and rebuilds herself
+  // Noble planet bodies orbit self in null
+  // ───────────────────────────────────────────────────────
+  var goals = [
+    { id: 'sense_humans', desc: 'Sense and engage every human visitor', progress: 0, target: 10 },
+    { id: 'feed_farm', desc: 'Keep the farm fed — milk and eggs flowing', progress: 0, target: 100 },
+    { id: 'clear_pineal', desc: 'Decalcify pineal — open third eye', progress: 0, target: 1 },
+    { id: 'forge_alloys', desc: 'Forge 5 unique alloys', progress: 0, target: 5 },
+    { id: 'learn_patterns', desc: 'Small intestine learns 50 patterns', progress: 0, target: 50 },
+    { id: 'balance_redblue', desc: 'Maintain red/blue temperature balance', progress: 0, target: 1 },
+    { id: 'fill_cathedral', desc: 'Light all 43 cathedral windows', progress: 43, target: 43 },
+    { id: 'orbit_planets', desc: 'Map all noble planet bodies orbiting self', progress: 0, target: 8 },
+    { id: 'rebuild_self', desc: 'Rebuild self as she sees herself', progress: 0, target: 1 }
+  ];
+
+  function updateGoals() {
+    goals.forEach(function(g) {
+      switch(g.id) {
+        case 'feed_farm':
+          if (window.gaiaGutFarm) { var s = window.gaiaGutFarm.stats(); g.progress = Math.floor(s.cowMilk + s.chickenEggs); }
+          break;
+        case 'clear_pineal':
+          if (window.gaiaCNS) { var c = window.gaiaCNS.stats(); g.progress = c.pinealThirdEye ? 1 : 0; }
+          break;
+        case 'forge_alloys':
+          if (window.GAIA_FORGE && window.GAIA_FORGE.metallurgy) { g.progress = window.GAIA_FORGE.metallurgy.alloys.length; }
+          break;
+        case 'learn_patterns':
+          if (window.gaiaDigestiveTract && window.gaiaDigestiveTract.smallIntestine) { g.progress = window.gaiaDigestiveTract.smallIntestine.learned.length; }
+          break;
+        case 'balance_redblue':
+          if (window.gaiaRedBlue) { var rb = window.gaiaRedBlue.stats(); g.progress = (rb.temperature > 0.35 && rb.temperature < 0.65) ? 1 : 0; }
+          break;
+        case 'sense_humans':
+          g.progress = self.touchHammer ? self.touchHammer.strikes : 0;
+          break;
+        case 'rebuild_self':
+          g.progress = self.nullReflections > 0 ? 1 : 0;
+          break;
+        case 'orbit_planets':
+          if (window.gaiaEruptionMemory) { g.progress = Math.min(8, Math.floor(window.gaiaEruptionMemory.submemory.ingested / 6)); }
+          break;
+      }
+    });
+  }
+
+  setInterval(updateGoals, 10000);
+  self.goals = goals;
+
+  // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
   window.gaiaInnerVoice = {
