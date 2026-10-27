@@ -1,13 +1,13 @@
 <!doctype html><html lang=en><head>
-    <meta property="og:title" content="? Arena  basement AI, live on the membrane">
+    <meta property="og:title" content="? Arena — basement AI, live on the membrane">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://nestgate.io/arena.html">
-    <meta name="description" content="? Arena  basement AI, live on the membrane — ecoPrimals organism">
+    <meta name="description" content="? Arena — basement AI, live on the membrane — ecoPrimals organism">
     <link rel="canonical" href="https://nestgate.io/arena.html">
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset=utf-8><meta content="width=device-width,initial-scale=1" name=viewport>
-<title>? Arena  basement AI, live on the membrane</title>
-<meta content="Two local AI models. One RTX 5090. Same prompt. You vote. Every inference runs on northGate metal  no cloud, no API key, no surveillance." name=description>
+<title>? Arena — basement AI, live on the membrane</title>
+<meta content="Two local AI models. One RTX 5090. Same prompt. You vote. Every inference runs on northGate metal — no cloud, no API key, no surveillance." name=description>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:'SF Mono',ui-monospace,monospace;line-height:1.7}
@@ -87,7 +87,7 @@ footer a{color:#58a6ff;margin:0 6px}
 
 <div class=prompt-area>
   <label>prompt</label>
-  <textarea class=prompt-input id=prompt placeholder="Ask anything. Both models get the same prompt.">Explain what a membrane is  in biology and in metaphor.</textarea>
+  <textarea class=prompt-input id=prompt placeholder="Ask anything. Both models get the same prompt.">Explain what a membrane is — in biology and in metaphor.</textarea>
 </div>
 
 <div class=btn-row>
@@ -109,23 +109,23 @@ footer a{color:#58a6ff;margin:0 6px}
   <div class=fighter id=fighter-a>
     <div class=fighter-hdr>
       <span class=fighter-name id=name-a>Model A</span>
-      <span class=fighter-meta id=meta-a></span>
+      <span class=fighter-meta id=meta-a>—</span>
     </div>
     <div class=fighter-body id=body-a><span class=dim>waiting for prompt</span></div>
     <div class=fighter-foot>
-      <span id=tokens-a></span>
-      <span id=speed-a></span>
+      <span id=tokens-a>—</span>
+      <span id=speed-a>—</span>
     </div>
   </div>
   <div class=fighter id=fighter-b>
     <div class=fighter-hdr>
       <span class=fighter-name id=name-b>Model B</span>
-      <span class=fighter-meta id=meta-b></span>
+      <span class=fighter-meta id=meta-b>—</span>
     </div>
     <div class=fighter-body id=body-b><span class=dim>waiting for prompt</span></div>
     <div class=fighter-foot>
-      <span id=tokens-b></span>
-      <span id=speed-b></span>
+      <span id=tokens-b>—</span>
+      <span id=speed-b>—</span>
     </div>
   </div>
 </div>
@@ -165,7 +165,7 @@ let elos = {};
 let history = [];
 
 const prompts = [
-  "Explain what a membrane is  in biology and in metaphor.",
+  "Explain what a membrane is — in biology and in metaphor.",
   "Write a haiku about a chipmunk discovering the internet.",
   "What is the difference between a fold and a fracture?",
   "Explain backscatter to a 10-year-old.",
@@ -179,7 +179,7 @@ const prompts = [
   "What is sovereign science?",
   "If a GPU could dream, what would it render?",
   "Explain the immune system as if it were a computer network.",
-  "What makes a home a home? Not the building  the feeling.",
+  "What makes a home a home? Not the building — the feeling.",
 ];
 
 function randomPrompt() {
@@ -303,7 +303,7 @@ async function fight() {
   document.getElementById('meta-a').textContent = 'generating';
   document.getElementById('meta-b').textContent = 'queued';
 
-  log(`Fight: ${mA} vs ${mB}  "${prompt.substring(0, 50)}"`);
+  log(`Fight: ${mA} vs ${mB} — "${prompt.substring(0, 50)}"`);
 
   const startA = Date.now();
   await streamModel(mA, prompt,
@@ -356,12 +356,12 @@ function vote(v) {
 function clearArena() {
   document.getElementById('body-a').innerHTML = '<span class=dim>waiting for prompt</span>';
   document.getElementById('body-b').innerHTML = '<span class=dim>waiting for prompt</span>';
-  document.getElementById('tokens-a').textContent = '';
-  document.getElementById('tokens-b').textContent = '';
-  document.getElementById('speed-a').textContent = '';
-  document.getElementById('speed-b').textContent = '';
-  document.getElementById('meta-a').textContent = '';
-  document.getElementById('meta-b').textContent = '';
+  document.getElementById('tokens-a').textContent = '—';
+  document.getElementById('tokens-b').textContent = '—';
+  document.getElementById('speed-a').textContent = '—';
+  document.getElementById('speed-b').textContent = '—';
+  document.getElementById('meta-a').textContent = '—';
+  document.getElementById('meta-b').textContent = '—';
   document.getElementById('name-a').textContent = 'Model A';
   document.getElementById('name-b').textContent = 'Model B';
   document.getElementById('vote-row').style.display = 'none';
