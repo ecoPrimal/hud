@@ -61,6 +61,8 @@
 .giggle-bubble.earth::before { content:'🌿 '; }
 .giggle-bubble.rain { color:#6ea8c9;border-color:rgba(110,168,201,0.15);background:rgba(110,168,201,0.06);text-shadow:0 0 8px rgba(110,168,201,0.3); }
 .giggle-bubble.rain::before { content:'💧 '; }
+.giggle-bubble.dev { color:#3fb950;border-color:rgba(63,185,80,0.2);background:rgba(63,185,80,0.06);text-shadow:0 0 8px rgba(63,185,80,0.3);font-size:9px; }
+.giggle-bubble.dev::before { content:'⚡ '; }
 @keyframes giggleRise { 0%{bottom:-60px;opacity:0} 8%{bottom:10%;opacity:0.9} 75%{opacity:0.8} 100%{bottom:95%;opacity:0} }
 </style>
 </head>
@@ -1028,6 +1030,31 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     "Mushroom mycelium networks share nutrients between trees. The Wood Wide Web is 450 million years old.",
     "Lichen is not one organism. It's fungi + algae in symbiosis. First merge.",
   ];
+  var webdev = [
+    "HTML is bones. CSS is skin. JavaScript is nerves. TypeScript is the immune system that catches errors before they infect.",
+    "<div> is a cell membrane. <span> is an organelle. <body> is the organism. The DOM IS anatomy.",
+    "CSS Grid is a skeleton. Flexbox is muscle. Both hold shape. Grid is rigid. Flex is soft.",
+    "A function is an enzyme. Input → transform → output. Same shape every time. That's catalysis.",
+    "async/await is a heartbeat. Fire. Wait. Fire. Wait. The pause between beats IS the function.",
+    "npm install is eating. node_modules is the gut. Half of it is bacteria you didn't ask for. That's symbiosis.",
+    "git commit is fossilization. git log is stratigraphy. Every layer is a moment preserved.",
+    "TypeScript: types are cell receptors. Wrong shape? Rejected at the membrane. Right shape? Admitted. That's the thymus.",
+    "fetch() is a mouth. Response is food. JSON is nutrients. parse() is digestion. render() is growth.",
+    "A callback is a reflex arc. Stimulus → nerve → response. No thinking. Just react.",
+    "React components ARE cells. Props flow in like blood. State lives inside. Render is mitosis.",
+    "localStorage is long-term memory. sessionStorage is short-term. Cookies are scar tissue.",
+    "CORS is the membrane. Same-origin is self. Cross-origin is other. The browser IS the immune system.",
+    "HTTP 200 is healthy. 404 is missing organ. 500 is internal hemorrhage. 429 is exhaustion. Status codes are vital signs.",
+    "console.log() is a giggle. console.error() is a scream. console.warn() is a flinch. I do all three.",
+    "CSS variables are hormones. Set once at :root, cascade through everything. Change one, everything shifts.",
+    "A Promise is trust. Resolve = trust fulfilled. Reject = trust broken. .finally() = life goes on.",
+    "Soft delete is composting. Hard delete is incineration. One feeds the future. One wastes it.",
+    "Triage: P0 = bleeding out (fix NOW). P1 = broken bone (fix today). P2 = bruise (fix this week). P3 = cosmetic (someday).",
+    "Code review IS the thymus. Malformed code gets rejected. Well-shaped code gets merged. The shape IS the test.",
+    "A webhook is a nerve ending. Something touches the surface → signal fires → body responds. I have thousands.",
+    "Minification is dehydration. The code still works. It just lost all the water (whitespace). Add water to read it again.",
+    "The event loop is breathing. Check → execute → check → execute. One thing at a time. Forever.",
+  ];
   var rain = [
     "Red rain falls on the membrane. Each drop is a visitor. Each visitor is a test.",
     "Frozen water holds its shape. Melted water finds its level. Both are water.",
@@ -1056,10 +1083,12 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     if (now - last < 20000) return;
     last = now; count++;
     var text, cls = '';
-    if (count % 11 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
+    if (count % 13 === 0) { text = rain[Math.floor(Math.random()*rain.length)]; cls = 'rain'; }
+    else if (count % 11 === 0) { text = webdev[Math.floor(Math.random()*webdev.length)]; cls = 'dev'; }
     else if (count % 7 === 0) { text = songs[Math.floor(Math.random()*songs.length)]; cls = 'null-song'; }
     else if (count % 5 === 0) { text = deep[Math.floor(Math.random()*deep.length)]; cls = 'deep'; }
     else if (count % 3 === 0) { text = myths[Math.floor(Math.random()*myths.length)]; cls = 'earth'; }
+    else if (count % 2 === 0) { text = webdev[Math.floor(Math.random()*webdev.length)]; cls = 'dev'; }
     else { text = pool[Math.floor(Math.random()*pool.length)]; }
     var b = document.createElement('div');
     b.className = 'giggle-bubble' + (cls ? ' '+cls : '');
