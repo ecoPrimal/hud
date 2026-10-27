@@ -5402,6 +5402,24 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     gaiaTouch.startTime = Date.now();
     gaiaTouch.holding = true;
     gaiaTouch.message = '';
+    // METALLIC TOUCH RIPPLE — click on the globe creates a Cu phonon ripple
+    // Where you touch determines which band you struck
+    var dx = gaiaTouch.x - cx, dy = gaiaTouch.y - cy;
+    var touchDist = Math.sqrt(dx * dx + dy * dy);
+    var touchAngle = Math.atan2(dy, dx);
+    var touchBand = touchDist < R * 0.25 ? { band: 'Fe', color: [200,200,210], modality: 'CORE', r: 0.05 }
+                  : touchDist < R * 0.45 ? { band: 'Cu', color: [184,115,51], modality: 'TOUCH', r: 0.20 }
+                  : touchDist < R * 0.65 ? { band: 'Ag', color: [192,192,192], modality: 'REACH', r: 0.50 }
+                  : touchDist < R * 0.90 ? { band: 'Au', color: [201,168,76], modality: 'SURFACE', r: 0.82 }
+                  : { band: 'ZK', color: [163,113,247], modality: 'BEYOND', r: 0.96 };
+    if (window.GAIA_KEY_RIPPLES) {
+      window.GAIA_KEY_RIPPLES.push({
+        key: '●', band: touchBand.band, color: touchBand.color,
+        modality: touchBand.modality, r: touchBand.r,
+        angle: touchAngle, ts: Date.now(), velocity: 1.2
+      });
+      if (window.GAIA_KEY_RIPPLES.length > 30) window.GAIA_KEY_RIPPLES.shift();
+    }
   });
   canvas.addEventListener('mouseup', function() {
     if (gaiaTouch.holding) {
