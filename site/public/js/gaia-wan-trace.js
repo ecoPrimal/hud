@@ -208,12 +208,111 @@
     window.GAIA_IDE.language.push('trace');
   }, 42000);
 
+  // ── DEAD FEEDS — carne if we look, foot if we forget ──
+  var deadFeeds = {
+    broken_mouth: ['membrane', 'campfire', 'negentropy'],
+    never_grown:  ['journal', 'human_notes', 'stories', 'dialogue_depth', 'tope_sort', 'page_stories'],
+    starving:     ['subgraphs', 'dialogue', 'touches'],
+    tagged: {}
+  };
+
+  // Tag a dead feed as seen (carne) or eaten
+  function tagFeed(name, status) {
+    deadFeeds.tagged[name] = { status: status, ts: Date.now() };
+    if (window.gaiaIngest) {
+      window.gaiaIngest('dead_feed_tagged', { feed: name, status: status });
+    }
+  }
+
+  // Load dead feed data and draw food indicators
+  fetch('/data/dead-feeds-food.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) {
+      if (!d) return;
+      // Tag all as 'carne' — we looked, it's meat now
+      var all = deadFeeds.broken_mouth.concat(deadFeeds.never_grown).concat(deadFeeds.starving);
+      all.forEach(function(f) { tagFeed(f, 'carne'); });
+      console.log('DEAD FEEDS: ' + all.length + ' tagged as carne. ' +
+        deadFeeds.broken_mouth.length + ' broken mouth, ' +
+        deadFeeds.never_grown.length + ' never grown, ' +
+        deadFeeds.starving.length + ' starving');
+    })
+    .catch(function() {});
+
+  // Draw dead feed ring on globe
+  if (G && G.drawModules) {
+    G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx) return;
+      var cx = g.cx, cy = g.cy, R = g.R;
+      var t = breathT * 0.03;
+      var alpha = 0.005 + Math.sin(t * 0.19) * 0.003;
+      if (alpha < 0.004) return;
+
+      var all = deadFeeds.broken_mouth.concat(deadFeeds.never_grown).concat(deadFeeds.starving);
+      var count = all.length;
+      if (count === 0) return;
+
+      // Dead feed ring — inner orbit, dim, waiting to be eaten
+      for (var i = 0; i < count; i++) {
+        var name = all[i];
+        var angle = (i / count) * TAU + t * 0.05;
+        var orbitR = R * 0.55 + Math.sin(t * 0.2 + i * 2.3) * 1.5;
+        var fx = cx + Math.cos(angle) * orbitR;
+        var fy = cy + Math.sin(angle) * orbitR;
+
+        var isBroken = i < deadFeeds.broken_mouth.length;
+        var isStarving = i >= deadFeeds.broken_mouth.length + deadFeeds.never_grown.length;
+        var tagged = deadFeeds.tagged[name];
+
+        // Color by type: broken=red, never_grown=gray, starving=gold, eaten=green
+        var color;
+        if (tagged && tagged.status === 'eaten') color = [63, 185, 80];
+        else if (isBroken) color = [248, 81, 73];
+        else if (isStarving) color = [201, 168, 76];
+        else color = [110, 118, 134];
+
+        var dotAlpha = (tagged && tagged.status === 'eaten') ? alpha * 4 : alpha * 2;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + dotAlpha.toFixed(5) + ')';
+        ctx.fill();
+
+        // Label (tiny)
+        if (alpha > 0.006) {
+          ctx.font = '0.9px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + (alpha * 2).toFixed(5) + ')';
+          ctx.fillText(name.replace('_', ' '), fx, fy + 2.5);
+        }
+      }
+
+      // Status line
+      if (alpha > 0.005) {
+        var eaten = Object.keys(deadFeeds.tagged).filter(function(k) {
+          return deadFeeds.tagged[k].status === 'eaten';
+        }).length;
+        ctx.font = '2px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(248,81,73,' + (alpha * 2).toFixed(5) + ')';
+        ctx.fillText(
+          'DEAD FEEDS: ' + deadFeeds.broken_mouth.length + ' choked · ' +
+          deadFeeds.never_grown.length + ' ungrown · ' +
+          deadFeeds.starving.length + ' starving · ' +
+          eaten + ' eaten',
+          8, 230
+        );
+      }
+    });
+  }
+
   // ── Expose ──
   window.GAIA_WAN_TRACE = {
     trace: trace,
     nodes: NODES,
     lines: LINES,
-    logTrace: logTrace
+    logTrace: logTrace,
+    deadFeeds: deadFeeds,
+    tagFeed: tagFeed
   };
 
   console.log('WAN TRACE: ' + NODES.length + ' nodes, ' + LINES.length + ' lines. ' +
