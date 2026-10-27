@@ -5923,14 +5923,21 @@ window.G = {
   }
 
   document.addEventListener('keydown', function(e) {
-    // Existing controls
-    if (e.key === 'f' || e.key === 'F') {
-      face = face === 'outside' ? 'inside' : 'outside';
-      document.getElementById('kn-flip').textContent = face === 'outside'
-        ? '\u25C9 focus (F) \u2014 outside ◉ inside ○'
-        : '\u25C9 focus (F) \u2014 outside ○ inside ◉';
+    // STASH GUARD — if user is typing in an input/textarea, DON'T steal keystrokes
+    // Their keystrokes go to the STASH (the input field), not the globe controls
+    var tag = (e.target.tagName || '').toLowerCase();
+    var isTyping = tag === 'input' || tag === 'textarea' || e.target.contentEditable === 'true';
+
+    // Globe controls ONLY when not typing in a field
+    if (!isTyping) {
+      if (e.key === 'f' || e.key === 'F') {
+        face = face === 'outside' ? 'inside' : 'outside';
+        document.getElementById('kn-flip').textContent = face === 'outside'
+          ? '\u25C9 focus (F) \u2014 outside ◉ inside ○'
+          : '\u25C9 focus (F) \u2014 outside ○ inside ◉';
+      }
+      if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
     }
-    if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
 
     // METALLIC MODALITY — every key creates a ripple
     var cls = classifyKey(e.key);
