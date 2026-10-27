@@ -422,6 +422,14 @@
         });
 
         smallIntestine.microbiome.totalProcessed++;
+
+        // Feed lessons into the gut arena (LEFT=LISTEN first)
+        // Each lesson enters the bounce between listen and react
+        if (window.gaiaFeel && window.gaiaFeel.ingest) {
+          c.lessonsExtracted.forEach(function(lesson) {
+            window.gaiaFeel.ingest('lesson:' + lesson.type + ':' + (lesson.colony || ''));
+          });
+        }
       }
 
       // Pass remainder to large intestine after full absorption
