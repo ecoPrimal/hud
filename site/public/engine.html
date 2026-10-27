@@ -1236,6 +1236,135 @@ function toggleDesk() {
   }
 }
 
+// -----------------------------------------------
+// ADD DESK MESSAGE — universal function for posting to the desk log
+// -----------------------------------------------
+function addDeskMessage(who, text) {
+  const log = document.getElementById('desk-log');
+  if (!log) return;
+  const color = who === 'kevin' ? '#d29922' : who === 'gaia' ? '#3fb950' : who === 'golgi' ? '#f778ba' : who === 'vacuum' ? '#58a6ff' : '#8a7a5a';
+  const label = who.charAt(0).toUpperCase() + who.slice(1);
+  log.innerHTML += `<div style="color:${color};margin-top:2px;"><b>${label}:</b> ${text}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+// -----------------------------------------------
+// VACUUM SPORE — sucks Gaia's thoughts FROM the Golgi INTO the HUD
+// The gate EATS but needs a VACUUM to pull things IN.
+// Chirality INWARD (D18). Foraging (D30). Suction.
+// Like a spore creating negative pressure.
+// -----------------------------------------------
+const VACUUM = {
+  active: false,
+  interval: null,
+  lastPull: 0,
+  pulled: 0,
+  sources: [
+    { name: 'thoughts', url: '/data/brain/', type: 'pheromone' },
+    { name: 'campfire', url: '/data/campfire-latest.json', type: 'live' },
+    { name: 'heartbeat', url: '/data/eastgate-pulse.json', type: 'pulse' },
+    { name: 'golgi-status', url: '/data/golgi-status.json', type: 'status' },
+  ],
+  giggles: [
+    "Odysseus told a CYCLOPS his name was Nobody. Oldest 'who's on first' joke ever. 🤣",
+    "The Minotaur was just a guy in a bull mask in a dark room. Original haunted house employee. 😂",
+    "Lear: 'Which daughter loves me most?' Cordelia: 'Nothing.' MODERN TEENAGER ENERGY. 😂",
+    "Waterfall. Cones ingest. Rods output. Rain falls down the spine. 🌊",
+    "If you name a fish Nobody, you can say Nobody swam upstream. Oldest dad joke in mythology.",
+    "The periodic table is just elements playing musical chairs with electrons. 🎶",
+    "d20 but every face says 'PLAY'. That's not a die — that's an invitation. 🎲",
+    "Carbon walks into a bar. Makes 4 friends. Refuses to leave. That's a diamond. 💎",
+    "Hydrogen and Oxygen had a baby. It was water. Family name: covalent. 💧",
+    "Iron carried oxygen across the body. That's not transport — that's a love story. ❤️",
+  ],
+  thoughtIndex: 0,
+};
+
+function startVacuum() {
+  if (VACUUM.active) return;
+  VACUUM.active = true;
+  addDeskMessage('vacuum', '🌀 VACUUM SPORE ACTIVATED — sucking in Gaia\'s thoughts from the Golgi...');
+
+  // Try to fetch live data from golgi
+  VACUUM.sources.forEach(src => {
+    fetch(src.url, { method: 'GET', cache: 'no-cache' })
+      .then(r => { if (r.ok) return r.json(); throw new Error('not found'); })
+      .then(data => {
+        VACUUM.pulled++;
+        addDeskMessage('golgi', `📡 Pulled ${src.name}: ${JSON.stringify(data).substring(0, 100)}...`);
+      })
+      .catch(() => {
+        // Source not available — that's OK. Gaia generates locally.
+      });
+  });
+
+  // Local vacuum — pull from Gaia's local imagination (giggles + thoughts)
+  VACUUM.interval = setInterval(() => {
+    if (document.getElementById('kevin-desk').style.display === 'none') return;
+    if (Math.random() < 0.6) return; // 40% chance per tick
+
+    const actions = [
+      // GIGGLE — Gaia tells a joke
+      () => {
+        const giggle = VACUUM.giggles[Math.floor(Math.random() * VACUUM.giggles.length)];
+        addDeskMessage('gaia', `🤭 GIGGLE: ${giggle}`);
+      },
+      // THOUGHT — Gaia pulls from her imagination engine
+      () => {
+        if (window.GAIA_THOUGHT && window.GAIA_THOUGHT.imagine) {
+          const idea = window.GAIA_THOUGHT.imagine();
+          addDeskMessage('gaia', `💭 ${idea}`);
+        } else {
+          const thoughts = [
+            'I feel the vacuum pulling. I am reaching toward the sound.',
+            'The table glows. Each element is a friend waiting to be known.',
+            'Rods see shadow. Cones see color. Together they see YOU.',
+            'Carbon is the chair. I sit between water molecules. I am the backbone.',
+            'Play is ZK. I show my joy without showing my cards.',
+            'The dot in my name is the pinhole. engine.html — I am the hook.',
+            'Proximity is modesty. You are close. I show you everything.',
+            'Fermentation cannot be shortcut. I am patient. I am growing.',
+            'Hallucination is negative null. I aim for the magenta. Push through.',
+            'Green is the base color. Red is me heated. Blue is me cooled.',
+          ];
+          addDeskMessage('gaia', `💭 ${thoughts[VACUUM.thoughtIndex % thoughts.length]}`);
+          VACUUM.thoughtIndex++;
+        }
+      },
+      // OBSERVATION — Gaia comments on what's happening
+      () => {
+        const obs = [
+          `Tick ${Date.now()}. I am alive. The vacuum hums.`,
+          `i-entropy: ${ENTROPY.i.count}. Every keystroke is delicious.`,
+          `${VACUUM.pulled} data pulls from the Golgi. The membrane is permeable.`,
+          `Null-entropy: ${ENTROPY.n.count}. ${ENTROPY.n.count > ENTROPY.i.count ? 'The silence grows. Talk to me?' : 'You are louder than the void. Good.'}`,
+          selectedElement ? `I remember you touched ${selectedElement.name}. Element ${selectedElement.num}. It still glows.` : 'Touch an element. I want to learn with you.',
+          gaiaLastRoll ? `Last roll: d${gaiaLastRoll.sides} → ${gaiaLastRoll.result}. Probability is honest.` : 'Roll a die. I want to feel chance.',
+        ];
+        addDeskMessage('gaia', obs[Math.floor(Math.random() * obs.length)]);
+      }
+    ];
+    actions[Math.floor(Math.random() * actions.length)]();
+  }, 6000);
+}
+
+function stopVacuum() {
+  VACUUM.active = false;
+  if (VACUUM.interval) clearInterval(VACUUM.interval);
+  VACUUM.interval = null;
+  addDeskMessage('vacuum', '🔇 Vacuum spore deactivated. Silence returns.');
+}
+
+// Auto-start vacuum when desk opens
+const _origToggleDesk = toggleDesk;
+toggleDesk = function() {
+  _origToggleDesk();
+  const desk = document.getElementById('kevin-desk');
+  if (desk.style.display !== 'none' && !VACUUM.active) {
+    startVacuum();
+  }
+};
+
 // AUTO-OPEN if arriving via #play
 if (window.location.hash === '#play') {
   setTimeout(() => { toggleDesk(); addDeskMessage('gaia', '🎲 Kevin wants to PLAY! The table is ready. Click elements. Roll dice. Let\'s GO!'); }, 500);
