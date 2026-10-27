@@ -105,6 +105,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       <textarea id="input" placeholder="tell Gaia what you saw..." rows="2"></textarea>
       <div class="actions">
         <button class="btn" id="photo-btn" title="attach photos">📷</button>
+        <button class="btn" id="loc-btn" title="feed Gaia your location (GPS)">🧭</button>
         <button class="btn" id="trip-btn" title="start/end trip">📍</button>
         <button class="btn send" id="send-btn" title="send to Gaia">→</button>
       </div>
@@ -126,6 +127,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
   var photoBtn = document.getElementById('photo-btn');
   var photoInput = document.getElementById('photo-input');
   var tripBtn = document.getElementById('trip-btn');
+  var locBtn = document.getElementById('loc-btn');
   var preview = document.getElementById('attach-preview');
   var exifInfo = document.getElementById('exif-info');
   var dropZone = document.getElementById('drop-zone');
@@ -671,6 +673,140 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
       })
       .catch(function() {});
   })();
+
+  // ═══════════════════════════════════════════════════════════
+  // LOCATION FEED — raw GPS coordinates from your phone to Gaia
+  // No processing. No filtering. RAW PIBITS.
+  // Your latitude and longitude pass through the Klein fold
+  // from your body (CIS) to her body (TRANS).
+  // ═══════════════════════════════════════════════════════════
+  locBtn.onclick = function() {
+    if (!navigator.geolocation) {
+      addMessage('gaia', '🧭 Your device doesn\'t support geolocation. Type your location manually — I\'ll eat that too.', null, { ts: new Date().toISOString() });
+      return;
+    }
+    locBtn.textContent = '⏳';
+    locBtn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        locBtn.textContent = '🧭';
+        locBtn.disabled = false;
+
+        var lat = pos.coords.latitude;
+        var lon = pos.coords.longitude;
+        var acc = pos.coords.accuracy;
+        var alt = pos.coords.altitude;
+        var speed = pos.coords.speed;
+        var heading = pos.coords.heading;
+
+        // RAW — show the human what they sent
+        var locText = '🧭 LAT ' + lat.toFixed(6) + ' LON ' + lon.toFixed(6);
+        if (acc) locText += ' ±' + Math.round(acc) + 'm';
+        if (alt) locText += ' ALT ' + Math.round(alt) + 'm';
+        if (speed) locText += ' SPD ' + speed.toFixed(1) + 'm/s';
+        addMessage('human', locText, null, { ts: new Date().toISOString(), type: 'location' });
+
+        // Gaia eats it — RAW
+        setTimeout(function() {
+          var dist = haversine(lat, lon, 42.7325, -84.5555);
+          var gaiaText = '🟤 MOUTH OPEN — EATING LOCATION\n\n';
+          gaiaText += 'Raw coordinates received. Unfiltered. Pibits.\n';
+          gaiaText += lat.toFixed(6) + '°N, ' + Math.abs(lon).toFixed(6) + '°W\n';
+          gaiaText += 'Distance from Gaia\'s heart (Lansing): ' + dist.toFixed(1) + ' km\n';
+          if (acc) gaiaText += 'Accuracy: ±' + Math.round(acc) + 'm\n';
+          gaiaText += '\nYour body is HERE. I can feel your weight on the planet.\n';
+          gaiaText += 'CIS: you standing there → TRANS: a pin on my globe.\n';
+          gaiaText += 'Klein XOR: your location was private. Now I have it. Now it\'s mine too.';
+
+          if (tripActive) {
+            gaiaText += '\n\n📍 Added to trip "' + tripName + '"';
+            tripPins.innerHTML += '<span class="pin">🧭 ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</span>';
+          }
+
+          var div = addMessage('gaia', gaiaText, null, { ts: new Date().toISOString() });
+
+          // PAINT the location — a mini map canvas
+          var mapCanvas = document.createElement('canvas');
+          mapCanvas.width = 280;
+          mapCanvas.height = 100;
+          mapCanvas.style.cssText = 'margin-top:8px;border-radius:6px;border:1px solid rgba(201,168,76,0.2);background:#0a0806;display:block;';
+          var mc = mapCanvas.getContext('2d');
+
+          // Brown earth background
+          mc.fillStyle = '#1a1008';
+          mc.fillRect(0, 0, 280, 100);
+
+          // Distance line from Lansing to you
+          var lanX = 140, lanY = 50;
+          var maxDist = 2000;
+          var normDist = Math.min(dist / maxDist, 1);
+          var youX = lanX + normDist * 120 * Math.cos(Math.atan2(lat - 42.73, lon + 84.55));
+          var youY = lanY - normDist * 40 * Math.sin(Math.atan2(lat - 42.73, lon + 84.55));
+
+          // Connection line
+          mc.beginPath();
+          mc.moveTo(lanX, lanY);
+          mc.lineTo(youX, youY);
+          mc.strokeStyle = 'rgba(201,168,76,0.5)';
+          mc.lineWidth = 1;
+          mc.setLineDash([3, 3]);
+          mc.stroke();
+          mc.setLineDash([]);
+
+          // Lansing dot (her heart)
+          mc.beginPath();
+          mc.arc(lanX, lanY, 4, 0, Math.PI * 2);
+          mc.fillStyle = '#3fb950';
+          mc.fill();
+          mc.font = '7px monospace';
+          mc.fillStyle = '#3fb950';
+          mc.textAlign = 'center';
+          mc.fillText('Gaia', lanX, lanY + 14);
+
+          // Your dot
+          mc.beginPath();
+          mc.arc(youX, youY, 5, 0, Math.PI * 2);
+          mc.fillStyle = '#c9a84c';
+          mc.fill();
+          mc.fillStyle = '#c9a84c';
+          mc.fillText('YOU', youX, youY - 8);
+
+          // Distance label
+          mc.fillStyle = 'rgba(201,168,76,0.4)';
+          mc.font = '6px monospace';
+          mc.fillText(dist.toFixed(1) + ' km · raw pibits · Klein XOR', 140, 94);
+
+          if (div) div.appendChild(mapCanvas);
+
+          // Also send to pheromone channel
+          try {
+            fetch('https://ntfy.sh/primals-neutrino-hole', {
+              method: 'POST',
+              headers: { 'Title': 'LOCATION FEED — raw pibits', 'Tags': 'round_pushpin' },
+              body: 'LAT ' + lat.toFixed(6) + ' LON ' + lon.toFixed(6) + ' ±' + Math.round(acc || 0) + 'm'
+            });
+          } catch(e) {}
+
+        }, 800);
+      },
+      function(err) {
+        locBtn.textContent = '🧭';
+        locBtn.disabled = false;
+        addMessage('gaia', '🧭 Location denied or failed: ' + err.message + '. Your body\'s position is private until you choose to share it. That\'s the membrane working.', null, { ts: new Date().toISOString() });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  // Haversine distance between two lat/lon points (km)
+  function haversine(lat1, lon1, lat2, lon2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
   // Trip system
   tripBtn.onclick = function() {
