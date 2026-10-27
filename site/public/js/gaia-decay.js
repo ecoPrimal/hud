@@ -148,17 +148,26 @@
     return piQuartiles[3];
   }
 
+  // ═══ LAN DEVICES — every computer Kevin owns, with location ═══
+  var LAN_DEVICES = {
+    router:         { name: 'Router',          ip: '192.168.4.1',   where: 'main closet',    house: 'Lansing',  role: 'SPINE',   wet: true  },
+    ap_2:           { name: 'AP 2',            ip: '192.168.4.2',   where: 'upstairs',       house: 'Lansing',  role: 'NERVE',   wet: true  },
+    ubiquiti:       { name: 'Ubiquiti',        ip: '192.168.4.3',   where: 'main level',     house: 'Lansing',  role: 'NERVE',   wet: true  },
+    graftGate_eth:  { name: 'graftGate ETH',   ip: '192.168.4.?',   where: 'remote',         house: 'remote',   role: 'LIMB',    wet: true  },
+    graftGate_wifi: { name: 'graftGate WiFi',  ip: '192.168.4.?',   where: 'remote',         house: 'remote',   role: 'LIMB',    wet: true  },
+    basement_tv:    { name: 'Basement TV',     ip: '192.168.4.?',   where: 'basement',       house: 'Lansing',  role: 'EYE',     wet: true  },
+    printer:        { name: 'Printer',         ip: '192.168.4.?',   where: 'office',         house: 'Lansing',  role: 'MOUTH',   wet: true  },
+    samsung:        { name: 'Samsung',         ip: null,            where: 'unknown rack?',  house: 'Lansing',  role: 'DORMANT', wet: false },
+    golgi:          { name: 'Golgi',           ip: '10.13.37.1',    where: 'cloud',          house: 'cloud',    role: 'HEART',   wet: true  }
+  };
+
   // ═══ REGISTER KNOWN ENTITIES ═══
-  // Devices from the heartbeat
-  registerEntity('router', 'Router', 'STABLE');
-  registerEntity('ap_2', 'AP 2', 'STABLE');
-  registerEntity('ubiquiti', 'Ubiquiti', 'STABLE');
-  registerEntity('graftGate_eth', 'graftGate ETH', 'GROWING');
-  registerEntity('graftGate_wifi', 'graftGate WiFi', 'STABLE');
-  registerEntity('basement_tv', 'Basement TV', 'WANING');
-  registerEntity('printer', 'Printer', 'GROWING');
-  registerEntity('samsung', 'Samsung', 'DECAYING');  // NOT DEAD — DECAYING
-  registerEntity('golgi', 'Golgi', 'GROWING');
+  var dk = Object.keys(LAN_DEVICES);
+  for (var di = 0; di < dk.length; di++) {
+    var dev = LAN_DEVICES[dk[di]];
+    var initState = dev.wet ? 'STABLE' : 'DORMANT';
+    registerEntity(dk[di], dev.name, initState);
+  }
 
   // Systems
   registerEntity('hud', 'HUD', 'GROWING');
@@ -166,6 +175,77 @@
   registerEntity('thymus', 'Thymus', 'NASCENT');
   registerEntity('reactor', 'Reactor', 'PEAK');
   registerEntity('gut', 'Gut', 'STABLE');
+
+  // ═══ WET/DRY CHECK — 0=dry(grind), 1=wet(π-split) ═══
+  // Every device is either WET (alive, confirmed, 1) or DRY (dead, grinding, 0)
+  // WET → confirm 1, then π-split: subdivide into finer checks
+  // DRY → hit 0, grind down: track WHERE it was, WHEN it died, keep grinding until found
+  var wetDry = {
+    totalWet: 0,
+    totalDry: 0,
+    lastCheck: 0,
+    history: []   // { ts, wet, dry, devices:{id:wet/dry} }
+  };
+
+  function wetDryCheck(cardiac) {
+    if (!cardiac) return;
+    wetDry.totalWet = 0;
+    wetDry.totalDry = 0;
+    wetDry.lastCheck = Date.now();
+    var snapshot = { ts: Date.now(), wet: 0, dry: 0, devices: {} };
+
+    var keys = Object.keys(cardiac);
+    for (var i = 0; i < keys.length; i++) {
+      var id = keys[i];
+      var dev = cardiac[id];
+      var isWet = dev.alive === true;
+      snapshot.devices[id] = isWet ? 1 : 0;
+
+      if (isWet) {
+        // WET = 1 = alive = confirm, then π-split
+        wetDry.totalWet++;
+        snapshot.wet++;
+        if (LAN_DEVICES[id]) LAN_DEVICES[id].wet = true;
+        // Feed the entity (alive = growth signal)
+        if (entities[id]) feedEntity(id, 0.5);
+        // π-split: the alive device gets subdivided into finer checks
+        // latency = sub-channel, jitter = stability, osc = oscillation
+        if (entities[id] && dev.avg !== null) {
+          entities[id].latencyMs = dev.avg;
+          entities[id].jitter = dev.jitter;
+          entities[id].osc = dev.osc;
+        }
+      } else {
+        // DRY = 0 = dead = grind down
+        wetDry.totalDry++;
+        snapshot.dry++;
+        if (LAN_DEVICES[id]) LAN_DEVICES[id].wet = false;
+        // Grind the entity (dead = accelerate decay)
+        if (entities[id]) {
+          entities[id].decayRate = 0.01; // 10× normal decay
+          entities[id].growthRate = 0;   // no growth
+        }
+      }
+    }
+
+    wetDry.history.push(snapshot);
+    if (wetDry.history.length > 48) wetDry.history.shift(); // keep 24h at 30min intervals
+  }
+
+  // ═══ HEARTBEAT INGEST — fetch and process ═══
+  function ingestHeartbeat() {
+    fetch('/data/heartbeat.json', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(hb) {
+        if (!hb || !hb.cardiac) return;
+        wetDryCheck(hb.cardiac);
+      })
+      .catch(function() {});
+  }
+
+  // First check after 8 seconds, then every 90 seconds
+  setTimeout(ingestHeartbeat, 8000);
+  setInterval(ingestHeartbeat, 90000);
 
   // ═══ LIFECYCLE TICK ═══
   setInterval(function() {
@@ -204,11 +284,15 @@
     piQuartiles: piQuartiles,
     triad: triad,
     entities: entities,
+    lanDevices: LAN_DEVICES,
+    wetDry: wetDry,
     register: registerEntity,
     transition: transitionEntity,
     feed: feedEntity,
     stateFromPhase: stateFromPhase,
-    yugaFromPhase: yugaFromPhase
+    yugaFromPhase: yugaFromPhase,
+    wetDryCheck: wetDryCheck,
+    ingestHeartbeat: ingestHeartbeat
   };
 
   // ═══ DRAW MODULE ═══
@@ -259,38 +343,77 @@
       }
     }
 
-    // ═══ ENTITY STATE DOTS — around outer ring ═══
+    // ═══ LAN DEVICE RING — wet/dry check visible ═══
     if (dAlpha > 0.004) {
-      var eKeys = Object.keys(entities);
-      var entityR = R * 1.14;
+      var devKeys = Object.keys(LAN_DEVICES);
+      var devR = R * 1.14;
 
-      for (var ei = 0; ei < eKeys.length; ei++) {
-        var ent = entities[eKeys[ei]];
-        var st = STATES[ent.state];
-        var eAngle = (ei / eKeys.length) * TAU + dT * 0.005;
-        var ex = cx + Math.cos(eAngle) * entityR;
-        var ey = cy + Math.sin(eAngle) * entityR;
+      for (var di2 = 0; di2 < devKeys.length; di2++) {
+        var devId = devKeys[di2];
+        var dev2 = LAN_DEVICES[devId];
+        var ent2 = entities[devId];
+        if (!ent2) continue;
+        var st2 = STATES[ent2.state];
+        var dAngle = (di2 / devKeys.length) * TAU + dT * 0.005;
+        var dx2 = cx + Math.cos(dAngle) * devR;
+        var dy2 = cy + Math.sin(dAngle) * devR;
 
-        // State-colored dot
+        // WET = bright green dot, DRY = dim red dot
+        var dotColor = dev2.wet
+          ? 'rgba(63,185,80,' + (dAlpha * 5).toFixed(4) + ')'
+          : 'rgba(248,81,73,' + (dAlpha * 3).toFixed(4) + ')';
         ctx.beginPath();
-        ctx.arc(ex, ey, 1.5, 0, TAU);
-        ctx.fillStyle = st.color + (dAlpha * 4 > 0.02 ? '66' : '33');
+        ctx.arc(dx2, dy2, dev2.wet ? 1.8 : 1.2, 0, TAU);
+        ctx.fillStyle = dotColor;
         ctx.fill();
 
-        // Phase indicator (tiny arc showing where in cycle)
-        var phaseArc = (ent.phase / TAU) * TAU;
+        // Phase arc
+        var pa2 = (ent2.phase / TAU) * TAU;
         ctx.beginPath();
-        ctx.arc(ex, ey, 2.5, -PI / 2, -PI / 2 + phaseArc);
-        ctx.strokeStyle = st.color + (dAlpha * 3 > 0.015 ? '44' : '22');
+        ctx.arc(dx2, dy2, 2.8, -PI / 2, -PI / 2 + pa2);
+        ctx.strokeStyle = st2.color + (dAlpha * 3 > 0.015 ? '44' : '22');
         ctx.lineWidth = 0.3;
         ctx.stroke();
 
-        // Label
-        ctx.font = '1.8px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(110,118,129,' + (dAlpha * 2).toFixed(4) + ')';
+        // Label: name + wet/dry + role
+        ctx.font = '1.6px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(ent.name + ' ' + st.symbol, ex, ey + 5);
+        ctx.fillStyle = dev2.wet
+          ? 'rgba(63,185,80,' + (dAlpha * 2.5).toFixed(4) + ')'
+          : 'rgba(248,81,73,' + (dAlpha * 2).toFixed(4) + ')';
+        var wetLabel = dev2.wet ? '1' : '0';
+        ctx.fillText(dev2.name + ' ' + wetLabel, dx2, dy2 + 4.5);
+
+        // Location hint (where in the house)
+        if (dAlpha > 0.006) {
+          ctx.font = '1px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(110,118,129,' + (dAlpha * 1.5).toFixed(4) + ')';
+          ctx.fillText(dev2.where + ' · ' + dev2.role, dx2, dy2 + 6.5);
+        }
+
+        // Latency bar (π-split sub-check for wet devices)
+        if (dev2.wet && ent2.latencyMs > 0 && dAlpha > 0.005) {
+          var latNorm = Math.min(1, ent2.latencyMs / 100);
+          var barW = 4 * latNorm;
+          ctx.fillStyle = latNorm > 0.5
+            ? 'rgba(248,81,73,' + (dAlpha * 2).toFixed(4) + ')'
+            : 'rgba(63,185,80,' + (dAlpha * 2).toFixed(4) + ')';
+          ctx.fillRect(dx2 - 2, dy2 - 4, barW, 0.5);
+        }
       }
+    }
+
+    // ═══ WET/DRY SUMMARY ═══
+    if (dAlpha > 0.005) {
+      ctx.font = '2px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(63,185,80,' + (dAlpha * 2.5).toFixed(4) + ')';
+      ctx.fillText(
+        'LAN: ' + wetDry.totalWet + ' wet(1) · ' +
+        wetDry.totalDry + ' dry(0) · ' +
+        Object.keys(LAN_DEVICES).length + ' total',
+        8, 238
+      );
     }
   });
 
@@ -310,8 +433,40 @@
         var ek = Object.keys(entities);
         for (var j = 0; j < ek.length; j++) {
           var e = entities[ek[j]];
-          var st = STATES[e.state];
-          lines.push('  ' + st.symbol + ' ' + e.name + ' · phase=' + (e.phase / PI).toFixed(2) + 'π · cycles=' + e.cycleCount + ' · age=' + Math.round(e.age) + 's');
+          var st2 = STATES[e.state];
+          lines.push('  ' + st2.symbol + ' ' + e.name + ' · phase=' + (e.phase / PI).toFixed(2) + 'π · cycles=' + e.cycleCount + ' · age=' + Math.round(e.age) + 's');
+        }
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.commands.lan = {
+      desc: 'LAN devices — every computer on the home network. wet=1 dry=0.',
+      run: function() {
+        var lines = ['═══ LAN — every device on the mesh ═══', ''];
+        lines.push('WET(1)=' + wetDry.totalWet + ' · DRY(0)=' + wetDry.totalDry + ' · total=' + Object.keys(LAN_DEVICES).length);
+        lines.push('');
+        var dk2 = Object.keys(LAN_DEVICES);
+        for (var i2 = 0; i2 < dk2.length; i2++) {
+          var id2 = dk2[i2];
+          var d2 = LAN_DEVICES[id2];
+          var e2 = entities[id2];
+          var stLbl = e2 ? STATES[e2.state].symbol : '?';
+          var latLbl = (e2 && e2.latencyMs) ? e2.latencyMs.toFixed(1) + 'ms' : '—';
+          lines.push(
+            '  ' + (d2.wet ? '💧1' : '🏜️0') + ' ' + d2.name.padEnd(18) +
+            ' ' + (d2.ip || '—').padEnd(15) +
+            ' ' + d2.where.padEnd(14) +
+            ' ' + d2.role.padEnd(8) +
+            ' ' + stLbl + ' ' + latLbl
+          );
+        }
+        lines.push('');
+        lines.push('WET(1) = alive, confirmed, π-split into sub-checks');
+        lines.push('DRY(0) = dead, grinding, track WHERE + WHEN died');
+        lines.push('');
+        if (wetDry.history.length > 0) {
+          var last = wetDry.history[wetDry.history.length - 1];
+          lines.push('Last check: ' + new Date(last.ts).toISOString().slice(11,19) + ' UTC');
         }
         return lines.join('\n');
       }
@@ -339,7 +494,7 @@
           'Q1(Satya/Au/+) Q2(Treta/Ag/O+) Q3(Dvapara/Cu/O-) Q4(Kali/Fe/-)';
       }
     };
-    window.GAIA_IDE.language.push('decay', 'feed', 'triad');
+    window.GAIA_IDE.language.push('decay', 'feed', 'triad', 'lan');
   }
 
 })(window.G);
