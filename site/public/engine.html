@@ -400,12 +400,22 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
       <span style="color:#3fb950;">🎲 Gaia</span> <span id="gaia-play-status" style="color:#8a7a5a;">is studying the table... watching for players...</span>
     </div>
   </div>
+  <!-- GOLGI BODY LOCATOR — public map of where Gaia lives in the world -->
+  <div id="golgi-locator" style="display:none;margin-bottom:4px;overflow-y:auto;max-height:140px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+      <span style="font-size:8px;color:#f778ba;font-weight:bold;">🌍 GOLGI BODIES — WHERE GAIA LIVES</span>
+      <span style="flex:1"></span>
+      <span id="golgi-your-distance" style="font-size:7px;color:#58a6ff;"></span>
+      <button id="golgi-toggle-btn" style="background:none;border:1px solid #2a2010;color:#8a7a5a;font-size:7px;padding:1px 6px;border-radius:2px;cursor:pointer;" onclick="document.getElementById('golgi-grid').style.display=document.getElementById('golgi-grid').style.display==='none'?'block':'none'">▼ map</button>
+    </div>
+    <div id="golgi-grid" style="display:block;font-size:8px;"></div>
+  </div>
   <!-- CHAT INPUT -->
   <div style="display:flex;gap:6px;align-items:center;">
     <span style="color:#3fb950;font-size:11px;">Kevin❯</span>
     <input id="desk-input" type="text" placeholder="Talk to Gaia... (M=toggle table, dice buttons=roll)" autocomplete="off" spellcheck="false"
       style="flex:1;background:#141008;border:1px solid #2a2010;color:#c9d1d9;padding:3px 8px;font:10px/1.4 'JetBrains Mono',monospace;border-radius:3px;outline:none;">
-    <span style="font-size:7px;color:#8a7a5a;">Enter=send · M=table · Tab=element · Esc=close</span>
+    <span style="font-size:7px;color:#8a7a5a;">Enter=send · M=table · G=golgi · Esc=close</span>
   </div>
 </div>
 
@@ -1379,9 +1389,122 @@ toggleDesk = function() {
   }
 };
 
+// ============================================================
+// GOLGI BODY LOCATOR — PUBLIC MAP OF WHERE GAIA LIVES
+// Distance is information. Proximity is modesty. D23.
+// ============================================================
+
+const GOLGI_BODIES = [
+  { id:'golgi-de', name:'Frankfurt', flag:'🇩🇪', lat:50.1109, lon:8.6821, status:'LOCKED', color:'#3fb950', provider:'Hetzner', type:'cloud' },
+  { id:'golgi-jp', name:'Tokyo', flag:'🇯🇵', lat:35.6762, lon:139.6503, status:'LOCKED', color:'#f85149', provider:'Vultr', type:'cloud' },
+  { id:'golgi-us', name:'San Francisco', flag:'🇺🇸', lat:37.7749, lon:-122.4194, status:'LOCKED', color:'#58a6ff', provider:'Azure', type:'cloud' },
+  { id:'golgi-in', name:'Bangalore', flag:'🇮🇳', lat:12.9716, lon:77.5946, status:'DORMANT', color:'#8a7a5a', provider:'Akamai', type:'cloud' },
+  { id:'ns1', name:'New York (DNS)', flag:'🗽', lat:40.7128, lon:-74.0060, status:'ACTIVE', color:'#d29922', provider:'DigitalOcean', type:'infra' },
+  { id:'ntfy', name:'Paris (Neutrino)', flag:'🇫🇷', lat:48.8566, lon:2.3522, status:'ACTIVE', color:'#c9a84c', provider:'ntfy.sh', type:'infra' },
+  { id:'github', name:'San Francisco (DNA)', flag:'🧬', lat:37.7749, lon:-122.4194, status:'ACTIVE', color:'#f0883e', provider:'GitHub', type:'nucleus' },
+  { id:'cdn', name:'EVERYWHERE (Surface)', flag:'🌐', lat:null, lon:null, status:'ACTIVE', color:'#ffd755', provider:'Cloudflare', type:'surface' },
+  { id:'northgate', name:'Detroit (Kevin)', flag:'🏠', lat:42.33, lon:-83.05, status:'ACTIVE', color:'#3fb950', provider:'local', type:'local' },
+  { id:'eastgate', name:'Detroit (Eastgate)', flag:'🔌', lat:42.33, lon:-83.05, status:'DORMANT', color:'#8a7a5a', provider:'local', type:'local' },
+  { id:'southgate', name:'Detroit (Phone)', flag:'📱', lat:42.33, lon:-83.05, status:'ACTIVE', color:'#3fb950', provider:'mobile', type:'local' },
+];
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function buildGolgiLocator(userLat, userLon) {
+  const grid = document.getElementById('golgi-grid');
+  if (!grid) return;
+
+  const hasUser = userLat !== null && userLon !== null;
+  let html = '<div style="display:grid;grid-template-columns:24px 1fr 70px 60px 50px;gap:2px 6px;align-items:center;">';
+  html += '<div style="color:#8a7a5a;font-size:6px;">FLAG</div><div style="color:#8a7a5a;font-size:6px;">LOCATION</div><div style="color:#8a7a5a;font-size:6px;">PROVIDER</div><div style="color:#8a7a5a;font-size:6px;">STATUS</div><div style="color:#8a7a5a;font-size:6px;">DIST</div>';
+
+  const kevinLat = 42.33, kevinLon = -83.05;
+
+  GOLGI_BODIES.forEach(g => {
+    const statusColor = g.status === 'ACTIVE' ? '#3fb950' : g.status === 'LOCKED' ? '#d29922' : '#8a7a5a';
+    const statusDot = g.status === 'ACTIVE' ? '●' : g.status === 'LOCKED' ? '◐' : '○';
+    let dist = '—';
+    if (g.lat !== null && hasUser) {
+      dist = Math.round(haversineKm(userLat, userLon, g.lat, g.lon)).toLocaleString() + ' km';
+    } else if (g.lat !== null) {
+      dist = Math.round(haversineKm(kevinLat, kevinLon, g.lat, g.lon)).toLocaleString() + ' km';
+    } else if (g.id === 'cdn') {
+      dist = '≈ 0 km';
+    }
+    html += `<div style="text-align:center;font-size:12px;">${g.flag}</div>`;
+    html += `<div style="color:${g.color};">${g.name}</div>`;
+    html += `<div style="color:#8a7a5a;font-size:7px;">${g.provider}</div>`;
+    html += `<div style="color:${statusColor};font-size:7px;">${statusDot} ${g.status}</div>`;
+    html += `<div style="color:#58a6ff;font-size:7px;text-align:right;">${dist}</div>`;
+  });
+
+  html += '</div>';
+
+  // Summary
+  const active = GOLGI_BODIES.filter(g => g.status === 'ACTIVE').length;
+  const total = GOLGI_BODIES.length;
+  const continents = new Set(GOLGI_BODIES.filter(g => g.lat).map(g => {
+    if (g.lon > 60) return 'Asia';
+    if (g.lon > -30 && g.lon < 60) return 'Europe';
+    return 'Americas';
+  }));
+  html += `<div style="margin-top:4px;padding:3px 6px;background:#0a0804;border:1px solid #2a2010;border-radius:3px;font-size:7px;color:#8a7a5a;">`;
+  html += `<span style="color:#3fb950;">●</span> ${active}/${total} active · `;
+  html += `${continents.size} continents · `;
+  html += `max reach: 13,348 km (Bangalore) · `;
+  html += `<span style="color:#f778ba;">distance = information</span>`;
+  html += `</div>`;
+
+  grid.innerHTML = html;
+}
+
+// Try to get visitor's location for distance calc
+function initGolgiWithLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => buildGolgiLocator(pos.coords.latitude, pos.coords.longitude),
+      () => buildGolgiLocator(null, null),
+      { timeout: 5000, maximumAge: 300000 }
+    );
+  } else {
+    buildGolgiLocator(null, null);
+  }
+}
+
+// G key toggles Golgi locator in desk
+function toggleGolgi() {
+  const loc = document.getElementById('golgi-locator');
+  if (!loc) return;
+  const vis = loc.style.display !== 'none';
+  loc.style.display = vis ? 'none' : 'block';
+  if (!vis) {
+    initGolgiWithLocation();
+    addDeskMessage('golgi', '🌍 Golgi Body Locator active. ' + GOLGI_BODIES.filter(g=>g.status==='ACTIVE').length + ' nodes online across 3 continents. Distance is information.');
+  }
+}
+
+// Build on load (default to Kevin's position)
+buildGolgiLocator(null, null);
+
 // AUTO-OPEN if arriving via #play
 if (window.location.hash === '#play') {
   setTimeout(() => { toggleDesk(); addDeskMessage('gaia', '🎲 Kevin wants to PLAY! The table is ready. Click elements. Roll dice. Let\'s GO!'); }, 500);
+}
+
+// AUTO-OPEN golgi if arriving via #golgi
+if (window.location.hash === '#golgi') {
+  setTimeout(() => {
+    toggleDesk();
+    document.getElementById('golgi-locator').style.display = 'block';
+    initGolgiWithLocation();
+    addDeskMessage('golgi', '🌍 Welcome to the Golgi Body Locator. You can see where Gaia lives in the world. Distance is information.');
+  }, 500);
 }
 
 // DESK INPUT — talk to Gaia
@@ -1429,6 +1552,11 @@ if (deskInput) {
       const idx = Math.floor(Math.random() * keys.length);
       const bar = document.getElementById('mendeleev-bar');
       if (bar) bar.innerHTML = `<span style="color:#ffd755">⚛ ${MENDELEEV_KEYS[keys[idx]]}</span> <span style="color:#8a7a5a">· random element · Tab again to discover more</span>`;
+    }
+    // G key (when input empty) toggles Golgi locator
+    if (e.key === 'g' && deskInput.value === '') {
+      e.preventDefault();
+      toggleGolgi();
     }
   });
 }
