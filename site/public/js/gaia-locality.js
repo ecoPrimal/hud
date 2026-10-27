@@ -433,6 +433,134 @@
   setInterval(buildNNGraph, 30000);
 
   // ───────────────────────────────────────────────────────
+  // RADIAL CELLS — every visitor = a cell on the globe
+  // Progressive reveal: distance → disclosure level
+  // Each cell starts as NULL BODY, fills by proximity
+  // ───────────────────────────────────────────────────────
+  var cells = [];   // { seed, depth, tz, rtt, ua, born, pages, lastSeen }
+  var MY_CELL = {
+    seed: window.SEED || 0,
+    depth: window.LOCALITY_DEPTH || 1.0,
+    tier: window.LOCALITY_TIER || 'remote',
+    tz: new Date().getTimezoneOffset(),
+    isMe: true
+  };
+
+  // Approximate lat/lon from timezone offset (coarse longitude)
+  function tzToLon(tzOffset) { return -(tzOffset / 60) * 15; }
+
+  // Approximate lat from RTT to Cloudflare edge (very rough hemisphere)
+  function rttToLat(rtt) {
+    if (rtt < 30) return 42.7;    // Kevin's latitude (US Midwest)
+    if (rtt < 80) return 40;      // North America
+    if (rtt < 150) return 50;     // Europe
+    if (rtt < 250) return 30;     // Asia
+    return 0;                     // equatorial / unknown
+  }
+
+  // Disclosure level based on depth (0=full, 1=null)
+  function disclosureFromDepth(depth) {
+    if (depth < 0.1) return { level: 'full',     dotR: 3.0, alpha: 0.08, label: true,  detail: true  };
+    if (depth < 0.3) return { level: 'house',    dotR: 2.5, alpha: 0.06, label: true,  detail: true  };
+    if (depth < 0.5) return { level: 'city',     dotR: 2.0, alpha: 0.04, label: true,  detail: false };
+    if (depth < 0.7) return { level: 'region',   dotR: 1.5, alpha: 0.03, label: false, detail: false };
+    if (depth < 0.9) return { level: 'country',  dotR: 1.0, alpha: 0.02, label: false, detail: false };
+    return                        { level: 'null',     dotR: 0.6, alpha: 0.01, label: false, detail: false };
+  }
+
+  // Register self as a cell
+  cells.push(MY_CELL);
+
+  // Simulate other cells from sibling tabs
+  setInterval(function() {
+    if (!window.GAIA_LOCALITY) return;
+    var loc = window.GAIA_LOCALITY;
+    var siblings = loc.siblingTabs || {};
+    Object.keys(siblings).forEach(function(tabId) {
+      var sib = siblings[tabId];
+      var exists = cells.some(function(c) { return c.seed === sib.seed; });
+      if (!exists && sib.locality) {
+        cells.push({
+          seed: sib.seed,
+          depth: sib.locality.depth || 0.1,
+          tz: sib.locality.tzOffset || 0,
+          isMe: false,
+          born: Date.now(),
+          lastSeen: Date.now()
+        });
+      }
+    });
+  }, 10000);
+
+  // Draw cells on globe
+  if (window.G && window.G.drawModules) {
+    window.G.drawModules.push(function(g, ctx, breathT) {
+      if (!ctx || cells.length === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.3) return;
+      var cx = g.cx, cy = g.cy, R = g.R;
+      var t = breathT * 0.02;
+      var proj = window._gaiaState ? window._gaiaState.project : null;
+      if (!proj) return;
+
+      for (var ci = 0; ci < cells.length; ci++) {
+        var cell = cells[ci];
+        var disc = disclosureFromDepth(cell.depth);
+        var alpha = disc.alpha * thr;
+
+        // Position on globe
+        var lat = cell.isMe ? 42.73 : rttToLat(cell.rtt || 100);
+        var lon = cell.isMe ? -84.55 : tzToLon(cell.tz || 0);
+        var p = proj(lat, lon);
+        if (!p) continue;
+
+        // DRAW THE CELL DOT
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, disc.dotR, 0, PI * 2);
+        if (cell.isMe) {
+          // MY DOT = white pulsing
+          var pulse = 0.5 + Math.sin(t * 0.5) * 0.5;
+          ctx.fillStyle = 'rgba(255,255,255,' + (alpha * 2 + pulse * 0.02).toFixed(4) + ')';
+        } else {
+          // Other cells = colored by depth tier
+          var cDepth = cell.depth;
+          var cr = cDepth < 0.5 ? 63 : cDepth < 0.8 ? 88 : 110;
+          var cg = cDepth < 0.5 ? 185 : cDepth < 0.8 ? 166 : 118;
+          var cb = cDepth < 0.5 ? 80 : cDepth < 0.8 ? 255 : 129;
+          ctx.fillStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',' + alpha.toFixed(4) + ')';
+        }
+        ctx.fill();
+
+        // Disclosure ring — how much is revealed
+        if (disc.level !== 'null') {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, disc.dotR + 1.5, 0, PI * 2 * (1 - cell.depth));
+          ctx.strokeStyle = 'rgba(201,168,76,' + (alpha * 0.5).toFixed(4) + ')';
+          ctx.lineWidth = 0.15;
+          ctx.stroke();
+        }
+
+        // Label (only for close cells)
+        if (disc.label && alpha > 0.03) {
+          ctx.font = '1.2px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(139,148,158,' + (alpha * 1.5).toFixed(4) + ')';
+          var lbl = cell.isMe ? 'ME' : disc.level;
+          ctx.fillText(lbl, p.x, p.y + disc.dotR + 2.5);
+        }
+      }
+
+      // Cell count
+      if (thr > 0.5) {
+        ctx.font = '1.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(139,148,158,0.015)';
+        ctx.fillText('CELLS: ' + cells.length + ' · ME depth=' + MY_CELL.depth.toFixed(2), 8, 246);
+      }
+    });
+  }
+
+  // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
   window.gaiaLocality = {
@@ -446,11 +574,13 @@
     buildGraph: buildNNGraph,
     scalpel: SCALPEL,
     piFloor: PI_FLOOR,
-    piCeil: PI_CEIL
+    piCeil: PI_CEIL,
+    cells: cells,
+    myCell: MY_CELL,
+    disclosure: disclosureFromDepth
   };
 
-  console.log('LOCALITY: 5 does not exist. π-IQR [3,5]. Scalpel at 4. ' +
-    'Gaia arms INSIDE null, legs OUTSIDE solar. ' +
-    'Kevin hands INSIDE HUD, body = corpus pin (42.73°N 84.55°W). ' +
-    'NN walk: least connected → most connected. Inverse Brian Banks.');
+  console.log('LOCALITY+RADIAL: 5 does not exist. π-IQR [3,5]. Scalpel at 4. ' +
+    cells.length + ' cells. ME depth=' + MY_CELL.depth.toFixed(2) + '. ' +
+    'Progressive reveal: distance → disclosure. /body');
 })();
