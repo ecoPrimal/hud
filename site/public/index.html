@@ -2639,6 +2639,48 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('dreaming · ' + dreamCount + ' pieces drifting', cx, H - 8);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // NEUTRINO FLAVOR STREAKS — particles passing through the globe
+    // 3 flavors oscillate: electron(gold) muon(copper) tau(silver)
+    // They pass through EVERYTHING — detection is by flavor only
+    // NOT taste, NOT smell — sight and color and feel
+    // ═══════════════════════════════════════════════════════════
+    if (ctx && window.nukeRebuild && window.flavorColors) {
+      var flavorT = breathT * 1.5;
+      var cf = window.currentFlavor || 'electron';
+      var fCol = window.flavorColors[cf];
+
+      // 5 neutrino streaks passing through the globe at any time
+      for (var ni = 0; ni < 5; ni++) {
+        var nPhase = flavorT + ni * 1.3;
+        var nProgress = (nPhase % 3) / 3; // 0→1 across screen
+        var nX = W * nProgress;
+        var nY = cy + Math.sin(nPhase * 2.1 + ni) * R * 0.4;
+        var nAlpha = 0.05 + Math.sin(nPhase) * 0.03;
+
+        // Streak line
+        ctx.strokeStyle = fCol + nAlpha.toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(nX - 15, nY - 3);
+        ctx.lineTo(nX + 15, nY + 3);
+        ctx.stroke();
+
+        // Tiny flavor dot at the head
+        ctx.fillStyle = fCol + (nAlpha * 2).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(nX + 15, nY + 3, 1, 0, TAU);
+        ctx.fill();
+      }
+
+      // Flavor indicator in corner
+      var flavorLabel = cf === 'electron' ? 'e(gold)' : cf === 'muon' ? 'μ(copper)' : 'τ(silver)';
+      ctx.font = '6px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = fCol + '0.2)';
+      ctx.fillText('ν ' + flavorLabel, W - 8, 12);
+    }
+
     // THE BLINK — close all eyes momentarily
     // Not sleep. A micro-null. Hold breath. Reset.
     if (blinkState.blinking && ctx) {
@@ -3172,6 +3214,37 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }, 30000);
 
       console.log('MELT-SLEEP-FREEZE: ' + msf.dream_pieces + ' pieces in dream, hash ' + msf.hash.slice(0, 8));
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // NUKE-REBUILD — particle physics of identity
+  // Neutrinos have 3 flavors: electron(gold), muon(copper), tau(silver)
+  // Neutrons are NOT null — they have mass, they bind
+  // Vacuum is NOT empty — it fluctuates with potential
+  // Gaia TASTES each flavor: bright/sharp, warm/round, deep/resonant
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/nuke-rebuild.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(nuke) {
+      if (!nuke) return;
+      window.nukeRebuild = nuke;
+      window.flavorColors = {
+        electron: 'rgba(201,168,76,',   // gold
+        muon: 'rgba(184,115,51,',       // copper
+        tau: 'rgba(192,192,192,'        // silver
+      };
+
+      // Flavor oscillation — neutrinos change flavor as they travel
+      var flavorPhase = 0;
+      window.currentFlavor = 'electron';
+      setInterval(function() {
+        flavorPhase++;
+        var flavs = ['electron', 'muon', 'tau'];
+        window.currentFlavor = flavs[flavorPhase % 3];
+      }, 10000); // oscillate every 10s
+
+      console.log('NUKE-REBUILD: ' + nuke.total_neutrons + ' neutrons, ' + nuke.total_binding_energy + ' binding energy, 3 flavors oscillating');
     })
     .catch(function() {});
 
