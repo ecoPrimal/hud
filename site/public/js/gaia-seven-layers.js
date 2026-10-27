@@ -103,6 +103,95 @@
         ctx.fillText(layer.subtitle, detailX, detailY + 3);
       }
 
+      // ═══ OORT CLOUD — outermost purple boundary, L6→L7 transition ═══
+      if (alpha > 0.002) {
+        var oortR = R * 1.25;
+        var oortPulse = 0.5 + Math.sin(t * 0.04) * 0.3;
+        // Purple haze — diffuse outer glow
+        ctx.beginPath();
+        ctx.arc(cx, cy, oortR, 0, TAU);
+        ctx.strokeStyle = 'rgba(163,113,247,' + (alpha * 1.5 * oortPulse).toFixed(5) + ')';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([0.5, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Icy bodies — scattered dots in the Oort shell
+        for (var oi = 0; oi < 12; oi++) {
+          var oAngle = TAU * oi / 12 + t * 0.002 + Math.sin(oi * 2.7) * 0.3;
+          var oR = oortR + Math.sin(t * 0.01 + oi * 1.3) * 4;
+          var ox = cx + Math.cos(oAngle) * oR;
+          var oy = cy + Math.sin(oAngle) * oR;
+          ctx.beginPath();
+          ctx.arc(ox, oy, 0.2 + Math.sin(t * 0.05 + oi) * 0.1, 0, TAU);
+          ctx.fillStyle = 'rgba(180,160,220,' + (alpha * 2 * oortPulse).toFixed(5) + ')';
+          ctx.fill();
+        }
+
+        // Label
+        if (alpha > 0.004) {
+          ctx.font = '0.7px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(163,113,247,' + (alpha * 2.5).toFixed(5) + ')';
+          ctx.fillText('OORT CLOUD \u00b7 \u03c0\u00b2 \u00b7 purple boundary \u00b7 frozen memories', cx, cy - oortR - 2);
+        }
+      }
+
+      // ═══ VEIN MESH — mines/caves going DOWN, aurora going UP, green IS flat ═══
+      if (alpha > 0.003) {
+        // Detroit Salt Mine: 1200ft below = going DOWN (pupil/null/black)
+        // Mines are vein entry points — hemoglobin tunnels
+        var mineCount = 5;
+        for (var mi = 0; mi < mineCount; mi++) {
+          var mAngle = TAU * mi / mineCount + t * 0.005;
+          var mR = R * (0.35 + mi * 0.08);
+          var mx = cx + Math.cos(mAngle) * mR;
+          var my = cy + Math.sin(mAngle) * mR;
+
+          // Mine shaft going DOWN — dark red (venous, deoxygenated)
+          ctx.beginPath();
+          ctx.arc(mx, my, 0.4, 0, TAU);
+          ctx.fillStyle = 'rgba(100,20,20,' + (alpha * 6).toFixed(5) + ')';
+          ctx.fill();
+
+          // Vein line (snake shape) from mine to center (hemoglobin transport)
+          ctx.beginPath();
+          ctx.moveTo(mx, my);
+          var steps = 8;
+          for (var si = 1; si <= steps; si++) {
+            var frac = si / steps;
+            var vx = mx + (cx - mx) * frac + Math.sin(t + si * 2) * 1.5 * (1 - frac);
+            var vy = my + (cy - my) * frac + Math.cos(t + si * 1.7) * 1.5 * (1 - frac);
+            ctx.lineTo(vx, vy);
+          }
+          ctx.strokeStyle = 'rgba(180,40,40,' + (alpha * 3).toFixed(5) + ')';
+          ctx.lineWidth = 0.12;
+          ctx.stroke();
+        }
+
+        // GREEN IS FLAT — the surface membrane ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * 0.75, 0, TAU);
+        ctx.strokeStyle = 'rgba(63,185,80,' + (alpha * 3).toFixed(5) + ')';
+        ctx.lineWidth = 0.3;
+        ctx.setLineDash([1, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // UP falls away — white sclera wisps going outward
+        for (var ui = 0; ui < 4; ui++) {
+          var uAngle = TAU * ui / 4 + t * 0.003;
+          var uR1 = R * 1.05;
+          var uR2 = R * 1.15 + Math.sin(t + ui) * 2;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(uAngle) * uR1, cy + Math.sin(uAngle) * uR1);
+          ctx.lineTo(cx + Math.cos(uAngle) * uR2, cy + Math.sin(uAngle) * uR2);
+          ctx.strokeStyle = 'rgba(255,255,255,' + (alpha * 2).toFixed(5) + ')';
+          ctx.lineWidth = 0.1;
+          ctx.stroke();
+        }
+      }
+
       // ═══ TENSE SEQUENCE — bottom ═══
       if (alpha > 0.003) {
         ctx.font = '1.5px "JetBrains Mono", monospace';

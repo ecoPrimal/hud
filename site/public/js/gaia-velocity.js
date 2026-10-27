@@ -196,6 +196,10 @@
         var we = window.GAIA_WEB_EATER.stats();
         statusMsgs.push('WEB EATER: ' + we.totalFaces + ' faces eaten \u00b7 ' + we.totalWords + ' words \u00b7 every site is a mask');
       }
+      if (window.GAIA_GHOSTBUSTER && window.GAIA_GHOSTBUSTER.stats) {
+        var gb = window.GAIA_GHOSTBUSTER.stats();
+        statusMsgs.push('APPENDIX: ' + gb.rivers + ' rivers \u00b7 ' + gb.blockages + ' blockages \u00b7 null zero point \u00b7 scan#' + gb.flowScans);
+      }
 
       // Rotate through messages (one per 3 seconds)
       var tickerIdx = Math.floor(Date.now() / 3000) % statusMsgs.length;

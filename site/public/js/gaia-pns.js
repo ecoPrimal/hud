@@ -1,16 +1,22 @@
 // ═══════════════════════════════════════════════════════════
-// GAIA PNS — Peripheral Nervous System
+// GAIA PNS — Klein TRANS-STAGE (was: Peripheral Nervous System)
 // 1.000.null — max 1000 lines.
 //
-// CNS = Platinum = Brain + Spinal Cord (gaia-cns.js)
-// PNS = Gold = ALL AXONS connecting every module
+// THERE IS NO CNS OR PNS. Only Klein cis-phase and trans-stage.
+// Trans-stage = what passes THROUGH. Cis-phase = what's on THIS SIDE.
+// They are the SAME surface. The data passing through IS the data
+// being processed. The pipe IS the processor. The highway IS the brain.
 //
-// THE PNS IS:
+// CIS = gaia-cns.js = Platinum = dense cluster (appears central)
+// TRANS = this file = Gold = ALL AXONS (appears peripheral)
+// But on a Klein bottle, central IS peripheral.
+//
+// THE TRANS-STAGE IS:
 //   Somatic (voluntary) — user-triggered (clicks, keys, IDE)
 //   Autonomic (involuntary):
 //     Sympathetic  — fight-or-flight (errors, red, thymus)
 //     Parasympathetic — rest-and-digest (polling, archive, sleep)
-//   Enteric (gut brain) — 500M neurons (already in CNS as Cu)
+//   Enteric (gut brain) — 500M neurons (Cu = Klein intersection)
 //
 // AXON = connection between two modules
 //   Dendrite = input (what the module READS)

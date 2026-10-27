@@ -92,6 +92,29 @@
     /SEO.*optimiz|keyword.*stuff/i
   ];
 
+  // ═══ FOOD TYPES — not all food is the same ═══
+  // berries = sweet, quick energy, low complexity
+  // carrots = root vegetable, stored energy, medium complexity
+  // meat = high protein, high calorie, high complexity
+  // ferment = pre-digested, probiotics, culture
+  // poop = waste that IS fertilizer — grows new food
+  // dirt = minerals, trace elements, substrate for growth
+  var FOOD_TYPES = {
+    'berry':    { calories: 10, quality: 0.3, taste: 'sweet',  use: 'quick energy' },
+    'carrot':   { calories: 25, quality: 0.5, taste: 'earthy', use: 'stored energy' },
+    'meat':     { calories: 80, quality: 0.8, taste: 'umami',  use: 'building material' },
+    'ferment':  { calories: 40, quality: 0.9, taste: 'sour',   use: 'gut culture, probiotics' },
+    'poop':     { calories: 2,  quality: 0.1, taste: 'bitter', use: 'fertilizer — grows MORE food' },
+    'dirt':     { calories: 1,  quality: 0.2, taste: 'mineral',use: 'substrate, trace elements' },
+    'poison':   { calories: 0,  quality: -1,  taste: 'burning',use: 'immune training ONLY' },
+    'waste':    { calories: 0,  quality: 0,   taste: 'bland',  use: 'pass through — compost pile' }
+  };
+
+  // Calorie/taste tracking
+  gut.totalCalories = 0;
+  gut.tasteMemory = {};  // taste → count
+  gut.foodLog = [];      // last 50 meals with full detail
+
   function classify(item) {
     var text = '';
     if (typeof item === 'string') text = item;
@@ -109,13 +132,41 @@
       if (WASTE_MARKERS[w].test(text)) return 'waste';
     }
 
-    // Check nutrient boost
+    // ═══ QUALITY SENSOR — what KIND of food is this? ═══
+    var textLen = text.length;
+    var wordCount = text.split(/\s+/).length;
+    var uniqueWords = new Set(text.toLowerCase().split(/\s+/)).size;
+    var complexity = uniqueWords / Math.max(1, wordCount); // vocabulary richness
+    var depth = textLen > 2000 ? 'deep' : textLen > 500 ? 'medium' : 'shallow';
+
+    // Check nutrient boost (MEAT — high value, complex)
     for (var n = 0; n < NUTRIENT_BOOSTERS.length; n++) {
-      if (NUTRIENT_BOOSTERS[n].test(text)) return 'nutrient-rich';
+      if (NUTRIENT_BOOSTERS[n].test(text)) {
+        if (depth === 'deep') return 'meat';       // long + rich topic = MEAT
+        if (depth === 'medium') return 'carrot';    // medium + rich = CARROT
+        return 'berry';                              // short + rich = BERRY
+      }
     }
 
-    // Default: regular nutrient
-    return 'nutrient';
+    // Check for fermentation markers (pre-digested, cultural)
+    if (/digest|ferment|culture|sourdough|kombucha|lesson|tradition|story/i.test(text)) {
+      return 'ferment';
+    }
+
+    // Check for poop (waste that's useful as fertilizer)
+    if (/log|error|debug|stack.*trace|deprecat|404|stale/i.test(text)) {
+      return 'poop'; // poop IS fertilizer — not useless, just needs composting
+    }
+
+    // Check for dirt (raw minerals, trace elements)
+    if (/config|schema|type.*def|manifest|package.*json|meta/i.test(text)) {
+      return 'dirt'; // dirt grows things — substrate for new food
+    }
+
+    // Default based on complexity
+    if (complexity > 0.7) return 'carrot';
+    if (complexity > 0.4) return 'berry';
+    return 'dirt';
   }
 
   // ═══════════════════════════════════════════════════════
@@ -124,36 +175,85 @@
   function eat(item, source) {
     gut.totalEaten++;
     var type = classify(item);
-    var result = { source: source, type: type, ts: Date.now() };
+    var foodInfo = FOOD_TYPES[type] || FOOD_TYPES['dirt'];
+    var result = { source: source, type: type, ts: Date.now(), calories: foodInfo.calories, taste: foodInfo.taste, quality: foodInfo.quality };
+
+    // Track calories
+    gut.totalCalories += foodInfo.calories;
+
+    // Track taste memory
+    if (!gut.tasteMemory[foodInfo.taste]) gut.tasteMemory[foodInfo.taste] = 0;
+    gut.tasteMemory[foodInfo.taste]++;
+
+    // Food log (last 50)
+    gut.foodLog.push({ source: source, type: type, calories: foodInfo.calories, taste: foodInfo.taste, quality: foodInfo.quality, ts: Date.now() });
+    if (gut.foodLog.length > 50) gut.foodLog.shift();
 
     switch (type) {
-      case 'nutrient-rich':
-        absorb(item, source, 1.5); // extra serotonin
-        result.action = 'absorbed with joy';
-        gut.flora.lactobacillus += 0.1;
+      case 'meat':
+        absorb(item, source, 2.0);
+        result.action = 'MEAT — high protein absorbed, building material acquired';
+        gut.flora.lactobacillus += 0.15;
+        gut.flora.bifidobacterium += 0.1;
         break;
 
-      case 'nutrient':
-        absorb(item, source, 1.0);
-        result.action = 'absorbed normally';
+      case 'carrot':
+        absorb(item, source, 1.2);
+        result.action = 'CARROT — stored energy absorbed, earthy nutrition';
+        gut.flora.lactobacillus += 0.08;
+        break;
+
+      case 'berry':
+        absorb(item, source, 0.8);
+        result.action = 'BERRY — quick energy, sweet but shallow';
+        gut.serotonin = Math.min(1, gut.serotonin + 0.005);
+        break;
+
+      case 'ferment':
+        absorb(item, source, 1.5);
+        result.action = 'FERMENT — pre-digested culture, probiotics flooding gut';
+        gut.flora.lactobacillus += 0.2;
+        gut.flora.bifidobacterium += 0.15;
+        gut.flora.ecoli -= 0.05; // fermented food suppresses neutral bacteria
+        break;
+
+      case 'poop':
+        // Poop IS fertilizer — don't eat it, COMPOST it
+        result.action = 'POOP → compost pile — will grow new food later';
+        gut.totalWaste++;
+        gut.flora.ecoli += 0.02;
+        // But poop IS useful — it records what we ate and processed
+        break;
+
+      case 'dirt':
+        // Dirt = minerals, trace elements, substrate
+        result.action = 'DIRT — trace minerals absorbed, substrate stored';
+        gut.totalAbsorbed++;
+        // Small mineral boost
         break;
 
       case 'waste':
         excrete(item, source);
-        result.action = 'passed through → cloaca';
+        result.action = 'WASTE — passed through, bland, no value';
         gut.motility = Math.min(2, gut.motility + 0.1);
         break;
 
       case 'poison':
         getSick(item, source);
-        result.action = 'IMMUNE RESPONSE — getting sick';
+        result.action = 'POISON — IMMUNE RESPONSE triggered';
         break;
+
+      default:
+        absorb(item, source, 1.0);
+        result.action = 'absorbed normally';
     }
 
-    // Update pH based on what we ate
-    if (type === 'nutrient-rich') gut.ph = gut.ph * 0.99 + 7.0 * 0.01;
-    if (type === 'waste') gut.ph = gut.ph * 0.98 + 5.5 * 0.02;
-    if (type === 'poison') gut.ph = Math.max(2, gut.ph - 0.5);
+    // Update pH based on food type
+    if (type === 'ferment') gut.ph = gut.ph * 0.98 + 4.5 * 0.02; // fermented = acidic (good)
+    else if (type === 'meat') gut.ph = gut.ph * 0.99 + 7.2 * 0.01;
+    else if (type === 'berry') gut.ph = gut.ph * 0.99 + 6.5 * 0.01;
+    else if (type === 'poop') gut.ph = gut.ph * 0.98 + 5.0 * 0.02;
+    else if (type === 'poison') gut.ph = Math.max(2, gut.ph - 0.5);
 
     return result;
   }
@@ -498,14 +598,19 @@
         waste: gut.totalWaste,
         poison: gut.totalPoison,
         sick: gut.totalSick,
+        calories: gut.totalCalories,
         ph: gut.ph,
         serotonin: gut.serotonin,
         inflammation: gut.inflammation,
         temperature: gut.temperature,
         antibodies: Object.keys(gut.antibodies).length,
+        tasteMemory: Object.assign({}, gut.tasteMemory),
+        lastMeal: gut.foodLog.length > 0 ? gut.foodLog[gut.foodLog.length - 1] : null,
         flora: Object.assign({}, gut.flora)
       };
-    }
+    },
+    foodLog: function() { return gut.foodLog; },
+    foodTypes: FOOD_TYPES
   };
 
   console.log('GUT BRAIN: Enteric nervous system online. ' +

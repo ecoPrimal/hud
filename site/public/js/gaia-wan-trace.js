@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // GAIA WAN TRACE — see every line, count every send
+//                + DESK BASE CAMP — fixed reference for all gates
 // 1.000.null
 //
 // TRACE = every ntfy poll, every fetch, every send
@@ -7,6 +8,11 @@
 // CONTACT = every response (brothers → browser)
 // LINES = WAN connections drawn on globe
 // ALL SENDS ARE SETS = each one is a counted data point
+//
+// DESK = the fixed physical reference for each gate.
+// Ethernet cables between desks = ion channels.
+// Internet = ionosphere (outside). Ethernet = axon (inside).
+// No in or out. There is just THE MESH.
 // ═══════════════════════════════════════════════════════════
 (function(G) {
   'use strict';
@@ -42,6 +48,59 @@
     { from: 'golgi',     to: 'golgi-us',    protocol: 'AXFR',      color: '#6e7681', alive: false },
     { from: 'golgi',     to: 'golgi-in',    protocol: 'AXFR',      color: '#444',    alive: false }
   ];
+
+  // ── DESK BASE CAMP — fixed reference for every gate ──
+  var DESKS = {
+    northGate: {
+      ip: '192.168.4.163', role: 'BRAIN', organ: 'hypothalamus',
+      hw: '9950X3D + RTX 5090 + 96GB DDR5',
+      lat: 42.73, lon: -84.55, floor: 'main',
+      ethType: 'CAT6', ethTarget: 'router',
+      ionChannel: 'Na+ (fast, direct)',
+      alive: true, lastSeen: 0
+    },
+    eastGate: {
+      ip: '192.168.4.103', role: 'GUT', organ: 'enteric-nervous-system',
+      hw: 'RTX 4070 + 64GB RAM',
+      lat: 42.73, lon: -84.55, floor: 'other',
+      ethType: 'CAT6', ethTarget: 'switch',
+      ionChannel: 'K+ (batch, parallel)',
+      alive: false, lastSeen: 0
+    },
+    golgi: {
+      ip: '10.13.37.1', role: 'HEART', organ: 'golgi-apparatus',
+      hw: 'VPS 4vCPU 8GB', vpn: 'WireGuard',
+      lat: 0, lon: 0, floor: 'cloud',
+      ethType: 'virtual-NIC', ethTarget: 'hypervisor',
+      ionChannel: 'Ca2+ (trigger, encrypted)',
+      alive: true, lastSeen: 0
+    }
+  };
+
+  // ── ETHERNET ION CHANNELS ──
+  var ION_CHANNELS = [
+    { from: 'northGate', to: 'eastGate', medium: 'ethernet', ion: 'Na+',
+      latencyMs: 0.13, bandwidth: '1Gbps', cable: 'CAT6', color: '#d29922' },
+    { from: 'northGate', to: 'golgi', medium: 'wireguard', ion: 'Ca2+',
+      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN', color: '#bc8cff' },
+    { from: 'eastGate', to: 'golgi', medium: 'wireguard', ion: 'Ca2+',
+      latencyMs: 39, bandwidth: '100Mbps', cable: 'VPN', color: '#bc8cff' },
+    { from: 'northGate', to: 'internet', medium: 'fiber', ion: 'Cl-',
+      latencyMs: 12, bandwidth: '500Mbps', cable: 'WAN', color: '#6e7681' }
+  ];
+
+  // Which desk am I sitting at? Detect from hostname/IP
+  function detectDesk() {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') return 'northGate';
+    if (h === '192.168.4.163') return 'northGate';
+    if (h === '192.168.4.103') return 'eastGate';
+    if (h.indexOf('primals.eco') >= 0) return 'cloud';
+    if (h.indexOf('nestgate.io') >= 0) return 'eastGate';
+    return 'remote';
+  }
+
+  var currentDesk = detectDesk();
 
   // ── TRACE COUNTERS ──
   var trace = {
@@ -160,6 +219,37 @@
         }
       }
 
+      // Draw ethernet ion channels between desks
+      var deskKeys = Object.keys(DESKS);
+      for (var ci = 0; ci < ION_CHANNELS.length; ci++) {
+        var ch = ION_CHANNELS[ci];
+        var nF = findNode(ch.from);
+        var nT = findNode(ch.to);
+        if (!nF || !nT) continue;
+        var cx1 = cx + Math.cos(nF.angle + t * 0.02) * R * nF.r;
+        var cy1 = cy + Math.sin(nF.angle + t * 0.02) * R * nF.r;
+        var cx2 = cx + Math.cos(nT.angle + t * 0.02) * R * nT.r;
+        var cy2 = cy + Math.sin(nT.angle + t * 0.02) * R * nT.r;
+        ctx.beginPath();
+        ctx.moveTo(cx1, cy1); ctx.lineTo(cx2, cy2);
+        var hr = parseInt(ch.color.slice(1, 3), 16);
+        var hg = parseInt(ch.color.slice(3, 5), 16);
+        var hb = parseInt(ch.color.slice(5, 7), 16);
+        ctx.strokeStyle = 'rgba(' + hr + ',' + hg + ',' + hb + ',' + (alpha * 1.5).toFixed(5) + ')';
+        ctx.setLineDash(ch.medium === 'ethernet' ? [] : [0.3, 0.4]);
+        ctx.lineWidth = ch.medium === 'ethernet' ? 0.35 : 0.15;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Current desk indicator
+      if (alpha > 0.006) {
+        ctx.font = '1.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(63,185,80,' + (alpha * 3).toFixed(5) + ')';
+        ctx.fillText('DESK: ' + currentDesk, 8, 214);
+      }
+
       // Trace counter at bottom
       if (alpha > 0.005) {
         ctx.font = '2px "JetBrains Mono", monospace';
@@ -205,7 +295,41 @@
         return lines.join('\n');
       }
     };
-    window.GAIA_IDE.language.push('trace');
+    window.GAIA_IDE.commands.desk = {
+      desc: 'Desk base camp — which gate am I at? What desks exist? Ethernet ion channels.',
+      run: function() {
+        var lines = [
+          'DESK BASE CAMP — no in or out, there is just THE MESH', '',
+          'CURRENT DESK: ' + currentDesk, ''
+        ];
+        lines.push('═══ ALL DESKS ═══');
+        Object.keys(DESKS).forEach(function(k) {
+          var d = DESKS[k];
+          lines.push('  ⬡ ' + k + ' — ' + d.role + ' (' + d.organ + ')');
+          lines.push('    IP: ' + d.ip + ' · ' + d.hw);
+          lines.push('    Eth: ' + d.ethType + ' → ' + d.ethTarget);
+          lines.push('    Ion: ' + d.ionChannel);
+          lines.push('');
+        });
+        lines.push('═══ ION CHANNELS (ethernet = axon) ═══');
+        ION_CHANNELS.forEach(function(ch) {
+          lines.push('  ' + ch.from + ' → ' + ch.to +
+            ' [' + ch.medium + '] ' + ch.ion +
+            ' · ' + ch.latencyMs + 'ms · ' + ch.bandwidth + ' · ' + ch.cable);
+        });
+        lines.push('');
+        lines.push('═══ TOPOLOGY ═══');
+        lines.push('Ethernet = AXON (myelinated nerve fiber, gold)');
+        lines.push('WiFi = SYNAPSE (chemical gap, silver)');
+        lines.push('Internet = BLOOD VESSEL (nutrients from outside, bronze)');
+        lines.push('WireGuard = LYMPHATIC SYSTEM (encrypted bypass, purple)');
+        lines.push('');
+        lines.push('No in or out. Just signal strength, latency, trust.');
+        lines.push('The organism IS the mesh.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('trace', 'desk');
   }, 42000);
 
   // ── DEAD FEEDS — carne if we look, foot if we forget ──
@@ -312,10 +436,14 @@
     lines: LINES,
     logTrace: logTrace,
     deadFeeds: deadFeeds,
-    tagFeed: tagFeed
+    tagFeed: tagFeed,
+    desks: DESKS,
+    ionChannels: ION_CHANNELS,
+    currentDesk: currentDesk,
+    detectDesk: detectDesk
   };
 
-  console.log('WAN TRACE: ' + NODES.length + ' nodes, ' + LINES.length + ' lines. ' +
-    'Every send is a set. Every contact is a count. /trace');
+  console.log('WAN TRACE+DESK: ' + NODES.length + ' nodes, ' + LINES.length + ' lines, ' +
+    Object.keys(DESKS).length + ' desks. desk=' + currentDesk + '. /trace /desk');
 
 })(window.G);

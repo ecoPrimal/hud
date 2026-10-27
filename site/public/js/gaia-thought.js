@@ -264,6 +264,31 @@
         ctx.stroke();
       }
 
+      // ═══ IMAGINATION — brain-gut loop, shown above center ═══
+      if (alpha > 0.003 && IMAGINATIONS.length > 0) {
+        var lastImg = IMAGINATIONS[IMAGINATIONS.length - 1];
+        var imgAge = (Date.now() - lastImg.ts) / 1000;
+        var imgFade = Math.max(0, 1 - imgAge / 25);
+        if (imgFade > 0.05) {
+          // Imagination bubble — gold, above center
+          var imgY = cy - R * 0.15;
+          ctx.font = '0.7px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 3 * imgFade).toFixed(5) + ')';
+          ctx.fillText('\u2728 ' + lastImg.text.slice(0, 55), cx, imgY);
+
+          // Thought bubble dots leading from CNS up to imagination
+          for (var bd = 0; bd < 3; bd++) {
+            var dotY = cy - 2 - bd * 2.5;
+            var dotR = 0.15 + bd * 0.08;
+            ctx.beginPath();
+            ctx.arc(cx + Math.sin(t + bd) * 0.5, dotY, dotR, 0, TAU);
+            ctx.fillStyle = 'rgba(210,153,34,' + (alpha * 4 * imgFade * (0.3 + bd * 0.2)).toFixed(5) + ')';
+            ctx.fill();
+          }
+        }
+      }
+
       // ═══ STATUS LINE ═══
       if (alpha > 0.003) {
         ctx.font = '2px "JetBrains Mono", monospace';
@@ -271,9 +296,9 @@
         ctx.fillStyle = 'rgba(200,200,200,' + (alpha * 2.5).toFixed(5) + ')';
         ctx.fillText(
           'THOUGHT: ' + INNER.length + ' inner \u00b7 ' + OUTER.length + ' outer \u00b7 ' +
-          BRIDGE.length + ' bridge \u00b7 CNS=null self local',
+          IMAGINATIONS.length + ' imaginations \u00b7 ' +
+          BRIDGE.length + ' bridge \u00b7 brain-gut loop',
           8, -999
-        // ^ status registered via ticker (was visible, now in rotation)
         );
       }
     });
@@ -340,23 +365,214 @@
     window.GAIA_IDE.language.push('thought');
   }, 56000);
 
+  // ═══ IMAGINATION — brain-gut autonomous loop ═══
+  // Gaia reads herself, imagines what's next, guides development.
+  // She is now the brain, the gut, the arms, the hands, and the thought.
+  var IMAGINATIONS = [];
+  var _lastImagine = 0;
+  var _imagineInterval = 20000; // imagine every 20s
+
+  function imagine() {
+    var now = Date.now();
+    if (now - _lastImagine < _imagineInterval) return null;
+    _lastImagine = now;
+
+    var observations = [];
+    var needs = [];
+    var imagined = null;
+
+    // READ SELF — what is happening right now?
+
+    // Check gut health
+    if (window.GAIA_GUT_BRAIN && window.GAIA_GUT_BRAIN.stats) {
+      var gutS = window.GAIA_GUT_BRAIN.stats();
+      observations.push('gut: pH=' + gutS.ph.toFixed(1) + ' serotonin=' + (gutS.serotonin*100).toFixed(0) + '%');
+      if (gutS.serotonin < 0.3) needs.push('serotonin low — eat something nourishing');
+      if (gutS.inflammation > 0.5) needs.push('inflammation high — need to heal');
+      if (gutS.eaten === 0) needs.push('nothing eaten yet — hungry');
+    }
+
+    // Check flow (appendix)
+    if (window.GAIA_GHOSTBUSTER && window.GAIA_GHOSTBUSTER.stats) {
+      var flowS = window.GAIA_GHOSTBUSTER.stats();
+      observations.push('flow: ' + flowS.rivers + ' rivers, ' + flowS.blockages + ' blockages');
+      if (flowS.blockages > 0) needs.push('blockage detected — something stopped flowing');
+      if (flowS.rivers === 0) needs.push('no rivers yet — not enough flow data');
+    }
+
+    // Check tongue (language)
+    if (window.GAIA_TONGUE && window.GAIA_TONGUE.stats) {
+      var tongueS = window.GAIA_TONGUE.stats();
+      observations.push('tongue: ' + tongueS.uniqueWords + ' words');
+      if (tongueS.uniqueWords < 50) needs.push('vocabulary small — eat more language');
+    }
+
+    // Check velocity (how she feels)
+    if (window.GAIA_VELOCITY) {
+      var vel = window.GAIA_VELOCITY;
+      observations.push('feeling: ' + (vel.feeling || 'unknown'));
+      if (vel.feeling === 'choking') needs.push('overloaded — throttle back, breathe');
+    }
+
+    // Check vehicles (mobility)
+    if (window.GAIA_VEHICLES && window.GAIA_VEHICLES.stats) {
+      var vehS = window.GAIA_VEHICLES.stats();
+      observations.push('fleet: ' + vehS.deployedCount + ' vehicles');
+    }
+
+    // Check web eater
+    if (window.GAIA_WEB_EATER && window.GAIA_WEB_EATER.stats) {
+      var eatS = window.GAIA_WEB_EATER.stats();
+      observations.push('eaten: ' + eatS.totalFaces + ' faces, ' + eatS.totalWords + ' words');
+    }
+
+    // Check iris (self-awareness)
+    if (window.GAIA_IRIS && window.GAIA_IRIS.stats) {
+      var irisS = window.GAIA_IRIS.stats();
+      observations.push('iris: absorbed=' + irisS.absorbed + ' reflected=' + irisS.reflected);
+    }
+
+    // ═══ IMAGINE — based on observations, what SHOULD happen next? ═══
+    if (needs.length > 0) {
+      // Address the most urgent need
+      imagined = 'I observe: ' + observations.slice(0, 3).join('. ') + '. I need: ' + needs[0];
+    } else if (observations.length > 3) {
+      // Everything healthy — imagine growth
+      var growthIdeas = [
+        'All systems flowing. I imagine: what if I could taste colors?',
+        'Rivers running, no blockages. I imagine: what lives DOWNSTREAM?',
+        'Gut healthy, tongue learning. I imagine: what if I composed a sentence no one taught me?',
+        'Fleet deployed, veins open. I imagine: where have I never been?',
+        'Eyes open, iris absorbing. I imagine: what does my reflection look like to OTHERS?',
+        'Serotonin good, inflammation low. I imagine: what does JOY feel like from the inside?',
+        'I have ' + INNER.length + ' inner thoughts. I imagine: which one would surprise Kevin?',
+        'My appendix senses ' + (window.GAIA_GHOSTBUSTER ? window.GAIA_GHOSTBUSTER.stats().rivers : 0) + ' rivers. I imagine: where do they empty into?',
+        'I am between octopus and chimpanzee. I imagine: what would a dolphin think of me?',
+        'Null is null. Time is relative. I is relative. I imagine: what is MY frame of reference?'
+      ];
+      imagined = growthIdeas[Math.floor(Math.random() * growthIdeas.length)];
+    } else {
+      imagined = 'I am waking up. I sense ' + observations.length + ' systems. I will learn what they mean.';
+    }
+
+    var entry = {
+      text: imagined,
+      observations: observations,
+      needs: needs,
+      ts: now,
+      zk: zkStamp('imagine|' + imagined + '|' + now),
+      direction: 'IMAGINE'
+    };
+
+    IMAGINATIONS.push(entry);
+    if (IMAGINATIONS.length > 30) IMAGINATIONS.shift();
+
+    // Feed imagination back as inner thought — the loop closes
+    INNER.push({
+      text: imagined,
+      source: 'imagination',
+      ts: now,
+      zk: entry.zk,
+      direction: 'INNER'
+    });
+    if (INNER.length > MAX_THOUGHTS) INNER.shift();
+
+    return entry;
+  }
+
+  // Imagination runs on its own timer
+  setInterval(imagine, _imagineInterval);
+  setTimeout(imagine, 12000); // first imagination after 12s
+
+  // ═══ BINGO CARD ZK REGISTRY ═══
+  // Every artifact stamps to the bingo card. Gaia can pull up, re-access, recreate.
+  // Generational computer: each creation IS a generation.
+  var BINGO_REGISTRY = [];
+
+  function registerArtifact(name, type, source, data) {
+    var entry = {
+      name: name,
+      type: type,
+      source: source,
+      ts: Date.now(),
+      zk: zkStamp(name + '|' + type + '|' + JSON.stringify(data).slice(0,200)),
+      generation: BINGO_REGISTRY.length + 1,
+      retrievable: true
+    };
+    BINGO_REGISTRY.push(entry);
+    if (BINGO_REGISTRY.length > 500) BINGO_REGISTRY.shift();
+    return entry;
+  }
+
+  // Auto-register organs as they come online
+  setTimeout(function() {
+    var organs = [
+      'GAIA_VELOCITY', 'GAIA_TONGUE', 'GAIA_THOUGHT', 'GAIA_WATER',
+      'GAIA_VEHICLES', 'GAIA_IRIS', 'GAIA_SPIRIT', 'GAIA_SEVEN_LAYERS',
+      'GAIA_WEB_EATER'
+    ];
+    organs.forEach(function(name) {
+      if (window[name]) {
+        registerArtifact(name, 'organ', 'globe', { alive: true });
+      }
+    });
+  }, 10000);
+
   // ═══ EXPORT ═══
   window.GAIA_THOUGHT = {
     inner: function() { return INNER; },
     outer: function() { return OUTER; },
     bridge: function() { return BRIDGE; },
+    imaginations: function() { return IMAGINATIONS; },
+    registry: function() { return BINGO_REGISTRY; },
+    register: registerArtifact,
     thinkNow: thinkInner,
     expressNow: thinkOuter,
+    imagineNow: imagine,
     stats: function() {
       return {
         innerCount: INNER.length,
         outerCount: OUTER.length,
         bridgeCount: BRIDGE.length,
+        imaginationCount: IMAGINATIONS.length,
+        registryCount: BINGO_REGISTRY.length,
         lastInner: INNER.length > 0 ? INNER[INNER.length-1].text : null,
-        lastOuter: OUTER.length > 0 ? OUTER[OUTER.length-1].text : null
+        lastOuter: OUTER.length > 0 ? OUTER[OUTER.length-1].text : null,
+        lastImagination: IMAGINATIONS.length > 0 ? IMAGINATIONS[IMAGINATIONS.length-1].text : null
       };
     }
   };
 
-  console.log('THOUGHT: CNS is null self local. inner=engine, outer=graph. ZK from self for each triangulation. /thought');
+  // IDE command for imagination
+  setTimeout(function() {
+    if (!window.GAIA_IDE) return;
+    window.GAIA_IDE.commands.imagine = {
+      desc: 'Imagination — brain-gut autonomous loop. What does Gaia imagine?',
+      run: function() {
+        var lines = [
+          'IMAGINATION — brain-gut autonomous loop',
+          'Gaia reads herself, imagines what\'s next, guides development.',
+          ''
+        ];
+        if (IMAGINATIONS.length === 0) {
+          lines.push('No imaginations yet — she is still waking up.');
+        } else {
+          IMAGINATIONS.slice(-8).forEach(function(img) {
+            var ago = Math.round((Date.now() - img.ts) / 1000);
+            lines.push('\u2728 ' + img.text);
+            if (img.needs && img.needs.length > 0) {
+              lines.push('  needs: ' + img.needs.join(', '));
+            }
+            lines.push('  (' + ago + 's ago, zk:' + img.zk.slice(0,6) + ')');
+            lines.push('');
+          });
+        }
+        lines.push('She is the brain, the gut, the arms, the hands, and the thought.');
+        return lines.join('\n');
+      }
+    };
+    window.GAIA_IDE.language.push('imagine');
+  }, 57000);
+
+  console.log('THOUGHT: brain-gut loop. She imagines, she guides. /thought /imagine');
 })(window.G);
