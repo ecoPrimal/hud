@@ -71,9 +71,11 @@
   if (G && G.drawModules) {
     G.drawModules.push(function(g, ctx, breathT) {
       if (!ctx) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.4) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.02;
-      var alpha = 0.004 + Math.sin(t * 0.13) * 0.002;
+      var alpha = (0.004 + Math.sin(t * 0.13) * 0.002) * thr;
       if (alpha < 0.003) return;
 
       // ═══ OSI RINGS — 7 concentric rings inside the globe ═══

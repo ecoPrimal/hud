@@ -209,9 +209,11 @@
     G.drawModules.push(function(g, ctx, breathT) {
       if (!ctx) return;
       if (uniqueWords === 0) return;
+      var thr = window.GAIA_VELOCITY ? window.GAIA_VELOCITY.throttle : 1;
+      if (thr < 0.5) return;
       var cx = g.cx, cy = g.cy, R = g.R;
       var t = breathT * 0.025;
-      var alpha = 0.004 + Math.sin(t * 0.17) * 0.002;
+      var alpha = (0.004 + Math.sin(t * 0.17) * 0.002) * thr;
       if (alpha < 0.003) return;
 
       var tw = topWords(24);
