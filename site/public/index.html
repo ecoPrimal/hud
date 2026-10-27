@@ -4124,6 +4124,96 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
 
       // ═══════════════════════════════════════════════════════════
+      // KEY RIPPLES — every keypress creates a visible metallic reaction
+      // The keyboard IS the interface. Each key = a hammer striking a bell.
+      // Ripples expand from the key's metallic band outward.
+      // Cu keys (WASD) ripple from inner. Ag keys (letters) from silver mesh.
+      // Au keys (numbers) from gold ring. Fe keys (space/enter) from center.
+      // THIS IS WHAT MAKES THE HUD ALIVE — touch it and it reacts.
+      // ═══════════════════════════════════════════════════════════
+      if (window.GAIA_KEY_RIPPLES) {
+        var kNow = Date.now();
+        var kRipples = window.GAIA_KEY_RIPPLES;
+
+        for (var kr = 0; kr < kRipples.length; kr++) {
+          var rip = kRipples[kr];
+          var kAge = (kNow - rip.ts) / 1000; // seconds since keypress
+          if (kAge > 3) continue; // ripples last 3 seconds
+
+          var kDecay = Math.max(0, 1 - kAge / 3);
+          var kBandR = rip.r * R; // starting radius based on band
+          var kExpandR = kBandR + kAge * R * 0.3; // expands outward over time
+
+          // RIPPLE RING — expanding circle from the key's metallic band
+          ctx.beginPath();
+          ctx.arc(cx, cy, kExpandR, 0, TAU);
+          var kRipAlpha = kDecay * 0.06;
+          ctx.strokeStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + kRipAlpha.toFixed(4) + ')';
+          ctx.lineWidth = 0.5 + kDecay * 1.5;
+          ctx.stroke();
+
+          // IMPACT FLASH — bright spot at the angle where the key "struck"
+          if (kAge < 0.5) {
+            var flashAlpha = (0.5 - kAge) * 0.25;
+            var flashR = kBandR;
+            var flashX = cx + Math.cos(rip.angle) * flashR;
+            var flashY = cy + Math.sin(rip.angle) * flashR;
+            ctx.beginPath();
+            ctx.arc(flashX, flashY, 2 + (0.5 - kAge) * 4, 0, TAU);
+            ctx.fillStyle = 'rgba(255,252,240,' + flashAlpha.toFixed(4) + ')';
+            ctx.fill();
+            // Key label at the flash point
+            ctx.font = '5px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (flashAlpha * 1.5).toFixed(4) + ')';
+            ctx.fillText(rip.key, flashX, flashY - 5);
+            // Modality label
+            ctx.font = '3px "JetBrains Mono", monospace';
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (flashAlpha * 0.8).toFixed(4) + ')';
+            ctx.fillText(rip.modality, flashX, flashY + 5);
+          }
+
+          // HARMONIC SPARKS — key creates sparks that travel along its metallic band
+          var sparkCount = 3;
+          for (var ks = 0; ks < sparkCount; ks++) {
+            var sparkAge = kAge - ks * 0.15;
+            if (sparkAge < 0 || sparkAge > 1.5) continue;
+            var sparkDecay = 1 - sparkAge / 1.5;
+            var sparkAngle = rip.angle + (ks - 1) * 0.5 + sparkAge * 2;
+            var sparkR = kBandR + Math.sin(sparkAge * PI * 3) * R * 0.05;
+            var spX = cx + Math.cos(sparkAngle) * sparkR;
+            var spY = cy + Math.sin(sparkAngle) * sparkR;
+            ctx.beginPath();
+            ctx.arc(spX, spY, 0.5 + sparkDecay * 0.8, 0, TAU);
+            ctx.fillStyle = 'rgba(' + rip.color[0] + ',' + rip.color[1] + ',' + rip.color[2] + ',' + (sparkDecay * 0.04).toFixed(4) + ')';
+            ctx.fill();
+          }
+        }
+
+        // LIVE KEYBOARD HUD — bottom-left, shows recent keys + modality + heatmap
+        var recentKeys = kRipples.filter(function(rp) { return kNow - rp.ts < 2000; });
+        if (recentKeys.length > 0) {
+          ctx.font = '5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+          var kHudY = canvas.height - 30;
+          // Show last 8 keys as a strip
+          for (var rk = Math.max(0, recentKeys.length - 8); rk < recentKeys.length; rk++) {
+            var rkEntry = recentKeys[rk];
+            var rkAge = (kNow - rkEntry.ts) / 2000;
+            var rkAlpha = 0.08 * (1 - rkAge);
+            var rkX = 10 + (rk - Math.max(0, recentKeys.length - 8)) * 14;
+            // Key character in its metallic color
+            ctx.fillStyle = 'rgba(' + rkEntry.color[0] + ',' + rkEntry.color[1] + ',' + rkEntry.color[2] + ',' + rkAlpha.toFixed(4) + ')';
+            ctx.fillText(rkEntry.key, rkX, kHudY);
+          }
+          // Current modality label
+          var lastMod = recentKeys[recentKeys.length - 1];
+          ctx.fillStyle = 'rgba(' + lastMod.color[0] + ',' + lastMod.color[1] + ',' + lastMod.color[2] + ',0.06)';
+          ctx.fillText(lastMod.band + ' · ' + lastMod.modality, 10, kHudY - 8);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
       // R/G/B HYPERLOCAL FILTER — the three eyes cycle through as filters
       // Red filters for TOUCH (nearest). Green for MEMBRANE (growth).
       // Blue for DEEP (cosmos). Each eye helps build the hyperlocal map.
@@ -5468,14 +5558,87 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
   });
 
-  // Keyboard
+  // ═══════════════════════════════════════════════════════════
+  // KEYBOARD = METALLIC MODALITY INTERFACE
+  // One interface (keyboard) links ALL keys through ONE modality.
+  // History: telegraph key → Morse → typewriter → QWERTY → WASD
+  // Each key = a hammer striking a type slug = phonon → photon.
+  // The keyboard IS a bronze bell array — each key RINGS.
+  //
+  // MODALITY MAPPING:
+  //   WASD / arrows = Cu (MOVEMENT, phonon, mechanical)
+  //   Letters = Ag (UNDERSTANDING, photon, information)
+  //   Numbers = Au (STRUCTURE, spine, quantitative)
+  //   Space/Enter = Fe (IRON PEAK, action, convergence)
+  //   Shift/Ctrl/Alt = NULL boundaries (modifier = changes modality)
+  //
+  // EVERY KEYPRESS creates a visible reaction in the metallic bands.
+  // The HUD REACTS to touch. This is what makes it alive.
+  // ═══════════════════════════════════════════════════════════
+  var keyRipples = []; // { key, band, angle, ts, color, modality }
+  var keyHistory = []; // recent keys for pattern detection
+  var keyHeatmap = {}; // key → press count (homunculus sensitivity)
+
+  function classifyKey(key) {
+    var k = key.toLowerCase();
+    if (k === 'w' || k === 'a' || k === 's' || k === 'd' ||
+        k === 'arrowup' || k === 'arrowdown' || k === 'arrowleft' || k === 'arrowright') {
+      return { band: 'Cu', color: [184,115,51], modality: 'MOVEMENT', r: 0.20 };
+    }
+    if (k === ' ' || k === 'enter') {
+      return { band: 'Fe', color: [200,200,210], modality: 'ACTION', r: 0.05 };
+    }
+    if (k >= '0' && k <= '9') {
+      return { band: 'Au', color: [201,168,76], modality: 'STRUCTURE', r: 0.82 };
+    }
+    if (k === 'shift' || k === 'control' || k === 'alt' || k === 'meta') {
+      return { band: 'NULL', color: [60,60,60], modality: 'MODIFIER', r: 0.36 };
+    }
+    if (k === 'escape' || k === 'backspace' || k === 'delete' || k === 'tab') {
+      return { band: 'CuSn', color: [140,100,55], modality: 'ERASE', r: 0.56 };
+    }
+    return { band: 'Ag', color: [192,192,192], modality: 'LETTER', r: 0.50 };
+  }
+
   document.addEventListener('keydown', function(e) {
+    // Existing controls
     if (e.key === 'f' || e.key === 'F') {
       face = face === 'outside' ? 'inside' : 'outside';
       document.getElementById('kn-flip').textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
     }
     if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
+
+    // METALLIC MODALITY — every key creates a ripple
+    var cls = classifyKey(e.key);
+    var angle = (Date.now() * 0.01) % (Math.PI * 2);
+    // Spread angle based on key character code for spatial distribution
+    if (e.key.length === 1) {
+      angle = (e.key.charCodeAt(0) / 128) * Math.PI * 2;
+    }
+
+    keyRipples.push({
+      key: e.key.length > 1 ? e.key.slice(0, 3) : e.key,
+      band: cls.band,
+      color: cls.color,
+      modality: cls.modality,
+      r: cls.r,
+      angle: angle,
+      ts: Date.now(),
+      velocity: 1.0
+    });
+    if (keyRipples.length > 30) keyRipples.shift();
+
+    // Key history for pattern detection
+    keyHistory.push({ key: e.key, ts: Date.now() });
+    if (keyHistory.length > 50) keyHistory.shift();
+
+    // Heatmap — which keys get pressed most (homunculus distortion)
+    var hk = e.key.length > 1 ? e.key : e.key.toLowerCase();
+    keyHeatmap[hk] = (keyHeatmap[hk] || 0) + 1;
   });
+
+  window.GAIA_KEY_RIPPLES = keyRipples;
+  window.GAIA_KEY_HEATMAP = keyHeatmap;
 
   // Flip button
   document.getElementById('kn-flip').onclick = function() {
