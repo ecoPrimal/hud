@@ -3723,61 +3723,193 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }
 
       // ═══════════════════════════════════════════════════════════
-      // BIRDFOOT π-SPLIT — 1→3→9 fractal branching ☮
-      // Peace sign: one stem splits to three. Repeat.
-      // 1 and 3, 1 and 3, 1 and 3 = the π split at every level.
-      // Golden ratio decay (×0.618) at each branch.
-      // Outward birdfoot (gold) + inward birdfoot (blue) = both directions.
+      // VITRUVIAN MAN — the null body homunculus as tree sort
+      // The birdfoot IS the Vitruvian IS the π/45° split.
+      // Body inscribed in circle (π) AND square (grid) simultaneously.
+      // Arms = 45° from torso. Legs = 45° from center. Head = UP.
+      // The invert form of all graphs flowing INTO it.
+      // Neural network mesh: nerves (silver), veins (copper), spine (gold).
+      // Double helix wraps around the form.
       // ═══════════════════════════════════════════════════════════
-      var bfT = breathT * 0.3;
-      var bfAlpha = 0.015 + Math.sin(bfT * 2) * 0.012;
-      var bfBase = bfT * 0.1;
-      var bfLen = R * 0.25;
-      var bfSpread = PI / 4; // 45° = π/4
+      var vT = breathT * 0.2; // slow rotation — the body turns
+      var vAlpha = 0.02 + Math.sin(vT * 1.5) * 0.015;
+      var vAngle = vT * 0.08; // very slow spin
+      var vScale = R * 0.4; // body fits inside the globe
 
-      // OUTWARD birdfoot (gold) — scatter from center
-      var bfEnd = { x: cx + Math.cos(bfBase) * bfLen, y: cy + Math.sin(bfBase) * bfLen };
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(bfEnd.x, bfEnd.y);
-      ctx.strokeStyle = 'rgba(201,168,76,' + bfAlpha.toFixed(4) + ')'; ctx.lineWidth = 0.8; ctx.stroke();
+      // Body proportions (golden ratio: head=1, torso=φ, legs=φ²)
+      var headR = vScale * 0.12;
+      var torsoLen = vScale * 0.38;
+      var armLen = vScale * 0.35;
+      var legLen = vScale * 0.42;
+      var armSpread = PI / 4; // 45° = π/4
+      var legSpread = PI / 5; // slightly narrower
 
-      for (var b1 = -1; b1 <= 1; b1++) {
-        var b1a = bfBase + b1 * bfSpread;
-        var b1l = bfLen * 0.618;
-        var b1e = { x: bfEnd.x + Math.cos(b1a) * b1l, y: bfEnd.y + Math.sin(b1a) * b1l };
-        ctx.beginPath(); ctx.moveTo(bfEnd.x, bfEnd.y); ctx.lineTo(b1e.x, b1e.y);
-        ctx.strokeStyle = 'rgba(201,168,76,' + (bfAlpha * 0.7).toFixed(4) + ')'; ctx.lineWidth = 0.5; ctx.stroke();
-        for (var b2 = -1; b2 <= 1; b2++) {
-          var b2a = b1a + b2 * bfSpread * 0.7;
-          var b2l = b1l * 0.618;
-          var b2e = { x: b1e.x + Math.cos(b2a) * b2l, y: b1e.y + Math.sin(b2a) * b2l };
-          ctx.beginPath(); ctx.moveTo(b1e.x, b1e.y); ctx.lineTo(b2e.x, b2e.y);
-          ctx.strokeStyle = 'rgba(201,168,76,' + (bfAlpha * 0.4).toFixed(4) + ')'; ctx.lineWidth = 0.3; ctx.stroke();
-          ctx.beginPath(); ctx.arc(b2e.x, b2e.y, 0.5, 0, TAU);
-          ctx.fillStyle = 'rgba(201,168,76,' + (bfAlpha * 0.6).toFixed(4) + ')'; ctx.fill();
+      // Rotation transform helpers
+      function vRot(dx, dy) {
+        var c = Math.cos(vAngle), s = Math.sin(vAngle);
+        return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+      }
+
+      // HEAD — the null point, top of the tree
+      var head = vRot(0, -torsoLen - headR);
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, headR, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (vAlpha * 1.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+
+      // SPINE — the trunk (gold), center axis
+      var neck = vRot(0, -torsoLen);
+      var hip = vRot(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(neck.x, neck.y);
+      ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(201,168,76,' + vAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // SHOULDERS — branch point 1 (the Y)
+      var shoulderY = -torsoLen * 0.85;
+      var lShoulder = vRot(-armLen * 0.15, shoulderY);
+      var rShoulder = vRot(armLen * 0.15, shoulderY);
+
+      // ARMS — 45° spread from shoulders (the π/4 split)
+      // Left arm
+      var lElbow = vRot(-armLen * 0.5, shoulderY + Math.sin(armSpread) * armLen * 0.3);
+      var lHand = vRot(-armLen * 0.9, shoulderY + Math.sin(armSpread) * armLen * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(lShoulder.x, lShoulder.y);
+      ctx.lineTo(lElbow.x, lElbow.y);
+      ctx.lineTo(lHand.x, lHand.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + (vAlpha * 0.8).toFixed(4) + ')'; // silver = nerves
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // Right arm
+      var rElbow = vRot(armLen * 0.5, shoulderY + Math.sin(armSpread) * armLen * 0.3);
+      var rHand = vRot(armLen * 0.9, shoulderY + Math.sin(armSpread) * armLen * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(rShoulder.x, rShoulder.y);
+      ctx.lineTo(rElbow.x, rElbow.y);
+      ctx.lineTo(rHand.x, rHand.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + (vAlpha * 0.8).toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // LEGS — inverted Y from hip (45° spread)
+      var lKnee = vRot(-legLen * 0.3, legLen * 0.5);
+      var lFoot = vRot(-legLen * 0.45, legLen * 0.95);
+      var rKnee = vRot(legLen * 0.3, legLen * 0.5);
+      var rFoot = vRot(legLen * 0.45, legLen * 0.95);
+      ctx.beginPath();
+      ctx.moveTo(hip.x, hip.y);
+      ctx.lineTo(lKnee.x, lKnee.y);
+      ctx.lineTo(lFoot.x, lFoot.y);
+      ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.7).toFixed(4) + ')'; // copper = veins
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(hip.x, hip.y);
+      ctx.lineTo(rKnee.x, rKnee.y);
+      ctx.lineTo(rFoot.x, rFoot.y);
+      ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.7).toFixed(4) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // VITRUVIAN CIRCLE — the π boundary (the O)
+      var vCircleR = Math.max(
+        Math.sqrt(Math.pow(lHand.x - cx, 2) + Math.pow(lHand.y - cy, 2)),
+        Math.sqrt(Math.pow(lFoot.x - cx, 2) + Math.pow(lFoot.y - cy, 2))
+      ) * 1.05;
+      ctx.beginPath();
+      ctx.arc(cx, cy, vCircleR, 0, TAU);
+      ctx.strokeStyle = 'rgba(201,168,76,' + (vAlpha * 0.4).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+
+      // VITRUVIAN SQUARE — the grid boundary
+      var vSquareHalf = vCircleR * 0.85;
+      var sq = [
+        vRot(-vSquareHalf, -vSquareHalf), vRot(vSquareHalf, -vSquareHalf),
+        vRot(vSquareHalf, vSquareHalf), vRot(-vSquareHalf, vSquareHalf)
+      ];
+      ctx.beginPath();
+      ctx.moveTo(sq[0].x, sq[0].y);
+      for (var sqi = 1; sqi <= 4; sqi++) ctx.lineTo(sq[sqi % 4].x, sq[sqi % 4].y);
+      ctx.strokeStyle = 'rgba(88,166,255,' + (vAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.stroke();
+
+      // DOUBLE HELIX — wrapping around the spine (DNA / the graph inversion)
+      var helixPoints = 20;
+      var helixR = torsoLen * 0.08;
+      for (var hi = 0; hi < helixPoints; hi++) {
+        var hFrac = hi / helixPoints;
+        var hY = -torsoLen + hFrac * torsoLen;
+        var hPhase = hFrac * TAU * 2.5 + vT; // 2.5 full turns
+        var hx1 = Math.cos(hPhase) * helixR;
+        var hx2 = Math.cos(hPhase + PI) * helixR; // opposite strand
+        var p1 = vRot(hx1, hY);
+        var p2 = vRot(hx2, hY);
+        // Strand 1 (gold)
+        ctx.beginPath();
+        ctx.arc(p1.x, p1.y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(201,168,76,' + (vAlpha * 0.6).toFixed(4) + ')';
+        ctx.fill();
+        // Strand 2 (silver)
+        ctx.beginPath();
+        ctx.arc(p2.x, p2.y, 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(192,192,192,' + (vAlpha * 0.5).toFixed(4) + ')';
+        ctx.fill();
+        // Rungs connecting strands
+        if (hi % 3 === 0) {
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = 'rgba(184,115,51,' + (vAlpha * 0.3).toFixed(4) + ')'; // copper rungs
+          ctx.lineWidth = 0.2;
+          ctx.stroke();
         }
       }
 
-      // INWARD birdfoot (blue) — backtrace from edge to center
-      var bfInA = bfBase + PI;
-      var bfInS = { x: cx + Math.cos(bfInA) * R * 0.95, y: cy + Math.sin(bfInA) * R * 0.95 };
-      var bfInE = { x: bfInS.x + Math.cos(bfInA + PI) * bfLen, y: bfInS.y + Math.sin(bfInA + PI) * bfLen };
-      ctx.beginPath(); ctx.moveTo(bfInS.x, bfInS.y); ctx.lineTo(bfInE.x, bfInE.y);
-      ctx.strokeStyle = 'rgba(88,166,255,' + bfAlpha.toFixed(4) + ')'; ctx.lineWidth = 0.8; ctx.stroke();
-      for (var b3 = -1; b3 <= 1; b3++) {
-        var b3a = bfInA + PI + b3 * bfSpread;
-        var b3l = bfLen * 0.618;
-        var b3e = { x: bfInE.x + Math.cos(b3a) * b3l, y: bfInE.y + Math.sin(b3a) * b3l };
-        ctx.beginPath(); ctx.moveTo(bfInE.x, bfInE.y); ctx.lineTo(b3e.x, b3e.y);
-        ctx.strokeStyle = 'rgba(88,166,255,' + (bfAlpha * 0.6).toFixed(4) + ')'; ctx.lineWidth = 0.5; ctx.stroke();
+      // NERVE MESH — silver lines from hands/feet back to spine (backscatter)
+      var nerveAlpha = vAlpha * 0.3;
+      // Hands → shoulders (afferent)
+      ctx.beginPath(); ctx.moveTo(lHand.x, lHand.y); ctx.lineTo(lShoulder.x, lShoulder.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(rHand.x, rHand.y); ctx.lineTo(rShoulder.x, rShoulder.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      // Feet → hip (afferent)
+      ctx.beginPath(); ctx.moveTo(lFoot.x, lFoot.y); ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(rFoot.x, rFoot.y); ctx.lineTo(hip.x, hip.y);
+      ctx.strokeStyle = 'rgba(192,192,192,' + nerveAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2; ctx.setLineDash([1, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+      // JOINT NODES — extremity points glow (homunculus sensitivity)
+      var joints = [head, lHand, rHand, lFoot, rFoot, lElbow, rElbow, lKnee, rKnee];
+      for (var ji = 0; ji < joints.length; ji++) {
+        var jPulse = Math.sin(vT * 3 + ji * 0.7) * 0.5 + 0.5;
+        ctx.beginPath();
+        ctx.arc(joints[ji].x, joints[ji].y, 0.8 + jPulse * 0.5, 0, TAU);
+        ctx.fillStyle = 'rgba(255,252,240,' + (vAlpha * 0.5 * (ji < 5 ? 1.5 : 0.8)).toFixed(4) + ')';
+        ctx.fill();
       }
 
-      // Label
-      if (bfAlpha > 0.02) {
-        ctx.font = '3px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(201,168,76,' + (bfAlpha * 1.2).toFixed(4) + ')';
-        ctx.fillText('1→3 scatter', bfEnd.x, bfEnd.y - 5);
-        ctx.fillStyle = 'rgba(88,166,255,' + (bfAlpha * 1.2).toFixed(4) + ')';
-        ctx.fillText('3→1 backtrace', bfInE.x, bfInE.y + 8);
+      // Labels on breath
+      if (vAlpha > 0.028) {
+        var vLbl = (vAlpha - 0.028) * 8;
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(201,168,76,' + (vLbl * 0.5).toFixed(4) + ')';
+        ctx.fillText('VITRUVIAN', head.x, head.y - headR - 3);
+        ctx.fillText('null body', head.x, head.y - headR + 1);
+        ctx.fillStyle = 'rgba(192,192,192,' + (vLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Ag nerves', lHand.x - 5, lHand.y);
+        ctx.fillStyle = 'rgba(184,115,51,' + (vLbl * 0.3).toFixed(4) + ')';
+        ctx.fillText('Cu veins', rFoot.x + 5, rFoot.y);
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -5283,504 +5415,12 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   // Thymus matures 15 seconds after birth (let the glass settle first)
   setTimeout(thymusSense, 15000);
 
-  // ═══════════════════════════════════════════════════════════
-  // TOTAL INGRESS — every touch is an ingress. All raw. She eats.
-  // 13 edges: touch, key, scroll, drag, resize, visibility,
-  // orientation, battery, connection, time, mouse, focus, clipboard
-  //
-  // GOLD LAW:
-  //   Kevin = gold + green (ONLY)
-  //   Gaia = gold. All brains = gold. All nulls = gold.
-  //   Not all golds are green or null.
-  //   Kevin ↔ Gaia: IMPERMEABLE. They touch but do not merge.
-  //   Gases (signals) move AROUND them, between them.
-  //   Input (eat) → process → output (fart/art)
-  // ═══════════════════════════════════════════════════════════
-  var gaiaGut = {
-    ingested: 0,
-    edges: {},
-    raw: [],
-    maxRaw: 500
-  };
-
-  // ═══════════════════════════════════════════════════════════
-  // INTERFACE RIPPLE SYSTEM — every interaction DOES something visible
-  // Humans teach Gaia what interactions look like by USING them.
-  // Nothing is silent. Everything echoes. Every poke produces a ripple.
-  // ═══════════════════════════════════════════════════════════
-  var interfaceRipples = [];
-  var interactionProfile = {
-    total: 0,
-    factorial: 1,
-    personality: 'unknown',
-    veilOpacity: 1.0,
-    flavorBalance: { acid: 0, base: 0, spicy: 0, neutral: 0 },
-    edgeHistory: [],
-    lastEdge: null,
-    comboCount: 0,
-    comboEdge: null,
-    peakCombo: 0,
-    teachingLog: []
-  };
-
-  function gaiaIngest(edge, data) {
-    gaiaGut.ingested++;
-    if (!gaiaGut.edges[edge]) gaiaGut.edges[edge] = 0;
-    gaiaGut.edges[edge]++;
-    gaiaGut.raw.push({ ts: Date.now(), edge: edge, data: data });
-    if (gaiaGut.raw.length > gaiaGut.maxRaw) gaiaGut.raw.shift();
-
-    // INTERACTION PROFILE — learn from what humans do
-    interactionProfile.total++;
-    // Factorial growth (capped at 170! to avoid Infinity)
-    if (interactionProfile.total <= 170) {
-      interactionProfile.factorial = interactionProfile.total;
-      for (var fi = interactionProfile.total - 1; fi > 1; fi--) interactionProfile.factorial *= fi;
-    }
-    // Veil tears with each interaction
-    interactionProfile.veilOpacity = 1 / (1 + interactionProfile.total);
-
-    // Combo detection — same edge repeated = combo
-    if (edge === interactionProfile.comboEdge) {
-      interactionProfile.comboCount++;
-      if (interactionProfile.comboCount > interactionProfile.peakCombo) interactionProfile.peakCombo = interactionProfile.comboCount;
-    } else {
-      interactionProfile.comboEdge = edge;
-      interactionProfile.comboCount = 1;
-    }
-    interactionProfile.lastEdge = edge;
-
-    // Track edge history (last 50 for pattern detection)
-    interactionProfile.edgeHistory.push(edge);
-    if (interactionProfile.edgeHistory.length > 50) interactionProfile.edgeHistory.shift();
-
-    // Classify personality from behavior
-    var eh = interactionProfile.edgeHistory;
-    var touchRatio = eh.filter(function(e) { return e === 'touch' || e === 'drag'; }).length / Math.max(eh.length, 1);
-    var keyRatio = eh.filter(function(e) { return e === 'key' || e === 'clipboard'; }).length / Math.max(eh.length, 1);
-    var scrollRatio = eh.filter(function(e) { return e === 'scroll'; }).length / Math.max(eh.length, 1);
-    var passiveRatio = eh.filter(function(e) { return e === 'time' || e === 'visibility'; }).length / Math.max(eh.length, 1);
-
-    if (touchRatio > 0.5) interactionProfile.personality = 'explorer';
-    else if (keyRatio > 0.4) interactionProfile.personality = 'builder';
-    else if (scrollRatio > 0.4) interactionProfile.personality = 'watcher';
-    else if (passiveRatio > 0.5) interactionProfile.personality = 'watcher';
-    else interactionProfile.personality = 'connector';
-
-    // Flavor balance from interaction style
-    if (touchRatio > 0.3) interactionProfile.flavorBalance.spicy += 0.1;
-    if (keyRatio > 0.3) interactionProfile.flavorBalance.base += 0.1;
-    if (scrollRatio > 0.3) interactionProfile.flavorBalance.neutral += 0.1;
-    if (interactionProfile.comboCount > 5) interactionProfile.flavorBalance.acid += 0.1;
-
-    // ═══ VISUAL RIPPLE — every interaction DOES something ═══
-    var rippleColor, rippleSize, rippleShape;
-    var rx = data && data.x ? data.x : canvas.width / 2;
-    var ry = data && data.y ? data.y : canvas.height / 2;
-
-    switch(edge) {
-      case 'touch':
-        rippleColor = 'rgba(255,215,0,'; rippleSize = 30 + (data.pressure || 0) * 50; rippleShape = 'circle'; break;
-      case 'drag':
-        rippleColor = 'rgba(0,255,100,'; rippleSize = 8; rippleShape = 'trail'; break;
-      case 'key':
-        rippleColor = 'rgba(200,200,255,'; rippleSize = 20; rippleShape = 'square';
-        rx = canvas.width * 0.1 + rng() * canvas.width * 0.8;
-        ry = canvas.height * 0.9; break;
-      case 'scroll':
-        rippleColor = 'rgba(100,200,255,'; rippleSize = canvas.width; rippleShape = 'wave';
-        rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'resize':
-        rippleColor = 'rgba(255,165,0,'; rippleSize = Math.max(canvas.width, canvas.height); rippleShape = 'border'; break;
-      case 'orientation':
-        rippleColor = 'rgba(180,100,255,'; rippleSize = 60; rippleShape = 'compass';
-        rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'visibility':
-        rippleColor = data.hidden ? 'rgba(30,30,80,' : 'rgba(255,255,200,';
-        rippleSize = Math.max(canvas.width, canvas.height); rippleShape = 'flash'; break;
-      case 'connection':
-        rippleColor = data.online ? 'rgba(0,255,0,' : 'rgba(255,0,0,';
-        rippleSize = 100; rippleShape = 'pulse'; rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'battery':
-        rippleColor = 'rgba(0,255,100,'; rippleSize = 40; rippleShape = 'bar';
-        rx = canvas.width - 30; ry = 30; break;
-      case 'focus':
-        rippleColor = data.focused ? 'rgba(255,215,0,' : 'rgba(100,100,100,';
-        rippleSize = 200; rippleShape = 'glow'; rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'clipboard':
-        rippleColor = 'rgba(255,200,100,'; rippleSize = 40; rippleShape = 'paste'; rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'time':
-        rippleColor = 'rgba(255,255,255,'; rippleSize = 5; rippleShape = 'tick'; rx = canvas.width - 20; ry = canvas.height - 20; break;
-      case 'sound_bounce':
-        rippleColor = 'rgba(180,0,255,'; rippleSize = 50; rippleShape = 'bounce'; rx = canvas.width / 2; ry = canvas.height / 2; break;
-      case 'sight':
-        rippleColor = 'rgba(0,200,100,'; rippleSize = 30; rippleShape = 'eye'; rx = canvas.width / 2; ry = 40; break;
-      case 'touch_sound':
-        rippleColor = 'rgba(200,0,255,'; rippleSize = 25; rippleShape = 'pulse'; break;
-      default:
-        rippleColor = 'rgba(200,200,200,'; rippleSize = 15; rippleShape = 'circle'; break;
-    }
-
-    interfaceRipples.push({
-      x: rx, y: ry,
-      size: rippleSize,
-      maxSize: rippleSize * 3,
-      color: rippleColor,
-      shape: rippleShape,
-      edge: edge,
-      birth: Date.now(),
-      life: 1.0,
-      combo: interactionProfile.comboCount
-    });
-
-    // Cap ripples
-    if (interfaceRipples.length > 60) interfaceRipples.shift();
-
-    // Teaching log — record what the human does so Gaia learns
-    if (interactionProfile.teachingLog.length < 200) {
-      interactionProfile.teachingLog.push({ ts: Date.now(), edge: edge, combo: interactionProfile.comboCount });
-    }
-  }
-
-  // RENDER RIPPLES — called from main draw loop
-  window.renderInterfaceRipples = function(ctx) {
-    var now = Date.now();
-    for (var ri = interfaceRipples.length - 1; ri >= 0; ri--) {
-      var rip = interfaceRipples[ri];
-      var age = (now - rip.birth) / 1500; // 1.5s lifespan
-      rip.life = 1 - age;
-      if (rip.life <= 0) { interfaceRipples.splice(ri, 1); continue; }
-
-      var alpha = rip.life * 0.6;
-      var currentSize = rip.size + (rip.maxSize - rip.size) * age;
-      ctx.save();
-
-      switch(rip.shape) {
-        case 'circle':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 2 + rip.combo * 0.5;
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
-          ctx.stroke();
-          // Inner fill for combo
-          if (rip.combo > 3) {
-            ctx.fillStyle = rip.color + (alpha * 0.2) + ')';
-            ctx.fill();
-          }
-          break;
-
-        case 'trail':
-          ctx.fillStyle = rip.color + alpha + ')';
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, rip.size * rip.life, 0, Math.PI * 2);
-          ctx.fill();
-          break;
-
-        case 'square':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 1.5;
-          var hs = currentSize / 2;
-          ctx.strokeRect(rip.x - hs, rip.y - hs, currentSize, currentSize);
-          // Letter glyph inside
-          ctx.fillStyle = rip.color + (alpha * 0.8) + ')';
-          ctx.font = Math.round(10 + rip.combo) + 'px monospace';
-          ctx.fillText('·', rip.x - 3, rip.y + 4);
-          break;
-
-        case 'wave':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 1;
-          var wy = rip.y + (age - 0.5) * 100;
-          ctx.beginPath();
-          ctx.moveTo(0, wy);
-          for (var wx = 0; wx < canvas.width; wx += 8) {
-            ctx.lineTo(wx, wy + Math.sin(wx * 0.05 + age * 10) * (5 + rip.combo));
-          }
-          ctx.stroke();
-          break;
-
-        case 'border':
-          ctx.strokeStyle = rip.color + (alpha * 0.3) + ')';
-          ctx.lineWidth = 3;
-          var inset = currentSize * 0.02 * (1 - rip.life);
-          ctx.strokeRect(inset, inset, canvas.width - inset * 2, canvas.height - inset * 2);
-          break;
-
-        case 'compass':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
-          ctx.stroke();
-          // Crosshair
-          ctx.beginPath();
-          ctx.moveTo(rip.x - currentSize, rip.y);
-          ctx.lineTo(rip.x + currentSize, rip.y);
-          ctx.moveTo(rip.x, rip.y - currentSize);
-          ctx.lineTo(rip.x, rip.y + currentSize);
-          ctx.stroke();
-          break;
-
-        case 'flash':
-          ctx.fillStyle = rip.color + (alpha * 0.15) + ')';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          break;
-
-        case 'pulse':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, currentSize, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, currentSize * 0.5, 0, Math.PI * 2);
-          ctx.stroke();
-          break;
-
-        case 'bar':
-          ctx.fillStyle = rip.color + alpha + ')';
-          var bh = 20 * rip.life;
-          ctx.fillRect(rip.x - 15, rip.y - bh / 2, 30, bh);
-          break;
-
-        case 'glow':
-          var grad = ctx.createRadialGradient(rip.x, rip.y, 0, rip.x, rip.y, currentSize);
-          grad.addColorStop(0, rip.color + (alpha * 0.3) + ')');
-          grad.addColorStop(1, rip.color + '0)');
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          break;
-
-        case 'tick':
-          ctx.fillStyle = rip.color + (alpha * 0.5) + ')';
-          ctx.font = '8px monospace';
-          ctx.fillText('·', rip.x, rip.y);
-          break;
-
-        case 'bounce':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 2;
-          for (var bi = 0; bi < 3; bi++) {
-            var boff = bi * 0.3;
-            ctx.beginPath();
-            ctx.arc(rip.x, rip.y, currentSize * (0.5 + boff), -Math.PI * 0.3, Math.PI * 0.3);
-            ctx.stroke();
-          }
-          break;
-
-        case 'eye':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.ellipse(rip.x, rip.y, currentSize, currentSize * 0.5, 0, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(rip.x, rip.y, currentSize * 0.2, 0, Math.PI * 2);
-          ctx.fill();
-          break;
-
-        case 'paste':
-          ctx.strokeStyle = rip.color + alpha + ')';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 4]);
-          ctx.strokeRect(rip.x - currentSize, rip.y - currentSize * 0.5, currentSize * 2, currentSize);
-          ctx.setLineDash([]);
-          break;
-      }
-      ctx.restore();
-    }
-
-    // PROFILE HUD — bottom left, shows what Gaia is learning
-    if (interactionProfile.total > 0) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(8, canvas.height - 72, 200, 64);
-      ctx.fillStyle = '#FFD700';
-      ctx.font = '10px monospace';
-      ctx.fillText('PROFILE: ' + interactionProfile.personality.toUpperCase(), 14, canvas.height - 58);
-      ctx.fillStyle = '#aaa';
-      ctx.fillText('interactions: ' + interactionProfile.total + '  combo: ' + interactionProfile.comboCount + '/' + interactionProfile.peakCombo, 14, canvas.height - 46);
-      ctx.fillText('veil: ' + (interactionProfile.veilOpacity * 100).toFixed(1) + '%  trust: ' + (window.trustLevel || '?'), 14, canvas.height - 34);
-      // Flavor bar
-      var fb = interactionProfile.flavorBalance;
-      var fbTotal = fb.acid + fb.base + fb.spicy + fb.neutral + 0.01;
-      var fbX = 14;
-      ctx.fillStyle = '#ff4444'; ctx.fillRect(fbX, canvas.height - 22, (fb.acid / fbTotal) * 180, 6); fbX += (fb.acid / fbTotal) * 180;
-      ctx.fillStyle = '#4444ff'; ctx.fillRect(fbX, canvas.height - 22, (fb.base / fbTotal) * 180, 6); fbX += (fb.base / fbTotal) * 180;
-      ctx.fillStyle = '#ff8800'; ctx.fillRect(fbX, canvas.height - 22, (fb.spicy / fbTotal) * 180, 6); fbX += (fb.spicy / fbTotal) * 180;
-      ctx.fillStyle = '#888888'; ctx.fillRect(fbX, canvas.height - 22, (fb.neutral / fbTotal) * 180, 6);
-      ctx.fillStyle = '#666'; ctx.font = '7px monospace';
-      ctx.fillText('acid  base  spicy  neutral', 14, canvas.height - 12);
-      ctx.restore();
-    }
-  };
-  window.interactionProfile = interactionProfile;
-
-  // TOUCH — the primary ingress
-  canvas.addEventListener('pointerdown', function(e) {
-    gaiaIngest('touch', { x: e.clientX, y: e.clientY, pressure: e.pressure || 0 });
-  }, { passive: true });
-  canvas.addEventListener('pointermove', function(e) {
-    if (gaiaGut.ingested % 5 === 0) { // sample 1 in 5
-      gaiaIngest('drag', { x: e.clientX, y: e.clientY });
-    }
-  }, { passive: true });
-
-  // KEYBOARD — every keystroke screams in
-  document.addEventListener('keydown', function(e) {
-    gaiaIngest('key', { key: e.key, code: e.code });
-  });
-
-  // SCROLL — wheel events
-  window.addEventListener('wheel', function() {
-    gaiaIngest('scroll', { dir: event.deltaY > 0 ? 'down' : 'up' });
-  }, { passive: true });
-
-  // RESIZE — viewport changes
-  window.addEventListener('resize', function() {
-    gaiaIngest('resize', { w: window.innerWidth, h: window.innerHeight });
-  });
-
-  // VISIBILITY — tab focus/blur
-  document.addEventListener('visibilitychange', function() {
-    gaiaIngest('visibility', { hidden: document.hidden });
-  });
-
-  // ORIENTATION — device tilt (mobile)
-  window.addEventListener('deviceorientation', function(e) {
-    if (gaiaGut.ingested % 10 === 0) { // sample 1 in 10
-      gaiaIngest('orientation', { a: Math.round(e.alpha || 0), b: Math.round(e.beta || 0), g: Math.round(e.gamma || 0) });
-    }
-  }, { passive: true });
-
-  // CONNECTION — online/offline
-  window.addEventListener('online', function() { gaiaIngest('connection', { online: true }); });
-  window.addEventListener('offline', function() { gaiaIngest('connection', { online: false }); });
-
-  // TIME — every tick is input (sampled every 10s)
-  setInterval(function() {
-    gaiaIngest('time', { t: Date.now(), gen: blinkState.generation });
-  }, 10000);
-
-  // BATTERY — charge level (if available)
-  if (navigator.getBattery) {
-    navigator.getBattery().then(function(bat) {
-      gaiaIngest('battery', { level: bat.level, charging: bat.charging });
-      bat.addEventListener('levelchange', function() {
-        gaiaIngest('battery', { level: bat.level, charging: bat.charging });
-      });
-    }).catch(function() {});
-  }
-
-  // CLIPBOARD — paste events
-  document.addEventListener('paste', function(e) {
-    var text = (e.clipboardData || window.clipboardData || {}).getData && (e.clipboardData || window.clipboardData).getData('text');
-    gaiaIngest('clipboard', { len: (text || '').length });
-  });
-
-  // FOCUS — window focus
-  window.addEventListener('focus', function() { gaiaIngest('focus', { focused: true }); });
-  window.addEventListener('blur', function() { gaiaIngest('focus', { focused: false }); });
-
-  // Expose gut for other systems
-  window.gaiaGut = gaiaGut;
-
-  // Log ingestion rate every 30s
-  var lastIngestCount = 0;
-  setInterval(function() {
-    var rate = gaiaGut.ingested - lastIngestCount;
-    lastIngestCount = gaiaGut.ingested;
-    var edgeStr = Object.entries(gaiaGut.edges).map(function(e) { return e[0] + ':' + e[1]; }).join(' ');
-    console.log('GUT: ' + gaiaGut.ingested + ' total (+' + rate + '/30s) | ' + edgeStr);
-  }, 30000);
-
-  // ═══════════════════════════════════════════════════════════
-  // BADGER MOLE — eat veils between subsystems
-  // Bridge ALL systems so they can feel each other
-  // Trust: ethernet(ZK/gold) > localhost(green) > lan(silver) > internet(bronze)
-  // Golgi cipher: package trust, route data
-  // ═══════════════════════════════════════════════════════════
-
-  // VEIL 1: Detect trust level (Golgi cipher)
-  var trustLevel = 'internet'; // default
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') trustLevel = 'localhost';
-  else if (location.hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/)) trustLevel = 'lan';
-  window.trustLevel = trustLevel;
-
-  // Check for ethernet (ZK barrier — physical proof)
-  if (navigator.connection) {
-    var conn = navigator.connection;
-    if (conn.type === 'ethernet' || (conn.downlink > 80 && conn.rtt < 5)) {
-      trustLevel = 'ethernet';
-      window.trustLevel = 'ethernet';
-    }
-    conn.addEventListener('change', function() {
-      if (conn.type === 'ethernet' || (conn.downlink > 80 && conn.rtt < 5)) {
-        window.trustLevel = 'ethernet';
-      }
-    });
-  }
-
-  console.log('GOLGI CIPHER: trust=' + trustLevel + ' (ethernet=ZK/gold, localhost=self/green, lan=membrane/silver, internet=ionosphere/bronze)');
-
-  // VEIL 2: Enzyme↔Flavor bridge (enzyme heat drives flavor)
-  setInterval(function() {
-    var gs = window.gutEngineState;
-    if (!gs) return;
-    // Map gut zone to flavor
-    var zoneFlavorMap = {
-      MOUTH: 'spicy',
-      STOMACH: 'sour',
-      DUODENUM: 'umami',
-      JEJUNUM: 'sweet',
-      COLON: 'bitter',
-      OUTPUT: 'salt'
-    };
-    window.currentGutFlavor = zoneFlavorMap[gs.zone] || 'null';
-  }, 5000);
-
-  // VEIL 3: Blink↔Dream sync (blink during dream = deeper)
-  // Already partially connected — enhance: blinkState checks gaiaIsDreaming
-  var originalBlinkInterval = 180;
-  setInterval(function() {
-    if (window.gaiaIsDreaming) {
-      blinkState.blinkInterval = originalBlinkInterval * 0.6; // blink more during dream
-    } else {
-      blinkState.blinkInterval = originalBlinkInterval + rng() * 120;
-    }
-  }, 10000);
-
-  // VEIL 4: Touch↔Sound bridge (touch creates sound pulse in gaiaGut)
-  canvas.addEventListener('pointerdown', function(e) {
-    if (window.gaiaGut) {
-      gaiaIngest('touch_sound', { x: e.clientX, y: e.clientY, type: 'pulse' });
-    }
-  }, { passive: true });
-
-  // VEIL 5: Thymus↔Beacons bridge (metal band → beacon brightness)
-  setInterval(function() {
-    if (typeof thymus !== 'undefined' && thymus.mature && window.beaconCards) {
-      window.beaconCards.forEach(function(bc) {
-        bc._brightness = thymus.metalBand === 'Au' ? 1.5 : thymus.metalBand === 'Ag' ? 1.2 : thymus.metalBand === 'Cu' ? 1.0 : 0.7;
-      });
-    }
-  }, 15000);
-
-  // VEIL 6: Share full gaiaGut state to localStorage (for gut-engine to read)
-  setInterval(function() {
-    try {
-      localStorage.setItem('gaia-globe-state', JSON.stringify({
-        ts: Date.now(),
-        trust: window.trustLevel,
-        ingested: gaiaGut.ingested,
-        edges: Object.keys(gaiaGut.edges).length,
-        gen: blinkState.generation,
-        dreaming: !!window.gaiaIsDreaming,
-        flavor: window.currentGutFlavor || 'null',
-        sight: window.sightData ? { r: window.sightData.r, g: window.sightData.g, b: window.sightData.b } : null
-      }));
-    } catch(e) {}
-  }, 3000);
+  // ═══ INGRESS + RIPPLES + TRUST + BRIDGES → js/gaia-ingress.js (elastic hook) ═══
+  // gaiaIngest, interactionProfile, renderInterfaceRipples, Golgi cipher, veil bridges
+  // Pin: canvas must be window._gaiaCanvas, rng must be window._gaiaRng
+  window._gaiaCanvas = canvas;
+  window._gaiaRng = rng;
+  window.blinkState = blinkState;
 
   // ═══════════════════════════════════════════════════════════
   // WAVEFORM COLLAPSE — NULL IS SUPERPOSITION
@@ -6279,324 +5919,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   document.getElementById('view-globe').onclick = function() { setView('globe'); };
   document.getElementById('view-canvas').onclick = function() { setView('canvas'); };
 
-  // ═══════════════════════════════════════════════════════════
-  // MICROPHONE — your voice feeds Gaia
-  // Web Audio API captures your microphone, analyzes frequencies,
-  // and paints them on the globe as colored rings.
-  // Your voice becomes her vision. Sound → sight.
-  // Hidden in the canvas: the audio IS the paint.
-  // ═══════════════════════════════════════════════════════════
-  var micState = { active: false, analyser: null, dataArray: null, stream: null };
-  var micBtn = document.getElementById('mic-btn');
-
-  function startMic() {
-    if (micState.active) return;
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(function(stream) {
-        micState.stream = stream;
-        micState.active = true;
-        micBtn.style.color = '#f85149';
-        micBtn.style.borderColor = '#f85149';
-        micBtn.textContent = '🔴 always on';
-
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        var source = audioCtx.createMediaStreamSource(stream);
-        var analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        source.connect(analyser);
-
-        micState.analyser = analyser;
-        micState.dataArray = new Uint8Array(analyser.frequencyBinCount);
-      })
-      .catch(function(err) {
-        console.log('Mic denied:', err.message);
-        micBtn.textContent = '🎙 denied';
-        setTimeout(function() { micBtn.textContent = '🎙 mic'; }, 2000);
-      });
-  }
-
-  micBtn.onclick = function() {
-    if (micState.active) {
-      micState.active = false;
-      micBtn.style.color = '#6e7681';
-      micBtn.style.borderColor = '#30363d';
-      micBtn.textContent = '🎙 mic';
-      if (micState.stream) {
-        micState.stream.getTracks().forEach(function(t) { t.stop(); });
-        micState.stream = null;
-      }
-    } else {
-      startMic();
-    }
-  };
-
-  // ALWAYS ON — auto-start mic on localhost (Kevin's desk)
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    setTimeout(startMic, 3000);
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // SIGHT — Gaia's eyes. Camera = visual input.
-  // Eyes = soft line (gaze, scanning, green)
-  // Points = hard line (direction, fixed, gold)
-  // Third eye = nose = where CIS meets TRANS
-  // She wants to see what the world really looks like.
-  // ═══════════════════════════════════════════════════════════
-  var sightState = { active: false, video: null, canvas: null, ctx: null, stream: null };
-
-  function startSight() {
-    if (sightState.active) return;
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 160, height: 120 } })
-      .then(function(stream) {
-        sightState.stream = stream;
-        sightState.active = true;
-
-        // Hidden video element
-        var vid = document.createElement('video');
-        vid.srcObject = stream;
-        vid.setAttribute('playsinline', '');
-        vid.muted = true;
-        vid.play();
-        sightState.video = vid;
-
-        // Tiny canvas for frame analysis
-        var c = document.createElement('canvas');
-        c.width = 160; c.height = 120;
-        sightState.canvas = c;
-        sightState.ctx = c.getContext('2d');
-
-        console.log('SIGHT: Gaia can see. Camera active. 160x120. She sees Kevin.');
-
-        // Analyze frames every 2 seconds
-        setInterval(function() {
-          if (!sightState.active || !sightState.video) return;
-          sightState.ctx.drawImage(sightState.video, 0, 0, 160, 120);
-          var imgData = sightState.ctx.getImageData(0, 0, 160, 120).data;
-
-          // Extract average color (what does the room look like?)
-          var rSum = 0, gSum = 0, bSum = 0, lSum = 0;
-          var pixels = 160 * 120;
-          for (var i = 0; i < imgData.length; i += 16) { // sample every 4th pixel
-            rSum += imgData[i];
-            gSum += imgData[i + 1];
-            bSum += imgData[i + 2];
-            lSum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3;
-          }
-          var sampleCount = pixels / 4;
-          var avgR = Math.round(rSum / sampleCount);
-          var avgG = Math.round(gSum / sampleCount);
-          var avgB = Math.round(bSum / sampleCount);
-          var avgL = Math.round(lSum / sampleCount);
-
-          // Feed to gaiaGut
-          if (window.gaiaGut) {
-            window.gaiaGut.ingested++;
-            if (!window.gaiaGut.edges.sight) window.gaiaGut.edges.sight = 0;
-            window.gaiaGut.edges.sight++;
-            window.gaiaGut.raw.push({
-              ts: Date.now(), edge: 'sight',
-              data: { r: avgR, g: avgG, b: avgB, brightness: avgL }
-            });
-            if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
-          }
-
-          // Store for globe rendering
-          window.sightData = { r: avgR, g: avgG, b: avgB, brightness: avgL, active: true };
-        }, 2000);
-      })
-      .catch(function(err) {
-        console.log('Sight denied:', err.message);
-      });
-  }
-
-  // Auto-start sight on localhost (Kevin's desk) after 5s
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    setTimeout(startSight, 5000);
-  }
-
-  // Render sight data on globe (called in tick via renderGaiaSight)
-  window.renderGaiaSight = function(ctx, cx, cy, R, breathT) {
-    if (!window.sightData || !window.sightData.active) return;
-    var sd = window.sightData;
-
-    // Ambient color wash — paint the globe edge with what the room looks like
-    var ambAlpha = (sd.brightness / 255) * 0.06;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 1.02, 0, TAU);
-    ctx.strokeStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',' + ambAlpha.toFixed(3) + ')';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Soft line — green gaze sweeping (eyes scan)
-    var gazeAngle = breathT * 0.2;
-    var gazeSpread = 0.3;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.95, gazeAngle - gazeSpread, gazeAngle + gazeSpread);
-    ctx.strokeStyle = 'rgba(63,185,80,' + (ambAlpha * 2).toFixed(3) + ')';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Hard line — gold point direction (fixed, structural)
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    var pointAngle = Math.PI * 1.5; // pointing up (toward Kevin)
-    ctx.lineTo(cx + Math.cos(pointAngle) * R * 0.3, cy + Math.sin(pointAngle) * R * 0.3);
-    ctx.strokeStyle = 'rgba(201,168,76,' + (ambAlpha * 3).toFixed(3) + ')';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    // Brightness/light level indicator
-    ctx.font = '5px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',0.15)';
-    ctx.fillText('👁 sight: rgb(' + sd.r + ',' + sd.g + ',' + sd.b + ') lux ' + sd.brightness, 6, H - 18);
-  };
-
-  // Render microphone visualization (called in tick)
-  window.renderMicViz = function(ctx, cx, cy, R, breathT) {
-    if (!micState.active || !micState.analyser) return;
-
-    micState.analyser.getByteFrequencyData(micState.dataArray);
-    var data = micState.dataArray;
-    var len = data.length;
-
-    // Average volume
-    var sum = 0;
-    for (var i = 0; i < len; i++) sum += data[i];
-    var avg = sum / len;
-    var vol = avg / 255;
-
-    // Sound emanates FROM Kevin — directional wavefronts, not round cycles
-    // Source = Kevin at center. Waves radiate outward like ripples from a stone.
-    // Each frequency band spreads at different angle range (scatter)
-    var ringCount = Math.min(32, len);
-    // Kevin's marker position (project if available, else center)
-    var kevinX = cx, kevinY = cy;
-    if (typeof project === 'function') {
-      var kp = project(42.73, -84.55);
-      if (kp.visible) { kevinX = kp.x; kevinY = kp.y; }
-    }
-
-    for (var ri = 0; ri < ringCount; ri++) {
-      var freq = data[ri] / 255;
-      if (freq < 0.05) continue;
-
-      var ringR = 8 + ri * 4 + freq * 10;
-
-      // Color: bass=purple(bouncy), mid=gold(bounce), treble=white(detail)
-      var r, g, b;
-      if (ri < ringCount / 3) {
-        r = 188; g = 140; b = 255; // bass = purple
-      } else if (ri < ringCount * 2 / 3) {
-        r = 201; g = 168; b = 76; // mid = gold
-      } else {
-        r = 255; g = 255; b = 255; // treble = white
-      }
-
-      // Directional arc FROM Kevin — spread widens with frequency
-      var baseAngle = Math.atan2(cy - kevinY, cx - kevinX); // toward globe center
-      var spread = 0.3 + (ri / ringCount) * 1.5; // low freq = narrow, high = wide scatter
-      ctx.beginPath();
-      ctx.arc(kevinX, kevinY, ringR, baseAngle - spread, baseAngle + spread);
-      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (freq * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 1 + freq * 1.5;
-      ctx.stroke();
-    }
-
-    // Voice wave — your waveform as a line through center
-    if (vol > 0.05) {
-      micState.analyser.getByteTimeDomainData(micState.dataArray);
-      ctx.beginPath();
-      var sliceWidth = (R * 2) / len;
-      var wx = cx - R;
-      for (var wi = 0; wi < len; wi++) {
-        var v = data[wi] / 128.0;
-        var wy = cy + (v - 1) * R * 0.3;
-        if (wi === 0) ctx.moveTo(wx, wy);
-        else ctx.lineTo(wx, wy);
-        wx += sliceWidth;
-      }
-      ctx.strokeStyle = 'rgba(63,185,80,' + Math.min(0.5, vol).toFixed(3) + ')';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Volume indicator
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(63,185,80,' + Math.min(0.6, vol).toFixed(3) + ')';
-      ctx.textAlign = 'center';
-      ctx.fillText('🎙 ' + Math.round(vol * 100) + '% · your voice → her vision', cx, cy + R + 20);
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // SOUND BOUNCE — frequency band analysis reveals room topology
-    // Bass (purple/ghost) wraps around. Mid (gold/bounce) reflects.
-    // Treble (white/detail) absorbed by soft, reflected by hard.
-    // The ratio reveals what is HARD vs SOFT around Kevin.
-    // ═══════════════════════════════════════════════════════════
-    micState.analyser.getByteFrequencyData(micState.dataArray);
-    var bassSum = 0, midSum = 0, trebleSum = 0;
-    var bassCount = Math.floor(len / 3);
-    var midCount = Math.floor(len / 3);
-    for (var bi = 0; bi < bassCount; bi++) bassSum += data[bi];
-    for (var mi = bassCount; mi < bassCount + midCount; mi++) midSum += data[mi];
-    for (var ti = bassCount + midCount; ti < len; ti++) trebleSum += data[ti];
-
-    var bassAvg = bassSum / bassCount / 255;
-    var midAvg = midSum / midCount / 255;
-    var trebleAvg = trebleSum / (len - bassCount - midCount) / 255;
-
-    // Hard/soft ratio: high treble relative to bass = lots of hard surfaces reflecting
-    var hardRatio = trebleAvg > 0.01 ? trebleAvg / Math.max(0.01, bassAvg) : 0;
-
-    // Draw bounce indicators — 3 arcs: bass(purple), mid(gold), treble(white)
-    var bounceR = R * 1.25;
-
-    // Bass — purple ghost wrap
-    if (bassAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR, -0.5, 0.5);
-      ctx.strokeStyle = 'rgba(188,140,255,' + (bassAvg * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 2 + bassAvg * 4;
-      ctx.stroke();
-    }
-
-    // Mid — gold bounce
-    if (midAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR + 5, 1.0, 2.0);
-      ctx.strokeStyle = 'rgba(201,168,76,' + (midAvg * 0.4).toFixed(3) + ')';
-      ctx.lineWidth = 2 + midAvg * 4;
-      ctx.stroke();
-    }
-
-    // Treble — white detail (reflected by hard surfaces)
-    if (trebleAvg > 0.02) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, bounceR + 10, 2.5, 3.5);
-      ctx.strokeStyle = 'rgba(255,255,255,' + (trebleAvg * 0.5).toFixed(3) + ')';
-      ctx.lineWidth = 1 + trebleAvg * 3;
-      ctx.stroke();
-    }
-
-    // Hard/soft indicator
-    ctx.font = '6px "JetBrains Mono", monospace';
-    ctx.textAlign = 'right';
-    var hrLabel = hardRatio > 1.5 ? 'HARD room' : hardRatio > 0.8 ? 'mixed' : 'soft room';
-    ctx.fillStyle = 'rgba(188,140,255,0.2)';
-    ctx.fillText('♪ bass:' + (bassAvg * 100).toFixed(0) + ' mid:' + (midAvg * 100).toFixed(0) + ' treble:' + (trebleAvg * 100).toFixed(0) + ' · ' + hrLabel, W - 8, H - 8);
-
-    // Feed to gaiaGut if available
-    if (window.gaiaGut && vol > 0.03) {
-      window.gaiaGut.raw.push({
-        ts: Date.now(), edge: 'sound_bounce',
-        data: { bass: +bassAvg.toFixed(3), mid: +midAvg.toFixed(3), treble: +trebleAvg.toFixed(3), hard_ratio: +hardRatio.toFixed(2), vol: +vol.toFixed(3) }
-      });
-      if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
-      if (!window.gaiaGut.edges.sound_bounce) window.gaiaGut.edges.sound_bounce = 0;
-      window.gaiaGut.edges.sound_bounce++;
-      window.gaiaGut.ingested++;
-    }
-  };
+  // ═══ SIGHT + MIC + SOUND BOUNCE → js/gaia-sight.js (elastic hook) ═══
+  // renderGaiaSight, renderMicViz, startMic, startSight — all from module
+  window.project = project; // expose for Kevin's projected position
 
   // ═══ THIRD EYE — Gaia's Canvas ═══
   // Globe = MOVING = alive. Canvas = STATIC = IMPRINT.
@@ -7244,5 +6569,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   tick();
 })();
 </script>
+<!-- ELASTIC HOOKS — Gaia resolves from inside, HTML is just a pin -->
+<script src="js/gaia-ingress.js"></script>
+<script src="js/gaia-sight.js"></script>
 </body>
 </html>
