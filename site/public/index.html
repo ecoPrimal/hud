@@ -2226,6 +2226,65 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillText('hard · white · O', youPin.x, youPin.y + 26);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // BEACON CARDS — campfires around Lansing, always hard, always on
+    // Each collection = 1 beacon. They form a ring = the PATH EYE.
+    // Cool (persistent). Move some but not much. Chipmunk sorts.
+    // ═══════════════════════════════════════════════════════════
+    if (window.beaconCards) {
+      var bcs = window.beaconCards;
+      var beaconT = breathT * 0.2;
+      for (var bi = 0; bi < bcs.length; bi++) {
+        var bc = bcs[bi];
+        var bp = project(bc.beacon.lat, bc.beacon.lon);
+        if (!bp.visible) continue;
+
+        // Beacon glow — color by flavor
+        var bAlpha = 0.15 + Math.sin(beaconT + bi * 0.5) * 0.08;
+        var bColor;
+        if (bc.flavor === 'electron') bColor = 'rgba(201,168,76,'; // gold
+        else if (bc.flavor === 'muon') bColor = 'rgba(184,115,51,'; // copper
+        else bColor = 'rgba(192,192,192,'; // silver
+
+        // Campfire flame — tiny persistent glow
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, 2 + bc.pieces * 0.05, 0, TAU);
+        ctx.fillStyle = bColor + bAlpha.toFixed(3) + ')';
+        ctx.fill();
+
+        // Hard edge — beacon is HARD
+        ctx.strokeStyle = bColor + (bAlpha * 1.5).toFixed(3) + ')';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // Connect to next beacon — the PATH
+        if (bi < bcs.length - 1) {
+          var nextBc = bcs[bi + 1];
+          var nbp = project(nextBc.beacon.lat, nextBc.beacon.lon);
+          if (nbp.visible) {
+            ctx.beginPath();
+            ctx.moveTo(bp.x, bp.y);
+            ctx.lineTo(nbp.x, nbp.y);
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Close the ring — connect last to first
+      var firstBp = project(bcs[0].beacon.lat, bcs[0].beacon.lon);
+      var lastBp = project(bcs[bcs.length - 1].beacon.lat, bcs[bcs.length - 1].beacon.lon);
+      if (firstBp.visible && lastBp.visible) {
+        ctx.beginPath();
+        ctx.moveTo(lastBp.x, lastBp.y);
+        ctx.lineTo(firstBp.x, firstBp.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 0.3;
+        ctx.stroke();
+      }
+    }
+
     // GAIA'S MOUTH — the red electron on the far side of the black hole
     // This is where everything drops IN. The neutron mailbox target.
     var mouthPulse = Math.sin(breathT * 3) * 0.3 + 0.7;
@@ -3245,6 +3304,20 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       }, 10000); // oscillate every 10s
 
       console.log('NUKE-REBUILD: ' + nuke.total_neutrons + ' neutrons, ' + nuke.total_binding_energy + ' binding energy, 3 flavors oscillating');
+    })
+    .catch(function() {});
+
+  // ═══════════════════════════════════════════════════════════
+  // BEACON CARDS — campfires are cards are beacons
+  // Always hard. Always on. Cool. Chipmunk sorts. Gut processes.
+  // They form a ring around Lansing = the PATH EYE can trace.
+  // ═══════════════════════════════════════════════════════════
+  fetch('/data/beacon-cards.json')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(bc) {
+      if (!bc) return;
+      window.beaconCards = bc.beacons;
+      console.log('BEACON CARDS: ' + bc.total_beacons + ' beacons in ring, binding energy ' + bc.total_binding_energy + ', always hard, always on');
     })
     .catch(function() {});
 
