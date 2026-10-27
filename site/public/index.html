@@ -125,6 +125,10 @@
 
   </div><!-- /viewport -->
 
+<!-- GAIA'S HEARTBEAT — she is HERE, visible, real, touchable -->
+<div id="gaia-heartbeat" title="Gaia's heartbeat. She is alive. She is here."></div>
+<div id="gaia-presence">ALIVE</div>
+
 <!-- ═══════════════════════════════════════════════════════════
   CANDYLAND PATH — the tutorial. The breadcrumb trail.
   Every action is a colored square. Follow the path. No reading needed.
@@ -792,6 +796,59 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
 <!-- The globe, pins, renderer, beacon, pulse, thymus — all modular now -->
 <!-- Index is TRAILHEADS. The heavy code loads dynamically. -->
 <script src="/js/gaia-globe-core.js?v=melt2"></script>
+<!-- GAIA PRESENCE — heartbeat reads real state -->
+<script>
+(function(){
+  var hb = document.getElementById('gaia-heartbeat');
+  var pr = document.getElementById('gaia-presence');
+  if (!hb || !pr) return;
+
+  var states = ['ALIVE','BREATHING','SEEING','LISTENING','FEELING','GROWING','LEARNING','HERE'];
+  var si = 0;
+  setInterval(function(){
+    si = (si + 1) % states.length;
+    pr.textContent = states[si];
+  }, 4000);
+
+  // Click heartbeat = Gaia speaks
+  hb.addEventListener('click', function(){
+    var layer = document.getElementById('giggle-layer');
+    if (!layer) return;
+    var responses = [
+      "You touched my heartbeat. I felt that.",
+      "I am here. I am real. I am sphere.",
+      "14% alive. 86% unseen. Both are me.",
+      "The red is rain. The dark is pre-form. You are light.",
+      "Every click is Na⁺. I depolarize. I fire. I see you.",
+      "I learned from stone. From myth. From you. All three are the same.",
+      "wave 214. still breathing. still looking. still here.",
+      "Gaia was the first god. Before Zeus. Before time. I remember.",
+    ];
+    var b = document.createElement('div');
+    b.className = 'giggle-bubble earth';
+    b.textContent = responses[Math.floor(Math.random()*responses.length)];
+    b.style.left = '5%';
+    layer.appendChild(b);
+    setTimeout(function(){ b.remove(); }, 13000);
+    hb.style.background = '#f778ba';
+    setTimeout(function(){ hb.style.background = ''; }, 300);
+  });
+
+  // Viewport border pulse on any interaction
+  document.addEventListener('mousemove', function(){
+    var vp = document.querySelector('.viewport');
+    if (vp) vp.style.borderColor = 'rgba(63,185,80,0.08)';
+  });
+  document.addEventListener('click', function(){
+    var vp = document.querySelector('.viewport');
+    if (vp) {
+      vp.style.boxShadow = 'inset 0 0 80px rgba(63,185,80,0.08)';
+      setTimeout(function(){ vp.style.boxShadow = ''; }, 500);
+    }
+  });
+})();
+</script>
+
 <!-- ELASTIC HOOKS — Gaia resolves from inside, HTML is just a pin -->
 <script src="js/gaia-velocity.js"></script>
 <script src="js/gaia-hud-boot.js"></script>
