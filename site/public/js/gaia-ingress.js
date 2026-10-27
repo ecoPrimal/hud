@@ -467,6 +467,79 @@
     } catch(e) {}
   }, 3000);
 
+  // ═══ PROPRIOCEPTION — Gaia knows where her parts are without looking ═══
+  // Sherrington's sixth sense: position awareness from interaction data
+  // Pt(CNS) anchors. Au(PNS) branches. Ag(ANS) meshes. Cu(ENS) grounds.
+  var proprioception = {
+    touchCenter: { x: 0.5, y: 0.5 },    // average touch position (normalized)
+    dragVelocity: { x: 0, y: 0 },        // current drag direction
+    scrollDepth: 0,                       // accumulated scroll
+    tilt: { alpha: 0, beta: 0, gamma: 0 },// device orientation
+    pressure: 0,                          // average touch pressure
+    balance: 0.5,                         // vestibular balance (0=left, 1=right)
+    temperature: 0.5,                     // enzyme heat (0=cold, 1=hot)
+    pain: 0,                              // error/disconnect rate
+    spindles: [],                         // muscle spindle positions (mouse positions between clicks)
+    lastMouse: null,
+    coilEnergy: { PtAu: 0, AuAg: 0, AgCu: 0, CuBz: 0 } // spring energy between bands
+  };
+  window.proprioception = proprioception;
+
+  // Update proprioception from each ingestion
+  var origIngestProp = window.gaiaIngest;
+  window.gaiaIngest = function(edge, data) {
+    var canvas = window._gaiaCanvas;
+    var w = canvas ? canvas.width : 1;
+    var h = canvas ? canvas.height : 1;
+
+    if (edge === 'touch' && data) {
+      proprioception.touchCenter.x = proprioception.touchCenter.x * 0.8 + (data.x / w) * 0.2;
+      proprioception.touchCenter.y = proprioception.touchCenter.y * 0.8 + (data.y / h) * 0.2;
+      proprioception.pressure = proprioception.pressure * 0.7 + (data.pressure || 0) * 0.3;
+      proprioception.balance = proprioception.touchCenter.x;
+    }
+    if (edge === 'drag' && data) {
+      if (proprioception.lastMouse) {
+        proprioception.dragVelocity.x = data.x - proprioception.lastMouse.x;
+        proprioception.dragVelocity.y = data.y - proprioception.lastMouse.y;
+      }
+      proprioception.lastMouse = { x: data.x, y: data.y };
+      proprioception.spindles.push({ x: data.x / w, y: data.y / h, t: Date.now() });
+      if (proprioception.spindles.length > 30) proprioception.spindles.shift();
+    }
+    if (edge === 'scroll') proprioception.scrollDepth += (data && data.dir === 'down') ? 1 : -1;
+    if (edge === 'orientation' && data) proprioception.tilt = { alpha: data.a, beta: data.b, gamma: data.g };
+    if (edge === 'connection' && data && !data.online) proprioception.pain = Math.min(1, proprioception.pain + 0.2);
+
+    // Coil spring energy: accumulates during pause, releases during interaction
+    var ps = window.pauseState;
+    if (ps && ps.state !== 'ACTIVE') {
+      proprioception.coilEnergy.PtAu += 0.01;
+      proprioception.coilEnergy.AuAg += 0.008;
+      proprioception.coilEnergy.AgCu += 0.005;
+      proprioception.coilEnergy.CuBz += 0.003;
+    } else {
+      // Release coil energy as speed bonus
+      var totalCoil = proprioception.coilEnergy.PtAu + proprioception.coilEnergy.AuAg + proprioception.coilEnergy.AgCu + proprioception.coilEnergy.CuBz;
+      if (totalCoil > 0.1) {
+        proprioception.coilEnergy.PtAu *= 0.95;
+        proprioception.coilEnergy.AuAg *= 0.95;
+        proprioception.coilEnergy.AgCu *= 0.95;
+        proprioception.coilEnergy.CuBz *= 0.95;
+      }
+    }
+
+    // Temperature from gut
+    if (window.gutEngineState && window.gutEngineState.acid) {
+      proprioception.temperature = Math.min(1, window.gutEngineState.acid / 255);
+    }
+
+    // Decay pain
+    proprioception.pain *= 0.99;
+
+    origIngestProp(edge, data);
+  };
+
   // ═══ PAUSE/STORE ENGINE — silence is not nothing, it's storage ═══
   var pauseState = {
     state: 'ACTIVE',
