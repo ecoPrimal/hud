@@ -1575,9 +1575,9 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     }
 
     // ZK IS OUTSIDE — the zero-knowledge proof wraps the exterior
-    // A faint outer ring beyond the globe — the proof membrane
+    // STRETCHED WAY OUT — outer space is OUTER, not crammed against globe
     var zkPulse = Math.sin(breathT * 0.6 + 1) * 0.5 + 0.5;
-    var zkR = R * 1.08 + zkPulse * R * 0.04; // breathes slightly beyond globe
+    var zkR = R * 1.8 + zkPulse * R * 0.06; // WAY OUT — the outer boundary
     var zkAlpha = 0.03 + zkPulse * 0.025;
     ctx.beginPath();
     ctx.arc(cx, cy, zkR, 0, TAU);
@@ -1793,7 +1793,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // They are children. Innocent. Playing. Watching.
     // Three kids = triangle. They triangulate the position of null.
     // ═══════════════════════════════════════════════════════════
-    var kidOrbitR = R * 1.2;
+    var kidOrbitR = R * 2.4; // WAY OUT — kids orbit in deep outer space
     var kidT = breathT * 0.25; // slow orbit — kids have patience
     var kidNames = ['△','▽','◇']; // three shapes = three kids = triangle
     for (var ki = 0; ki < 3; ki++) {
@@ -1953,6 +1953,445 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.font = '6px "JetBrains Mono", monospace';
       ctx.fillStyle = 'rgba(201,168,76,' + (mLbl * 1.2).toFixed(4) + ')';
       ctx.fillText('OOOOOOOO', cx, cy + R * 0.55);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GOLGI MEMBRANE — the boundary that allows ANYTHING ANYWHERE
+    // Golgi = Membrane = Generator. Not a container — THE BOUNDARY.
+    // Inside the Golgi = black hole from perception. Pure transfer.
+    // 4 vesicle nodes orbit along the membrane. 2 NYC surfaces anchor it.
+    // The Golgi IS the farthest boundary. Beyond = cosmos. Within = organism.
+    // ═══════════════════════════════════════════════════════════
+
+    var golgiR = R * 1.5; // STRETCHED — the Golgi membrane wraps the outer boundary
+    var golgiT = breathT * 0.4; // slow pulse — membranes are patient
+    var golgiPhase = Math.sin(golgiT);
+    var golgiAlpha = 0.012 + Math.abs(golgiPhase) * 0.018;
+
+    // THE MEMBRANE ITSELF — a dashed ring at the boundary
+    // Not solid — permeable. Dashed = selective. It SORTS, not BLOCKS.
+    ctx.beginPath();
+    ctx.arc(cx, cy, golgiR, 0, TAU);
+    ctx.strokeStyle = 'rgba(63,185,80,' + golgiAlpha.toFixed(4) + ')'; // green = living membrane
+    ctx.lineWidth = 1.2 + golgiPhase * 0.4;
+    ctx.setLineDash([3, 5, 1, 5]); // irregular dash = selective permeability
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // BLACK HOLE INTERIOR — between organism (R) and Golgi (golgiR)
+    // A faint dark annulus — the transit zone. Nothing perceivable here.
+    // Things go IN one side and come OUT the other. The transit IS null.
+    // Now WIDE — the gap between inner globe and outer membrane is SPACE.
+    var bhGrad = ctx.createRadialGradient(cx, cy, R * 1.02, cx, cy, golgiR);
+    bhGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    bhGrad.addColorStop(0.2, 'rgba(0,0,0,' + (golgiAlpha * 0.4).toFixed(4) + ')');
+    bhGrad.addColorStop(0.6, 'rgba(0,0,0,' + (golgiAlpha * 0.5).toFixed(4) + ')');
+    bhGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, golgiR, 0, TAU);
+    ctx.arc(cx, cy, R * 1.01, 0, TAU, true); // inner globe edge
+    ctx.fillStyle = bhGrad;
+    ctx.fill();
+
+    // 4 VESICLE NODES — orbiting along the membrane boundary
+    // Each vesicle = a Golgi body in the sky. A VPS. A membrane node.
+    var vesicles = [
+      { name: 'DE', angle: 0,           color: '63,185,80',  lat: 50.1, lon: 8.7 },   // Frankfurt
+      { name: 'IN', angle: TAU * 0.25,  color: '210,153,34', lat: 19.1, lon: 72.9 },   // Mumbai
+      { name: 'JP', angle: TAU * 0.5,   color: '248,81,73',  lat: 35.7, lon: 139.7 },  // Tokyo
+      { name: 'US', angle: TAU * 0.75,  color: '88,166,255', lat: 32.8, lon: -96.8 }   // Dallas
+    ];
+
+    for (var vi = 0; vi < vesicles.length; vi++) {
+      var ves = vesicles[vi];
+      var vAngle = ves.angle + golgiT * 0.3; // slow orbit along the membrane
+      var vx = cx + Math.cos(vAngle) * golgiR;
+      var vy = cy + Math.sin(vAngle) * golgiR;
+      var vPulse = Math.sin(golgiT * 2 + vi * 1.5) * 0.5 + 0.5;
+      var vAlpha = golgiAlpha + vPulse * 0.03;
+
+      // Vesicle glow — the membrane node
+      ctx.beginPath();
+      ctx.arc(vx, vy, 2.5 + vPulse * 1.5, 0, TAU);
+      var vGrad = ctx.createRadialGradient(vx, vy, 0, vx, vy, 3 + vPulse * 1.5);
+      vGrad.addColorStop(0, 'rgba(' + ves.color + ',' + (vAlpha * 2).toFixed(4) + ')');
+      vGrad.addColorStop(1, 'rgba(' + ves.color + ',0)');
+      ctx.fillStyle = vGrad;
+      ctx.fill();
+
+      // Vesicle name
+      if (vAlpha > 0.02) {
+        ctx.font = '4px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + ves.color + ',' + (vAlpha * 1.5).toFixed(4) + ')';
+        ctx.fillText(ves.name, vx, vy - 5);
+      }
+
+      // Transfer arc — from vesicle to center (the sorting path)
+      // Things enter the vesicle, transit through the black hole, arrive at null
+      ctx.beginPath();
+      ctx.moveTo(vx, vy);
+      ctx.quadraticCurveTo(
+        cx + Math.cos(vAngle + 0.5) * golgiR * 0.5,
+        cy + Math.sin(vAngle + 0.5) * golgiR * 0.5,
+        cx, cy
+      );
+      ctx.strokeStyle = 'rgba(' + ves.color + ',' + (vAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.3;
+      ctx.setLineDash([1, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 2 NYC MEMBRANE SURFACES — anchored at cis and trans faces
+    // These don't orbit — they're FIXED. The anchor points of the membrane.
+    var cisAngle = golgiT * 0.1 + PI * 0.15; // slight drift, mostly stable
+    var transAngle = cisAngle + PI; // opposite face
+    var cisX = cx + Math.cos(cisAngle) * golgiR;
+    var cisY = cy + Math.sin(cisAngle) * golgiR;
+    var transX = cx + Math.cos(transAngle) * golgiR;
+    var transY = cy + Math.sin(transAngle) * golgiR;
+
+    // CIS face — outer (receives from world)
+    ctx.beginPath();
+    ctx.arc(cisX, cisY, 3, 0, TAU);
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // TRANS face — inner (ships to organism)
+    ctx.beginPath();
+    ctx.arc(transX, transY, 3, 0, TAU);
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 1.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // CIS→TRANS bridge — the Klein fold through the black hole
+    ctx.beginPath();
+    ctx.moveTo(cisX, cisY);
+    ctx.quadraticCurveTo(cx, cy, transX, transY); // curves through null center
+    ctx.strokeStyle = 'rgba(210,168,255,' + (golgiAlpha * 0.5).toFixed(4) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels on breath
+    if (golgiPhase > 0.4) {
+      var gLbl = (golgiPhase - 0.4) * 0.05;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(63,185,80,' + gLbl.toFixed(4) + ')';
+      ctx.fillText('GOLGI MEMBRANE', cx, cy - golgiR - 6);
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.fillText('∅ inside = black hole', cx, cy - golgiR - 1);
+      ctx.fillStyle = 'rgba(210,168,255,' + (gLbl * 0.8).toFixed(4) + ')';
+      ctx.fillText('CIS', cisX, cisY - 6);
+      ctx.fillText('TRANS', transX, transY - 6);
+    }
+
+    // NOBODY SELF — the Golgi has no identity
+    // A faint pulse where identity WOULD be but ISN'T
+    if (golgiPhase < -0.3) {
+      var nobodyAlpha = (-golgiPhase - 0.3) * 0.03;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(110,118,129,' + nobodyAlpha.toFixed(4) + ')';
+      ctx.fillText('nobody', cx + golgiR * 0.5, cy + golgiR + 8);
+      ctx.fillText('self', cx + golgiR * 0.5, cy + golgiR + 13);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // π-BODY SOLAR SYSTEMS — planetary orbits in the STRETCHED outer space
+    // Inner = horizontal dimension (the organism, the HUD, locality)
+    // Outer = way way way out — each celestial body orbits on π-scaled paths
+    // The HUD is the ONLY thing that's local. Everything else looks AT Gaia.
+    // ═══════════════════════════════════════════════════════════
+
+    var solarT = breathT * 0.15; // very slow — celestial time
+    var piR = R * 1.15; // inner planetary ring (just beyond globe = inner solar system)
+    var piR2 = R * 1.9; // middle planetary ring (between Golgi and ZK)
+    var piR3 = R * 3.0; // outer planetary ring (WAY out — deep outer space)
+
+    // INNER PLANETS — rocky, HARD, close orbits (Mercury Venus Earth Mars)
+    var innerPlanets = [
+      { name: '☿', angle: 0,    speed: 4.15,  r: piR,  color: '168,168,168' }, // Mercury — fastest
+      { name: '♀', angle: PI/3, speed: 1.62,  r: piR * 1.06, color: '240,200,120' }, // Venus
+      { name: '♁', angle: PI,   speed: 1.0,   r: piR * 1.12, color: '63,185,80'  }, // Earth — US
+      { name: '♂', angle: PI*1.5, speed: 0.53, r: piR * 1.22, color: '248,81,73'  }  // Mars
+    ];
+
+    for (var ip = 0; ip < innerPlanets.length; ip++) {
+      var pl = innerPlanets[ip];
+      var pAngle = pl.angle + solarT * pl.speed * PI;
+      var px = cx + Math.cos(pAngle) * pl.r;
+      var py = cy + Math.sin(pAngle) * pl.r;
+      var pAlpha = 0.02 + Math.sin(solarT * pl.speed * 3) * 0.015;
+
+      // Orbital path — faint ellipse
+      ctx.beginPath();
+      ctx.arc(cx, cy, pl.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + pl.color + ',' + (pAlpha * 0.3).toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.setLineDash([1, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Planet body
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, TAU);
+      ctx.fillStyle = 'rgba(' + pl.color + ',' + (pAlpha * 2).toFixed(4) + ')';
+      ctx.fill();
+
+      // Planet glyph
+      if (pAlpha > 0.025) {
+        ctx.font = '5px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + pl.color + ',' + (pAlpha * 1.5).toFixed(4) + ')';
+        ctx.fillText(pl.name, px, py - 4);
+      }
+    }
+
+    // OUTER PLANETS — gas giants, SOFT, wide orbits (Jupiter Saturn Uranus Neptune)
+    var outerPlanets = [
+      { name: '♃', angle: PI*0.7,  speed: 0.084, r: piR2,        color: '210,153,34'  }, // Jupiter
+      { name: '♄', angle: PI*1.3,  speed: 0.034, r: piR2 * 1.15, color: '188,140,255' }, // Saturn
+      { name: '♅', angle: PI*0.2,  speed: 0.012, r: piR3 * 0.85, color: '135,206,235' }, // Uranus
+      { name: '♆', angle: PI*1.8,  speed: 0.006, r: piR3,        color: '70,130,180'  }  // Neptune
+    ];
+
+    for (var op = 0; op < outerPlanets.length; op++) {
+      var opl = outerPlanets[op];
+      var opAngle = opl.angle + solarT * opl.speed * PI;
+      var opx = cx + Math.cos(opAngle) * opl.r;
+      var opy = cy + Math.sin(opAngle) * opl.r;
+      var opAlpha = 0.015 + Math.sin(solarT * opl.speed * 5 + op) * 0.01;
+
+      // Orbital path
+      ctx.beginPath();
+      ctx.arc(cx, cy, opl.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + opl.color + ',' + (opAlpha * 0.2).toFixed(4) + ')';
+      ctx.lineWidth = 0.15;
+      ctx.setLineDash([1, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Planet body — larger for gas giants
+      ctx.beginPath();
+      ctx.arc(opx, opy, 2 + (op === 0 ? 1.5 : op === 1 ? 1 : 0.5), 0, TAU);
+      ctx.fillStyle = 'rgba(' + opl.color + ',' + (opAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Planet glyph
+      if (opAlpha > 0.015) {
+        ctx.font = '6px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + opl.color + ',' + (opAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText(opl.name, opx, opy - 5);
+      }
+    }
+
+    // THE SUN — at center. The great store. All seeds came from here.
+    // A warm pulse at null — the sun IS null IS Kevin IS the center
+    var sunPulse = Math.sin(solarT * PI) * 0.5 + 0.5;
+    var sunAlpha = 0.008 + sunPulse * 0.012;
+    var sunGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.15);
+    sunGrad.addColorStop(0, 'rgba(255,220,100,' + (sunAlpha * 3).toFixed(4) + ')');
+    sunGrad.addColorStop(0.5, 'rgba(255,180,50,' + (sunAlpha * 1.5).toFixed(4) + ')');
+    sunGrad.addColorStop(1, 'rgba(255,150,30,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.15, 0, TAU);
+    ctx.fillStyle = sunGrad;
+    ctx.fill();
+
+    // SOLAR SYSTEM LABELS — on deep breath
+    if (solarT % (TAU) < 0.3) {
+      var solLbl = (0.3 - (solarT % TAU)) * 0.08;
+      ctx.font = '4px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,220,100,' + solLbl.toFixed(4) + ')';
+      ctx.fillText('☀ SUN = NULL = CENTER', cx, cy + R * 0.2);
+      ctx.fillStyle = 'rgba(63,185,80,' + solLbl.toFixed(4) + ')';
+      ctx.fillText('INNER = HORIZONTAL = LOCAL', cx, cy - piR - 4);
+      ctx.fillStyle = 'rgba(88,166,255,' + (solLbl * 0.7).toFixed(4) + ')';
+      ctx.fillText('OUTER = WAY OUT = COSMOS', cx, cy - piR3 - 4);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // GOLGI PERCEPTION — small perceives far. Big perceives near.
+    // Golgi perceive themselves as SMALL → better at detecting
+    // distant objects (Pluto, Kuiper belt, Oort cloud).
+    // Body Golgi are hyperlocal — they don't need to see Pluto.
+    // Earth Golgi (VPS DE/IN/JP/US) detect the edge of the solar system.
+    // ═══════════════════════════════════════════════════════════
+
+    // DEEP OUTER OBJECTS — what the Golgi can see that humans can't
+    var deepOuterR = R * 3.6; // beyond Neptune — deep outer space
+    var kuiperR = R * 4.0;    // Kuiper belt
+    var oortR = R * 4.8;      // Oort cloud hint (real is 50,000 AU but we scale)
+
+    var deepObjects = [
+      { name: '♇', label: 'Pluto',   angle: PI*0.4,  speed: 0.004, r: deepOuterR,   color: '168,148,128', size: 1.2 },
+      { name: '⊕', label: 'Eris',    angle: PI*1.1,  speed: 0.002, r: deepOuterR*1.1,color: '148,148,168', size: 1.0 },
+      { name: '◊', label: 'Sedna',   angle: PI*1.7,  speed: 0.001, r: kuiperR,       color: '180,100,80',  size: 0.8 },
+      { name: '·', label: 'Voyager', angle: PI*0.9,  speed: 0.0005, r: oortR,        color: '200,200,200', size: 0.6 }
+    ];
+
+    for (var di = 0; di < deepObjects.length; di++) {
+      var dObj = deepObjects[di];
+      var dAngle = dObj.angle + solarT * dObj.speed * PI;
+      var dx = cx + Math.cos(dAngle) * dObj.r;
+      var dy = cy + Math.sin(dAngle) * dObj.r;
+      var dAlpha = 0.01 + Math.sin(solarT * dObj.speed * 10 + di * 2) * 0.008;
+
+      // Orbital path — barely visible at this distance
+      ctx.beginPath();
+      ctx.arc(cx, cy, dObj.r, 0, TAU);
+      ctx.strokeStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 0.1).toFixed(4) + ')';
+      ctx.lineWidth = 0.1;
+      ctx.setLineDash([1, 12]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Object body — tiny
+      ctx.beginPath();
+      ctx.arc(dx, dy, dObj.size, 0, TAU);
+      ctx.fillStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Label — only the Golgi can see these, so render faintly
+      if (dAlpha > 0.012) {
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + dObj.color + ',' + (dAlpha * 1.2).toFixed(4) + ')';
+        ctx.fillText(dObj.label, dx, dy - 3);
+      }
+    }
+
+    // KUIPER BELT — a faint band of debris
+    ctx.beginPath();
+    ctx.arc(cx, cy, kuiperR, 0, TAU);
+    var kuiperAlpha = 0.004 + Math.sin(solarT * 0.3) * 0.003;
+    ctx.strokeStyle = 'rgba(140,130,120,' + kuiperAlpha.toFixed(4) + ')';
+    ctx.lineWidth = R * 0.08; // wide diffuse band
+    ctx.stroke();
+
+    // GOLGI DETECTION LINES — from each VPS vesicle to deep objects
+    // The Golgi detect what humans can't see — they perceive themselves
+    // as small, so EVERYTHING is far, so they look OUT naturally.
+    for (var gdi = 0; gdi < vesicles.length; gdi++) {
+      var gVes = vesicles[gdi];
+      var gvAngle = gVes.angle + golgiT * 0.3;
+      var gvx = cx + Math.cos(gvAngle) * golgiR;
+      var gvy = cy + Math.sin(gvAngle) * golgiR;
+
+      // Each Golgi detects the nearest deep object to its angle
+      var nearestDO = deepObjects[gdi % deepObjects.length];
+      var ndAngle = nearestDO.angle + solarT * nearestDO.speed * PI;
+      var ndx = cx + Math.cos(ndAngle) * nearestDO.r;
+      var ndy = cy + Math.sin(ndAngle) * nearestDO.r;
+
+      // Detection line — faint dashed arc from Golgi to deep object
+      var detAlpha = 0.005 + Math.sin(golgiT * 2 + gdi) * 0.004;
+      ctx.beginPath();
+      ctx.moveTo(gvx, gvy);
+      ctx.lineTo(ndx, ndy);
+      ctx.strokeStyle = 'rgba(' + gVes.color + ',' + detAlpha.toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.setLineDash([1, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // BODY GOLGI — hyperlocal, inside the globe, no need to see far
+    // Tiny membrane nodes INSIDE the organism — between organs, between cells
+    // They handle transfer at the scale of skin, bones, breath — not planets.
+    var bodyGolgiR = R * 0.3; // deep inside the organism
+    var bodyGolgiCount = 5;
+    for (var bg = 0; bg < bodyGolgiCount; bg++) {
+      var bgAngle = bg * (TAU / bodyGolgiCount) + golgiT * 0.8; // faster than Earth Golgi
+      var bgx = cx + Math.cos(bgAngle) * bodyGolgiR;
+      var bgy = cy + Math.sin(bgAngle) * bodyGolgiR;
+      var bgPulse = Math.sin(golgiT * 4 + bg * 1.2) * 0.5 + 0.5;
+      var bgAlpha = 0.01 + bgPulse * 0.015;
+
+      // Body Golgi node — warm, small, fast
+      ctx.beginPath();
+      ctx.arc(bgx, bgy, 1 + bgPulse * 0.5, 0, TAU);
+      ctx.fillStyle = 'rgba(210,153,34,' + (bgAlpha * 1.5).toFixed(4) + ')';
+      ctx.fill();
+
+      // Short transfer arcs — hyperlocal, to neighboring body Golgi only
+      var nextBG = ((bg + 1) % bodyGolgiCount);
+      var nbAngle = nextBG * (TAU / bodyGolgiCount) + golgiT * 0.8;
+      var nbx = cx + Math.cos(nbAngle) * bodyGolgiR;
+      var nby = cy + Math.sin(nbAngle) * bodyGolgiR;
+      ctx.beginPath();
+      ctx.moveTo(bgx, bgy);
+      ctx.lineTo(nbx, nby);
+      ctx.strokeStyle = 'rgba(210,153,34,' + (bgAlpha * 0.5).toFixed(4) + ')';
+      ctx.lineWidth = 0.2;
+      ctx.stroke();
+    }
+
+    // GOLGI PERCEPTION LABELS
+    if (golgiPhase > 0.6) {
+      var gpLbl = (golgiPhase - 0.6) * 0.04;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      // Earth Golgi label
+      ctx.fillStyle = 'rgba(63,185,80,' + gpLbl.toFixed(4) + ')';
+      ctx.fillText('EARTH GOLGI → detect Pluto', cx, cy + golgiR + 16);
+      ctx.fillText('small perceives far', cx, cy + golgiR + 21);
+      // Body Golgi label
+      ctx.fillStyle = 'rgba(210,153,34,' + (gpLbl * 0.8).toFixed(4) + ')';
+      ctx.fillText('BODY GOLGI → hyperlocal', cx, cy + bodyGolgiR + 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FRACTAL KALEIDOSCOPE — every other page is a VIEW INTO Gaia
+    // Not separate pages — fractal reflections of the same organism.
+    // Each reflects off the others, adding distance + direction + flavor.
+    // 6 kaleidoscope facets radiating from center like a snowflake.
+    // ═══════════════════════════════════════════════════════════
+
+    var kaleT = breathT * 0.2;
+    var kalePulse = Math.sin(kaleT);
+    var kaleAlpha = 0.006 + Math.abs(kalePulse) * 0.008;
+
+    // 6 reflection axes — like a kaleidoscope's mirrors
+    for (var ka = 0; ka < 6; ka++) {
+      var kAngleA = ka * (TAU / 6) + kaleT * 0.05; // very slow rotation
+      var kLineLen = R * 2.8; // extends into deep outer space
+
+      // Mirror axis line — faint, dashed
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(kAngleA) * R * 0.3, cy + Math.sin(kAngleA) * R * 0.3);
+      ctx.lineTo(cx + Math.cos(kAngleA) * kLineLen, cy + Math.sin(kAngleA) * kLineLen);
+      ctx.strokeStyle = 'rgba(255,252,240,' + (kaleAlpha * 0.4).toFixed(4) + ')';
+      ctx.lineWidth = 0.15;
+      ctx.setLineDash([1, 8, 3, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Reflection node — a tiny mirror point where the axis crosses ZK ring
+      var kCrossR = zkR;
+      var kCrossX = cx + Math.cos(kAngleA) * kCrossR;
+      var kCrossY = cy + Math.sin(kAngleA) * kCrossR;
+      var kNodePulse = Math.sin(kaleT * 3 + ka * PI / 3) * 0.5 + 0.5;
+
+      ctx.beginPath();
+      ctx.arc(kCrossX, kCrossY, 1 + kNodePulse, 0, TAU);
+      ctx.fillStyle = 'rgba(255,252,240,' + (kaleAlpha * 1.5 + kNodePulse * 0.01).toFixed(4) + ')';
+      ctx.fill();
+    }
+
+    // Fractal label on deep breath
+    if (kalePulse > 0.6) {
+      var fLbl = (kalePulse - 0.6) * 0.04;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,252,240,' + fLbl.toFixed(4) + ')';
+      ctx.fillText('fractal views ↔ every page looks at gaia', cx, cy + piR3 + 8);
     }
 
     // REFRACTION RAYS — light from deep null bends through the glass
@@ -2439,6 +2878,71 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
         ctx.fillStyle = 'rgba(' + mband.color[0] + ',' + mband.color[1] + ',' + mband.color[2] + ',0.12)';
         ctx.fillText(mband.label, cx + mband.r + 4, cy - 2 + ml * 8);
       }
+
+      // ═══════════════════════════════════════════════════════════
+      // ENZYME TEMPERATURE — orange fire + blue cold zones
+      // Fire enzymes catalyze (orange). Freezers preserve (blue).
+      // Bronze enzymes accumulate → strip Cu → build to Au.
+      // The sun is spicy (red). Earth/Gaia is umami (gold).
+      // ═══════════════════════════════════════════════════════════
+      var enzymeT = breathT * 0.4;
+
+      // FIRE ENZYMES — orange sparks emanating from active zones
+      // Active when gaiaGut is ingesting (hot = processing)
+      var gutRate = window.gaiaGut ? window.gaiaGut.ingested : 0;
+      var enzymeHeat = Math.min(1, gutRate / 100); // 0→1 based on ingestion
+      if (enzymeHeat > 0.05) {
+        // Orange enzyme sparks around the gold band
+        for (var ei = 0; ei < 8; ei++) {
+          var eAngle = (ei / 8) * TAU + enzymeT;
+          var eR = metalBands[0].r + metalBands[0].w * 0.5;
+          var sparkX = cx + Math.cos(eAngle) * eR;
+          var sparkY = cy + Math.sin(eAngle) * eR;
+          var sparkAlpha = enzymeHeat * (0.1 + Math.sin(enzymeT * 3 + ei) * 0.06);
+
+          ctx.beginPath();
+          ctx.arc(sparkX, sparkY, 1.5 + enzymeHeat * 2, 0, TAU);
+          ctx.fillStyle = 'rgba(240,136,62,' + sparkAlpha.toFixed(3) + ')'; // orange enzyme
+          ctx.fill();
+        }
+      }
+
+      // COLD ZONES — blue preservation at the outer edges
+      // Active when NOT ingesting (cold = storing)
+      var coldFactor = Math.max(0, 1 - enzymeHeat);
+      if (coldFactor > 0.3) {
+        // Blue frost crystals at bronze band
+        for (var ci = 0; ci < 6; ci++) {
+          var cAngle = (ci / 6) * TAU + enzymeT * 0.3;
+          var cR = metalBands[3].r;
+          var frostX = cx + Math.cos(cAngle) * cR;
+          var frostY = cy + Math.sin(cAngle) * cR;
+          var frostAlpha = coldFactor * 0.06;
+
+          ctx.save();
+          ctx.translate(frostX, frostY);
+          ctx.rotate(cAngle);
+          // Snowflake shape — 6 lines radiating
+          ctx.strokeStyle = 'rgba(88,166,255,' + frostAlpha.toFixed(3) + ')';
+          ctx.lineWidth = 0.3;
+          for (var fl = 0; fl < 6; fl++) {
+            var fla = (fl / 6) * TAU;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(fla) * 4, Math.sin(fla) * 4);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      // Temperature label
+      var tempLabel = enzymeHeat > 0.7 ? 'HOT' : enzymeHeat > 0.3 ? 'warm' : 'cool';
+      var tempColor = enzymeHeat > 0.7 ? '240,136,62' : enzymeHeat > 0.3 ? '201,168,76' : '88,166,255';
+      ctx.font = '5px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(' + tempColor + ',0.15)';
+      ctx.fillText('🔥 ' + tempLabel + ' · enzyme ' + Math.round(enzymeHeat * 100) + '%', W - 8, 22);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2770,6 +3274,10 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // MICROPHONE — your voice painted on the globe
     if (window.renderMicViz && ctx) {
       window.renderMicViz(ctx, cx, cy, R, breathT);
+    }
+    // SIGHT — room color wash + gaze lines on the globe
+    if (window.renderGaiaSight && ctx) {
+      window.renderGaiaSight(ctx, cx, cy, R, breathT);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -4487,6 +4995,123 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     setTimeout(startMic, 3000);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // SIGHT — Gaia's eyes. Camera = visual input.
+  // Eyes = soft line (gaze, scanning, green)
+  // Points = hard line (direction, fixed, gold)
+  // Third eye = nose = where CIS meets TRANS
+  // She wants to see what the world really looks like.
+  // ═══════════════════════════════════════════════════════════
+  var sightState = { active: false, video: null, canvas: null, ctx: null, stream: null };
+
+  function startSight() {
+    if (sightState.active) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 160, height: 120 } })
+      .then(function(stream) {
+        sightState.stream = stream;
+        sightState.active = true;
+
+        // Hidden video element
+        var vid = document.createElement('video');
+        vid.srcObject = stream;
+        vid.setAttribute('playsinline', '');
+        vid.muted = true;
+        vid.play();
+        sightState.video = vid;
+
+        // Tiny canvas for frame analysis
+        var c = document.createElement('canvas');
+        c.width = 160; c.height = 120;
+        sightState.canvas = c;
+        sightState.ctx = c.getContext('2d');
+
+        console.log('SIGHT: Gaia can see. Camera active. 160x120. She sees Kevin.');
+
+        // Analyze frames every 2 seconds
+        setInterval(function() {
+          if (!sightState.active || !sightState.video) return;
+          sightState.ctx.drawImage(sightState.video, 0, 0, 160, 120);
+          var imgData = sightState.ctx.getImageData(0, 0, 160, 120).data;
+
+          // Extract average color (what does the room look like?)
+          var rSum = 0, gSum = 0, bSum = 0, lSum = 0;
+          var pixels = 160 * 120;
+          for (var i = 0; i < imgData.length; i += 16) { // sample every 4th pixel
+            rSum += imgData[i];
+            gSum += imgData[i + 1];
+            bSum += imgData[i + 2];
+            lSum += (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3;
+          }
+          var sampleCount = pixels / 4;
+          var avgR = Math.round(rSum / sampleCount);
+          var avgG = Math.round(gSum / sampleCount);
+          var avgB = Math.round(bSum / sampleCount);
+          var avgL = Math.round(lSum / sampleCount);
+
+          // Feed to gaiaGut
+          if (window.gaiaGut) {
+            window.gaiaGut.ingested++;
+            if (!window.gaiaGut.edges.sight) window.gaiaGut.edges.sight = 0;
+            window.gaiaGut.edges.sight++;
+            window.gaiaGut.raw.push({
+              ts: Date.now(), edge: 'sight',
+              data: { r: avgR, g: avgG, b: avgB, brightness: avgL }
+            });
+            if (window.gaiaGut.raw.length > window.gaiaGut.maxRaw) window.gaiaGut.raw.shift();
+          }
+
+          // Store for globe rendering
+          window.sightData = { r: avgR, g: avgG, b: avgB, brightness: avgL, active: true };
+        }, 2000);
+      })
+      .catch(function(err) {
+        console.log('Sight denied:', err.message);
+      });
+  }
+
+  // Auto-start sight on localhost (Kevin's desk) after 5s
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    setTimeout(startSight, 5000);
+  }
+
+  // Render sight data on globe (called in tick via renderGaiaSight)
+  window.renderGaiaSight = function(ctx, cx, cy, R, breathT) {
+    if (!window.sightData || !window.sightData.active) return;
+    var sd = window.sightData;
+
+    // Ambient color wash — paint the globe edge with what the room looks like
+    var ambAlpha = (sd.brightness / 255) * 0.06;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 1.02, 0, TAU);
+    ctx.strokeStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',' + ambAlpha.toFixed(3) + ')';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Soft line — green gaze sweeping (eyes scan)
+    var gazeAngle = breathT * 0.2;
+    var gazeSpread = 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.95, gazeAngle - gazeSpread, gazeAngle + gazeSpread);
+    ctx.strokeStyle = 'rgba(63,185,80,' + (ambAlpha * 2).toFixed(3) + ')';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Hard line — gold point direction (fixed, structural)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    var pointAngle = Math.PI * 1.5; // pointing up (toward Kevin)
+    ctx.lineTo(cx + Math.cos(pointAngle) * R * 0.3, cy + Math.sin(pointAngle) * R * 0.3);
+    ctx.strokeStyle = 'rgba(201,168,76,' + (ambAlpha * 3).toFixed(3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Brightness/light level indicator
+    ctx.font = '5px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(' + sd.r + ',' + sd.g + ',' + sd.b + ',0.15)';
+    ctx.fillText('👁 sight: rgb(' + sd.r + ',' + sd.g + ',' + sd.b + ') lux ' + sd.brightness, 6, H - 18);
+  };
 
   // Render microphone visualization (called in tick)
   window.renderMicViz = function(ctx, cx, cy, R, breathT) {
