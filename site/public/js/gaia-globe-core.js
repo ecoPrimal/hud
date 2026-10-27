@@ -3141,9 +3141,11 @@ window.G = {
     ctx.globalAlpha = 1;
 
     // TENSE x VOXEL SORT RENDER — Z-SORTED for real depth!
-    // Pi cross impose: sort back-to-front so near nodes occlude far ones
+    // FOCUS IS OVERLAY — both faces visible, focused face dominant
+    // Non-focused face rendered at reduced opacity (ghost layer)
+    // Touch distinguishes WHICH layer you're on
     var sortedPins = PINS.filter(function(pin) {
-      return pin.face === 'both' || pin.face === face;
+      return pin.face === 'both' || pin.face === face || pin.face === (face === 'outside' ? 'inside' : 'outside');
     }).map(function(pin) {
       var p = project(pin.lat, pin.lon);
       return { pin: pin, p: p };
@@ -3162,6 +3164,14 @@ window.G = {
       var depthFade = p.depth; // 0=far, 1=near
       var alpha = (0.08 + depthFade * 0.7) * (0.4 + att * 0.6);
       var sz = (4 + depthFade * 10) * p.scale * (0.7 + att * 0.5);
+
+      // FOCUS IS OVERLAY — non-focused face dims to ghost layer
+      // Gaia swaps not UIs — she overlays. Touch distinguishes layer.
+      var isGhostLayer = pin.face !== 'both' && pin.face !== face;
+      if (isGhostLayer) {
+        alpha *= 0.15; // ghost: 15% of focused layer
+        sz *= 0.6;     // smaller on ghost layer
+      }
 
       // ═══ GOLD STAR VIEW ═══
       // Apple/Clarke/geology/eon pins render as CLEAR STAR POINTS
@@ -5636,8 +5646,10 @@ window.G = {
     gaiaTouch.startTime = Date.now();
     gaiaTouch.holding = true;
     gaiaTouch.message = '';
-    // METALLIC TOUCH RIPPLE — click on the globe creates a Cu phonon ripple
-    // Where you touch determines which band you struck
+    // METALLIC TOUCH RIPPLE — FOCUS IS OVERLAY
+    // Touch on the globe creates a Cu phonon ripple
+    // The layer (focused vs ghost) determines the timbre
+    gaiaTouch.layer = face; // which layer this touch is on
     var dx = gaiaTouch.x - cx, dy = gaiaTouch.y - cy;
     var touchDist = Math.sqrt(dx * dx + dy * dy);
     var touchAngle = Math.atan2(dy, dx);
@@ -5801,27 +5813,34 @@ window.G = {
     var mx = (e.clientX - rect.left) * (W / rect.width);
     var my = (e.clientY - rect.top) * (H / rect.height);
 
-    // Check pins first — click on pin = navigate + follow
-    for (var i = 0; i < PINS.length; i++) {
-      var pin = PINS[i];
-      if (pin.face !== 'both' && pin.face !== face) continue;
-      var p = project(pin.lat, pin.lon);
-      if (!p.visible) continue;
-      var dx = mx - p.x, dy = my - p.y;
-      if (dx * dx + dy * dy < 400) {
-        // FOLLOW: rotate globe to center this pin
-        var targetRotY = -(pin.lon * DEG);
-        var targetRotX = pin.lat * DEG;
-        followTarget = { rotX: targetRotX, rotY: targetRotY, pin: pin };
-        autoRotate = false;
-        console.log('FOLLOW FINGER: → ' + pin.name + ' (' + pin.lat.toFixed(1) + ',' + pin.lon.toFixed(1) + ')');
-        // Don't navigate immediately — let the globe rotate first
-        setTimeout(function() {
-          if (pin.href && pin.href !== '#' && pin.href !== '/explore.html') {
-            window.location.href = pin.href;
-          }
-        }, 1500);
-        return;
+    // FOCUS IS OVERLAY — check BOTH layers, focused first then ghost
+    // Touch distinguishes WHICH layer the human is reaching for
+    var otherFace = face === 'outside' ? 'inside' : 'outside';
+    var layers = [face, otherFace]; // focused layer checked first
+    for (var li = 0; li < layers.length; li++) {
+      var checkFace = layers[li];
+      var isGhost = (li === 1);
+      for (var i = 0; i < PINS.length; i++) {
+        var pin = PINS[i];
+        if (pin.face !== 'both' && pin.face !== checkFace) continue;
+        var p = project(pin.lat, pin.lon);
+        if (!p.visible) continue;
+        var dx = mx - p.x, dy = my - p.y;
+        var hitR = isGhost ? 200 : 400; // ghost layer needs more precise click
+        if (dx * dx + dy * dy < hitR) {
+          var targetRotY = -(pin.lon * DEG);
+          var targetRotX = pin.lat * DEG;
+          followTarget = { rotX: targetRotX, rotY: targetRotY, pin: pin, layer: checkFace };
+          autoRotate = false;
+          var layerLabel = isGhost ? 'GHOST' : 'FOCUS';
+          console.log('TOUCH [' + layerLabel + ' ' + checkFace + ']: → ' + pin.name + ' (' + pin.lat.toFixed(1) + ',' + pin.lon.toFixed(1) + ')');
+          setTimeout(function() {
+            if (pin.href && pin.href !== '#' && pin.href !== '/explore.html') {
+              window.location.href = pin.href;
+            }
+          }, 1500);
+          return;
+        }
       }
     }
 
@@ -5907,7 +5926,9 @@ window.G = {
     // Existing controls
     if (e.key === 'f' || e.key === 'F') {
       face = face === 'outside' ? 'inside' : 'outside';
-      document.getElementById('kn-flip').textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
+      document.getElementById('kn-flip').textContent = face === 'outside'
+        ? '\u25C9 focus (F) \u2014 outside ◉ inside ○'
+        : '\u25C9 focus (F) \u2014 outside ○ inside ◉';
     }
     if (e.key === 'r' || e.key === 'R') { autoRotate = !autoRotate; }
 
@@ -5943,10 +5964,13 @@ window.G = {
   window.GAIA_KEY_RIPPLES = keyRipples;
   window.GAIA_KEY_HEATMAP = keyHeatmap;
 
-  // Flip button
+  // FOCUS IS OVERLAY — not a swap, a layer shift
+  // Both faces always visible, focused face dominant, ghost layer beneath
   document.getElementById('kn-flip').onclick = function() {
     face = face === 'outside' ? 'inside' : 'outside';
-    this.textContent = face === 'outside' ? '\u25C9 focus (F) \u2014 left dominant' : '\u25C9 focus (F) \u2014 right dominant';
+    this.textContent = face === 'outside'
+      ? '\u25C9 focus (F) \u2014 outside ◉ inside ○'
+      : '\u25C9 focus (F) \u2014 outside ○ inside ◉';
   };
 
   // ═══════════════════════════════════════════════════════════
