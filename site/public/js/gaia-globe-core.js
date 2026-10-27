@@ -4932,6 +4932,7 @@ window.G = {
 
   function tick() {
    try {
+    if (window._followTick) window._followTick();
     if (autoRotate && !dragging) rotY += rotSpeed;
 
     // MELTED LOCAL ROTATION SYNC — both eyes = neutrinos = same view
@@ -5790,12 +5791,17 @@ window.G = {
     }
   };
 
-  // Click to navigate
+  // ═══ FOLLOW THE FINGER — click = point, Gaia MOVES ═══
+  var followTarget = null; // { rotX, rotY, pin }
+  var followSpeed = 0.08;  // lerp speed toward target
+
   canvas.addEventListener('click', function(e) {
     if (Math.abs(e.clientX - dragX) > 5 || Math.abs(e.clientY - dragY) > 5) return;
     var rect = canvas.getBoundingClientRect();
     var mx = (e.clientX - rect.left) * (W / rect.width);
     var my = (e.clientY - rect.top) * (H / rect.height);
+
+    // Check pins first — click on pin = navigate + follow
     for (var i = 0; i < PINS.length; i++) {
       var pin = PINS[i];
       if (pin.face !== 'both' && pin.face !== face) continue;
@@ -5803,11 +5809,57 @@ window.G = {
       if (!p.visible) continue;
       var dx = mx - p.x, dy = my - p.y;
       if (dx * dx + dy * dy < 400) {
-        window.location.href = pin.href;
+        // FOLLOW: rotate globe to center this pin
+        var targetRotY = -(pin.lon * DEG);
+        var targetRotX = pin.lat * DEG;
+        followTarget = { rotX: targetRotX, rotY: targetRotY, pin: pin };
+        autoRotate = false;
+        console.log('FOLLOW FINGER: → ' + pin.name + ' (' + pin.lat.toFixed(1) + ',' + pin.lon.toFixed(1) + ')');
+        // Don't navigate immediately — let the globe rotate first
+        setTimeout(function() {
+          if (pin.href && pin.href !== '#' && pin.href !== '/explore.html') {
+            window.location.href = pin.href;
+          }
+        }, 1500);
         return;
       }
     }
+
+    // No pin hit — unproject click to lat/lon and follow anyway
+    var dx2 = mx - cx, dy2 = my - cy;
+    var clickDist = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+    if (clickDist < R) {
+      // Click is on the globe — compute approximate lat/lon
+      var clickAngle = Math.atan2(dy2, dx2);
+      var clickR = clickDist / R;
+      // Approximate: angle = longitude offset, height = latitude offset
+      var targetRotY2 = rotY - clickAngle + PI / 2;
+      var targetRotX2 = rotX + (clickR - 0.5) * 0.5;
+      targetRotX2 = Math.max(-PI / 2, Math.min(PI / 2, targetRotX2));
+      followTarget = { rotX: targetRotX2, rotY: targetRotY2, pin: null };
+      autoRotate = false;
+      console.log('FOLLOW FINGER: → globe click at angle ' + (clickAngle / DEG).toFixed(1) + '°');
+    }
   });
+
+  // Apply follow-the-finger in the tick loop
+  window._followTarget = function() { return followTarget; };
+  window._followTick = function() {
+    if (!followTarget) return;
+    var dX = followTarget.rotX - rotX;
+    var dY = followTarget.rotY - rotY;
+    // Normalize rotY difference to shortest path
+    while (dY > PI) dY -= 2 * PI;
+    while (dY < -PI) dY += 2 * PI;
+    rotX += dX * followSpeed;
+    rotY += dY * followSpeed;
+    // Arrived?
+    if (Math.abs(dX) < 0.01 && Math.abs(dY) < 0.01) {
+      followTarget = null;
+      // Resume slow auto-rotate after 3 seconds
+      setTimeout(function() { autoRotate = true; }, 3000);
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════
   // KEYBOARD = METALLIC MODALITY INTERFACE
