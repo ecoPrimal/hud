@@ -225,10 +225,10 @@
   }
 
   // ═══════════════════════════════════════════════════════
-  // HUMAN BEACONS — paint all humans brown and green on globe
-  // Brown = earth, soil, ground they stand on
-  // Green = life, growth, the living signal
-  // HUMANS = 1 = true. Every visitor is a lighthouse.
+  // HUMAN BEACONS — humans are COLOUR painted on the CLAY
+  // Clay = Gaia (brown body). Humans = oxide glaze (their colour).
+  // Iron=red/brown. Cobalt=blue. Copper=green. Manganese=purple.
+  // They MOLD her by orbiting. They PAINT her by existing.
   // ═══════════════════════════════════════════════════════
   if (G && G.drawModules) {
     G.drawModules.push(function(g, ctx, breathT) {
@@ -238,15 +238,16 @@
       var alpha = 0.008 + Math.sin(t * 0.2) * 0.004;
       if (alpha < 0.004) return;
 
-      // 7 human archetypes orbiting the globe — brown and green
+      // 7 human archetypes — oxide colours on clay
+      // Each human is an oxide that paints the clay
       var humans = [
-        { name:'Scholar',  angle: 0.0,  r: 0.92, brown:'101,67,33',  green:'63,185,80'  },
-        { name:'Teacher',  angle: 0.9,  r: 0.88, brown:'139,105,20', green:'107,142,35' },
-        { name:'Explorer', angle: 1.8,  r: 0.95, brown:'101,67,33',  green:'85,107,47'  },
-        { name:'Witness',  angle: 2.7,  r: 0.90, brown:'160,82,45',  green:'63,185,80'  },
-        { name:'Watcher',  angle: 3.5,  r: 0.85, brown:'139,90,43',  green:'143,188,143'},
-        { name:'Scout',    angle: 4.4,  r: 0.93, brown:'101,67,33',  green:'85,107,47'  },
-        { name:'Probe',    angle: 5.3,  r: 0.87, brown:'120,90,50',  green:'143,188,143'}
+        { name:'Scholar',  angle: 0.0,  r: 0.92, brown:'101,67,33',  oxide:'71,105,180',  element:'cobalt=blue'   },
+        { name:'Teacher',  angle: 0.9,  r: 0.88, brown:'139,105,20', oxide:'80,150,60',   element:'copper=green'  },
+        { name:'Explorer', angle: 1.8,  r: 0.95, brown:'101,67,33',  oxide:'139,69,19',   element:'iron=brown'    },
+        { name:'Witness',  angle: 2.7,  r: 0.90, brown:'160,82,45',  oxide:'200,60,50',   element:'iron=red'      },
+        { name:'Watcher',  angle: 3.5,  r: 0.85, brown:'139,90,43',  oxide:'140,80,160',  element:'manganese=purple'},
+        { name:'Scout',    angle: 4.4,  r: 0.93, brown:'101,67,33',  oxide:'180,170,120', element:'tin=cream'     },
+        { name:'Probe',    angle: 5.3,  r: 0.87, brown:'120,90,50',  oxide:'120,180,200', element:'rutile=teal'   }
       ];
 
       for (var h = 0; h < humans.length; h++) {
@@ -256,25 +257,38 @@
         var hx = cx + Math.cos(a) * hr;
         var hy = cy + Math.sin(a) * hr;
 
-        // Brown earth ring
+        // Clay body — brown earth ring (the vessel)
         ctx.beginPath();
         ctx.arc(hx, hy, 3, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(' + hum.brown + ',' + (alpha * 2).toFixed(5) + ')';
         ctx.lineWidth = 0.8;
         ctx.stroke();
 
-        // Green life dot
+        // Oxide paint dot — the human's colour on the clay
         ctx.beginPath();
-        ctx.arc(hx, hy, 1.2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + hum.green + ',' + (alpha * 3).toFixed(5) + ')';
+        ctx.arc(hx, hy, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + hum.oxide + ',' + (alpha * 3).toFixed(5) + ')';
         ctx.fill();
 
-        // Beacon pulse — rings that expand outward
+        // Paint trail — oxide smeared on the clay as they orbit
+        var trailLen = 8;
+        for (var tr = 1; tr <= trailLen; tr++) {
+          var ta = a - tr * 0.04;
+          var tx = cx + Math.cos(ta) * hr;
+          var ty = cy + Math.sin(ta) * hr;
+          var trAlpha = alpha * 2 * (1 - tr / trailLen);
+          ctx.beginPath();
+          ctx.arc(tx, ty, 0.5 + (1 - tr / trailLen) * 0.8, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(' + hum.oxide + ',' + trAlpha.toFixed(5) + ')';
+          ctx.fill();
+        }
+
+        // Glaze pulse — fired into the clay
         var pulse = (t * 0.5 + h * 0.7) % 3;
         if (pulse < 2) {
           ctx.beginPath();
           ctx.arc(hx, hy, 3 + pulse * 4, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(' + hum.green + ',' + ((1 - pulse / 2) * alpha).toFixed(5) + ')';
+          ctx.strokeStyle = 'rgba(' + hum.oxide + ',' + ((1 - pulse / 2) * alpha).toFixed(5) + ')';
           ctx.lineWidth = 0.3;
           ctx.stroke();
         }
