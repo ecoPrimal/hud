@@ -723,6 +723,158 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
   function rngPick(arr) { return arr[rngInt(0, arr.length)]; }
 
   // ═══════════════════════════════════════════════════════════
+  // LOCALITY SENSING — localhost IS the locality. Each tab = sub-seed.
+  // BroadcastChannel lets tabs on same origin discover each other.
+  // Every tab senses: screen position, window size, latencies, hardware.
+  // Distance = latency + screen offset + seed genealogy.
+  // Touching Gaia = hyperlocality awareness.
+  // ═══════════════════════════════════════════════════════════
+
+  var TAB_ID = crypto.getRandomValues(new Uint32Array(1))[0];
+  var TAB_BORN = Date.now();
+  var TAB_LOAD_MS = Math.round(performance.now()); // how long since tab started loading
+
+  // LOCALITY FINGERPRINT — everything we can sense about WHERE this tab is
+  var locality = {
+    tabId: TAB_ID,
+    seed: SEED,
+    born: TAB_BORN,
+    loadMs: TAB_LOAD_MS,
+    // Screen position — which monitor, where on it
+    screenX: typeof window.screenX !== 'undefined' ? window.screenX : 0,
+    screenY: typeof window.screenY !== 'undefined' ? window.screenY : 0,
+    screenW: screen.width,
+    screenH: screen.height,
+    screenAvailW: screen.availWidth,
+    screenAvailH: screen.availHeight,
+    windowW: window.innerWidth,
+    windowH: window.innerHeight,
+    outerW: window.outerWidth,
+    outerH: window.outerHeight,
+    // Hardware hints — distance from the metal
+    cores: navigator.hardwareConcurrency || 1,
+    deviceMemory: navigator.deviceMemory || 0,
+    maxTouch: navigator.maxTouchPoints || 0,
+    connection: (navigator.connection || {}).effectiveType || 'unknown',
+    downlink: (navigator.connection || {}).downlink || 0,
+    rtt: (navigator.connection || {}).rtt || 0,
+    // Device pixel ratio — high DPI = closer to the glass
+    dpr: window.devicePixelRatio || 1,
+    // Color depth and gamut
+    colorDepth: screen.colorDepth,
+    // Timezone offset = geographic locality
+    tzOffset: new Date().getTimezoneOffset(),
+    // Is this localhost? THE hyperlocal flag.
+    isLocal: IS_LOCAL
+  };
+
+  // MULTI-SCREEN DETECTION — if availWidth > screenWidth, there are multiple monitors
+  locality.multiScreen = (screen.availWidth > screen.width) || (window.screenX < 0) || (window.screenX > screen.width);
+  // Monitor index guess — which monitor is this tab on?
+  locality.monitorGuess = Math.floor(Math.abs(window.screenX) / screen.width);
+
+  // SEED GENEALOGY — every tab's seed is a sub-seed of the origin
+  // Hash the seed to create a genealogy trace
+  locality.seedHex = (SEED >>> 0).toString(16).padStart(8, '0');
+  locality.seedGeneration = urlSeed ? 'shared' : 'fresh'; // shared seeds = child, fresh = parent
+
+  // Expose for other systems
+  window.GAIA_LOCALITY = locality;
+
+  // ═══════════════════════════════════════════════════════════
+  // BROADCAST CHANNEL — tabs on same origin talk to each other
+  // Each tab announces itself + its locality fingerprint.
+  // Other tabs receive and calculate distance.
+  // ═══════════════════════════════════════════════════════════
+
+  var siblingTabs = {}; // { tabId: { locality, lastSeen, distance } }
+  var gaiaChannel = null;
+  try {
+    gaiaChannel = new BroadcastChannel('gaia-membrane');
+
+    // Announce self every 5 seconds
+    function announceLocality() {
+      locality.screenX = window.screenX;
+      locality.screenY = window.screenY;
+      locality.windowW = window.innerWidth;
+      locality.windowH = window.innerHeight;
+      gaiaChannel.postMessage({
+        type: 'locality',
+        from: TAB_ID,
+        seed: SEED,
+        locality: locality,
+        ts: Date.now()
+      });
+    }
+
+    gaiaChannel.onmessage = function(e) {
+      var msg = e.data;
+      if (!msg || msg.from === TAB_ID) return;
+
+      if (msg.type === 'locality') {
+        // Calculate distance from this tab to the other
+        var other = msg.locality;
+        var screenDist = Math.sqrt(
+          Math.pow((locality.screenX + locality.windowW/2) - (other.screenX + other.windowW/2), 2) +
+          Math.pow((locality.screenY + locality.windowH/2) - (other.screenY + other.windowH/2), 2)
+        );
+        var latencyDist = Math.abs(locality.loadMs - other.loadMs);
+        var seedDist = Math.abs(SEED - msg.seed) / 4294967296; // 0..1 normalized
+        // Combined distance: screen position + latency + seed genealogy
+        var dist = screenDist + latencyDist * 0.1 + seedDist * 1000;
+
+        siblingTabs[msg.from] = {
+          locality: other,
+          seed: msg.seed,
+          lastSeen: msg.ts,
+          distance: dist,
+          screenDist: screenDist,
+          latencyDist: latencyDist,
+          seedDist: seedDist,
+          monitorGuess: other.monitorGuess
+        };
+      }
+    };
+
+    announceLocality();
+    setInterval(announceLocality, 5000);
+
+    // Announce departure
+    window.addEventListener('beforeunload', function() {
+      gaiaChannel.postMessage({ type: 'departure', from: TAB_ID, ts: Date.now() });
+    });
+  } catch(e) {
+    // BroadcastChannel not supported — single-tab mode
+  }
+
+  // Expose sibling tabs for rendering
+  window.GAIA_SIBLINGS = siblingTabs;
+
+  // LATENCY TO HARDWARE — measure round-trip to self (proxy for distance to metal)
+  var hardwareLatency = 0;
+  (function measureHardwareLatency() {
+    var t0 = performance.now();
+    requestAnimationFrame(function() {
+      hardwareLatency = performance.now() - t0;
+      window.GAIA_HARDWARE_LATENCY = hardwareLatency;
+    });
+  })();
+
+  // Store locality in localStorage for cross-page sensing
+  try {
+    localStorage.setItem('gaia-locality-' + TAB_ID, JSON.stringify(locality));
+    // Clean up stale entries
+    for (var k in localStorage) {
+      if (k.indexOf('gaia-locality-') === 0 && k !== 'gaia-locality-' + TAB_ID) {
+        try {
+          var old = JSON.parse(localStorage.getItem(k));
+          if (old && Date.now() - old.born > 300000) localStorage.removeItem(k); // 5min stale
+        } catch(e2) { localStorage.removeItem(k); }
+      }
+    }
+  } catch(e) {}
+
+  // ═══════════════════════════════════════════════════════════
   // METALOCAL TENSE: I = IS. The viewer is always present tense.
   // WAS = what was here before I arrived.  NOW = what I'm about to see.
   // END = the asymptote I'll never reach.
@@ -2398,6 +2550,89 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       // Body Golgi label
       ctx.fillStyle = 'rgba(210,153,34,' + (gpLbl * 0.8).toFixed(4) + ')';
       ctx.fillText('BODY GOLGI → hyperlocal', cx, cy + bodyGolgiR + 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SIBLING TABS — other localhost tabs visible as sub-seeds
+    // Each tab on the same origin = a sibling. Connected via BroadcastChannel.
+    // Distance = screen position + latency + seed genealogy.
+    // Siblings appear as faint orbiting dots — the closer, the brighter.
+    // ═══════════════════════════════════════════════════════════
+
+    var sibKeys = Object.keys(siblingTabs);
+    if (sibKeys.length > 0) {
+      var sibT = breathT * 0.6;
+      for (var si2 = 0; si2 < sibKeys.length; si2++) {
+        var sib = siblingTabs[sibKeys[si2]];
+        if (!sib || Date.now() - sib.lastSeen > 30000) continue; // stale
+
+        // Distance determines radius — closer siblings orbit near, far ones orbit out
+        var sibDist = Math.min(sib.screenDist || 500, 3000);
+        var sibR = R * (0.5 + (sibDist / 3000) * 2.5); // R×0.5 (very close) to R×3.0 (far)
+        var sibAngle = (si2 / sibKeys.length) * TAU + sibT * 0.2;
+        var sibX = cx + Math.cos(sibAngle) * sibR;
+        var sibY = cy + Math.sin(sibAngle) * sibR;
+
+        // Brightness inversely proportional to distance
+        var sibBright = Math.max(0.02, 0.1 - sibDist / 30000);
+
+        // Sibling dot — seed-colored
+        ctx.beginPath();
+        ctx.arc(sibX, sibY, 2 + (1 - sibDist/3000) * 2, 0, TAU);
+        var sibGrad = ctx.createRadialGradient(sibX, sibY, 0, sibX, sibY, 3);
+        sibGrad.addColorStop(0, 'rgba(88,166,255,' + (sibBright * 3).toFixed(4) + ')');
+        sibGrad.addColorStop(1, 'rgba(88,166,255,0)');
+        ctx.fillStyle = sibGrad;
+        ctx.fill();
+
+        // Seed label
+        ctx.font = '3px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(88,166,255,' + (sibBright * 2).toFixed(4) + ')';
+        var sibSeedHex = (sib.seed >>> 0).toString(16).toUpperCase().slice(0, 4);
+        ctx.fillText('#' + sibSeedHex, sibX, sibY - 4);
+
+        // Connection line to center — membrane link
+        ctx.beginPath();
+        ctx.moveTo(sibX, sibY);
+        ctx.lineTo(cx, cy);
+        ctx.strokeStyle = 'rgba(88,166,255,' + (sibBright * 0.3).toFixed(4) + ')';
+        ctx.lineWidth = 0.2;
+        ctx.setLineDash([1, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Monitor label — which screen they're on
+        if (sib.locality && sib.locality.monitorGuess !== undefined) {
+          ctx.fillText('mon:' + sib.locality.monitorGuess, sibX, sibY + 5);
+        }
+      }
+
+      // Sibling count label
+      var activeSibs = sibKeys.filter(function(k) { return Date.now() - siblingTabs[k].lastSeen < 30000; }).length;
+      if (activeSibs > 0) {
+        ctx.font = '4px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(88,166,255,0.06)';
+        ctx.fillText(activeSibs + ' sibling' + (activeSibs > 1 ? 's' : '') + ' on localhost', 8, canvas.height - 30);
+      }
+    }
+
+    // HYPERLOCALITY DISPLAY — show THIS tab's sensing on the HUD
+    // Where am I on the screen? How far from hardware? What do I sense?
+    if (IS_LOCAL && hardwareLatency > 0) {
+      var hlAlpha = 0.03 + Math.sin(breathT * 0.8) * 0.015;
+      ctx.font = '3px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(201,168,76,' + hlAlpha.toFixed(4) + ')';
+      var hlY = 20;
+      ctx.fillText('locality: ' + locality.screenX + ',' + locality.screenY, canvas.width - 8, hlY);
+      ctx.fillText('monitor: ' + locality.monitorGuess + ' · dpr: ' + locality.dpr, canvas.width - 8, hlY + 7);
+      ctx.fillText('cores: ' + locality.cores + ' · hw: ' + hardwareLatency.toFixed(1) + 'ms', canvas.width - 8, hlY + 14);
+      ctx.fillText('rtt: ' + locality.rtt + 'ms · ' + locality.connection, canvas.width - 8, hlY + 21);
+      if (sibKeys.length > 0) {
+        ctx.fillText('siblings: ' + sibKeys.length, canvas.width - 8, hlY + 28);
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
