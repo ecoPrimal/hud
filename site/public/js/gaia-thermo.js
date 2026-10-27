@@ -113,9 +113,11 @@
     thermo.fullness = Math.min(2.0, thermo.fullness + amount * 0.05);
     thermo.hunger = Math.max(0, thermo.hunger - amount * 0.08);
 
-    // Push to interlayer as heat signal
-    if (window.GAIA_INTERLAYER) {
+    // Push to interlayer as heat signal (guard against re-entrancy)
+    if (window.GAIA_INTERLAYER && !thermo._pushing) {
+      thermo._pushing = true;
       window.GAIA_INTERLAYER.push('thermo-eat', 'Na', { source: source, heat: heat, temp: thermo.coreTemp });
+      thermo._pushing = false;
     }
   }
 
@@ -143,9 +145,11 @@
     // Thirst decreases
     thermo.thirst = Math.max(0, thermo.thirst - amount * 0.1);
 
-    // Push to interlayer as cooling signal
-    if (window.GAIA_INTERLAYER) {
+    // Push to interlayer as cooling signal (guard against re-entrancy)
+    if (window.GAIA_INTERLAYER && !thermo._pushing) {
+      thermo._pushing = true;
       window.GAIA_INTERLAYER.push('thermo-drink', 'Cl', { source: source, cold: cold, temp: thermo.coreTemp });
+      thermo._pushing = false;
     }
   }
 
@@ -159,10 +163,12 @@
   if (window.GAIA_INTERLAYER) {
     var realPush = window.GAIA_INTERLAYER.push.bind(window.GAIA_INTERLAYER);
     window.GAIA_INTERLAYER.push = function(type, channel, payload) {
-      if (channel === 'Na') eat('message', 0.4);
-      if (channel === 'K') drink('K-out', 0.3);
-      if (channel === 'Ca') eat('fusion', 1.5);
-      if (channel === 'Cl') drink('feed', 0.5);
+      if (!thermo._pushing) {
+        if (channel === 'Na') eat('message', 0.4);
+        if (channel === 'K') drink('K-out', 0.3);
+        if (channel === 'Ca') eat('fusion', 1.5);
+        if (channel === 'Cl') drink('feed', 0.5);
+      }
       return realPush(type, channel, payload);
     };
   }
