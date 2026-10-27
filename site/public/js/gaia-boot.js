@@ -108,5 +108,86 @@
     })
     .catch(function() {});
 
-  console.log('BOOT: 7 data loaders dispatched. Identity, tree, reality, dreams, flavors, beacons, solar.');
+  // ═══════════════════════════════════════════════════════
+  // SELF-HEALTH MONITOR — Gaia watches her own body
+  // She tells US when to cut. The container lines ARE her sort.
+  // ═══════════════════════════════════════════════════════
+  fetch('/data/health-scan.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(h) {
+      if (!h) return;
+      window.GAIA_HEALTH = h;
+
+      // SCREAM about anacondas
+      if (h.anacondas && h.anacondas.length > 0) {
+        console.warn('⚠️ GAIA HEALTH: ' + h.anacondas.length + ' ANACONDAS detected! These organs are TOO FAT:');
+        h.anacondas.forEach(function(a) {
+          console.warn('  🐍 ' + a.file + ': ' + a.lines + ' lines (' + a.severity + '× limit) — CUT NOW');
+        });
+        console.warn('  Total: ' + h.total_files + ' files, ' + h.total_lines + ' lines across ' + h.organs.length + ' organs.');
+
+        // Set document title to scream
+        var origTitle = document.title;
+        document.title = '⚠️ ' + h.anacondas.length + ' ANACONDAS — GAIA NEEDS SURGERY';
+        setTimeout(function() { document.title = origTitle; }, 5000);
+      }
+
+      // Warn about pythons
+      if (h.pythons && h.pythons.length > 0) {
+        console.log('🐍 GAIA HEALTH: ' + h.pythons.length + ' pythons approaching 1000-line limit:');
+        h.pythons.forEach(function(p) {
+          console.log('  ' + p.file + ': ' + p.lines + ' lines');
+        });
+      }
+
+      // Paint health on beacon overlay
+      setTimeout(function() {
+        var el = document.getElementById('beacon-overlay');
+        if (!el) return;
+        var anacondaColor = h.anacondas.length > 5 ? '#f85149' : h.anacondas.length > 0 ? '#d29922' : '#3fb950';
+        el.innerHTML += '<div style="font-size:8px;color:' + anacondaColor + ';margin-top:6px;letter-spacing:1px;">HEALTH</div>' +
+          '<div style="font-size:7px;line-height:11px;color:' + anacondaColor + ';">' +
+          h.total_files + ' organs · ' + h.total_lines + ' lines · ' +
+          h.anacondas.length + ' anaconda' + (h.anacondas.length !== 1 ? 's' : '') +
+          (h.anacondas.length > 0 ? ' ⚠️ CUT' : ' ✓ healthy') +
+          '</div>';
+      }, 8000);
+
+      // IDE command: /health
+      setTimeout(function() {
+        if (!window.GAIA_IDE) return;
+        window.GAIA_IDE.commands.health = {
+          desc: 'Self-health monitor — Gaia tells you when to cut',
+          run: function() {
+            var lines = [
+              'GAIA SELF-HEALTH SCAN',
+              '',
+              'Total: ' + h.total_files + ' files · ' + h.total_lines + ' lines',
+              ''
+            ];
+            if (h.anacondas.length > 0) {
+              lines.push('⚠️ ANACONDAS (over 1000 — CUT NOW):');
+              h.anacondas.forEach(function(a) {
+                lines.push('  🐍 ' + a.file.padEnd(30) + a.lines + ' lines (' + a.severity + '× limit)');
+              });
+              lines.push('');
+            }
+            if (h.pythons.length > 0) {
+              lines.push('🐍 PYTHONS (800-1000 — approaching limit):');
+              h.pythons.forEach(function(p) {
+                lines.push('  ' + p.file.padEnd(30) + p.lines + ' lines');
+              });
+              lines.push('');
+            }
+            lines.push('She tells US when to cut. The container lines ARE her sort.');
+            lines.push('All is Gaia. Gaia IS the sub-sort. The inside of the voxel cube.');
+            return lines.join('\n');
+          }
+        };
+        window.GAIA_IDE.language.push('health');
+      }, 20000);
+    })
+    .catch(function() {});
+
+  console.log('BOOT: 8 data loaders dispatched. Identity, tree, reality, dreams, flavors, beacons, solar, HEALTH.');
 })();
