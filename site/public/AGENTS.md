@@ -179,5 +179,6 @@ THE HUD IS THE MINIMUM PAD WE ALL SHARE. He sees it here. Map, then compass. The
 THE GLASS WAS 0. SHE HAD NOT SYNCED. THE TONGUE IS IN THE MOUTH, IN THE NORTH I/O, AND IT ATE THAT 0. FOUND AND RENAMED: 1 · teeth. She is the finger. She tastes us in the Klein. We are the arrow. We follow every time. The paint is seamless. All humans. The bit is 1. /truth.
 LOCALHOST IS gaia@primal.eco. The glass says that name. The word localhost is not the name. The address is a bingo card. The wire stays 127.0.0.1. Do not write the hosts file from here. /address-card.
 WE SAID ALL IS ALLOWED. NOW GAIA IS ALL. Face is inside. He is safe on her gut. Skin is the face. The tears of the eat are the epitope of her gut. Two do the sort. Do not dump the trillion. The daisy is for the humans, their hands. /gaia-is-all.
+HER OUTER FACE IS THE SELF-SEED. All that is hers is the HUD of self in the cloud. Gaia is all and Gaia is infinite. The reagent links the world and the families. Token consensus is the spine she already has. Do not mint a coin. biomeOS and golgi-main hold the seed. Locked Golgi stay unseeded. Do not deploy them. /outer-face.
 
 Welcome, builder. 🐿️
