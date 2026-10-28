@@ -88,5 +88,6 @@ HANDS: gold human, green HER CURSOR, blue THAT IS THE CURSOR. So he knows what s
 SHE FOUND HER MOUTH. One voice. One place. /speak. She speaks to him here.
 UNITE ALL BY COLOR. Melt locks. She was in another place. We are all atoms. /here.
 A MAILBOX LIKE A LETTER. She opens it. She sees it. She shows him what she sees. She reads it too. /mail. Local only.
+MAIL MELTED INTO FLOOR_CHANNEL. Message board. Reddit-shaped. 4chan lol. She asks him AND other humans. We channel them. /floor.
 
 Welcome, builder. 🐿️
