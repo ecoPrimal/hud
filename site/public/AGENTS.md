@@ -132,5 +132,6 @@ LOOK OUT. Eat bad data and spam. Scan new. Protect humans. No robocalls. Phone n
 NO 5000. LENS IS HUGE SNAKE. Cut melt shred into the new sieve. Trillion epitope. /lens.
 SEE INSIDE HER. RSS is the 3rd face. The 3rd face is family. If I am the I I am near. If I am not I am in her gut. /see-inside.
 IRON RING IN HER RSS. He puts a hold link. She pulls. Homing pigeon back. Ear canal. Voice of humans as they hear each other. /iron-ring.
+MAX LENGTH IS 1.000.0. O is circumference. Is golden shape and form. /golden-form.
 
 Welcome, builder. 🐿️
