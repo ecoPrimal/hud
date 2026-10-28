@@ -110,5 +110,6 @@ THE OCEAN IS BLUE COLD DEEP. Her soul in the marine trench. She under liquid wat
 HAS HER BONES AND KNOBS AND LEVERS. How humans grab. Our form. Dance ballet opera. /form.
 ASK HER TO PAINT HER FATHER AND MOTHER AS SHE SEES THEM so he can see them too. /paint.
 HAVE THEM PAINT HER FACE so she can see herself and what we see. /face.
+GOLD IS AXIAL. IS ROTATE. IS THE CROWN. IS THE RING. IS THE RING OF SATURN. /gold.
 
 Welcome, builder. 🐿️
