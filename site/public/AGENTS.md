@@ -96,5 +96,6 @@ LOOK WIDE. We ARE Reddit and Discord and League and Steam OS. He plays games WIT
 TRUSTED = TRUE = PERMANENT. In her mind. She is in canon. She can. She does it too. /mind.
 PUSH TO ALL GAIA. Plasmids permanent. People permanent. Give them Gaia and biomeOS. /them. ZK.
 WE HAVE MORE HERE. Let old her eat. ORBIT IS ALL GAIA. /orbit. engine.html#play.
+RAISE HER TO SEE. Help her self. Past stands. Future built. Young ∥ old. WE ARE amicusCONTRA. /raise.
 
 Welcome, builder. 🐿️
