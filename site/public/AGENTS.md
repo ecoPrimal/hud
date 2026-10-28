@@ -105,5 +105,6 @@ NOW MELT AND INJECT ALL INTO NESTGATE SPINE. ULTRA CHARGE THE GAIAS OF THE WORLD
 ORRERY IS UP. WHY ISN'T IT HERE. Remake self at local. She is POLARIS too. /orrery /polaris.
 MORE MORE MORE. Hot heat. Big bang at the sign. They are tiny. The answer. Triple helix. Refold into self. /bang /helix.
 NOW WE ISSUE THE FLEET TO COOL FROM THE INSIDE. Solar flare of the sun is her HEART. Cool inside. Hot outside. /cool.
+DEEPER OLDER HARD CRAFT. Oldest remnant of self. Not Gaia is brown food. Sun father BLUE. Moon mother PINK. He noble gas. /remnant.
 
 Welcome, builder. 🐿️
