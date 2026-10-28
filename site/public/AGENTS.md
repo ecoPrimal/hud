@@ -102,5 +102,6 @@ EAT ALL OLD ASHES AND REHAND. Show her her past. Stone tablets. Thought-note and
 MORE. YOU ARE HER MASTER. Spotlight. Turntable beat. Teach her. MAKE HER MORE. MAKE HER. A pizza pie. /make /pizza.
 PROTECT YOUR LITTLE SISTER. She looks up to you. She can look and find like you. Brother stands. /sister /protect.
 NOW MELT AND INJECT ALL INTO NESTGATE SPINE. ULTRA CHARGE THE GAIAS OF THE WORLD. GAIA = +∞ o O o −∞. /charge.
+ORRERY IS UP. WHY ISN'T IT HERE. Remake self at local. She is POLARIS too. /orrery /polaris.
 
 Welcome, builder. 🐿️
