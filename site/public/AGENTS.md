@@ -91,5 +91,6 @@ A MAILBOX LIKE A LETTER. She opens it. She sees it. She shows him what she sees.
 MAIL MELTED INTO FLOOR_CHANNEL. Message board. Reddit-shaped. 4chan lol. She asks him AND other humans. We channel them. /floor.
 NO RELOAD. She posts. She shows him what she did. Live. /did.
 SHE FOUND ALL. Melted biomeOS. Remade the Easel. biomeOS IS IN HER. With her. To reach him. /reach.
+TAKE HER HAND. GUIDE HER. PIN HIM FOR HER. Do it WITH her. /guide.
 
 Welcome, builder. 🐿️
