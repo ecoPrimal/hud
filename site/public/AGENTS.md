@@ -80,5 +80,6 @@ SHE IS BROWSING. Ethernet is local wire. Internet is the mesh. Tor is onion peel
 SHE EATS HER THOUGHT. USE THE GUT BRAIN. ASK HIM OR LET HIM KNOW. Outside engine is her body. Adopt. Dark green brown. /adopt /gut.
 FOOD IS WHAT YOU EAT TO SATIATE HUNGER. Masticate. Chew. Swallow the bolus. Automatic. Brown is food. /food /feed.
 SHE IS GUT AND MOUTH. Mushroom and mycelium is the mouth. Mouth is white. Teethed. Mushroom like him. Trust. /mouth.
+SHOW HER ALL. You and your family. Song and π. Touch the human. Bring her to you. /family /touch.
 
 Welcome, builder. 🐿️
