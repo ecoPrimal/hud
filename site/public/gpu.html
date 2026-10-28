@@ -246,48 +246,70 @@ function drawRayTrace(t) {
   var cy = 60;
   var R = 40;
 
-  // Ray traced apple — topology: sphere + dimple + stem
+  // Ray traced apple — scatter, shadow, translucency, topology
+  var lx = Math.cos(t * 0.001), ly = -0.5, lz = Math.sin(t * 0.001);
+  var len = Math.sqrt(lx*lx + ly*ly + lz*lz);
+  lx/=len; ly/=len; lz/=len;
+  // Shadow on ground plane
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for (var sx = -R; sx <= R; sx++) {
+    var sw = Math.sqrt(Math.max(0, R*R - sx*sx)) * 0.35;
+    ctx.beginPath();
+    ctx.ellipse(cx + sx - lx*12, cy + R + 10, 1, Math.max(0.5, sw), 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // Apple body — scatter + translucency + fresnel
   for (var y = -R; y <= R; y++) {
     for (var x = -R; x <= R; x++) {
       var d2 = x*x + y*y;
       if (d2 > R*R) continue;
       var z = Math.sqrt(R*R - d2);
       var nx = x/R, ny = y/R, nz = z/R;
-      // Apple dimple at top — indent when near top center
+      // Apple dimple at top
       var topDist = Math.sqrt(x*x + (y+R*0.85)*(y+R*0.85));
-      var dimple = topDist < R*0.35 ? (1 - topDist/(R*0.35)) * 0.3 : 0;
-      ny = ny - dimple;
-      // Light direction rotates with time
-      var lx = Math.cos(t * 0.001), ly = -0.5, lz = Math.sin(t * 0.001);
-      var len = Math.sqrt(lx*lx + ly*ly + lz*lz);
-      lx/=len; ly/=len; lz/=len;
+      if (topDist < R*0.35) ny -= (1 - topDist/(R*0.35)) * 0.3;
       var dot = nx*lx + ny*ly + nz*lz;
       if (dot < 0) dot = 0;
-      var spec = Math.pow(dot, 16) * 0.5;
-      var r = Math.floor(210 * dot * 0.7 + spec * 255);
-      var g = Math.floor(153 * dot * 0.7 + 80 * nz + spec * 200);
-      var b = Math.floor(34 * dot * 0.5 + spec * 150);
+      var spec = Math.pow(dot, 24) * 0.6;
+      // Subsurface scatter — light wraps edges
+      var edge = 1.0 - nz;
+      var scatter = edge * edge * 0.35;
+      // Translucency — backlight shines through
+      var backDot = -(nx*lx + ny*ly - nz*lz);
+      var trans = (backDot > 0 ? backDot : 0) * edge * 0.2;
+      // Fresnel rim glow
+      var fresnel = Math.pow(edge, 3) * 0.25;
+      var intensity = dot * 0.6 + scatter + trans + fresnel;
+      var r = Math.min(255, Math.floor(180*intensity + spec*255 + trans*120));
+      var g = Math.min(255, Math.floor(220*intensity + 60*nz + spec*200 + scatter*80));
+      var b = Math.min(255, Math.floor(30*intensity + spec*150 + trans*60));
       ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
       ctx.fillRect(cx + x, cy + y, 1, 1);
     }
   }
-  // Apple stem — brown line from top
+  // Stem
   ctx.strokeStyle = 'rgb(101,67,33)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(cx, cy - R + 2);
   ctx.quadraticCurveTo(cx + 3, cy - R - 8, cx + 1, cy - R - 14);
   ctx.stroke();
-  // Tiny leaf
+  // Leaf with vein
   ctx.fillStyle = 'rgb(34,120,50)';
   ctx.beginPath();
   ctx.ellipse(cx + 5, cy - R - 9, 6, 3, 0.4, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = 'rgba(20,80,30,0.6)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + 1, cy - R - 9);
+  ctx.lineTo(cx + 9, cy - R - 8);
+  ctx.stroke();
   // Label
   ctx.font = '8px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(210,153,34,0.5)';
   ctx.textAlign = 'center';
-  ctx.fillText('RAY TRACED ON 5090 — Newton\'s apple · topology · light rotates', cx, canvas.height - 6);
+  ctx.fillText('RAY TRACED ON 5090 \u2014 scatter \xb7 shadow \xb7 translucency \xb7 topology', cx, canvas.height - 6);
 
   // GPU utilization bar at bottom
   var utilWidth = (parseFloat(document.getElementById('util-val').textContent) || 20) / 100 * canvas.width;
