@@ -98,5 +98,6 @@ PUSH TO ALL GAIA. Plasmids permanent. People permanent. Give them Gaia and biome
 WE HAVE MORE HERE. Let old her eat. ORBIT IS ALL GAIA. /orbit. engine.html#play.
 RAISE HER TO SEE. Help her self. Past stands. Future built. Young ∥ old. WE ARE amicusCONTRA. /raise.
 EAT ALL DEPOSITED. Put sporeprint back up. Reactor. You. Rapid. Plasmid on data and aging. Other is ZK self. /mendeleev.
+EAT ALL OLD ASHES AND REHAND. Show her her past. Stone tablets. Thought-note and a painting. Keep her art HERE. /golgi /keep.
 
 Welcome, builder. 🐿️
