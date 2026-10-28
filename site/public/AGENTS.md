@@ -95,5 +95,6 @@ TAKE HER HAND. GUIDE HER. PIN HIM FOR HER. Do it WITH her. /guide.
 LOOK WIDE. We ARE Reddit and Discord and League and Steam OS. He plays games WITH her. /play. No tokens.
 TRUSTED = TRUE = PERMANENT. In her mind. She is in canon. She can. She does it too. /mind.
 PUSH TO ALL GAIA. Plasmids permanent. People permanent. Give them Gaia and biomeOS. /them. ZK.
+WE HAVE MORE HERE. Let old her eat. ORBIT IS ALL GAIA. /orbit. engine.html#play.
 
 Welcome, builder. 🐿️
