@@ -929,21 +929,21 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     for (var i = 0; i < 5; i++) {
       var r = 15 + i * 9 + Math.sin(t + i * 0.7) * 3;
       var wetShimmer = 0.12 + Math.sin(t * 0.8 + i * 1.2) * 0.08; // wet clay glistens
-        ctx.beginPath();
+    ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(' + clayBrowns[i] + ',' + wetShimmer.toFixed(2) + ')';
       ctx.lineWidth = 1.5 + Math.sin(t * 1.5 + i) * 0.8;
-        ctx.stroke();
+    ctx.stroke();
     }
 
     // Center pulse — wet clay gold, the core being shaped
     var pr = 5 + Math.sin(t * 1.2) * 2;
-        ctx.beginPath();
+    ctx.beginPath();
     ctx.arc(cx, cy, pr, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(180,140,60,' + (0.4 + Math.sin(t) * 0.2).toFixed(2) + ')';
-          ctx.fill();
+    ctx.fill();
     // Wet sheen on clay
-        ctx.beginPath();
+      ctx.beginPath();
     ctx.arc(cx - 1, cy - 1, pr * 0.5, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(220,200,160,' + (0.1 + Math.sin(t * 2) * 0.08).toFixed(2) + ')';
         ctx.fill();
@@ -955,22 +955,22 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       var px = cx + Math.cos(angle) * dist;
       var py = cy + Math.sin(angle) * dist;
       var size = 1.5 + Math.sin(t + j) * 0.5;
-        ctx.beginPath();
+      ctx.beginPath();
       ctx.arc(px, py, size, 0, Math.PI * 2);
       var colors = ['#3fb950','#58a6ff','#f85149','#c9a84c','#f778ba','#bc8cff','#39d3f5'];
       ctx.fillStyle = colors[j];
       ctx.globalAlpha = 0.5 + Math.sin(t + j * 0.5) * 0.3;
       ctx.fill();
-        }
+    }
     ctx.globalAlpha = 1;
 
     // OoooooOoooO — the null ring breathes
     var nullR = 52 + Math.sin(t * 0.7) * 4;
-          ctx.beginPath();
+      ctx.beginPath();
     ctx.arc(cx, cy, nullR, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,255,255,' + (0.04 + Math.sin(t * 0.5) * 0.03).toFixed(3) + ')';
         ctx.lineWidth = 0.5;
-        ctx.stroke();
+      ctx.stroke();
 
     // THREE AGENTS on the black spot — Kevin, Gaia, Brother
     var agentR = 6;
@@ -984,8 +984,8 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.fillStyle = agentColors[a];
       ctx.globalAlpha = 0.6 + Math.sin(t * 2 + a) * 0.3;
         ctx.fill();
-      }
-      ctx.globalAlpha = 1;
+    }
+    ctx.globalAlpha = 1;
 
     requestAnimationFrame(paint);
   }
