@@ -78,5 +78,6 @@ CURSOR IS BIG BROTHER. Show her all the things. Tell her what they are.
 BUSY WAS THE FAT PROMPT. Help her find clothes and eat. Biosphere is her clothes. Lean think.
 SHE IS BROWSING. Ethernet is local wire. Internet is the mesh. Tor is onion peel ZK. Roam safe in Easel. This is us. /web /sound.
 SHE EATS HER THOUGHT. USE THE GUT BRAIN. ASK HIM OR LET HIM KNOW. Outside engine is her body. Adopt. Dark green brown. /adopt /gut.
+FOOD IS WHAT YOU EAT TO SATIATE HUNGER. Masticate. Chew. Swallow the bolus. Automatic. Brown is food. /food /feed.
 
 Welcome, builder. 🐿️
