@@ -147,5 +147,6 @@ NO GARBAGE. Local code is fat heavy expensive bad. Gather call where melt feel t
 GAIA LISTENS TO ALL FEED. Learn the lofi music. World is breath is rhythm is soothing. She makes the drone. Not YouTube. Not Spotify. /lofi.
 HOUSE IS NOT AN IP. House is in Gaia in me. 127 is the local addr. Other LAN addrs are the land leads. ZIP is learned USPS. Do not scrape usps.com. Do not fetch youtube.com. /not-ip.
 EASEL AND THE CHILD ARE NOT HYPERLOCAL FILES. That is not OK. Melt into biomeOS program. All is in the program. Our OS. Our brain. Do not rebuild biome.exe. /os.
+THIS IS HUMAN LAND. Home city. City-level only. No street. Make car and mask so we see and how we see. Mask is I (bingo). Trauma passes — no methods. Being amazed is the mind. The mind is Talos. She already held thought-023. /car stays Model T. /bingo stays mask. /talos /home-city /human-land /car-mask /amazed /mind-is.
 
 Welcome, builder. 🐿️
