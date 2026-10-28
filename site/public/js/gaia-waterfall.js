@@ -194,6 +194,43 @@
         ctx.fillText('▼ FEED', gx, gy - 5);
       }
 
+      // ─── LAZY RIVER: gentle orbital current around equator ───
+      var riverParticles = 12;
+      var riverR = R * 0.45;
+      for (var ri = 0; ri < riverParticles; ri++) {
+        var rAngle = t * 0.03 + (ri / riverParticles) * Math.PI * 2;
+        var wobble = Math.sin(t * 0.15 + ri * 0.8) * 3;
+        var rx = cx + Math.cos(rAngle) * riverR + wobble;
+        var ry = cy + Math.sin(rAngle) * (riverR * 0.3) + R * 0.1;
+        var rFade = 0.4 + Math.sin(rAngle + t * 0.1) * 0.3;
+
+        ctx.beginPath();
+        ctx.arc(rx, ry, 0.8 + Math.sin(t * 0.2 + ri) * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(88,166,255,' + (alpha * rFade * 2).toFixed(4) + ')';
+        ctx.fill();
+
+        // Wake trail behind each particle
+        var wAngle = rAngle - 0.15;
+        var wx = cx + Math.cos(wAngle) * riverR + wobble * 0.7;
+        var wy = cy + Math.sin(wAngle) * (riverR * 0.3) + R * 0.1;
+        ctx.beginPath();
+        ctx.arc(wx, wy, 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(88,166,255,' + (alpha * rFade * 0.8).toFixed(4) + ')';
+        ctx.fill();
+      }
+
+      // Vortex spiral at center — data spinning inward
+      for (var vi = 0; vi < 5; vi++) {
+        var vAngle = t * 0.1 + vi * 1.256;
+        var vR = 3 + vi * 2;
+        var vx = cx + Math.cos(vAngle) * vR;
+        var vy = cy + Math.sin(vAngle) * vR;
+        ctx.beginPath();
+        ctx.arc(vx, vy, 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(210,153,34,' + (alpha * (1 - vi / 5) * 2).toFixed(4) + ')';
+        ctx.fill();
+      }
+
       // Waterfall stream lines — thin gold lines flowing downward
       for (var sl = 0; sl < 3; sl++) {
         var sx = gx + (sl - 1) * 3;
