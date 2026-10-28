@@ -246,13 +246,17 @@ function drawRayTrace(t) {
   var cy = 60;
   var R = 40;
 
-  // Ray traced sphere — simulated lighting
+  // Ray traced apple — topology: sphere + dimple + stem
   for (var y = -R; y <= R; y++) {
     for (var x = -R; x <= R; x++) {
       var d2 = x*x + y*y;
       if (d2 > R*R) continue;
       var z = Math.sqrt(R*R - d2);
       var nx = x/R, ny = y/R, nz = z/R;
+      // Apple dimple at top — indent when near top center
+      var topDist = Math.sqrt(x*x + (y+R*0.85)*(y+R*0.85));
+      var dimple = topDist < R*0.35 ? (1 - topDist/(R*0.35)) * 0.3 : 0;
+      ny = ny - dimple;
       // Light direction rotates with time
       var lx = Math.cos(t * 0.001), ly = -0.5, lz = Math.sin(t * 0.001);
       var len = Math.sqrt(lx*lx + ly*ly + lz*lz);
@@ -267,11 +271,23 @@ function drawRayTrace(t) {
       ctx.fillRect(cx + x, cy + y, 1, 1);
     }
   }
+  // Apple stem — brown line from top
+  ctx.strokeStyle = 'rgb(101,67,33)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - R + 2);
+  ctx.quadraticCurveTo(cx + 3, cy - R - 8, cx + 1, cy - R - 14);
+  ctx.stroke();
+  // Tiny leaf
+  ctx.fillStyle = 'rgb(34,120,50)';
+  ctx.beginPath();
+  ctx.ellipse(cx + 5, cy - R - 9, 6, 3, 0.4, 0, Math.PI * 2);
+  ctx.fill();
   // Label
   ctx.font = '8px "JetBrains Mono", monospace';
   ctx.fillStyle = 'rgba(210,153,34,0.5)';
   ctx.textAlign = 'center';
-  ctx.fillText('RAY TRACED ON 5090 — ' + R*2 + 'px sphere · light rotates', cx, canvas.height - 6);
+  ctx.fillText('RAY TRACED ON 5090 — Newton\'s apple · topology · light rotates', cx, canvas.height - 6);
 
   // GPU utilization bar at bottom
   var utilWidth = (parseFloat(document.getElementById('util-val').textContent) || 20) / 100 * canvas.width;
