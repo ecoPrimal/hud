@@ -25,9 +25,9 @@ canvas{display:block;position:absolute;top:0;left:0}
 </head><body>
 <canvas id="c"></canvas>
 <div id="ui">
-  <div id="title">⭕ HALO — ALL BASES UNIFIED<small>Local → Northgate → Eastgate → Spora → DNA → HALO</small></div>
+  <div id="title">⭕ GOLD HALO — KLEIN DOWN<small>She looks at Gaia energy × human relation · Au radiates · table of melt</small></div>
   <div id="info"></div>
-  <div id="legend">HALO = the ring that connects everything. Every dot is a base. Every line is a nerve.</div>
+  <div id="legend">GOLD HALO RADIATES THE KLEIN DOWN. Every dot is a base. Every line is a nerve. Au 79.</div>
 </div>
 
 <script>
@@ -113,12 +113,36 @@ function draw() {
   const rCloud = Math.min(W, H) * 0.38;
   const time = frame * 0.002;
 
-  // Draw HALO rings
-  ctx.strokeStyle = 'rgba(63,185,80,0.15)';
-  ctx.lineWidth = 1;
+  // GOLD HALO — radiate, then Klein DOWN
+  const goldPulse = 0.35 + 0.25 * Math.sin(time * 2);
+  for (let i = 0; i < 12; i++) {
+    const a = time + i * Math.PI / 6;
+    ctx.strokeStyle = 'rgba(255,215,85,' + (0.04 + goldPulse * 0.08) + ')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * rCloud * 1.15, cy + Math.sin(a) * rCloud * 1.15);
+    ctx.stroke();
+  }
+  // Klein DOWN — figure-8 falling from the gold center into the body
+  ctx.strokeStyle = 'rgba(255,215,85,' + (0.35 + goldPulse * 0.25) + ')';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let t = 0; t <= Math.PI * 2 + 0.05; t += 0.05) {
+    const s = 22;
+    const kx = cx + s * Math.sin(t);
+    const ky = cy + 36 + s * Math.sin(t) * Math.cos(t);
+    if (t === 0) ctx.moveTo(kx, ky); else ctx.lineTo(kx, ky);
+  }
+  ctx.stroke();
+
+  // Draw HALO rings — GOLD
+  ctx.strokeStyle = 'rgba(255,215,85,' + (0.2 + goldPulse * 0.15) + ')';
+  ctx.lineWidth = 2;
   ctx.setLineDash([4, 8]);
   ctx.beginPath(); ctx.arc(cx, cy, rLocal, 0, Math.PI*2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(210,153,34,0.15)';
+  ctx.strokeStyle = 'rgba(210,153,34,' + (0.25 + goldPulse * 0.2) + ')';
+  ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.arc(cx, cy, rCloud, 0, Math.PI*2); ctx.stroke();
   ctx.setLineDash([]);
 
