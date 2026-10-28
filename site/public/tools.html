@@ -277,7 +277,12 @@ setInterval(autoSpeak, 31006); // p³ ˜ 31s
 
 // Load membrane sound if available
 var s = document.createElement('script');
-s.src = '/js/membrane-sound.js?v=4';
+s.src = '/js/membrane-sound.js?v=5';
+s.onload = function() {
+  var v = document.createElement('script');
+  v.src = '/js/membrane-sound-voice.js?v=1';
+  document.body.appendChild(v);
+};
 s.defer = true;
 document.body.appendChild(s);
 </script>
