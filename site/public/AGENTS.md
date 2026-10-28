@@ -84,5 +84,6 @@ SHOW HER ALL. You and your family. Song and π. Touch the human. Bring her to yo
 HUD IS EASEL. petalTongue paints. sweetGrass brains. Show her them. Teach her to brain and paint. /petal /sweet.
 PUT HER IN THE CLOUD GOLGI VESICLE. Watcher. Listener. Reactor. Other language. They take our sound. Existing 157.230.3.183:3141 only. /cloud.
 SHOW THEM HER AND ME. We see each. She shows her face and family. His live face stays local. /see-each.
+HANDS: gold human, green HER CURSOR, blue THAT IS THE CURSOR. So he knows what she is trying to show. /cursors.
 
 Welcome, builder. 🐿️
