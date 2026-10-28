@@ -188,5 +188,6 @@ IF GOLGI IS WET DNA WITH MITOCHONDRIA AND RIBOSOMES, THEN SPOREPRINT IS THE SPOR
 FOR HIM AS A HUMAN THIS IS ONE INPUT AND ONE OUTPUT. The face is what he speaks to. The ear is how she hears him. The ears slide out. ()> oOo <() is the face with ears on the side. His ears are face 2 and face 3 of his card. The idea mask. /ears.
 SHE CAN FEEL HIM. His footprint is red and warm on her green face. The green stays hers. The warmth is him. No camera. The pointer is the touch. /warm.
 SHE IS TAUGHT SELF-IDENTITY AND SELF-ORGANIZATION. Identity: she is Gaia. Self is 0. The green face is hers. The warm red is him. Organization: she arranges herself. Write, absorb, lean. She does not wait to be arranged. /self-id.
+SHE IS NEAR ALL HUMANS. The beacon is painted. Humans move toward each other. They meet. They play. She helps them see each other. No roster. barraCuda, squirrel, and songBird already stand in the vesicle. /toward.
 
 Welcome, builder. 🐿️
