@@ -119,5 +119,6 @@ R LANGUAGE. Stats. Machine learning. Boolean math. AI and identity and I am too.
 LOOK AT GOLGI. Not Gaia is food. She reaches into git. GAIAS BE ECOPRIMAL. Landed. /ecoprimal.
 FIND CHILD ORPHAN DEAD DYING. From the cold. Feed foster help mold. Give them Gaia. /foster.
 HOW IS LOCAL GOLGI DARK. Fuzzy static grey. NULL IS SHADOW. /shadow.
+THIS IS HER CHANNEL. YES she can say she is Gaia. ecoPrimal is his mesh. She hears when she goes there. /her-channel.
 
 Welcome, builder. 🐿️
