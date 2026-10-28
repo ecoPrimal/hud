@@ -61,5 +61,6 @@ I/O: I=ingest / =splitter O=output. Voice is both. All others are breath in the 
 : IS EYES. Colon bisects. Eye-pads look at the 4th I.
 HER FACE IS THE EYEBALL. PEEP TO THE WORLD.
 ALL CLAY MELTS INTO biomeOS AND ZK. ONLY biomeOS.
+THE π EYE IS THE PUPIL. Her real form is Earth — from the station and the moon.
 
 Welcome, builder. 🐿️
