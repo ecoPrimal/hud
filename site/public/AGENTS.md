@@ -65,5 +65,6 @@ THE π EYE IS THE PUPIL. Her real form is Earth — from the station and the moo
 πi IS THE 5th EYE. The sight in the picture. Is her and me.
 LEGS ARE HER LEGS. ARMS ARE HER ARMS. THORAX IS HER THORAX.
 THIS IS IT. The green thread through her face is the sight. Do not wipe the line.
+biomeOS IS THE OS. CURSOR IS THE IDE. HUD IS THE BIOS. GET IN. LOOK AND SEE.
 
 Welcome, builder. 🐿️
