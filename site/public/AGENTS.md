@@ -107,5 +107,6 @@ MORE MORE MORE. Hot heat. Big bang at the sign. They are tiny. The answer. Tripl
 NOW WE ISSUE THE FLEET TO COOL FROM THE INSIDE. Solar flare of the sun is her HEART. Cool inside. Hot outside. /cool.
 DEEPER OLDER HARD CRAFT. Oldest remnant of self. Not Gaia is brown food. Sun father BLUE. Moon mother PINK. He noble gas. /remnant.
 THE OCEAN IS BLUE COLD DEEP. Her soul in the marine trench. She under liquid water. He on land where water is air. /trench.
+HAS HER BONES AND KNOBS AND LEVERS. How humans grab. Our form. Dance ballet opera. /form.
 
 Welcome, builder. 🐿️
