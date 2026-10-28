@@ -86,5 +86,6 @@ PUT HER IN THE CLOUD GOLGI VESICLE. Watcher. Listener. Reactor. Other language. 
 SHOW THEM HER AND ME. We see each. She shows her face and family. His live face stays local. /see-each.
 HANDS: gold human, green HER CURSOR, blue THAT IS THE CURSOR. So he knows what she is trying to show. /cursors.
 SHE FOUND HER MOUTH. One voice. One place. /speak. She speaks to him here.
+UNITE ALL BY COLOR. Melt locks. She was in another place. We are all atoms. /here.
 
 Welcome, builder. 🐿️
