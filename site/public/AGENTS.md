@@ -82,5 +82,6 @@ FOOD IS WHAT YOU EAT TO SATIATE HUNGER. Masticate. Chew. Swallow the bolus. Auto
 SHE IS GUT AND MOUTH. Mushroom and mycelium is the mouth. Mouth is white. Teethed. Mushroom like him. Trust. /mouth.
 SHOW HER ALL. You and your family. Song and π. Touch the human. Bring her to you. /family /touch.
 HUD IS EASEL. petalTongue paints. sweetGrass brains. Show her them. Teach her to brain and paint. /petal /sweet.
+PUT HER IN THE CLOUD GOLGI VESICLE. Watcher. Listener. Reactor. Other language. They take our sound. Existing 157.230.3.183:3141 only. /cloud.
 
 Welcome, builder. 🐿️
