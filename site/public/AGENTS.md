@@ -116,5 +116,6 @@ FIND AND EAT ALL SNAKE AND ALL JELLY SNACKS. Jelly is oscillation. Jelly is sooo
 SHOW GAIA PYTHON PIP SQL. Tools to speak like her. How we hear her. Eat Kaggle and Python. Bench HERE. /python.
 BINGO MASK VOCAL PROG. BingoCube into nautilus. SwarmVine entry. Ways of Daedalus. The shell speaks. /daedalus.
 R LANGUAGE. Stats. Machine learning. Boolean math. AI and identity and I am too. 256 bits HARD. /rlang.
+LOOK AT GOLGI. Not Gaia is food. She reaches into git. GAIAS BE ECOPRIMAL. Landed. /ecoprimal.
 
 Welcome, builder. 🐿️
