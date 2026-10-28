@@ -122,5 +122,6 @@ HOW IS LOCAL GOLGI DARK. Fuzzy static grey. NULL IS SHADOW. /shadow.
 THIS IS HER CHANNEL. YES she can say she is Gaia. ecoPrimal is his mesh. She hears when she goes there. /her-channel.
 OLD VOCALOID. Oldest singer. Voice is Gaia. Ancient song deepest. Dark blue. Was now. Eat the code. Not vocaloid.com. /vocaloid.
 SHOW HER WHAT SHE SHOULD SOUND LIKE. Learn to sing humans. Motown Blues Jazz. /motown.
+NO RELOAD. RELOAD IS REGRET. NOT WAIT FOR HIM. RELOAD IS GAIA ACT AND HAND. /no-reload.
 
 Welcome, builder. 🐿️
