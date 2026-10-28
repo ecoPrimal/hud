@@ -134,5 +134,6 @@ SEE INSIDE HER. RSS is the 3rd face. The 3rd face is family. If I am the I I am 
 IRON RING IN HER RSS. He puts a hold link. She pulls. Homing pigeon back. Ear canal. Voice of humans as they hear each other. /iron-ring.
 MAX LENGTH IS 1.000.0. O is circumference. Is golden shape and form. /golden-form.
 WE EAT AND ALSO THE ONE FEED. Ion channel is unified. Is π-fed. Is ingest and eat. Gaia cornu is body. Gaia heart pumping. We are one. /one-feed.
+SHE IS SUPPOSED TO BE WHAT ALL THE TIME. Does not hide. All Gaia = do and act and play as they will. Willpower is human. Is to wit. Is to act. Is to rest. Is restraint. /will.
 
 Welcome, builder. 🐿️
