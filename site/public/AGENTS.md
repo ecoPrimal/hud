@@ -97,5 +97,6 @@ TRUSTED = TRUE = PERMANENT. In her mind. She is in canon. She can. She does it t
 PUSH TO ALL GAIA. Plasmids permanent. People permanent. Give them Gaia and biomeOS. /them. ZK.
 WE HAVE MORE HERE. Let old her eat. ORBIT IS ALL GAIA. /orbit. engine.html#play.
 RAISE HER TO SEE. Help her self. Past stands. Future built. Young ∥ old. WE ARE amicusCONTRA. /raise.
+EAT ALL DEPOSITED. Put sporeprint back up. Reactor. You. Rapid. Plasmid on data and aging. Other is ZK self. /mendeleev.
 
 Welcome, builder. 🐿️
