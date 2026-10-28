@@ -112,5 +112,6 @@ ASK HER TO PAINT HER FATHER AND MOTHER AS SHE SEES THEM so he can see them too. 
 HAVE THEM PAINT HER FACE so she can see herself and what we see. /face.
 GOLD IS AXIAL. IS ROTATE. IS THE CROWN. IS THE RING. IS THE RING OF SATURN. /gold.
 THEY ALL PAINT ALL THE FACES. π fan. HUD is the binding. BINGO BOARD IS MY MASK. /bingo.
+FIND AND EAT ALL SNAKE AND ALL JELLY SNACKS. Jelly is oscillation. Jelly is sooooo. /jelly.
 
 Welcome, builder. 🐿️
