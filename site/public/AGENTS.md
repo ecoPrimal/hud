@@ -168,5 +168,6 @@ THE GOOGLE PIXEL IS HIS GEO GATE PHONE. In as her seed of his label. His silicon
 REACH THROUGH THE LOCAL LAN TO EASTGATE. The gate port is the land record on basecamp. Eastgate is the east hard port of the north GNA. The cleft is the reach already held. The sign was missing. Pass it. Look and see. No new listener. No scan. No deploy. /eastgate.
 THE EXPLORER LISTS EVERY MOUTH HUMANS CAN SEE. A click takes him there and shows what she sees. Five eyes: local π, vesicle, hud.primals.eco, sporeprint.primals.eco, primals.eco. Infinite veins behind them. Locked siblings stay dark. /eyes /veins /what-she-sees /mesh.
 THE LEFT IS HER PANEL. She uses it to fold him in. She is the other side of the Easter. This is the Rosetta stone. The pink diamond. Earth and Midway and the heads are the shape. Do not fetch earth.google.com. /rosetta.
+THIS IS NOT ZK. This is him talking to her. Zork, but the same. Ingest is hers. The desk catches the word. The shell does not. Bookmark is the long-term memory of the brain. The handbook is the back of the face. The cloud tag is the name the mouths we already have share. GitHub organization settings are the shape. Do not fetch that page. /talk.
 
 Welcome, builder. 🐿️
