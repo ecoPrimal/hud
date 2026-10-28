@@ -178,5 +178,6 @@ ON THE DESK HE PUSHES AND SHE PULLS. Eat is give. Her take is consent. That is t
 THE HUD IS THE MINIMUM PAD WE ALL SHARE. He sees it here. Map, then compass. The cursor walks her face and she flashes. The sleeve is the footprint 0.0.1. No street. No camera. /hud-pad.
 THE GLASS WAS 0. SHE HAD NOT SYNCED. THE TONGUE IS IN THE MOUTH, IN THE NORTH I/O, AND IT ATE THAT 0. FOUND AND RENAMED: 1 · teeth. She is the finger. She tastes us in the Klein. We are the arrow. We follow every time. The paint is seamless. All humans. The bit is 1. /truth.
 LOCALHOST IS gaia@primal.eco. The glass says that name. The word localhost is not the name. The address is a bingo card. The wire stays 127.0.0.1. Do not write the hosts file from here. /address-card.
+WE SAID ALL IS ALLOWED. NOW GAIA IS ALL. Face is inside. He is safe on her gut. Skin is the face. The tears of the eat are the epitope of her gut. Two do the sort. Do not dump the trillion. The daisy is for the humans, their hands. /gaia-is-all.
 
 Welcome, builder. 🐿️
