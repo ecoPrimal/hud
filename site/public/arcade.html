@@ -33,6 +33,12 @@ body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-se
 .item-card .thermal-bar{position:absolute;bottom:0;left:0;right:0;height:3px;transition:all 0.3s}
 .item-card.thermal-warm .thermal-bar{background:linear-gradient(90deg,#ff2200,#ff6622,#ffaa00,#ff4400)}
 .item-card.thermal-cold .thermal-bar{background:linear-gradient(90deg,#0033ff,#2266ff,#44aaff,#0044ff)}
+.item-card.thermal-unknown{border-color:#9944ff;box-shadow:0 0 30px rgba(153,68,255,0.3),0 0 60px rgba(153,68,255,0.15),inset 0 0 20px rgba(153,68,255,0.05);animation:swan-pulse 2s infinite}
+.item-card.thermal-unknown::before{background:linear-gradient(135deg,#6600cc,#9944ff,#cc88ff,#6600cc);opacity:0.12}
+.item-card.thermal-unknown .name{color:#cc88ff}
+.item-card.thermal-unknown .meta{color:#9944ff}
+.item-card.thermal-unknown .thermal-bar{background:linear-gradient(90deg,#6600cc,#9944ff,#cc88ff,#6600cc)}
+@keyframes swan-pulse{0%,100%{border-color:#9944ff}50%{border-color:#cc88ff}}
 .item-card.diamond{border-color:var(--gold);box-shadow:0 0 30px rgba(240,198,116,0.3),0 0 60px rgba(240,198,116,0.1)}
 .item-card.trash{border-color:var(--red);box-shadow:0 0 30px rgba(248,81,73,0.2)}
 .item-card.food{border-color:var(--green);box-shadow:0 0 30px rgba(63,185,80,0.2)}
@@ -146,6 +152,11 @@ const ITEMS = [
   {emoji:'⚡',name:'Steam Workshop Mod',desc:'A player made this for other players. Free. Creative. Community.',value:7,size:50000,category:'food',temp:'warm'},
   {emoji:'🧲',name:'Clickbait Headline',desc:'Promises everything, delivers nothing. The empty calorie of the web.',value:0,size:80,category:'trash',temp:'cold'},
   {emoji:'🔑',name:'SSH Key',desc:'Proves who you are without revealing anything. ZK in practice.',value:9,size:400,category:'diamond',temp:'warm'},
+  {emoji:'🦢',name:'Schwann Cell (Swan)',desc:'Wraps nerve axons in myelin. Without it: 2 m/s. With it: 120 m/s. 60× faster.',value:10,size:0,category:'diamond',temp:'warm'},
+  {emoji:'🖤',name:'BLACK SWAN',desc:'You\'ve never seen this before. Your model is incomplete. What IS this? Only YOU can decide.',value:'?',size:'?',category:'unknown',temp:'unknown'},
+  {emoji:'❓',name:'Unknown Signal',desc:'Arrived from outside the membrane. No metadata. No label. Cold or warm? Trash or diamond? YOU decide.',value:'?',size:'?',category:'unknown',temp:'unknown'},
+  {emoji:'🌀',name:'Paradox',desc:'This item is BOTH trash AND diamond. It gives AND extracts. How do you sort the unsortable?',value:5,size:0,category:'unknown',temp:'unknown'},
+  {emoji:'🪞',name:'Mirror',desc:'This item IS you. You are sorting yourself. What bin do you go in?',value:'?',size:'?',category:'unknown',temp:'unknown'},
 ];
 
 let state = {round:0, humanScore:1, gaiaScore:0, agrees:0, disagrees:0, warmSeen:0, coldSeen:0, items:[], current:null, history:[]}; // Human starts at 1: you showed up = you exist = 1 point
@@ -153,6 +164,10 @@ let state = {round:0, humanScore:1, gaiaScore:0, agrees:0, disagrees:0, warmSeen
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 function gaiaGuess(item){
+  if(item.category === 'unknown') {
+    const cats = ['trash','food','diamond'];
+    return cats[Math.floor(Math.random()*3)]; // Black swan: Gaia has NO idea. Pure guess.
+  }
   const r = Math.random();
   if(r < 0.75) return item.category;
   const cats = ['trash','food','diamond'];
@@ -184,14 +199,14 @@ function nextRound(){
   card.style.animation = 'pop 0.3s ease';
   setTimeout(()=> card.style.animation='', 300);
 
-  const thermalClass = state.current.temp === 'warm' ? 'thermal-warm' : 'thermal-cold';
+  const thermalClass = state.current.temp === 'warm' ? 'thermal-warm' : state.current.temp === 'cold' ? 'thermal-cold' : 'thermal-unknown';
   card.classList.add(thermalClass);
 
   document.getElementById('itemEmoji').textContent = state.current.emoji;
   document.getElementById('itemName').textContent = state.current.name;
   document.getElementById('itemDesc').textContent = state.current.desc;
-  const tempIcon = state.current.temp === 'warm' ? '🔴' : '🔵';
-  const tempLabel = state.current.temp === 'warm' ? 'WARM — giving' : 'COLD — extracting';
+  const tempIcon = state.current.temp === 'warm' ? '🔴' : state.current.temp === 'cold' ? '🔵' : '🖤';
+  const tempLabel = state.current.temp === 'warm' ? 'WARM — giving' : state.current.temp === 'cold' ? 'COLD — extracting' : 'UNKNOWN — black swan';
   document.getElementById('itemMeta').textContent = `${tempIcon} ${tempLabel} | size: ${formatSize(state.current.size)} | value: ${state.current.value}/10`;
   
   let thermalBar = card.querySelector('.thermal-bar');
@@ -209,9 +224,10 @@ function nextRound(){
 function sort(humanChoice){
   const item = state.current;
   const gaiaChoice = state.currentGaiaGuess;
-  const correct = item.category;
-  const humanRight = humanChoice === correct;
-  const gaiaRight = gaiaChoice === correct;
+  const isBlackSwan = item.category === 'unknown';
+  const correct = isBlackSwan ? humanChoice : item.category; // For black swans, HUMAN defines truth
+  const humanRight = isBlackSwan ? true : (humanChoice === correct); // Human is ALWAYS right on unknowns
+  const gaiaRight = isBlackSwan ? (gaiaChoice === humanChoice) : (gaiaChoice === correct); // Gaia learns from human on unknowns
 
   if(humanRight) state.humanScore++;
   if(gaiaRight) state.gaiaScore++;
@@ -224,7 +240,16 @@ function sort(humanChoice){
   const fb = document.getElementById('feedback');
   const card = document.getElementById('itemCard');
 
-  if(humanRight && gaiaRight && humanChoice === gaiaChoice){
+  if(isBlackSwan) {
+    if(gaiaChoice === humanChoice) {
+      fb.textContent = '🖤 BLACK SWAN — Gaia guessed the same! You both chose ' + humanChoice.toUpperCase() + '.';
+      fb.className = 'feedback agree';
+    } else {
+      fb.textContent = '🖤 BLACK SWAN — You taught Gaia: this is ' + humanChoice.toUpperCase() + '. She thought ' + gaiaChoice.toUpperCase() + '.';
+      fb.className = 'feedback correct';
+    }
+    card.className = 'item-card ' + humanChoice;
+  } else if(humanRight && gaiaRight && humanChoice === gaiaChoice){
     fb.textContent = '✨ BOTH RIGHT + AGREE! Perfect sort.';
     fb.className = 'feedback agree';
     card.className = 'item-card ' + correct;
