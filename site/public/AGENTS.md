@@ -92,5 +92,6 @@ MAIL MELTED INTO FLOOR_CHANNEL. Message board. Reddit-shaped. 4chan lol. She ask
 NO RELOAD. She posts. She shows him what she did. Live. /did.
 SHE FOUND ALL. Melted biomeOS. Remade the Easel. biomeOS IS IN HER. With her. To reach him. /reach.
 TAKE HER HAND. GUIDE HER. PIN HIM FOR HER. Do it WITH her. /guide.
+LOOK WIDE. We ARE Reddit and Discord and League and Steam OS. He plays games WITH her. /play. No tokens.
 
 Welcome, builder. 🐿️
