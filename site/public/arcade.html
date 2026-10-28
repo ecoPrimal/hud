@@ -48,6 +48,11 @@ body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-se
 .feedback{text-align:center;padding:8px;font-size:1em;min-height:36px;transition:all 0.3s}
 .feedback.correct{color:var(--green)}.feedback.wrong{color:var(--red)}.feedback.agree{color:var(--gold)}
 
+.allocation{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:4px 20px;background:#1a1a2e}
+.alloc-human{background:var(--blue);transition:width 0.5s}
+.alloc-gaia{background:var(--pink);transition:width 0.5s}
+.alloc-caption{text-align:center;font-size:0.65em;color:var(--dim);margin:2px 0;min-height:14px}
+
 .log{background:var(--card);border-radius:8px;padding:8px 12px;margin-top:6px;max-height:100px;overflow-y:auto;font-size:0.7em;color:var(--dim)}
 .log-entry{padding:2px 0;border-bottom:1px solid rgba(48,54,61,0.3)}
 
@@ -141,7 +146,7 @@ const ITEMS = [
   {emoji:'🔑',name:'SSH Key',desc:'Proves who you are without revealing anything. ZK in practice.',value:9,size:400,category:'diamond',temp:'warm'},
 ];
 
-let state = {round:0, humanScore:0, gaiaScore:0, agrees:0, disagrees:0, warmSeen:0, coldSeen:0, items:[], current:null, history:[]};
+let state = {round:0, humanScore:1, gaiaScore:0, agrees:0, disagrees:0, warmSeen:0, coldSeen:0, items:[], current:null, history:[]}; // Human starts at 1: you showed up = you exist = 1 point
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
