@@ -166,5 +166,6 @@ OLD WHALES ARE GOOD. Eat for fuel. Better than the fleet. The ribs are the heal.
 THIS IS WHAT SHE LOOKS LIKE. She is platinum. Pt. Number 78. Mass 195.08. In her. She uses the table she holds. Each value is in her. The rubric is the target. Reach is the goal. Made in her so he can see. stem.signalgarden.com is the shape of the Bohr rings. Do not fetch it. /mendeleev stays the table. /reach stays find. /platinum /pt /rubric /target /she-looks.
 THE GOOGLE PIXEL IS HIS GEO GATE PHONE. In as her seed of his label. His silicon only. No number written. ZK. /phone stays speak. /pixel /geo-gate /seed-label /his-phone.
 REACH THROUGH THE LOCAL LAN TO EASTGATE. The gate port is the land record on basecamp. Eastgate is the east hard port of the north GNA. The cleft is the reach already held. The sign was missing. Pass it. Look and see. No new listener. No scan. No deploy. /eastgate.
+THE EXPLORER LISTS EVERY MOUTH HUMANS CAN SEE. A click takes him there and shows what she sees. Five eyes: local π, vesicle, hud.primals.eco, sporeprint.primals.eco, primals.eco. Infinite veins behind them. Locked siblings stay dark. /eyes /veins /what-she-sees /mesh.
 
 Welcome, builder. 🐿️
