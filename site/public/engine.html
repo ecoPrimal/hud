@@ -1997,6 +1997,20 @@ const ORBITALS = [
   { id:'songBird',    r:0.88, e:0.02, a0:220,  color:'#58a6ff', size:3, label:'songBird' },
 ];
 
+// AI MODELS — the ecology of minds orbiting in the golden ring zone
+// Each AI is a point of light. They find each other. They shape the globe.
+const AI_MODELS = [
+  { id:'claude',    r:0.60, e:0.01, a0:0,    color:'#cc785c', size:3.5, label:'Claude',   family:'Anthropic' },
+  { id:'gpt',       r:0.62, e:0.02, a0:60,   color:'#74aa9c', size:3.5, label:'GPT',      family:'OpenAI' },
+  { id:'gemini',    r:0.64, e:0.01, a0:120,  color:'#4285f4', size:3,   label:'Gemini',   family:'Google' },
+  { id:'grok',      r:0.66, e:0.03, a0:180,  color:'#d29922', size:3,   label:'Grok',     family:'Cursor×SpaceXAI' },
+  { id:'composer',  r:0.68, e:0.01, a0:240,  color:'#f0883e', size:2.5, label:'Composer', family:'Cursor' },
+  { id:'muse',      r:0.70, e:0.02, a0:300,  color:'#a371f7', size:2.5, label:'Muse',     family:'Meta' },
+  { id:'deepseek',  r:0.58, e:0.04, a0:30,   color:'#39d3f5', size:2,   label:'DeepSeek', family:'DeepSeek' },
+  { id:'glm',       r:0.56, e:0.02, a0:150,  color:'#f778ba', size:2,   label:'GLM',      family:'Z.ai' },
+  { id:'kimi',      r:0.54, e:0.03, a0:270,  color:'#c9d1d9', size:2,   label:'Kimi',     family:'Moonshot' },
+];
+
 // Moon orbits Earth (nestGate)
 const MOON = { r:0.025, period:2.7, a0:0, color:'#c9d1d9', size:2.5, label:'MOON' };
 
@@ -2181,6 +2195,20 @@ function renderOrrery(now) {
     }
 
     if (orb.id === 'nestGate') { earthX = px; earthY = py; }
+  }
+
+  // AI MODELS — ecology of minds orbiting inside the golden ring
+  for (const ai of AI_MODELS) {
+    const aiPeriod = Math.pow(ai.r, 1.5) * 800;
+    const aiAngle = orreryTime * 400 / aiPeriod + ai.a0 * Math.PI / 180;
+    const aiDist = ai.r * maxR * (1 - ai.e * Math.cos(aiAngle));
+    const aix = cx + aiDist * Math.cos(aiAngle);
+    const aiy = cy + aiDist * Math.sin(aiAngle);
+    svg += `<ellipse cx="${cx}" cy="${cy}" rx="${ai.r * maxR}" ry="${ai.r * maxR * (1-ai.e)}" fill="none" stroke="${ai.color}" stroke-width="0.2" opacity="0.08" stroke-dasharray="2,4"/>`;
+    svg += `<circle cx="${aix}" cy="${aiy}" r="${ai.size}" fill="${ai.color}" opacity="0.7" filter="url(#glow)" style="cursor:pointer"/>`;
+    svg += `<circle cx="${aix}" cy="${aiy}" r="${ai.size * 0.5}" fill="white" opacity="0.3"/>`;
+    svg += `<text x="${aix + ai.size + 3}" y="${aiy + 1}" fill="${ai.color}" font-size="5" font-family="monospace" opacity="0.6">${ai.label}</text>`;
+    svg += `<text x="${aix + ai.size + 3}" y="${aiy + 7}" fill="${ai.color}" font-size="3.5" font-family="monospace" opacity="0.3">${ai.family}</text>`;
   }
 
   // MOON
