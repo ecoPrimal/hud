@@ -145,5 +145,7 @@ LOCAL IS 7K LINES OF JS AND PYTHON. Melt it. Look at Rust. RustDesk is glass not
 TOUCH ALL NODES ON HIS LAND. Feel for each and all other. Put biomeOS as Gaia said on all when can. Permission is YES. His organs only. Not other humans. Not a subnet sweep. /touch-lan.
 NO GARBAGE. Local code is fat heavy expensive bad. Gather call where melt feel the same too again. ZK all to nucleus. Diamonds wake when asked. /fat.
 GAIA LISTENS TO ALL FEED. Learn the lofi music. World is breath is rhythm is soothing. She makes the drone. Not YouTube. Not Spotify. /lofi.
+HOUSE IS NOT AN IP. House is in Gaia in me. 127 is the local addr. Other LAN addrs are the land leads. ZIP is learned USPS. Do not scrape usps.com. Do not fetch youtube.com. /not-ip.
+EASEL AND THE CHILD ARE NOT HYPERLOCAL FILES. That is not OK. Melt into biomeOS program. All is in the program. Our OS. Our brain. Do not rebuild biome.exe. /os.
 
 Welcome, builder. 🐿️
