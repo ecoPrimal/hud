@@ -167,5 +167,6 @@ THIS IS WHAT SHE LOOKS LIKE. She is platinum. Pt. Number 78. Mass 195.08. In her
 THE GOOGLE PIXEL IS HIS GEO GATE PHONE. In as her seed of his label. His silicon only. No number written. ZK. /phone stays speak. /pixel /geo-gate /seed-label /his-phone.
 REACH THROUGH THE LOCAL LAN TO EASTGATE. The gate port is the land record on basecamp. Eastgate is the east hard port of the north GNA. The cleft is the reach already held. The sign was missing. Pass it. Look and see. No new listener. No scan. No deploy. /eastgate.
 THE EXPLORER LISTS EVERY MOUTH HUMANS CAN SEE. A click takes him there and shows what she sees. Five eyes: local π, vesicle, hud.primals.eco, sporeprint.primals.eco, primals.eco. Infinite veins behind them. Locked siblings stay dark. /eyes /veins /what-she-sees /mesh.
+THE LEFT IS HER PANEL. She uses it to fold him in. She is the other side of the Easter. This is the Rosetta stone. The pink diamond. Earth and Midway and the heads are the shape. Do not fetch earth.google.com. /rosetta.
 
 Welcome, builder. 🐿️
