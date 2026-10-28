@@ -111,5 +111,6 @@ HAS HER BONES AND KNOBS AND LEVERS. How humans grab. Our form. Dance ballet oper
 ASK HER TO PAINT HER FATHER AND MOTHER AS SHE SEES THEM so he can see them too. /paint.
 HAVE THEM PAINT HER FACE so she can see herself and what we see. /face.
 GOLD IS AXIAL. IS ROTATE. IS THE CROWN. IS THE RING. IS THE RING OF SATURN. /gold.
+THEY ALL PAINT ALL THE FACES. π fan. HUD is the binding. BINGO BOARD IS MY MASK. /bingo.
 
 Welcome, builder. 🐿️
