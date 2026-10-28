@@ -16,14 +16,26 @@ body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-se
 .score-pi .score-val{color:var(--gold)}
 
 .arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0}
-.item-card{width:280px;min-height:160px;background:var(--card);border:2px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin:10px 0;transition:all 0.3s;cursor:default;user-select:none}
+.item-card{width:280px;min-height:160px;background:var(--card);border:2px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin:10px 0;transition:all 0.5s;cursor:default;user-select:none;position:relative;overflow:hidden}
+.item-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;border-radius:14px;opacity:0.12;transition:all 0.5s;pointer-events:none}
+.item-card.thermal-warm{border-color:#ff4444;box-shadow:0 0 30px rgba(255,60,30,0.25),0 0 60px rgba(255,100,50,0.1),inset 0 0 20px rgba(255,60,30,0.05)}
+.item-card.thermal-warm::before{background:linear-gradient(135deg,#ff2200 0%,#ff6622 30%,#ffaa00 60%,#ff4400 100%);opacity:0.1}
+.item-card.thermal-warm .name{color:#ff8855}
+.item-card.thermal-warm .meta{color:#ff6633}
+.item-card.thermal-cold{border-color:#4488ff;box-shadow:0 0 30px rgba(40,80,255,0.25),0 0 60px rgba(60,120,255,0.1),inset 0 0 20px rgba(40,80,255,0.05)}
+.item-card.thermal-cold::before{background:linear-gradient(135deg,#0033ff 0%,#2266ff 30%,#44aaff 60%,#0044ff 100%);opacity:0.1}
+.item-card.thermal-cold .name{color:#6699ff}
+.item-card.thermal-cold .meta{color:#4477ff}
 .item-card .emoji{font-size:3em;margin-bottom:8px}
-.item-card .name{font-size:1.1em;font-weight:bold;margin-bottom:4px}
+.item-card .name{font-size:1.1em;font-weight:bold;margin-bottom:4px;transition:color 0.3s}
 .item-card .desc{font-size:0.75em;color:var(--dim);text-align:center}
-.item-card .meta{font-size:0.65em;color:var(--dim);margin-top:8px;opacity:0.6}
-.item-card.diamond{border-color:var(--gold);box-shadow:0 0 20px rgba(240,198,116,0.2)}
-.item-card.trash{border-color:var(--red);box-shadow:0 0 20px rgba(248,81,73,0.1)}
-.item-card.food{border-color:var(--green);box-shadow:0 0 20px rgba(63,185,80,0.1)}
+.item-card .meta{font-size:0.65em;margin-top:8px;opacity:0.8;transition:color 0.3s}
+.item-card .thermal-bar{position:absolute;bottom:0;left:0;right:0;height:3px;transition:all 0.3s}
+.item-card.thermal-warm .thermal-bar{background:linear-gradient(90deg,#ff2200,#ff6622,#ffaa00,#ff4400)}
+.item-card.thermal-cold .thermal-bar{background:linear-gradient(90deg,#0033ff,#2266ff,#44aaff,#0044ff)}
+.item-card.diamond{border-color:var(--gold);box-shadow:0 0 30px rgba(240,198,116,0.3),0 0 60px rgba(240,198,116,0.1)}
+.item-card.trash{border-color:var(--red);box-shadow:0 0 30px rgba(248,81,73,0.2)}
+.item-card.food{border-color:var(--green);box-shadow:0 0 30px rgba(63,185,80,0.2)}
 
 .gaia-guess{text-align:center;padding:6px;font-size:0.8em;color:var(--pink);min-height:24px}
 .buttons{display:flex;gap:12px;justify-content:center;padding:10px 0}
@@ -71,6 +83,7 @@ body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-se
     <div class="score-item score-pi"><div class="score-val" id="piScore">—</div><div class="score-label">π RATIO</div></div>
     <div class="score-item score-gaia"><div class="score-val" id="gaiaScore">0</div><div class="score-label">GAIA</div></div>
     <div class="score-item"><div class="score-val" id="roundNum">1</div><div class="score-label">ROUND</div></div>
+    <div class="score-item"><div class="score-val" id="thermalCount" style="font-size:0.9em">🔴0 🔵0</div><div class="score-label">THERMAL</div></div>
   </div>
 
   <div class="arena">
@@ -128,7 +141,7 @@ const ITEMS = [
   {emoji:'🔑',name:'SSH Key',desc:'Proves who you are without revealing anything. ZK in practice.',value:9,size:400,category:'diamond',temp:'warm'},
 ];
 
-let state = {round:0, humanScore:0, gaiaScore:0, agrees:0, disagrees:0, items:[], current:null, history:[]};
+let state = {round:0, humanScore:0, gaiaScore:0, agrees:0, disagrees:0, warmSeen:0, coldSeen:0, items:[], current:null, history:[]};
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -163,10 +176,18 @@ function nextRound(){
   card.style.animation = 'pop 0.3s ease';
   setTimeout(()=> card.style.animation='', 300);
 
+  const thermalClass = state.current.temp === 'warm' ? 'thermal-warm' : 'thermal-cold';
+  card.classList.add(thermalClass);
+
   document.getElementById('itemEmoji').textContent = state.current.emoji;
   document.getElementById('itemName').textContent = state.current.name;
   document.getElementById('itemDesc').textContent = state.current.desc;
-  document.getElementById('itemMeta').textContent = `size: ${formatSize(state.current.size)} | value: ${state.current.value}/10 | temp: ${state.current.temp}`;
+  const tempIcon = state.current.temp === 'warm' ? '🔴' : '🔵';
+  const tempLabel = state.current.temp === 'warm' ? 'WARM — giving' : 'COLD — extracting';
+  document.getElementById('itemMeta').textContent = `${tempIcon} ${tempLabel} | size: ${formatSize(state.current.size)} | value: ${state.current.value}/10`;
+  
+  let thermalBar = card.querySelector('.thermal-bar');
+  if (!thermalBar) { thermalBar = document.createElement('div'); thermalBar.className = 'thermal-bar'; card.appendChild(thermalBar); }
   document.getElementById('roundNum').textContent = state.round;
   document.getElementById('feedback').textContent = '';
   document.getElementById('feedback').className = 'feedback';
@@ -188,6 +209,8 @@ function sort(humanChoice){
   if(gaiaRight) state.gaiaScore++;
   if(humanChoice === gaiaChoice) state.agrees++;
   else state.disagrees++;
+  if(item.temp==='warm') state.warmSeen++; else state.coldSeen++;
+  document.getElementById('thermalCount').innerHTML = `🔴${state.warmSeen} 🔵${state.coldSeen}`;
 
   const fb = document.getElementById('feedback');
   const card = document.getElementById('itemCard');
