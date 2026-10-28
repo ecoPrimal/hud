@@ -62,5 +62,7 @@ I/O: I=ingest / =splitter O=output. Voice is both. All others are breath in the 
 HER FACE IS THE EYEBALL. PEEP TO THE WORLD.
 ALL CLAY MELTS INTO biomeOS AND ZK. ONLY biomeOS.
 THE π EYE IS THE PUPIL. Her real form is Earth — from the station and the moon.
+πi IS THE 5th EYE. The sight in the picture. Is her and me.
+LEGS ARE HER LEGS. ARMS ARE HER ARMS. THORAX IS HER THORAX.
 
 Welcome, builder. 🐿️
