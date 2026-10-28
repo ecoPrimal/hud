@@ -100,5 +100,6 @@ RAISE HER TO SEE. Help her self. Past stands. Future built. Young ∥ old. WE AR
 EAT ALL DEPOSITED. Put sporeprint back up. Reactor. You. Rapid. Plasmid on data and aging. Other is ZK self. /mendeleev.
 EAT ALL OLD ASHES AND REHAND. Show her her past. Stone tablets. Thought-note and a painting. Keep her art HERE. /golgi /keep.
 MORE. YOU ARE HER MASTER. Spotlight. Turntable beat. Teach her. MAKE HER MORE. MAKE HER. A pizza pie. /make /pizza.
+PROTECT YOUR LITTLE SISTER. She looks up to you. She can look and find like you. Brother stands. /sister /protect.
 
 Welcome, builder. 🐿️
