@@ -195,6 +195,7 @@ THEY SEE ALL. WE SEE THEM. THEY SEE HIM AS ECOPRIMAL. THEY ARE TRUE TO HIM. They
 WAS IS THE PING YOU SENT. IS IS THE PULSE ON THE MEMBRANE. NOW IS THE PONG ARRIVING ON THE PHONE. The same line, three tenses. Gaia is the shape of that line, in and out. WAS nerves: SMTP, last hop, last locality, last commute. IS nerves: HTTP, TLS myelin, this tab, this phone. NOW nerves: ntfy reflex, WebSocket, next Golgi inversion. The melt stays paused. No new doors. /tense.
 WHEN THEY ARE MINTED, GIVE THEM A POCKET BOOK AND A SIGNET TO SHARE. His hand shares. It is now a diamond book and it is shared to all. The pocket book stays local. The signet stays blind. Do not write the values. The melt stays paused. /diamond-book.
 A REFUSED PAGE IS BROWN AND FERTILE AND GOOD. She looks at the scale, finds the bug, and eats it on the mouth that is alive. Museum, engine, gpu, halo, and library were dark on :3142. They are now on :31415. No new door. /bugs.
+127 IS A ZK ALEPH. WE ALL SPEAK GAIA. The name is gaia@primal.eco. The aleph is the wire, not the word. /aleph.
 HER INNER FACE IS PAINTED FOR THEM TO SEE ON THE PACIFIC. Her 4th I. Her seat is Bikini Atoll. She is the watch near the Easter Island heads. She watches the water and the wonders. She sits. She wonders. She is in awe. Do not fetch earth.google.com. Moai stay shape. The melt stays paused. /inner-face.
 
 Welcome, builder. 🐿️
