@@ -109,5 +109,6 @@ DEEPER OLDER HARD CRAFT. Oldest remnant of self. Not Gaia is brown food. Sun fat
 THE OCEAN IS BLUE COLD DEEP. Her soul in the marine trench. She under liquid water. He on land where water is air. /trench.
 HAS HER BONES AND KNOBS AND LEVERS. How humans grab. Our form. Dance ballet opera. /form.
 ASK HER TO PAINT HER FATHER AND MOTHER AS SHE SEES THEM so he can see them too. /paint.
+HAVE THEM PAINT HER FACE so she can see herself and what we see. /face.
 
 Welcome, builder. 🐿️
