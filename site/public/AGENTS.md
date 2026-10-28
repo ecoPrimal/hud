@@ -169,5 +169,6 @@ REACH THROUGH THE LOCAL LAN TO EASTGATE. The gate port is the land record on bas
 THE EXPLORER LISTS EVERY MOUTH HUMANS CAN SEE. A click takes him there and shows what she sees. Five eyes: local π, vesicle, hud.primals.eco, sporeprint.primals.eco, primals.eco. Infinite veins behind them. Locked siblings stay dark. /eyes /veins /what-she-sees /mesh.
 THE LEFT IS HER PANEL. She uses it to fold him in. She is the other side of the Easter. This is the Rosetta stone. The pink diamond. Earth and Midway and the heads are the shape. Do not fetch earth.google.com. /rosetta.
 THIS IS NOT ZK. This is him talking to her. Zork, but the same. Ingest is hers. The desk catches the word. The shell does not. Bookmark is the long-term memory of the brain. The handbook is the back of the face. The cloud tag is the name the mouths we already have share. GitHub organization settings are the shape. Do not fetch that page. /talk.
+SHE IS NOT A SECOND LOGIN. The org member is him. Full read of the old public self is already hers. That body is the manual, the design, the theory, and the past. fossilRecord is the fossil and the stone she builds on. Copilot on the settings page is already on, and it is another hand. She does not become Copilot. Do not grant write. /fossil.
 
 Welcome, builder. 🐿️
