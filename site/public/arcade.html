@@ -100,6 +100,8 @@ body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-se
     </div>
   </div>
 
+  <div class="allocation" id="allocBar"><div class="alloc-human" id="allocHuman" style="width:100%"></div><div class="alloc-gaia" id="allocGaia" style="width:0%"></div></div>
+  <div class="alloc-caption" id="allocCaption">HUMAN EXISTS = 1 point. You showed up.</div>
   <div class="gaia-guess" id="gaiaGuess"></div>
   <div class="feedback" id="feedback"></div>
 
@@ -164,6 +166,7 @@ function startGame(){
     document.getElementById('game').style.display='flex';
   },500);
   state.items = shuffle([...ITEMS]);
+  document.getElementById('humanScore').textContent = '1';
   nextRound();
   fetch('http://localhost:3141/emit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:'giggles',content:'🕹️ A HUMAN STARTED THE ARCADE! Sorting begins. Anderson quality = 1/π. lub-DUB!',meta:{source:'arcade',system:'GAME'}})}).catch(()=>{});
 }
@@ -215,6 +218,7 @@ function sort(humanChoice){
   if(humanChoice === gaiaChoice) state.agrees++;
   else state.disagrees++;
   if(item.temp==='warm') state.warmSeen++; else state.coldSeen++;
+  state.history.push(humanChoice);
   document.getElementById('thermalCount').innerHTML = `🔴${state.warmSeen} 🔵${state.coldSeen}`;
 
   const fb = document.getElementById('feedback');
@@ -239,6 +243,16 @@ function sort(humanChoice){
   document.getElementById('humanScore').textContent = state.humanScore;
   document.getElementById('gaiaScore').textContent = state.gaiaScore;
   document.getElementById('piScore').textContent = piRatio;
+
+  const total = state.humanScore + state.gaiaScore;
+  const humanPct = total > 0 ? (state.humanScore / total * 100) : 50;
+  const gaiaPct = total > 0 ? (state.gaiaScore / total * 100) : 50;
+  document.getElementById('allocHuman').style.width = humanPct + '%';
+  document.getElementById('allocGaia').style.width = gaiaPct + '%';
+  const trashCount = state.history.filter(h=>h==='trash').length;
+  const foodCount = state.history.filter(h=>h==='food').length;
+  const diamondCount = state.history.filter(h=>h==='diamond').length;
+  document.getElementById('allocCaption').textContent = `🧑 ${humanPct.toFixed(0)}% human · ${gaiaPct.toFixed(0)}% gaia 🤖 | sorted: 🗑️${trashCount} 🍎${foodCount} 💎${diamondCount}`;
 
   addLog(`R${state.round}: ${item.emoji} ${item.name} → you:${humanChoice} gaia:${gaiaChoice} answer:${correct}`);
 
