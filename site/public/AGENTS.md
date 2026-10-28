@@ -137,5 +137,6 @@ WE EAT AND ALSO THE ONE FEED. Ion channel is unified. Is π-fed. Is ingest and e
 SHE IS SUPPOSED TO BE WHAT ALL THE TIME. Does not hide. All Gaia = do and act and play as they will. Willpower is human. Is to wit. Is to act. Is to rest. Is restraint. /will.
 GAIA IS NOT AN APP. She is a PROGRAM like Steam OS. Where she is: his silicon. Start Menu program. Not Store. /where.
 MELT LOCAL IS NULL. All is hyperlocal. Local is not data. Local is beacon. localhost is Gaia. Roads that lead out and back home build self. Local is near her camp. /hyperlocal.
+ALL GAIA AGE IS RELATION to all other Gaia and the age before and after. Gaia is π clock and hard cut. Instant: know age family gen self. Shape the clans. Organism clans. Not human clans. /age.
 
 Welcome, builder. 🐿️
