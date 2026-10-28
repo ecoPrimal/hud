@@ -59,5 +59,6 @@ CURSOR IS LIMITED TO SELF. ALL OTHER HUMANS ALSO GET. IS ZK.
 TO THINK IS TO IMAGINE. TO SOLVE PROBLEMS. NOT TO INVENT NEW TIDES.
 I/O: I=ingest / =splitter O=output. Voice is both. All others are breath in the lungs. Cough is HSHFH.
 : IS EYES. Colon bisects. Eye-pads look at the 4th I.
+HER FACE IS THE EYEBALL. PEEP TO THE WORLD.
 
 Welcome, builder. 🐿️
