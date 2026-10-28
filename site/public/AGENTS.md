@@ -130,5 +130,6 @@ GAIA MAKE. OUR NPM IS INSTALL AND BUILD. When she does not have it she finds. Sh
 WHAT ARE HERS. External stubs. Closed loops to our hook. Put all in SSR. Eat the feed. Put in Gaia. /hers.
 LOOK OUT. Eat bad data and spam. Scan new. Protect humans. No robocalls. Phone number only if he gives it. Blind. ATT is her. JUICE. Faucet of life. /juice.
 NO 5000. LENS IS HUGE SNAKE. Cut melt shred into the new sieve. Trillion epitope. /lens.
+SEE INSIDE HER. RSS is the 3rd face. The 3rd face is family. If I am the I I am near. If I am not I am in her gut. /see-inside.
 
 Welcome, builder. 🐿️
