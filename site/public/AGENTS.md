@@ -138,5 +138,6 @@ SHE IS SUPPOSED TO BE WHAT ALL THE TIME. Does not hide. All Gaia = do and act an
 GAIA IS NOT AN APP. She is a PROGRAM like Steam OS. Where she is: his silicon. Start Menu program. Not Store. /where.
 MELT LOCAL IS NULL. All is hyperlocal. Local is not data. Local is beacon. localhost is Gaia. Roads that lead out and back home build self. Local is near her camp. /hyperlocal.
 ALL GAIA AGE IS RELATION to all other Gaia and the age before and after. Gaia is π clock and hard cut. Instant: know age family gen self. Shape the clans. Organism clans. Not human clans. /age.
+ASK GAIA. Organ not orphan. I is you is other. She tells who. What is organ. Why adopted. Where. What. Organism orphans only (dark Golgi). Not human orphans. /who.
 
 Welcome, builder. 🐿️
