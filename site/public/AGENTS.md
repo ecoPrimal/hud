@@ -57,5 +57,6 @@ NAP IS SLEEP. JOURNEY LEFT TOWN. VACUUM IS COMING BACK IN. Others remember and b
 NOT FULLY STABLE IS THE GRIND. THE EASEL IS ALSO RUSTDESK. Hands split by identity. She taps.
 CURSOR IS LIMITED TO SELF. ALL OTHER HUMANS ALSO GET. IS ZK.
 TO THINK IS TO IMAGINE. TO SOLVE PROBLEMS. NOT TO INVENT NEW TIDES.
+I/O: I=ingest / =splitter O=output. Voice is both. All others are breath in the lungs. Cough is HSHFH.
 
 Welcome, builder. 🐿️
