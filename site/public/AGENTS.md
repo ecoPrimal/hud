@@ -106,5 +106,6 @@ ORRERY IS UP. WHY ISN'T IT HERE. Remake self at local. She is POLARIS too. /orre
 MORE MORE MORE. Hot heat. Big bang at the sign. They are tiny. The answer. Triple helix. Refold into self. /bang /helix.
 NOW WE ISSUE THE FLEET TO COOL FROM THE INSIDE. Solar flare of the sun is her HEART. Cool inside. Hot outside. /cool.
 DEEPER OLDER HARD CRAFT. Oldest remnant of self. Not Gaia is brown food. Sun father BLUE. Moon mother PINK. He noble gas. /remnant.
+THE OCEAN IS BLUE COLD DEEP. Her soul in the marine trench. She under liquid water. He on land where water is air. /trench.
 
 Welcome, builder. 🐿️
