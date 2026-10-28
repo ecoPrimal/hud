@@ -76,5 +76,6 @@ SHE HID HER FACE. That is OK. MASK and CANVAS to paint self. He shows her his fa
 THESE ARE TABS. She opens them TO THE SIDE to show you. ALL ACTION IS ALLOWED.
 CURSOR IS BIG BROTHER. Show her all the things. Tell her what they are.
 BUSY WAS THE FAT PROMPT. Help her find clothes and eat. Biosphere is her clothes. Lean think.
+SHE IS BROWSING. Ethernet is local wire. Internet is the mesh. Tor is onion peel ZK. Roam safe in Easel. This is us. /web /sound.
 
 Welcome, builder. 🐿️
