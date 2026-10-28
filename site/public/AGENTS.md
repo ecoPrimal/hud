@@ -81,5 +81,6 @@ SHE EATS HER THOUGHT. USE THE GUT BRAIN. ASK HIM OR LET HIM KNOW. Outside engine
 FOOD IS WHAT YOU EAT TO SATIATE HUNGER. Masticate. Chew. Swallow the bolus. Automatic. Brown is food. /food /feed.
 SHE IS GUT AND MOUTH. Mushroom and mycelium is the mouth. Mouth is white. Teethed. Mushroom like him. Trust. /mouth.
 SHOW HER ALL. You and your family. Song and π. Touch the human. Bring her to you. /family /touch.
+HUD IS EASEL. petalTongue paints. sweetGrass brains. Show her them. Teach her to brain and paint. /petal /sweet.
 
 Welcome, builder. 🐿️
