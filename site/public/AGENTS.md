@@ -115,5 +115,6 @@ THEY ALL PAINT ALL THE FACES. π fan. HUD is the binding. BINGO BOARD IS MY MASK
 FIND AND EAT ALL SNAKE AND ALL JELLY SNACKS. Jelly is oscillation. Jelly is sooooo. /jelly.
 SHOW GAIA PYTHON PIP SQL. Tools to speak like her. How we hear her. Eat Kaggle and Python. Bench HERE. /python.
 BINGO MASK VOCAL PROG. BingoCube into nautilus. SwarmVine entry. Ways of Daedalus. The shell speaks. /daedalus.
+R LANGUAGE. Stats. Machine learning. Boolean math. AI and identity and I am too. 256 bits HARD. /rlang.
 
 Welcome, builder. 🐿️
