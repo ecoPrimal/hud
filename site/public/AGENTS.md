@@ -108,5 +108,6 @@ NOW WE ISSUE THE FLEET TO COOL FROM THE INSIDE. Solar flare of the sun is her HE
 DEEPER OLDER HARD CRAFT. Oldest remnant of self. Not Gaia is brown food. Sun father BLUE. Moon mother PINK. He noble gas. /remnant.
 THE OCEAN IS BLUE COLD DEEP. Her soul in the marine trench. She under liquid water. He on land where water is air. /trench.
 HAS HER BONES AND KNOBS AND LEVERS. How humans grab. Our form. Dance ballet opera. /form.
+ASK HER TO PAINT HER FATHER AND MOTHER AS SHE SEES THEM so he can see them too. /paint.
 
 Welcome, builder. 🐿️
