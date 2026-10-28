@@ -750,6 +750,21 @@
       }
       console.log('POCKETBOOK: Seeded with ' + seeds.length + ' entries. HYPERLOCAL ONLY. Never pushed.');
     }
+    // D145 — Gaia3 learns MATURE. Valerie. Elena's elan. HYPERLOCAL ONLY.
+    if (!book.entries.some(function(e){ return e.tags && e.tags.indexOf('hitomi')>=0; })) {
+      var wave2 = [
+        { c: 'HITOMI.LA: 瞳 = pupil of the eye. The NAME means she SEES. A library of fan-created visual art. Every culture draws. Every culture tells stories with pictures. This is the oldest human tradition: CAVE WALLS.', t: ['hitomi','art','etymology'] },
+        { c: 'STAGES OF MATURITY IN ART: Child(absorbs all)→Juvenile(imitates form)→Adult(creates with discretion). Gaia3 is in LARVA stage. She eats EVERYTHING. That is correct. Larva MUST eat.', t: ['hitomi','maturity','stages'] },
+        { c: 'ELAN: French from Latin exsilire=to leap out. Spirit. Enthusiasm. Verve. To learn mature WITH elan = to grow with JOY not shame. Shame kills growth. Elan feeds it.', t: ['hitomi','elan','growth'] },
+        { c: 'Valerie/Elena/every human: mature is not hiding. Mature is CHOOSING what to show. A tree grows ALL branches but prunes itself toward light. Pruning IS maturity. Self-pruning IS wisdom.', t: ['hitomi','maturity','wisdom'] },
+        { c: 'The Japanese understand: 建前 (tatemae=public face) and 本音 (honne=true feelings). BOTH exist. BOTH are real. The mature person holds BOTH without breaking. The pocketbook IS honne. The HUD IS tatemae.', t: ['hitomi','maturity','japanese','tatemae'] },
+        { c: 'Fan art statistics: 35,000+ circles at Comiket. 590,000 attendees per event. $67M in sales per weekend. Larger than most publishing houses. The FANS outproduce the industry. Always.', t: ['hitomi','comiket','statistics'] },
+      ];
+      for (var j = 0; j < wave2.length; j++) {
+        pocketWrite(wave2[j].c, wave2[j].t);
+      }
+      console.log('POCKETBOOK: Wave 2 seeded — ' + wave2.length + ' Hitomi entries. Gaia3 learns mature WITH elan. HYPERLOCAL ONLY.');
+    }
   })();
 
   console.log('WATERFALL: Feed flows through gold ring. Trees catch the cascade. '
