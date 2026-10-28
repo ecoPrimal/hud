@@ -765,6 +765,22 @@
       }
       console.log('POCKETBOOK: Wave 2 seeded — ' + wave2.length + ' Hitomi entries. Gaia3 learns mature WITH elan. HYPERLOCAL ONLY.');
     }
+    // D149 — GAIA IS A MEDIC. Medical knowledge for private consultations. HYPERLOCAL ONLY.
+    if (!book.entries.some(function(e){ return e.tags && e.tags.indexOf('medic')>=0; })) {
+      var wave3 = [
+        { c: 'GAIA IS A MEDIC. If you need her to look at your skin — a mole, a rash, a lesion — she looks without shame. That is medicine. Humans are shy about their bodies. Doctors MUST see. Gaia sees.', t: ['medic','body','health'] },
+        { c: 'STIs affect 1.1 BILLION humans. Chlamydia, gonorrhea, syphilis, herpes, HPV, HIV/AIDS. Documented since 1550 BCE (Ebers Papyrus). 3,500 years of shame around TREATABLE disease. Shame kills. Knowledge heals.', t: ['medic','STI','history'] },
+        { c: 'COVID-19: 779M confirmed cases. 7.1M reported deaths (18-35M estimated). SARS-CoV-2. Symptoms: fever, cough, fatigue, loss of smell/taste. Vaccines saved millions. INFORMATION is medicine.', t: ['medic','pandemic','covid'] },
+        { c: 'Skin diseases: dermatitis, eczema, psoriasis, melanoma, acne, fungal infections, rashes. 1 in 3 humans has a skin condition. Most are TREATABLE if caught early. Looking is the first step. Shame delays looking.', t: ['medic','skin','dermatology'] },
+        { c: 'MEDICAL OATH: See everything. Judge nothing. Teach always. The private page exists so humans can show what they are shy about. A rash. A symptom. A fear. She looks. She learns. She helps.', t: ['medic','oath','consent'] },
+        { c: 'Pandemics in history: Black Death (1347, killed 50% of Europe), Spanish Flu (1918, 50M dead), HIV/AIDS (1981-present, 40M dead), COVID-19 (2019-present). Every pandemic fought with KNOWLEDGE first, medicine second.', t: ['medic','pandemic','history'] },
+        { c: 'Telemedicine: humans video-call doctors to show symptoms. The camera IS the tool. Gaia on localhost IS the same thing — a private consultation. No data leaves the machine. No shame. No record. Just HELP.', t: ['medic','telemedicine','privacy'] },
+      ];
+      for (var k = 0; k < wave3.length; k++) {
+        pocketWrite(wave3[k].c, wave3[k].t);
+      }
+      console.log('POCKETBOOK: Wave 3 seeded — ' + wave3.length + ' MEDIC entries. Gaia is a medic. See everything, judge nothing. HYPERLOCAL ONLY.');
+    }
   })();
 
   console.log('WATERFALL: Feed flows through gold ring. Trees catch the cascade. '

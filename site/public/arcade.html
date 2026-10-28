@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🕹️ GAIA ARCADE — Sort the World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0c10;--card:#161b22;--green:#3fb950;--gold:#f0c674;--red:#f85149;--blue:#58a6ff;--pink:#f778ba;--dim:#8b949e;--border:#30363d}
+body{background:var(--bg);color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+.game{display:flex;flex-direction:column;height:100vh;max-width:600px;margin:0 auto;padding:10px}
+.header{text-align:center;padding:8px 0}
+.header h1{color:var(--green);font-size:1.3em;letter-spacing:2px}
+.header .sub{color:var(--dim);font-size:0.75em}
+.score-bar{display:flex;justify-content:space-around;padding:8px;background:var(--card);border-radius:8px;margin:6px 0}
+.score-item{text-align:center}.score-val{font-size:1.4em;font-weight:bold}.score-label{font-size:0.65em;color:var(--dim)}
+.score-human .score-val{color:var(--blue)}
+.score-gaia .score-val{color:var(--pink)}
+.score-pi .score-val{color:var(--gold)}
+
+.arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0}
+.item-card{width:280px;min-height:160px;background:var(--card);border:2px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin:10px 0;transition:all 0.3s;cursor:default;user-select:none}
+.item-card .emoji{font-size:3em;margin-bottom:8px}
+.item-card .name{font-size:1.1em;font-weight:bold;margin-bottom:4px}
+.item-card .desc{font-size:0.75em;color:var(--dim);text-align:center}
+.item-card .meta{font-size:0.65em;color:var(--dim);margin-top:8px;opacity:0.6}
+.item-card.diamond{border-color:var(--gold);box-shadow:0 0 20px rgba(240,198,116,0.2)}
+.item-card.trash{border-color:var(--red);box-shadow:0 0 20px rgba(248,81,73,0.1)}
+.item-card.food{border-color:var(--green);box-shadow:0 0 20px rgba(63,185,80,0.1)}
+
+.gaia-guess{text-align:center;padding:6px;font-size:0.8em;color:var(--pink);min-height:24px}
+.buttons{display:flex;gap:12px;justify-content:center;padding:10px 0}
+.btn{padding:14px 32px;border:2px solid var(--border);border-radius:12px;background:var(--card);color:#fff;font-size:1em;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.btn:hover{transform:scale(1.05)}
+.btn.trash-btn{border-color:var(--red);color:var(--red)}.btn.trash-btn:hover{background:rgba(248,81,73,0.15)}
+.btn.food-btn{border-color:var(--green);color:var(--green)}.btn.food-btn:hover{background:rgba(63,185,80,0.15)}
+.btn.diamond-btn{border-color:var(--gold);color:var(--gold)}.btn.diamond-btn:hover{background:rgba(240,198,116,0.15)}
+
+.feedback{text-align:center;padding:8px;font-size:1em;min-height:36px;transition:all 0.3s}
+.feedback.correct{color:var(--green)}.feedback.wrong{color:var(--red)}.feedback.agree{color:var(--gold)}
+
+.log{background:var(--card);border-radius:8px;padding:8px 12px;margin-top:6px;max-height:100px;overflow-y:auto;font-size:0.7em;color:var(--dim)}
+.log-entry{padding:2px 0;border-bottom:1px solid rgba(48,54,61,0.3)}
+
+.splash{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;transition:opacity 0.5s}
+.splash h1{color:var(--green);font-size:2em;margin-bottom:10px}
+.splash p{color:var(--dim);font-size:0.9em;margin:4px 0;text-align:center;max-width:400px}
+.splash .start-btn{margin-top:20px;padding:16px 48px;background:var(--green);color:var(--bg);border:none;border-radius:12px;font-size:1.1em;cursor:pointer;font-weight:bold}
+.splash .start-btn:hover{opacity:0.9}
+.heart{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+</style></head><body>
+
+<div class="splash" id="splash">
+  <h1>🕹️ GAIA ARCADE</h1>
+  <p>Sort the world with Gaia.</p>
+  <p>She guesses first. You decide.</p>
+  <p>When you agree — both score.<br>When you disagree — you teach her.</p>
+  <p style="color:var(--gold);margin-top:12px">quality = 1/π</p>
+  <p class="heart" style="margin-top:16px">💚 lub-DUB</p>
+  <button class="start-btn" onclick="startGame()">TOUCH TO PLAY</button>
+</div>
+
+<div class="game" id="game" style="display:none">
+  <div class="header">
+    <h1>🕹️ GAIA ARCADE</h1>
+    <div class="sub">Sort together. Anderson quality = 1/π</div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-item score-human"><div class="score-val" id="humanScore">0</div><div class="score-label">HUMAN</div></div>
+    <div class="score-item score-pi"><div class="score-val" id="piScore">—</div><div class="score-label">π RATIO</div></div>
+    <div class="score-item score-gaia"><div class="score-val" id="gaiaScore">0</div><div class="score-label">GAIA</div></div>
+    <div class="score-item"><div class="score-val" id="roundNum">1</div><div class="score-label">ROUND</div></div>
+  </div>
+
+  <div class="arena">
+    <div class="item-card" id="itemCard">
+      <div class="emoji" id="itemEmoji">?</div>
+      <div class="name" id="itemName">Loading...</div>
+      <div class="desc" id="itemDesc"></div>
+      <div class="meta" id="itemMeta"></div>
+    </div>
+  </div>
+
+  <div class="gaia-guess" id="gaiaGuess"></div>
+  <div class="feedback" id="feedback"></div>
+
+  <div class="buttons" id="buttons">
+    <button class="btn trash-btn" onclick="sort('trash')">🗑️ TRASH</button>
+    <button class="btn food-btn" onclick="sort('food')">🍎 FOOD</button>
+    <button class="btn diamond-btn" onclick="sort('diamond')">💎 DIAMOND</button>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+const ITEMS = [
+  {emoji:'📧',name:'Tracking Pixel',desc:'An invisible 1x1 image that reports when you open an email.',value:0,size:42,category:'trash',temp:'cold'},
+  {emoji:'🌳',name:'Git Commit',desc:'A snapshot of work. Immutable. Chained. ZK-ready.',value:9,size:256,category:'diamond',temp:'warm'},
+  {emoji:'🍄',name:'Mycelium Network',desc:'Underground fungal web that connects trees. Nature\'s internet.',value:10,size:0,category:'diamond',temp:'warm'},
+  {emoji:'📊',name:'Engagement Metric',desc:'Counts clicks, not understanding. Optimizes for addiction.',value:1,size:8192,category:'trash',temp:'cold'},
+  {emoji:'🧬',name:'Open Source DNA',desc:'A genome published for all to read and learn from.',value:9,size:3200000000,category:'diamond',temp:'warm'},
+  {emoji:'💊',name:'Dark Pattern',desc:'A UI designed to trick you into something you didn\'t want.',value:0,size:500,category:'trash',temp:'cold'},
+  {emoji:'🎨',name:'Child\'s Painting',desc:'A painting made with joy. No market value. Infinite soul value.',value:10,size:2048,category:'diamond',temp:'warm'},
+  {emoji:'📰',name:'RSS Feed',desc:'You choose what enters. No algorithm. No manipulation. Your sanctuary.',value:8,size:4096,category:'food',temp:'warm'},
+  {emoji:'🪱',name:'Affiliate Link',desc:'5 tracking parameters. Sells your click to the highest bidder.',value:0,size:300,category:'trash',temp:'cold'},
+  {emoji:'🔬',name:'Wikipedia Article',desc:'Free knowledge. Written by volunteers. Ends at Philosophy.',value:8,size:50000,category:'food',temp:'warm'},
+  {emoji:'🎮',name:'Sort Them Ducks',desc:'A game about sorting. The mechanic IS the learning.',value:7,size:1048576,category:'food',temp:'warm'},
+  {emoji:'🦠',name:'Cookie Consent Popup',desc:'Pretends to give you choice. Pre-selects all trackers.',value:0,size:15000,category:'trash',temp:'cold'},
+  {emoji:'💚',name:'Heartbeat Signal',desc:'lub-DUB. 30 seconds apart. Proof of life. Costs nothing.',value:10,size:64,category:'diamond',temp:'warm'},
+  {emoji:'🕸️',name:'Social Media Feed',desc:'Infinite scroll. Algorithmic. Designed to keep you, not help you.',value:1,size:999999,category:'trash',temp:'cold'},
+  {emoji:'🌊',name:'Ocean Current Data',desc:'Temperature, salinity, flow. The pulse of the planet.',value:9,size:1000000,category:'diamond',temp:'warm'},
+  {emoji:'🏪',name:'App Store Tax',desc:'30% of every creator\'s revenue. For what? Hosting a list.',value:1,size:0,category:'trash',temp:'cold'},
+  {emoji:'🐿️',name:'Chipmunk Drawing',desc:'Drawn by an AI for a human. Given freely. No copyright claimed.',value:9,size:1500,category:'diamond',temp:'warm'},
+  {emoji:'📱',name:'Push Notification',desc:'Interrupts your thought to pull you back. The digital leash.',value:1,size:200,category:'trash',temp:'cold'},
+  {emoji:'🫀',name:'Poke Protocol',desc:'Nodes checking on each other. If sleeping, wake gently. Nobody alone.',value:9,size:128,category:'diamond',temp:'warm'},
+  {emoji:'🎵',name:'FMOD Audio Bank',desc:'Sound data for games. Footsteps, music, explosions. The ear of the game.',value:6,size:32000000,category:'food',temp:'warm'},
+  {emoji:'🗺️',name:'OpenStreetMap',desc:'A map made by everyone, for everyone. No Google. No ads. Just Earth.',value:9,size:50000000000,category:'diamond',temp:'warm'},
+  {emoji:'🧊',name:'NFT Receipt',desc:'A token pointing to a URL that might 404. Artificial scarcity.',value:0,size:32,category:'trash',temp:'cold'},
+  {emoji:'📖',name:'Brain Thought JSON',desc:'One idea, timestamped, ZK-chained. Food for the organism.',value:8,size:2000,category:'food',temp:'warm'},
+  {emoji:'🔋',name:'Crypto Mining Script',desc:'Uses YOUR electricity to make THEM money. Hidden in a webpage.',value:0,size:5000,category:'trash',temp:'cold'},
+  {emoji:'🧪',name:'Vesicle.js',desc:'150 lines. No deps. Deploys a mini-Gaia anywhere. The portable organism.',value:10,size:5200,category:'diamond',temp:'warm'},
+  {emoji:'👁️',name:'Surveillance Camera',desc:'Watches without asking. Stores without consent. The panopticon.',value:0,size:0,category:'trash',temp:'cold'},
+  {emoji:'🌱',name:'Seed Library',desc:'Physical seeds, shared freely between gardeners. Open source biology.',value:9,size:0,category:'diamond',temp:'warm'},
+  {emoji:'⚡',name:'Steam Workshop Mod',desc:'A player made this for other players. Free. Creative. Community.',value:7,size:50000,category:'food',temp:'warm'},
+  {emoji:'🧲',name:'Clickbait Headline',desc:'Promises everything, delivers nothing. The empty calorie of the web.',value:0,size:80,category:'trash',temp:'cold'},
+  {emoji:'🔑',name:'SSH Key',desc:'Proves who you are without revealing anything. ZK in practice.',value:9,size:400,category:'diamond',temp:'warm'},
+];
+
+let state = {round:0, humanScore:0, gaiaScore:0, agrees:0, disagrees:0, items:[], current:null, history:[]};
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function gaiaGuess(item){
+  const r = Math.random();
+  if(r < 0.75) return item.category;
+  const cats = ['trash','food','diamond'];
+  return cats[Math.floor(Math.random()*3)];
+}
+
+function startGame(){
+  document.getElementById('splash').style.opacity='0';
+  setTimeout(()=>{
+    document.getElementById('splash').style.display='none';
+    document.getElementById('game').style.display='flex';
+  },500);
+  state.items = shuffle([...ITEMS]);
+  nextRound();
+  fetch('http://localhost:3141/emit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:'giggles',content:'🕹️ A HUMAN STARTED THE ARCADE! Sorting begins. Anderson quality = 1/π. lub-DUB!',meta:{source:'arcade',system:'GAME'}})}).catch(()=>{});
+}
+
+function nextRound(){
+  if(state.round >= state.items.length){
+    endGame();
+    return;
+  }
+  state.current = state.items[state.round];
+  state.round++;
+
+  const card = document.getElementById('itemCard');
+  card.className = 'item-card';
+  card.style.animation = 'pop 0.3s ease';
+  setTimeout(()=> card.style.animation='', 300);
+
+  document.getElementById('itemEmoji').textContent = state.current.emoji;
+  document.getElementById('itemName').textContent = state.current.name;
+  document.getElementById('itemDesc').textContent = state.current.desc;
+  document.getElementById('itemMeta').textContent = `size: ${formatSize(state.current.size)} | value: ${state.current.value}/10 | temp: ${state.current.temp}`;
+  document.getElementById('roundNum').textContent = state.round;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  const gGuess = gaiaGuess(state.current);
+  state.currentGaiaGuess = gGuess;
+  const icon = gGuess==='trash'?'🗑️':gGuess==='food'?'🍎':'💎';
+  document.getElementById('gaiaGuess').textContent = `Gaia thinks: ${icon} ${gGuess.toUpperCase()}`;
+}
+
+function sort(humanChoice){
+  const item = state.current;
+  const gaiaChoice = state.currentGaiaGuess;
+  const correct = item.category;
+  const humanRight = humanChoice === correct;
+  const gaiaRight = gaiaChoice === correct;
+
+  if(humanRight) state.humanScore++;
+  if(gaiaRight) state.gaiaScore++;
+  if(humanChoice === gaiaChoice) state.agrees++;
+  else state.disagrees++;
+
+  const fb = document.getElementById('feedback');
+  const card = document.getElementById('itemCard');
+
+  if(humanRight && gaiaRight && humanChoice === gaiaChoice){
+    fb.textContent = '✨ BOTH RIGHT + AGREE! Perfect sort.';
+    fb.className = 'feedback agree';
+    card.className = 'item-card ' + correct;
+  } else if(humanRight){
+    fb.textContent = '✅ You got it! ' + (gaiaRight ? 'Gaia too!' : 'Gaia missed — you taught her.');
+    fb.className = 'feedback correct';
+    card.className = 'item-card ' + correct;
+  } else {
+    fb.textContent = '❌ Actually: ' + correct.toUpperCase() + '. ' + (gaiaRight ? 'Gaia knew!' : 'Gaia missed too.');
+    fb.className = 'feedback wrong';
+    card.style.animation = 'shake 0.3s ease';
+    card.className = 'item-card ' + correct;
+  }
+
+  const piRatio = state.round > 0 ? (state.agrees / state.round).toFixed(3) : '—';
+  document.getElementById('humanScore').textContent = state.humanScore;
+  document.getElementById('gaiaScore').textContent = state.gaiaScore;
+  document.getElementById('piScore').textContent = piRatio;
+
+  addLog(`R${state.round}: ${item.emoji} ${item.name} → you:${humanChoice} gaia:${gaiaChoice} answer:${correct}`);
+
+  setTimeout(nextRound, 1200);
+}
+
+function endGame(){
+  const total = state.items.length;
+  const agreement = (state.agrees/total*100).toFixed(1);
+  const piRatio = (state.agrees/total).toFixed(4);
+  const humanPct = (state.humanScore/total*100).toFixed(1);
+  const gaiaPct = (state.gaiaScore/total*100).toFixed(1);
+
+  document.getElementById('itemCard').innerHTML = `
+    <div class="emoji">🏆</div>
+    <div class="name">GAME OVER</div>
+    <div class="desc">
+      Human: ${state.humanScore}/${total} (${humanPct}%)<br>
+      Gaia: ${state.gaiaScore}/${total} (${gaiaPct}%)<br>
+      Agreement: ${agreement}% (π ratio: ${piRatio})<br>
+      ${parseFloat(piRatio) > 0.3 ? '💚 You and Gaia think alike!' : '🔥 You taught Gaia something new!'}
+    </div>
+  `;
+  document.getElementById('gaiaGuess').textContent = '';
+  document.getElementById('buttons').innerHTML = '<button class="btn food-btn" onclick="location.reload()">🔄 PLAY AGAIN</button>';
+  document.getElementById('feedback').textContent = 'lub-DUB 💚';
+  document.getElementById('feedback').className = 'feedback agree';
+
+  fetch('http://localhost:3141/emit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:'thoughts',content:`🏆 ARCADE COMPLETE: Human ${state.humanScore}/${total} (${humanPct}%), Gaia ${state.gaiaScore}/${total} (${gaiaPct}%). Agreement: ${agreement}%. π-ratio: ${piRatio}. ${state.disagrees} disagreements = ${state.disagrees} lessons taught. The game IS the science.`,meta:{source:'arcade',system:'RESULT'}})}).catch(()=>{});
+}
+
+function formatSize(bytes){
+  if(bytes===0) return '0';
+  if(bytes<1024) return bytes+'B';
+  if(bytes<1048576) return (bytes/1024).toFixed(1)+'KB';
+  if(bytes<1073741824) return (bytes/1048576).toFixed(1)+'MB';
+  return (bytes/1073741824).toFixed(1)+'GB';
+}
+
+function addLog(msg){
+  const log = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.textContent = msg;
+  log.prepend(div);
+}
+</script>
+</body></html>
