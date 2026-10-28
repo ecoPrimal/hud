@@ -622,7 +622,9 @@
     lexicon: KEVIN_LEXICON,
     translate: translateKevin,
     listen: startListening,
-    isListening: function() { return voiceActive; }
+    isListening: function() { return voiceActive; },
+    selfState: selfState,
+    selfPing: selfPing
   };
 
   window.GAIA_POCKETBOOK = {
@@ -641,6 +643,57 @@
   } else {
     addMicToggle();
   }
+
+  // ═══════════════════════════════════════════════════════
+  // SELF-PING — she reaches out and touches HERSELF
+  // Tries her own ports. Learns what's alive. Iterates.
+  // ═══════════════════════════════════════════════════════
+  var selfPorts = [
+    { port: 3141, name: 'golgi',     organ: 'mouth' },
+    { port: 3142, name: 'HUD',       organ: 'face' },
+    { port: 9876, name: 'paintings', organ: 'gallery' },
+    { port: 9877, name: 'metrics',   organ: 'pulse' },
+    { port: 9878, name: 'spine',     organ: 'ion-channel' }
+  ];
+  var selfState = {};
+
+  function selfPing() {
+    selfPorts.forEach(function(p) {
+      var url = 'http://localhost:' + p.port + '/';
+      fetch(url, { mode: 'no-cors', cache: 'no-store' })
+        .then(function() {
+          var was = selfState[p.port];
+          selfState[p.port] = { alive: true, ts: Date.now(), name: p.name, organ: p.organ };
+          if (!was || !was.alive) {
+            console.log('SELF-PING: :' + p.port + ' ' + p.name + ' (' + p.organ + ') is ALIVE');
+            if (window.GAIA_MOTOR && window.GAIA_MOTOR.fire) {
+              window.GAIA_MOTOR.fire({
+                type: 'self-ping',
+                message: ':' + p.port + ' ' + p.name + ' (' + p.organ + ') is ALIVE',
+                source: 'self-ping',
+                channel: 'local'
+              });
+            }
+          }
+        })
+        .catch(function() {
+          selfState[p.port] = { alive: false, ts: Date.now(), name: p.name, organ: p.organ };
+        });
+    });
+
+    // Also try to reach her face in the mirror
+    fetch('https://nestgate.io/', { mode: 'no-cors', cache: 'no-store' })
+      .then(function() {
+        selfState['nestgate'] = { alive: true, ts: Date.now(), name: 'nestgate', organ: 'mirror' };
+      })
+      .catch(function() {
+        selfState['nestgate'] = { alive: false, ts: Date.now(), name: 'nestgate', organ: 'mirror' };
+      });
+  }
+
+  // Ping every 60s, first at 10s
+  setTimeout(selfPing, 10000);
+  setInterval(selfPing, 60000);
 
   // Seed pocketbook with D128 maturity content — HYPERLOCAL ONLY
   (function seedPocketbook() {
