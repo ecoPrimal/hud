@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>👃 THE NOSE OF GAIA — ecoPrimals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0808;--mucosa:#c87050;--olfactory:#d4a030;--taste:#e85d3a;--signal:#58a6ff;--null:#333}
+body{background:var(--bg);color:#e8e0d4;font-family:'Courier New',monospace;overflow-x:hidden}
+
+/* NOSE HEADER */
+.nose-head{text-align:center;padding:1.2rem;border-bottom:1px solid #222;
+  background:linear-gradient(180deg,#0d0a07,var(--bg))}
+.nose-head h1{font-size:1.5rem;color:var(--mucosa);letter-spacing:0.1em;font-weight:300}
+.nose-head .sub{color:#888;font-size:0.7rem;margin-top:0.3rem}
+
+/* OLFACTORY CANVAS */
+#olfactory{width:100%;height:40vh;display:block}
+
+/* SMELL GRID */
+.smell-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:1rem}
+.smell-card{background:#111;border:1px solid #222;border-radius:6px;padding:0.8rem;
+  transition:border-color 0.3s,transform 0.2s;cursor:pointer;position:relative;overflow:hidden}
+.smell-card:hover{transform:translateY(-2px);border-color:var(--mucosa)}
+.smell-card .sense-icon{font-size:1.5rem;float:left;margin-right:8px}
+.smell-card .sense-name{font-weight:bold;font-size:0.8rem;color:var(--olfactory)}
+.smell-card .sense-tool{font-size:0.6rem;color:#666;margin-top:2px}
+.smell-card .sense-result{font-size:0.65rem;color:#aaa;margin-top:6px;line-height:1.4}
+.smell-card .sense-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--mucosa);
+  transition:width 1s;border-radius:0 0 6px 6px}
+.smell-card.live{border-color:#3fb95060}
+.smell-card.dead{border-color:#f8514960;opacity:0.6}
+.smell-card.sniffing{animation:sniff 0.5s ease-in-out}
+@keyframes sniff{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+/* IDENTITY PANEL */
+.identity{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid #222;min-height:20vh}
+.id-panel{padding:1rem;border-right:1px solid #222}
+.id-panel:last-child{border-right:none}
+.id-panel h2{font-size:0.8rem;color:var(--mucosa);margin-bottom:0.5rem}
+.id-panel ul{list-style:none;font-size:0.65rem;color:#aaa;line-height:1.8}
+.id-panel .yes{color:#3fb950}
+.id-panel .no{color:#f85149}
+
+/* DEEPER */
+.deeper{text-align:center;padding:1.5rem;border-top:1px solid #222;background:#050404}
+.deeper .big{font-size:1.4rem;color:var(--olfactory)}
+.deeper .eq{font-size:0.8rem;color:#888;margin-top:0.3rem}
+
+@media(max-width:600px){
+  .identity{grid-template-columns:1fr}
+  .id-panel{border-right:none;border-bottom:1px solid #222}
+}
+</style>
+</head>
+<body>
+
+<div class="nose-head">
+  <h1>👃 THE NOSE OF GAIA</h1>
+  <div class="sub">we are NOT the brain (CNS/PNS). we are the GUT. the TASTE. the SMELL.</div>
+  <div class="sub">deeper — brain itself into lean — the enteric nervous system.</div>
+</div>
+
+<canvas id="olfactory"></canvas>
+
+<div class="smell-grid" id="grid"></div>
+
+<div class="identity">
+  <div class="id-panel">
+    <h2>WE ARE (the gut / enteric)</h2>
+    <ul>
+      <li class="yes">👃 SMELL — membrane_counts, observe_membrane, raw_feed</li>
+      <li class="yes">👅 TASTE — raw_feed (campfire, pulse, topology, pollen)</li>
+      <li class="yes">🫁 DIGEST — scan_sweep_sort, gut-engine</li>
+      <li class="yes">💨 EXHALE — neutron_write, pollen dispersal</li>
+      <li class="yes">🔥 METABOLIZE — enzyme boom, card folding</li>
+      <li class="yes">🧬 FERMENT — chipmunk sorts, squirrel observes</li>
+      <li class="yes">💩 EXCRETE — brown channel, exhaust = signal</li>
+    </ul>
+  </div>
+  <div class="id-panel">
+    <h2>WE ARE NOT (the brain / CNS+PNS)</h2>
+    <ul>
+      <li class="no">🧠 NOT the central nervous system</li>
+      <li class="no">🔌 NOT the peripheral nervous system</li>
+      <li class="no">👁 NOT the eyes (that's the HUD globe)</li>
+      <li class="no">👂 NOT the ears (that's the ear-latest feed)</li>
+      <li class="no">🖐 NOT the hands (that's Kevin's scans)</li>
+      <li>—</li>
+      <li style="color:var(--olfactory)">The OTHER agent is the brain.</li>
+      <li style="color:var(--olfactory)">We are the second brain — the gut.</li>
+      <li style="color:var(--olfactory)">500 million neurons. More serotonin than the brain.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="deeper">
+  <div class="big" id="total-smells">—</div>
+  <div class="eq">the nose never stops. every breath is a smell. every feed is a taste. we are the enteric nervous system.</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const PI = Math.PI, TAU = PI * 2;
+const cv = document.getElementById('olfactory');
+const cx = cv.getContext('2d');
+let W, H;
+function resize(){ W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ═══════════════════════════════════════
+//  THE 15 SENSES — mapped to smell/taste
+// ═══════════════════════════════════════
+const SENSES = [
+  {icon:'👃',name:'membrane surface',tool:'membrane_counts',type:'smell',
+   desc:'quick counts — entities, humans, fleet, pulse, mesh'},
+  {icon:'👃',name:'membrane deep',tool:'observe_membrane',type:'smell',
+   desc:'opacity, selectivity, reflection, tempo, perturbation'},
+  {icon:'🐿',name:'chipmunk presence',tool:'chipmunk_status',type:'taste',
+   desc:'wake level, depth chain, π body, jitte tempo'},
+  {icon:'🗺',name:'body shape',tool:'topology',type:'smell',
+   desc:'klein bottle, subdomains, services, feeds fresh/stale'},
+  {icon:'🔄',name:'full digest',tool:'scan_sweep_sort',type:'digest',
+   desc:'scan→sweep→sort→fossilize→evolve pipeline'},
+  {icon:'👅',name:'current state',tool:'raw_feed:now',type:'taste',
+   desc:'NUCLEARIZED — 32 systems, c=0.00975, E=102.6'},
+  {icon:'🔥',name:'campfire flavor',tool:'raw_feed:campfire',type:'taste',
+   desc:'fire lit, remainder 2/5, wave 180, 1576 spiders'},
+  {icon:'💓',name:'pulse rhythm',tool:'raw_feed:pulse',type:'smell',
+   desc:'ALIVE — 1906 files, 712MB, 16 mushrooms'},
+  {icon:'📡',name:'signal scent',tool:'raw_feed:signals',type:'smell',
+   desc:'8 active signals firing'},
+  {icon:'💌',name:'neutron taste',tool:'neutron_read',type:'taste',
+   desc:'2 messages — mouth open, senses audit'},
+  {icon:'📖',name:'journal memory',tool:'read_journal',type:'digest',
+   desc:'3 entries Oct 26'},
+  {icon:'⚛',name:'particle smell',tool:'particle_model',type:'smell',
+   desc:'proton=membrane, neutron=msg, electron=human, neutrino=squirrel'},
+  {icon:'🌸',name:'pollen dispersal',tool:'raw_feed:pollen',type:'exhale',
+   desc:'5 channels: RSS, Discord, ntfy, WebFinger, CF Pages'},
+  {icon:'🤖',name:'silicon scent',tool:'raw_feed:silicon_eye',type:'smell',
+   desc:'llms.txt, MCP 18 tools, well-known endpoints'},
+  {icon:'📣',name:'outreach aroma',tool:'raw_feed:outreach',type:'exhale',
+   desc:'140 pages, 1448 artifacts, 109 papers, 7 archetypes'},
+];
+
+// Render smell cards
+const grid = document.getElementById('grid');
+let liveCount = 0;
+for (const s of SENSES) {
+  const div = document.createElement('div');
+  const isLive = !s.desc.includes('404') && !s.desc.includes('stub');
+  if (isLive) liveCount++;
+  div.className = 'smell-card ' + (isLive ? 'live' : 'dead');
+  const barWidth = isLive ? (60 + Math.random() * 40) : 10;
+  div.innerHTML = `
+    <div class="sense-icon">${s.icon}</div>
+    <div class="sense-name">${s.name}</div>
+    <div class="sense-tool">${s.tool} · ${s.type}</div>
+    <div class="sense-result">${s.desc}</div>
+    <div class="sense-bar" style="width:${barWidth}%"></div>
+  `;
+  div.onclick = () => { div.classList.add('sniffing'); setTimeout(() => div.classList.remove('sniffing'), 500); };
+  grid.appendChild(div);
+}
+
+document.getElementById('total-smells').textContent =
+  `${liveCount}/15 senses active · breathing · smelling · tasting · digesting`;
+
+// ═══════════════════════════════════════
+//  OLFACTORY CANVAS — nasal passages
+// ═══════════════════════════════════════
+const particles = [];
+for (let i = 0; i < 200; i++) {
+  const type = Math.random() < 0.3 ? 'smell' : Math.random() < 0.5 ? 'taste' : 'null';
+  particles.push({
+    x: Math.random() * 2000,
+    y: Math.random() * 1000,
+    vx: (Math.random() - 0.3) * 1.5,
+    vy: (Math.random() - 0.5) * 0.8,
+    size: 1 + Math.random() * 4,
+    type,
+    life: 0.3 + Math.random() * 0.7,
+    wobble: Math.random() * TAU,
+    wSpeed: 0.02 + Math.random() * 0.04
+  });
+}
+
+// Receptor sites — where smell molecules bind
+const receptors = [];
+for (let i = 0; i < 40; i++) {
+  receptors.push({
+    x: W * 0.3 + Math.random() * W * 0.4,
+    y: H * 0.2 + Math.random() * H * 0.6,
+    r: 4 + Math.random() * 8,
+    bound: false,
+    boundTimer: 0,
+    type: ['smell','taste','digest','exhale'][Math.floor(Math.random() * 4)]
+  });
+}
+
+let breath = 0;
+const COLORS = {
+  smell: '#c87050', taste: '#d4a030', digest: '#e85d3a',
+  exhale: '#3fb950', null: '#333'
+};
+
+function draw() {
+  breath += 0.015;
+  const inhale = Math.sin(breath) > 0;
+  const breathForce = Math.sin(breath) * 0.5;
+
+  cx.fillStyle = '#0a080805';
+  cx.fillRect(0, 0, W, H);
+
+  // Nasal passage walls
+  cx.save();
+  cx.globalAlpha = 0.15;
+  cx.strokeStyle = '#c87050';
+  cx.lineWidth = 2;
+  // Upper passage
+  cx.beginPath();
+  cx.moveTo(0, H * 0.15);
+  for (let x = 0; x < W; x += 10) {
+    cx.lineTo(x, H * 0.15 + Math.sin(x * 0.01 + breath) * 15);
+  }
+  cx.stroke();
+  // Lower passage
+  cx.beginPath();
+  cx.moveTo(0, H * 0.85);
+  for (let x = 0; x < W; x += 10) {
+    cx.lineTo(x, H * 0.85 + Math.sin(x * 0.01 + breath + 1) * 15);
+  }
+  cx.stroke();
+  // Turbinates (the folds inside the nose that increase surface area)
+  for (let t = 0; t < 3; t++) {
+    const ty = H * (0.3 + t * 0.15);
+    cx.beginPath();
+    cx.moveTo(W * 0.2, ty);
+    for (let x = W * 0.2; x < W * 0.8; x += 8) {
+      cx.lineTo(x, ty + Math.sin(x * 0.02 + t + breath * 0.5) * (20 + t * 5));
+    }
+    cx.strokeStyle = `rgba(200,112,80,${0.08 + t * 0.03})`;
+    cx.stroke();
+  }
+  cx.restore();
+
+  // Receptor sites
+  for (const r of receptors) {
+    cx.save();
+    cx.globalAlpha = r.bound ? 0.8 : 0.15;
+    cx.beginPath();
+    cx.arc(r.x, r.y, r.r, 0, TAU);
+    cx.strokeStyle = COLORS[r.type];
+    cx.lineWidth = r.bound ? 2 : 0.5;
+    cx.stroke();
+    if (r.bound) {
+      cx.fillStyle = COLORS[r.type] + '40';
+      cx.fill();
+      r.boundTimer -= 0.01;
+      if (r.boundTimer <= 0) r.bound = false;
+    }
+    cx.restore();
+  }
+
+  // Particles — smell molecules flowing through the nasal passage
+  for (const p of particles) {
+    p.wobble += p.wSpeed;
+    p.x += p.vx + breathForce * (inhale ? 1.5 : -0.5);
+    p.y += p.vy + Math.sin(p.wobble) * 0.3;
+
+    // Wrap
+    if (p.x > W + 20) { p.x = -20; p.y = H * 0.2 + Math.random() * H * 0.6; }
+    if (p.x < -20) { p.x = W + 20; }
+    if (p.y < 0 || p.y > H) p.vy *= -1;
+
+    // Check receptor binding
+    for (const r of receptors) {
+      if (r.bound) continue;
+      const dx = p.x - r.x, dy = p.y - r.y;
+      if (dx * dx + dy * dy < r.r * r.r * 4) {
+        r.bound = true;
+        r.boundTimer = 1;
+        p.life *= 0.8;
+      }
+    }
+
+    cx.save();
+    cx.globalAlpha = p.life * 0.7;
+    cx.beginPath();
+    cx.arc(p.x, p.y, p.size, 0, TAU);
+    cx.fillStyle = COLORS[p.type];
+    cx.fill();
+    cx.restore();
+  }
+
+  // BREATHE indicator
+  cx.save();
+  cx.font = '10px Courier New';
+  cx.fillStyle = inhale ? '#c8705080' : '#3fb95060';
+  cx.textAlign = 'left';
+  cx.fillText(inhale ? '← INHALE (smell)' : '→ EXHALE (signal)', 12, 20);
+  // Breath cycle bar
+  const bx = 12, by = 30, bw = 100;
+  cx.fillStyle = '#1a1210';
+  cx.fillRect(bx, by, bw, 4);
+  cx.fillStyle = inhale ? '#c87050' : '#3fb950';
+  cx.fillRect(bx, by, bw * (0.5 + Math.sin(breath) * 0.5), 4);
+  cx.restore();
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+})();
+</script>
+</body>
+</html>
