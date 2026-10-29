@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OLD WEB PORTAL — Gaia surfs the memories</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0a0a12;
+    color: #c9d1d9;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+  }
+  .portal-header {
+    background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 100%);
+    border-bottom: 2px solid #30363d;
+    padding: 20px;
+    text-align: center;
+  }
+  .portal-header h1 {
+    color: #c9a84c;
+    font-size: 28px;
+    text-shadow: 0 0 20px rgba(201,168,76,0.3);
+    letter-spacing: 3px;
+  }
+  .portal-header .sub {
+    color: #8b949e;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .search-bar {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .search-bar input {
+    flex: 1;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    outline: none;
+  }
+  .search-bar input:focus { border-color: #c9a84c; }
+  .search-bar input::placeholder { color: #484f58; }
+  .search-bar button {
+    background: #1a0a2e;
+    color: #c9a84c;
+    border: 1px solid #c9a84c;
+    padding: 12px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .search-bar button:hover { background: #2a1a3e; }
+
+  .portal-grid {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .portal-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .portal-card:hover { border-color: #c9a84c; }
+  .portal-card h3 {
+    color: #58a6ff;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .portal-card h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .portal-card h3 a:hover { text-decoration: underline; }
+  .portal-card .desc {
+    color: #8b949e;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .portal-card .era {
+    display: inline-block;
+    background: #1a0a2e;
+    color: #bc8cff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+  }
+  .portal-card .type {
+    display: inline-block;
+    background: #0d2818;
+    color: #3fb950;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .section-title {
+    max-width: 1200px;
+    margin: 30px auto 10px;
+    padding: 0 20px;
+    color: #c9a84c;
+    font-size: 18px;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 8px;
+  }
+
+  .wayback-viewer {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  .wayback-viewer iframe {
+    width: 100%;
+    height: 70vh;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .viewer-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .viewer-controls select, .viewer-controls input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: 'Courier New', monospace;
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+  .viewer-controls label {
+    color: #8b949e;
+    font-size: 12px;
+  }
+
+  .memories {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  .memory-link {
+    display: inline-block;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #58a6ff;
+    padding: 6px 14px;
+    margin: 4px;
+    border-radius: 16px;
+    font-size: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .memory-link:hover {
+    border-color: #c9a84c;
+    color: #c9a84c;
+    background: #1a0a2e;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #484f58;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="portal-header">
+  <h1>🌐 OLD WEB PORTAL</h1>
+  <div class="sub">GAIA SURFS THE MEMORIES — the old internet is not gone, it's just no longer indexed</div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="wb-url" placeholder="enter any URL to see it in the Wayback Machine..." value="">
+  <button onclick="surfWayback()">SURF</button>
+</div>
+
+<div class="section-title">⏪ KEVIN'S MEMORIES — click to surf</div>
+<div class="memories" id="memories">
+  <!-- Gaming memories -->
+  <a class="memory-link" onclick="surf('runescape.com','2004')">RuneScape (2004)</a>
+  <a class="memory-link" onclick="surf('steampowered.com','2005')">Steam (2005)</a>
+  <a class="memory-link" onclick="surf('miniclip.com','2004')">Miniclip (2004)</a>
+  <a class="memory-link" onclick="surf('newgrounds.com','2003')">Newgrounds (2003)</a>
+  <a class="memory-link" onclick="surf('addictinggames.com','2005')">Addicting Games (2005)</a>
+  <a class="memory-link" onclick="surf('neopets.com','2002')">Neopets (2002)</a>
+  <a class="memory-link" onclick="surf('armorgames.com','2007')">Armor Games (2007)</a>
+  <a class="memory-link" onclick="surf('kongregate.com','2008')">Kongregate (2008)</a>
+  <a class="memory-link" onclick="surf('gamefaqs.com','2003')">GameFAQs (2003)</a>
+  <a class="memory-link" onclick="surf('ign.com','2002')">IGN (2002)</a>
+
+  <!-- Social / chat memories -->
+  <a class="memory-link" onclick="surf('myspace.com','2006')">MySpace (2006)</a>
+  <a class="memory-link" onclick="surf('facebook.com','2005')">Facebook (2005)</a>
+  <a class="memory-link" onclick="surf('youtube.com','2005')">YouTube (2005)</a>
+  <a class="memory-link" onclick="surf('twitter.com','2007')">Twitter (2007)</a>
+  <a class="memory-link" onclick="surf('reddit.com','2006')">Reddit (2006)</a>
+  <a class="memory-link" onclick="surf('digg.com','2006')">Digg (2006)</a>
+  <a class="memory-link" onclick="surf('stumbleupon.com','2007')">StumbleUpon (2007)</a>
+
+  <!-- Old web classics -->
+  <a class="memory-link" onclick="surf('geocities.com','1999')">GeoCities (1999)</a>
+  <a class="memory-link" onclick="surf('angelfire.com','2000')">Angelfire (2000)</a>
+  <a class="memory-link" onclick="surf('tripod.com','2001')">Tripod (2001)</a>
+  <a class="memory-link" onclick="surf('ask.com','2001')">Ask Jeeves (2001)</a>
+  <a class="memory-link" onclick="surf('altavista.com','1999')">AltaVista (1999)</a>
+  <a class="memory-link" onclick="surf('yahoo.com','1998')">Yahoo (1998)</a>
+  <a class="memory-link" onclick="surf('google.com','1998')">Google (1998)</a>
+  <a class="memory-link" onclick="surf('aol.com','2000')">AOL (2000)</a>
+  <a class="memory-link" onclick="surf('netscape.com','1999')">Netscape (1999)</a>
+  <a class="memory-link" onclick="surf('lycos.com','1999')">Lycos (1999)</a>
+  <a class="memory-link" onclick="surf('excite.com','1999')">Excite (1999)</a>
+  <a class="memory-link" onclick="surf('hotbot.com','2000')">HotBot (2000)</a>
+  <a class="memory-link" onclick="surf('webcrawler.com','1998')">WebCrawler (1998)</a>
+
+  <!-- Michigan / Detroit -->
+  <a class="memory-link" onclick="surf('freep.com','2003')">Detroit Free Press (2003)</a>
+  <a class="memory-link" onclick="surf('detroitnews.com','2003')">Detroit News (2003)</a>
+  <a class="memory-link" onclick="surf('msu.edu','2000')">MSU (2000)</a>
+  <a class="memory-link" onclick="surf('umich.edu','2000')">UMich (2000)</a>
+  <a class="memory-link" onclick="surf('michigan.gov','2003')">Michigan.gov (2003)</a>
+  <a class="memory-link" onclick="surf('mlive.com','2005')">MLive (2005)</a>
+
+  <!-- Tech / coding -->
+  <a class="memory-link" onclick="surf('slashdot.org','2001')">Slashdot (2001)</a>
+  <a class="memory-link" onclick="surf('sourceforge.net','2003')">SourceForge (2003)</a>
+  <a class="memory-link" onclick="surf('freshmeat.net','2002')">Freshmeat (2002)</a>
+  <a class="memory-link" onclick="surf('download.com','2002')">Download.com (2002)</a>
+  <a class="memory-link" onclick="surf('tucows.com','2001')">Tucows (2001)</a>
+  <a class="memory-link" onclick="surf('w3.org','1997')">W3C (1997)</a>
+
+  <!-- Fun / culture -->
+  <a class="memory-link" onclick="surf('ebaumsworld.com','2004')">eBaum's World (2004)</a>
+  <a class="memory-link" onclick="surf('homestarrunner.com','2003')">Homestar Runner (2003)</a>
+  <a class="memory-link" onclick="surf('albinoblacksheep.com','2004')">Albino Blacksheep (2004)</a>
+  <a class="memory-link" onclick="surf('zombo.com','2000')">ZOMBO.COM (2000)</a>
+  <a class="memory-link" onclick="surf('hamsterdance.com','1999')">Hamster Dance (1999)</a>
+  <a class="memory-link" onclick="surf('spacejam.com','1996')">Space Jam (1996)</a>
+
+  <!-- Gaia's own history -->
+  <a class="memory-link" onclick="surf('primals.eco','2026')">primals.eco (2026)</a>
+</div>
+
+<div class="section-title">🏛 OLD WEB ARCHIVES — the vaults</div>
+<div class="portal-grid">
+  <div class="portal-card">
+    <h3><a href="https://web.archive.org" target="_blank">Wayback Machine</a></h3>
+    <div class="desc">Nearly a trillion archived pages going back to 1996. Paste any URL and pick a date. The calendar view is the fastest way to watch a site change decade by decade.</div>
+    <span class="era">1996–now</span>
+    <span class="type">archive</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://oldweb.today" target="_blank">oldweb.today</a></h3>
+    <div class="desc">Archived pages rendered inside emulated period browsers — Netscape, Mosaic, early IE. The layout bugs, the fonts and the load behaviour are all authentic.</div>
+    <span class="era">1993–2005</span>
+    <span class="type">emulator</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://theoldnet.com" target="_blank">The Old Net</a></h3>
+    <div class="desc">A proxy that strips modern pages to what a vintage browser can render. Built for people running real 90s hardware. BBS simulator, VRML gallery, Netscape mode.</div>
+    <span class="era">1990s</span>
+    <span class="type">proxy</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://www.oocities.org" target="_blank">OoCities (GeoCities Archive)</a></h3>
+    <div class="desc">The mirror of GeoCities. Area51, SiliconValley, SunsetStrip — all the neighborhoods, exactly as they were before Yahoo deleted everything in 2009.</div>
+    <span class="era">1994–2009</span>
+    <span class="type">mirror</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://restorativland.org" target="_blank">Restorativland</a></h3>
+    <div class="desc">Browsable GeoCities mirror organized by neighborhood. Every under-construction gif. Every marquee tag. Every guestbook.</div>
+    <span class="era">1994–2009</span>
+    <span class="type">mirror</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://cameronsworld.net" target="_blank">Cameron's World</a></h3>
+    <div class="desc">A collage assembled entirely from GeoCities pages: every animated GIF, under-construction sign and marquee tag, arranged into one scrolling monument.</div>
+    <span class="era">1990s</span>
+    <span class="type">art</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://neocities.org" target="_blank">Neocities</a></h3>
+    <div class="desc">The living successor to GeoCities. Free static hosting, hand-made sites. The browse page is a live directory of the modern small web. The web that STILL builds by hand.</div>
+    <span class="era">2013–now</span>
+    <span class="type">live</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://wiby.me" target="_blank">Wiby</a></h3>
+    <div class="desc">A search engine that indexes only lightweight, personal, hand-written pages. The 'surprise me' button is the closest thing left to a 1998 web ring.</div>
+    <span class="era">all</span>
+    <span class="type">search</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://yestersearch.neocities.org" target="_blank">Yestersearch</a></h3>
+    <div class="desc">Search engine that exclusively browses Tripod, Angelfire, and other old-web hosts. Find the pages that Google forgot.</div>
+    <span class="era">1990s–2000s</span>
+    <span class="type">search</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://blog.geocities.institute" target="_blank">One Terabyte of Kilobyte Age</a></h3>
+    <div class="desc">Automated screenshots from the GeoCities archive. The best single feed for the visual language of the amateur web.</div>
+    <span class="era">1994–2009</span>
+    <span class="type">research</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://textfiles.com" target="_blank">textfiles.com</a></h3>
+    <div class="desc">Jason Scott's archive of text-file culture BEFORE the web: BBS ads, phreaking guides, ASCII art, zines. Served over plain HTTP, which is entirely the point.</div>
+    <span class="era">1980s–1990s</span>
+    <span class="type">archive</span>
+  </div>
+  <div class="portal-card">
+    <h3><a href="https://telnetbbsguide.com" target="_blank">Telnet BBS Guide</a></h3>
+    <div class="desc">Hundreds of bulletin board systems STILL accepting connections today. A telnet client and five minutes gets you into one. The web before the web.</div>
+    <span class="era">1980s–now</span>
+    <span class="type">live</span>
+  </div>
+</div>
+
+<div class="section-title">📺 WAYBACK VIEWER</div>
+<div class="wayback-viewer">
+  <div class="viewer-controls">
+    <label>Year:</label>
+    <select id="wb-year">
+      <option value="1996">1996</option>
+      <option value="1997">1997</option>
+      <option value="1998">1998</option>
+      <option value="1999" selected>1999</option>
+      <option value="2000">2000</option>
+      <option value="2001">2001</option>
+      <option value="2002">2002</option>
+      <option value="2003">2003</option>
+      <option value="2004">2004</option>
+      <option value="2005">2005</option>
+      <option value="2006">2006</option>
+      <option value="2007">2007</option>
+      <option value="2008">2008</option>
+      <option value="2009">2009</option>
+      <option value="2010">2010</option>
+      <option value="2015">2015</option>
+      <option value="2020">2020</option>
+      <option value="2026">2026</option>
+    </select>
+    <input type="text" id="wb-viewer-url" placeholder="URL to view..." style="flex:1">
+    <button onclick="loadViewer()" style="background:#1a0a2e;color:#c9a84c;border:1px solid #c9a84c;padding:8px 16px;cursor:pointer;border-radius:4px;font-family:monospace">LOAD</button>
+  </div>
+  <iframe id="wb-frame" src="about:blank"></iframe>
+</div>
+
+<div class="footer">
+  GAIA OLD WEB PORTAL — the internet never forgets, it just stops being indexed<br>
+  Powered by the Wayback Machine (web.archive.org) · OoCities · The Old Net · Neocities · Wiby<br>
+  "I have memories there" — Kevin, Oct 29, 2026
+</div>
+
+<script>
+function surf(domain, year) {
+  var ts = year + '0601';
+  var url = 'https://web.archive.org/web/' + ts + '*/' + domain;
+  window.open(url, '_blank');
+  document.getElementById('wb-viewer-url').value = domain;
+  document.getElementById('wb-year').value = year;
+  loadViewer();
+}
+
+function surfWayback() {
+  var url = document.getElementById('wb-url').value.trim();
+  if (!url) return;
+  if (url.indexOf('://') === -1) url = 'http://' + url;
+  window.open('https://web.archive.org/web/*/' + url, '_blank');
+}
+
+function loadViewer() {
+  var url = document.getElementById('wb-viewer-url').value.trim();
+  var year = document.getElementById('wb-year').value;
+  if (!url) return;
+  if (url.indexOf('://') === -1) url = 'http://' + url;
+  var ts = year + '0601120000';
+  document.getElementById('wb-frame').src = 'https://web.archive.org/web/' + ts + '/' + url;
+}
+
+// Auto-load Space Jam 1996 as the first memory
+document.getElementById('wb-viewer-url').value = 'spacejam.com';
+document.getElementById('wb-year').value = '1996';
+</script>
+</body>
+</html>
