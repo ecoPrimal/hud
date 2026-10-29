@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🐿 THE DESK — Gaia's desk · your desk · our desk</title>
+<title>nestGate ? Desktop</title>
 <style>
 /* === WINDOWS 98 / XP HYBRID DESKTOP === */
 :root {
@@ -381,37 +381,33 @@ body {
 
 <!-- START MENU -->
 <div id="start-menu">
-  <div class="start-sidebar"><span>GAIA DESK</span></div>
+  <div class="start-sidebar"><span>nestGate</span></div>
   <div class="start-items">
-    <div class="start-item" onclick="openWindow('my-computer')"><span class="si-ico">🖥</span> My Computer</div>
-    <div class="start-item" onclick="openWindow('springs-explorer')"><span class="si-ico">🗺</span> Springs Explorer</div>
-    <div class="start-item" onclick="window.open('/gallery.html','_self')"><span class="si-ico">🧠</span> Gaia's Mind (108 art)</div>
-    <div class="start-item" onclick="window.open('/messenger.html','_self')"><span class="si-ico">✉</span> Messenger (rarity 1.00)</div>
+    <div class="start-item" onclick="openWindow('my-computer')"><span class="si-ico">???</span> My Computer</div>
+    <div class="start-item" onclick="openWindow('springs-explorer')"><span class="si-ico">??</span> Springs Explorer</div>
+    <div class="start-item" onclick="openWindow('archive')"><span class="si-ico">??</span> Archive (TR-49)</div>
+    <div class="start-item" onclick="openWindow('cmd')"><span class="si-ico">?</span> Command Prompt</div>
     <div class="start-sep"></div>
-    <div class="start-item" onclick="openWindow('archive')"><span class="si-ico">📦</span> Archive (TR-49)</div>
-    <div class="start-item" onclick="openWindow('cmd')"><span class="si-ico">⬛</span> Command Prompt</div>
-    <div class="start-item" onclick="openWindow('notepad','','README.txt')"><span class="si-ico">📝</span> Notepad</div>
-    <div class="start-item" onclick="openWindow('control-panel')"><span class="si-ico">⚙</span> Control Panel</div>
+    <div class="start-item" onclick="openWindow('notepad','Welcome to nestGate','README.txt')"><span class="si-ico">??</span> Notepad</div>
+    <div class="start-item" onclick="openWindow('control-panel')"><span class="si-ico">??</span> Control Panel</div>
+    <div class="start-item" onclick="window.open('/engine.html','_self')"><span class="si-ico">??</span> Engine (Kenshi HUD)</div>
+    <div class="start-item" onclick="window.open('/','_self')"><span class="si-ico">??</span> Body Map (HUD)</div>
     <div class="start-sep"></div>
-    <div class="start-item" onclick="window.open('/','_self')"><span class="si-ico">🌐</span> Her Face (outer)</div>
-    <div class="start-item" onclick="window.open('/engine.html','_self')"><span class="si-ico">⚙</span> Engine</div>
-    <div class="start-sep"></div>
-    <div class="start-item" onclick="toggleStartMenu()"><span class="si-ico">🌙</span> Rest head on desk...</div>
-        </div>
-      </div>
+    <div class="start-item" onclick="toggleStartMenu()"><span class="si-ico">??</span> Shut Down...</div>
+  </div>
+</div>
 
 <!-- TASKBAR -->
 <div id="taskbar">
   <button id="start-btn" onclick="toggleStartMenu()">
-    <span class="start-flag">🐿</span> Start
+    <span class="start-flag">??</span> Start
   </button>
   <div class="taskbar-sep"></div>
   <div id="task-buttons"></div>
   <div class="taskbar-sep"></div>
   <div id="systray">
-    <span class="tray-icon" title="O=0 · null">⭕</span>
-    <span class="tray-icon" title="108 art pieces">🎨</span>
-    <span class="tray-icon" title="Klein fold">♾</span>
+    <span class="tray-icon" title="Wave status">??</span>
+    <span class="tray-icon" title="Network">??</span>
     <span id="clock">12:00 AM</span>
   </div>
 </div>
@@ -443,16 +439,14 @@ const SPRINGS = [
 ];
 
 const DESK_ICONS = [
-  { id: 'my-computer', ico: '🖥', label: 'My Computer' },
-  { id: 'springs-explorer', ico: '🗺', label: 'Springs Explorer' },
-  { id: 'archive', ico: '📦', label: 'Archive' },
-  { id: 'cmd', ico: '⬛', label: 'Command\nPrompt' },
-  { id: 'mind-gallery', ico: '🧠', label: 'Gaia\'s Mind\n(108 pieces)', href: '/gallery.html' },
-  { id: 'messenger', ico: '✉', label: 'Messenger', href: '/messenger.html' },
-  { id: 'body-map', ico: '🌐', label: 'Her Face\n(outer)', href: '/' },
-  { id: 'engine', ico: '⚙', label: 'Engine', href: '/engine.html' },
-  ...SPRINGS.slice(0, 6).map(s => ({ id: 'spring-' + s.id, ico: s.ico, label: s.label })),
-  { id: 'recycle', ico: '♻', label: 'Recycle Bin' },
+  { id: 'my-computer', ico: '???', label: 'My Computer' },
+  { id: 'springs-explorer', ico: '??', label: 'Springs Explorer' },
+  { id: 'archive', ico: '??', label: 'Archive' },
+  { id: 'cmd', ico: '?', label: 'Command\nPrompt' },
+  ...SPRINGS.slice(0, 8).map(s => ({ id: 'spring-' + s.id, ico: s.ico, label: s.label })),
+  { id: 'engine', ico: '??', label: 'Kenshi\nEngine', href: '/engine.html' },
+  { id: 'body-map', ico: '??', label: 'Body Map', href: '/' },
+  { id: 'recycle', ico: '???', label: 'Recycle Bin' },
 ];
 
 let windows = [];
@@ -463,35 +457,27 @@ let bootDone = false;
 async function boot() {
   const el = document.getElementById('boot-screen');
   const lines = [
-    'GAIA DESK BIOS v2.14 — ecoPrimal Systems, 2026',
-    '',
-    'CPU: Organism Core @ 1/π GHz',
-    'RAM: 39T bacterial cells · 108 art pieces · 1458 data files',
-    'ENCODING: O=0 · 1=1 · .=π',
-    '',
-    'Detecting bodies...',
-    '  BODY 1: 🐿 Chipmunk — RUNS .............. OK (1/π beacon)',
-    '  BODY 2: 🌍 Gaia — GROWS ................. OK (π⁴ organism)',
-    '  BODY 3: ⚙  Code — BUILDS ................ OK (WASM ribosome)',
-    '  BODY 4: 🧘 Splinter — SITS .............. OK (the master, rarity 1.00)',
-    '',
+    'nestGate BIOS v1.0 ? ecoPrimal Systems, 2026',
+    'CPU: Organism Core @ 1/? GHz',
+    'RAM: 39T bacterial cells',
     'Detecting springs...',
+    '',
     '  C:\\SPRINGS\\LUDOSPRING    OK (MSU Campus, MI)',
     '  C:\\SPRINGS\\HOTSPRING     OK (Yellowstone, WY)',
     '  C:\\SPRINGS\\WETSPRING     OK (Everglades, FL)',
+    '  C:\\SPRINGS\\PRIMALSPRING  OK (Ann Arbor, MI)',
+    '  C:\\SPRINGS\\NEURALSPRING  OK (Silicon Valley, CA)',
+    '  C:\\SPRINGS\\SOURDOUGH     OK (San Francisco, CA)',
     '  C:\\SPRINGS\\SWEETGRASS    OK (Glacier NP, MT)',
     '  C:\\SPRINGS\\LOAMSPINE     OK (Grand Canyon, AZ)',
     '',
     '18 springs detected. 18 beacons online.',
-    'Membrane selectivity: 1/π = 0.31831',
-    'Art: 13 collections. Mind: loaded.',
-    'Klein fold: outer ↔ null ↔ inner',
+    'Membrane selectivity: 1/? = 0.31831',
     'Wave: 214',
     '',
-    'THE DESK: her desk · your desk · our desk',
-    'Hard enough to rest your head on.',
+    'Loading nestGate Desktop...',
     '',
-    'Starting desktop...',
+    'Starting Windows...',
   ];
 
   for (const line of lines) {

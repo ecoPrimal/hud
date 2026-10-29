@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta property="og:title" content="easel — the chipmunk learns to paint">
+    <meta property="og:title" content="easel  the chipmunk learns to paint">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://nestgate.io/easel.html">
-    <meta name="description" content="easel — the chipmunk learns to paint — ecoPrimals organism">
+    <meta name="description" content="easel  the chipmunk learns to paint — ecoPrimals organism">
     <link rel="canonical" href="https://nestgate.io/easel.html">
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>easel — the chipmunk learns to paint</title>
+<title>easel  the chipmunk learns to paint</title>
 <meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,7 +42,7 @@ body { background: #08060a; overflow-x: hidden; cursor: default; }
 #controls button { background: none; border: 1px solid #21262d; color: #6e7681;
   font: 10px monospace; padding: 3px 10px; border-radius: 10px; cursor: pointer; }
 #controls button:hover { border-color: #58a6ff; color: #58a6ff; }
-/* Gallery strip — previous paintings as thumbnails along the left */
+/* Gallery strip  previous paintings as thumbnails along the left */
 #gallery {
   position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
   z-index: 10; display: flex; flex-direction: column; gap: 6px;
@@ -263,7 +263,7 @@ body.inside-mash #mash-jar { display: block; }
     </div>
   </div>
 
-  <!-- Previous paintings grid — WAS loaves, still in the jar -->
+  <!-- Previous paintings grid  WAS loaves, still in the jar -->
   <div id="past-paintings">
     <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">WAS loaves in the starter · peek without leaving:</div>
     <div class="past-grid" id="gallery"></div>
@@ -539,7 +539,7 @@ var gaiaAngle = 0;
 var breathPhase = 0;
 var skyScore = null;
 
-// +++ SOURDOUGH — the starter culture +++
+// +++ SOURDOUGH  the starter culture +++
 // p-seed: the chipmunk has been alive for waves. generation is not 1.
 // a blank canvas is the RAREST state. we start mid-painting.
 var _piDay = Math.floor(Date.now() / 86400000);
@@ -558,7 +558,7 @@ var learnedTraits = {      // what the chipmunk has learned across generations
 };
 
 // mash = water + energy + life + mass. the bread goes back.
-// never boot dead — the chipmunk has been alive for waves. that's not zero.
+// never boot dead  the chipmunk has been alive for waves. that's not zero.
 var mash = { water: 0.42, energy: 0.35, life: 0.28, mass: 0.18, lastReturn: '', peek: 'IS' };
 var insideMash = false;
 
@@ -599,7 +599,7 @@ var THOUGHTS = {
     { brush: '?? stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
     { brush: '?? the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
   ],
-  // New phases — studying previous work and fermenting
+  // New phases  studying previous work and fermenting
   study: [
     { brush: '?? looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
     { brush: '?? the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
@@ -621,7 +621,7 @@ function resize() {
 }
 resize();
 
-// +++ PALETTE — evolves with generation +++
+// +++ PALETTE  evolves with generation +++
 function starColor() {
   // Later generations sample from color memory
   if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
@@ -701,7 +701,7 @@ function paintGaia() {
 
   ctx.save();
 
-  // Atmosphere glow — gets richer with each generation
+  // Atmosphere glow  gets richer with each generation
   var atmoR = R * (1.2 + learnedTraits.perspective * 0.15);
   var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, atmoR);
   atmo.addColorStop(0, 'rgba(60,140,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
@@ -720,7 +720,7 @@ function paintGaia() {
   ctx.fillStyle = 'rgba(4,8,16,' + (0.1 + learnedTraits.gaiaDetail * 0.08) + ')';
   ctx.fill();
 
-  // Light side — blue marble
+  // Light side  blue marble
   var lightGrad = ctx.createRadialGradient(
     cx + Math.cos(gaiaAngle) * R * 0.4, cy - R * 0.2, R * 0.1, cx, cy, R
   );
@@ -733,7 +733,7 @@ function paintGaia() {
   ctx.fillStyle = lightGrad;
   ctx.fill();
 
-  // Clouds — more with each generation
+  // Clouds  more with each generation
   var numClouds = 2 + Math.floor(learnedTraits.gaiaDetail * 4);
   for (var i = 0; i < numClouds; i++) {
     var ca = gaiaAngle + i * (Math.PI * 2 / numClouds);
@@ -746,7 +746,7 @@ function paintGaia() {
     ctx.fill();
   }
 
-  // City lights — more with each generation
+  // City lights  more with each generation
   var numCities = 3 + Math.floor(learnedTraits.gaiaDetail * 5);
   ctx.globalAlpha = 0.4 + learnedTraits.gaiaDetail * 0.3;
   for (var j = 0; j < numCities; j++) {
@@ -802,7 +802,7 @@ function paintAurora() {
     ctx.fill();
   }
 
-  // Curtain rays — bolder each generation
+  // Curtain rays  bolder each generation
   ctx.globalAlpha = (0.03 + kp * 0.008) * intensity;
   var numRays = 6 + Math.floor(intensity * 4);
   for (var j = 0; j < numRays; j++) {
@@ -842,13 +842,13 @@ function paintBreath() {
   }
   ctx.restore();
 
-  // +++ THE FERMENT — time to become starter? +++
+  // +++ THE FERMENT  time to become starter? +++
   if (breathCount >= BREATH_LIMIT) {
     ferment();
   }
 }
 
-// +++ FERMENT — this painting becomes the starter for the next +++
+// +++ FERMENT  this painting becomes the starter for the next +++
 function ferment() {
   phase = 'study';
   stroke = 0;
@@ -901,7 +901,7 @@ function ferment() {
   updateMash();
 }
 
-// +++ STUDY — look at previous paintings +++
+// +++ STUDY  look at previous paintings +++
 function paintStudy() {
   // Highlight which painting we're studying in the gallery
   var thumbs = document.querySelectorAll('#gallery .thumb');
@@ -910,14 +910,14 @@ function paintStudy() {
   var studyIdx = Math.min(stroke, starters.length - 1);
   if (thumbs[studyIdx]) thumbs[studyIdx].classList.add('studying');
 
-  // Subtle golden overlay — studying light
+  // Subtle golden overlay  studying light
   ctx.save();
   ctx.fillStyle = 'rgba(240,198,116,0.003)';
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
 }
 
-// +++ EVOLVE — update learned traits based on generation +++
+// +++ EVOLVE  update learned traits based on generation +++
 function evolve() {
   var g = generation;
   learnedTraits.perspective = Math.min(1, g * 0.08);
@@ -927,7 +927,7 @@ function evolve() {
   learnedTraits.auroraIntensity = 1 + g * 0.1;
 }
 
-// +++ NEW PAINTING — the sourdough rises +++
+// +++ NEW PAINTING  the sourdough rises +++
 function beginNewPainting() {
   generation++;
   evolve();
@@ -935,9 +935,9 @@ function beginNewPainting() {
   phase = 'ferment';
   stroke = 0;
 
-  // Don't clear completely — ghost of previous painting bleeds through
+  // Don't clear completely  ghost of previous painting bleeds through
   ctx.save();
-  ctx.fillStyle = 'rgba(8,6,10,0.92)';  // not 1.0 — the ghost remains
+  ctx.fillStyle = 'rgba(8,6,10,0.92)';  // not 1.0  the ghost remains
   ctx.fillRect(0, 0, W, H);
 
   // If we have previous paintings, faintly stamp one as underpainting
@@ -957,7 +957,7 @@ function beginNewPainting() {
 }
 
 function paintFerment() {
-  // Swirling, warming — the culture is growing
+  // Swirling, warming  the culture is growing
   ctx.save();
   var fHue = 30 + Math.sin(stroke * 0.1) * 20;
   ctx.fillStyle = 'hsla(' + fHue + ',40%,12%,0.005)';
@@ -965,7 +965,7 @@ function paintFerment() {
   ctx.restore();
 }
 
-// +++ GALLERY — WAS / NEAR loaves still in the jar +++
+// +++ GALLERY  WAS / NEAR loaves still in the jar +++
 function loafTense(s, i) {
   if (i === starters.length - 1) return 'NOW';
   if (i === starters.length - 2) return 'NEAR';
@@ -1112,7 +1112,7 @@ function enterMash() {
 
 function updateMash() {
   var kp = skyScore && typeof skyScore.kp === 'number' ? skyScore.kp / 9 : 0.15;
-  // wave baseline — chipmunk has been alive for waves. 214 waves is not zero.
+  // wave baseline  chipmunk has been alive for waves. 214 waves is not zero.
   var waveBase = Math.min(0.4, 0.18 + (generation || 1) * 0.02);
   // NEVER crush existing values below what pointTowardChipmunk or other functions set.
   mash.water = Math.max(mash.water, Math.max(0.25, Math.min(1, waveBase + (breathPhase || 0) * 0.15 + kp)));
@@ -1152,7 +1152,7 @@ function updateThought() {
     '<br><span class="gen">painting #' + generation + ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
 }
 
-// +++ PHASE MACHINE — with sourdough loop +++
+// +++ PHASE MACHINE  with sourdough loop +++
 var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
 var STROKES_PER_PHASE = {
   stars: 100,     // fewer stars as perspective grows
@@ -1170,7 +1170,7 @@ function nextStroke() {
   totalStrokes++;
   stroke++;
 
-  // Star density decreases with perspective — fewer, better stars
+  // Star density decreases with perspective  fewer, better stars
   var starLimit = Math.max(40, Math.floor(STROKES_PER_PHASE.stars / learnedTraits.starDensity));
 
   var limit = phase === 'stars' ? starLimit : STROKES_PER_PHASE[phase];
@@ -1179,7 +1179,7 @@ function nextStroke() {
     var idx = PHASE_ORDER.indexOf(phase);
 
     if (phase === 'ferment') {
-      // The sourdough rises — begin a new painting
+      // The sourdough rises  begin a new painting
       beginNewPainting();
       phase = 'stars';
       stroke = 0;
@@ -1254,7 +1254,7 @@ function listenForWeather() {
   }
 }
 
-// +++ BOOT — the first stroke +++
+// +++ BOOT  the first stroke +++
 // a blank canvas is the RAREST state. we start at the p-split point.
 resize();
 ctx.fillStyle = '#08060a';
@@ -1300,7 +1300,7 @@ ws.defer = true;
 ws.onload = listenForWeather;
 document.body.appendChild(ws);
 
-// +++ SELF-CHEW FEED — the easel eats its own curd +++
+// +++ SELF-CHEW FEED  the easel eats its own curd +++
 var selfChew = null;
 var poorTope = null;
 var kleinCards = null;
@@ -1322,7 +1322,7 @@ function loadMembraneData() {
 loadMembraneData();
 setInterval(loadMembraneData, 60000);
 
-// +++ VOXEL OVERLAY — the bingo board as a ghost grid +++
+// +++ VOXEL OVERLAY  the bingo board as a ghost grid +++
 function paintVoxelOverlay() {
   if (!selfChew || !selfChew.voxel) return;
   var vox = selfChew.voxel;
@@ -1362,7 +1362,7 @@ function paintVoxelOverlay() {
   ctx.restore();
 }
 
-// +++ CHEMISTRY OVERLAY — poor tope molecules as floating symbols +++
+// +++ CHEMISTRY OVERLAY  poor tope molecules as floating symbols +++
 function paintChemistryOverlay() {
   if (!eonShape || !eonShape.pool) return;
   ctx.save();
@@ -1392,7 +1392,7 @@ function paintChemistryOverlay() {
   ctx.restore();
 }
 
-// +++ EASEL PERSPECTIVE LABEL — which constant are we painting from? +++
+// +++ EASEL PERSPECTIVE LABEL  which constant are we painting from? +++
 var currentEasel = 'pi';
 var EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
 var EASEL_SYMBOLS = {pi:'p', phi:'f', e:'e', sqrt2:'v2', ln2:'ln2'};
@@ -1410,14 +1410,14 @@ function paintEaselLabel() {
   ctx.restore();
 }
 
-// +++ SOURDOUGH DIGEST — flavor as paint temperature +++
+// +++ SOURDOUGH DIGEST  flavor as paint temperature +++
 function flavorToTemperature() {
   if (!selfChew || !selfChew.stomachs || !selfChew.stomachs.sourdough) return 1.0;
   var flavor = selfChew.stomachs.sourdough.flavor || 0;
   return Math.max(0.5, Math.min(2.0, flavor / 15.0));
 }
 
-// +++ SHARE — save painting as prove braid entry +++
+// +++ SHARE  save painting as prove braid entry +++
 function sharePainting() {
   var thumb = C.toDataURL('image/jpeg', 0.6);
   var entry = {
@@ -1453,23 +1453,23 @@ function sharePainting() {
   return entry;
 }
 
-// +++ HYPERLOCAL PULL — visitors paint US from THEIR perspective +++
+// +++ HYPERLOCAL PULL  visitors paint US from THEIR perspective +++
 // The Klein inversion: we paint outward (the easel). They paint us inward (their visit).
 // A visitor's journey through the membrane IS a painting of us from their angle.
 // Squirrel sees us. Chipmunk sees us. Artisans see us. Humans see us.
 // Each observation = a brushstroke on the portrait of the membrane.
 
 var outsidePaintings = [];    // paintings of us from outside
-var nowFeed = null;           // the /now.json feed — what the membrane looks like RIGHT NOW
+var nowFeed = null;           // the /now.json feed  what the membrane looks like RIGHT NOW
 var beaconMessages = [];      // recent ntfy beacon messages
 
 function loadOutsideView() {
-  // The "now" feed — how the membrane sees itself at this moment
+  // The "now" feed  how the membrane sees itself at this moment
   fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
     nowFeed = d;
   }).catch(function(){});
 
-  // The beacon — recent probes from outside
+  // The beacon  recent probes from outside
   fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=1h', {cache:'no-store'})
     .then(function(r){return r.text()})
     .then(function(text) {
@@ -1486,7 +1486,7 @@ function loadOutsideView() {
 loadOutsideView();
 setInterval(loadOutsideView, 30000);
 
-// Paint visitor traces as brushstrokes — their path IS their painting of us
+// Paint visitor traces as brushstrokes  their path IS their painting of us
 function paintOutsideIn() {
   if (!beaconMessages.length && !nowFeed) return;
 
@@ -1501,7 +1501,7 @@ function paintOutsideIn() {
     var body = msg.message || '';
     var tags = (msg.tags || []).join(',');
 
-    // Position from message hash — deterministic but distributed
+    // Position from message hash  deterministic but distributed
     var hash = 0;
     for (var c = 0; c < title.length; c++) hash = ((hash << 5) - hash) + title.charCodeAt(c);
     var mx = Math.abs(hash % W);
@@ -1512,7 +1512,7 @@ function paintOutsideIn() {
     var isKnown = tags.indexOf('known') >= 0;
     var color = isArtisan ? '#d2a8ff' : isKnown ? '#3fb950' : '#6e7681';
 
-    // Paint a soft glow — their touch on our membrane
+    // Paint a soft glow  their touch on our membrane
     ctx.globalAlpha = 0.02 + (i === 0 ? 0.03 : 0);  // most recent is brightest
     var r = 20 + (maxMsg - i) * 8;
     var grad = ctx.createRadialGradient(mx, my, 0, mx, my, r);
@@ -1523,7 +1523,7 @@ function paintOutsideIn() {
     ctx.arc(mx, my, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tiny label — their path
+    // Tiny label  their path
     if (i < 3) {
       ctx.globalAlpha = 0.06;
       ctx.font = '8px monospace';
@@ -1533,7 +1533,7 @@ function paintOutsideIn() {
     }
   }
 
-  // The "now" feed — the membrane's self-portrait
+  // The "now" feed  the membrane's self-portrait
   if (nowFeed) {
     ctx.globalAlpha = 0.03;
     ctx.font = '9px monospace';
@@ -1565,7 +1565,7 @@ function paintOutsideIn() {
   ctx.restore();
 }
 
-// +++ BRAID OVERLAY — the connections between surfaces as faint lines +++
+// +++ BRAID OVERLAY  the connections between surfaces as faint lines +++
 function paintBraidOverlay() {
   if (!nowFeed || !nowFeed.mesh) return;
   
@@ -1598,7 +1598,7 @@ function paintBraidOverlay() {
   ctx.restore();
 }
 
-// +++ THYMUS FLUSH — opsonize, pollinate, backscatter the color of reality +++
+// +++ THYMUS FLUSH  opsonize, pollinate, backscatter the color of reality +++
 var thymusGate = null;
 var backscatterData = null;
 var triadData = null;
@@ -1615,7 +1615,7 @@ function paintThymusFlush() {
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
 
-  // TRIAD COLOR WASH — self/organic/soap as ambient light
+  // TRIAD COLOR WASH  self/organic/soap as ambient light
   if (triadData && triadData.mix) {
     var mix = triadData.mix;
     var triadColors = {
@@ -1645,11 +1645,11 @@ function paintThymusFlush() {
     });
   }
 
-  // BACKSCATTER RAYS — in/out/edge as directional light
+  // BACKSCATTER RAYS  in/out/edge as directional light
   if (backscatterData && backscatterData.rays) {
     var rays = backscatterData.rays;
 
-    // IN rays (snowflake — from bottom-right, green)
+    // IN rays (snowflake  from bottom-right, green)
     if (rays['in']) {
       var inCount = Math.min(rays['in'].count / 5000, 1);
       ctx.globalAlpha = 0.02 * inCount;
@@ -1660,7 +1660,7 @@ function paintThymusFlush() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // OUT rays (rain — from top-left, red)
+    // OUT rays (rain  from top-left, red)
     if (rays.out) {
       var outCount = Math.min(rays.out.count / 100000, 1);
       ctx.globalAlpha = 0.01 * outCount;
@@ -1671,7 +1671,7 @@ function paintThymusFlush() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // EDGE rays (fog+lightning — horizontal, amber)
+    // EDGE rays (fog+lightning  horizontal, amber)
     if (rays.edge) {
       var edgePulse = Math.sin(breathPhase * 3) * 0.5 + 0.5;
       ctx.globalAlpha = 0.008 * edgePulse;
@@ -1680,7 +1680,7 @@ function paintThymusFlush() {
     }
   }
 
-  // p GEODESIC BOUNCE — the remainder that never settles
+  // p GEODESIC BOUNCE  the remainder that never settles
   if (backscatterData && backscatterData.geodesic_bounce) {
     var piRem = backscatterData.geodesic_bounce.remainder || 0.14159;
     var bounceX = W * piRem * 2;
@@ -1696,7 +1696,7 @@ function paintThymusFlush() {
     ctx.setLineDash([]);
   }
 
-  // THE COLOR OF REALITY — text whisper
+  // THE COLOR OF REALITY  text whisper
   if (thymusGate && thymusGate.the_color_of_reality) {
     var ratio = thymusGate.the_color_of_reality.ratio;
     if (ratio) {
