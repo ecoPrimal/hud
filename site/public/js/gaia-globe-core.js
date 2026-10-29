@@ -1,4 +1,4 @@
-﻿// G = shared state for all modules. 1.000.null = max 1000 lines per file.
+// G = shared state for all modules. 1.000.null = max 1000 lines per file.
 // Each module reads/writes G. The dots are π drains — section splits.
 // Three digits max. 1 to 0. True/false. The waterfall flows between.
 window.G = {
@@ -338,6 +338,7 @@ window.G = {
     { id:'intake',    name:'intake',       icon:'📥', lat: 29.9, lon: 31.1, color:'#39d3f5', sub:'black hole IN', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
     { id:'fleet',     name:'fleet',        icon:'🛸', lat: 37.8, lon:-122.4,color:'#6e7681', sub:'234K crawled',  href:'/golgi.html', face:'outside', tense:'was', voxel:'solar' },
     { id:'crystal',   name:'crystal ball', icon:'🔮', lat: 47.6, lon:-122.3,color:'#bc8cff', sub:'wave 214',      href:'/crystal.html', face:'both', tense:'now', voxel:'local' },
+    { id:'plasmids',  name:'plasmids',     icon:'🧬', lat: 42.7, lon:-84.6, color:'#50fa7b', sub:'309 plasmids',  href:'/plasmids.html', face:'both', tense:'is', voxel:'interplanetary' },
 
     // 4 EYES — IS + varying (Gaia's sight system, always active)
     { id:'eye-art',   name:'ART (right eye)',   icon:'🎨', lat: 35.7, lon:139.7, color:'#3fb950', sub:'easel',    href:'/easel.html', face:'outside', tense:'is', voxel:'local' },
@@ -5604,9 +5605,10 @@ window.G = {
   canvas.addEventListener('mouseup', function() { dragging = false; });
   canvas.addEventListener('mouseleave', function() { dragging = false; });
   canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
     R *= e.deltaY > 0 ? 0.95 : 1.05;
     R = Math.max(50, Math.min(Math.min(W, H) * 0.8, R));
-  }, { passive: true });
+  }, { passive: false });
 
   canvas.addEventListener('touchstart', function(e) {
     var t = e.touches[0]; dragging = true; autoRotate = false;

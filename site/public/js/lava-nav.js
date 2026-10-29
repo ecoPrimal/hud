@@ -27,6 +27,7 @@
     {glyph:'⚖',  name:'clutch',     href:'/clutch.html',     hot:0.7,  tier:'hot'},
     {glyph:'🎨', name:'easel',      href:'/easel.html',      hot:0.65, tier:'hot'},
     {glyph:'⚔',  name:'arena',      href:'/arena.html',      hot:0.6,  tier:'hot'},
+    {glyph:'🧬', name:'plasmids',   href:'/plasmids.html',   hot:0.7,  tier:'hot'},
     {glyph:'📦', name:'crates',     href:'/crates.html',     hot:0.6,  tier:'hot'},
     {glyph:'🧠', name:'cns',        href:'/cns.html',        hot:0.55, tier:'hot'},
 
