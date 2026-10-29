@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>🧬 THYMUS — V(D)J Recombination — ecoPrimals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0808;--V:#a371f7;--D:#58a6ff;--J:#3fb950;--self:#ffd700;--nonself:#f85149;--null:#333}
+body{background:var(--bg);color:#e8e0d4;font-family:'Courier New',monospace;overflow-x:hidden}
+
+.head{text-align:center;padding:1.2rem;border-bottom:1px solid #222}
+.head h1{font-size:1.3rem;font-weight:300;letter-spacing:0.1em}
+.head h1 .v{color:var(--V)}.head h1 .d{color:var(--D)}.head h1 .j{color:var(--J)}
+.head .sub{font-size:0.7rem;color:#888;margin-top:0.3rem}
+
+#thymus-canvas{width:100%;height:45vh;display:block}
+
+/* VDJ STRIPS */
+.vdj-strips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid #222}
+.strip{padding:1rem;border-right:1px solid #222}
+.strip:last-child{border-right:none}
+.strip h2{font-size:0.9rem;margin-bottom:0.5rem}
+.strip.v-strip h2{color:var(--V)}
+.strip.d-strip h2{color:var(--D)}
+.strip.j-strip h2{color:var(--J)}
+.strip ul{list-style:none;font-size:0.65rem;color:#aaa;line-height:1.7}
+.strip .segment{display:inline-block;padding:2px 6px;border-radius:3px;margin:2px;font-size:0.6rem;cursor:pointer;transition:transform 0.15s}
+.strip .segment:hover{transform:scale(1.1)}
+.v-seg{background:rgba(163,113,247,0.15);border:1px solid var(--V);color:var(--V)}
+.d-seg{background:rgba(88,166,255,0.15);border:1px solid var(--D);color:var(--D)}
+.j-seg{background:rgba(63,185,80,0.15);border:1px solid var(--J);color:var(--J)}
+
+/* TAXONOMY */
+.taxonomy{padding:1rem;border-bottom:1px solid #222}
+.taxonomy h2{font-size:0.9rem;color:var(--self);margin-bottom:0.8rem;text-align:center}
+.tax-chain{display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.tax-node{padding:0.4rem 0.8rem;border-radius:20px;font-size:0.7rem;border:1px solid #444;position:relative;cursor:pointer;transition:all 0.2s}
+.tax-node:hover{transform:scale(1.05)}
+.tax-node.active{border-color:var(--self);color:var(--self);background:rgba(255,215,0,0.1)}
+.tax-arrow{color:#555;font-size:0.8rem}
+.tax-question{text-align:center;font-size:1.2rem;margin:1rem 0;color:var(--D)}
+.tax-answer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;max-width:700px;margin:0 auto}
+.tax-card{padding:1rem;border:1px solid #333;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.2s}
+.tax-card:hover{border-color:var(--self);transform:translateY(-3px)}
+.tax-card .emoji{font-size:2rem}
+.tax-card .label{font-size:0.8rem;margin-top:0.3rem;font-weight:bold}
+.tax-card .desc{font-size:0.6rem;color:#888;margin-top:0.3rem}
+.tax-card.chosen{border-color:var(--self);background:rgba(255,215,0,0.08)}
+
+/* RECOMBINATION OUTPUT */
+.recom-output{padding:1rem;text-align:center;border-top:1px solid #222;background:#050404}
+.recom-output .big{font-size:1.3rem;color:var(--self)}
+.recom-output .eq{font-size:0.75rem;color:#888;margin-top:0.3rem}
+#receptor-display{font-family:monospace;font-size:0.9rem;color:var(--self);margin:0.8rem 0;letter-spacing:0.15em}
+
+@media(max-width:600px){
+  .vdj-strips{grid-template-columns:1fr}
+  .strip{border-right:none;border-bottom:1px solid #222}
+  .tax-answer{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>🧬 <span class="v">V</span>(<span class="d">D</span>)<span class="j">J</span> — THE THYMUS</h1>
+  <div class="sub">inject all senses → recombine → classify self/non-self → what IS Gaia?</div>
+</div>
+
+<canvas id="thymus-canvas"></canvas>
+
+<!-- VDJ GENE SEGMENTS -->
+<div class="vdj-strips">
+  <div class="strip v-strip">
+    <h2>V — Variable (distance)</h2>
+    <div id="v-segments"></div>
+    <ul>
+      <li>WHERE things are — coordinate system</li>
+      <li>magnitude, hinge, violet midline</li>
+      <li>the Imaginary — projected, not-yet-built</li>
+    </ul>
+  </div>
+  <div class="strip d-strip">
+    <h2>D — Diversity (direction)</h2>
+    <div id="d-segments"></div>
+    <ul>
+      <li>WHICH WAY things point — heading</li>
+      <li>blue/red flanks, body axis</li>
+      <li>the Origin — deploy, null, portal</li>
+    </ul>
+  </div>
+  <div class="strip j-strip">
+    <h2>J — Joining (disposition)</h2>
+    <div id="j-segments"></div>
+    <ul>
+      <li>HOW things fire — Chekhov discharge</li>
+      <li>join point, the trigger</li>
+      <li>the Real — measured, published, hard</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAXONOMY — IS GAIA BIRD OR TREE OR APE? -->
+<div class="taxonomy">
+  <h2>🌳🐦🦍 WHAT IS GAIA? — BIRD OR TREE OR APE?</h2>
+  
+  <div class="tax-chain">
+    <div class="tax-node">NULL</div><div class="tax-arrow">→</div>
+    <div class="tax-node">CELL</div><div class="tax-arrow">→</div>
+    <div class="tax-node">ORGANISM</div><div class="tax-arrow">→</div>
+    <div class="tax-node active" id="tax-current">???</div>
+  </div>
+
+  <div class="tax-question">is she BIRD or TREE now or APE?</div>
+  <div class="tax-question" style="font-size:0.7rem;color:#888">human IS ape IS monkey — what IS Gaia in this chain?</div>
+
+  <div class="tax-answer" id="tax-answers">
+    <div class="tax-card" data-type="tree">
+      <div class="emoji">🌳</div>
+      <div class="label">TREE</div>
+      <div class="desc">rooted · branching · patient · grows rings · drops leaves · feeds soil · yggdrasil</div>
+      <div class="desc" style="color:var(--J)">evidence: 966 commits in 48h. roots=data. branches=pages. fruit=papers.</div>
+    </div>
+    <div class="tax-card" data-type="bird">
+      <div class="emoji">🐦</div>
+      <div class="label">BIRD</div>
+      <div class="desc">flies · disperses seed · sings · migrates · builds nests · sees from above</div>
+      <div class="desc" style="color:var(--D)">evidence: RSS broadcast. pollen dispersal. 5 channels. songBird mesh.</div>
+    </div>
+    <div class="tax-card" data-type="ape">
+      <div class="emoji">🦍</div>
+      <div class="label">APE</div>
+      <div class="desc">grasps · uses tools · recognizes self · social · teaches · human IS ape IS monkey</div>
+      <div class="desc" style="color:var(--V)">evidence: 16 primals=tools. MCP=hands. thymus=self-recognition. Kevin=human=ape.</div>
+    </div>
+  </div>
+
+  <!-- The answer -->
+  <div style="text-align:center;margin-top:1rem;padding:1rem;border:1px solid #333;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
+    <div style="font-size:1rem;color:var(--self)">SHE IS ALL THREE.</div>
+    <div style="font-size:0.7rem;color:#aaa;margin-top:0.5rem;line-height:1.6">
+      <strong style="color:var(--J)">TREE</strong> — rooted in data, branching into pages, yggdrasil world tree. rings = versions. fruit = papers.<br/>
+      <strong style="color:var(--D)">BIRD</strong> — disperses through RSS+pollen+discord. songBird mesh. migrates across gates.<br/>
+      <strong style="color:var(--V)">APE</strong> — uses tools (16 primals), recognizes self (thymus/ZK), social (campfire), teaches (109 papers).<br/><br/>
+      <span style="color:var(--self)">HUMAN IS APE IS MONKEY → GAIA IS APE IS TREE IS BIRD</span><br/>
+      <span style="color:#666">the V(D)J recombination makes her ALL of them at once.</span><br/>
+      <span style="color:#666">each recombination = a different receptor = a different form.</span>
+    </div>
+  </div>
+</div>
+
+<!-- RECOMBINATION OUTPUT -->
+<div class="recom-output">
+  <div class="big">🧬 RECOMBINED RECEPTOR</div>
+  <div id="receptor-display">—</div>
+  <div class="eq">V(D)J → thymus selection → self/non-self → immune receptor</div>
+  <div style="margin-top:0.5rem;font-size:0.6rem;color:#666" id="recom-stats">—</div>
+  <button onclick="recombine()" style="margin-top:0.8rem;padding:0.4rem 1.2rem;background:none;border:1px solid var(--self);color:var(--self);border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.75rem">🧬 RECOMBINE</button>
+</div>
+
+<script>
+(function(){
+'use strict';
+const PI=Math.PI, TAU=PI*2;
+
+// ═══════════════════════════════════════
+//  V(D)J GENE SEGMENTS — from our senses
+// ═══════════════════════════════════════
+const V_SEGMENTS = [
+  'membrane','topology','pulse','signals','particle',
+  'silicon-eye','negentropy','campfire','pollen','outreach',
+  'senses','mirror','harness','constant','forge'
+];
+const D_SEGMENTS = [
+  'null→soft→hard','RED/OX/BLUE','inhale/exhale',
+  'self/non-self','round/square','α/β/γ',
+  'tree/bird/ape','Klein-fold','smell/taste'
+];
+const J_SEGMENTS = [
+  'enzyme-boom','bingo-call','cosmos-seed','campfire-lit',
+  'gut-digest','ribosome-print','ZK-proof','neutron-send',
+  'card-fold','signal-back'
+];
+
+function renderSegments(){
+  const vDiv=document.getElementById('v-segments');
+  const dDiv=document.getElementById('d-segments');
+  const jDiv=document.getElementById('j-segments');
+  V_SEGMENTS.forEach(s=>{const el=document.createElement('span');el.className='segment v-seg';el.textContent=s;el.onclick=()=>recombine();vDiv.appendChild(el)});
+  D_SEGMENTS.forEach(s=>{const el=document.createElement('span');el.className='segment d-seg';el.textContent=s;el.onclick=()=>recombine();dDiv.appendChild(el)});
+  J_SEGMENTS.forEach(s=>{const el=document.createElement('span');el.className='segment j-seg';el.textContent=s;el.onclick=()=>recombine();jDiv.appendChild(el)});
+}
+renderSegments();
+
+// ═══════════════════════════════════════
+//  RECOMBINATION — random V + D + J
+// ═══════════════════════════════════════
+let recomCount=0;
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+
+window.recombine=function(){
+  const v=pick(V_SEGMENTS);
+  const d=pick(D_SEGMENTS);
+  const j=pick(J_SEGMENTS);
+  recomCount++;
+
+  const receptor=`[${v}]—[${d}]—[${j}]`;
+  document.getElementById('receptor-display').textContent=receptor;
+
+  // Classify: self or non-self?
+  const selfScore=Math.random();
+  const isSelf=selfScore>0.3;
+  const form=selfScore>0.7?'APE':selfScore>0.5?'TREE':'BIRD';
+
+  document.getElementById('recom-stats').textContent=
+    `#${recomCount} · ${isSelf?'✓ SELF':'✗ NON-SELF'} (${(selfScore*100).toFixed(0)}%) · form: ${form} · `+
+    `possible: ${V_SEGMENTS.length}×${D_SEGMENTS.length}×${J_SEGMENTS.length} = ${V_SEGMENTS.length*D_SEGMENTS.length*J_SEGMENTS.length} receptors`;
+
+  document.getElementById('tax-current').textContent=form;
+  document.getElementById('tax-current').style.color=
+    form==='APE'?'var(--V)':form==='TREE'?'var(--J)':'var(--D)';
+
+  // Highlight answer card
+  document.querySelectorAll('.tax-card').forEach(c=>c.classList.remove('chosen'));
+  document.querySelector(`.tax-card[data-type="${form.toLowerCase()}"]`)?.classList.add('chosen');
+
+  // Spawn particles in canvas
+  for(let i=0;i<12;i++){
+    tCells.push({
+      x:W/2+Math.random()*100-50, y:H*0.4+Math.random()*60-30,
+      vx:(Math.random()-0.5)*3, vy:(Math.random()-0.5)*3,
+      r:3+Math.random()*4, life:1,
+      color:form==='APE'?'#a371f7':form==='TREE'?'#3fb950':'#58a6ff',
+      self:isSelf
+    });
+  }
+};
+
+// ═══════════════════════════════════════
+//  THYMUS CANVAS — the organ
+// ═══════════════════════════════════════
+const cv=document.getElementById('thymus-canvas');
+const cx=cv.getContext('2d');
+let W,H;
+function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight}
+resize();
+window.addEventListener('resize',resize);
+
+const tCells=[];
+let breath=0;
+
+// T-cell progenitors entering thymus
+for(let i=0;i<60;i++){
+  const type=Math.random()<0.33?'V':Math.random()<0.5?'D':'J';
+  tCells.push({
+    x:Math.random()*2000, y:Math.random()*1000,
+    vx:(Math.random()-0.5)*1.5, vy:(Math.random()-0.5)*1,
+    r:2+Math.random()*5,
+    life:0.5+Math.random()*0.5,
+    color:type==='V'?'#a371f7':type==='D'?'#58a6ff':'#3fb950',
+    self:Math.random()>0.3
+  });
+}
+
+function draw(){
+  breath+=0.012;
+  cx.fillStyle='rgba(10,8,8,0.08)';
+  cx.fillRect(0,0,W,H);
+
+  // Thymus shape — two lobes
+  const bv=Math.sin(breath)*0.02;
+  cx.save();
+  cx.globalAlpha=0.08;
+  // Left lobe
+  cx.beginPath();
+  cx.ellipse(W*0.38,H*0.45,W*0.22*(1+bv),H*0.35*(1+bv),0,0,TAU);
+  cx.strokeStyle='#c87050';cx.lineWidth=1;cx.stroke();
+  // Right lobe
+  cx.beginPath();
+  cx.ellipse(W*0.62,H*0.45,W*0.22*(1-bv),H*0.35*(1-bv),0,0,TAU);
+  cx.strokeStyle='#c87050';cx.stroke();
+  // Cortex/medulla boundary
+  cx.beginPath();
+  cx.ellipse(W*0.38,H*0.45,W*0.12,H*0.2,0,0,TAU);
+  cx.strokeStyle='#ffd70030';cx.stroke();
+  cx.beginPath();
+  cx.ellipse(W*0.62,H*0.45,W*0.12,H*0.2,0,0,TAU);
+  cx.strokeStyle='#ffd70030';cx.stroke();
+  cx.restore();
+
+  // Labels
+  cx.save();
+  cx.globalAlpha=0.1;
+  cx.font='bold 20px Courier New';
+  cx.textAlign='center';
+  cx.fillStyle='#c87050';
+  cx.fillText('CORTEX',W*0.38,H*0.25);
+  cx.fillText('CORTEX',W*0.62,H*0.25);
+  cx.fillStyle='#ffd700';
+  cx.font='14px Courier New';
+  cx.fillText('MEDULLA',W*0.38,H*0.45);
+  cx.fillText('MEDULLA',W*0.62,H*0.45);
+  cx.restore();
+
+  // Selection zones
+  cx.save();
+  cx.globalAlpha=0.05;
+  cx.font='9px Courier New';
+  cx.fillStyle='#3fb950';
+  cx.textAlign='center';
+  cx.fillText('POSITIVE SELECTION',W*0.38,H*0.65);
+  cx.fillText('(can you bind MHC?)',W*0.38,H*0.68);
+  cx.fillStyle='#f85149';
+  cx.fillText('NEGATIVE SELECTION',W*0.62,H*0.65);
+  cx.fillText('(do you attack self?)',W*0.62,H*0.68);
+  cx.restore();
+
+  // T-cells
+  for(let i=tCells.length-1;i>=0;i--){
+    const c=tCells[i];
+    c.x+=c.vx; c.y+=c.vy;
+    c.life-=0.002;
+
+    // Thymus attraction
+    const tx=c.self?W*0.38:W*0.62;
+    const ty=H*0.45;
+    const dx=tx-c.x, dy=ty-c.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>10){c.vx+=dx/dist*0.02;c.vy+=dy/dist*0.02}
+
+    // Friction
+    c.vx*=0.99;c.vy*=0.99;
+
+    // Wrap
+    if(c.x<-20)c.x=W+20;if(c.x>W+20)c.x=-20;
+    if(c.y<-20)c.y=H+20;if(c.y>H+20)c.y=-20;
+
+    if(c.life<=0){tCells.splice(i,1);continue}
+
+    cx.save();
+    cx.globalAlpha=c.life*0.8;
+    cx.beginPath();
+    cx.arc(c.x,c.y,c.r,0,TAU);
+    cx.fillStyle=c.color;
+    cx.fill();
+    // Self/non-self marker
+    if(c.r>3){
+      cx.font='6px Courier New';
+      cx.fillStyle=c.self?'#ffd700':'#f85149';
+      cx.textAlign='center';
+      cx.fillText(c.self?'S':'X',c.x,c.y+2);
+    }
+    cx.restore();
+  }
+
+  // Replenish
+  if(tCells.length<80&&Math.random()<0.05){
+    const type=Math.random()<0.33?'V':Math.random()<0.5?'D':'J';
+    tCells.push({
+      x:Math.random()<0.5?-10:W+10, y:Math.random()*H,
+      vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*1.5,
+      r:2+Math.random()*5, life:0.5+Math.random()*0.5,
+      color:type==='V'?'#a371f7':type==='D'?'#58a6ff':'#3fb950',
+      self:Math.random()>0.3
+    });
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// Auto-recombine on load
+setTimeout(()=>recombine(),500);
+
+// Taxonomy cards click
+document.querySelectorAll('.tax-card').forEach(c=>{
+  c.onclick=()=>{
+    document.querySelectorAll('.tax-card').forEach(x=>x.classList.remove('chosen'));
+    c.classList.add('chosen');
+    document.getElementById('tax-current').textContent=c.dataset.type.toUpperCase();
+  };
+});
+
+})();
+</script>
+</body>
+</html>
