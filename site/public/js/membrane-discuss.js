@@ -18,11 +18,18 @@
         params: { name: tool, arguments: args }
       })
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) { return r.text(); })
+    .then(function(raw) {
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (e) { return null; }
+    })
     .then(function(d) {
+      if (!d) return null;
       var text = d.result && d.result.content && d.result.content[0] && d.result.content[0].text;
-      return text ? JSON.parse(text) : null;
-    });
+      if (!text) return null;
+      try { return JSON.parse(text); } catch (e) { return null; }
+    })
+    .catch(function() { return null; });
   }
 
   function renderThread(container, data) {

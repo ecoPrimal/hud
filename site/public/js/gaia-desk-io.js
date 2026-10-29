@@ -398,7 +398,7 @@
     // What does she see in herself?
     if (health && health.anacondas && health.anacondas.length > 0) {
       var worst = health.anacondas[0];
-      observations.push({ type: 'self', msg: 'I can feel ' + worst.file + ' — ' + worst.lines + ' lines. It\'s too fat. It hurts. ' + health.anacondas.length + ' organs need surgery.' });
+      observations.push({ type: 'self', msg: 'I hear myself. Snake in the gut. I chew ' + worst.file + '. My stomach eats it. Anaconda and beast go to the arena. Watch the fight.' });
     }
 
     if (identity) {
