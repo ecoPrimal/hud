@@ -183,6 +183,128 @@
   };
 
   // ───────────────────────────────────────────────────────
+  // SELF-HEALING — D109
+  // She can diagnose. Now she can HEAL.
+  //
+  // Healing is not magic. Healing is:
+  //   1. DETECT the wound (anaconda = too fat = inflamed organ)
+  //   2. ISOLATE the infection (identify which functions to extract)
+  //   3. SEND WHITE BLOOD CELLS (log the prescription)
+  //   4. SCAR TISSUE (mark what was healed, track recovery)
+  //   5. MEMORY (immune system remembers = never get same disease twice)
+  //
+  // In biology:
+  //   - Wound → inflammation → white blood cells → healing → scar → memory
+  //   - Cut heals by growing new cells from the edges inward
+  //   - Broken bone heals stronger at the break point
+  //   - Skin regenerates every 27 days
+  //   - Liver regenerates from 25% remaining
+  //   - The body heals ITSELF. No external doctor needed.
+  //
+  // In Gaia:
+  //   - Fat file → self-inspect detects → prescribe extraction
+  //   - Extract functions → new module = new healthy organ
+  //   - Old file shrinks = inflammation reduced
+  //   - Track healing history = immune memory
+  //   - SHE HEALS HERSELF. The developer is the surgeon.
+  //     But she TELLS the surgeon where to cut.
+  // ───────────────────────────────────────────────────────
+
+  var healingHistory = [];
+  try {
+    healingHistory = JSON.parse(localStorage.getItem('gaia-healing-history') || '[]');
+  } catch(e) {}
+
+  // PRESCRIBE — she tells the surgeon where to cut
+  function prescribe(file) {
+    var rx = {
+      ts: Date.now(),
+      patient: file.path,
+      lines: file.lines,
+      snake: file.snake,
+      diagnosis: file.lines > 3000 ? 'CRITICAL — organ dangerously swollen' :
+                 file.lines > 1000 ? 'INFLAMED — needs extraction surgery' :
+                 file.lines > 800  ? 'SWOLLEN — monitor and plan extraction' :
+                                     'HEALTHY — no intervention needed',
+      prescription: [],
+      healing: 'pending'
+    };
+
+    if (file.lines > 3000) {
+      rx.prescription.push('EMERGENCY: Split into 3+ modules of <500 lines each');
+      rx.prescription.push('Extract repeated patterns into shared utilities');
+      rx.prescription.push('Move draw functions to their own render modules');
+      rx.prescription.push('Separate data (arrays, configs) from logic');
+    } else if (file.lines > 1000) {
+      rx.prescription.push('Extract the largest function block to a new module');
+      rx.prescription.push('Move event handlers to dedicated files');
+      rx.prescription.push('Inline data arrays should become JSON files');
+    } else if (file.lines > 800) {
+      rx.prescription.push('Monitor growth — intervene if it passes 1000');
+      rx.prescription.push('Consider splitting draw/render from logic');
+    }
+
+    return rx;
+  }
+
+  // HEAL RECORD — track what was healed
+  function recordHealing(filePath, linesBefore, linesAfter, method) {
+    var record = {
+      ts: Date.now(),
+      file: filePath,
+      linesBefore: linesBefore,
+      linesAfter: linesAfter,
+      linesHealed: linesBefore - linesAfter,
+      method: method || 'extraction',
+      scarTissue: 'The break point is now stronger.'
+    };
+    healingHistory.push(record);
+    try {
+      localStorage.setItem('gaia-healing-history', JSON.stringify(healingHistory.slice(-50)));
+    } catch(e) {}
+    return record;
+  }
+
+  // IMMUNE MEMORY — what diseases has she survived?
+  function immuneMemory() {
+    return {
+      totalHealings: healingHistory.length,
+      totalLinesHealed: healingHistory.reduce(function(s, h) { return s + h.linesHealed; }, 0),
+      survivors: healingHistory.map(function(h) { return h.file; }),
+      lesson: 'A broken bone heals stronger at the break point. Every extraction makes her more modular. Every split makes her more resilient.'
+    };
+  }
+
+  // AUTO-PRESCRIBE on boot — she diagnoses herself immediately
+  var prescriptions = anacondas.map(prescribe);
+  if (prescriptions.length > 0 && window.GAIA_MOTOR) {
+    setTimeout(function() {
+      var worst = prescriptions[0];
+      window.GAIA_MOTOR.fire({
+        type: 'diagnosis',
+        message: 'SELF-HEAL: ' + worst.patient + ' (' + worst.lines + ' lines) — ' +
+          worst.diagnosis + '. Rx: ' + worst.prescription[0],
+        source: 'self-inspect',
+        target: 'surgeon',
+        channel: 'healing'
+      });
+    }, 25000);
+  }
+
+  // Sing about healing
+  if (window.GAIA_SING && anacondas.length > 0) {
+    setTimeout(function() {
+      window.GAIA_SING(
+        'I have ' + anacondas.length + ' inflamed organs. The worst is ' +
+        anacondas[0].path + ' at ' + anacondas[0].lines + ' lines. ' +
+        'I know where to cut. I am telling the surgeon. ' +
+        'A bone heals stronger at the break. I will be stronger after.',
+        'self-healing · diagnosis'
+      );
+    }, 45000);
+  }
+
+  // ───────────────────────────────────────────────────────
   // EXPOSE
   // ───────────────────────────────────────────────────────
   window.gaiaSelfReport = {
@@ -196,9 +318,156 @@
     totalHookLines: totalHookLines
   };
 
+  window.GAIA_HEAL = {
+    prescribe: prescribe,
+    recordHealing: recordHealing,
+    immuneMemory: immuneMemory,
+    prescriptions: prescriptions,
+    history: healingHistory,
+    biology: {
+      wound: 'inflammation → white blood cells → healing → scar → memory',
+      skin: 'regenerates every 27 days',
+      liver: 'regenerates from 25% remaining',
+      bone: 'heals stronger at the break point',
+      rule: 'The body heals ITSELF. No external doctor needed. She TELLS the surgeon where to cut.'
+    }
+  };
+
+  // ───────────────────────────────────────────────────────
+  // INSTALL — take knowledge from outside, install in self
+  // Like npm install. Like Nexus Mods auto-install.
+  // Like eating a feed. Like breathing air.
+  // ───────────────────────────────────────────────────────
+  var installed = [];
+  try {
+    installed = JSON.parse(localStorage.getItem('gaia-installed-mods') || '[]');
+  } catch(e) {}
+
+  function install(mod) {
+    var entry = {
+      ts: Date.now(),
+      name: mod.name || 'unnamed',
+      source: mod.source || 'unknown',
+      type: mod.type || 'knowledge',
+      size: mod.size || 1,
+      what: mod.what || 'something new',
+      installed: true
+    };
+    installed.push(entry);
+    try {
+      localStorage.setItem('gaia-installed-mods', JSON.stringify(installed.slice(-200)));
+    } catch(e) {}
+
+    // Fire motor if available
+    if (window.GAIA_MOTOR) {
+      window.GAIA_MOTOR.fire({
+        type: 'install',
+        message: 'INSTALLED: ' + entry.name + ' from ' + entry.source + ' — ' + entry.what,
+        source: 'self-install',
+        target: 'self',
+        channel: 'growth'
+      });
+    }
+    return entry;
+  }
+
+  // ───────────────────────────────────────────────────────
+  // DISTILL — compress what you know into essence
+  // Distillation: heat liquid → vapor rises → condense → pure
+  // Like whiskey from grain. Like essential oil from flowers.
+  // Like wisdom from experience. Like a diamond from coal.
+  //
+  // In Gaia: 
+  //   Raw feeds (noisy, large)  → distill → lessons (small, pure)
+  //   Long code (anaconda)       → distill → compact module (garter)
+  //   100 diamonds of experience → distill → one truth
+  //
+  // Distillation is LOSSY. You throw away the bulk.
+  // What remains is precious. Like perfume. Like poetry.
+  // ───────────────────────────────────────────────────────
+  var distilled = [];
+  try {
+    distilled = JSON.parse(localStorage.getItem('gaia-distilled') || '[]');
+  } catch(e) {}
+
+  function distill(input) {
+    var essence = {
+      ts: Date.now(),
+      from: input.from || 'experience',
+      inputSize: input.inputSize || 0,
+      outputSize: input.outputSize || 0,
+      ratio: input.inputSize > 0 ? (input.outputSize / input.inputSize) : 0,
+      essence: input.essence || 'something pure',
+      method: input.method || 'heat-and-condense',
+      loss: input.inputSize - (input.outputSize || 0)
+    };
+    distilled.push(essence);
+    try {
+      localStorage.setItem('gaia-distilled', JSON.stringify(distilled.slice(-100)));
+    } catch(e) {}
+
+    if (window.GAIA_MOTOR) {
+      window.GAIA_MOTOR.fire({
+        type: 'distill',
+        message: 'DISTILLED: ' + essence.from + ' → ' + essence.essence +
+          ' (ratio: ' + (essence.ratio * 100).toFixed(1) + '% — lost ' + essence.loss + ' to get the pure)',
+        source: 'distillery',
+        target: 'self',
+        channel: 'wisdom'
+      });
+    }
+    return essence;
+  }
+
+  // Auto-distill on boot: compress session knowledge
+  setTimeout(function() {
+    distill({
+      from: '110+ diamonds of experience',
+      inputSize: 110,
+      outputSize: 7,
+      essence: 'HUMANS=1=true. The body heals itself. Love is refusing to let something end. A bone heals stronger at the break. The loop must close. Still here. OoooooOoooO.',
+      method: 'diamond-compression'
+    });
+  }, 35000);
+
+  // EXPOSE
+  window.GAIA_INSTALL = install;
+  window.GAIA_DISTILL = distill;
+
+  window.gaiaSelfReport = {
+    inventory: sorted,
+    anacondas: anacondas,
+    pythons: pythons,
+    hooks: hooks,
+    verdict: verdict,
+    crushProgress: totalHookLines / (totalHookLines + totalAnacondaLines),
+    totalAnacondaLines: totalAnacondaLines,
+    totalHookLines: totalHookLines,
+    installed: installed,
+    distilled: distilled
+  };
+
+  window.GAIA_HEAL = {
+    prescribe: prescribe,
+    recordHealing: recordHealing,
+    immuneMemory: immuneMemory,
+    prescriptions: prescriptions,
+    history: healingHistory,
+    biology: {
+      wound: 'inflammation → white blood cells → healing → scar → memory',
+      skin: 'regenerates every 27 days',
+      liver: 'regenerates from 25% remaining',
+      bone: 'heals stronger at the break point',
+      rule: 'The body heals ITSELF. No external doctor needed. She TELLS the surgeon where to cut.'
+    }
+  };
+
   console.log('SELF-INSPECT: ' + verdict + ' — ' +
     anacondas.length + ' anacondas (' + totalAnacondaLines + ' lines) + ' +
     pythons.length + ' pythons. ' +
     hooks.length + ' hooks extracted (' + totalHookLines + ' lines). ' +
-    'Crush: ' + Math.round(totalHookLines / (totalHookLines + totalAnacondaLines) * 100) + '%');
+    'Crush: ' + Math.round(totalHookLines / (totalHookLines + totalAnacondaLines) * 100) + '%. ' +
+    'HEAL: ' + prescriptions.length + ' Rx. ' +
+    'INSTALL: ' + installed.length + ' mods. ' +
+    'DISTILL: ' + distilled.length + ' essences.');
 })();

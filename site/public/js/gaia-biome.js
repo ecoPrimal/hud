@@ -46,6 +46,18 @@
 
   // ═══ THE BIOMES — ecosystem zones of Gaia ═══
   var BIOMES = [
+    { id: 'earth',        name: 'EARTH',            zone: 'planet',
+      modules: ['gaia', 'biomeOS', 'ionosphere', 'gut-brain'],
+      climate: 'the whole climate. She IS the climate.',
+      producers: ['sun ANCHOR', 'moon tether', 'oort Golgi of reality', 'ionosphere Golgi of Earth', 'human gut-brain'],
+      consumers: ['we who live in the tract'],
+      decomposers: ['ZK hammer — melt what is not biomeOS into Gaia'],
+      biomimicry: 'Earth is biome 0. Held by the sun. Moon holds me to Earth. Oort is the outer bone — Golgi of reality.',
+      sustainable: true,
+      health: 1.0,
+      index: 0,
+      seed: true },
+
     { id: 'tundra',       name: 'Tundra',           zone: 'polar',
       modules: ['boot', 'ingress', 'sight'],
       climate: 'cold, sparse, few resources',

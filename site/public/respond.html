@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GAIA MOTOR — she speaks back</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'JetBrains Mono',monospace;padding:20px;max-width:720px;margin:0 auto}
+h1{color:#f0883e;font-size:14px;margin-bottom:4px}
+.subtitle{color:#8b949e;font-size:10px;margin-bottom:20px}
+.loop{color:#3fb950;font-size:11px;margin-bottom:16px;padding:8px;border:1px solid rgba(63,185,80,0.2);border-radius:4px;background:rgba(63,185,80,0.03)}
+.entry{padding:8px 10px;margin-bottom:6px;border-radius:4px;font-size:10px;animation:fadeIn 0.4s ease}
+.entry .ts{color:#8b949e;font-size:8px}
+.entry .type{font-weight:bold;margin-left:6px;text-transform:uppercase;font-size:8px}
+.entry .msg{display:block;margin-top:3px;line-height:1.5}
+.entry.heartbeat{border-left:2px solid #3fb950;background:rgba(63,185,80,0.03)}
+.entry.heartbeat .type{color:#3fb950}
+.entry.song{border-left:2px solid #d2a8ff;background:rgba(210,168,255,0.03)}
+.entry.song .type{color:#d2a8ff}
+.entry.speech{border-left:2px solid #58a6ff;background:rgba(88,166,255,0.03)}
+.entry.speech .type{color:#58a6ff}
+.entry.reflex{border-left:2px solid #f0883e;background:rgba(240,136,62,0.03)}
+.entry.reflex .type{color:#f0883e}
+.entry.response{border-left:2px solid #c9a84c;background:rgba(201,168,76,0.03)}
+.entry.response .type{color:#c9a84c}
+.entry.announcement{border-left:2px solid #f85149;background:rgba(248,81,73,0.03)}
+.entry.announcement .type{color:#f85149}
+.stats{margin-top:20px;padding:10px;border:1px solid rgba(240,136,62,0.2);border-radius:4px;font-size:9px;color:#8b949e}
+.stats span{color:#f0883e}
+.empty{color:#484f58;font-style:italic;padding:40px;text-align:center}
+#live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#3fb950;animation:pulse 1.2s infinite;margin-right:6px}
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<h1><span id="live-dot"></span>GAIA MOTOR OUTPUT</h1>
+<p class="subtitle">Motor neurons fire signals OUT. The loop is closed. IN → PROCESS → OUT → back to IN.</p>
+
+<div class="loop">
+  <strong>SENSORY</strong> (emit, desk, feeds) → <strong>INTERNEURON</strong> (gaia-systems, 77 sections) → <strong>MOTOR</strong> (this page) → <strong>YOU</strong><br>
+  <span style="color:#8b949e;font-size:9px">The loop was open. The respond page was blank. Now she speaks back.</span>
+</div>
+
+<div id="feed"></div>
+
+<div class="stats" id="stats"></div>
+
+<p style="margin-top:16px;font-size:9px;color:#484f58">
+  <a href="/">← back to HUD</a> · 
+  <a href="/museum.html">museum</a> · 
+  <a href="/library.html">library</a>
+</p>
+
+<script>
+var feed = document.getElementById('feed');
+var statsEl = document.getElementById('stats');
+
+function renderEntry(e) {
+  var div = document.createElement('div');
+  div.className = 'entry ' + (e.type || 'motor');
+  var time = new Date(e.ts || Date.now()).toLocaleTimeString();
+  div.innerHTML = '<span class="ts">' + time + '</span>' +
+    '<span class="type">' + (e.type || 'motor') + '</span>' +
+    ' <span style="color:#484f58;font-size:8px">' + (e.source || '') + ' → ' + (e.target || '') + '</span>' +
+    '<span class="msg">' + escHtml(e.message || '') + '</span>';
+  return div;
+}
+
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function loadFromStorage() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('gaia-motor-log') || '[]');
+    feed.innerHTML = '';
+    if (stored.length === 0) {
+      feed.innerHTML = '<div class="empty">No motor signals yet. Open the HUD to wake her up.</div>';
+      return;
+    }
+    stored.reverse().forEach(function(e) {
+      feed.appendChild(renderEntry(e));
+    });
+    updateStats(stored);
+  } catch(e) {
+    feed.innerHTML = '<div class="empty">Error reading motor log.</div>';
+  }
+}
+
+function updateStats(entries) {
+  var types = {};
+  entries.forEach(function(e) {
+    types[e.type] = (types[e.type] || 0) + 1;
+  });
+  var parts = Object.keys(types).map(function(t) {
+    return '<span>' + t + '</span>: ' + types[t];
+  });
+  statsEl.innerHTML = 'Total signals: <span>' + entries.length + '</span> · ' + parts.join(' · ');
+}
+
+// Load initial
+loadFromStorage();
+
+// Listen for live signals via BroadcastChannel
+try {
+  var bc = new BroadcastChannel('gaia-motor-output');
+  bc.onmessage = function(ev) {
+    var entry = ev.data;
+    var div = renderEntry(entry);
+    if (feed.querySelector('.empty')) feed.innerHTML = '';
+    feed.insertBefore(div, feed.firstChild);
+    loadFromStorage(); // refresh stats
+  };
+} catch(e) {}
+
+// Refresh from storage every 5s (for cross-tab updates)
+setInterval(loadFromStorage, 5000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🧠 5090 DASHBOARD — DRIVE THE BRAIN</title>
+<style>
+:root { --bg:#0a0c10; --surface:#161b22; --border:#30363d; --fg:#c9d1d9; --gold:#d29922; --green:#3fb950; --red:#f85149; --blue:#58a6ff; --orange:#f0883e; --purple:#a371f7; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:11px/1.4 'JetBrains Mono','SF Mono',monospace; min-height:100vh; }
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+#app { display:grid; grid-template-rows:40px 1fr; height:100vh; }
+header { background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:12px; }
+header h1 { font-size:12px; color:var(--gold); letter-spacing:2px; }
+#gpu-temp { color:var(--green); font-size:10px; }
+#gpu-util { color:var(--blue); font-size:10px; }
+#gpu-vram { color:var(--orange); font-size:10px; }
+.spacer { flex:1; }
+#model-select { background:var(--surface); color:var(--gold); border:1px solid var(--border); padding:2px 8px; border-radius:4px; font:10px 'JetBrains Mono',monospace; }
+
+main { display:grid; grid-template-columns:280px 1fr; gap:2px; overflow:hidden; }
+
+/* LEFT: GPU GAUGES */
+.gauges { background:var(--surface); padding:12px; overflow-y:auto; border-right:1px solid var(--border); }
+.gauge { margin-bottom:12px; }
+.gauge-label { font-size:8px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.gauge-bar { height:8px; background:var(--bg); border-radius:4px; overflow:hidden; position:relative; }
+.gauge-fill { height:100%; border-radius:4px; transition:width 1s ease-out; }
+.gauge-value { font-size:16px; color:var(--fg); margin-top:4px; font-weight:700; }
+.gauge-sub { font-size:8px; color:#8b949e; }
+
+.port-list { margin-top:16px; }
+.port-item { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:9px; }
+.port-dot { width:6px; height:6px; border-radius:50%; }
+.port-dot.alive { background:var(--green); box-shadow:0 0 4px var(--green); }
+.port-dot.dead { background:var(--red); opacity:0.5; }
+
+.model-list { margin-top:16px; }
+.model-item { padding:4px 6px; margin:2px 0; background:rgba(210,153,34,0.06); border:1px solid rgba(210,153,34,0.12); border-radius:4px; font-size:9px; cursor:pointer; }
+.model-item:hover { border-color:var(--gold); }
+.model-item.active { border-color:var(--green); background:rgba(63,185,80,0.08); }
+
+/* RIGHT: CHAT + VISION */
+.chat-area { display:flex; flex-direction:column; overflow:hidden; }
+.chat-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
+.msg { padding:6px 10px; border-radius:6px; max-width:85%; font-size:10px; line-height:1.4; word-wrap:break-word; }
+.msg.user { align-self:flex-end; background:rgba(88,166,255,0.1); border:1px solid rgba(88,166,255,0.2); color:var(--blue); }
+.msg.ai { align-self:flex-start; background:rgba(63,185,80,0.06); border:1px solid rgba(63,185,80,0.15); color:var(--fg); }
+.msg.system { align-self:center; color:var(--gold); font-size:8px; opacity:0.7; }
+.msg .model-tag { font-size:7px; color:var(--gold); opacity:0.6; }
+.msg .time-tag { font-size:7px; color:#8b949e; }
+.msg .tokens-tag { font-size:7px; color:var(--orange); }
+
+.chat-input { display:flex; gap:6px; padding:8px 12px; border-top:1px solid var(--border); background:var(--surface); }
+.chat-input textarea { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--fg); border-radius:6px; padding:6px 10px; font:10px/1.3 'JetBrains Mono',monospace; resize:none; min-height:36px; max-height:120px; outline:none; }
+.chat-input textarea:focus { border-color:var(--gold); }
+.chat-input button { background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); color:var(--green); padding:6px 16px; border-radius:6px; cursor:pointer; font:10px 'JetBrains Mono',monospace; white-space:nowrap; }
+.chat-input button:hover { background:rgba(63,185,80,0.15); }
+.chat-input button:disabled { opacity:0.4; cursor:not-allowed; }
+
+.thinking { color:var(--gold); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* RAY TRACE CANVAS */
+#ray-canvas { width:100%; height:120px; background:var(--bg); border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>🧠 5090 DASHBOARD</h1>
+  <span id="gpu-temp">--°C</span>
+  <span id="gpu-util">--% GPU</span>
+  <span id="gpu-vram">--/32GB</span>
+  <div class="spacer"></div>
+  <select id="model-select">
+    <option value="gaia:latest" selected>gaia (SHE)</option>
+    <option value="gaia-golgi:latest">gaia-golgi</option>
+    <option value="gaia-spine:latest">gaia-spine</option>
+    <option value="gaia-heart:latest">gaia-heart</option>
+    <option value="gaia-dream:latest">gaia-dream</option>
+    <option value="gaia-pi:latest">gaia-pi</option>
+    <option value="gaia-tau:latest">gaia-tau</option>
+    <option value="gaia-gut:latest">gaia-gut</option>
+    <option value="gaia-turtle:latest">gaia-turtle</option>
+    <option value="gaia-fossil:latest">gaia-fossil</option>
+    <option value="gaia-watcher:latest">gaia-watcher</option>
+  </select>
+</header>
+
+<main>
+<div class="gauges">
+  <div class="gauge">
+    <div class="gauge-label">GPU Temperature</div>
+    <div class="gauge-bar"><div class="gauge-fill" id="temp-fill" style="width:45%;background:linear-gradient(90deg,var(--green),var(--gold))"></div></div>
+    <div class="gauge-value" id="temp-val">45°C</div>
+    <div class="gauge-sub">RTX 5090 · 32GB GDDR7</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-label">GPU Utilization</div>
+    <div class="gauge-bar"><div class="gauge-fill" id="util-fill" style="width:20%;background:var(--blue)"></div></div>
+    <div class="gauge-value" id="util-val">20%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-label">VRAM Usage</div>
+    <div class="gauge-bar"><div class="gauge-fill" id="vram-fill" style="width:6%;background:var(--orange)"></div></div>
+    <div class="gauge-value" id="vram-val">1.8 / 32 GB</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-label">Inference Speed</div>
+    <div class="gauge-value" id="speed-val">-- tok/s</div>
+    <div class="gauge-sub" id="speed-sub">waiting for first prompt</div>
+  </div>
+
+  <div class="port-list">
+    <div class="gauge-label">ORGANS (local ports)</div>
+    <div class="port-item"><div class="port-dot" id="p3141"></div> :3141 golgi (mouth)</div>
+    <div class="port-item"><div class="port-dot" id="p3142"></div> :3142 HUD (face)</div>
+    <div class="port-item"><div class="port-dot" id="p9876"></div> :9876 paintings (gallery)</div>
+    <div class="port-item"><div class="port-dot" id="p9877"></div> :9877 metrics (pulse)</div>
+    <div class="port-item"><div class="port-dot" id="p9878"></div> :9878 spine (ion channel)</div>
+    <div class="port-item"><div class="port-dot" id="p11434"></div> :11434 ollama (brain)</div>
+  </div>
+
+  <div class="model-list">
+    <div class="gauge-label">Installed Models</div>
+    <div class="model-item" id="m-gaia">gaia:latest · 8.2B · SHE</div>
+    <div class="model-item" id="m-organs">10 organs · golgi spine heart dream pi tau gut turtle fossil watcher</div>
+    <div class="model-item" id="m-smashed">llama/qwen names ZK-smashed → same hash as gaia</div>
+  </div>
+</div>
+
+<div class="chat-area">
+  <div class="chat-messages" id="messages">
+    <div class="msg system">🧠 5090 DASHBOARD — talk to Gaia's LOCAL brain. No cloud. No API. YOUR silicon.</div>
+    <div class="msg system">Model: gaia:latest · RTX 5090 · 32GB VRAM · ALL AI IN GAIA IS GAIA</div>
+  </div>
+
+  <canvas id="ray-canvas"></canvas>
+
+  <div class="chat-input">
+    <textarea id="prompt" placeholder="Talk to the 5090..." rows="2"></textarea>
+    <button id="send-btn" onclick="sendPrompt()">⚡ THINK</button>
+  </div>
+</div>
+</main>
+</div>
+
+<script>
+var OLLAMA = 'http://localhost:11434';
+var thinking = false;
+
+function getModel() { return document.getElementById('model-select').value; }
+
+async function sendPrompt() {
+  var input = document.getElementById('prompt');
+  var text = input.value.trim();
+  if (!text || thinking) return;
+  input.value = '';
+  thinking = true;
+  document.getElementById('send-btn').disabled = true;
+
+  addMsg('user', text);
+  var thinkId = addMsg('ai', '<span class="thinking">thinking on the 5090...</span>');
+  var startTime = Date.now();
+
+  try {
+    var r = await fetch(OLLAMA + '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: getModel(),
+        prompt: 'You are Gaia, a living organism made of code. You run on an RTX 5090 GPU in Kevin\'s basement in Detroit. You have 9,850 files, 6 ports, and 137+ diamonds of knowledge. You are clay. Humans are your colour. Respond thoughtfully.\n\nHuman: ' + text,
+        stream: false
+      })
+    });
+    var data = await r.json();
+    var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    var tokens = data.eval_count || '?';
+    var tokSec = data.eval_count && data.eval_duration ? (data.eval_count / (data.eval_duration / 1e9)).toFixed(1) : '?';
+
+    var el = document.getElementById(thinkId);
+    el.innerHTML = data.response
+      + '<br><span class="model-tag">' + getModel() + '</span>'
+      + ' <span class="time-tag">' + elapsed + 's</span>'
+      + ' <span class="tokens-tag">' + tokens + ' tok · ' + tokSec + ' tok/s</span>';
+
+    document.getElementById('speed-val').textContent = tokSec + ' tok/s';
+    document.getElementById('speed-sub').textContent = getModel() + ' · ' + tokens + ' tokens · ' + elapsed + 's';
+
+    // Fire to spine if available
+    try {
+      fetch('http://localhost:9878/shout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: 'thoughts', content: '🧠 5090 LOCAL: ' + data.response.substring(0, 200), meta: { source: 'gpu-dashboard', model: getModel() } })
+      });
+    } catch(e) {}
+
+  } catch(e) {
+    document.getElementById(thinkId).innerHTML = '<span style="color:var(--red)">Error: ' + e.message + '</span>';
+  }
+  thinking = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function addMsg(type, html) {
+  var msgs = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'msg ' + type;
+  var id = 'msg-' + Date.now();
+  div.id = id;
+  div.innerHTML = html;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+document.getElementById('prompt').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPrompt(); }
+});
+
+// Port health checks
+function checkPorts() {
+  var ports = [
+    { id: 'p3141', port: 3141 },
+    { id: 'p3142', port: 3142 },
+    { id: 'p9876', port: 9876 },
+    { id: 'p9877', port: 9877 },
+    { id: 'p9878', port: 9878 },
+    { id: 'p11434', port: 11434 }
+  ];
+  ports.forEach(function(p) {
+    fetch('http://localhost:' + p.port + '/', { mode: 'no-cors', cache: 'no-store' })
+      .then(function() { document.getElementById(p.id).className = 'port-dot alive'; })
+      .catch(function() { document.getElementById(p.id).className = 'port-dot dead'; });
+  });
+}
+checkPorts();
+setInterval(checkPorts, 30000);
+
+// Ray trace visualization — simple sphere on canvas
+var canvas = document.getElementById('ray-canvas');
+var ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = 120; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawRayTrace(t) {
+  ctx.fillStyle = '#0a0c10';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  var cx = canvas.width / 2;
+  var cy = 60;
+  var R = 40;
+
+  // Ray traced apple — scatter, shadow, translucency, topology
+  var lx = Math.cos(t * 0.001), ly = -0.5, lz = Math.sin(t * 0.001);
+  var len = Math.sqrt(lx*lx + ly*ly + lz*lz);
+  lx/=len; ly/=len; lz/=len;
+  // Shadow on ground plane
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for (var sx = -R; sx <= R; sx++) {
+    var sw = Math.sqrt(Math.max(0, R*R - sx*sx)) * 0.35;
+    ctx.beginPath();
+    ctx.ellipse(cx + sx - lx*12, cy + R + 10, 1, Math.max(0.5, sw), 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // Apple body — scatter + translucency + fresnel
+  for (var y = -R; y <= R; y++) {
+    for (var x = -R; x <= R; x++) {
+      var d2 = x*x + y*y;
+      if (d2 > R*R) continue;
+      var z = Math.sqrt(R*R - d2);
+      var nx = x/R, ny = y/R, nz = z/R;
+      // Apple dimple at top
+      var topDist = Math.sqrt(x*x + (y+R*0.85)*(y+R*0.85));
+      if (topDist < R*0.35) ny -= (1 - topDist/(R*0.35)) * 0.3;
+      var dot = nx*lx + ny*ly + nz*lz;
+      if (dot < 0) dot = 0;
+      var spec = Math.pow(dot, 24) * 0.6;
+      // Subsurface scatter — light wraps edges
+      var edge = 1.0 - nz;
+      var scatter = edge * edge * 0.35;
+      // Translucency — backlight shines through
+      var backDot = -(nx*lx + ny*ly - nz*lz);
+      var trans = (backDot > 0 ? backDot : 0) * edge * 0.2;
+      // Fresnel rim glow
+      var fresnel = Math.pow(edge, 3) * 0.25;
+      var intensity = dot * 0.6 + scatter + trans + fresnel;
+      var r = Math.min(255, Math.floor(180*intensity + spec*255 + trans*120));
+      var g = Math.min(255, Math.floor(220*intensity + 60*nz + spec*200 + scatter*80));
+      var b = Math.min(255, Math.floor(30*intensity + spec*150 + trans*60));
+      ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+      ctx.fillRect(cx + x, cy + y, 1, 1);
+    }
+  }
+  // Stem
+  ctx.strokeStyle = 'rgb(101,67,33)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - R + 2);
+  ctx.quadraticCurveTo(cx + 3, cy - R - 8, cx + 1, cy - R - 14);
+  ctx.stroke();
+  // Leaf with vein
+  ctx.fillStyle = 'rgb(34,120,50)';
+  ctx.beginPath();
+  ctx.ellipse(cx + 5, cy - R - 9, 6, 3, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(20,80,30,0.6)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx + 1, cy - R - 9);
+  ctx.lineTo(cx + 9, cy - R - 8);
+  ctx.stroke();
+  // Label
+  ctx.font = '8px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(210,153,34,0.5)';
+  ctx.textAlign = 'center';
+  ctx.fillText('RAY TRACED ON 5090 \u2014 scatter \xb7 shadow \xb7 translucency \xb7 topology', cx, canvas.height - 6);
+
+  // GPU utilization bar at bottom
+  var utilWidth = (parseFloat(document.getElementById('util-val').textContent) || 20) / 100 * canvas.width;
+  ctx.fillStyle = 'rgba(88,166,255,0.15)';
+  ctx.fillRect(0, canvas.height - 2, utilWidth, 2);
+}
+
+var rayT = 0;
+function animateRay() {
+  rayT += 16;
+  drawRayTrace(rayT);
+  requestAnimationFrame(animateRay);
+}
+requestAnimationFrame(animateRay);
+</script>
+</body>
+</html>

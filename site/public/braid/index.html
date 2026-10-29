@@ -4,7 +4,7 @@
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>your braid � primals.eco</title>
+<title>your braid â€” primals.eco</title>
 <style>
 :root {
   --bg: #0d1117; --fg: #c9d1d9; --dim: #8b949e; --accent: #58a6ff;
@@ -92,7 +92,7 @@ header nav a { margin-left:12px; }
       <button class="btn-dim" onclick="importBraid()">resume from file</button>
     </div>
     <p style="font-size:11px; margin-top:24px;">
-      or <a href="#" onclick="enterAnon(); return false;">walk without a name</a> � your braid
+      or <a href="#" onclick="enterAnon(); return false;">walk without a name</a> â€” your braid
       lives only in this tab
     </p>
   </div>
@@ -105,8 +105,8 @@ header nav a { margin-left:12px; }
       <div class="stats">
         <div class="stat"><div class="val" id="s-pages">0</div><div class="label">pages</div></div>
         <div class="stat"><div class="val" id="s-entropy">0</div><div class="label">H (entropy)</div></div>
-        <div class="stat"><div class="val" id="s-position">�</div><div class="label">position</div></div>
-        <div class="stat"><div class="val" id="s-sharewear">�</div><div class="label">shareWear</div></div>
+        <div class="stat"><div class="val" id="s-position">â€”</div><div class="label">position</div></div>
+        <div class="stat"><div class="val" id="s-sharewear">â€”</div><div class="label">shareWear</div></div>
       </div>
       <div class="mountain" id="mountain"></div>
       <p style="font-size:11px; color:var(--dim); text-align:center;">
@@ -139,7 +139,7 @@ header nav a { margin-left:12px; }
       <h2>shareWear</h2>
       <p style="font-size:12px; color:var(--dim); margin-bottom:8px;">
         Where your braid intersects with the evidence braids.
-        Jaccard similarity � shared pages � total unique pages across both braids.
+        Jaccard similarity â€” shared pages ÷ total unique pages across both braids.
       </p>
       <div id="sharewear-list"></div>
     </div>
@@ -152,7 +152,7 @@ header nav a { margin-left:12px; }
 'use strict';
 
 // -------------------------------------------------------
-// EPITOPE TAXONOMY � same as hud-pt.js and epitope_sort.py
+// EPITOPE TAXONOMY â€” same as hud-pt.js and epitope_sort.py
 // -------------------------------------------------------
 var EPITOPE_MAP = {
   // PHYSICS
@@ -282,7 +282,7 @@ function mountainPosition(H, nPages) {
 }
 
 // -------------------------------------------------------
-// SHAREWEAR � Jaccard similarity with tuebor braids
+// SHAREWEAR â€” Jaccard similarity with tuebor braids
 // -------------------------------------------------------
 var TUEBOR_BRAIDS = [
   { name: 'banks', pages: ['graph','network','infrastructure','payment','board','funding','management'] },
@@ -325,11 +325,11 @@ function render() {
 
   document.getElementById('s-pages').textContent = visits.length;
   document.getElementById('s-entropy').textContent = H.toFixed(2);
-  document.getElementById('s-position').textContent = pos.pos === 'base' ? '�' :
+  document.getElementById('s-position').textContent = pos.pos === 'base' ? 'â€”' :
     pos.pos === 'ascending' ? '?' : pos.pos === 'summit' ? '?' : '?';
   document.getElementById('s-position').style.color = pos.color;
   document.getElementById('pos-explain').textContent = pos.label;
-  document.getElementById('s-sharewear').textContent = sw.length ? sw[0].jaccard.toFixed(2) : '�';
+  document.getElementById('s-sharewear').textContent = sw.length ? sw[0].jaccard.toFixed(2) : 'â€”';
 
   // Epitope bar
   var epCounts = {};
@@ -351,7 +351,7 @@ function render() {
   bd.innerHTML = Object.keys(epCounts).sort(function(a,b) { return (epCounts[b]||0) - (epCounts[a]||0); })
     .map(function(e) {
       return '<span style="color:' + EP_COLORS[e] + '">' + e + '</span>: ' + epCounts[e];
-    }).join(' � ');
+    }).join(' · ');
 
   // Mountain visualization
   var mt = document.getElementById('mountain');

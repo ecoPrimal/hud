@@ -4,7 +4,7 @@
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>circulatory � primals.eco</title>
+<title>circulatory · primals.eco</title>
 <style>
 :root {
   --bg: #010409;
@@ -64,25 +64,25 @@ canvas { display:block; }
   display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
   border-radius:20px;font:11px monospace;pointer-events:auto;">
   <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a>
-  <span style="color:#30363d">�</span>
+  <span style="color:#30363d">·</span>
   <a href="/desk/" style="color:#3fb950;text-decoration:none">? desk</a>
-  <span style="color:#30363d">�</span>
+  <span style="color:#30363d">·</span>
   <a href="/neutron/" style="color:#d29922;text-decoration:none">? neutron</a>
-  <span style="color:#30363d">�</span>
-  <a href="/neutron/board.html" style="color:#a371f7;text-decoration:none" title="backend board � all metrics">? board</a>
-  <span style="color:#30363d">�</span>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/board.html" style="color:#a371f7;text-decoration:none" title="backend board â€” all metrics">? board</a>
+  <span style="color:#30363d">·</span>
   <a href="/neutron/footprint.html" style="color:#3fb950;text-decoration:none" title="geographic footprint">?? footprint</a>
-  <span style="color:#30363d">�</span>
-  <a href="/neutron/globe.html" style="color:#f1c40f;text-decoration:none" title="3D globe � geographic footprint">?? globe</a>
-  <span style="color:#30363d">�</span>
-  <a href="/neutron/helix.html" style="color:#d29922;text-decoration:none" title="helixVision � sovereign AlphaFold">?? helix</a>
-  <span style="color:#30363d">�</span>
-  <a href="/neutron/invite.html" style="color:#3fb950;text-decoration:none" title="try the tech � invitation for engineers">?? invite</a>
-  <span style="color:#30363d">�</span>
-  <a href="https://live.primals.eco" target="_blank" style="color:#a371f7;text-decoration:none" title="petalTongue � interactive exploration">?? live</a>
-  <span style="color:#30363d">�</span>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f;text-decoration:none" title="3D globe â€” geographic footprint">?? globe</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/helix.html" style="color:#d29922;text-decoration:none" title="helixVision â€” sovereign AlphaFold">?? helix</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/invite.html" style="color:#3fb950;text-decoration:none" title="try the tech â€” invitation for engineers">?? invite</a>
+  <span style="color:#30363d">·</span>
+  <a href="https://live.primals.eco" target="_blank" style="color:#a371f7;text-decoration:none" title="petalTongue â€” interactive exploration">?? live</a>
+  <span style="color:#30363d">·</span>
   <a href="/neutron/channels.html" style="color:#a371f7;text-decoration:none">? channels</a>
-  <span style="color:#30363d">�</span>
+  <span style="color:#30363d">·</span>
   <a href="https://clutch.primals.eco" target="_blank" style="color:#f1c40f;text-decoration:none">? clutch</a>
 </div>
 
@@ -139,7 +139,7 @@ function hexToRgba(hex) {
 
 
 
-// -- MOUSE INTERACTION � surfaces are clickable --
+// -- MOUSE INTERACTION â€” surfaces are clickable --
 var mouseX = 0, mouseY = 0;
 var hoveredSurface = null;
 
@@ -182,7 +182,7 @@ window.addEventListener('resize', resize);
 resize();
 
 // -- MAP RPM to visual beat rate --
-// RPM is requests-per-minute. We map to a visible Hz (0.2 � 3.0)
+// RPM is requests-per-minute. We map to a visible Hz (0.2 – 3.0)
 // so humans can SEE the pulse, not a flicker.
 function rpmToHz(rpm) {
   if (rpm <= 0) return 0.15;       // nearly still ? very slow breathe
@@ -200,11 +200,11 @@ function tempoColor(tempo) {
   if (tempo === 'rushing') return '#f85149';
   if (tempo === 'walking') return '#d29922';
   if (tempo === 'resting') return '#58a6ff';
-  return '#6e7681'; // still � dim but visible
+  return '#6e7681'; // still â€” dim but visible
 }
 
 // Colors by symbiotic class
-// WAVE 195: ghost resort � no more ghosts, only measurements
+// WAVE 195: ghost resort â€” no more ghosts, only measurements
 function classColor(cls) {
   if (cls === 'mutualist') return '#3fb950';
   if (cls === 'commensal_active' || cls === 'commensal') return '#58a6ff';
@@ -213,7 +213,7 @@ function classColor(cls) {
   if (cls === 'proxy_vacuum') return '#e3716e';
   if (cls === 'proxy_probe') return '#f85149';
   if (cls === 'proxy_reader') return '#3fb9a0';
-  if (cls === 'ghost') return '#8b949e'; // legacy fallback � will phase out
+  if (cls === 'ghost') return '#8b949e'; // legacy fallback â€” will phase out
   return '#484f58';
 }
 
@@ -412,7 +412,7 @@ function drawSurfaces(t) {
     var beat = Math.sin(s.phase * Math.PI * 2);
     var pulse = s.baseSize + beat * s.baseSize * (s.rpm > 1 ? 0.35 : 0.5);
 
-    // Glow ring � every surface glows
+    // Glow ring â€” every surface glows
     var glowR = pulse * 3;
     var gc = hexToRgba(s.color);
     var grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
@@ -424,7 +424,7 @@ function drawSurfaces(t) {
     ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
     ctx.fill();
 
-    // Core node � pulses with its heartbeat
+    // Core node â€” pulses with its heartbeat
     ctx.globalAlpha = 0.5 + beat * 0.4;
     ctx.fillStyle = s.color;
     ctx.beginPath();
@@ -445,7 +445,7 @@ function drawSurfaces(t) {
     ctx.arc(s.x, s.y, pulse + 4, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Human indicator � green dots orbiting surfaces humans are on
+    // Human indicator â€” green dots orbiting surfaces humans are on
     var hCount = humanMap[name] || 0;
     if (hCount > 0 && (activeLayer === 'all' || activeLayer === 'human')) {
       var hSize = Math.min(Math.log2(hCount + 1) * 2, 6);
@@ -470,7 +470,7 @@ function drawSurfaces(t) {
     ctx.fillText(name, s.x, s.y - pulse - 8);
     ctx.font = '8px monospace';
     ctx.fillStyle = showNode ? s.color : 'rgba(139,148,158,0.1)';
-    ctx.fillText(s.rpm.toFixed(1) + ' � ' + s.subsystem, s.x, s.y - pulse + 1);
+    ctx.fillText(s.rpm.toFixed(1) + ' · ' + s.subsystem, s.x, s.y - pulse + 1);
     if (hCount > 0) {
       ctx.fillStyle = '#3fb950';
       ctx.fillText(hCount + ' human' + (hCount !== 1 ? 's' : ''), s.x, s.y + pulse + 12);
@@ -487,7 +487,7 @@ function drawHeart(totalRpm, trend) {
   drawHeart._phase += hz * 0.016;
   var beat = Math.sin(drawHeart._phase * Math.PI * 2);
 
-  // Small summary heart � NOT the main event
+  // Small summary heart â€” NOT the main event
   var pulseSize = 12 + beat * 5;
 
   // Subtle glow
@@ -586,7 +586,7 @@ function updateStats() {
     var label = (e.label || '').toLowerCase();
     // Normalize commensal variants
     if (cls.indexOf('commensal') === 0) cls = 'commensal';
-    // WAVE 195: ghost resort � split ghost into 3 sub-classes
+    // WAVE 195: ghost resort â€” split ghost into 3 sub-classes
     if (cls === 'ghost' || label.indexOf('ghost') >= 0 || label.indexOf('proxy') >= 0) {
       counts.proxy_vacuum += 1; // count as vacuum (largest sub-class)
     } else {
@@ -619,12 +619,12 @@ function updateStats() {
     '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">circulation</span></div>';
 
   document.getElementById('pulse-info').textContent =
-    'RPM: ' + (b.rpm || 0).toFixed(0) + ' � ' +
-    'trend: ' + (b.trend || '?') + ' � ' +
-    'context: ' + (c.context || '?') + ' � ' +
-    'reach: ' + (c.reach || '?') + ' � ' +
+    'RPM: ' + (b.rpm || 0).toFixed(0) + ' · ' +
+    'trend: ' + (b.trend || '?') + ' · ' +
+    'context: ' + (c.context || '?') + ' · ' +
+    'reach: ' + (c.reach || '?') + ' · ' +
     activeSurfaces + ' surfaces breathing' +
-    (neutronData && neutronData.unified ? ' � ' + neutronData.unified.layers_connected + ' feeds unified' : '');
+    (neutronData && neutronData.unified ? ' · ' + neutronData.unified.layers_connected + ' feeds unified' : '');
 }
 
 
@@ -719,7 +719,7 @@ function drawGradient() {
       var probeCount = Math.round(ghostCount * 0.1);
       var readerCount = ghostCount - vacuumCount - probeCount;
 
-      // Draw vacuum ring (outermost � consuming, furthest from center)
+      // Draw vacuum ring (outermost â€” consuming, furthest from center)
       ctx.strokeStyle = modeColors.proxy_vacuum;
       ctx.globalAlpha = Math.min(0.3, Math.log10(vacuumCount + 1) * 0.06);
       ctx.lineWidth = Math.max(0.5, Math.log10(vacuumCount + 1) * 0.3);
@@ -734,7 +734,7 @@ function drawGradient() {
         ctx.fillText('vacuum (' + vacuumCount + ')', cx + radius + 8, cy - 10);
       }
 
-      // Draw probe ring (red � hostile)
+      // Draw probe ring (red â€” hostile)
       ctx.strokeStyle = modeColors.proxy_probe;
       ctx.globalAlpha = Math.min(0.25, Math.log10(probeCount + 1) * 0.08);
       ctx.lineWidth = 1;
@@ -743,7 +743,7 @@ function drawGradient() {
       ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Draw reader ring (teal � possibly human behind VPN)
+      // Draw reader ring (teal â€” possibly human behind VPN)
       ctx.strokeStyle = modeColors.proxy_reader;
       ctx.globalAlpha = Math.min(0.3, Math.log10(readerCount + 1) * 0.06);
       ctx.lineWidth = Math.max(0.5, Math.log10(readerCount + 1) * 0.3);
@@ -760,7 +760,7 @@ function drawGradient() {
 
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
-      return; // skip default ghost ring � we drew 3 sub-rings instead
+      return; // skip default ghost ring â€” we drew 3 sub-rings instead
     }
 
     var color = modeColors[mode.class] || '#58a6ff';
@@ -839,7 +839,7 @@ function drawMembraneStack() {
     var perm = layer.permeability || 0.5;
     var alive = layer.alive;
     
-    // Shell ring � permeability determines opacity
+    // Shell ring â€” permeability determines opacity
     var alpha = alive ? Math.min(0.12, perm * 0.15) : 0.02;
     
     // Color by depth: inner=warm, outer=cool
@@ -847,7 +847,7 @@ function drawMembraneStack() {
     var color = colors[i % colors.length];
     var rgb = hexToRgba(color);
     
-    // Breathing animation � each layer breathes at its own rate
+    // Breathing animation â€” each layer breathes at its own rate
     var breathRate = w > 10 ? 0.3 : w > 5 ? 0.5 : 0.8;
     var breath = Math.sin(t * breathRate + i * 0.7) * 0.03;
     var shellR = r * (1 + breath);
@@ -929,7 +929,7 @@ function drawTooltip() {
 
 // -- MAIN RENDER LOOP --
 function frame() {
-  // Fade trail (not full clear � leaves motion traces)
+  // Fade trail (not full clear â€” leaves motion traces)
   ctx.fillStyle = 'rgba(1,4,9,0.15)';
   ctx.fillRect(0, 0, W, H);
 

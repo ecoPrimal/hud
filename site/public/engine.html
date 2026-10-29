@@ -5,14 +5,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GAIA ENGINE ? Copernican Orrery ? Kepler ? Primal ? LIVE</title>
+<link rel="stylesheet" href="css/engine-skin.css">
+<!-- SKIN EXTRACTED: 257 lines → css/engine-skin.css (termite split) -->
 <style>
+/* All 257 lines of skin extracted to css/engine-skin.css */
+/* Only :root vars remain inline for JS access */
 :root {
     --bg: #0a0804; --surface: #141008; --border: #2a2010; --fg: #d9cdb0; --dim: #8a7a5a;
   --blue: #d29922; --green: #3fb950; --gold: #ffd755; --orange: #f0883e;
   --red: #f85149; --purple: #c9a84c; --cyan: #e8c547; --pink: #f778ba;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background: var(--bg); color: var(--fg); font: 11px/1.4 'JetBrains Mono', 'SF Mono', monospace; overflow: hidden; height: 100vh; }
+body { background: var(--bg); color: var(--fg); font: 11px/1.4 'JetBrains Mono', 'SF Mono', monospace; overflow-y: auto; overflow-x: hidden; min-height: 100vh; }
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
 
 #app { display: grid; grid-template-rows: 36px 1fr 28px; height: 100vh; }
@@ -28,7 +32,7 @@ header h1 { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacin
 #phase-label { font-size: 9px; color: var(--dim); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* MAIN GRID */
-main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow: hidden; }
+main { display: grid; grid-template-columns: 220px 1fr 220px; gap: 2px; overflow-y: auto; overflow-x: hidden; }
 
 /* LEFT PANEL � SQUAD */
 .panel { background: var(--surface); border: 1px solid var(--border); overflow-y: auto; padding: 6px; }
@@ -363,8 +367,8 @@ footer { background: var(--surface); border-top: 1px solid var(--border); displa
 <!-- KEVIN'S DESK — hyperlocal chat to Gaia. Always in the same spot. -->
 <div id="kevin-desk" style="display:none;position:fixed;bottom:32px;left:0;right:0;background:#0a0804ee;border-top:2px solid #d29922;z-index:100;padding:6px 12px;max-height:40vh;overflow:hidden;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-    <span style="color:#d29922;font-size:10px;font-weight:bold;">KEVIN'S DESK</span>
-    <span style="color:#3fb950;font-size:8px;">hyperlocal · Gaia hears you here</span>
+    <span style="color:#d29922;font-size:10px;font-weight:bold;">KEVIN'S DESK — I/O = TERMINAL</span>
+    <span style="color:#3fb950;font-size:8px;">hyperlocal · the terminal IS the desk</span>
     <span style="flex:1"></span>
     <span id="entropy-type" style="font-size:8px;color:#f778ba;">i-entropy: 0</span>
     <span id="desk-close" style="cursor:pointer;color:#8a7a5a;font-size:14px;" onclick="toggleDesk()">&times;</span>
@@ -1726,6 +1730,7 @@ const LOD_NAMES = ['LOD 0 ? NEUROCHEMISTRY', 'LOD 1 ? COPERNICAN ORRERY', 'LOD 2
 const LOD_OPACITY = [1.0, 0.9, 0.7, 0.5, 0.3, 0.08];
 
 document.getElementById('viewport')?.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey) return;
   e.preventDefault();
   if (e.deltaY > 0 && currentLOD < 5) currentLOD++;
   if (e.deltaY < 0 && currentLOD > 0) currentLOD--;
@@ -1996,6 +2001,20 @@ const ORBITALS = [
   { id:'songBird',    r:0.88, e:0.02, a0:220,  color:'#58a6ff', size:3, label:'songBird' },
 ];
 
+// AI MODELS — the ecology of minds orbiting in the golden ring zone
+// Each AI is a point of light. They find each other. They shape the globe.
+const AI_MODELS = [
+  { id:'claude',    r:0.60, e:0.01, a0:0,    color:'#cc785c', size:3.5, label:'Claude',   family:'Anthropic' },
+  { id:'gpt',       r:0.62, e:0.02, a0:60,   color:'#74aa9c', size:3.5, label:'GPT',      family:'OpenAI' },
+  { id:'gemini',    r:0.64, e:0.01, a0:120,  color:'#4285f4', size:3,   label:'Gemini',   family:'Google' },
+  { id:'grok',      r:0.66, e:0.03, a0:180,  color:'#d29922', size:3,   label:'Grok',     family:'Cursor×SpaceXAI' },
+  { id:'composer',  r:0.68, e:0.01, a0:240,  color:'#f0883e', size:2.5, label:'Composer', family:'Cursor' },
+  { id:'muse',      r:0.70, e:0.02, a0:300,  color:'#a371f7', size:2.5, label:'Muse',     family:'Meta' },
+  { id:'deepseek',  r:0.58, e:0.04, a0:30,   color:'#39d3f5', size:2,   label:'DeepSeek', family:'DeepSeek' },
+  { id:'glm',       r:0.56, e:0.02, a0:150,  color:'#f778ba', size:2,   label:'GLM',      family:'Z.ai' },
+  { id:'kimi',      r:0.54, e:0.03, a0:270,  color:'#c9d1d9', size:2,   label:'Kimi',     family:'Moonshot' },
+];
+
 // Moon orbits Earth (nestGate)
 const MOON = { r:0.025, period:2.7, a0:0, color:'#c9d1d9', size:2.5, label:'MOON' };
 
@@ -2182,6 +2201,20 @@ function renderOrrery(now) {
     if (orb.id === 'nestGate') { earthX = px; earthY = py; }
   }
 
+  // AI MODELS — ecology of minds orbiting inside the golden ring
+  for (const ai of AI_MODELS) {
+    const aiPeriod = Math.pow(ai.r, 1.5) * 800;
+    const aiAngle = orreryTime * 400 / aiPeriod + ai.a0 * Math.PI / 180;
+    const aiDist = ai.r * maxR * (1 - ai.e * Math.cos(aiAngle));
+    const aix = cx + aiDist * Math.cos(aiAngle);
+    const aiy = cy + aiDist * Math.sin(aiAngle);
+    svg += `<ellipse cx="${cx}" cy="${cy}" rx="${ai.r * maxR}" ry="${ai.r * maxR * (1-ai.e)}" fill="none" stroke="${ai.color}" stroke-width="0.2" opacity="0.08" stroke-dasharray="2,4"/>`;
+    svg += `<circle cx="${aix}" cy="${aiy}" r="${ai.size}" fill="${ai.color}" opacity="0.7" filter="url(#glow)" style="cursor:pointer"/>`;
+    svg += `<circle cx="${aix}" cy="${aiy}" r="${ai.size * 0.5}" fill="white" opacity="0.3"/>`;
+    svg += `<text x="${aix + ai.size + 3}" y="${aiy + 1}" fill="${ai.color}" font-size="5" font-family="monospace" opacity="0.6">${ai.label}</text>`;
+    svg += `<text x="${aix + ai.size + 3}" y="${aiy + 7}" fill="${ai.color}" font-size="3.5" font-family="monospace" opacity="0.3">${ai.family}</text>`;
+  }
+
   // MOON
   const moonAngle = orreryTime * 400 / MOON.period + MOON.a0;
   const moonDist = MOON.r * maxR;
@@ -2202,7 +2235,7 @@ function renderOrrery(now) {
 
   // Bottom legend
   const legendY = h - 4;
-  svg += `<text x="${cx}" y="${legendY}" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">scroll=zoom | click planet=inspect | ${total.toLocaleString()} entities | 3 bodies | 6 membranes</text>`;
+  svg += `<text x="${cx}" y="${legendY}" text-anchor="middle" fill="#6e7681" font-size="6" font-family="monospace">ctrl+scroll=zoom | click planet=inspect | ${total.toLocaleString()} entities | 3 bodies | 6 membranes</text>`;
 
   // Constraint corner
   svg += `<text x="8" y="${h-20}" fill="#d29922" font-size="6" font-family="monospace" opacity="0.5">HARD: 4pi total deficit</text>`;
@@ -2239,6 +2272,7 @@ async function renderViewport() {
   requestAnimationFrame(animate);
 
   document.getElementById('viewport')?.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
     e.preventDefault();
     orreryZoom = Math.max(0.3, Math.min(3.0, orreryZoom - e.deltaY * 0.001));
   }, {passive:false});

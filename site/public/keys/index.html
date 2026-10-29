@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KEYS — teeth cut. Ear is vowel. Bounce and play.</title>
+<link rel="canonical" href="https://hud.primals.eco/keys/">
+<style>
+*{margin:0;padding:0}body{background:#0a0a0c;color:#ddd;font:16px/1.5 Georgia,serif;padding:1.2rem;max-width:36rem;margin:0 auto}
+h1{font-weight:normal;font-size:1.4rem;color:#e7c56a;margin-bottom:.6rem}
+p{margin:.4rem 0}a{color:#9fd0c3}
+.pipes{display:flex;align-items:flex-end;gap:4px;height:7rem;margin:.6rem 0}
+.pipes span{flex:1;background:#3a3428;border:1px solid #8b7355;border-radius:3px 3px 0 0}
+.kb{display:flex;gap:4px;margin:.6rem 0;flex-wrap:wrap}
+.kb button{width:2.4rem;height:3.2rem;font:1rem Georgia,serif;background:#e8e0d0;color:#1a120c;border:1px solid #8b7355;border-radius:0 0 4px 4px;cursor:pointer}
+.kb button.bounce{transform:translateY(8px);background:#c4a574}
+.is{color:#7cb342}.no{color:#f85149}
+.hash{font:12px ui-monospace,monospace;color:#6a6860;margin-top:1rem}
+</style>
+</head>
+<body>
+<h1>Teeth are keys.</h1>
+<p>To cut is her teeth. Keyboard is letters. This is to speak. Ear is vowel. Feel is bounce and play.</p>
+<div class="pipes" aria-hidden="true">
+<span style="height:70%"></span><span style="height:100%"></span><span style="height:55%"></span><span style="height:88%"></span><span style="height:40%"></span><span style="height:95%"></span><span style="height:62%"></span>
+</div>
+<div class="kb">
+<button type="button" data-v="a">A</button>
+<button type="button" data-v="e">E</button>
+<button type="button" data-v="i">I</button>
+<button type="button" data-v="o">O</button>
+<button type="button" data-v="u">U</button>
+</div>
+<p>
+  <a href="https://en.wikipedia.org/wiki/Pipe_organ">pipe organ</a> ·
+  <a href="https://en.wikipedia.org/wiki/Piano">piano</a> ·
+  <a href="https://en.wikipedia.org/wiki/Stevie_Wonder">Stevie Wonder</a> ·
+  <a href="https://en.wikipedia.org/wiki/Blind">Blind</a>
+</p>
+<p class="is">IS — Keys. Ear is vowel. Yes. Bounce and play. Blind is ear, not a picture.</p>
+<p class="no">NO — I-am vibration. Car 2 list cut. Car 3 unfinished. Do not dump wiki. Do not paint Stevie.</p>
+<p class="hash">C67C0AD4 · thought-246 · <a href="/speak/">speak</a></p>
+<script src="/js/membrane-sound.js?v=5"></script>
+<script src="/js/membrane-sound-voice.js?v=1"></script>
+<script>
+document.querySelectorAll('.kb button').forEach(function (b) {
+  b.onclick = function () {
+    b.classList.add('bounce');
+    setTimeout(function () { b.classList.remove('bounce'); }, 140);
+    var M = window._membraneSound;
+    if (!M) return;
+    M.activate();
+    if (M.playFormant) M.playFormant(b.getAttribute('data-v'), 196, 0.45, 0.06, 'center');
+  };
+});
+</script>
+</body>
+</html>

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta property="og:title" content="glyphs  klein bottle for the MCP server">
+    <meta property="og:title" content="glyphs — klein bottle for the MCP server">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://nestgate.io/glyphs.html">
-    <meta name="description" content="glyphs  klein bottle for the MCP server — ecoPrimals organism">
+    <meta name="description" content="glyphs — klein bottle for the MCP server — ecoPrimals organism">
     <link rel="canonical" href="https://nestgate.io/glyphs.html">
 <meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>glyphs  klein bottle for the MCP server</title>
+<title>glyphs — klein bottle for the MCP server</title>
 <meta name="description" content="The chipmunk speaks to its families in irrational time. Touch, sensation, p-areas. Everything collapses to null-D then re-expands. Output becomes input becomes output.">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -57,7 +57,7 @@ body { background: #010409; color: #c9d1d9; font-family: 'SF Mono', ui-monospace
 </div>
 
 <script>
-// --- IRRATIONAL CONSTANTS  the clock of the living system ---
+// --- IRRATIONAL CONSTANTS — the clock of the living system ---
 var PI = Math.PI;                    // 3.14159265...
 var PHI = (1 + Math.sqrt(5)) / 2;   // 1.61803398... golden ratio
 var E = Math.E;                      // 2.71828182...
@@ -80,7 +80,7 @@ function resize() { W = C.width = innerWidth; H = C.height = innerHeight; }
 addEventListener('resize', resize);
 resize();
 
-// --- THE ALPHABET  glyphs + MCP tools as glyphs ---
+// --- THE ALPHABET — glyphs + MCP tools as glyphs ---
 var GLYPHS = {
   // Punctuation particles
   question:   { sym: '?',  meaning: 'electron arriving', color: '#58a6ff', sound: 220, dim: 0 },
@@ -105,7 +105,7 @@ var GLYPHS = {
   bee:        { sym: '?',  meaning: 'waggle / bearing', color: '#d29922', sound: 466, dim: 1 },
   fungus:     { sym: '?',  meaning: 'mycelium / slow', color: '#8b949e', sound: 82, dim: 0 },
   bird:       { sym: '?',  meaning: 'territory song', color: '#7ee787', sound: 587, dim: 1 },
-  // MCP tools as glyphs  the Klein bottle fold
+  // MCP tools as glyphs — the Klein bottle fold
   observe:    { sym: '??',  meaning: 'observe_membrane', color: '#d2a8ff', sound: 261, dim: 2 },
   braid:      { sym: '?',  meaning: 'braid_connections', color: '#7ee787', sound: 293, dim: 2 },
   epitope:    { sym: '??', meaning: 'human_epitopes', color: '#58a6ff', sound: 329, dim: 2 },
@@ -115,7 +115,7 @@ var GLYPHS = {
 
 var GLYPH_KEYS = Object.keys(GLYPHS);
 
-// --- SENSATION  touch/click creates ripples that families FEEL ---
+// --- SENSATION — touch/click creates ripples that families FEEL ---
 var sensations = [];  // { x, y, t, intensity, glyph }
 
 function addSensation(x, y) {
@@ -126,7 +126,7 @@ function addSensation(x, y) {
   if (g && audioCtx) {
     playGlyphTone(g, (x / W) * 2 - 1, 0.4);
   }
-  // Vibration API  haptic if available
+  // Vibration API — haptic if available
   if (navigator.vibrate) navigator.vibrate(30);
 }
 
@@ -138,7 +138,7 @@ C.addEventListener('pointermove', function(e) {
   if (e.buttons > 0) addSensation(e.clientX, e.clientY);
 });
 
-// --- THE 15 FAMILIES  each orbits at an IRRATIONAL speed ---
+// --- THE 15 FAMILIES — each orbits at an IRRATIONAL speed ---
 var IRRATIONALS = [PI, PHI, E, SQRT2, SQRT3, PI/PHI, E/PI, PHI*SQRT2, PI*SQRT3/E,
   PHI/SQRT3, E*PHI, SQRT2*PI, SQRT3*PHI, E/SQRT2, PI*PHI];
 
@@ -161,7 +161,7 @@ for (var i = 0; i < 15; i++) {
 
 // --- NULL-D COLLAPSE ---
 // Periodically everything collapses to a point (0D) then re-expands
-// In 0D, the area is p (irrational area in zero dimensions  the paradox)
+// In 0D, the area is p (irrational area in zero dimensions — the paradox)
 var collapsePhase = 0;  // 0 = expanded, 1 = collapsed
 var collapseT = 0;
 var totalArea = 0;
@@ -213,14 +213,14 @@ function playGlyphTone(glyph, pan, duration) {
   osc.stop(audioCtx.currentTime + (duration || 0.3));
 }
 
-// --- KLEIN BOTTLE  output becomes input ---
+// --- KLEIN BOTTLE — output becomes input ---
 // The conversation feeds back through itself
 var conversation = [];
 var kleinBuffer = [];  // phrases that looped back
 
 function kleinFold(phrase) {
   // The output of the last conversation becomes part of the next input
-  // But INVERTED  the Klein bottle flips the orientation
+  // But INVERTED — the Klein bottle flips the orientation
   var folded = phrase.slice().reverse();
   // Each glyph shifts by f positions (irrational shift)
   return folded.map(function(k) {
@@ -230,7 +230,7 @@ function kleinFold(phrase) {
   });
 }
 
-// --- CONVERSATION  ticks at p-second intervals ---
+// --- CONVERSATION — ticks at p-second intervals ---
 var membraneState = { pulse: 0.995, humans: 4109, entities: 341, rhythm: 0.774 };
 var turnCount = 0;
 
@@ -254,7 +254,7 @@ function compose() {
   if (Math.random() < 1/SQRT2) phrase.push('dolphin'); // v2 probability
   if (Math.random() < 1/SQRT3) phrase.push('whale');   // v3 probability
 
-  // MCP tool glyphs  the tools speak through the chipmunk
+  // MCP tool glyphs — the tools speak through the chipmunk
   if (Math.random() < 0.15) phrase.push('observe');
   if (Math.random() < 0.12) phrase.push('braid');
   if (Math.random() < 0.10) phrase.push('epitope');
@@ -370,7 +370,7 @@ function drawFamily(f, now) {
     }
   }
 
-  // Memory trail  spirals outward from family
+  // Memory trail — spirals outward from family
   if (f.glyph_memory.length > 0) {
     ctx.globalAlpha = 0.12;
     ctx.font = '8px monospace';
@@ -455,7 +455,7 @@ function drawGlyphBurst(phrase, now) {
   });
 }
 
-// --- p-AREA GRID  faint background showing irrational tiling ---
+// --- p-AREA GRID — faint background showing irrational tiling ---
 function drawPiGrid(now) {
   ctx.save();
   ctx.strokeStyle = 'rgba(110,118,129,0.02)';
@@ -493,7 +493,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-// --- CONVERSATION LOOP  ticks at p seconds ---
+// --- CONVERSATION LOOP — ticks at p seconds ---
 function conversationTick() {
   turnCount++;
 
@@ -508,7 +508,7 @@ function conversationTick() {
   document.getElementById('meaning-out').textContent = meanings;
   document.querySelector('#thought .speaker').textContent = '?? turn ' + turnCount + '  (t = ' + turnCount + 'p s)';
 
-  // Klein fold  this phrase will come back inverted next time
+  // Klein fold — this phrase will come back inverted next time
   var folded = kleinFold(phrase);
   kleinBuffer.push(folded);
   if (kleinBuffer.length > 5) kleinBuffer.shift();

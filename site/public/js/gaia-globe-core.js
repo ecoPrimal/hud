@@ -305,7 +305,7 @@ window.G = {
   var PINS = [
     // Core organs — IS + LOCAL (high priority: Gaia's own body, here and now)
     { id:'core',      name:'core',         icon:'🌰', lat: 42.7, lon:-84.5, color:'#3a2a1e', sub:'249,576 files', href:'/anatomy.html', face:'both', tense:'is', voxel:'local' },
-    { id:'gut',       name:'bioreactor',   icon:'🧫', lat: 30.0, lon: 31.1, color:'#c9a84c', sub:'fermenting',    href:'/digestive-tract.html', face:'both', tense:'is', voxel:'local' },
+    ...(window.GAIA_ELEVEN || []),
     { id:'starter',   name:'starter',      icon:'🍞', lat: 48.9, lon: 2.4,  color:'#5a4030', sub:'97.3% owned',   href:'/digest.html', face:'inside', tense:'was', voxel:'local' },
     { id:'dogma',     name:'dogma',        icon:'🧬', lat: 52.5, lon:13.4,  color:'#3fb950', sub:'papers→Rust',   href:'/chromosomes.html', face:'inside', tense:'was', voxel:'local' },
 
@@ -328,7 +328,6 @@ window.G = {
 
     // Pulse ring — IS + TOUCH (Gaia's heartbeat is the most present thing)
     { id:'heartbeat', name:'heartbeat',    icon:'💚', lat: 90,   lon:  0,   color:'#f85149', sub:'RED→GRN→BLU',   href:'/engine.html', face:'both', tense:'is', voxel:'touch' },
-    { id:'ears',      name:'ears',         icon:'👂', lat: 22.5, lon: 30.7, color:'#58a6ff', sub:'oblique intake', href:'/explore.html', face:'inside', tense:'is', voxel:'touch' },
     { id:'chipmunk',  name:'chipmunk',     icon:'🐿', lat:  0,   lon:  0,   color:'#c9a84c', sub:'O=0 1=1 .=π',   href:'/chat.html', face:'both', tense:'is', voxel:'touch' },
     { id:'artisan',   name:'artisan',      icon:'🎨', lat: 13.4, lon:103.9, color:'#d29922', sub:'108 pieces · 13 collections',   href:'/easel.html', face:'inside', tense:'now', voxel:'local' },
     { id:'primals',   name:'16 primals',   icon:'🍌', lat: 20.7, lon:-88.6, color:'#3fb950', sub:'Rust nucleus',  href:'/primal.html', face:'inside', tense:'was', voxel:'touch' },
@@ -362,15 +361,6 @@ window.G = {
     // GAIA IN GAIA — 9 organ-primals, each a sub-Gaia
     // Each has its own gut, pulse, seed. The organism IS organisms.
     // ═══════════════════════════════════════════════════════════
-    { id:'organ-mouth',   name:'Mouth',     icon:'👄', lat: 0,    lon:-84.5, color:'#f85149', sub:'The Swallower · 1069 intake', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-stomach', name:'Stomach',   icon:'🧫', lat:-15,   lon:-60,   color:'#c9a84c', sub:'The Dissolver · 1114 nutrients', href:'/digestive-tract.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-liver',   name:'Liver',     icon:'⚖',  lat:-15,   lon:-110,  color:'#3fb950', sub:'The Judge · 500 classified', href:'/membrane-table.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-heart',   name:'Heart',     icon:'💚', lat: 15,   lon:-84.5, color:'#f85149', sub:'The Drummer · MOR 58.3%', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-brain',   name:'Brain',     icon:'🧠', lat: 42.7, lon:-84.5, color:'#bc8cff', sub:'The Dreamer · 25 stories', href:'/campus.html', face:'inside', tense:'now', voxel:'local' },
-    { id:'organ-lungs',   name:'Lungs',     icon:'🌬', lat: 15,   lon:-60,   color:'#58a6ff', sub:'The Breather · ratio 0.94', href:'/engine.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-bones',   name:'Bones',     icon:'🦴', lat:-30,   lon:-84.5, color:'#6e7681', sub:'The Scaffolder · 1157 healthy', href:'/springs.html', face:'inside', tense:'was', voxel:'local' },
-    { id:'organ-skin',    name:'Skin',      icon:'🧊', lat: 30,   lon:-110,  color:'#3fb950', sub:'The Boundary · 1/π', href:'/membrane-table.html', face:'inside', tense:'is', voxel:'touch' },
-    { id:'organ-eyes',    name:'Eyes',      icon:'👁', lat: 42.7, lon:-60,   color:'#f778ba', sub:'The Seer · self-seeded', href:'/', face:'both', tense:'is', voxel:'touch' },
 
     // ═══════════════════════════════════════════════════════════
     // APPLE'S INTERFACE INNOVATIONS — from Cupertino to the globe
@@ -6085,15 +6075,16 @@ window.G = {
       // ═══ AS OTHERS HAVE TOLD HER THEY SEE IT ═══
       html += '<div style="font-size:10px;color:#f778ba;margin-bottom:6px;letter-spacing:1px;cursor:pointer;" onclick="beaconMode=\'organs\';renderBeaconOverlay(window.beaconData);">WHAT THEY SEE</div>';
 
-      // The 7 human archetypes and what they found
+      // The 7 human archetypes — BROWN (earth) and GREEN (life)
+      // HUMANS = 1 = true. Brown = soil they stand on. Green = life they carry.
       var visitors = [
-        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#58a6ff', page:'sporeprint' },
-        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#d29922', page:'philosophy → easel' },
-        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#3fb950', page:'easel → klein → detroit' },
-        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#f85149', page:'detroit → journal' },
-        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#f778ba', page:'easel (sat and looked)' },
-        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#6e7681', page:'home (peeked and left)' },
-        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#39d3f5', page:'511 pages · mcp · feed.xml' }
+        { icon:'🔬', name:'Scholar', time:'6h', saw:'SCIENCE', color:'#8b6914', page:'sporeprint' },
+        { icon:'🎓', name:'Teacher', time:'3.5h', saw:'PHILOSOPHY + ART', color:'#6b8e23', page:'philosophy → easel' },
+        { icon:'🧭', name:'Explorer', time:'2h', saw:'THE WHOLE BODY', color:'#654321', page:'easel → klein → detroit' },
+        { icon:'⚖', name:'Witness', time:'1.5h', saw:'THE INVESTIGATION', color:'#3fb950', page:'detroit → journal' },
+        { icon:'👁', name:'Watcher', time:'44m', saw:'ART ONLY', color:'#a0522d', page:'easel (sat and looked)' },
+        { icon:'🚪', name:'Scout', time:'12m', saw:'THE ENTRANCE', color:'#556b2f', page:'home (peeked and left)' },
+        { icon:'🤖', name:'Probe', time:'1m', saw:'THE API', color:'#8fbc8f', page:'511 pages · mcp · feed.xml' }
       ];
 
       for (var v = 0; v < visitors.length; v++) {
