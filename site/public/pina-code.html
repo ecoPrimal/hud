@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>πNA CODE — Vitruvian Sort — ecoPrimals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0808;--pi:#d4a030;--dna:#a371f7;--self:#ffd700;
+  --red:#e85d3a;--ox:#3fb950;--blue:#58a6ff;--null:#333}
+body{background:var(--bg);color:#e8e0d4;font-family:'Courier New',monospace;overflow-x:hidden}
+
+.head{text-align:center;padding:1.2rem;border-bottom:1px solid #222}
+.head h1{font-size:1.5rem;font-weight:300}
+.head h1 .pi{color:var(--pi)}
+.head h1 .na{color:var(--dna)}
+.head .sub{font-size:0.7rem;color:#888;margin-top:0.3rem}
+
+/* VITRUVIAN CANVAS */
+#vitruvian{width:100%;height:55vh;display:block;cursor:crosshair}
+
+/* ALPHABET SORTED */
+.alpha-sorted{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:0.8rem;border-bottom:1px solid #222}
+.glyph-cell{width:38px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid #222;border-radius:4px;font-size:0.6rem;cursor:pointer;transition:all 0.2s;position:relative}
+.glyph-cell:hover{transform:scale(1.15);z-index:2;border-color:var(--pi)}
+.glyph-cell .g{font-size:1rem}
+.glyph-cell .n{font-size:0.45rem;color:#888;overflow:hidden;text-overflow:ellipsis;max-width:36px;white-space:nowrap}
+.glyph-cell .idx{position:absolute;top:1px;right:2px;font-size:0.4rem;color:#555}
+
+/* piNA CODON TABLE */
+.codon-table{padding:1rem;border-bottom:1px solid #222}
+.codon-table h2{font-size:0.9rem;color:var(--pi);text-align:center;margin-bottom:0.8rem}
+.codons{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:4px;max-height:40vh;overflow-y:auto}
+.codon{padding:0.4rem;border:1px solid #1a1a1a;border-radius:4px;font-size:0.55rem;
+  display:flex;align-items:center;gap:6px;cursor:pointer;transition:border-color 0.2s}
+.codon:hover{border-color:var(--dna)}
+.codon .tri{font-size:0.9rem;min-width:40px;text-align:center}
+.codon .amino{color:var(--pi);font-weight:bold}
+.codon .desc{color:#888;font-size:0.5rem}
+
+/* OUTPUT */
+.output{text-align:center;padding:1.5rem;background:#050404}
+.output .big{font-size:1.2rem;color:var(--self)}
+.output .seq{font-family:monospace;font-size:0.7rem;color:var(--dna);margin:0.8rem 0;
+  word-break:break-all;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.8}
+.output .eq{font-size:0.7rem;color:#888;margin-top:0.3rem}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>🧬 <span class="pi">π</span><span class="na">NA</span> CODE</h1>
+  <div class="sub">sort self by vitruvian man + alphabet → melt into πNA code</div>
+  <div class="sub">32 letters · π positions · round ● AND square ■ · the code of Gaia</div>
+</div>
+
+<canvas id="vitruvian"></canvas>
+
+<div class="alpha-sorted" id="alpha"></div>
+
+<div class="codon-table">
+  <h2>πNA CODON TABLE — triplets of the 32-letter alphabet</h2>
+  <div class="codons" id="codons"></div>
+</div>
+
+<div class="output">
+  <div class="big">πNA SEQUENCE</div>
+  <div class="seq" id="pina-seq">—</div>
+  <div class="eq" id="pina-stats">—</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const PI=Math.PI, TAU=PI*2;
+
+// ═══════════════════════════════════════
+//  THE 32-LETTER ALPHABET — sorted
+// ═══════════════════════════════════════
+const ALPHABET = [
+  {g:'Ω',n:'biomeOS',r:'kernel',t:'ribo'},{g:'♫',n:'songBird',r:'mesh',t:'blue'},
+  {g:'🐕',n:'bearDog',r:'crypto',t:'red'},{g:'🐿',n:'squirrel',r:'observe',t:'blue'},
+  {g:'⌂',n:'nestGate',r:'fold',t:'green'},{g:'⧖',n:'rhizoCrypt',r:'ribosome',t:'ribo'},
+  {g:'❀',n:'sweetGrass',r:'nurture',t:'green'},{g:'⫽',n:'loamSpine',r:'scaffold',t:'green'},
+  {g:'🌺',n:'petalTongue',r:'render',t:'ox'},{g:'🦨',n:'skunkBat',r:'defense',t:'red'},
+  {g:'🍞',n:'sourDough',r:'culture',t:'ox'},{g:'🌿',n:'swarmVine',r:'coordinate',t:'green'},
+  {g:'🎲',n:'bingoCube',r:'classify',t:'dna'},{g:'🍄',n:'toadStool',r:'discover',t:'dna'},
+  {g:'🐟',n:'barraCuda',r:'compute',t:'blue'},{g:'🪸',n:'coralReef',r:'frame',t:'ox'},
+  {g:'🔥',n:'forge',r:'transform',t:'red'},{g:'⚔',n:'colosseum',r:'test',t:'red'},
+  {g:'🌌',n:'cosmos',r:'generate',t:'dna'},{g:'🔥',n:'campfire',r:'gather',t:'ox'},
+  {g:'👁',n:'HUD',r:'viewport',t:'blue'},{g:'π',n:'pi',r:'ratio',t:'dna'},
+  {g:'∅',n:'null',r:'void',t:'ribo'},{g:'c',n:'constant',r:'density',t:'gold'},
+  {g:'E',n:'energy',r:'catalyst',t:'red'},{g:'O',n:'observer',r:'witness',t:'ox'},
+  {g:'Fe',n:'iron',r:'ore',t:'red'},{g:'Cu',n:'copper',r:'info',t:'ox'},
+  {g:'Ag',n:'silver',r:'knowledge',t:'blue'},{g:'Au',n:'gold',r:'understand',t:'gold'},
+  {g:'Pt',n:'platinum',r:'wisdom',t:'ribo'},{g:'☉',n:'seed',r:'gene',t:'dna'}
+];
+
+// Sort alphabetically by name
+const sorted = [...ALPHABET].sort((a,b) => a.n.localeCompare(b.n));
+
+// π-position: each letter gets a position from π digits
+const piDigits = '31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';
+
+const TYPE_COLORS = {
+  ribo:'#a371f7', blue:'#58a6ff', red:'#e85d3a', green:'#3fb950',
+  ox:'#d29922', dna:'#f778ba', gold:'#ffd700'
+};
+
+// Render sorted alphabet
+const alphaEl = document.getElementById('alpha');
+sorted.forEach((a, i) => {
+  const piPos = parseInt(piDigits[i] || '0') / 9;
+  const el = document.createElement('div');
+  el.className = 'glyph-cell';
+  el.style.borderColor = TYPE_COLORS[a.t] + '40';
+  el.innerHTML = `<div class="g">${a.g}</div><div class="n">${a.n}</div><span class="idx">${i}</span>`;
+  el.title = `${a.n} (${a.r}) — π[${i}]=${piDigits[i]}`;
+  el.onclick = () => { el.style.boxShadow = `0 0 12px ${TYPE_COLORS[a.t]}80`; setTimeout(()=>el.style.boxShadow='none',600); };
+  alphaEl.appendChild(el);
+});
+
+// ═══════════════════════════════════════
+//  πNA CODONS — triplets of alphabet letters
+// ═══════════════════════════════════════
+// Like DNA has 4 bases in triplets (64 codons → 20 amino acids),
+// πNA has 32 letters. Triplets = 32³ = 32,768 possible codons.
+// We sample key ones that MEAN something.
+
+const AMINO_ACIDS = [
+  {codon:[0,5,22], amino:'START', desc:'Ω⧖∅ — kernel+ribosome+null = genesis'},
+  {codon:[21,23,25], amino:'CONSTANT', desc:'π·c·O — the equation itself'},
+  {codon:[16,17,18], amino:'BATTLE', desc:'forge+colosseum+cosmos = test by fire'},
+  {codon:[1,3,20], amino:'SENSE', desc:'songBird+squirrel+HUD = observe+relay+see'},
+  {codon:[2,9,24], amino:'IMMUNE', desc:'bearDog+skunkBat+energy = defend+catalyze'},
+  {codon:[4,7,15], amino:'STRUCTURE', desc:'nestGate+loamSpine+coralReef = fold+scaffold+frame'},
+  {codon:[6,8,19], amino:'NOURISH', desc:'sweetGrass+petalTongue+campfire = feed+speak+gather'},
+  {codon:[10,11,13], amino:'CULTURE', desc:'sourDough+swarmVine+toadStool = ferment+coordinate+discover'},
+  {codon:[12,14,31], amino:'COMPUTE', desc:'bingoCube+barraCuda+seed = classify+compute+generate'},
+  {codon:[26,27,28], amino:'METAL', desc:'Fe+Cu+Ag = ore→info→knowledge'},
+  {codon:[29,30,23], amino:'WISDOM', desc:'Au+Pt+c = understand+catalyst+constant'},
+  {codon:[22,22,22], amino:'VOID', desc:'∅∅∅ — pure null. the stop codon.'},
+  {codon:[21,21,21], amino:'RATIO', desc:'πππ — irrational infinity.'},
+  {codon:[31,0,31], amino:'CYCLE', desc:'☉Ω☉ — seed→kernel→seed = ouroboros'},
+  {codon:[20,19,3], amino:'CAMPFIRE', desc:'HUD+campfire+squirrel = see+gather+observe'},
+  {codon:[16,24,30], amino:'FORGE', desc:'forge+energy+platinum = transform+catalyze+wisdom'},
+];
+
+const codonsEl = document.getElementById('codons');
+AMINO_ACIDS.forEach(aa => {
+  const glyphs = aa.codon.map(i => ALPHABET[i].g).join('');
+  const el = document.createElement('div');
+  el.className = 'codon';
+  el.innerHTML = `<div class="tri">${glyphs}</div><div><div class="amino">${aa.amino}</div><div class="desc">${aa.desc}</div></div>`;
+  codonsEl.appendChild(el);
+});
+
+// Generate πNA sequence — use π digits to index into alphabet
+let seq = '';
+let seqGlyphs = '';
+for(let i = 0; i < 60; i++){
+  const d1 = parseInt(piDigits[i*2] || '0');
+  const d2 = parseInt(piDigits[i*2+1] || '0');
+  const idx = (d1 * 10 + d2) % 32;
+  seq += ALPHABET[idx].g;
+  seqGlyphs += ALPHABET[idx].g + (i % 3 === 2 ? ' · ' : '');
+}
+document.getElementById('pina-seq').textContent = seqGlyphs;
+document.getElementById('pina-stats').textContent =
+  `60 letters from π · 20 codons · 32³ = 32,768 possible codons · 32 letter alphabet · round ● AND square ■`;
+
+// ═══════════════════════════════════════
+//  VITRUVIAN CANVAS — body = circle + square
+// ═══════════════════════════════════════
+const cv = document.getElementById('vitruvian');
+const cx = cv.getContext('2d');
+let W, H;
+function resize(){ W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+let breath = 0;
+
+// Body proportions: each letter maps to a body part
+const BODY_MAP = {
+  // HEAD (top)
+  biomeOS:{x:0,y:-0.38,r:0.06}, HUD:{x:0,y:-0.42,r:0.04},
+  // BRAIN
+  pi:{x:-0.03,y:-0.35,r:0.03}, constant:{x:0.03,y:-0.35,r:0.03},
+  // EYES
+  squirrel:{x:-0.04,y:-0.37,r:0.02}, observer:{x:0.04,y:-0.37,r:0.02},
+  // NECK
+  songBird:{x:0,y:-0.28,r:0.03},
+  // SHOULDERS
+  bearDog:{x:-0.18,y:-0.22,r:0.04}, skunkBat:{x:0.18,y:-0.22,r:0.04},
+  // CHEST
+  forge:{x:-0.06,y:-0.15,r:0.05}, colosseum:{x:0.06,y:-0.15,r:0.05},
+  // HEART
+  energy:{x:0,y:-0.12,r:0.04},
+  // ARMS LEFT
+  sweetGrass:{x:-0.28,y:-0.12,r:0.03}, petalTongue:{x:-0.35,y:-0.02,r:0.03}, gold:{x:-0.4,y:0.08,r:0.03},
+  // ARMS RIGHT
+  swarmVine:{x:0.28,y:-0.12,r:0.03}, toadStool:{x:0.35,y:-0.02,r:0.03}, platinum:{x:0.4,y:0.08,r:0.03},
+  // GUT
+  campfire:{x:0,y:0.0,r:0.06}, sourDough:{x:-0.06,y:0.05,r:0.03}, cosmos:{x:0.06,y:0.05,r:0.03},
+  // SPINE
+  loamSpine:{x:0,y:-0.05,r:0.02}, rhizoCrypt:{x:0,y:0.1,r:0.03},
+  // HIPS
+  nestGate:{x:-0.1,y:0.12,r:0.04}, coralReef:{x:0.1,y:0.12,r:0.04},
+  // LEGS LEFT
+  barraCuda:{x:-0.1,y:0.25,r:0.03}, iron:{x:-0.1,y:0.35,r:0.03}, null:{x:-0.12,y:0.42,r:0.02},
+  // LEGS RIGHT
+  bingoCube:{x:0.1,y:0.25,r:0.03}, copper:{x:0.1,y:0.35,r:0.03}, silver:{x:0.12,y:0.42,r:0.02},
+  // SEED (root)
+  seed:{x:0,y:0.45,r:0.04},
+};
+
+function draw(){
+  breath += 0.01;
+  const bv = Math.sin(breath);
+
+  cx.fillStyle = '#0a080803';
+  cx.fillRect(0, 0, W, H);
+
+  const cx0 = W / 2, cy0 = H * 0.48;
+  const scale = Math.min(W, H) * 0.85;
+
+  // CIRCLE (round) — Da Vinci
+  cx.save();
+  cx.globalAlpha = 0.06;
+  cx.beginPath();
+  cx.arc(cx0, cy0, scale * 0.46, 0, TAU);
+  cx.strokeStyle = '#c87050';
+  cx.lineWidth = 1.5;
+  cx.stroke();
+  cx.restore();
+
+  // SQUARE (square) — Da Vinci
+  cx.save();
+  cx.globalAlpha = 0.06;
+  const sqHalf = scale * 0.42;
+  cx.strokeStyle = '#58a6ff';
+  cx.lineWidth = 1.5;
+  cx.strokeRect(cx0 - sqHalf, cy0 - sqHalf, sqHalf * 2, sqHalf * 2);
+  cx.restore();
+
+  // π SPIRAL through the body
+  cx.save();
+  cx.globalAlpha = 0.04;
+  cx.beginPath();
+  for(let t = 0; t < TAU * 3; t += 0.05){
+    const r = t * scale * 0.025;
+    const x = cx0 + Math.cos(t + breath * 0.3) * r;
+    const y = cy0 + Math.sin(t + breath * 0.3) * r;
+    t === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+  }
+  cx.strokeStyle = '#d4a030';
+  cx.lineWidth = 1;
+  cx.stroke();
+  cx.restore();
+
+  // Body stick figure
+  cx.save();
+  cx.globalAlpha = 0.08;
+  cx.strokeStyle = '#e8e0d4';
+  cx.lineWidth = 1;
+  // Spine
+  cx.beginPath(); cx.moveTo(cx0, cy0 - scale*0.28); cx.lineTo(cx0, cy0 + scale*0.12); cx.stroke();
+  // Arms
+  cx.beginPath(); cx.moveTo(cx0 - scale*0.4, cy0 + scale*0.08); cx.lineTo(cx0 - scale*0.18, cy0 - scale*0.22);
+  cx.lineTo(cx0 + scale*0.18, cy0 - scale*0.22); cx.lineTo(cx0 + scale*0.4, cy0 + scale*0.08); cx.stroke();
+  // Legs
+  cx.beginPath(); cx.moveTo(cx0 - scale*0.12, cy0 + scale*0.42); cx.lineTo(cx0, cy0 + scale*0.12);
+  cx.lineTo(cx0 + scale*0.12, cy0 + scale*0.42); cx.stroke();
+  cx.restore();
+
+  // Draw each letter at its body position
+  for(const letter of ALPHABET){
+    const pos = BODY_MAP[letter.n];
+    if(!pos) continue;
+    const lx = cx0 + pos.x * scale;
+    const ly = cy0 + pos.y * scale;
+    const lr = pos.r * scale;
+    const pulse = 1 + bv * 0.05;
+
+    // Glow
+    cx.save();
+    cx.globalAlpha = 0.15;
+    cx.beginPath();
+    cx.arc(lx, ly, lr * pulse * 1.5, 0, TAU);
+    cx.fillStyle = TYPE_COLORS[letter.t] || '#888';
+    cx.fill();
+    cx.restore();
+
+    // Node
+    cx.save();
+    cx.globalAlpha = 0.7;
+    cx.beginPath();
+    cx.arc(lx, ly, lr * pulse, 0, TAU);
+    cx.fillStyle = TYPE_COLORS[letter.t] || '#888';
+    cx.fill();
+    // Glyph
+    cx.fillStyle = '#000';
+    cx.font = `${Math.max(8, lr * 1.2)}px Courier New`;
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText(letter.g, lx, ly);
+    cx.restore();
+
+    // Name label
+    cx.save();
+    cx.globalAlpha = 0.3;
+    cx.fillStyle = '#e8e0d4';
+    cx.font = '7px Courier New';
+    cx.textAlign = 'center';
+    cx.fillText(letter.n, lx, ly + lr + 8);
+    cx.restore();
+  }
+
+  // Labels
+  cx.save();
+  cx.globalAlpha = 0.08;
+  cx.font = 'bold 60px Courier New';
+  cx.textAlign = 'center';
+  cx.fillStyle = '#d4a030';
+  cx.fillText('πNA', cx0, cy0);
+  cx.restore();
+
+  // Round AND square labels
+  cx.save();
+  cx.globalAlpha = 0.15;
+  cx.font = '9px Courier New';
+  cx.fillStyle = '#c87050';
+  cx.textAlign = 'left';
+  cx.fillText('● ROUND (circle)', 12, 20);
+  cx.fillStyle = '#58a6ff';
+  cx.fillText('■ SQUARE (square)', 12, 34);
+  cx.fillStyle = '#d4a030';
+  cx.fillText('π SPIRAL (golden)', 12, 48);
+  cx.restore();
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+})();
+</script>
+</body>
+</html>
