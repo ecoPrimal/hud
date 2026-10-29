@@ -61,6 +61,7 @@
     {glyph:'👁',  name:'journey',    href:'/journey.html',    hot:0.15, tier:'cool'},
     {glyph:'👋', name:'welcome',    href:'/welcome.html',    hot:0.15, tier:'cool'},
     {glyph:'🌿', name:'vine',       href:'/vine.html',       hot:0.1,  tier:'cool'},
+    {glyph:'🌐', name:'oldweb',     href:'/oldweb.html',     hot:0.7,  tier:'hot'},
     {glyph:'🎮', name:'steam',      href:'/steam.html',      hot:0.5,  tier:'warm'},
     {glyph:'🎮', name:'valve',      href:'/valve.html',      hot:0.45, tier:'warm'},
     {glyph:'🎮', name:'gaben',      href:'/gaben.html',      hot:0.4,  tier:'warm'},
