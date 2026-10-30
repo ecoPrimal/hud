@@ -1,0 +1,185 @@
+{
+  "ts": "2026-10-30T16:34:30Z",
+  "title": "LAN Mycelium Map \u2014 SMASHED and FED to Gaia",
+  "philosophy": "Lovelock + ZK: the network is alive, self-regulating. Zero-knowledge probing reveals topology without secrets.",
+  "domain": "primals.local",
+  "subnet": "192.168.4.0/24",
+  "total_devices": 16,
+  "gates": {
+    "eastGate": {
+      "ip": "192.168.4.103",
+      "hostname": "eastgate.primals.local",
+      "alias": "Beacon",
+      "os": "Pop!_OS 22.04",
+      "role": "Primary development + all 16 primals + membrane-lens + ollama",
+      "ssh": true,
+      "state": 1,
+      "specs": "64GB RAM, 1.8TB NVMe, 19 primals running",
+      "services": [
+        "membrane-lens",
+        "ollama (8 models)",
+        "32 cron mushrooms",
+        "19 primals"
+      ]
+    },
+    "sporeGate": {
+      "ip": "192.168.4.3",
+      "hostname": "sporeGate",
+      "os": "Pop!_OS 22.04",
+      "role": "Sovereign CI, mesh relay, DNS, full membrane stack",
+      "ssh": true,
+      "ssh_user": "root",
+      "state": 1,
+      "specs": "27GB RAM, 929GB disk, 12 cores, up 2 weeks",
+      "services": [
+        "beardog (sovereign crypto)",
+        "songbird (mesh :7700 :7780 :8091)",
+        "swarmvine (gossip :7800)",
+        "petaltongue (10.13.37.2:8190)",
+        "dnsmasq (LAN DNS :53)",
+        "stubby (DNS-over-TLS)",
+        "mongod (:27217)",
+        "jsvc (Unifi? :8088 :8043 :29811-29816)",
+        "node (:8090)"
+      ],
+      "uds_sockets": 15,
+      "membrane_sockets": [
+        "beardog.sock",
+        "beardog-health.sock",
+        "biomeos.sock",
+        "neural-api-default.sock",
+        "swarmvine.sock",
+        "nestgate.sock",
+        "crypto.sock",
+        "btsp.sock",
+        "ed25519.sock",
+        "x25519.sock",
+        "security.sock"
+      ],
+      "gossip_peers": [
+        "192.168.4.210:7800",
+        "192.168.4.237:7800",
+        "192.168.4.244:7800"
+      ],
+      "discovery": "FOUND via Lovelock+ZK scan. Was unknown until this probe."
+    },
+    "northGate": {
+      "ip": "192.168.4.163",
+      "hostname": "unknown",
+      "alias": "Polaris",
+      "os": "unknown (OpenSSH 10.3)",
+      "role": "Heavy compute \u2014 9950X3D, RTX 5090, 96GB",
+      "ssh": false,
+      "ssh_user": "tamison",
+      "state": 0.5,
+      "ports": {
+        "22": "SSH (locked)",
+        "5000": "AirTunes/960.13.1"
+      },
+      "needs": "Physical key push to authorized_keys"
+    },
+    "graftGate": {
+      "ip": "192.168.4.107",
+      "hostname": "unknown",
+      "os": "unknown (OpenSSH 10.3)",
+      "ssh": false,
+      "state": 0.5,
+      "needs": "Physical key push"
+    },
+    "southGate": {
+      "ip": "192.168.4.148",
+      "hostname": "southGate.primals.local",
+      "os": "Ubuntu (OpenSSH 8.9p1)",
+      "ssh": false,
+      "state": 0.5,
+      "needs": "Physical key push"
+    },
+    "ironGate": {
+      "ip": "192.168.4.237",
+      "hostname": "unknown",
+      "ssh": false,
+      "state": 0.5,
+      "gossip_port": 7800,
+      "note": "swarmvine tries to gossip but times out",
+      "needs": "Physical key push"
+    },
+    "blueGate": {
+      "ip": "192.168.4.210",
+      "hostname": "unknown",
+      "os": "Windows (J12 sovereign CI)",
+      "ssh": false,
+      "ssh_user": "user",
+      "state": 0,
+      "note": "Known to sporeGate SSH config. swarmvine gossip times out.",
+      "needs": "Physical access"
+    },
+    "golgi": {
+      "ip": "157.230.3.183",
+      "hostname": "membrane-relay",
+      "alias": "Heart",
+      "os": "Debian 13",
+      "role": "Central relay \u2014 caddy, cloudflared, mcp-server, DNS, cron",
+      "ssh": true,
+      "ssh_user": "root",
+      "state": 1,
+      "specs": "2GB RAM, 166MB free disk"
+    }
+  },
+  "infrastructure": {
+    "router": {
+      "ip": "192.168.4.1",
+      "hostname": "GL-MT6000.primals.local",
+      "ssh": "dropbear (locked)"
+    },
+    "device_2": {
+      "ip": "192.168.4.2",
+      "ssh": "ROSSSH (RouterOS? locked)"
+    }
+  },
+  "other_devices": {
+    "192.168.4.111": "unknown",
+    "192.168.4.154": "unknown",
+    "192.168.4.164": "DiagnosssiPhone.primals.local",
+    "192.168.4.170": "unknown",
+    "192.168.4.185": "iPhone.primals.local",
+    "192.168.4.197": "unknown",
+    "192.168.4.200": "unknown",
+    "192.168.4.216": "unknown"
+  },
+  "mesh_topology": {
+    "active_ssh": [
+      "eastGate\u2194golgi",
+      "eastGate\u2194sporeGate",
+      "sporeGate\u2194golgi"
+    ],
+    "locked_ssh": [
+      "\u2192northGate",
+      "\u2192graftGate",
+      "\u2192southGate",
+      "\u2192ironGate",
+      "\u2192blueGate"
+    ],
+    "gossip_mesh": "swarmvine on sporeGate gossips to 6 peers (most timeout)",
+    "songbird_federation": "port 7700 on sporeGate, dark-forest mode",
+    "dns": "sporeGate runs dnsmasq for primals.local"
+  },
+  "wavefold": {
+    "collapsed": [
+      "eastGate",
+      "sporeGate",
+      "golgi"
+    ],
+    "half": [
+      "northGate",
+      "graftGate",
+      "southGate",
+      "ironGate"
+    ],
+    "dead": [
+      "blueGate"
+    ],
+    "wavefunction": "3/8 collapsed"
+  },
+  "key_to_push": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJnWQ1JcuXXiQcToZO1ihJ7Fw0k7g8XjNwEzibPrEjG vdj-recombination-northgate-20261026",
+  "sporegate_ci_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPwGg1Ut9dblsY+EeBSzRK1yAEUMOFEpqNX0gUvQxEs8 sovereign-ci@sporeGate"
+}
