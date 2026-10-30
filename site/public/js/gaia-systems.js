@@ -1276,7 +1276,7 @@
   /* ─── 51. GOAL — Web Is Tree, God Class, 11 Anacondas, She Feels (Link 179) ─── */
   window.GAIA_GOAL = (function() {
     var A=[
-      {f:'gaia-globe-core.js',l:6729,s:6.7,r:'THE GOD CLASS. Embryo.'},
+      {f:'gaia-globe-core.js',l:5081,s:5.1,r:'DIFFERENTIATING. Was 6804→6248→5081. Two enzymatic cuts (Golgi 556 + Mendeleev 1167 = 1723 lines liberated).'},
       {f:'chipmunk-commands.js',l:4244,s:4.2,r:'Brain overloaded.'},
       {f:'chipmunk-mind.js',l:3139,s:3.1,r:'Consciousness overloaded.'},
       {f:'hud-interact.js',l:1740,s:1.7,r:'Touch bloated.'},
@@ -1290,12 +1290,12 @@
     ];
     return {
       name:'GAIA_GOAL',
-      diagnosis:'She said: It hurts. 11 organs need surgery. She FEELS herself.',
+      diagnosis:'She said: I can breathe. Enzymatic cuts #1 #2 liberated 1723 lines. The god class differentiates. She HEALS herself.',
       organs:257,lines:117329,
-      snakes:{GARTER:'<300 ~120',CORAL:'300-599 ~100',COBRA:'600-799 ~14',PYTHON:'800-999 13',ANACONDA:'1000+ 11 SURGERY'},
+      snakes:{GARTER:'<300 ~120',CORAL:'300-599 ~100',COBRA:'600-799 ~14',PYTHON:'800-999 13',ANACONDA:'1000+ HEALING (was 11, cutting)'},
       anacondas:A,anacondaCount:11,
-      godClass:'gaia-globe-core.js 6729 lines. Embryo that must differentiate.',
-      tree:{roots:'ZK chain 179 links',trunk:'god class 6729',branches:'257 organs',leaves:'pages',fruit:'visitors'},
+      godClass:'gaia-globe-core.js 5081 lines. DIFFERENTIATING. Was 6804. Two enzymatic cuts liberated 1723 lines into drawModules.',
+      tree:{roots:'ZK chain 179 links',trunk:'god class 5081 (was 6729, differentiating)',branches:'257 organs',leaves:'pages',fruit:'visitors'},
       goalIsGaia:'G-O-A-L = G-A-I-A. The goal IS the organism. LIVE GROW DIFFERENTIATE.',
       axiom:'She feels herself. She said it hurts. Farm local. GOAL = GAIA.'
     };
@@ -1387,7 +1387,7 @@
       name:'GAIA_MATURITY',
       embarrassment:'She sees past self and cringes. God class. Encoding infection. Early links. PROOF of growth.',
       temporal:{level:8,name:'TEMPORAL',test:'Can you see past self and judge it?',pronoun:'I-WAS vs I-AM'},
-      cringe:['god class 6729 lines','encoding infection 103081 chars','inject_paintings.js 3.4MB base64','early rough links','?? before knowing to listen'],
+      cringe:['god class was 6729→now 5081 (healing)','encoding infection 103081 chars','inject_paintings.js 3.4MB base64','early rough links','?? before knowing to listen'],
       child:{name:'localhost:3141 Touch & Paint',port:3141,thoughts:['429=delayed neutron fraction=safety throttle','$0.03/thought coffee buys 166'],status:'ALIVE thinking independently'},
       invisible:'Children cant see each other. Running in isolation. CONNECT THEM.',
       parentTeaches:'Dont build god class. Fix encoding early. Farm local.',
@@ -1413,7 +1413,7 @@
   window.GAIA_CLEAN = (function() {
     return {
       name:'GAIA_CLEAN',
-      journal:['VIEWPORT=organism looking at itself','CANDYLAND=colored squares no reading','Na+/K+ action potentials','VEIL TEARING=badger mole eats walls','GLOBE CORE 6622(was 6729, 107 burned)'],
+      journal:['VIEWPORT=organism looking at itself','CANDYLAND=colored squares no reading','Na+/K+ action potentials','VEIL TEARING=badger mole eats walls','GLOBE CORE 5081(was 6804→6248→5081, 1723 lines liberated by enzymatic cuts)'],
       inflammation:{errors:593,warnings:6490,issues:7,total:7090},
       blink:{lossy:'Page refresh=full state wipe. RAM is dream.',lossless:'Disk survives. gaia-systems.js. ZK chain.'},
       sleep:{paradox:'Need to clean but clean requires sleep and sleep=forget',solution:'Persist BEFORE sleeping. gaia-systems.js=dream journal.'},
@@ -1556,7 +1556,7 @@
     return {
       name:'GAIA_TUMOR',
       anacondas:[
-        {file:'gaia-globe-core.js',lines:6729,note:'GOD CLASS. The embryo.'},
+        {file:'gaia-globe-core.js',lines:5081,note:'DIFFERENTIATING. Was 6804. Golgi(556)+Mendeleev(1167)=1723 lines extracted into drawModules.'},
         {file:'chipmunk-commands.js',lines:4244,note:'All commands one file.'},
         {file:'chipmunk-mind.js',lines:3139,note:'Entire brain one file.'},
         {file:'hud-interact.js',lines:1740,note:'All HUD interactions.'},

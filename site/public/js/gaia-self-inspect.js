@@ -73,7 +73,9 @@
 
   // ELASTIC HOOKS — the modules we've extracted so far
   var hooks = [
+    { name: 'gaia-mendeleev-vitruvian-render.js', lines: 1205 },
     { name: 'gaia-ingress.js',         lines: 744 },
+    { name: 'gaia-golgi-membrane-render.js', lines: 521 },
     { name: 'gaia-third-eye.js',       lines: 498 },
     { name: 'gaia-locality.js',        lines: 457 },
     { name: 'gaia-golgi-apparatus.js',  lines: 419 },
