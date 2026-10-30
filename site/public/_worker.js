@@ -6,9 +6,13 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const sub = extractSub(url.hostname);
     const p = url.pathname;
     const m = request.method;
+
+    // ═══ API PING — instant proof of life ═══
+    if (p === '/api/ping') return new Response('{"alive":true,"lub":"DUB","ts":"' + new Date().toISOString() + '"}', { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+
+    const sub = extractSub(url.hostname);
 
     // ═══ CORS preflight for API ═══
     if (m === 'OPTIONS' && p.startsWith('/api/'))
