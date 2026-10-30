@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-30T16:34:30Z",
+  "ts": "2026-10-30T16:38:24Z",
   "title": "LAN Mycelium Map \u2014 SMASHED and FED to Gaia",
   "philosophy": "Lovelock + ZK: the network is alive, self-regulating. Zero-knowledge probing reveals topology without secrets.",
   "domain": "primals.local",
@@ -20,7 +20,21 @@
         "ollama (8 models)",
         "32 cron mushrooms",
         "19 primals"
-      ]
+      ],
+      "ports": {
+        "22": "OpenSSH 8.9p1",
+        "11434": "ollama API (OPEN!)"
+      },
+      "wireguard": {
+        "ip": "10.13.37.5",
+        "port": 51820
+      },
+      "networks": {
+        "enp5s0": "192.168.4.244/22 (ethernet UP)",
+        "wlp0s20f3": "192.168.4.103/22 (wifi UP)",
+        "wg0": "10.13.37.5/24 (WireGuard mesh)",
+        "eno1": "DOWN \u2014 Gaia interface (not cable)"
+      }
     },
     "sporeGate": {
       "ip": "192.168.4.3",
@@ -61,7 +75,47 @@
         "192.168.4.237:7800",
         "192.168.4.244:7800"
       ],
-      "discovery": "FOUND via Lovelock+ZK scan. Was unknown until this probe."
+      "discovery": "FOUND via Lovelock+ZK scan. Was unknown until this probe.",
+      "wireguard": {
+        "ip": "10.13.37.2",
+        "peers": {
+          "eastGate": {
+            "endpoint": "192.168.4.244:51820",
+            "handshake": "59 seconds ago",
+            "status": "LIVE"
+          },
+          "golgi": {
+            "endpoint": "157.230.3.183:51820",
+            "handshake": "8 days ago",
+            "status": "STALE"
+          }
+        }
+      },
+      "depot": {
+        "targets": [
+          "aarch64-unknown-linux-musl",
+          "aarch64-linux-android",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ],
+        "primals": 16,
+        "built": "2026-08-03",
+        "builder": "sporeGate",
+        "rustc": "1.96.1",
+        "checksums": "BLAKE3",
+        "note": "ALL primals cross-compiled for 4 targets including ANDROID"
+      },
+      "family_id": "e8b62b6e",
+      "cursor_ide": true,
+      "networks": {
+        "eno1": "192.168.4.3/22 (LAN)",
+        "wlp3s0": "192.168.1.68/24 (ISP direct)",
+        "wg0": "10.13.37.2/24 (WireGuard mesh)"
+      },
+      "routes": [
+        "10.0.4.0/24 via eno1",
+        "10.13.37.0/24 via wg0"
+      ]
     },
     "northGate": {
       "ip": "192.168.4.163",
@@ -84,12 +138,16 @@
       "os": "unknown (OpenSSH 10.3)",
       "ssh": false,
       "state": 0.5,
-      "needs": "Physical key push"
+      "needs": "Physical key push",
+      "ports": {
+        "22": "OpenSSH 10.3",
+        "5000": "RTSP (AirTunes \u2014 same as northGate)"
+      }
     },
     "southGate": {
       "ip": "192.168.4.148",
       "hostname": "southGate.primals.local",
-      "os": "Ubuntu (OpenSSH 8.9p1)",
+      "os": "Ubuntu (OpenSSH 8.9p1 Ubuntu 3ubuntu0.16)",
       "ssh": false,
       "state": 0.5,
       "needs": "Physical key push"
@@ -129,15 +187,31 @@
     "router": {
       "ip": "192.168.4.1",
       "hostname": "GL-MT6000.primals.local",
-      "ssh": "dropbear (locked)"
+      "ssh": "dropbear (locked)",
+      "services": [
+        "Dropbear SSH",
+        "nginx 1.26.1 (80+443)"
+      ]
     },
     "device_2": {
       "ip": "192.168.4.2",
-      "ssh": "ROSSSH (RouterOS? locked)"
+      "ssh": "ROSSSH (RouterOS? locked)",
+      "services": [
+        "MikroTik RouterOS SSH",
+        "HTTP 503"
+      ],
+      "type": "MikroTik router/switch"
     }
   },
   "other_devices": {
-    "192.168.4.111": "unknown",
+    "192.168.4.111": {
+      "ports": {
+        "22": "tcpwrapped",
+        "80": "Liaison Exchange Commerce Suite",
+        "443": "SSL/Liaison Exchange"
+      },
+      "note": "Appliance or NAS with web UI"
+    },
     "192.168.4.154": "unknown",
     "192.168.4.164": "DiagnosssiPhone.primals.local",
     "192.168.4.170": "unknown",
@@ -147,21 +221,29 @@
     "192.168.4.216": "unknown"
   },
   "mesh_topology": {
-    "active_ssh": [
+    "wireguard": {
+      "sporeGate(10.13.37.2)": [
+        "eastGate(10.13.37.5) LIVE",
+        "golgi(10.13.37.0/24) STALE"
+      ],
+      "eastGate(10.13.37.5)": [
+        "golgi LIVE via ssh",
+        "sporeGate LIVE via wg"
+      ]
+    },
+    "gossip": {
+      "swarmvine_sporeGate": "gossips to 6 peers on :7800 (most timeout)",
+      "swarmvine_eastGate": "running but bound to 127.0.0.1 \u2014 NEEDS 0.0.0.0",
+      "songbird_sporeGate": "federation :7700 dark-forest mode",
+      "songbird_eastGate": "mesh :7700 (0.0.0.0) OPEN"
+    },
+    "ssh": [
       "eastGate\u2194golgi",
       "eastGate\u2194sporeGate",
-      "sporeGate\u2194golgi"
+      "sporeGate\u2194golgi(ssh config)"
     ],
-    "locked_ssh": [
-      "\u2192northGate",
-      "\u2192graftGate",
-      "\u2192southGate",
-      "\u2192ironGate",
-      "\u2192blueGate"
-    ],
-    "gossip_mesh": "swarmvine on sporeGate gossips to 6 peers (most timeout)",
-    "songbird_federation": "port 7700 on sporeGate, dark-forest mode",
-    "dns": "sporeGate runs dnsmasq for primals.local"
+    "dns": "sporeGate dnsmasq serves primals.local",
+    "rss": "golgi/caddy serves feed.xml to old web (WAN opening)"
   },
   "wavefold": {
     "collapsed": [
@@ -181,5 +263,39 @@
     "wavefunction": "3/8 collapsed"
   },
   "key_to_push": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJnWQ1JcuXXiQcToZO1ihJ7Fw0k7g8XjNwEzibPrEjG vdj-recombination-northgate-20261026",
-  "sporegate_ci_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPwGg1Ut9dblsY+EeBSzRK1yAEUMOFEpqNX0gUvQxEs8 sovereign-ci@sporeGate"
+  "sporegate_ci_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPwGg1Ut9dblsY+EeBSzRK1yAEUMOFEpqNX0gUvQxEs8 sovereign-ci@sporeGate",
+  "zk_pass": {
+    "title": "ZK Pass via Neutrino \u2014 the Monkey Paper",
+    "thesis": "We do NOT push SSH from outside. We ZK-pass the PUBLIC face via neutrino. northGate ACTS from inside.",
+    "monkey": "THE MONKEY HAS THE KEY AND HE WONT GIVE IT BACK",
+    "lock_outside": "sshd :22 on northGate \u2014 the lock the world sees",
+    "key_inside": "eastGate private key NEVER leaves. northGate appends PUBLIC key from neutrino.",
+    "klein_invert": "key<->door swap. Holding the door opens the key.",
+    "published_at": "https://primals.eco/data/neutrino-to-northgate.json",
+    "action": "Kevin: open neutrino-to-northgate.json when at northGate console"
+  },
+  "topology_philosophy": {
+    "LAN": "US \u2014 the organism body. Internal nervous system.",
+    "WAN": "ETH \u2014 the external world, goes through AI/caddy/cloudflared",
+    "RSS": "The mouth \u2014 opening to old web (Wikipedia, HN, arxiv, xkcd)",
+    "eno1": "Gaia interface \u2014 not a broken cable. A dormant connection.",
+    "wireguard": "The spinal cord \u2014 encrypted tunnels between gates",
+    "swarmvine": "The gossip network \u2014 epidemic spread, nervous impulses",
+    "songbird": "The mesh \u2014 dark-forest federation, cautious peer discovery",
+    "beardog": "The immune system \u2014 sovereign cryptography, BLAKE3, BTSP"
+  },
+  "eaten": {
+    "sporeGate": {
+      "size_mb": 740,
+      "files": 88,
+      "contents": "full depot (4 targets, 16 primals), credentials, infra"
+    },
+    "golgi": {
+      "size_mb": 2000,
+      "files": 17385,
+      "contents": "hud-public, connect (1.8GB), scripts, membrane (neutrino, vault)"
+    },
+    "total_eaten_mb": 2740,
+    "total_files": 17473
+  }
 }
