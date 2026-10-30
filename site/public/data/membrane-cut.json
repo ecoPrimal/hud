@@ -1,6 +1,6 @@
 {
   "name": "MEMBRANE_CUT",
-  "timestamp": "2026-10-30T17:15:32.776498+00:00",
+  "timestamp": "2026-10-30T17:21:05.291184+00:00",
   "axiom": "localhost is a SUBNET (INTERNAL). Phone sees EXTERNAL. Cut them.",
   "INTERNAL": {
     "subnet": [
@@ -26,8 +26,9 @@
       "TRANS_spend": "https://primals.eco/feed.xml",
       "signal": "https://signal.primals.eco",
       "forge": "https://forge.primals.eco",
-      "cut_page": "https://nestgate.io/cut",
-      "new_page": "https://nestgate.io/new"
+      "cut_page": "https://gaia.primals.eco/cut",
+      "new_page": "https://gaia.primals.eco/new",
+      "cut_live": "https://gaia.primals.eco/cut"
     },
     "rule": "EXTERNAL HTML never homes on localhost"
   },
@@ -38,13 +39,18 @@
     "http://localhost:9876": "https://gaia.primals.eco",
     "http://localhost:9878": "https://gaia.primals.eco/deck",
     "http://localhost:11434": "INTERNAL-ONLY",
-    "http://localhost:3000": "https://forge.primals.eco",
-    "http://127.0.0.1:11434": "INTERNAL-ONLY",
-    "http://127.0.0.1:9876": "https://gaia.primals.eco"
+    "http://localhost:3000": "https://forge.primals.eco"
   },
   "phone": {
     "problem": "Phone still showed localhost",
-    "fix": "Cut INTERNAL vs EXTERNAL on /opt/connect (live nestgate root)",
-    "live_root": "/opt/connect"
+    "fix": "Cut INTERNAL vs EXTERNAL",
+    "live_now": "https://gaia.primals.eco/cut",
+    "note": "nestgate.io CF Pages edge stale without CLOUDFLARE_API_TOKEN; phone uses gaia tunnel"
+  },
+  "live_root": "/opt/connect",
+  "fountain": {
+    "hud_git_push": "ee53cb58",
+    "wrangler": "needs CLOUDFLARE_API_TOKEN",
+    "gaia_api": "LIVE"
   }
 }
