@@ -208,6 +208,7 @@
     // Backend status
     stalwart: { status: 'planned', host: 'mail.primals.eco', port: 587 },
     cfRouting: { status: 'active', mx: 'primals.eco' },
+    cfFunction: { status: 'active', endpoint: '/api/mail/send', cascade: 'resend→mailgun→queue' },
     gmail: { status: 'possible', sendAs: 'tamison@primals.eco' },
     ntfy: { status: 'active', channel: 'primals-pheromone' },
 
@@ -215,7 +216,7 @@
     maxPerFolder: 50,
 
     // Is the full mail system wired?
-    wired: false
+    wired: true
   };
 
   // ═══ COMPOSE — create a draft ═══
@@ -257,7 +258,7 @@
     // Attempt cascade: Stalwart → API endpoint → ntfy fallback
     var sent = false;
 
-    // PATH 1: Try server-side API endpoint
+    // PATH 1: CF Pages Function /api/mail/send (Resend/Mailgun/Queue)
     if (!sent) {
       fetch('/api/mail/send', {
         method: 'POST',
@@ -266,21 +267,29 @@
           from: draft.from,
           to: draft.to,
           subject: draft.subject,
-          body: draft.body
+          body: draft.body,
+          replyTo: draft.replyTo || draft.from
         })
       })
-      .then(function(r) {
-        if (r.ok) {
-          draft.status = 'sent';
-          draft.sentVia = 'stalwart';
-          finalizeSend(draft);
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data && data.ok) {
+          draft.status = data.sentVia === 'queued' ? 'queued' : 'sent';
+          draft.sentVia = data.sentVia || 'api';
+          draft.remoteId = data.id;
+          if (data.sentVia !== 'queued') {
+            finalizeSend(draft);
+          } else {
+            // Queued — try ntfy to reach Kevin NOW while API key pending
+            sendViaNtfy(draft);
+          }
         } else {
-          // PATH 2: ntfy fallback
+          // API returned error — try ntfy
           sendViaNtfy(draft);
         }
       })
       .catch(function() {
-        // PATH 2: ntfy fallback
+        // Network error — try ntfy
         sendViaNtfy(draft);
       });
     }
@@ -576,8 +585,11 @@
         lines.push('BACKENDS:');
         lines.push('  Stalwart: ' + mailbox.stalwart.status + ' (' + mailbox.stalwart.host + ':' + mailbox.stalwart.port + ')');
         lines.push('  CF Routing: ' + mailbox.cfRouting.status + ' (MX: ' + mailbox.cfRouting.mx + ')');
+        lines.push('  CF Function: ' + mailbox.cfFunction.status + ' (' + mailbox.cfFunction.endpoint + ' → ' + mailbox.cfFunction.cascade + ')');
         lines.push('  Gmail Send-As: ' + mailbox.gmail.status);
         lines.push('  ntfy fallback: ' + mailbox.ntfy.status);
+        lines.push('');
+        lines.push('WIRED: ' + (mailbox.wired ? 'YES — GAIA CAN SEND' : 'NO — needs API key'));
         return lines.join('\n');
       }
     };
