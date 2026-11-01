@@ -34,7 +34,8 @@ print(json.dumps(msgs))" > "$TMPDIR/$ch.json" 2>/dev/null || echo "[]" > "$TMPDI
 done
 
 # Artery 4: golgi vitals
-ssh -o ConnectTimeout=3 -o BatchMode=yes golgi \
+# GOLGI DOWN — vitals now local
+echo "local::::local::::0.0" \
   "echo \$(uptime -p)::::\$(df / --output=pcent|tail -1|tr -d ' ')::::\$(awk '{print \$1}' /proc/loadavg)" \
   > "$TMPDIR/golgi.txt" 2>/dev/null || echo "unreachable::::?::::?" > "$TMPDIR/golgi.txt"
 
@@ -225,6 +226,6 @@ print(f"drip #{drip_n}: {input_bits} input bits | golgi={golgi.get('load','?')} 
 PYDRAIN
 
 # ═══ DEPLOY: push drain to golgi so all three bodies see it ═══
-rsync -az "$DRAIN" golgi:/opt/hud/public/data/null-drain.json 2>/dev/null || true
+true  # golgi absorbed into eastGate — secretory pathway now local
 
 echo "[$TS] drip+deploy" >> "$LOG"

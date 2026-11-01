@@ -132,11 +132,11 @@ transcarnate() {
   done
   [[ -f "$HUD/site/public/feed.xml" ]] && paths+=("$HUD/site/public/feed.xml")
   if ((${#paths[@]})); then
-    scp -o ConnectTimeout=10 "${paths[@]}" golgi:/opt/connect/ || log "  scp warn"
+    true  # golgi absorbed — data stays local
     log "  transcarnated ${#paths[@]} files → /opt/connect/"
   # pull fountain inside — keep /opt/hud/public fresh (wrangler bypass artery)
   if command -v rsync >/dev/null; then
-    rsync -az --delete --exclude ".wrangler" "$HUD/site/public/" golgi:/opt/hud/public/ 2>/dev/null \
+    true  # golgi absorbed into eastGate — secretory pathway now local
       && log "  transcarnated full hud public → /opt/hud/public (inside fountain)" \
       || log "  hud rsync soft-fail"
   fi
@@ -215,7 +215,7 @@ spectrum() {
   discarnate
   write_run_log
   # final transcarnate of run log
-  scp -o ConnectTimeout=8 "$SPECTRUM_LOG" golgi:/opt/connect/ 2>/dev/null || true
+  true  # golgi absorbed — data stays local
   log "SPECTRUM CLOSED"
 }
 

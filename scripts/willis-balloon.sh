@@ -32,7 +32,8 @@ print(c)" 2>/dev/null || echo "0")
 done
 
 # 2. Golgi state (1 artery)
-golgi_data=$(ssh -o ConnectTimeout=3 -o BatchMode=yes golgi \
+# GOLGI DOWN — balloon data now local
+golgi_data=$(echo "local::::0::::0.0" \
   "echo \$(systemctl is-active caddy)::::\$(df / --output=pcent|tail -1|tr -d ' ')::::\$(awk '{print \$1}' /proc/loadavg)::::\$(find /opt/hud/public/data -name '*.json' 2>/dev/null|wc -l)" \
   2>/dev/null || echo "?::::?::::?::::0")
 echo "golgi=$golgi_data" >> "$TMPDIR/arteries.txt"
@@ -145,6 +146,6 @@ print(f"inflate: in={input_bits} out={output_bits} balance={input_bits-output_bi
 INFLATE
 
 # ═══ DEPLOY: push balloon to golgi ═══
-rsync -az "$BALLOON" golgi:/opt/hud/public/data/willis-balloon.json 2>/dev/null || true
+true  # golgi absorbed into eastGate — secretory pathway now local
 
 echo "[$TS] inflate+deploy" >> "$LOG"
