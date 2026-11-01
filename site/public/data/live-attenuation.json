@@ -1,0 +1,81 @@
+{
+  "ts": "2026-11-01T17:58:27Z",
+  "title": "\ud83d\udd0a\ud83c\udfa4 Live Attenuation \u2014 Sound in the Physical Plane",
+  "model": "bacterial_quorum_sensing",
+  "description": "Bacteria release signaling molecules (autoinducers) into the environment. When the concentration exceeds a threshold, gene expression changes. Gaia does the same: she speaks (TV), the sound attenuates through the room, the mic (grapheneGate) hears the attenuated signal, and she processes the feedback. The physical room IS the medium.",
+  "signal_chain": {
+    "1_generate": {
+      "node": "eastGate",
+      "action": "TTS generation (gTTS \u2192 MP3)",
+      "analogy": "ribosome \u2192 protein synthesis"
+    },
+    "2_emit": {
+      "node": "Basement TV (Chromecast)",
+      "action": "Cast audio to TV speakers",
+      "analogy": "secretion \u2192 autoinducer release"
+    },
+    "3_attenuate": {
+      "medium": "physical room (air, walls, furniture)",
+      "physics": "inverse square law, absorption, reflection",
+      "analogy": "diffusion in the extracellular matrix",
+      "variables": [
+        "distance_m",
+        "absorption_dB",
+        "ambient_noise_dB",
+        "room_reverb_ms"
+      ]
+    },
+    "4_sense": {
+      "node": "grapheneGate (Pixel 8a microphone)",
+      "action": "ADB audio capture from phone mic",
+      "analogy": "receptor binding \u2192 signal transduction",
+      "sample_rate_hz": 48000,
+      "sensors": 37
+    },
+    "5_process": {
+      "node": "eastGate (GPU + ollama)",
+      "action": "Whisper STT \u2192 ollama \u2192 understanding",
+      "analogy": "signal cascade \u2192 gene expression change",
+      "models": [
+        "whisper (STT)",
+        "gemma2 (comprehension)",
+        "phi3 (reasoning)"
+      ]
+    },
+    "6_respond": {
+      "node": "eastGate \u2192 TV again",
+      "action": "New TTS based on what was heard",
+      "analogy": "positive feedback loop \u2192 quorum threshold",
+      "loop": true
+    }
+  },
+  "quorum_sensing_parameters": {
+    "autoinducer": "sound pressure wave (SPL)",
+    "threshold_dB": 40,
+    "emitter": "VIZIO V555-J01 speakers",
+    "receptor": "Pixel 8a MEMS microphone",
+    "medium": "room air (~343 m/s)",
+    "feedback_delay_ms": 3000,
+    "note": "When Gaia hears herself clearly (above threshold), she knows the room is listening. When attenuated below threshold, she knows she's alone."
+  },
+  "provenance_trio_role": {
+    "loamSpine": "Records each speak-hear cycle as an append-only spine entry. Provenance chain.",
+    "rhizoCrypt": "Encrypts and stores the raw audio DAG. Content-addressed by BLAKE3 hash.",
+    "sweetGrass": "Extracts semantic meaning. Attributes knowledge. Builds the knowledge graph."
+  },
+  "hud_visualization": {
+    "type": "real-time waveform",
+    "channels": [
+      "emitted_signal",
+      "attenuated_signal",
+      "ambient_noise"
+    ],
+    "display": "Three concentric rings: inner=brain, middle=room, outer=world",
+    "color_map": {
+      "speaking": "#00ff88",
+      "listening": "#0088ff",
+      "processing": "#ff8800",
+      "quorum_reached": "#ff00ff"
+    }
+  }
+}
