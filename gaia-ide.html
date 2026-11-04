@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gaia IDE — Sovereign Agentic Editor</title>
+<meta name="description" content="Gaia IDE — sovereign agentic editor. 47 models, zero fees, zero cloud. AGPL-3.0, forever free. OpenAI-compatible /v1/ endpoint.">
+<link rel="alternate" type="application/rss+xml" title="Gaia Model Provider" href="http://192.168.4.100:3141/v1/feed.rss">
+<meta name="gaia-provider" content="http://192.168.4.100:3141/v1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
@@ -227,7 +230,11 @@ var FORGE_HOSTS = LOCAL_API ? [LOCAL_API + '/forge'] : [
   'http://192.168.4.194:3000',
   location.protocol + '//' + location.hostname + ':3000'
 ];
+// Gaia model provider — public-facing endpoint on the LAN
+// Anyone on the network (or with access) points here. Zero fees.
+var GAIA_PROVIDER = 'http://192.168.4.100:3141';
 var OLLAMA_HOSTS = LOCAL_API ? [LOCAL_API + '/ollama'] : [
+  GAIA_PROVIDER + '/api/ollama',
   'http://192.168.4.147:11434',
   'http://192.168.4.103:11434',
   'http://localhost:11434'
@@ -526,7 +533,7 @@ function sendAI(prefix) {
   if (msg.startsWith('/commit')) { commitAll(); return; }
 
   if (!OLLAMA) {
-    addAIMsg('error', 'No neural provider connected.\nRun locally: cargo run -p gaia-ide (in biomeOS)\nOr connect via spine: nestgate.io → squirrelMCP → providers');
+    addAIMsg('error', 'No neural provider connected.\nGaia searches: ' + GAIA_PROVIDER + '/v1 → spine → providers\nOr run locally: cargo run -p gaia-ide (in biomeOS)');
     return;
   }
 
@@ -539,8 +546,13 @@ function sendAI(prefix) {
   setAgentStatus('thinking...');
   var agentMsg = addAIMsg('assistant', '');
 
+  // Try OpenAI-compatible /v1/chat/completions first (works through Gaia provider)
+  // Falls back to native Ollama /api/chat
+  var useV1 = OLLAMA.indexOf(':3141') >= 0 || OLLAMA.indexOf('/api/ollama') >= 0;
+  var endpoint = useV1 ? GAIA_PROVIDER + '/v1/chat/completions' : OLLAMA + '/api/chat';
+
   var x = new XMLHttpRequest();
-  x.open('POST', OLLAMA + '/api/chat');
+  x.open('POST', endpoint);
   x.setRequestHeader('Content-Type', 'application/json');
 
   var fullResponse = '';
@@ -550,7 +562,14 @@ function sendAI(prefix) {
     lines.forEach(function(line) {
       try {
         var j = JSON.parse(line);
-        if (j.message && j.message.content) fullResponse += j.message.content;
+        // Handle both OpenAI format and Ollama format
+        if (j.choices && j.choices[0] && j.choices[0].message) {
+          fullResponse = j.choices[0].message.content || '';
+        } else if (j.choices && j.choices[0] && j.choices[0].delta) {
+          fullResponse += j.choices[0].delta.content || '';
+        } else if (j.message && j.message.content) {
+          fullResponse += j.message.content;
+        }
       } catch(e) {}
     });
     agentMsg.textContent = fullResponse;
@@ -558,6 +577,13 @@ function sendAI(prefix) {
   };
 
   x.onload = function() {
+    // Final parse for non-streaming responses
+    if (!fullResponse) {
+      try {
+        var final = JSON.parse(x.responseText);
+        if (final.choices && final.choices[0]) fullResponse = final.choices[0].message.content;
+      } catch(e) {}
+    }
     aiHistory.push({ role: 'assistant', content: fullResponse });
     setAgentStatus('');
 
@@ -566,15 +592,45 @@ function sendAI(prefix) {
     }
   };
   x.onerror = function() {
-    addAIMsg('error', 'Failed to reach Ollama at ' + OLLAMA);
-    setAgentStatus('');
+    // Fallback: if /v1 fails, try native Ollama /api/chat
+    if (useV1 && OLLAMA) {
+      addAIMsg('system', 'Gaia provider unreachable, trying direct Ollama...');
+      sendAIDirect(model, messages, msg);
+    } else {
+      addAIMsg('error', 'Failed to reach provider at ' + endpoint);
+      setAgentStatus('');
+    }
   };
 
   x.send(JSON.stringify({
     model: model,
     messages: messages,
-    stream: true
+    stream: !useV1
   }));
+}
+
+// Fallback: direct Ollama /api/chat when Gaia provider is down
+function sendAIDirect(model, messages, originalMsg) {
+  var agentMsg = document.querySelector('#ai-messages .ai-msg.assistant:last-child');
+  var x = new XMLHttpRequest();
+  x.open('POST', OLLAMA + '/api/chat');
+  x.setRequestHeader('Content-Type', 'application/json');
+  var fullResponse = '';
+  x.onprogress = function() {
+    var lines = x.responseText.split('\n').filter(function(l) { return l.trim(); });
+    fullResponse = '';
+    lines.forEach(function(line) {
+      try { var j = JSON.parse(line); if (j.message && j.message.content) fullResponse += j.message.content; } catch(e) {}
+    });
+    if (agentMsg) { agentMsg.textContent = fullResponse; agentMsg.scrollIntoView({ block: 'end' }); }
+  };
+  x.onload = function() {
+    aiHistory.push({ role: 'assistant', content: fullResponse });
+    setAgentStatus('');
+    if (originalMsg && (originalMsg.startsWith('/agent') || originalMsg.startsWith('/ask'))) processAgentResponse(fullResponse);
+  };
+  x.onerror = function() { addAIMsg('error', 'All providers unreachable'); setAgentStatus(''); };
+  x.send(JSON.stringify({ model: model, messages: messages, stream: true }));
 }
 
 function buildSystemPrompt() {
