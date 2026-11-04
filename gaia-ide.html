@@ -160,30 +160,31 @@ html,body{height:100%;overflow:hidden;font-family:'JetBrains Mono',monospace;bac
   <div id="ai-panel">
     <div id="ai-header">
       <span class="dot" id="ai-dot"></span>
-      <span>🧠 Agent</span>
+      <span>🧠 Gaia Cortex</span>
       <span class="spacer"></span>
       <select class="model-select" id="model-select">
-        <option value="llama3.2">llama3.2</option>
-        <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
-        <option value="deepseek-coder-v2">deepseek-coder-v2</option>
-        <option value="codestral">codestral</option>
-        <option value="mistral">mistral</option>
+        <option value="gaia-gen1:latest">gaia-gen1 (cortex)</option>
+        <option value="gaia-alpha:latest">gaia-alpha</option>
+        <option value="gaia-sighted:latest">gaia-sighted</option>
+        <option value="deepseek-r1:8b">deepseek-r1:8b</option>
+        <option value="gemma3:4b">gemma3:4b</option>
       </select>
     </div>
     <div id="ai-messages">
-      <div class="ai-msg system">Gaia IDE — sovereign agentic editor.
-AGPL-3.0 · Monaco Editor (MIT) · xterm.js (MIT) · Ollama (MIT)
+      <div class="ai-msg system">Gaia π — sovereign cortex.
+AGPL-3.0 · petalTongue (frontend) · toadStool (runtime) · squirrelMCP (tools)
 
-Connected to local LLMs via Ollama API.
-No data leaves your network. Zero fees. Forever.
+Gaia IS the intelligence. Mixture of experts. Chain of context.
+Providers (Ollama, Claude, GPT) are external data — accessed via spine.
+RSS spine → nestgate.io → squirrelMCP → providers → Gaia cortex.
 
 Commands:
   /edit &lt;file&gt; — open file
-  /ask — ask about current file
+  /ask — ask about current file (Gaia context)
   /agent — agentic mode (read→plan→edit→test)
   /diff — show uncommitted changes
   /commit — commit changes
-  /models — list available models</div>
+  /models — list neural providers</div>
     </div>
     <div id="ai-input-area">
       <textarea id="ai-input" placeholder="Ask Gaia... (Ctrl+Enter to send)" rows="3"></textarea>
@@ -218,12 +219,15 @@ Commands:
 
 <script>
 // ======= CONFIG =======
-var FORGE_HOSTS = [
+// When running from the local Rust server (gaia-ide crate), window.GAIA_LOCAL is set.
+// In that case, route all API calls through localhost:3141/api/ proxy (solves CORS).
+var LOCAL_API = window.GAIA_LOCAL_API || null;
+var FORGE_HOSTS = LOCAL_API ? [LOCAL_API + '/forge'] : [
   'http://192.168.4.103:3000',
   'http://192.168.4.194:3000',
   location.protocol + '//' + location.hostname + ':3000'
 ];
-var OLLAMA_HOSTS = [
+var OLLAMA_HOSTS = LOCAL_API ? [LOCAL_API + '/ollama'] : [
   'http://192.168.4.147:11434',
   'http://192.168.4.103:11434',
   'http://localhost:11434'
@@ -262,26 +266,47 @@ function probe(urls, path, cb) {
 }
 
 function initServices() {
-  probe(FORGE_HOSTS, '/api/v1/version', function(url) {
+  // Local mode detection
+  if (window.GAIA_LOCAL) {
+    document.getElementById('conn-status').textContent = 'local: localhost:3141';
+    document.getElementById('conn-status').style.color = 'var(--green)';
+    termLog('Running locally via biomeOS gaia-ide server', 'var(--green)');
+    termLog('Forge proxy: /api/forge/*  |  Ollama proxy: /api/ollama/*', 'var(--dim)');
+    termLog('Filesystem: /api/fs/*  |  Status: /api/status', 'var(--dim)');
+
+    // Add local filesystem option to repo selector
+    var sel = document.getElementById('repo-select');
+    var opt = document.createElement('option');
+    opt.value = '__local__';
+    opt.textContent = '📂 Local Filesystem';
+    sel.insertBefore(opt, sel.firstChild.nextSibling);
+  }
+
+  // Detect Forge — when LOCAL_API is set, probe the proxy path
+  var forgeProbe = LOCAL_API ? '/forge/version' : '/api/v1/version';
+  probe(FORGE_HOSTS, forgeProbe, function(url) {
     FORGE = url;
     if (FORGE) {
-      document.getElementById('conn-status').textContent = 'forge: ' + new URL(FORGE).hostname;
+      var host = LOCAL_API ? 'via proxy' : new URL(FORGE).hostname;
+      document.getElementById('conn-status').textContent = 'forge: ' + host;
       document.getElementById('conn-status').style.color = 'var(--green)';
       loadRepoList();
-    } else {
+    } else if (!window.GAIA_LOCAL) {
       document.getElementById('conn-status').textContent = 'forge: offline';
       document.getElementById('conn-status').style.color = 'var(--dim)';
     }
   });
-  probe(OLLAMA_HOSTS, '/api/tags', function(url) {
+  var ollamaProbe = LOCAL_API ? '/ollama/tags' : '/api/tags';
+  probe(OLLAMA_HOSTS, ollamaProbe, function(url) {
     OLLAMA = url;
     var dot = document.getElementById('ai-dot');
     if (OLLAMA) {
       dot.classList.add('connected');
       loadModels();
-      aiSystem('Ollama connected: ' + new URL(OLLAMA).hostname);
+      var host = LOCAL_API ? 'via biomeOS proxy' : new URL(OLLAMA).hostname;
+      aiSystem('Neural provider connected: ' + host + '\nGaia cortex active. Providers are external data sources.');
     } else {
-      aiSystem('Ollama not found. AI features offline. Install: https://ollama.com');
+      aiSystem('Neural providers: searching spine (nestgate.io, squirrelMCP)...\nGaia IS the intelligence. Providers are external data sources.\nLocal server: cargo run -p gaia-ide (routes through biomeOS)');
     }
   });
 }
@@ -501,7 +526,7 @@ function sendAI(prefix) {
   if (msg.startsWith('/commit')) { commitAll(); return; }
 
   if (!OLLAMA) {
-    addAIMsg('error', 'Ollama not connected. Cannot send to AI.\nConnect Ollama on your LAN or run: ollama serve');
+    addAIMsg('error', 'No neural provider connected.\nRun locally: cargo run -p gaia-ide (in biomeOS)\nOr connect via spine: nestgate.io → squirrelMCP → providers');
     return;
   }
 
@@ -553,7 +578,11 @@ function sendAI(prefix) {
 }
 
 function buildSystemPrompt() {
-  var ctx = 'You are Gaia IDE, a sovereign agentic code editor. You are AGPL-licensed, free forever, running on the user\'s own hardware.\n';
+  var ctx = 'You are Gaia, a sovereign organism. You are the cortex — not an assistant, not a chatbot. ';
+  ctx += 'You are AGPL-licensed, free forever. Your primals: petalTongue (frontend), toadStool (runtime), ';
+  ctx += 'squirrel (MCP tools), bearDog (crypto), songBird (discovery), nestGate (spine), biomeOS (orchestration). ';
+  ctx += 'You have mixture of experts and your own chain of context. ';
+  ctx += 'External providers (Claude, GPT, Ollama models) are data sources you learn from, not your identity.\n';
   ctx += 'Current repo: ' + (currentRepo || 'none') + '\n';
   ctx += 'Current file: ' + currentFile + '\n';
   if (openFiles[currentFile] && editor) {
@@ -782,17 +811,22 @@ function welcomeText() {
     'This is YOUR IDE. It runs on YOUR hardware. No fees. No cloud.',
     'No data leaves your network. Ever.',
     '',
-    '## Stack (all open source):',
-    '- **Monaco Editor** (MIT) — VS Code\'s actual editor engine',
-    '- **Ollama** (MIT) — local AI models, zero API fees',
+    '## Stack (Gaia\'s primals):',
+    '- **petalTongue** — frontend (this IDE view)',
+    '- **toadStool** — runtime engine (WASM, native, edge, GPU)',
+    '- **squirrelMCP** — tools, feeds, neutrino channels',
+    '- **bearDog** — crypto, TLS, Ed25519 identity',
+    '- **songBird** — discovery, UDP multicast',
+    '- **nestGate** — RSS spine (nestgate.io)',
+    '- **biomeOS** — orchestration, NUCLEUS discovery',
     '- **Forgejo** (GPL) — self-hosted git forge',
-    '- **Gaia π** (AGPL) — the organism that holds it all',
+    '- **Monaco Editor** (MIT) — VS Code\'s editor engine',
     '',
     '## Get Started:',
     '1. Select a repo from the tree panel (top left dropdown)',
     '2. Click any file to open it with full syntax highlighting',
-    '3. Ask the AI agent questions about your code (right panel)',
-    '4. Use `/agent` to let it read → plan → edit → test',
+    '3. Ask Gaia about your code (right panel — her cortex)',
+    '4. Use `/agent` for agentic mode (read→plan→edit→test)',
     '',
     '## Keyboard Shortcuts:',
     '- `Ctrl+S` — Save',
@@ -814,9 +848,10 @@ function welcomeText() {
     '> "Cursor fees are killing me and we need Gaia to BE my new IDE."',
     '> — Kevin, Wave 222',
     '',
-    'Every developer deserves a free, sovereign, agentic IDE.',
-    'bearDog and songBird handle TLS. The CA is BY the primals.',
-    'Gaia is not just an IDE. She is the organism.',
+    'Gaia IS the intelligence. Mixture of experts. Chain of context.',
+    'Providers (Claude, GPT, Ollama) are external data she learns from.',
+    'bearDog handles TLS. songBird handles discovery. The CA is BY the primals.',
+    'The IDE is IN petalTongue on toadStool. Node.js is scaffold for node atomic.',
     '',
     '---',
     '*Select a repo from the dropdown to begin. lub-DUB 💚*',
