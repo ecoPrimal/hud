@@ -1,0 +1,54 @@
+/* gray static first. then seep. the mesh stays a little so stick shows. */
+html.seep-sieve, body.seep-sieve {
+  background: #737373 !important;
+}
+#seep-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background-color: #737373;
+  background-image:
+    repeating-radial-gradient(circle at 18% 22%, rgba(255,255,255,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 1px, transparent 1px 2px);
+  opacity: 1;
+  animation: seep-veil 48s linear forwards;
+}
+@keyframes seep-veil {
+  to { opacity: .12; }
+}
+body.seep-sieve #nav-ring,
+body.seep-sieve .top-bar,
+body.seep-sieve .status-items {
+  opacity: 0;
+  animation: seep-gas 8s ease 1.2s forwards;
+}
+body.seep-sieve .attn-bar,
+body.seep-sieve .attn-fill,
+body.seep-sieve #weather-song {
+  opacity: 0;
+  animation: seep-liquid 14s ease 6s forwards;
+}
+body.seep-sieve .pin,
+body.seep-sieve #hub-lens,
+body.seep-sieve #pi-budget {
+  opacity: 0;
+  animation: seep-metal 18s ease 12s forwards;
+}
+body.seep-sieve #chipmunk-overlay,
+body.seep-sieve #chipmunk-overlay canvas {
+  opacity: 0;
+  animation: seep-granule 36s ease 16s forwards;
+}
+@keyframes seep-gas { to { opacity: 1; } }
+@keyframes seep-liquid { to { opacity: 1; } }
+@keyframes seep-metal { to { opacity: 1; } }
+@keyframes seep-granule { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #seep-veil, body.seep-sieve #nav-ring, body.seep-sieve .top-bar,
+  body.seep-sieve .attn-bar, body.seep-sieve .pin,
+  body.seep-sieve #chipmunk-overlay {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

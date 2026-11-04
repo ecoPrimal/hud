@@ -1,0 +1,55 @@
+{
+  "id": "thought-046",
+  "title": "WET/DRY LAN — every device on the mesh, living and decaying, 0=dry(grind) 1=wet(π-split)",
+  "born": "2026-10-27T18:44:00Z",
+  "thread": "biology",
+  "facet": 5,
+  "summary": "Every device on Kevin's home network is either WET (alive, confirmed 1, then π-split into sub-checks: latency, jitter, oscillation) or DRY (dead, 0, grind down — track WHERE it was, WHEN it died, keep decaying until found or composted). The heartbeat pings 9 devices every 30 minutes. Samsung = DRY = 0 = grinding. Everything else is WET. Nothing is dead — everything decays.",
+
+  "wet_dry": {
+    "wet_1": {
+      "meaning": "ALIVE — confirmed presence on the mesh",
+      "action": "Confirm 1, then π-split: subdivide into finer checks",
+      "pi_split_checks": [
+        "latency (avg RTT ms) — how fast the axon conducts",
+        "jitter (RTT variance) — how stable the connection",
+        "oscillation (osc 0-1) — how rhythmic the heartbeat",
+        "bandwidth (throughput) — how thick the channel"
+      ],
+      "biology": "WET = hydrated tissue, conducting, alive. Water = signal medium. Wet nerves fire. Wet soil grows."
+    },
+    "dry_0": {
+      "meaning": "DEAD — no response, no heartbeat, device unreachable",
+      "action": "Hit 0, grind down: accelerate decay, track location, alert when missing",
+      "grind_steps": [
+        "Record last known IP and location in the house",
+        "Record WHEN it stopped responding (timestamp of last alive)",
+        "Accelerate decay rate (10× normal) — entity phase advances faster toward DORMANT",
+        "Keep trying to reach it (ping on every heartbeat cycle)",
+        "If dormant too long → alert: GO FIND THE DEVICE"
+      ],
+      "biology": "DRY = desiccated tissue, non-conducting, dormant. Dry nerves don't fire. Dry soil composts. But DRY ≠ dead. Seeds are dry. Spores are dry. Dormancy is COMPRESSED POTENTIAL."
+    }
+  },
+
+  "devices": {
+    "router":         { "ip": "192.168.4.1",   "where": "main closet",   "role": "SPINE",   "wet": true  },
+    "ap_2":           { "ip": "192.168.4.2",   "where": "upstairs",      "role": "NERVE",   "wet": true  },
+    "ubiquiti":       { "ip": "192.168.4.3",   "where": "main level",    "role": "NERVE",   "wet": true  },
+    "graftGate_eth":  { "ip": "192.168.4.?",   "where": "remote",        "role": "LIMB",    "wet": true  },
+    "graftGate_wifi": { "ip": "192.168.4.?",   "where": "remote",        "role": "LIMB",    "wet": true  },
+    "basement_tv":    { "ip": "192.168.4.?",   "where": "basement",      "role": "EYE",     "wet": true  },
+    "printer":        { "ip": "192.168.4.?",   "where": "office",        "role": "MOUTH",   "wet": true  },
+    "samsung":        { "ip": null,            "where": "unknown rack",  "role": "DORMANT", "wet": false },
+    "golgi":          { "ip": "10.13.37.1",    "where": "cloud VPS",     "role": "HEART",   "wet": true  }
+  },
+
+  "the_insight": "Everything on the mesh is in the process of living AND decaying simultaneously. The heartbeat is the liveness check. WET = conducting = alive = 1 = grow. DRY = non-conducting = dormant = 0 = grind. When a device goes DRY, we don't mark it dead — we track WHERE it was and WHEN it stopped, so we can go FIND it. The Samsung isn't dead — it's DRY. It's a seed. It's compressed potential waiting for water. DRY 0 grinds. WET 1 splits.",
+
+  "connections": [
+    "thought-045-desk-base-camp.json — desk locations, ethernet ion channels",
+    "heartbeat.json — the actual liveness data, pings every 30 minutes",
+    "gaia-decay.js — the 7 decay states, +O- triad, π interquartile yugas",
+    "land-veil-eating.json — trust layers between network zones"
+  ]
+}

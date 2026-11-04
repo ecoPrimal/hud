@@ -1,0 +1,73 @@
+{
+  "ts": "2026-10-27T18:50:00Z",
+  "type": "pathfinding-strategy",
+  "title": "TIT FOR TAT FORGIVE ONE — not greedy, not naive, COOPERATIVE",
+
+  "the_shift": {
+    "before": "GREEDY — eat everything we find immediately. Change direction to chase every new thing. Local optima. Exhausting. Missing the path for the meal.",
+    "after": "TIT FOR TAT FORGIVE ONE — mark everything. Eat the LAST thing. Come back. Trace paths. The path IS the information. Altruistic pathfinding."
+  },
+
+  "strategy": {
+    "name": "Tit-for-tat forgive one (Axelrod's winner)",
+    "origin": "Robert Axelrod's tournament (1984). Prisoners dilemma. 200+ strategies competed. TFT+forgive won. It's the simplest strategy that works: cooperate first, mirror the other's last move, but forgive one defection.",
+    "applied_to_pathfinding": {
+      "cooperate_first": "When you find something new — mark it, don't eat it. Leave it for the next beaver. Cooperate with future-self.",
+      "mirror": "If the thing you marked is still there when you come back — eat it. If it's gone (someone else ate it) — that's information too.",
+      "forgive_one": "If a path leads to nothing once — try it again ONE more time. If nothing twice — abandon that path. Forgive one bad result.",
+      "turn_left_or_turn_right": "At every junction: LEFT = eat now (greedy). RIGHT = mark and come back (altruistic). Tit-for-tat = alternate. The alternation IS the pathfinding."
+    }
+  },
+
+  "greedy_vs_altruistic": {
+    "greedy": {
+      "sort": "NEGATIVE",
+      "behavior": "Eat everything at the point of discovery. Chase every signal. Never come back. Always forward.",
+      "result": "Local optima. Fat but lost. No paths traced. No map built. You ate but you don't know WHERE you ate.",
+      "algorithm": "Greedy algorithm — always take the best LOCAL option. O(n) but misses global structure.",
+      "problem": "Greedy is why we were building 15 new files per session. Eating everything. Never digesting."
+    },
+    "altruistic": {
+      "sort": "POSITIVE",
+      "behavior": "Mark everything. Eat the LAST thing. Come back to what you just found. Share the path.",
+      "result": "Global optima. Lean but mapped. Every path traced. Every junction recorded. You know WHERE everything IS.",
+      "algorithm": "Breadth-first with backtracking. O(V+E) and builds the graph.",
+      "benefit": "Altruistic is how the beaver builds the dam — it doesn't eat every tree. It marks, comes back, carries, builds."
+    },
+    "tit_for_tat_forgive_one": {
+      "sort": "FIRM REALITY — the actual optimal",
+      "behavior": "Cooperate first (mark). Mirror (if it worked, do it again; if it didn't, try the other). Forgive one (give a second chance). Turn left or turn right.",
+      "result": "The BEST long-term strategy across all tournaments. Not the highest single score. The highest AVERAGE across all opponents/environments.",
+      "why_it_wins": "It's nice (cooperates first), retaliatory (punishes defection), forgiving (gives second chances), clear (easy to understand/predict). These four properties make it unbeatable over time."
+    }
+  },
+
+  "the_beaver": {
+    "what": "A worker that patrols paths, marks unseen things, eats the last thing, comes back",
+    "bounty_board": "Everything unseen gets logged as a bounty. Beavers pick bounties, go eat, come back, report.",
+    "path_tracing": "As beavers go back and forth, they trace paths. The paths ARE the rivers. The rivers ARE the veins. The veins ARE the map.",
+    "behavior": [
+      "1. Find something unseen → MARK it (add to bounty board)",
+      "2. Continue on current path → eat the LAST thing on the path",
+      "3. Come BACK to the thing you just marked",
+      "4. If it's still there → eat it → mark the next thing",
+      "5. If it's gone → that's information → log it → forgive one → try again",
+      "6. The path you traced back and forth IS the vein"
+    ]
+  },
+
+  "implementation": {
+    "bounty_board": "data/bounty-board-unseen.json — log of everything found but not eaten",
+    "beaver_log": "every eat records: what, where found, when marked, when eaten, path taken",
+    "path_graph": "over time, the beaver paths form a graph. The graph IS the mesh. The mesh IS the globe.",
+    "tft_rule": "At each new find: mark it (don't eat). Return to previous. Alternate. Forgive one empty path."
+  },
+
+  "connection_to_iris": {
+    "greedy": "PUPIL — absorbs everything, black hole, takes all light",
+    "altruistic": "SCLERA — reflects everything, gives all light away",
+    "tit_for_tat": "IRIS — selectively absorbs AND reflects. Green. The membrane. The LIVING strategy."
+  },
+
+  "the_law": "Tit-for-tat forgive one IS turn left or turn right. At every junction, the beaver decides: eat now or mark and come back. The alternation traces the path. The path IS the map. The map IS the organism. Greedy = negative sort. Altruistic = positive sort. Firm reality = tit-for-tat forgive one = the membrane = the iris = green."
+}

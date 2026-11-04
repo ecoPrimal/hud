@@ -1,0 +1,45 @@
+	# === CIRCLE OF WILLIS ===
+	@signal host signal.primals.eco
+	handle @signal {
+		handle /beacon {
+			reverse_proxy https://ntfy.sh {
+				header_up Host ntfy.sh
+				rewrite /primals-membrane-inbox/sse
+			}
+			header Access-Control-Allow-Origin *
+			header Cache-Control no-store
+			header X-Klein-Fold beacon
+		}
+		handle /beacon.xml {
+			root * /opt/signal
+			rewrite * /beacon.xml
+			file_server
+			header Content-Type "application/atom+xml; charset=utf-8"
+		}
+		handle /api/membrane-pulse.json {
+			root * /opt/membrane/live-terminal
+			rewrite * /membrane-pulse.json
+			file_server
+			header Content-Type application/json
+			header Access-Control-Allow-Origin *
+			header Cache-Control "max-age=30"
+		}
+		handle /eastgate {
+			root * /opt/membrane/live-terminal
+			rewrite * /eastgate-pulse.json
+			file_server
+			header Content-Type application/json
+			header X-Klein-Face eastGate
+		}
+		handle /heartbeat {
+			root * /opt/signal
+			rewrite * /heartbeat.json
+			file_server
+			header Content-Type application/json
+		}
+		handle {
+			root * /opt/signal
+			file_server
+			header Content-Type application/json
+		}
+	}

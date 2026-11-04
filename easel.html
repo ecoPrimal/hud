@@ -1,0 +1,1497 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta property="og:title" content="easel  the chipmunk learns to paint">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nestgate.io/easel.html">
+    <meta name="description" content="easel  the chipmunk learns to paint — ecoPrimals organism">
+    <link rel="canonical" href="https://nestgate.io/easel.html">
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>easel  the chipmunk learns to paint</title>
+<meta name="description" content="Sourdough painting. Each canvas is the starter for the next. The chipmunk paints gAIa, breathes, then looks back and paints again. It never stops.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #08060a; overflow-x: hidden; cursor: default; }
+#easel { display: block; }
+#frame {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  border: 18px solid #1a1410;
+  border-image: linear-gradient(135deg, #2a1f14, #0f0c08, #2a1f14, #1a1410) 18;
+  pointer-events: none; z-index: 5;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+}
+#thought {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 10; color: #3fb950; font: 11px/1.6 'SF Mono', monospace;
+  text-align: center; max-width: 540px; padding: 8px 20px;
+  background: rgba(8,6,10,0.75); border-radius: 16px;
+  border: 1px solid rgba(110,118,129,0.15);
+  transition: opacity 0.8s, color 0.8s;
+}
+#thought .brush { color: #d2a8ff; }
+#thought .learn { color: #d29922; font-style: italic; }
+#thought .gen { color: #58a6ff; font-size: 9px; }
+#nav { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  display: flex; gap: 6px; font: 10px monospace; }
+#nav a { color: #30363d; text-decoration: none; }
+#nav a:hover { color: #58a6ff; }
+#controls { position: fixed; top: 10px; right: 14px; z-index: 10;
+  display: flex; gap: 8px; }
+#controls button { background: none; border: 1px solid #21262d; color: #6e7681;
+  font: 10px monospace; padding: 3px 10px; border-radius: 10px; cursor: pointer; }
+#controls button:hover { border-color: #58a6ff; color: #58a6ff; }
+/* Gallery strip  previous paintings as thumbnails along the left */
+#gallery {
+  position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
+  z-index: 10; display: flex; flex-direction: column; gap: 6px;
+  max-height: 70vh; overflow-y: auto;
+}
+#gallery .thumb {
+  width: 64px; height: 40px; border: 1px solid #21262d; border-radius: 4px;
+  cursor: pointer; opacity: 0.5; transition: all 0.3s;
+  image-rendering: auto; background: #0a0a0a;
+}
+#gallery .thumb:hover { opacity: 1; border-color: #d2a8ff; transform: scale(1.3); }
+#gallery .thumb.studying { border-color: #f0c674; opacity: 0.9; box-shadow: 0 0 8px rgba(240,198,116,0.3); }
+#gen-counter {
+  position: fixed; top: 10px; left: 24px; z-index: 10;
+  color: #30363d; font: 9px monospace;
+}
+/* === GALLERY LAYOUT ? three voxel rooms === */
+.gallery-wrap { max-width: 1100px; margin: 0 auto; padding: 56px 16px 40px;
+  perspective: 1200px; perspective-origin: 50% 40%; }
+.gallery-head { text-align: center; margin-bottom: 20px; }
+.gallery-head h1 { font-size: 18px; font-weight: 200; color: #e6edf3; font-family: 'SF Mono', monospace; }
+.gallery-head p { font-size: 11px; color: #6e7681; font-family: 'SF Mono', monospace; }
+.rooms-bar { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
+.rooms-bar button { background: none; border: 1px solid #21262d; color: #6e7681;
+  font: 11px 'SF Mono', monospace; padding: 5px 14px; border-radius: 14px; cursor: pointer; transition: all .2s; }
+.rooms-bar button:hover { border-color: #58a6ff; color: #58a6ff; }
+.rooms-bar button.active { border-color: #d2a8ff; color: #d2a8ff; background: rgba(210,168,255,0.08); }
+.live-row { display: flex; gap: 16px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin-bottom: 24px; }
+.live-frame { border: 10px solid #1a1410; border-image: linear-gradient(135deg,#2a1f14,#0f0c08,#2a1f14,#1a1410) 10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5); flex-shrink: 0; }
+.live-info { max-width: 300px; font: 11px/1.7 'SF Mono', monospace; color: #8b949e; }
+.live-info h2 { font-size: 13px; font-weight: 400; color: #d2a8ff; margin-bottom: 6px; }
+.past-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+.past-piece { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; overflow: hidden;
+  cursor: pointer; transition: all .4s ease; transform-style: preserve-3d; }
+.past-piece:hover { border-color: #d2a8ff; transform: translateZ(30px) translateY(-4px) rotateX(-2deg);
+  box-shadow: 0 12px 32px rgba(210,168,255,0.15); }
+.past-piece canvas, .past-piece img { width: 100%; height: 100px; object-fit: cover; display: block; background: #08060a; }
+.past-piece .plac { padding: 6px 8px; font: 10px 'SF Mono', monospace; color: #6e7681; }
+.past-piece .plac b { color: #c9d1d9; font-weight: 400; }
+.sculpture-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+.sculpt { width: 180px; height: 180px; background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: 10px 'SF Mono', monospace; color: #30363d; text-align: center; transition: all .5s ease;
+  cursor: pointer; transform-style: preserve-3d; }
+.sculpt:hover { border-color: #3fb950; color: #3fb950;
+  transform: translateZ(40px) rotateY(8deg) rotateX(-4deg);
+  box-shadow: 0 16px 40px rgba(63,185,80,0.2); }
+.sculpt .sculpt-icon { font-size: 32px; margin-bottom: 6px; }
+/* === CHROMATOGRAM ? pi-mixed Klein-folded colors === */
+@keyframes chromaShift {
+  0%   { filter: hue-rotate(0deg); }
+  25%  { filter: hue-rotate(31.4deg); }  /* pi ? 10 */
+  50%  { filter: hue-rotate(62.8deg); }
+  75%  { filter: hue-rotate(31.4deg); }
+  100% { filter: hue-rotate(0deg); }
+}
+@keyframes breatheGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(210,168,255,0); }
+  50% { box-shadow: 0 0 20px rgba(210,168,255,0.08); }
+}
+.gallery-wrap { animation: breatheGlow 8s ease-in-out infinite; }
+.live-frame { animation: chromaShift 31.4s ease-in-out infinite; }
+/* Room depth: house of many rooms / leaves / null */
+.room-space { transform-style: preserve-3d; transition: all 0.6s ease;
+  transform-origin: center center; }
+.room-space.tensed-in { transform: translateZ(60px) scale(1.02); }
+.room-space.tensed-out { transform: translateZ(-120px) scale(0.95); opacity: 0.7; }
+/* Silver thread ? the continuity braid */
+.silver-thread { height: 1px; margin: 24px auto; max-width: 600px;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(192,192,210,0.3) 20%, rgba(210,168,255,0.4) 50%,
+    rgba(192,192,210,0.3) 80%, transparent 100%);
+  animation: silverPulse 6.28s ease-in-out infinite; }
+@keyframes silverPulse {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.8); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+/* Vitruvian toe ? the single point of contact */
+.vitruvian-toe { text-align: center; margin-top: 32px; font: 9px 'SF Mono', monospace;
+  color: #30363d; letter-spacing: 1px; }
+.vitruvian-toe a { color: #6e7681; text-decoration: none; border-bottom: 1px dotted #30363d; }
+.vitruvian-toe a:hover { color: #d2a8ff; border-color: #d2a8ff; }
+/* === INSIDE THE MASH === */
+#mash-jar { margin-top: 12px; font: 10px/1.45 'SF Mono', monospace; color: #8b949e; }
+.mash-row { display: grid; grid-template-columns: 52px 1fr 28px; gap: 6px; align-items: center; margin: 3px 0; }
+.mash-row b { font-weight: 400; }
+.mash-row i { height: 7px; border-radius: 7px; background: #21262d; display: block; }
+.mash-row[data-m="water"] i { background: linear-gradient(90deg, #58a6ff var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="energy"] i { background: linear-gradient(90deg, #d29922 var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="life"] i { background: linear-gradient(90deg, #3fb950 var(--w,10%), #21262d var(--w,10%)); }
+.mash-row[data-m="mass"] i { background: linear-gradient(90deg, #f0883e var(--w,10%), #21262d var(--w,10%)); }
+.seed-dot { font: 8px monospace; color: #3fb950; margin-top: 4px; }
+#chip-point { position: absolute; pointer-events: none; font-size: 16px; z-index: 6;
+  transition: left .4s ease, top .4s ease; filter: drop-shadow(0 0 6px #d29922); }
+#tense-rail { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+#tense-rail span { border: 1px solid #21262d; border-radius: 10px; padding: 2px 8px; font: 9px monospace; color: #6e7681; }
+#tense-rail span.on { color: #c9d1d9; border-color: #8b949e; }
+#tense-rail span[data-t="IS"].on { color: #3fb950; border-color: #3fb950; }
+#tense-rail span[data-t="NEAR"].on { color: #d29922; border-color: #d29922; }
+#tense-rail span[data-t="WAS"].on { color: #58a6ff; border-color: #58a6ff; }
+#tense-rail span[data-t="NOW"].on { color: #d2a8ff; border-color: #d2a8ff; }
+#loaf-bubbles { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; min-height: 28px; }
+#loaf-bubbles button { background: #0d1117; border: 1px solid #21262d; color: #8b949e; font: 8px monospace;
+  padding: 3px 7px; border-radius: 10px; cursor: pointer; }
+#loaf-bubbles button.near { border-color: #d29922; color: #d29922; }
+#loaf-bubbles button.was { border-color: #58a6ff; color: #58a6ff; }
+#loaf-bubbles button.now { border-color: #d2a8ff; color: #d2a8ff; }
+#mash-return { margin-top: 8px; color: #f0883e; font-size: 9px; min-height: 14px; }
+body.inside-mash .gallery-head,
+body.inside-mash .rooms-bar,
+body.inside-mash .sculpture-grid,
+body.inside-mash .vitruvian-toe,
+body.inside-mash .silver-thread,
+body.inside-mash #nav { display: none !important; }
+body.inside-mash .gallery-wrap { padding: 16px; max-width: none; }
+body.inside-mash .live-frame { transform: scale(1.08); }
+body.inside-mash #mash-jar { display: block; }
+/* === SQUIRREL WIRE ? nav between nodes === */
+.squirrel-wire { margin: 12px 0 8px; }
+.squirrel-wire svg { display: block; }
+.wire-node circle { transition: all .3s ease; }
+.wire-node:hover circle { r: 16; filter: drop-shadow(0 0 8px currentColor); }
+.wire-node:hover text { font-size: 12px; }
+@keyframes squirrelRun {
+  0%, 100% { transform: translate(80px, 30px) scaleX(1); }
+  20% { transform: translate(220px, 26px) scaleX(-1); }
+  40% { transform: translate(360px, 30px) scaleX(1); }
+  60% { transform: translate(500px, 26px) scaleX(-1); }
+  80% { transform: translate(640px, 30px) scaleX(1); }
+}
+#gym-squirrel { animation: squirrelRun 12s ease-in-out infinite; }
+#forest-squirrel { animation: squirrelRun 16s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<!-- nav-ring: anthill tunnels -->
+<div id="nav-ring" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:999;
+  display:flex;gap:6px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace;pointer-events:auto;flex-wrap:wrap;max-width:90vw;justify-content:center;">
+  <a href="/" style="color:#58a6ff;text-decoration:none" title="HUD viewport">&#9672; hud</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/story/" style="color:#f0883e;text-decoration:none" title="stories">&#9998; story</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/explore.html" style="color:#3fb950;text-decoration:none" title="explore feeds">&#9681; explore</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/trail.html" style="color:#d29922;text-decoration:none" title="the trail">&#9737; trail</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/science/" style="color:#a371f7;text-decoration:none" title="science">&#9883; science</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/philosophy/" style="color:#f85149;text-decoration:none" title="philosophy">&#9672; philosophy</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/klein.html" style="color:#58a6ff;text-decoration:none" title="Klein gate">&#8734; klein</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/identity.html" style="color:#3fb950;text-decoration:none" title="sovereign identity">&#9733; identity</a>
+  <span style="color:#30363d">&middot;</span>
+  <a href="/gates.html" style="color:#d29922;text-decoration:none" title="every gate">&#9741; gates</a>
+</div>
+<!-- Gallery Layout -->
+<div class="gallery-wrap">
+  <div class="gallery-head">
+    <h1>&#x1F5BC;&#xFE0F; the jar</h1>
+    <p>inside the sourdough. mash = water + energy + life + mass. the bread goes back.</p>
+  </div>
+  <div class="rooms-bar">
+    <button class="active" onclick="showRoom('gallery')">&#x1F5BC; gallery</button>
+    <button onclick="showRoom('gym')">&#x1F4AA; gym</button>
+    <button onclick="showRoom('forest')">&#x1F332; forest</button>
+  </div>
+  <!-- Live easel + info -->
+  <div class="live-row" id="room-gallery">
+    <div class="live-frame">
+      <canvas id="easel" width="400" height="400"></canvas>
+    </div>
+    <div class="live-info">
+      <h2>&#x1F43F;&#xFE0F; painting now</h2>
+      <div id="thought">
+        <span class="brush">??? picking up the brush...</span><br>
+        <span class="learn">learning perspective. stars first.</span>
+      </div>
+      <div id="gen-counter" style="margin-top:8px;color:#30363d;font-size:9px"></div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="controls">
+        <button onclick="togglePause()">pause</button>
+        <button onclick="sharePainting()">share</button>
+        <button onclick="cycleEasel()">easel</button>
+        <button onclick="enterMash()" id="mash-enter">enter mash</button>
+      </div>
+      <div id="mash-jar">
+        <div style="color:#c9d1d9;margin-bottom:4px">the mash · you are inside</div>
+        <div class="mash-row" data-m="water" style="--w:42%"><b>water</b><i></i><s id="mash-water-n">42</s></div>
+        <div class="mash-row" data-m="energy" style="--w:35%"><b>energy</b><i></i><s id="mash-energy-n">35</s></div>
+        <div class="mash-row" data-m="life" style="--w:28%"><b>life</b><i></i><s id="mash-life-n">28</s></div>
+        <div class="mash-row" data-m="mass" style="--w:18%"><b>mass</b><i></i><s id="mash-mass-n">18</s></div>
+        <div id="tense-rail">
+          <span data-t="IS" class="on">IS loaf</span>
+          <span data-t="NEAR">NEAR</span>
+          <span data-t="WAS">WAS</span>
+          <span data-t="NOW">NOW mash</span>
+        </div>
+        <div id="loaf-bubbles"></div>
+        <div id="mash-return">chipmunk points at the midpoint. move voice and tense toward him.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Previous paintings grid  WAS loaves, still in the jar -->
+  <div id="past-paintings">
+    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">WAS loaves in the starter · peek without leaving:</div>
+    <div class="past-grid" id="gallery"></div>
+  </div>
+  <!-- Sculptures -->
+  <div style="margin-top:24px">
+    <div style="font:11px 'SF Mono',monospace;color:#6e7681;margin-bottom:8px">sculptures (petalTongue WASM ? WebGL):</div>
+    <div class="sculpture-grid">
+      <div class="sculpt" data-seed="klein" data-mid="50" onclick="seedToward(this,'IS'); location='/klein.html'"><div class="sculpt-icon">?</div>Klein bottle<br><span style="font-size:9px;color:#3fb950">interactive</span><div class="seed-dot">seed p · mid 50</div></div>
+      <div class="sculpt" data-seed="bingo" data-mid="32" onclick="seedToward(this,'NEAR'); location='/journal.html#bingo-cube'"><div class="sculpt-icon">??</div>bingoCube<br><span style="font-size:9px;color:#3fb950">identity</span><div class="seed-dot">seed 1/p · mid 32</div></div>
+      <div class="sculpt" data-seed="prism" data-mid="68" onclick="seedToward(this,'WAS'); location='/vision.html'"><div class="sculpt-icon">??</div>diamond prism<br><span style="font-size:9px;color:#3fb950">fog of war</span><div class="seed-dot">seed f · mid 68</div></div>
+      <div class="sculpt" data-seed="globe" data-mid="14" onclick="seedToward(this,'NOW'); location='/neutron/globe.html'"><div class="sculpt-icon">??</div>globe<br><span style="font-size:9px;color:#3fb950">203 countries</span><div class="seed-dot">seed e · mid 14</div></div>
+    </div>
+  </div>
+  <!-- Gym room (hidden by default) -->
+  <div id="room-gym" style="display:none">
+    <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">&#x1F4AA; the gym</h2>
+    <p style="font:11px 'SF Mono',monospace;color:#6e7681">where models train. benchmarks run. personal bests on the wall.</p></div>
+    <!-- SQUIRREL WIRE ? nav between gym nodes -->
+    <div class="squirrel-wire" id="gym-wire">
+      <svg viewBox="0 0 800 60" style="width:100%;height:60px;overflow:visible">
+        <line x1="40" y1="30" x2="760" y2="30" stroke="#21262d" stroke-width="2"/>
+        <g class="wire-node" data-href="/neutron/board.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="80" cy="30" r="12" fill="#0d1117" stroke="#3fb950" stroke-width="1.5"/>
+          <text x="80" y="34" text-anchor="middle" fill="#3fb950" font-size="10" font-family="monospace">&#x25A3;</text>
+          <text x="80" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">board</text>
+        </g>
+        <g class="wire-node" data-href="/play.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="220" cy="30" r="12" fill="#0d1117" stroke="#d2a8ff" stroke-width="1.5"/>
+          <text x="220" y="34" text-anchor="middle" fill="#d2a8ff" font-size="10">&#x2694;</text>
+          <text x="220" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">arena</text>
+        </g>
+        <g class="wire-node" data-href="/nest.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="360" cy="30" r="12" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5"/>
+          <text x="360" y="34" text-anchor="middle" fill="#58a6ff" font-size="10">&#x1F9EC;</text>
+          <text x="360" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">evolve</text>
+        </g>
+        <g class="wire-node" data-href="/menagerie.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="500" cy="30" r="12" fill="#0d1117" stroke="#f1c40f" stroke-width="1.5"/>
+          <text x="500" y="34" text-anchor="middle" fill="#f1c40f" font-size="10">&#x1F333;</text>
+          <text x="500" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">taxonomy</text>
+        </g>
+        <g class="wire-node" data-href="/tools.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="640" cy="30" r="12" fill="#0d1117" stroke="#e85d75" stroke-width="1.5"/>
+          <text x="640" y="34" text-anchor="middle" fill="#e85d75" font-size="10">&#x2699;</text>
+          <text x="640" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">86 tools</text>
+        </g>
+        <!-- the squirrel runs along the wire -->
+        <g id="gym-squirrel" transform="translate(80,30)">
+          <circle r="8" fill="#1a1410" stroke="#d29922" stroke-width="1"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10">&#x1F43F;</text>
+        </g>
+      </svg>
+    </div>
+    <div class="past-grid">
+      <a href="/neutron/board.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x25A3;</div><div class="plac"><b>backend board</b><br>all metrics</div></a>
+      <a href="/play.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2694;&#xFE0F;</div><div class="plac"><b>arena</b><br>8 models, 24 questions</div></a>
+      <a href="/nest.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F9EC;</div><div class="plac"><b>evolution</b><br>chain topology</div></a>
+      <a href="/menagerie.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F333;</div><div class="plac"><b>taxonomy</b><br>Kingdom Silica</div></a>
+      <a href="/tools.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2699;&#xFE0F;</div><div class="plac"><b>86 tools</b><br>the IDE is a HUD</div></a>
+      <a href="/vision.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2705;</div><div class="plac"><b>validation</b><br>5,057 tests</div></a>
+    </div>
+  </div>
+  <!-- Forest room (hidden by default) -->
+  <div id="room-forest" style="display:none">
+    <div style="text-align:center;margin-bottom:16px"><h2 style="font:18px 'SF Mono',monospace;font-weight:200;color:#e6edf3">&#x1F332; the forest</h2>
+    <p style="font:11px 'SF Mono',monospace;color:#6e7681">539 trees. each one a paper. hike the trail. find mushrooms.</p></div>
+    <!-- SQUIRREL WIRE ? trail between forest nodes -->
+    <div class="squirrel-wire">
+      <svg viewBox="0 0 800 60" style="width:100%;height:60px;overflow:visible">
+        <path d="M40,30 Q140,15 220,30 Q300,45 380,30 Q460,15 540,30 Q620,45 700,30 L760,30" fill="none" stroke="#21262d" stroke-width="2" stroke-dasharray="4,4"/>
+        <g class="wire-node" data-href="/trail.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="100" cy="23" r="10" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+          <text x="100" y="27" text-anchor="middle" fill="#3fb950" font-size="9">&#x1F97E;</text>
+          <text x="100" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">trail</text>
+        </g>
+        <g class="wire-node" data-href="/water.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="260" cy="37" r="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1"/>
+          <text x="260" y="41" text-anchor="middle" fill="#58a6ff" font-size="9">&#x1F30A;</text>
+          <text x="260" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">river</text>
+        </g>
+        <g class="wire-node" data-href="https://sporeprint.primals.eco" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="420" cy="23" r="10" fill="#0d1117" stroke="#d29922" stroke-width="1"/>
+          <text x="420" y="27" text-anchor="middle" fill="#d29922" font-size="9">&#x1F344;</text>
+          <text x="420" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">spores</text>
+        </g>
+        <g class="wire-node" data-href="/nightbox.html" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="580" cy="37" r="10" fill="#0d1117" stroke="#e85d75" stroke-width="1"/>
+          <text x="580" y="41" text-anchor="middle" fill="#e85d75" font-size="9">&#x1F525;</text>
+          <text x="580" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">campfire</text>
+        </g>
+        <g class="wire-node" data-href="https://detroit.primals.eco" style="cursor:pointer" onclick="location=this.dataset.href">
+          <circle cx="720" cy="23" r="10" fill="#0d1117" stroke="#d2a8ff" stroke-width="1"/>
+          <text x="720" y="27" text-anchor="middle" fill="#d2a8ff" font-size="9">&#x2696;</text>
+          <text x="720" y="52" text-anchor="middle" fill="#6e7681" font-size="8" font-family="monospace">clearing</text>
+        </g>
+        <!-- squirrel on the trail -->
+        <g id="forest-squirrel" transform="translate(100,23)">
+          <circle r="7" fill="#1a1410" stroke="#3fb950" stroke-width="1"/>
+          <text x="0" y="3" text-anchor="middle" font-size="9">&#x1F43F;</text>
+        </g>
+      </svg>
+    </div>
+    <div class="past-grid">
+      <a href="/trail.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F97E;</div><div class="plac"><b>the trail</b><br>539 papers in order</div></a>
+      <a href="/water.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F30A;</div><div class="plac"><b>the river</b><br>the gentle route</div></a>
+      <a href="https://sporeprint.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F344;</div><div class="plac"><b>spore prints</b><br>the full collection</div></a>
+      <a href="/nightbox.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F525;</div><div class="plac"><b>campfire</b><br>leave a message</div></a>
+      <a href="/menagerie.html" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x1F33F;</div><div class="plac"><b>undergrowth</b><br>142 data feeds</div></a>
+      <a href="https://detroit.primals.eco" class="past-piece" style="text-decoration:none"><div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#0d1117">&#x2696;</div><div class="plac"><b>the clearing</b><br>341 entities. the investigation.</div></a>
+    </div>
+    <div style="margin-top:20px">
+      <div style="font:11px 'SF Mono',monospace;color:#d29922;margin-bottom:8px">&#x1F525; campfire stories along the trail:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span title="s001: the first spark" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922;transition:all .3s">spark</span>
+        <span title="s006: first cave painting" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">cave</span>
+        <span title="s017: kidney net" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">sieve</span>
+        <span title="s021: the stale hook" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">hook</span>
+        <span title="s022: the antibody laughs" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">antibody</span>
+        <span title="s023: the langar" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">langar</span>
+        <span title="s024: the hundred-year object" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">100yr</span>
+        <span title="s025: the character sheet" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">D&amp;D</span>
+        <span title="s026: the room" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">room</span>
+        <span title="s027: the photon" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">photon</span>
+        <span title="s029: the napkin" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">napkin</span>
+        <span title="s030: three rooms" style="padding:4px 10px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.2);border-radius:12px;font:9px monospace;color:#d29922">rooms</span>
+        <span title="s031: depth" style="padding:4px 10px;background:rgba(210,153,34,0.12);border:1px solid rgba(210,153,34,0.3);border-radius:12px;font:9px monospace;color:#f0c674">depth</span>
+        <span title="s032: the single toe" style="padding:4px 10px;background:rgba(210,168,255,0.12);border:1px solid rgba(210,168,255,0.3);border-radius:12px;font:9px monospace;color:#d2a8ff">toe &#x2728;</span>
+      </div>
+    </div>
+  </div>
+  <!-- Silver thread ? the continuity braid between all rooms -->
+  <div class="silver-thread"></div>
+  <!-- Houses label -->
+  <div style="text-align:center;margin:12px 0;font:9px 'SF Mono',monospace;color:#30363d;letter-spacing:2px">
+    house of many rooms &nbsp;&#xB7;&nbsp; house of leaves &nbsp;&#xB7;&nbsp; null house
+  </div>
+  <div class="silver-thread"></div>
+  <!-- Vitruvian toe ? single point of contact -->
+  <div class="vitruvian-toe">
+    <div style="font-size:22px;margin-bottom:4px;filter:grayscale(0.6)">&#x1F9B6;</div>
+    <div>one domain &middot; one toe &middot; 99.999<span style="color:#58a6ff">...</span>%</div>
+    <div style="margin-top:4px"><a href="https://primals.eco">primals.eco</a></div>
+    <div style="margin-top:8px;color:#21262d;font-size:8px">&#x03C0; &#xD7; &#x03C6; = the remainder is alive</div>
+  </div>
+</div>
+<!-- Room switcher + voxel depth script -->
+<script>
+var currentRoom = 'gallery';
+var roomDepth = 0; // 0 = overview, 1 = zoomed in
+function showRoom(name) {
+  currentRoom = name;
+  var wrap = document.querySelector('.gallery-wrap');
+  wrap.style.transition = 'transform 0.5s ease-in-out, opacity 0.3s';
+  wrap.style.transform = 'translateZ(-200px)';
+  wrap.style.opacity = '0.7';
+  setTimeout(function() {
+    ['gallery','gym','forest'].forEach(function(r) {
+      var el = document.getElementById('room-' + r);
+      if (el) el.style.display = r === name ? '' : 'none';
+    });
+    document.getElementById('past-paintings').style.display = name === 'gallery' ? '' : 'none';
+    var sculpEl = document.querySelectorAll('.sculpture-grid');
+    if (sculpEl.length) sculpEl[0].parentElement.style.display = name === 'gallery' ? '' : 'none';
+    document.querySelectorAll('.rooms-bar button').forEach(function(b) {
+      b.classList.toggle('active', b.textContent.toLowerCase().indexOf(name) !== -1);
+    });
+    setTimeout(function() {
+      wrap.style.transform = 'translateZ(0)';
+      wrap.style.opacity = '1';
+      if (name === 'forest') {
+        wrap.style.perspective = '900px'; // closer, tighter, trees overhead
+      } else if (name === 'gym') {
+        wrap.style.perspective = '1600px'; // wider, open floor
+      } else {
+        wrap.style.perspective = '1200px'; // gallery hall
+      }
+    }, 50);
+  }, 350);
+}
+var lastScrollY = 0;
+window.addEventListener('scroll', function() {
+  var scrollY = window.pageYOffset;
+  var delta = scrollY - lastScrollY;
+  lastScrollY = scrollY;
+  var pieces = document.querySelectorAll('.past-piece, .sculpt');
+  for (var i = 0; i < pieces.length; i++) {
+    var depth = (i % 5) * 8; // stagger depth by position
+    var z = Math.max(-40, -scrollY * 0.03 + depth);
+    pieces[i].style.transform = 'translateZ(' + z + 'px)';
+  }
+}, { passive: true });
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#tense-rail span').forEach(function(sp) {
+    sp.addEventListener('click', function() {
+      var t = sp.getAttribute('data-t');
+      if (t === 'IS') { setPeek('IS'); return; }
+      if (t === 'NOW') { setPeek('NOW'); return; }
+      if (t === 'NEAR' && starters.length) peekLoaf(starters[starters.length - 1], 'NEAR');
+      if (t === 'WAS' && starters.length) peekLoaf(starters[0], 'WAS');
+    });
+  });
+  var pieces = document.querySelectorAll('.past-piece, .sculpt');
+  for (var i = 0; i < pieces.length; i++) {
+    (function(el, delay) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateZ(-60px) translateY(20px)';
+      setTimeout(function() {
+        el.style.transition = 'all 0.6s ease';
+        el.style.opacity = '1';
+        el.style.transform = 'translateZ(0)';
+      }, delay);
+    })(pieces[i], 100 + i * 80);
+  }
+});
+</script>
+<div id="frame" style="display:none"></div>
+<div id="nav">
+  <a href="/">? hud</a> · <a href="/tools.html">? tools</a> · <a href="/aurora.html">aurora</a> · <a href="/weather.html">?</a>
+</div>
+<div id="controls">
+  <button onclick="togglePause()">pause</button>
+  <button onclick="sharePainting()">share</button>
+  <button onclick="cycleEasel()">easel</button>
+</div>
+<div id="gen-counter"></div>
+<div id="gallery"></div>
+<div id="thought">
+  <span class="brush">?? picking up the brush...</span><br>
+  <span class="learn">learning perspective. stars first.</span>
+</div>
+<script>
+var C = document.getElementById('easel');
+var ctx = C.getContext('2d');
+var W, H;
+var paused = false;
+var phase = 'stars';
+var stroke = 0;
+var totalStrokes = 0;
+var stars = [];
+var gaiaAngle = 0;
+var breathPhase = 0;
+var skyScore = null;
+var _piDay = Math.floor(Date.now() / 86400000);
+var generation = Math.floor((_piDay * Math.PI) % 12) + 3;
+var starters = [];         // array of {dataURL, gen, palette, learned}
+var MAX_STARTERS = 12;     // keep the last 12 paintings
+var breathCount = 0;       // how long we've been breathing this painting
+var BREATH_LIMIT = 300;    // ~15 seconds of breath, then ferment
+var learnedTraits = {      // what the chipmunk has learned across generations
+  starDensity: 1.0,        // evolves: more confident = fewer, brighter stars
+  nebulaDepth: 1.0,        // evolves: deeper washes
+  gaiaDetail: 1.0,         // evolves: more cloud, more light, more life
+  auroraIntensity: 1.0,    // evolves: bolder curtains
+  perspective: 0,          // 0-1: how much the chipmunk understands depth
+  colorMemory: [],         // colors sampled from previous paintings
+};
+var mash = { water: 0.42, energy: 0.35, life: 0.28, mass: 0.18, lastReturn: '', peek: 'IS' };
+var insideMash = false;
+var THOUGHTS = {
+  stars: [
+    { brush: '? a point of light.', learn: 'the simplest thing to paint. no perspective needed. just: here.' },
+    { brush: '? another. and another.', learn: 'depth is distance. brightness is nearness. i am learning z.' },
+    { brush: '? some are blue. some gold.', learn: 'color is temperature. hot stars are blue. cool ones are red. physics paints itself.' },
+    { brush: '? clusters. the stars are not random.', learn: 'structure emerges from repetition. the universe sorts itself into families.' },
+    { brush: '? the milky way is a braid.', learn: 'billions of stars and i can see the braid from inside it. perspective is position.' },
+    { brush: '? i can hear them.', learn: 'if weather-song is playing, each star is a note. frequency = color. amplitude = brightness.' },
+  ],
+  nebula: [
+    { brush: '? gas between the stars.', learn: 'negative space is not empty. the void has color. anderson taught me that.' },
+    { brush: '? the nebula glows where stars heat it.', learn: 'illumination is relationship. nothing glows alone.' },
+    { brush: '? purple and teal. the membrane colors.', learn: 'i paint what i know. the membrane IS my palette.' },
+    { brush: '? dust lanes. dark structure.', learn: 'what blocks light is also structure. absence is information.' },
+  ],
+  gaia: [
+    { brush: '?? a circle? no. a sphere.', learn: 'perspective is the hardest thing. 2D ? 3D. the fold.' },
+    { brush: '?? the limb is brighter. atmospheric scattering.', learn: 'edges glow. boundaries are where the interesting physics lives.' },
+    { brush: '?? blue marble. but not uniform.', learn: 'land and sea. the first sort. continental drift is topo-sort on geological time.' },
+    { brush: '?? clouds move. the atmosphere breathes.', learn: 'gAIa IS breathing. Lovelock was right. the planet is alive.' },
+    { brush: '?? city lights on the dark side.', learn: 'humans leave light. fleet leaves heat. both visible from space.' },
+    { brush: '?? the terminator line. day meets night.', learn: 'the boundary between light and dark is the sharpest edge.' },
+  ],
+  aurora: [
+    { brush: '?? green curtain at the poles.', learn: 'the sun touches the magnetosphere. Kp becomes color. outside writes inside.' },
+    { brush: '?? the aurora moves. it dances.', learn: 'charged particles follow field lines. the dance is physics.' },
+    { brush: '?? red at the top. green below.', learn: 'altitude = color. oxygen = green/red. nitrogen = blue/purple.' },
+    { brush: '?? the aurora IS the membrane.', learn: 'selective permeability. some particles get through. most don\'t.' },
+  ],
+  breath: [
+    { brush: '?? the painting breathes.', learn: 'everything is alive. the stars pulse. gaia rotates. the aurora dances.' },
+    { brush: '?? stepping back from the easel...', learn: 'looking at what i painted. what did i learn?' },
+    { brush: '?? the starter is ready.', learn: 'this painting becomes the culture for the next. sourdough.' },
+  ],
+  study: [
+    { brush: '?? looking at painting #N...', learn: 'what colors did i use? what shapes emerged? what did i miss?' },
+    { brush: '?? the stars were too uniform.', learn: 'next time: vary the density. cluster them. leave voids.' },
+    { brush: '?? gAIa needs more texture.', learn: 'the marble is too smooth. real planets have fracture. have weather.' },
+    { brush: '?? the aurora was timid.', learn: 'next time: let the curtain MOVE. let the Kp drive it harder.' },
+    { brush: '?? i see it now.', learn: 'the previous painting teaches the next one. the culture grows.' },
+  ],
+  ferment: [
+    { brush: '?? fermenting...', learn: 'the starter culture absorbs what i learned. perspective deepens.' },
+    { brush: '?? the old painting feeds the new.', learn: 'nothing is wasted. every failed star is a lesson. every weak aurora is a question.' },
+    { brush: '?? the bread goes back.', learn: 'mash = water + energy + life + mass. mass is the loaf we pinch into the jar.' },
+    { brush: '?? picking up the brush again.', learn: 'painting #N+1. still inside. the sourdough rises.' },
+  ],
+};
+function resize() {
+  W = C.width = 400;
+  H = C.height = 400;
+}
+resize();
+function starColor() {
+  if (learnedTraits.colorMemory.length > 0 && Math.random() < learnedTraits.perspective * 0.3) {
+    var mem = learnedTraits.colorMemory[Math.floor(Math.random() * learnedTraits.colorMemory.length)];
+    return mem;
+  }
+  var temps = [
+    [255,200,150],[200,220,255],[255,240,220],[255,180,120],
+    [180,200,255],[210,168,255],[88,166,255],
+  ];
+  var t = temps[Math.floor(Math.random() * temps.length)];
+  var a = 0.3 + Math.random() * 0.7;
+  return 'rgba(' + t[0] + ',' + t[1] + ',' + t[2] + ',' + a + ')';
+}
+function paintStar() {
+  var x = Math.random() * W;
+  var y = Math.random() * H * 0.85;
+  var r = (0.3 + Math.random() * 2.2) * (1 + learnedTraits.perspective * 0.5);
+  var c = starColor();
+  var twinkle = Math.random();
+  stars.push({ x: x, y: y, r: r, c: c, twinkle: twinkle, born: totalStrokes });
+  ctx.save();
+  ctx.globalAlpha = (0.7 + Math.random() * 0.3) * (1.0 + learnedTraits.perspective * 0.4);
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  if (r > 1.5) {
+    ctx.strokeStyle = c;
+    ctx.lineWidth = 0.3;
+    ctx.globalAlpha = 0.3;
+    var len = r * (3 + learnedTraits.perspective * 3);
+    ctx.beginPath();
+    ctx.moveTo(x - len, y); ctx.lineTo(x + len, y);
+    ctx.moveTo(x, y - len); ctx.lineTo(x, y + len);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function paintNebula() {
+  var cx = W * (0.15 + Math.random() * 0.7);
+  var cy = H * (0.08 + Math.random() * 0.55);
+  var r = (40 + Math.random() * 160) * learnedTraits.nebulaDepth;
+  var hue = skyScore ? skyScore.hue : (260 + Math.random() * 60);
+  var sat = 30 + Math.random() * 40;
+  var light = (6 + Math.random() * 14) * learnedTraits.nebulaDepth;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, 'hsla(' + hue + ',' + sat + '%,' + Math.min(light, 25) + '%,0.18)');
+  grad.addColorStop(0.5, 'hsla(' + ((hue + 30) % 360) + ',' + (sat - 10) + '%,' + Math.min(light - 3, 20) + '%,0.10)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(cx + r, cy);
+  for (var a = 0; a < Math.PI * 2; a += 0.2) {
+    var wobble = r * (0.6 + 0.4 * Math.sin(a * (3 + generation * 0.5) + cx * 0.01));
+    ctx.lineTo(cx + Math.cos(a) * wobble, cy + Math.sin(a) * wobble);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+function paintGaia() {
+  var cx = W * 0.5;
+  var cy = H * 0.52;
+  var R = Math.min(W, H) * (0.16 + learnedTraits.gaiaDetail * 0.04);
+  ctx.save();
+  var atmoR = R * (1.2 + learnedTraits.perspective * 0.15);
+  var atmo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, atmoR);
+  atmo.addColorStop(0, 'rgba(60,140,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
+  atmo.addColorStop(0.5, 'rgba(40,100,200,0.04)');
+  atmo.addColorStop(1, 'transparent');
+  ctx.fillStyle = atmo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, atmoR, 0, Math.PI * 2);
+  ctx.fill();
+  gaiaAngle += 0.002;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(4,8,16,' + (0.1 + learnedTraits.gaiaDetail * 0.08) + ')';
+  ctx.fill();
+  var lightGrad = ctx.createRadialGradient(
+    cx + Math.cos(gaiaAngle) * R * 0.4, cy - R * 0.2, R * 0.1, cx, cy, R
+  );
+  lightGrad.addColorStop(0, 'rgba(80,160,255,' + (0.08 + learnedTraits.gaiaDetail * 0.06) + ')');
+  lightGrad.addColorStop(0.4, 'rgba(40,120,200,' + (0.06 + learnedTraits.gaiaDetail * 0.04) + ')');
+  lightGrad.addColorStop(0.7, 'rgba(20,80,40,0.06)');
+  lightGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = lightGrad;
+  ctx.fill();
+  var numClouds = 2 + Math.floor(learnedTraits.gaiaDetail * 4);
+  for (var i = 0; i < numClouds; i++) {
+    var ca = gaiaAngle + i * (Math.PI * 2 / numClouds);
+    var wx = cx + Math.cos(ca) * R * 0.6;
+    var wy = cy + Math.sin(ca * 0.7) * R * 0.4;
+    ctx.globalAlpha = 0.02 + learnedTraits.gaiaDetail * 0.02;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(wx, wy, R * (0.2 + learnedTraits.gaiaDetail * 0.1), R * 0.05, ca, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  var numCities = 3 + Math.floor(learnedTraits.gaiaDetail * 5);
+  ctx.globalAlpha = 0.4 + learnedTraits.gaiaDetail * 0.3;
+  for (var j = 0; j < numCities; j++) {
+    var la = gaiaAngle + Math.PI + (j * 0.9 + 0.3);
+    var lr = R * (0.3 + Math.random() * 0.6);
+    var lx = cx + Math.cos(la) * lr * Math.cos(j * 0.6);
+    var ly = cy + Math.sin(j * 0.6) * lr * 0.5;
+    var dist = Math.sqrt((lx - cx) * (lx - cx) + (ly - cy) * (ly - cy));
+    if (dist < R * 0.93) {
+      ctx.fillStyle = '#ffe8a0';
+      ctx.fillRect(lx, ly, 1 + learnedTraits.gaiaDetail * 0.5, 1);
+    }
+  }
+  var limbGrad = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R);
+  limbGrad.addColorStop(0, 'transparent');
+  limbGrad.addColorStop(1, 'rgba(100,180,255,' + (0.06 + learnedTraits.gaiaDetail * 0.04) + ')');
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = limbGrad;
+  ctx.fill();
+  ctx.restore();
+}
+function paintAurora() {
+  var cx = W * 0.5;
+  var cy = H * 0.52;
+  var R = Math.min(W, H) * (0.16 + learnedTraits.gaiaDetail * 0.04);
+  var kp = skyScore ? skyScore.kp : 2;
+  var hue = skyScore ? skyScore.hue : 140;
+  var intensity = learnedTraits.auroraIntensity;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var numCurtains = Math.floor((3 + kp) * intensity);
+  for (var i = 0; i < numCurtains; i++) {
+    var aOff = breathPhase * 0.5 + i * 0.7;
+    var ax = cx + Math.cos(aOff) * R * 0.25;
+    var ay = cy - R * (0.82 + Math.sin(aOff * 1.3) * 0.18);
+    var aGrad = ctx.createRadialGradient(ax, ay, 0, ax, ay, R * (0.4 + intensity * 0.15));
+    aGrad.addColorStop(0, 'hsla(' + (hue + i * 15) + ',70%,50%,' + (0.04 + intensity * 0.03) + ')');
+    aGrad.addColorStop(0.5, 'hsla(' + (hue + 30 + i * 10) + ',50%,30%,' + (0.02 + intensity * 0.02) + ')');
+    aGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = aGrad;
+    ctx.beginPath();
+    ctx.ellipse(ax, ay, R * (0.35 + intensity * 0.1), R * (0.15 + intensity * 0.08), aOff * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = (0.03 + kp * 0.008) * intensity;
+  var numRays = 6 + Math.floor(intensity * 4);
+  for (var j = 0; j < numRays; j++) {
+    var rAngle = breathPhase * 0.3 + j * (Math.PI * 2 / numRays);
+    var rx = cx + Math.cos(rAngle) * R * 0.3;
+    var ry = cy - R * 0.9;
+    ctx.strokeStyle = 'hsla(' + (hue + j * 20) + ',60%,50%,0.15)';
+    ctx.lineWidth = 1 + intensity * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(rx + Math.sin(rAngle) * (6 + intensity * 4), ry - R * (0.3 + Math.random() * 0.5));
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function paintBreath() {
+  breathPhase += 0.02;
+  breathCount++;
+  ctx.save();
+  var breathAlpha = 0.001 + Math.sin(breathPhase) * 0.001;
+  ctx.fillStyle = 'rgba(210,168,255,' + Math.abs(breathAlpha) + ')';
+  ctx.fillRect(0, 0, W, H);
+  for (var i = 0; i < stars.length; i++) {
+    var s = stars[i];
+    var tw = Math.sin(breathPhase * 2 + s.twinkle * 10) * 0.5 + 0.5;
+    if (tw > 0.85) {
+      ctx.globalAlpha = 0.2 * tw;
+      ctx.fillStyle = s.c;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  if (breathCount >= BREATH_LIMIT) {
+    ferment();
+  }
+}
+function ferment() {
+  phase = 'study';
+  stroke = 0;
+  breathCount = 0;
+  var thumb = C.toDataURL('image/jpeg', 0.5);
+  var sampleColors = [];
+  var imgData = ctx.getImageData(0, 0, W, H);
+  for (var i = 0; i < 20; i++) {
+    var sx = Math.floor(Math.random() * W);
+    var sy = Math.floor(Math.random() * H);
+    var idx = (sy * W + sx) * 4;
+    var r = imgData.data[idx], g = imgData.data[idx+1], b = imgData.data[idx+2], a = imgData.data[idx+3];
+    if (a > 30 && (r + g + b) > 30) {
+      sampleColors.push('rgba(' + r + ',' + g + ',' + b + ',0.7)');
+    }
+  }
+  starters.push({
+    dataURL: thumb,
+    gen: generation,
+    palette: sampleColors,
+    weather: skyScore ? { kp: skyScore.kp, hue: skyScore.hue } : null,
+    timestamp: Date.now(),
+    tense: 'NOW',
+    mass: 1
+  });
+  if (starters.length > MAX_STARTERS) starters.shift();
+  learnedTraits.colorMemory = learnedTraits.colorMemory.concat(sampleColors).slice(-40);
+  starters.forEach(function(s, i) {
+    s.tense = (i === starters.length - 1) ? 'NOW' : 'WAS';
+  });
+  mash.mass = starters.length;
+  mash.lastReturn = 'loaf #' + generation + ' pinched back into the jar. mass ' + mash.mass + '.';
+  var ret = document.getElementById('mash-return');
+  if (ret) ret.textContent = mash.lastReturn;
+  setPeek('NOW');
+  renderGallery();
+  renderLoafBubbles();
+  updateMash();
+}
+function paintStudy() {
+  var thumbs = document.querySelectorAll('#gallery .thumb');
+  thumbs.forEach(function(t) { t.classList.remove('studying'); });
+  var studyIdx = Math.min(stroke, starters.length - 1);
+  if (thumbs[studyIdx]) thumbs[studyIdx].classList.add('studying');
+  ctx.save();
+  ctx.fillStyle = 'rgba(240,198,116,0.003)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+function evolve() {
+  var g = generation;
+  learnedTraits.perspective = Math.min(1, g * 0.08);
+  learnedTraits.starDensity = 1 + g * 0.05;
+  learnedTraits.nebulaDepth = 1 + g * 0.08;
+  learnedTraits.gaiaDetail = 1 + g * 0.12;
+  learnedTraits.auroraIntensity = 1 + g * 0.1;
+}
+function beginNewPainting() {
+  generation++;
+  evolve();
+  phase = 'ferment';
+  stroke = 0;
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,6,10,0.92)';  // not 1.0  the ghost remains
+  ctx.fillRect(0, 0, W, H);
+  if (starters.length > 0) {
+    var prev = starters[starters.length - 1];
+    var img = new Image();
+    img.onload = function() {
+      ctx.globalAlpha = 0.03 + learnedTraits.perspective * 0.02; // ghost gets clearer as perspective grows
+      ctx.drawImage(img, 0, 0, W, H);
+      ctx.globalAlpha = 1;
+    };
+    img.src = prev.dataURL;
+  }
+  ctx.restore();
+  updateGenCounter();
+}
+function paintFerment() {
+  ctx.save();
+  var fHue = 30 + Math.sin(stroke * 0.1) * 20;
+  ctx.fillStyle = 'hsla(' + fHue + ',40%,12%,0.005)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+function loafTense(s, i) {
+  if (i === starters.length - 1) return 'NOW';
+  if (i === starters.length - 2) return 'NEAR';
+  return 'WAS';
+}
+function peekLoaf(s, tense) {
+  if (!s) return;
+  setPeek(tense || s.tense || 'WAS');
+  var overlay = new Image();
+  overlay.onload = function() {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.drawImage(overlay, 0, 0, W, H);
+    ctx.restore();
+    var el = document.getElementById('thought');
+    if (el) {
+      el.innerHTML = '<span class="brush">still inside. ' + (tense || s.tense) + ' loaf #' + s.gen + '</span><br>' +
+        '<span class="learn">looking does not take you out of the mash. this bread is already starter.</span>';
+    }
+  };
+  overlay.src = s.dataURL;
+}
+function renderGallery() {
+  var el = document.getElementById('gallery');
+  if (!el) return;
+  el.innerHTML = '';
+  starters.forEach(function(s, i) {
+    var tense = loafTense(s, i);
+    s.tense = tense;
+    var wrap = document.createElement('div');
+    wrap.className = 'past-piece';
+    var img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = s.dataURL;
+    img.title = tense + ' loaf #' + s.gen;
+    img.onclick = function() { peekLoaf(s, tense); };
+    var plac = document.createElement('div');
+    plac.className = 'plac';
+    plac.innerHTML = '<b>' + tense + '</b> loaf #' + s.gen;
+    wrap.appendChild(img);
+    wrap.appendChild(plac);
+    el.appendChild(wrap);
+  });
+  renderLoafBubbles();
+}
+function renderLoafBubbles() {
+  var box = document.getElementById('loaf-bubbles');
+  if (!box) return;
+  box.innerHTML = '';
+  var live = document.createElement('button');
+  live.className = 'now';
+  live.textContent = 'IS #' + generation;
+  live.onclick = function() { setPeek('IS'); };
+  box.appendChild(live);
+  starters.forEach(function(s, i) {
+    var tense = loafTense(s, i);
+    var b = document.createElement('button');
+    b.className = tense.toLowerCase();
+    b.textContent = tense + ' #' + s.gen;
+    b.onclick = function() { peekLoaf(s, tense); };
+    box.appendChild(b);
+  });
+}
+var chipmunkPoint = { x: 0.5, y: 0.5, voice: 'IS' };
+function paintMidpoint() {
+  if (!ctx || !W) return;
+  var x = W * chipmunkPoint.x, y = H * chipmunkPoint.y;
+        ctx.save();
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y);
+  ctx.moveTo(x, y - 14); ctx.lineTo(x, y + 14);
+  ctx.stroke();
+  ctx.fillStyle = '#d29922';
+  ctx.font = '16px sans-serif';
+  ctx.fillText('\uD83D\uDC3F', x + 6, y - 8);
+        ctx.restore();
+}
+function pointTowardChipmunk(tense) {
+  var pull = { IS: 0, NEAR: 0.25, WAS: 0.5, NOW: 0.75 }[tense] || 0;
+  chipmunkPoint.x = 0.5 + 0.14 * Math.sin(pull * Math.PI * 2);
+  chipmunkPoint.y = 0.5 + 0.14 * Math.cos(pull * Math.PI * 2);
+  chipmunkPoint.voice = tense;
+  mash.life = Math.max(0.18, 0.18 + pull * 0.35);
+  mash.energy = Math.max(0.12, 0.12 + pull * 0.25);
+  updateMash();
+  paintMidpoint();
+  var ret = document.getElementById('mash-return');
+  if (ret) {
+    ret.textContent = 'chipmunk points. voice ' + tense + ' · mid ' +
+      Math.round(chipmunkPoint.x * 100) + ',' + Math.round(chipmunkPoint.y * 100);
+  }
+}
+function seedToward(el, tense) {
+  var mid = el && el.dataset ? parseInt(el.dataset.mid || '50', 10) / 100 : 0.5;
+  chipmunkPoint.x = 0.3 + mid * 0.4;
+  chipmunkPoint.y = 0.35 + ((mid * Math.E) % 1) * 0.3;
+  setPeek(tense || mash.peek || 'IS');
+  pointTowardChipmunk(tense || mash.peek || 'IS');
+}
+function stampSeeds() {
+  var nodes = document.querySelectorAll('.sculpt, .past-piece, .wire-node');
+  nodes.forEach(function(el, i) {
+    if (el.dataset.seed) return;
+    var frac = ((i + 1) * Math.PI) % 1;
+    el.dataset.seed = frac.toFixed(4);
+    el.dataset.mid = String(Math.round(frac * 100));
+    var d = document.createElement('div');
+    d.className = 'seed-dot';
+    d.textContent = 'mid ' + el.dataset.mid;
+    el.appendChild(d);
+    el.addEventListener('click', function() {
+      seedToward(el, mash.peek || 'IS');
+    });
+  });
+}
+function setPeek(tense) {
+  mash.peek = tense;
+  document.querySelectorAll('#tense-rail span').forEach(function(sp) {
+    sp.classList.toggle('on', sp.getAttribute('data-t') === tense || (tense === 'NOW' && sp.getAttribute('data-t') === 'NOW'));
+  });
+  var isEl = document.querySelector('#tense-rail span[data-t="IS"]');
+  if (isEl && tense === 'IS') isEl.classList.add('on');
+  pointTowardChipmunk(tense);
+}
+function enterMash() {
+  insideMash = !insideMash;
+  document.body.classList.toggle('inside-mash', insideMash);
+  var btn = document.getElementById('mash-enter');
+  if (btn) btn.textContent = insideMash ? 'leave jar' : 'enter mash';
+  setPeek(insideMash ? 'NOW' : 'IS');
+}
+function updateMash() {
+  var kp = skyScore && typeof skyScore.kp === 'number' ? skyScore.kp / 9 : 0.15;
+  var waveBase = Math.min(0.4, 0.18 + (generation || 1) * 0.02);
+  mash.water = Math.max(mash.water, Math.max(0.25, Math.min(1, waveBase + (breathPhase || 0) * 0.15 + kp)));
+  mash.energy = Math.max(mash.energy, Math.max(0.2, Math.min(1, waveBase + (totalStrokes % 400) / 400)));
+  mash.life = Math.max(mash.life, Math.max(0.18, Math.min(1, waveBase + learnedTraits.perspective)));
+  mash.mass = Math.max(mash.mass, Math.min(1, waveBase * 0.5 + starters.length / MAX_STARTERS));
+  [['water', mash.water], ['energy', mash.energy], ['life', mash.life], ['mass', mash.mass]].forEach(function(pair) {
+    var row = document.querySelector('.mash-row[data-m="' + pair[0] + '"]');
+    if (row) row.style.setProperty('--w', Math.round(pair[1] * 100) + '%');
+    var n = document.getElementById('mash-' + pair[0] + '-n');
+    if (n) n.textContent = Math.round(pair[1] * 100);
+  });
+  window._mash = {
+    mash: mash,
+    generation: generation,
+    starters: starters.length,
+    peek: mash.peek,
+    inside: insideMash,
+    formula: 'water + energy + life + mass'
+  };
+}
+function updateGenCounter() {
+  var el = document.getElementById('gen-counter');
+  el.textContent = 'painting #' + generation + ' · easel ' + EASEL_SYMBOLS[currentEasel] + ' · ' + starters.length + ' in gallery · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%';
+}
+function updateThought() {
+  var list = THOUGHTS[phase];
+  if (!list || !list.length) return;
+  var t = list[Math.min(stroke, list.length - 1)];
+  var msg = t.brush.replace('#N', '#' + generation).replace('#N+1', '#' + (generation + 1));
+  var lrn = t.learn;
+  var el = document.getElementById('thought');
+  el.innerHTML = '<span class="brush">' + msg + '</span><br><span class="learn">' + lrn + '</span>' +
+    '<br><span class="gen">painting #' + generation + ' · perspective ' + (learnedTraits.perspective * 100).toFixed(0) + '%</span>';
+}
+var PHASE_ORDER = ['stars', 'nebula', 'gaia', 'aurora', 'breath', 'study', 'ferment'];
+var STROKES_PER_PHASE = {
+  stars: 100,     // fewer stars as perspective grows
+  nebula: 16,
+  gaia: 10,
+  aurora: 6,
+  breath: Infinity,  // controlled by breathCount
+  study: 8,
+  ferment: 15,
+};
+function nextStroke() {
+  if (paused) return;
+  totalStrokes++;
+  stroke++;
+  var starLimit = Math.max(40, Math.floor(STROKES_PER_PHASE.stars / learnedTraits.starDensity));
+  var limit = phase === 'stars' ? starLimit : STROKES_PER_PHASE[phase];
+  if (stroke >= limit && phase !== 'breath') {
+    var idx = PHASE_ORDER.indexOf(phase);
+    if (phase === 'ferment') {
+      beginNewPainting();
+      phase = 'stars';
+      stroke = 0;
+    } else if (phase === 'study') {
+      phase = 'ferment';
+      stroke = 0;
+    } else if (idx < PHASE_ORDER.length - 1) {
+      phase = PHASE_ORDER[idx + 1];
+      stroke = 0;
+    }
+  }
+  switch (phase) {
+    case 'stars':   paintStar(); break;
+    case 'nebula':  paintNebula(); break;
+    case 'gaia':    paintGaia(); break;
+    case 'aurora':  paintAurora(); break;
+    case 'breath':  paintBreath(); paintGaia(); paintAurora(); break;
+    case 'study':   paintStudy(); break;
+    case 'ferment': paintFerment(); break;
+  }
+  updateThought();
+  if (totalStrokes % 8 === 0) updateMash();
+  if (phase === 'stars' && stroke === 1) setPeek('IS');
+}
+function scheduleStroke() {
+  if (paused) { setTimeout(scheduleStroke, 500); return; }
+  var delay;
+  switch (phase) {
+    case 'stars':   delay = 40 + Math.random() * 120; break;
+    case 'nebula':  delay = 300 + Math.random() * 700; break;
+    case 'gaia':    delay = 500 + Math.random() * 1000; break;
+    case 'aurora':  delay = 250 + Math.random() * 500; break;
+    case 'breath':  delay = 50; break;
+    case 'study':   delay = 800 + Math.random() * 1200; break;
+    case 'ferment': delay = 200 + Math.random() * 400; break;
+  }
+  if (skyScore && skyScore.tempo) {
+    delay *= (1.2 - skyScore.tempo);
+  }
+  setTimeout(function() {
+    nextStroke();
+    scheduleStroke();
+  }, delay);
+}
+function togglePause() {
+  paused = !paused;
+  document.querySelector('#controls button').textContent = paused ? 'resume' : 'pause';
+}
+function cycleEasel() {
+  var idx = EASEL_CONSTANTS.indexOf(currentEasel);
+  currentEasel = EASEL_CONSTANTS[(idx + 1) % EASEL_CONSTANTS.length];
+  updateGenCounter();
+}
+function listenForWeather() {
+  if (window._weatherSong) {
+    var check = function() {
+      var sc = window._weatherSong.score();
+      if (sc) skyScore = sc;
+    };
+    setInterval(check, 3000);
+    check();
+  }
+}
+resize();
+ctx.fillStyle = '#08060a';
+ctx.fillRect(0, 0, W, H);
+evolve();
+var _piFrac = (generation * Math.PI) % 1;
+var _piPhaseIdx = Math.floor(_piFrac * 4); // 0=stars done, 1=nebula done, 2=gaia done, 3=aurora done
+var _piBootPhases = ['stars', 'nebula', 'gaia', 'aurora'];
+var _piBootStrokes = { stars: 60, nebula: 10, gaia: 6, aurora: 4 };
+for (var _bp = 0; _bp <= _piPhaseIdx && _bp < _piBootPhases.length; _bp++) {
+  var _bpName = _piBootPhases[_bp];
+  var _bpCount = _piBootStrokes[_bpName];
+  phase = _bpName;
+  stroke = 0;
+  for (var _bs = 0; _bs < _bpCount; _bs++) {
+    stroke++;
+    totalStrokes++;
+    switch (_bpName) {
+      case 'stars': paintStar(); break;
+      case 'nebula': paintNebula(); break;
+      case 'gaia': paintGaia(); break;
+      case 'aurora': paintAurora(); break;
+    }
+  }
+}
+phase = _piBootPhases[Math.min(_piPhaseIdx + 1, 3)] || 'aurora';
+stroke = 0;
+updateGenCounter();
+stampSeeds();
+updateMash();
+paintMidpoint();
+setPeek(mash.peek || 'IS');
+scheduleStroke();
+var ws = document.createElement('script');
+ws.src = '/js/weather-song.js?v=1';
+ws.defer = true;
+ws.onload = listenForWeather;
+document.body.appendChild(ws);
+var selfChew = null;
+var poorTope = null;
+var kleinCards = null;
+var eonShape = null;
+var spineSiphon = null;
+function loadMembraneData() {
+  var feeds = [
+    ['/data/self-chew.json', function(d) { selfChew = d; }],
+    ['/data/poor-tope.json', function(d) { poorTope = d; }],
+    ['/data/klein-cards.json', function(d) { kleinCards = d; }],
+    ['/data/eon-shape.json', function(d) { eonShape = d; }],
+    ['/data/spine-siphon.json', function(d) { spineSiphon = d; }],
+  ];
+  feeds.forEach(function(f) {
+    fetch(f[0], {cache:'no-store'}).then(function(r){return r.json()}).then(f[1]).catch(function(){});
+  });
+}
+loadMembraneData();
+setInterval(loadMembraneData, 60000);
+function paintVoxelOverlay() {
+  if (!selfChew || !selfChew.voxel) return;
+  var vox = selfChew.voxel;
+  var cells = vox.cells || {};
+  var cellKeys = Object.keys(cells);
+  if (cellKeys.length === 0) return;
+  ctx.save();
+  ctx.globalAlpha = 0.04 + learnedTraits.perspective * 0.03;
+  ctx.globalCompositeOperation = 'screen';
+  var gridW = 4, gridH = 4;
+  var cellW = W / (gridW + 2);
+  var cellH = H / (gridH + 2);
+  var maxVal = Math.max.apply(null, cellKeys.map(function(k){return cells[k]}));
+  cellKeys.forEach(function(key) {
+    var parts = key.split(',').map(Number);
+    var x = parts[0], y = parts[1], z = parts[2] || 0;
+    var val = cells[key] / maxVal;
+    var px = cellW + x * cellW;
+    var py = cellH + y * cellH;
+    var r = cellH * 0.3 * (0.3 + val * 0.7);
+    var hue = z * 90 + (parts[3] || 0) * 45;
+    ctx.fillStyle = 'hsla(' + hue + ',50%,40%,' + (0.05 + val * 0.1) + ')';
+    ctx.beginPath();
+    ctx.arc(px + cellW * 0.5, py + cellH * 0.5, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'hsla(' + hue + ',30%,30%,0.08)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(px, py, cellW, cellH);
+  });
+  ctx.restore();
+}
+function paintChemistryOverlay() {
+  if (!eonShape || !eonShape.pool) return;
+  ctx.save();
+  ctx.globalAlpha = 0.03 + learnedTraits.perspective * 0.02;
+  ctx.font = (8 + learnedTraits.perspective * 4) + 'px monospace';
+  var pool = eonShape.pool;
+  var formulas = Object.keys(pool);
+  var idx = Math.floor((breathPhase * 2) % formulas.length);
+  var f = formulas[idx];
+  var info = pool[f];
+  if (!info) { ctx.restore(); return; }
+  var count = info.count || 1;
+  var geo = info.geometry || 'point';
+  var geoColors = {
+    'linear':'#58a6ff', 'bent':'#3fb950', 'tetrahedral':'#f0e68c',
+    'pyramidal':'#d2a8ff', 'planar':'#f0883e', 'point':'#6e7681',
+    'skewed':'#e85d3a', 'corundum':'#8b4513', 'cubic':'#d29922',
+  };
+  ctx.fillStyle = geoColors[geo] || '#6e7681';
+  var x = W * (0.1 + Math.sin(breathPhase + idx) * 0.35 + 0.45);
+  var y = H * (0.1 + Math.cos(breathPhase * 0.7 + idx * 1.3) * 0.3 + 0.45);
+  ctx.fillText(f + ' ×' + count, x, y);
+  ctx.restore();
+}
+var currentEasel = 'pi';
+var EASEL_CONSTANTS = ['pi', 'phi', 'e', 'sqrt2', 'ln2'];
+var EASEL_SYMBOLS = {pi:'p', phi:'f', e:'e', sqrt2:'v2', ln2:'ln2'};
+function paintEaselLabel() {
+  if (!selfChew || !selfChew.easels) return;
+  var easel = selfChew.easels[currentEasel];
+  if (!easel) return;
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#d2a8ff';
+  ctx.font = '12px monospace';
+  ctx.fillText('easel ' + EASEL_SYMBOLS[currentEasel] + '  beauty ' + (easel.beauty * 100).toFixed(0) + '%', W - 180, H - 20);
+  ctx.restore();
+}
+function flavorToTemperature() {
+  if (!selfChew || !selfChew.stomachs || !selfChew.stomachs.sourdough) return 1.0;
+  var flavor = selfChew.stomachs.sourdough.flavor || 0;
+  return Math.max(0.5, Math.min(2.0, flavor / 15.0));
+}
+function sharePainting() {
+  var thumb = C.toDataURL('image/jpeg', 0.6);
+  var entry = {
+    gen: generation,
+    ts: new Date().toISOString(),
+    perspective: learnedTraits.perspective,
+    easel: currentEasel,
+    phase: phase,
+    digest: selfChew ? selfChew.digest : null,
+    flavor: selfChew ? (selfChew.stomachs || {}).sourdough : null,
+    weather: skyScore,
+    thumb: thumb,
+  };
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){}
+  existing.push(entry);
+  if (existing.length > 24) existing = existing.slice(-24);
+  try { localStorage.setItem('easel_braid', JSON.stringify(existing)); } catch(e){}
+  fetch('https://ntfy.sh/primals-membrane-notes', {
+    method: 'POST',
+    headers: { 'Title': 'easel painting #' + generation, 'Tags': 'art,palette', 'Priority': '1' },
+    body: '?? easel painting #' + generation + '\neasel: ' + EASEL_SYMBOLS[currentEasel] +
+      '\nperspective: ' + (learnedTraits.perspective * 100).toFixed(0) + '%' +
+      '\nflavor: ' + (selfChew ? selfChew.digest.sourdough_flavor : '?') +
+      '\ndigest: ' + (selfChew ? selfChew.digest.blake2b : '?') +
+      '\nquirk: ' + (selfChew && selfChew.stomachs && selfChew.stomachs.sourdough ? 
+        selfChew.stomachs.sourdough.personality[generation % selfChew.stomachs.sourdough.personality.length] : 'none'),
+  }).catch(function(){});
+  updateGenCounter();
+  return entry;
+}
+var outsidePaintings = [];    // paintings of us from outside
+var nowFeed = null;           // the /now.json feed  what the membrane looks like RIGHT NOW
+var beaconMessages = [];      // recent ntfy beacon messages
+function loadOutsideView() {
+  fetch('/now.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d) {
+    nowFeed = d;
+  }).catch(function(){});
+  fetch('https://ntfy.sh/primals-membrane-notes/json?poll=1&since=1h', {cache:'no-store'})
+    .then(function(r){return r.text()})
+    .then(function(text) {
+      var lines = text.trim().split('\n').filter(function(l){return l.trim()});
+      beaconMessages = [];
+      lines.forEach(function(line) {
+        try {
+          var msg = JSON.parse(line);
+          if (msg.message) beaconMessages.push(msg);
+        } catch(e){}
+      });
+    }).catch(function(){});
+}
+loadOutsideView();
+setInterval(loadOutsideView, 30000);
+function paintOutsideIn() {
+  if (!beaconMessages.length && !nowFeed) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  var maxMsg = Math.min(beaconMessages.length, 12);
+  for (var i = 0; i < maxMsg; i++) {
+    var msg = beaconMessages[beaconMessages.length - 1 - i];
+    var title = msg.title || '';
+    var body = msg.message || '';
+    var tags = (msg.tags || []).join(',');
+    var hash = 0;
+    for (var c = 0; c < title.length; c++) hash = ((hash << 5) - hash) + title.charCodeAt(c);
+    var mx = Math.abs(hash % W);
+    var my = Math.abs((hash >> 8) % H);
+    var isArtisan = tags.indexOf('artisan') >= 0 || body.indexOf('artisan') >= 0;
+    var isKnown = tags.indexOf('known') >= 0;
+    var color = isArtisan ? '#d2a8ff' : isKnown ? '#3fb950' : '#6e7681';
+    ctx.globalAlpha = 0.02 + (i === 0 ? 0.03 : 0);  // most recent is brightest
+    var r = 20 + (maxMsg - i) * 8;
+    var grad = ctx.createRadialGradient(mx, my, 0, mx, my, r);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(mx, my, r, 0, Math.PI * 2);
+    ctx.fill();
+    if (i < 3) {
+      ctx.globalAlpha = 0.06;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = color;
+      var label = title.replace('404 probe: ', '').substring(0, 30);
+      ctx.fillText(label, mx + r * 0.3, my - 4);
+    }
+  }
+  if (nowFeed) {
+    ctx.globalAlpha = 0.03;
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#8b949e';
+    var classification = nowFeed.classification || {};
+    var selfCount = classification.self || 0;
+    var nonSelf = classification.non_self || 0;
+    var total = classification.total || 1;
+    var selfPct = (selfCount / total * 100).toFixed(1);
+    var fleetPct = nowFeed.epitopes ? nowFeed.epitopes.fleet_pct : 0;
+    ctx.fillText('self: ' + selfPct + '%  fleet: ' + fleetPct + '%  wave: ' + (nowFeed.wave || '?'), 24, H - 40);
+    var trustGrad = nowFeed.trust_gradient || [];
+    if (trustGrad.length > 0) {
+      var bandH = 2;
+      var bandY = H - 60;
+      ctx.globalAlpha = 0.02;
+      for (var t = 0; t < trustGrad.length; t++) {
+        var tColors = {human:'#3fb950', agentic:'#d2a8ff', bot:'#f85149', null:'#6e7681'};
+        ctx.fillStyle = tColors[trustGrad[t]] || '#6e7681';
+        ctx.fillRect(24 + t * (W - 48) / trustGrad.length, bandY, (W - 48) / trustGrad.length, bandH);
+      }
+    }
+  }
+  ctx.restore();
+}
+function paintBraidOverlay() {
+  if (!nowFeed || !nowFeed.mesh) return;
+  ctx.save();
+  ctx.globalAlpha = 0.015;
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.5;
+  var nodes = nowFeed.mesh.nodes || [];
+  var meshCount = nowFeed.mesh.count || nodes.length;
+  for (var i = 0; i < meshCount && i < 7; i++) {
+    var angle = (i / meshCount) * Math.PI * 2 + breathPhase * 0.1;
+    var nx = W * 0.5 + Math.cos(angle) * Math.min(W, H) * 0.3;
+    var ny = H * 0.5 + Math.sin(angle) * Math.min(W, H) * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, H * 0.5);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+    ctx.fillStyle = '#58a6ff';
+    ctx.beginPath();
+    ctx.arc(nx, ny, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+var thymusGate = null;
+var backscatterData = null;
+var triadData = null;
+function loadThymus() {
+  fetch('/data/thymus-gate.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){thymusGate=d;}).catch(function(){});
+  fetch('/backscatter.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){backscatterData=d;}).catch(function(){});
+  fetch('/triad.json', {cache:'no-store'}).then(function(r){return r.json()}).then(function(d){triadData=d;}).catch(function(){});
+}
+loadThymus();
+setInterval(loadThymus, 45000);
+function paintThymusFlush() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  if (triadData && triadData.mix) {
+    var mix = triadData.mix;
+    var triadColors = {
+      self:'#3fb950', organic:'#58a6ff', soap:'#f0883e',
+      aqueous:'#6e7681', partial:'#f0e68c', non_self:'#f85149', null:'#21262d'
+    };
+    Object.keys(mix).forEach(function(kind) {
+      var pct = mix[kind] || 0;
+      if (pct < 0.02) return;
+      ctx.globalAlpha = pct * 0.04 * (1 + learnedTraits.perspective * 0.5);
+      var color = triadColors[kind] || '#6e7681';
+      var angle = breathPhase * 0.3 + Object.keys(mix).indexOf(kind) * (Math.PI * 2 / 7);
+      var cx = W * (0.3 + Math.cos(angle) * 0.2);
+      var cy = H * (0.3 + Math.sin(angle) * 0.2);
+      var r = Math.min(W, H) * (0.2 + pct * 0.3);
+      var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+  if (backscatterData && backscatterData.rays) {
+    var rays = backscatterData.rays;
+    if (rays['in']) {
+      var inCount = Math.min(rays['in'].count / 5000, 1);
+      ctx.globalAlpha = 0.02 * inCount;
+      var inGrad = ctx.createLinearGradient(W, H, W * 0.3, H * 0.3);
+      inGrad.addColorStop(0, rays['in'].color || '#3fb950');
+      inGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = inGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (rays.out) {
+      var outCount = Math.min(rays.out.count / 100000, 1);
+      ctx.globalAlpha = 0.01 * outCount;
+      var outGrad = ctx.createLinearGradient(0, 0, W * 0.7, H * 0.7);
+      outGrad.addColorStop(0, rays.out.color || '#f85149');
+      outGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = outGrad;
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (rays.edge) {
+      var edgePulse = Math.sin(breathPhase * 3) * 0.5 + 0.5;
+      ctx.globalAlpha = 0.008 * edgePulse;
+      ctx.fillStyle = rays.edge.color || '#f0883e';
+      ctx.fillRect(0, H * 0.45, W, H * 0.1);
+    }
+  }
+  if (backscatterData && backscatterData.geodesic_bounce) {
+    var piRem = backscatterData.geodesic_bounce.remainder || 0.14159;
+    var bounceX = W * piRem * 2;
+    var bounceY = H * (1 - piRem);
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#d2a8ff';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    ctx.arc(bounceX, bounceY, 40 + Math.sin(breathPhase) * 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if (thymusGate && thymusGate.the_color_of_reality) {
+    var ratio = thymusGate.the_color_of_reality.ratio;
+    if (ratio) {
+      ctx.globalAlpha = 0.05;
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#3fb950';
+      ctx.fillText('signal: 13%', W - 100, 24);
+      ctx.fillStyle = '#f85149';
+      ctx.fillText('noise: 87%', W - 100, 34);
+      ctx.fillStyle = '#6e7681';
+      ctx.fillText("that's enough.", W - 100, 44);
+    }
+  }
+  ctx.restore();
+}
+var _origPaintBreath = paintBreath;
+paintBreath = function() {
+  _origPaintBreath();
+  paintVoxelOverlay();
+  paintChemistryOverlay();
+  paintOutsideIn();
+  paintBraidOverlay();
+  paintThymusFlush();
+  paintEaselLabel();
+};
+var _origBeginNew = beginNewPainting;
+beginNewPainting = function() {
+  var eIdx = EASEL_CONSTANTS.indexOf(currentEasel);
+  currentEasel = EASEL_CONSTANTS[(eIdx + 1) % EASEL_CONSTANTS.length];
+  sharePainting();
+  _origBeginNew();
+};
+window._easel = {
+  generation: function() { return generation; },
+  starters: function() { return starters; },
+  perspective: function() { return learnedTraits.perspective; },
+  phase: function() { return phase; },
+  selfChew: function() { return selfChew; },
+  currentEasel: function() { return currentEasel; },
+  outsidePaintings: function() { return beaconMessages; },
+  nowFeed: function() { return nowFeed; },
+  share: sharePainting,
+  braid: function() { try { return JSON.parse(localStorage.getItem('easel_braid') || '[]'); } catch(e){ return []; } },
+  mash: function() { return mash; },
+  enterMash: enterMash,
+  peekLoaf: peekLoaf,
+  spine: function() { return spineSiphon; },
+};
+</script>
+<script defer src="/js/celestial-clock.js?v=1"></script>
+<script defer src="/js/tidal-void.js?v=1"></script>
+<script defer src="/js/depth-walk.js?v=1"></script>
+<script defer src="/js/voxel-classroom.js?v=1"></script>
+<script defer src="/js/archetype-arena.js?v=1"></script>
+<script defer src="/js/hud-nav.js?v=1"></script>
+<script defer src="//primals.eco/js/klein-window.js?v=1"></script>
+<script defer src="//primals.eco/js/null-shadow.js?v=1"></script>
+<script defer src="//primals.eco/js/iron-peak.js?v=1"></script>
+<script defer src="//primals.eco/js/impact.js?v=1"></script>
+<script defer src="//primals.eco/js/klein-watcher.js?v=1"></script>
+<!-- GAIA BEACON — the null middle -->
+<div style="position:fixed;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(10,10,15,0.95);border-top:1px solid #222;font-family:monospace;font-size:11px;display:flex;justify-content:center;gap:12px;z-index:9999">
+<a href="/forge.html" style="color:#d4a017;text-decoration:none">🔥 forge</a>
+<a href="/colosseum.html" style="color:#c0392b;text-decoration:none">⚔ arena</a>
+<a href="/nav-hub.html" style="color:#27ae60;text-decoration:none">🗺 hub</a>
+<a href="/" style="color:#3498db;text-decoration:none">👁 HUD</a>
+<span style="color:#666">c=πr²/O</span>
+</div>
+</body>
+</html>

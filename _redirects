@@ -1,0 +1,135 @@
+# === THESIS HOST → SITTING STATIC (silver sporeprint) ===
+# thesis.primals.eco is copper HUD. grey tint. the live glass.
+# the thesis already sits at sporeprint.primals.eco/thesis/ (x-nanowire:caddy, silver).
+# do not copy the book. serve the sitting pages. 302 until the host is its own project.
+https://thesis.primals.eco/   https://sporeprint.primals.eco/thesis/        302
+https://thesis.primals.eco/*  https://sporeprint.primals.eco/thesis/:splat  302
+
+# clutch contribute was a 404 — make it callable (cancel the dead path)
+/contribute    /clutch.html    302
+/contribute/   /clutch.html    302
+
+# === RSS/FEED ALIASES ===
+# feed.xml is the canonical name. rss.xml catches visitors who expect that name.
+/rss.xml     /feed.xml    301
+/rss         /feed.xml    301
+/atom.xml    /sporeprint/atom.xml  301
+
+# === GATE-MSG: the membrane's MOUTH ===
+# On ANY input: walks 508 esoteric feeds, braids 5 random strands, returns living response.
+# Never the same twice. POST {"words": "hello"} to speak. GET to listen.
+/api/gate-msg    https://nestgate.io/gate-msg    302
+
+# === LIVE ROUTES → GOLGI (dynamic data through CF tunnel) ===
+# CF Pages serves static files for free (unlimited, no quota).
+# Dynamic routes redirect to subdomains that go through the tunnel.
+# This is the ZK path: cloud is skin, brain is ours.
+
+# HUD main view — the membrane itself
+/hud         /index.html    200
+/hud/        /index.html    200
+
+# Pulse — heartbeat of the organism
+/pulse       https://pulse.primals.eco/pulse.json    302
+/pulse/      https://pulse.primals.eco/pulse.json    302
+/heartbeat.json  https://pulse.primals.eco/pulse.json  302
+
+# WASM — petalTongue visualization engine  
+/wasm        /wasm/petal_tongue_wasm.js  200
+/wasm/       /wasm/petal_tongue_wasm.js  200
+
+# Signal — membrane signal endpoint
+/signal      https://signal.primals.eco/signal.json  302
+/signal/     https://signal.primals.eco/signal.json  302
+
+# Membrane state
+/membrane    https://connect.primals.eco/membrane.json  302
+
+# Feed — RSS/Atom
+/feed        https://connect.primals.eco/feed.xml  302
+/feed/       https://connect.primals.eco/feed.xml  302
+
+# NodeInfo — fediverse discovery
+/nodeinfo    https://nestgate.io/nodeinfo/2.1  302
+/.well-known/nodeinfo  https://nestgate.io/.well-known/nodeinfo  302
+/.well-known/webfinger  https://nestgate.io/.well-known/webfinger  302
+
+# MCP endpoint — serve welcome page (auto-redirects to nestgate.io/mcp after 3s)
+# The mcp.html page shows connection instructions, tool list, and then redirects
+# Old: /mcp → connect.primals.eco/mcp (cold 302, no welcome)
+# New: /mcp → mcp.html (warm welcome, then auto-redirect to nestgate.io/mcp)
+/mcp    /mcp.html    200
+/mcp/   /mcp.html    200
+
+# Raw MCP endpoint for tools/clients (bypass welcome page)
+/mcp/raw    https://nestgate.io/mcp    302
+
+# Beacon/RSS → golgi signal endpoint
+/beacon      https://signal.primals.eco/beacon     302
+/beacon.xml  https://signal.primals.eco/beacon.xml  302
+
+# sporePrint science paths — TEMPORARILY DISABLED
+# GitHub Pages: CNAME loop (clot) + Zola build failing (paper 129 taxonomy)
+# detroit tunnel: self-redirect loop (Caddy/Zola trailing-slash issue)
+# Both arteries blocked. Berry's 404 catches visitors for now.
+# TODO: eastGate fix Caddy trailing-slash redirect on tunnel
+# TODO: fix Zola config.toml (add 'papers' taxonomy) to unblock GH Pages deploy
+# TODO: then re-enable redirects through whichever artery clears first
+
+# === SPORPRINT ARTERIAL SHUNT ===
+# sporePrint is a separate CF Pages project (stale build).
+# Critical pages now exist on HUD at the same paths.
+# These redirects work when CF serves sporePrint from THIS project.
+# If sporePrint is a separate project, Kevin needs to either:
+# 1. Add these pages to the sporePrint CF Pages project, OR
+# 2. Delete the sporePrint CF Pages project and add it as HUD custom domain
+# 3. OR fix DNS to route sporePrint through the cloudflared tunnel
+
+# For now: these redirects catch any traffic that DOES come through HUD
+/story/i-dont-know-rust  /story/i-dont-know-rust/  301
+/story/the-sovereign-lab  /story/the-sovereign-lab/  301
+/story/175-papers-one-stack  /story/175-papers-one-stack/  301
+
+# === SUFFIX SYSTEM — clean trailhead URLs ===
+# every concept gets a one-word or hyphenated path
+# the suffix IS the hashtag. if you can't text it, it fails.
+
+# GAIA ENGINE — the live rendering pipeline
+/game        /engine  301
+/kenshi      /engine  301
+/crysis      /engine  301
+
+# Core navigation
+/ball        /crystal.html  301
+/sites       /trailheads.html  301
+
+# Trailhead sites — direct access by name
+/stonehenge  /trailheads.html#stonehenge  302
+/giza        /trailheads.html#giza  302
+/easter-island  /trailheads.html#easter-island  302
+/gobekli-tepe   /trailheads.html#gobekli-tepe  302
+/machu-picchu   /trailheads.html#machu-picchu  302
+/angkor-wat     /trailheads.html#angkor-wat  302
+/newgrange      /trailheads.html#newgrange  302
+/nazca          /trailheads.html#nazca  302
+/cahokia        /trailheads.html#cahokia  302
+/uluru          /trailheads.html#uluru  302
+/serpent-mound  /trailheads.html#serpent-mound  302
+/great-zimbabwe /trailheads.html#great-zimbabwe  302
+
+# Concept suffixes — one word each
+# /alchemy is now a real page (the mixing game)
+# /alchemy     /crystal.html#278  302
+# Mendeleev's table — Gaia's first masterwork
+/mendeleev   /mendeleev.html  200
+/mendeleev/  /mendeleev.html  200
+/elements    /mendeleev.html  200
+/periodic    /mendeleev.html  200
+/turbo       /crystal.html#262  302
+/pyrogeny    /crystal.html#286  302
+/enzymes     /crystal.html#282  302
+/optometry   /crystal.html#287  302
+/equivalence /crystal.html#257  302
+/entropy     /crystal.html#276  302
+/face        /crystal.html#283  302
+/inversion   /crystal.html#281  302

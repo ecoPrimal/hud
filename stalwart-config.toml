@@ -1,0 +1,44 @@
+server.hostname = "mail.primals.eco"
+server.max-connections = 256
+
+server.listener.smtp.bind = "[::]:25"
+server.listener.smtp.protocol = "smtp"
+
+server.listener.submission.bind = "[::]:587"
+server.listener.submission.protocol = "smtp"
+server.listener.submission.tls.implicit = false
+
+server.listener.imaps.bind = "[::]:993"
+server.listener.imaps.protocol = "imap"
+server.listener.imaps.tls.implicit = true
+
+server.listener.https.bind = "[::]:8443"
+server.listener.https.protocol = "http"
+server.listener.https.tls.implicit = true
+
+certificate.default.cert = "%{file:/opt/stalwart/certs/fullchain.pem}%"
+certificate.default.private-key = "%{file:/opt/stalwart/certs/privkey.pem}%"
+
+server.tls.certificate = "default"
+
+storage.data = "sqlite"
+storage.blob = "fs"
+storage.fts = "sqlite"
+storage.lookup = "sqlite"
+storage.directory = "internal"
+
+store.sqlite.type = "sqlite"
+store.sqlite.path = "/opt/stalwart/data/stalwart.db"
+
+store.fs.type = "fs"
+store.fs.path = "/opt/stalwart/data/blobs"
+
+directory.internal.type = "internal"
+directory.internal.store = "sqlite"
+
+tracer.log.type = "log"
+tracer.log.path = "/opt/stalwart/logs"
+tracer.log.level = "info"
+
+authentication.fallback-admin.user = "admin"
+authentication.fallback-admin.secret = "%{env:STALWART_ADMIN_SECRET}%"

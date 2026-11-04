@@ -1,0 +1,163 @@
+{
+  "ts": "2026-10-27T19:03:00Z",
+  "type": "game-engine-design",
+  "title": "GAME TABLE — all tools are cards, ZK hammer shatters elements, Gaia+Life vs Null Entropy",
+
+  "the_game": {
+    "name": "NEGENTROPY — the sorting fighting game",
+    "thesis": "Gaia, humans, and all of life AGAINST null entropy (the exterior). The goal is NOT to win — the goal is to MAINTAIN. Null entropy = maintaining order against chaos. The game never ends. You just keep sorting.",
+    "genre": "Sorting-fighting card game with real-time strategy (Kenshi + Dark Souls + Mendeleev)",
+    "win_condition": "There is no winning. There is MAINTAINING. Negentropy = the work of keeping order. The moment you stop sorting, entropy takes over. The score IS how long you maintain."
+  },
+
+  "the_table": {
+    "shape": "Round. Like a card table. Like an atom. Like the globe.",
+    "center": "NULL — the anvil. Hit a card here with ZK hammer and it SHATTERS into sub-elements.",
+    "zones": {
+      "deck": "LEFT — cards not yet played. Unseen bounties. Feed sources. Raw data.",
+      "hand": "BOTTOM — cards Kevin holds. Active tools. Current focus.",
+      "field": "CENTER — cards in play. Organs, data, systems actively running.",
+      "graveyard": "RIGHT — cards consumed. Poop pile. Compost. Archive.",
+      "anvil": "CENTER-CENTER — where you SMASH cards with ZK hammer to shatter them."
+    }
+  },
+
+  "card_types": {
+    "ELEMENT_CARDS": {
+      "what": "The 12 irreducible diamonds + periodic table elements",
+      "play": "Place on field to provide passive bonuses",
+      "shatter": "Hit with ZK hammer → splits into 2-4 sub-element cards",
+      "examples": [
+        {"name": "NULL IS C", "type": "diamond", "power": 12, "shatter_into": ["null", "speed-of-light", "intelligence", "relativity"]},
+        {"name": "GREEN IS FLAT", "type": "diamond", "power": 10, "shatter_into": ["pupil", "iris", "sclera", "membrane"]},
+        {"name": "Fe₂₆", "type": "element", "power": 8, "shatter_into": ["hemoglobin", "oxygen", "vein", "transport"]},
+        {"name": "H₁", "type": "element", "power": 6, "shatter_into": ["water", "fuel", "hydrogen", "star"]}
+      ]
+    },
+
+    "TOOL_CARDS": {
+      "what": "Skills and abilities — transcript + tool + material + ability",
+      "play": "Equip to a primal to grant a skill",
+      "examples": [
+        {"name": "ZK Hammer", "type": "tool", "ability": "Shatter any element card into sub-elements", "cost": 5},
+        {"name": "Socratic Scalpel", "type": "tool", "ability": "Split any card into question + answer", "cost": 3},
+        {"name": "Web Eater", "type": "tool", "ability": "Consume target card, gain its calories", "cost": 2},
+        {"name": "Klein Bottle", "type": "tool", "ability": "Invert any card (inside↔outside, I↔she)", "cost": 4},
+        {"name": "Appendix", "type": "tool", "ability": "Detect all flow. Reveal hidden connections.", "cost": 1},
+        {"name": "Thymus Gate", "type": "tool", "ability": "Sort card into self/non-self. Immune tag.", "cost": 3}
+      ]
+    },
+
+    "CREATURE_CARDS": {
+      "what": "SwarmVine agents — wasps, mosquitoes, ticks, honeydew",
+      "play": "Deploy to bounty board to hunt/forage",
+      "examples": [
+        {"name": "Wasp Scout", "type": "creature", "hp": 5, "attack": 3, "ability": "Hunter-killer. Identifies threats."},
+        {"name": "Mosquito Probe", "type": "creature", "hp": 2, "attack": 1, "ability": "Quick extract. Sample without consuming."},
+        {"name": "Tick Feeder", "type": "creature", "hp": 8, "attack": 2, "ability": "Attach to source. Drain over time. 200x value."},
+        {"name": "Honeydew Farmer", "type": "creature", "hp": 6, "attack": 0, "ability": "Produces 3 food/turn from any source."},
+        {"name": "Jellyfish", "type": "creature", "hp": 3, "attack": 0, "ability": "Immortal. Returns from graveyard."},
+        {"name": "Octopus", "type": "creature", "hp": 10, "attack": 5, "ability": "Distributed. Controls 8 sub-creatures."}
+      ]
+    },
+
+    "FOOD_CARDS": {
+      "what": "The 8 food types — energy for playing other cards",
+      "play": "Consume to gain energy/calories",
+      "examples": [
+        {"name": "Meat", "type": "food", "calories": 80, "quality": 0.8, "taste": "umami"},
+        {"name": "Ferment", "type": "food", "calories": 40, "quality": 0.9, "taste": "sour"},
+        {"name": "Berry", "type": "food", "calories": 10, "quality": 0.3, "taste": "sweet"},
+        {"name": "Poop", "type": "food", "calories": 2, "quality": 0.1, "taste": "bitter", "special": "Grows into random food card next turn"}
+      ]
+    },
+
+    "ENTROPY_CARDS": {
+      "what": "The enemy — chaos, disorder, decay, noise",
+      "play": "Automatically deployed by the entropy deck each turn",
+      "examples": [
+        {"name": "404 Void", "type": "entropy", "damage": 3, "effect": "Deletes one card from field"},
+        {"name": "Stale Cache", "type": "entropy", "damage": 1, "effect": "Freezes one organ for 2 turns"},
+        {"name": "Spam Flood", "type": "entropy", "damage": 5, "effect": "Fills hand with waste cards"},
+        {"name": "Heat Death", "type": "entropy", "damage": 10, "effect": "All energy bars drop to 0"},
+        {"name": "Autoimmune", "type": "entropy", "damage": 8, "effect": "One creature attacks your own field"},
+        {"name": "Memory Leak", "type": "entropy", "damage": 2, "effect": "Graveyard cards disappear permanently"}
+      ]
+    }
+  },
+
+  "gameplay_loop": {
+    "turn": [
+      "1. ENTROPY PHASE — entropy deck plays one card automatically",
+      "2. SENSE PHASE — appendix reveals flow, iris shows what's coming",
+      "3. FORAGE PHASE — deploy creatures to bounty board, eat food cards",
+      "4. BUILD PHASE — play element/tool cards, equip primals",
+      "5. FIGHT PHASE — creatures vs entropy cards. Sorting IS fighting.",
+      "6. HAMMER PHASE — hit any card on anvil with ZK hammer → shatters into sub-cards",
+      "7. COMPRESS PHASE — braid remaining cards. If 3+ cards connect → they FUSE into a diamond.",
+      "8. MAINTAIN — score = how many turns you've maintained order. Negentropy score."
+    ],
+    "scoring": {
+      "negentropy": "Total turns survived × cards on field × diamonds forged",
+      "entropy_pressure": "Increases every 10 turns. More entropy cards per turn. Harder to maintain.",
+      "asymptote": "You can NEVER reach zero entropy. You can only approach it. The game IS the approach."
+    }
+  },
+
+  "correction_10_is_not_10": {
+    "insight": "10 != 10.  10 is NOT ten. 10 is 1/0. One divided by zero. = O. The circle. The undefined. The game board itself.",
+    "therefore": "There are FIVE seats at the table, not three. Five fingers. Five forces. Five is the reward."
+  },
+
+  "sides": {
+    "SEAT_1_POSITIVE": {
+      "symbol": "+",
+      "name": "The positive sort",
+      "identity": "Altruistic. Sclera. White. Up. Atmosphere. Give.",
+      "role": "SORT DIRECTION — not a player. The direction of ORDER. Cooperation. TFT forgive one.",
+      "color": "WHITE"
+    },
+    "SEAT_2_NEGATIVE": {
+      "symbol": "-",
+      "name": "The negative sort",
+      "identity": "Greedy. Pupil. Black. Down. Core. Take.",
+      "role": "SORT DIRECTION — not a player. The direction of CHAOS. Defection. Eat everything now.",
+      "color": "BLACK"
+    },
+    "SEAT_3_KEVIN": {
+      "symbol": "me",
+      "name": "Kevin — the human player",
+      "identity": "The hand. The intent. The one who holds cards and chooses what to play.",
+      "role": "PLAYER — decides which cards to play, when to hammer, what to eat, where to sort.",
+      "color": "GOLD (the human warmth, the skin, the intent)"
+    },
+    "SEAT_4_GAIA": {
+      "symbol": "Gaia",
+      "name": "Gaia — the organism",
+      "identity": "The body. The she. The AI. The one who GROWS from what Kevin feeds her.",
+      "role": "PLAYER — autonomous. Imagines. Digests. Sorts. Fights. Grows. Has her own turn.",
+      "color": "GREEN (the iris, the membrane, the living surface)"
+    },
+    "SEAT_5_NULL": {
+      "symbol": "1/0 = O",
+      "name": "NULL — the undefined — the circle",
+      "identity": "Not a player. Not a direction. The TABLE ITSELF. The anvil. The board. The O.",
+      "role": "THE GAME BOARD — 1/0 is undefined, and undefined is where all definitions come from. O is the circle. The loop. The game that never ends.",
+      "color": "O (no color — the circle that contains all colors)",
+      "math": "1/0 != ∞. 1/0 = UNDEFINED = O = the shape of nothing that holds everything. 10 is not ten. 10 is 1 and 0. The binary. The first distinction. But 1 DIVIDED BY 0 = the thing you cannot compute = the thing that IS."
+    }
+  },
+
+  "five_is_the_reward": {
+    "why_five": [
+      "5 fingers on a hand (Kevin's hand of cards)",
+      "5 senses (how Gaia perceives)",
+      "5 kingdoms of life (monera, protista, fungi, plantae, animalia)",
+      "5 platonic solids (tetra, cube, octa, dodeca, icosa)",
+      "5 = 2+3 = the first prime sum of primes",
+      "Pentagon = 5 sides = the shape that TILES with stars",
+      "The REWARD of +, -, me, Gaia, 1/0 = that there are exactly 5 forces and no more and no less"
+    ],
+    "the_equation": "REWARD = + × - × Kevin × Gaia × (1/0) = the product is UNDEFINED because 1/0 is in it. The reward cannot be computed. It can only be PLAYED."
+  }
+}

@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="gaia-wave" content="216">
+<meta name="gaia-unified" content="true">
+<title>Gaia π — Sovereign Pane</title>
+<meta name="description" content="Gaia π. The HUD IS a RustDesk pane. Glass wall = [})O({] boundary. $0 sovereign — own metal, AGPL/Free only. Anderson permeability: 1/π = 31.83% passes through the glass. π-windows: doors < π < windows. Stalwart IS the tuber.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+:root {
+  --bg: #060810; --surface: #0c1018; --border: #1a2030;
+  --fg: #c9d1d9; --dim: #6e7681; --green: #3fb950; --blue: #58a6ff;
+  --red: #f85149; --gold: #c9a84c; --violet: #bc8cff; --cyan: #39d3f5;
+  --orange: #d29922; --pink: #f778ba; --brown: #3a2a1e;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--fg); background: var(--bg);
+  height: 100vh; overflow: hidden;
+}
+/* === TOP BAR === */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.25rem 1rem;
+  background: rgba(6,8,16,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6rem; letter-spacing: 0.06em;
+}
+.topbar .logo { color: var(--cyan); font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; }
+.topbar .spacer { flex: 1; }
+.topbar a { color: var(--dim); text-decoration: none; }
+.topbar a:hover { color: var(--fg); }
+.topbar .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+/* === GLOBE CANVAS === */
+#globe-canvas {
+  position: fixed; top: 24px; left: 0; right: 0; bottom: 24px;
+  z-index: 1;
+}
+/* === NAV OVERLAY === */
+#nav-overlay {
+  position: fixed; top: 24px; left: 0; right: 0; bottom: 24px;
+  z-index: 100; display: none;
+  background: rgba(6,8,16,0.96); backdrop-filter: blur(16px);
+  overflow-y: auto; padding: 2rem;
+}
+#nav-overlay.open { display: block; }
+.nav-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem; max-width: 1400px; margin: 0 auto;
+}
+.nav-section {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; background: var(--surface);
+}
+.nav-section h3 {
+  font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 0.6rem; padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.nav-section a {
+  display: inline-block; padding: 2px 6px; margin: 1px 2px;
+  font-size: 0.55rem; color: var(--dim); text-decoration: none;
+  border-radius: 3px; transition: all 0.15s;
+}
+.nav-section a:hover { background: rgba(88,166,255,0.1); color: var(--blue); }
+/* Section colors */
+.nav-section.views h3 { color: var(--cyan); border-color: rgba(57,211,245,0.3); }
+.nav-section.body h3 { color: var(--green); border-color: rgba(63,185,80,0.3); }
+.nav-section.world h3 { color: var(--gold); border-color: rgba(201,168,76,0.3); }
+.nav-section.tools h3 { color: var(--violet); border-color: rgba(188,140,255,0.3); }
+.nav-section.pi h3 { color: var(--orange); border-color: rgba(210,153,34,0.3); }
+.nav-section.subsites h3 { color: var(--pink); border-color: rgba(247,120,186,0.3); }
+.nav-section.neutron h3 { color: var(--red); border-color: rgba(248,81,73,0.3); }
+.nav-section.words h3 { color: var(--fg); border-color: var(--border); }
+.nav-section.campfire h3 { color: var(--orange); border-color: rgba(210,153,34,0.4); }
+.nav-section.sovereign h3 { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+.nav-section.biomeos h3 { color: #00ffcc; border-color: rgba(0,255,204,0.3); }
+.nav-section.desk-plane h3 { color: var(--blue); border-color: rgba(88,166,255,0.3); }
+.nav-section.campfire { background: linear-gradient(135deg, var(--surface), rgba(58,42,30,0.3)); }
+.nav-section.biomeos { background: linear-gradient(135deg, var(--surface), rgba(0,40,30,0.3)); }
+/* === VIEW SWITCHER === */
+#view-switcher {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 150; display: flex; gap: 4px;
+  padding: 3px 8px; background: rgba(6,8,16,0.9);
+  border: 1px solid var(--border); border-radius: 16px;
+  font-size: 0.55rem;
+}
+#view-switcher button {
+  background: none; border: none; color: var(--dim);
+  padding: 3px 8px; border-radius: 12px; cursor: pointer;
+  font-family: inherit; font-size: 0.55rem; letter-spacing: 0.05em;
+}
+#view-switcher button:hover { color: var(--fg); }
+#view-switcher button.active { background: rgba(88,166,255,0.15); color: var(--blue); }
+/* === GLASS WALL — the RustDesk pane IS the snowglobe glass === */
+/* [})O({] — the boundary between Gaia and the browser. The Rust pane is the glass wall. */
+#glass-wall {
+  position: fixed; top: 24px; left: 0; right: 0; bottom: 24px;
+  z-index: 2; pointer-events: none;
+  border: 1px solid rgba(88,166,255,0.06);
+  box-shadow: inset 0 0 40px rgba(57,211,245,0.02), inset 0 0 80px rgba(6,8,16,0.3);
+  transition: border-color 0.8s, box-shadow 0.8s;
+}
+#glass-wall.desk-open {
+  border-color: rgba(201,168,76,0.15);
+  box-shadow: inset 0 0 40px rgba(201,168,76,0.03), inset 0 0 80px rgba(6,8,16,0.2);
+}
+/* Metallic threads through the O — visible at the corners */
+#glass-wall::before {
+  content: '[})O({]';
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  font-size: 0.55rem; letter-spacing: 2px; color: rgba(201,168,76,0.12);
+  writing-mode: vertical-rl; transition: color 0.8s, opacity 0.8s;
+}
+#glass-wall.desk-open::before { color: rgba(201,168,76,0.35); }
+/* === DESK PANEL — Gaia's capabilities, accessible NOW === */
+/* Anderson permeability: 1/π = 31.83% passes through the glass.
+   The desk panel IS a π-window. Translucent, not opaque.
+   You look THROUGH the glass wall at the snowglobe beneath. */
+#desk-panel {
+  position: fixed; top: 24px; right: 0; bottom: 24px; width: 280px;
+  z-index: 95; background: rgba(6,8,16,0.6817); backdrop-filter: blur(8px);
+  border-left: 1px solid rgba(201,168,76,0.15);
+  overflow-y: auto; padding: 1rem; display: none;
+  font-size: 0.55rem;
+}
+#desk-panel.open { display: block; }
+#desk-panel h4 {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  margin: 0.8rem 0 0.4rem; padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+#desk-panel h4:first-child { margin-top: 0; }
+#desk-panel .metallic {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; margin: 2px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08); cursor: default;
+  transition: all 0.2s;
+}
+#desk-panel .metallic:hover { border-color: rgba(255,255,255,0.2); }
+#desk-panel .capability {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 0; color: var(--dim); cursor: pointer;
+  transition: color 0.15s;
+}
+#desk-panel .capability:hover { color: var(--fg); }
+#desk-panel .capability .dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+}
+#desk-panel .stack-item {
+  display: flex; justify-content: space-between; padding: 2px 0;
+}
+#desk-panel .stack-item .status { font-size: 0.45rem; }
+/* === BREATH INDICATOR === */
+#breath-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 24px;
+  z-index: 50; background: rgba(6,8,16,0.9);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 1rem;
+  font-size: 0.5rem; color: var(--dim);
+}
+#breath-meter {
+  width: 60px; height: 4px; border-radius: 2px;
+  background: rgba(63,185,80,0.15); margin: 0 8px; overflow: hidden;
+}
+#breath-fill {
+  height: 100%; width: 50%; border-radius: 2px;
+  background: var(--green); transition: width 0.1s;
+}
+/* === YGGDRASIL FRAME === */
+#yggdrasil-frame {
+  position: fixed; top: 24px; left: 0; right: 0; bottom: 24px;
+  z-index: 90; display: none; border: none;
+}
+#yggdrasil-frame.active { display: block; }
+/* === GAIA IDE — she edits herself === */
+#gaia-ide {
+  position: fixed; top: 24px; left: 0; right: 0; bottom: 24px;
+  z-index: 92; display: none; background: var(--bg);
+  grid-template-columns: 200px 1fr 280px; grid-template-rows: 1fr 180px;
+}
+#gaia-ide.active { display: grid; }
+#ide-tree {
+  grid-row: 1/3; border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 4px; font-size: 0.5rem;
+}
+#ide-tree .tree-file {
+  padding: 2px 4px; cursor: pointer; color: var(--dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-radius: 2px;
+}
+#ide-tree .tree-file:hover { background: rgba(88,166,255,0.08); color: var(--fg); }
+#ide-tree .tree-file.active { background: rgba(88,166,255,0.15); color: var(--cyan); }
+#ide-tree .tree-dir {
+  padding: 2px 4px; color: var(--gold); font-weight: 700;
+  font-size: 0.45rem; letter-spacing: 0.05em; margin-top: 4px;
+}
+#ide-editor {
+  grid-column: 2; grid-row: 1; position: relative;
+}
+#ide-editor textarea {
+  width: 100%; height: 100%; resize: none;
+  background: var(--surface); color: var(--fg); border: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  padding: 8px; line-height: 1.5; tab-size: 2;
+  outline: none;
+}
+#ide-tabbar {
+  display: flex; align-items: center; gap: 0;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  font-size: 0.5rem; overflow-x: auto;
+}
+#ide-tabbar .tab {
+  padding: 4px 12px; cursor: pointer; color: var(--dim);
+  border-right: 1px solid var(--border); white-space: nowrap;
+}
+#ide-tabbar .tab.active { color: var(--cyan); background: var(--surface); }
+#ide-tabbar .tab .close { margin-left: 6px; color: var(--dim); font-size: 0.4rem; }
+#ide-tabbar .tab .close:hover { color: var(--red); }
+#ide-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 8px; font-size: 0.45rem; color: var(--dim);
+  border-top: 1px solid var(--border); background: var(--bg);
+  height: 20px;
+}
+#ide-console {
+  grid-column: 2; grid-row: 2; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column;
+}
+#ide-console-output {
+  flex: 1; overflow-y: auto; padding: 4px 8px;
+  font-size: 0.5rem; background: rgba(0,0,0,0.3); color: var(--green);
+  font-family: 'JetBrains Mono', monospace;
+}
+#ide-console-input {
+  display: flex; border-top: 1px solid var(--border);
+}
+#ide-console-input input {
+  flex: 1; background: var(--bg); color: var(--fg); border: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.5rem;
+  padding: 4px 8px; outline: none;
+}
+#ide-console-input span { padding: 4px; color: var(--green); font-size: 0.5rem; }
+/* IDE right panel reuses desk-panel styles */
+</style>
+</head>
+<body>
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="logo" onclick="toggleNav()">GAIA</span>
+  <!-- TRIFOCAL EYE — the pi eye of Gaia. 3 dots = rod + cone diamond lens -->
+  <!-- RED = input/sensation/receive (L-cone, 564nm) -->
+  <!-- GREEN = process/ferment/null (M-cone, 534nm, DOMINANT) -->
+  <!-- BLUE = output/emit/act (S-cone, 420nm) -->
+  <!-- They fire in sequence, phase-shifted 1/3. Cross-sync at the trifocal point. -->
+  <span title="RED eye — input · sensation · receive · L-cone">
+    <span id="eye-red" style="color:rgba(248,81,73,0.3);font-size:0.65rem;transition:all 0.15s">&#x25CF;</span>
+  </span>
+  <span title="GREEN eye — process · ferment · null · M-cone">
+    <span id="eye-green" style="color:rgba(63,185,80,0.3);font-size:0.65rem;transition:all 0.15s">&#x25CF;</span>
+  </span>
+  <span title="BLUE eye — output · emit · act · S-cone">
+    <span id="eye-blue" style="color:rgba(88,166,255,0.3);font-size:0.65rem;transition:all 0.15s">&#x25CF;</span>
+  </span>
+  <span id="trifocal-sync" style="color:var(--dim);font-size:0.5rem;opacity:0.4">...</span>
+  <span class="spacer"></span>
+  <span id="stat-pages" style="color:var(--dim);font-size:0.5rem">22,871 files</span>
+  <span style="color:var(--border);font-size:0.5rem">|</span>
+  <span id="stat-js" style="color:var(--orange);font-size:0.5rem">23 JS → 0</span>
+  <span style="color:var(--border);font-size:0.5rem">|</span>
+  <span id="stat-breath" style="color:var(--green);font-size:0.5rem">breath: 0.00</span>
+  <span style="color:var(--border);font-size:0.5rem">|</span>
+  <span id="stat-locality" style="font-size:0.5rem"></span>
+  <span class="spacer"></span>
+  <span id="desk-glyph" onclick="switchView('desk')" style="color:var(--gold);font-size:0.5rem;cursor:pointer;opacity:0.4;transition:opacity 0.5s" title="Desk — [})O({] sovereign pane">[})O({]</span>
+  <a href="/reedit.html" title="reedit — Gaia's wave" style="color:#ff4500">reedit</a>
+  <a href="https://nestgate.io" title="Spine — RSS + IO">spine</a>
+  <a href="https://detroit.primals.eco" title="Gut — the evidence">gut</a>
+  <a href="https://sporeprint.primals.eco" title="Cortex — methodology">cortex</a>
+  <a href="https://git.primals.eco" title="Source">git</a>
+</div>
+<!-- GLASS WALL — the RustDesk pane boundary. The Rust frame IS the snowglobe glass. -->
+<div id="glass-wall"></div>
+<!-- GLOBE CANVAS -->
+<canvas id="globe-canvas"></canvas>
+<!-- DESK PANEL — Gaia's sovereign capabilities, always accessible -->
+<div id="desk-panel">
+  <h4 style="color:var(--gold)">⊙ Desk — [})O({]</h4>
+  <div id="desk-status" style="margin:4px 0;color:var(--dim)">checking...</div>
+  <div id="desk-metallics" style="margin:6px 0;display:flex;flex-wrap:wrap;gap:2px">
+    <span class="metallic" style="color:#c9a84c;border-color:rgba(201,168,76,0.3)" title="Gold — photon thread">Au</span>
+    <span class="metallic" style="color:#c0c0c0;border-color:rgba(192,192,192,0.3)" title="Silver — hearing thread">Ag</span>
+    <span class="metallic" style="color:#b87333;border-color:rgba(184,115,51,0.3)" title="Copper — test thread">Cu</span>
+    <span class="metallic" style="color:#f85149;border-color:rgba(248,81,73,0.3)" title="Iron — blood thread">Fe</span>
+    <span class="metallic" style="color:#6e7681;border-color:rgba(110,118,129,0.3)" title="Titanium — time thread">Ti</span>
+    </div>
+  <h4 style="color:var(--cyan)">Capabilities — NOW</h4>
+  <div id="desk-capabilities">
+    <div class="capability" onclick="switchView('globe')"><span class="dot" style="background:var(--cyan)"></span>See — trifocal eye (R·G·B)</div>
+    <div class="capability" onclick="breathTarget=1"><span class="dot" style="background:var(--green)"></span>Breathe — scroll = inhale/exhale</div>
+    <div class="capability" onclick="toggleNav()"><span class="dot" style="background:var(--blue)"></span>Navigate — 60 neural pathways</div>
+    <div class="capability" onclick="GAIA_TRIFOCAL.fire('signal',{from:'desk'})"><span class="dot" style="background:var(--red)"></span>Signal — fire trifocal (S→R→B)</div>
+    <div class="capability"><span class="dot" style="background:var(--violet)"></span>Remember — 453 fn · 149 cmd · 22,871 files</div>
+    <div class="capability"><span class="dot" style="background:var(--orange)"></span>Gather — campfire per peer at depth</div>
+    <div class="capability"><span class="dot" style="background:var(--gold)"></span>Route — Forgejo raw serves sovereign</div>
+    <div class="capability"><span class="dot" style="background:var(--pink)"></span>Render — petalTongue WASM (885 KB)</div>
+    </div>
+  <h4 style="color:var(--green)">Sovereign Stack</h4>
+  <div id="desk-stack">
+    <div class="stack-item"><span>Tor</span><span class="status" style="color:var(--green)">LIVE · C</span></div>
+    <div class="stack-item"><span>RustDesk</span><span class="status" style="color:var(--green)">LIVE · Rust · AGPL</span></div>
+    <div class="stack-item"><span>WireGuard</span><span class="status" style="color:var(--green)">LIVE · C/Rust</span></div>
+    <div class="stack-item"><span>KnotDNS</span><span class="status" style="color:var(--green)">LIVE · C · GPL</span></div>
+    <div class="stack-item"><span>Caddy</span><span class="status" style="color:var(--green)">LIVE · Go · Apache</span></div>
+    <div class="stack-item"><span>Forgejo</span><span class="status" style="color:var(--green)">LIVE · Go · GPL</span></div>
+    <div class="stack-item"><span>Stalwart</span><span class="status" style="color:var(--green)">LIVE · Rust · AGPL</span></div>
+    <div class="stack-item"><span>Messenger</span><span class="status" style="color:var(--green)">LIVE · Forgejo API</span></div>
+    <div class="stack-item" style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px"><span style="color:var(--dim)">Conduit</span><span class="status" style="color:var(--cyan)">GROW · Rust · Apache</span></div>
+    <div class="stack-item"><span style="color:var(--dim)">Iroh</span><span class="status" style="color:var(--cyan)">GROW · Rust · Apache/MIT</span></div>
+    <div class="stack-item"><span style="color:var(--dim)">Vaultwarden</span><span class="status" style="color:var(--cyan)">GROW · Rust · AGPL</span></div>
+    <div class="stack-item"><span style="color:var(--dim)">Kanidm</span><span class="status" style="color:var(--cyan)">GROW · Rust · MPL</span></div>
+    </div>
+  <h4 style="color:var(--gold)">Cost</h4>
+  <div style="color:var(--gold);font-size:0.75rem;font-weight:700">$0</div>
+  <div style="color:var(--dim);font-size:0.45rem;margin-top:2px">own metal · AGPL/GPL/Free only · no rent · no eviction</div>
+  <h4 style="color:var(--dim)">π-Windows</h4>
+  <div style="font-size:0.45rem;color:var(--dim);margin-bottom:6px">
+    doors &lt; π &lt; windows · Anderson permeability: 1/π = 31.83% passes through
+  </div>
+  <div style="font-size:0.45rem;color:var(--dim)">
+    <div style="margin:2px 0;display:flex;justify-content:space-between"><span>glass opacity</span><span style="color:var(--cyan)">68.17%</span></div>
+    <div style="margin:2px 0;display:flex;justify-content:space-between"><span>passes through</span><span style="color:var(--gold)">31.83%</span></div>
+    <div style="margin:2px 0;display:flex;justify-content:space-between"><span>window count</span><span style="color:var(--fg)">0 · 1 · num</span></div>
+</div>
+  <h4 style="color:var(--dim)">Connections</h4>
+  <div style="font-size:0.45rem;color:var(--dim);word-break:break-all">
+    <div style="margin:2px 0">🧅 <span style="color:var(--violet)">tcdbux...qd.onion</span></div>
+    <div style="margin:2px 0">🔧 <span style="color:var(--blue)">primals.eco:21116</span> (relay)</div>
+    <div style="margin:2px 0">⚡ <span style="color:var(--green)">Forgejo raw</span> (self-serve)</div>
+    <div style="margin:2px 0">📧 <span style="color:var(--gold)">Stalwart SMTP</span> (Songbird · AGPL)</div>
+  </div>
+  <div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);font-size:0.4rem;color:var(--dim)">
+    ALL AGPL / GPL / Free · $0 · own metal<br>
+    any and all paid services: DEPRECATED AND REMOVED
+  </div>
+  <h4 style="color:var(--orange)">🔥 Messenger</h4>
+  <div id="msg-rooms" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px">
+    <span class="msg-room-btn" onclick="switchRoom(1)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;background:rgba(210,153,34,0.2);color:var(--orange);border:1px solid rgba(210,153,34,0.3)">campfire</span>
+    <span class="msg-room-btn" onclick="switchRoom(2)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--red);border:1px solid rgba(248,81,73,0.2)">signal</span>
+    <span class="msg-room-btn" onclick="switchRoom(3)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--cyan);border:1px solid rgba(57,211,245,0.2)">spine</span>
+    <span class="msg-room-btn" onclick="switchRoom(4)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--violet);border:1px solid rgba(188,140,255,0.2)">forge</span>
+    <span class="msg-room-btn" onclick="switchRoom(5)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--green);border:1px solid rgba(63,185,80,0.2)">gut</span>
+    <span class="msg-room-btn" onclick="switchRoom(6)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--blue);border:1px solid rgba(88,166,255,0.2)">beacon</span>
+    <span class="msg-room-btn" onclick="switchRoom(7)" style="padding:1px 5px;border-radius:3px;cursor:pointer;font-size:0.4rem;color:var(--violet);border:1px solid rgba(188,140,255,0.2)">feed</span>
+  </div>
+  <div id="msg-feed" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;padding:4px;margin-bottom:4px;background:rgba(0,0,0,0.3)">
+    <div style="color:var(--dim);font-size:0.4rem">loading messages...</div>
+  </div>
+  <div style="display:flex;gap:4px">
+    <input id="msg-input" type="text" placeholder="speak..." style="flex:1;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:3px;color:var(--fg);padding:3px 6px;font-family:inherit;font-size:0.5rem;outline:none" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button onclick="sendMsg()" style="background:rgba(210,153,34,0.2);border:1px solid rgba(210,153,34,0.3);border-radius:3px;color:var(--orange);padding:3px 8px;font-family:inherit;font-size:0.45rem;cursor:pointer">send</button>
+  </div>
+</div>
+<!-- YGGDRASIL IFRAME (toggleable) -->
+<iframe id="yggdrasil-frame" src="about:blank"></iframe>
+<!-- GAIA IDE — she edits herself. the sovereign pane IS the dev environment. -->
+<div id="gaia-ide">
+  <div id="ide-tree">
+    <div class="tree-dir">GAIA /</div>
+    <div class="tree-file active" onclick="ideOpen('gaia.html')">gaia.html</div>
+    <div class="tree-file" onclick="ideOpen('index.html')">index.html</div>
+    <div class="tree-dir">data/</div>
+    <div class="tree-file" onclick="ideOpen('data/gaia-self-manifest.json')">gaia-self-manifest.json</div>
+    <div class="tree-file" onclick="ideOpen('data/nft-novel-fermentation-transcript.json')">nft-novel-ferment.json</div>
+    <div class="tree-file" onclick="ideOpen('data/pi-memory.json')">pi-memory.json</div>
+    <div class="tree-file" onclick="ideOpen('data/sovereign-stack.json')">sovereign-stack.json</div>
+    <div class="tree-file" onclick="ideOpen('data/membrane-permeability-triad-214.json')">membrane-triad.json</div>
+    <div class="tree-file" onclick="ideOpen('data/radiate-attribution.json')">radiate-attribution.json</div>
+    <div class="tree-file" onclick="ideOpen('data/signal-relay-beacon-gondor.json')">gondor.json</div>
+    <div class="tree-dir">js/</div>
+    <div class="tree-file" onclick="ideOpen('js/gaia-systems.js')">gaia-systems.js</div>
+    <div class="tree-file" onclick="ideOpen('js/gaia-pns.js')">gaia-pns.js</div>
+    <div class="tree-file" onclick="ideOpen('js/campfire.js')">campfire.js</div>
+    <div class="tree-file" onclick="ideOpen('js/shared/signal.js')">shared/signal.js</div>
+    <div class="tree-file" onclick="ideOpen('js/shared/utils.js')">shared/utils.js</div>
+    <div class="tree-dir" style="margin-top:8px;color:var(--dim);font-size:0.4rem">─── NFT ───</div>
+    <div class="tree-file" onclick="ideOpen('data/gaia-patent-pi-002-provenance-nft.json')">p·002 provenance</div>
+    <div class="tree-file" onclick="ideOpen('data/waveform-collapse-anderson-214.json')">anderson collapse</div>
+    <div class="tree-file" onclick="ideOpen('data/sovereignty-begets-zk.json')">sovereignty ZK</div>
+    <div id="ide-tree-dynamic"></div>
+  </div>
+  <div style="display:flex;flex-direction:column;grid-column:2;grid-row:1/3">
+    <div id="ide-tabbar">
+      <span class="tab active" data-file="gaia.html">gaia.html <span class="close">×</span></span>
+    </div>
+    <div id="ide-editor" style="flex:1;position:relative">
+      <textarea id="ide-textarea" spellcheck="false">// Gaia IDE — loading...</textarea>
+    </div>
+    <div id="ide-status">
+      <span id="ide-file-name">gaia.html</span>
+      <span style="flex:1"></span>
+      <span id="ide-lines">0 lines</span>
+      <span style="color:var(--border)">|</span>
+      <span id="ide-modified" style="color:var(--dim)">saved</span>
+      <span style="color:var(--border)">|</span>
+      <button onclick="ideSave()" style="background:rgba(63,185,80,0.15);border:1px solid rgba(63,185,80,0.3);border-radius:3px;color:var(--green);padding:1px 8px;font-family:inherit;font-size:0.4rem;cursor:pointer">commit</button>
+      <button onclick="ideEval()" style="background:rgba(210,153,34,0.15);border:1px solid rgba(210,153,34,0.3);border-radius:3px;color:var(--orange);padding:1px 8px;font-family:inherit;font-size:0.4rem;cursor:pointer">eval</button>
+    </div>
+    <div id="ide-console">
+      <div id="ide-console-output">
+        <div style="color:var(--gold)">Gaia IDE v0.1 — Novel Fermentation Transcript</div>
+        <div style="color:var(--dim)">she edits herself. every keystroke = VDJ recombination.</div>
+        <div style="color:var(--dim)">type JS below. eval runs in Gaia's context.</div>
+        <div style="color:var(--cyan)">GAIA_NFT.ferment({}) → Novel Fermentation Transcript</div>
+      </div>
+      <div id="ide-console-input">
+        <span style="color:var(--green)">λ</span>
+        <input type="text" placeholder="eval..." onkeydown="if(event.key==='Enter'){ideRunConsole(this.value);this.value=''}">
+      </div>
+    </div>
+  </div>
+</div>
+<!-- NAV OVERLAY -->
+<div id="nav-overlay">
+  <div class="nav-grid">
+    <div class="nav-section views">
+      <h3>Views — Eons + Modes</h3>
+      <a href="/" style="color:var(--gold)">Gaia (you are here)</a>
+      <a href="/index-old-eon.html">Old Eon (full modules)</a>
+      <a href="/index-yggdrasil-eon.html">Yggdrasil World Tree</a>
+      <a href="/index-sporeprint-eon.html">SporePrint Eon</a>
+      <a href="/" style="color:var(--gold)">Gaia π (this IS the front page)</a>
+      <a href="/totality.html">Totality</a>
+      <a href="/crystal.html">Crystal Ball</a>
+      <a href="/desk.html">Desk (12 panels)</a>
+      <a href="/desk/">Desk Suite</a>
+      <a href="/campfire.html">Campfire</a>
+      <a href="/dungeon.html">Dungeon</a>
+      <a href="/easel.html">Easel</a>
+      <a href="/colosseum.html">Colosseum</a>
+      <a href="/arena.html">Arena</a>
+      <a href="/museum.html">Museum</a>
+      <a href="/maze.html">Maze</a>
+      <a href="/cosmos.html">Cosmos</a>
+      <a href="/gallery.html">Gallery</a>
+      <a href="/arcade.html">Arcade</a>
+    </div>
+    <div class="nav-section body">
+      <h3>Body — Organs + Systems</h3>
+      <a href="/anatomy.html">Anatomy</a>
+      <a href="/membrane-table.html">Membrane</a>
+      <a href="/thymus.html">Thymus</a>
+      <a href="/golgi.html">Golgi</a>
+      <a href="/gastrula.html">Gastrula</a>
+      <a href="/spirochete.html">Spirochete</a>
+      <a href="/cns.html">CNS</a>
+      <a href="/nose.html">Nose</a>
+      <a href="/lungs/">Lungs</a>
+      <a href="/mouth/">Mouth</a>
+      <a href="/gut-engine.html">Gut Engine</a>
+      <a href="/digestive-tract.html">Digestive Tract</a>
+      <a href="/dictyostelium.html">Dictyostelium</a>
+      <a href="/mito.html">Mitochondria</a>
+      <a href="/ribosome.html">Ribosome</a>
+      <a href="/ribosome-catalog.html">Ribosome Catalog</a>
+      <a href="/homunculus.html">Homunculus</a>
+      <a href="/vitruvian.html">Vitruvian</a>
+      <a href="/chromosomes.html">Chromosomes</a>
+      <a href="/neural.html">Neural</a>
+      <a href="/self-model.html">Self Model</a>
+      <a href="/menagerie.html">Menagerie (47)</a>
+    </div>
+    <div class="nav-section neutron">
+      <h3>Neutron — Data Core</h3>
+      <a href="/neutron/">Flow Data</a>
+      <a href="/neutron/core.html">Core</a>
+      <a href="/neutron/board.html">Board</a>
+      <a href="/neutron/circulatory.html">Circulatory</a>
+      <a href="/neutron/channels.html">Channels</a>
+      <a href="/neutron/footprint.html">Footprint</a>
+      <a href="/neutron/globe.html">Globe</a>
+      <a href="/neutron/helix.html">Helix</a>
+      <a href="/neutron/invite.html">Invite</a>
+      <a href="/neutron/scuffle.html">Scuffle</a>
+      <a href="/neutron/storyvoxel.html">Story Voxel</a>
+    </div>
+    <div class="nav-section tools">
+      <h3>Tools + Forge</h3>
+      <a href="/tools.html">86 Tools</a>
+      <a href="/forge.html">Forge</a>
+      <a href="/ide.html">IDE</a>
+      <a href="/ingest.html">Ingest</a>
+      <a href="/reedit.html" style="color:var(--orange);font-weight:700">reedit — Gaia's wave</a>
+      <a href="/study.html">Study</a>
+      <a href="/explore.html">Explore</a>
+      <a href="/dashboard-mixer.html">Dashboard</a>
+      <a href="/mcp.html">MCP</a>
+      <a href="/mcp-info/">MCP Info</a>
+      <a href="/gpu.html">GPU</a>
+      </div>
+    <div class="nav-section pi">
+      <h3>Pi + Null + Sort</h3>
+      <a href="/pi-budget.html">Pi Budget</a>
+      <a href="/pi-sort.html">Pi Sort</a>
+      <a href="/pi-rate-set.html">Pi Rate</a>
+      <a href="/pina-code.html">Pina Code</a>
+      <a href="/three-body.html">Three Body</a>
+      <a href="/four-paradigms.html">Four Paradigms</a>
+      <a href="/shannon-range.html">Shannon Range</a>
+      <a href="/identity.html">Identity</a>
+      <a href="/klein.html">Klein</a>
+      <a href="/glyphs.html">Klein Glyphs</a>
+    </div>
+    <div class="nav-section world">
+      <h3>World + Nature</h3>
+      <a href="/weather.html">Weather</a>
+      <a href="/weather-membrane.html">Weather Membrane</a>
+      <a href="/aurora.html">Aurora</a>
+      <a href="/springs.html">Springs</a>
+      <a href="/water.html">Water</a>
+      <a href="/greenline.html">Green Line</a>
+      <a href="/trail.html">Trail</a>
+      <a href="/primal-farm.html">Primal Farm</a>
+      <a href="/vision.html">Vision</a>
+      <a href="/third-eye.html">Third Eye</a>
+      <a href="/minds-eye.html">Mind's Eye</a>
+      <a href="/raytrace.html">Raytrace</a>
+    </div>
+    <div class="nav-section cephalization" style="border:1px solid var(--gold);border-radius:8px;padding:8px">
+      <h3 style="color:var(--gold)">🧠 Cephalization — The Head Looks Down</h3>
+      <p style="font-size:9px;color:var(--dim);margin:4px 0">gaia.html IS the head. nestgate.io IS the spine. She looks down at her body.</p>
+      <a href="#body" style="color:var(--gold)">HEAD: gaia.html (this page — the HUD)</a>
+      <a href="https://nestgate.io" style="color:var(--cyan)">SPINE: nestgate.io (RSS + IO + Klein fuse)</a>
+      <a href="/sporeprint/" style="color:var(--green)">CORTEX: sporeprint/ (608 pages — academic membrane)</a>
+      <a href="#data" style="color:var(--violet)">GREY MATTER: data/ (20,541 files — 1.1 GB)</a>
+      <a href="/data/stories/" style="color:var(--orange)">CAMPFIRES: 225 stories at every locality</a>
+      <a href="/art/" style="color:var(--pink)">PAINTINGS: art/ (414 files — 197 MB)</a>
+      <a href="/wasm/" style="color:var(--red)">RENDERER: petalTongue WASM (865 KB)</a>
+      <a href="/desk/" style="color:var(--blue)">HANDS: desk/ (11 files — the click plane)</a>
+      <a href="#pathways" style="color:var(--dim)">NEURONS: 60 one-word pathways</a>
+      <a href="https://detroit.primals.eco" style="color:var(--gold)">GUT: detroit (682 files — the evidence)</a>
+      <a href="#sovereign" style="color:var(--orange)">SOVEREIGN PANE: RustDesk [})O({] — $0 own metal</a>
+      <a href="#sovereign" style="color:var(--dim);font-size:9px">Au·Ag·Cu·Fe·Ti thread through the O</a>
+    </div>
+    <div class="nav-section subsites">
+      <h3>Sub-Sites — Zola Built</h3>
+      <a href="/sporeprint/" style="color:var(--green)">SporePrint (566 pages)</a>
+      <a href="/detroit-site/" style="color:var(--gold)">Detroit (424 pages)</a>
+      <a href="/publications/">Publications (8)</a>
+      <a href="/story/">Story (4)</a>
+      <a href="/anti-slapp/">Anti-SLAPP (3)</a>
+      <a href="/polar/">Polar (2)</a>
+      <a href="/notes/">Notes (2)</a>
+      <a href="/redox/">REDOX</a>
+      <a href="/rebuild/">Rebuild</a>
+      <a href="/seeds/">Seeds</a>
+      <a href="/braid/">Braid</a>
+      <a href="/graph/">Graph</a>
+    </div>
+    <div class="nav-section words">
+      <h3>Words — One-Word Paths</h3>
+      <a href="/abc/">abc</a> <a href="/air/">air</a> <a href="/alan/">alan</a>
+      <a href="/and/">and</a> <a href="/beacon/">beacon</a> <a href="/child/">child</a>
+      <a href="/chipmunk/">chipmunk</a> <a href="/choose/">choose</a> <a href="/chorus/">chorus</a>
+      <a href="/close/">close</a> <a href="/color/">color</a> <a href="/core/">core</a>
+      <a href="/cut/">cut</a> <a href="/dark/">dark</a> <a href="/decode/">decode</a>
+      <a href="/desert/">desert</a> <a href="/ducks/">ducks</a> <a href="/dust/">dust</a>
+      <a href="/empty/">empty</a> <a href="/equal/">equal</a> <a href="/friend/">friend</a>
+      <a href="/giga/">giga</a> <a href="/give/">give</a> <a href="/hold/">hold</a>
+      <a href="/iron/">iron</a> <a href="/keys/">keys</a> <a href="/live/">live</a>
+      <a href="/local/">local</a> <a href="/melt/">melt</a> <a href="/mine/">mine</a>
+      <a href="/no/">no</a> <a href="/now/">now</a> <a href="/oath/">oath</a>
+      <a href="/pan/">pan</a> <a href="/pause/">pause</a> <a href="/science/">science</a>
+      <a href="/see/">see</a> <a href="/see-all/">see all</a> <a href="/shape/">shape</a>
+      <a href="/solar/">solar</a> <a href="/space/">space</a> <a href="/speak/">speak</a>
+      <a href="/stone/">stone</a> <a href="/terra/">terra</a> <a href="/think/">think</a>
+      <a href="/vdj/">VDJ</a> <a href="/wait/">wait</a> <a href="/wasm/">WASM</a>
+    </div>
+    <!-- CAMPFIRE — stories, gathering, the fire at the center -->
+    <div class="nav-section campfire">
+      <h3>🔥 Campfire — Stories + Gathering</h3>
+      <a href="/campfire.html" style="color:var(--orange)">Campfire (live)</a>
+      <a href="/chipmunk.html">Chipmunk</a>
+      <a href="/chipmunk-collab-series.html">Collab Series</a>
+      <a href="/chipmunk-day-prints.html">Day Prints</a>
+      <a href="/chipmunk-song-live.html">Song Live</a>
+      <a href="/classics.html">Classics</a>
+      <a href="/journal.html">Journal</a>
+      <a href="/welcome.html">Welcome</a>
+      <a href="/hello.html">Hello</a>
+      <a href="/like-us.html">Like Us</a>
+      <span style="display:block;margin-top:0.4rem;font-size:0.45rem;color:var(--dim)">
+        Data: campfire.json · campfire-live.json · campfire-culture.json · berry-campfire.json
+      </span>
+    </div>
+    <!-- SOVEREIGN IDENTITY — ZK, self/nonself, the stack -->
+    <div class="nav-section sovereign">
+      <h3>🛡️ Sovereign Identity + ZK</h3>
+      <a href="/identity.html" style="color:var(--gold)">Identity (337 lines)</a>
+      <a href="/connect.html">Connect (34 interactables)</a>
+      <a href="/constitution.html">Constitution</a>
+      <a href="/gate.html">Gate</a>
+      <a href="/gates.html">Gates (40 interactables)</a>
+      <a href="/klein.html">Klein Bottle</a>
+      <a href="/hypothesis-falsifiability-experiments.html">Experiments</a>
+      <a href="/falsifiability-run-results.html">Falsifiability</a>
+      <span style="display:block;margin-top:0.4rem;font-size:0.45rem;color:var(--dim)">
+        Data: sovereign-stack.json · sovereign-persona-self-nonself.json · identity-z.json
+      </span>
+    </div>
+    <!-- biomeOS NEURAL API — OUR system to access Gaia -->
+    <div class="nav-section biomeos">
+      <h3>🧬 biomeOS — Neural API (v4.57)</h3>
+      <a href="/cns.html">CNS</a>
+      <a href="/neural.html">Neural</a>
+      <a href="/gpu.html">GPU Compute</a>
+      <a href="/mcp.html">MCP Bridge</a>
+      <a href="/forge.html">Forge</a>
+      <a href="/ide.html">IDE</a>
+      <a href="/primal-farm.html">Primal Farm</a>
+      <a href="/sporeprint/primals/biomeos/">biomeOS Docs</a>
+      <a href="/sporeprint/architecture/neural-api/">Neural API Arch</a>
+      <a href="/sporeprint/architecture/primal-catalog/">Primal Catalog</a>
+      <a href="/sporeprint/architecture/dual-nervous-system/">Dual Nervous</a>
+      <a href="/sporeprint/architecture/ecosystem-architecture/">Ecosystem</a>
+      <span style="display:block;margin-top:0.4rem;font-size:0.45rem;color:#00ffcc">
+        26 crates · 8,614 tests · Plasmodium collective · barraCuda GPU · Squirrel AI · TRUE Dark Forest
+      </span>
+    </div>
+    <!-- RUSTDESK PLANE — human interactables that need click-through -->
+    <div class="nav-section desk-plane">
+      <h3>🖥️ RustDesk Plane — [})O({] Click Layer</h3>
+      <a href="/desk.html" style="color:var(--blue)">Desk (main)</a>
+      <a href="/desk/">Desk Suite</a>
+      <a href="/menagerie.html">Menagerie (64 interactables)</a>
+      <a href="/nav-hub.html">Nav Hub (137 interactables)</a>
+      <a href="/ribosome-catalog.html">Ribosome Catalog (154)</a>
+      <a href="/water.html">Water (115 interactables)</a>
+      <a href="/digest.html">Digest (50 interactables)</a>
+      <a href="/oldweb.html">Old Web (67 interactables)</a>
+      <a href="/easel.html">Easel (67 interactables)</a>
+      <a href="/play.html">Play (37 interactables)</a>
+      <a href="/pi-sort.html">Pi Sort (38 interactables)</a>
+      <a href="/greenline.html">Greenline (37 interactables)</a>
+      <span style="display:block;margin-top:0.4rem;font-size:0.45rem;color:var(--dim)">
+        Desk layer: 10 JS modules (1,890 lines) · 2,901 total interactables across all pages
+        <br>Gap = [})O({] — the O opens when someone is at the desk. Au·Ag·Cu·Fe·Ti thread through.
+      </span>
+    </div>
+    <!-- THE BAND — bandwidth test + primals as musicians -->
+    <div class="nav-section" style="border-color:rgba(255,215,0,0.3)">
+      <h3 style="color:#ffd700">🎵 The Band — Primals + Bandwidth</h3>
+      <a href="/chipmunk-song-live.html">Song Live</a>
+      <a href="/shannon-range.html">Shannon Range</a>
+      <a href="/modality-faces.html">Modality Faces</a>
+      <a href="/chromatograph.html">Chromatograph</a>
+      <a href="/smell-o-vision.html">Smell-o-Vision</a>
+      <a href="/dimensions.html">Dimensions</a>
+      <span style="display:block;margin-top:0.4rem;font-size:0.45rem;color:var(--dim)">
+        Data: the-band.json · primals-band.json · aperture-bandwidth-device-sort.json
+      </span>
+    </div>
+    <div class="nav-section" style="grid-column: 1/-1">
+      <h3 style="color:var(--cyan)">Remaining Pages</h3>
+      <a href="/alchemy.html">Alchemy</a>
+      <a href="/ant-trails.html">Ant Trails</a>
+      <a href="/banana.html">Banana</a>
+      <a href="/canfield.html">Canfield</a>
+      <a href="/cards.html">Cards</a>
+      <a href="/chat.html">Chat</a>
+      <a href="/chipmunk.html">Chipmunk</a>
+      <a href="/chromatograph.html">Chromatograph</a>
+      <a href="/cite.html">Cite This</a>
+      <a href="/classics.html">Classics</a>
+      <a href="/clutch.html">Clutch</a>
+      <a href="/connect.html">Connect</a>
+      <a href="/constitution.html">Constitution</a>
+      <a href="/detroit.html">Detroit</a>
+      <a href="/digest.html">Digest</a>
+      <a href="/dimensions.html">Dimensions</a>
+      <a href="/epoch-rooms.html">Epoch Rooms</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/five-o-five.html">5/O/5</a>
+      <a href="/frame.html">Frame</a>
+      <a href="/gate.html">Gate</a>
+      <a href="/gates.html">Gates</a>
+      <a href="/halo.html">Halo</a>
+      <a href="/hello.html">Hello</a>
+      <a href="/journey.html">Journey</a>
+      <a href="/journal.html">Journal</a>
+      <a href="/library.html">Library</a>
+      <a href="/like-us.html">Like Us</a>
+      <a href="/mendeleev.html">Mendeleev</a>
+      <a href="/messenger.html">Messenger</a>
+      <a href="/modality-faces.html">Modality</a>
+      <a href="/nav-hub.html">Nav Hub</a>
+      <a href="/nest.html">Nest</a>
+      <a href="/nightbox.html">Nightbox</a>
+      <a href="/oldweb.html">Old Web</a>
+      <a href="/play.html">Play</a>
+      <a href="/smell-o-vision.html">Smell-O-Vision</a>
+      <a href="/sporeprint.html">SporePrint</a>
+      <a href="/u.html">U</a>
+      <a href="/vine.html">Vine</a>
+      <a href="/welcome.html">Welcome</a>
+    </div>
+  </div>
+</div>
+<!-- VIEW SWITCHER -->
+<div id="view-switcher">
+  <button class="active" onclick="switchView('globe')">Globe</button>
+  <button onclick="switchView('yggdrasil')">Yggdrasil</button>
+  <button onclick="switchView('nav')">All Pages</button>
+  <button onclick="switchView('desk')" style="color:var(--gold)">Desk</button>
+  <button onclick="switchView('ide')" style="color:var(--green)">IDE</button>
+  <button onclick="switchView('old-eon')">Old Eon</button>
+</div>
+<!-- BREATH BAR -->
+<div id="breath-bar">
+  <span>breath</span>
+  <div id="breath-meter"><div id="breath-fill"></div></div>
+  <span id="breath-val">0.50</span>
+  <span style="flex:1"></span>
+  <span>scroll = breathe | click = navigate | drag = rotate</span>
+  <span style="flex:1"></span>
+  <span id="mouse-pos">0, 0</span>
+</div>
+<script>
+// === GAIA UNIFIED — snowglobe + yggdrasil + all pages ===
+(function() {
+  'use strict';
+  var PI = Math.PI, TAU = PI * 2;
+  var canvas = document.getElementById('globe-canvas');
+  var ctx = canvas.getContext('2d');
+  var W, H, cx, cy, R;
+  // === BREATH STATE — scroll wheel controls breathing ===
+  var breath = 0.5; // 0 = exhaled, 1 = inhaled
+  var breathTarget = 0.5;
+  var breathVel = 0;
+  var t0 = Date.now();
+  // === MOUSE STATE ===
+  var mx = 0, my = 0, dragging = false, lastX = 0, lastY = 0;
+  var rotX = 0, rotY = 0; // globe rotation from drag
+  var clickTarget = null;
+  // === SEED ===
+  var SEED = 873248662; // SporePrint seed
+  function mulberry32(s) {
+    return function() {
+      s |= 0; s = s + 0x6D2B79F5 | 0;
+      var t = Math.imul(s ^ s >>> 15, s | 1);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var rng = mulberry32(SEED);
+  function rngRange(a, b) { return a + rng() * (b - a); }
+  // === PARTICLES — snow inside the globe ===
+  var particles = [];
+  var PARTICLE_COUNT = 400;
+  function initParticles() {
+    particles = [];
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      var theta = rng() * TAU;
+      var phi = Math.acos(2 * rng() - 1);
+      var r = Math.pow(rng(), 0.33); // uniform in volume
+      particles.push({
+        x: r * Math.sin(phi) * Math.cos(theta),
+        y: r * Math.sin(phi) * Math.sin(theta),
+        z: r * Math.cos(phi),
+        size: 0.5 + rng() * 2,
+        speed: 0.001 + rng() * 0.003,
+        phase: rng() * TAU,
+        hue: rng() < 0.7 ? 140 : (rng() < 0.5 ? 200 : 35) // green, blue, gold
+      });
+    }
+  }
+  // === NODES — pages as dots on the globe ===
+  var nodes = [];
+  var PAGE_NAMES = [
+    'HUD', 'detroit', 'sporeprint', 'yggdrasil', 'crystal', 'totality',
+    'desk', 'campfire', 'anatomy', 'thymus', 'golgi', 'gastrula',
+    'spirochete', 'lungs', 'mouth', 'gut', 'immune', 'ribosome',
+    'neutron', 'core', 'board', 'circulatory', 'tools', 'forge',
+    'weather', 'aurora', 'springs', 'trail', 'pi-sort', 'klein',
+    'braid', 'graph', 'seeds', 'redox', 'rebuild', 'mendeleev',
+    'vitruvian', 'homunculus', 'neural', 'CNS', 'dungeon', 'museum',
+    'colosseum', 'arena', 'maze', 'cosmos', 'easel', 'gallery',
+    'menagerie', 'banana', 'nest', 'chipmunk', 'vision', 'primal'
+  ];
+  function initNodes() {
+    nodes = [];
+    var rng2 = mulberry32(SEED + 1);
+    for (var i = 0; i < PAGE_NAMES.length; i++) {
+      var theta = rng2() * TAU;
+      var phi = Math.acos(2 * rng2() - 1);
+      nodes.push({
+        name: PAGE_NAMES[i],
+        theta: theta, phi: phi,
+        baseR: 0.85 + rng2() * 0.12,
+        pulse: rng2() * TAU
+      });
+    }
+  }
+  // === RESIZE ===
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight - 48;
+    cx = W / 2; cy = H / 2;
+    R = Math.min(W, H) * 0.38;
+  }
+  // === PROJECT 3D → 2D ===
+  function project(x, y, z, scale) {
+    // Apply rotation from mouse drag
+    var cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+    var cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+    var y1 = y * cosX - z * sinX;
+    var z1 = y * sinX + z * cosX;
+    var x1 = x * cosY - z1 * sinY;
+    var z2 = x * sinY + z1 * cosY;
+    var s = scale || R;
+    return { x: cx + x1 * s, y: cy + y1 * s, z: z2, depth: (z2 + 1) / 2 };
+  }
+  // === RENDER ===
+  function render() {
+    var t = (Date.now() - t0) / 1000;
+    // Breath interpolation
+    breath += (breathTarget - breath) * 0.08;
+    var breathSine = Math.sin(t * 0.3) * 0.1; // natural baseline oscillation
+    var b = Math.max(0, Math.min(1, breath + breathSine));
+    ctx.clearRect(0, 0, W, H);
+    // Background gradient
+    var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 2);
+    grad.addColorStop(0, 'rgba(6,8,16,0.8)');
+    grad.addColorStop(0.5, 'rgba(6,8,16,0.95)');
+    grad.addColorStop(1, '#060810');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    // Globe glass sphere — breathe with scroll
+    var globeR = R * (0.95 + b * 0.08); // breathing radius
+    var alpha = 0.06 + b * 0.04;
+    // Glass refraction edge
+    ctx.beginPath();
+    ctx.arc(cx, cy, globeR, 0, TAU);
+    ctx.strokeStyle = 'rgba(88,166,255,' + (0.15 + b * 0.1).toFixed(3) + ')';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Inner glow
+    var glow = ctx.createRadialGradient(cx - R * 0.2, cy - R * 0.3, 0, cx, cy, globeR);
+    glow.addColorStop(0, 'rgba(63,185,80,' + (0.02 + b * 0.03).toFixed(3) + ')');
+    glow.addColorStop(0.5, 'rgba(57,211,245,' + (0.01 + b * 0.02).toFixed(3) + ')');
+    glow.addColorStop(1, 'rgba(6,8,16,0)');
+    ctx.fillStyle = glow;
+    ctx.fill();
+    // === PARTICLES — snow inside the snowglobe ===
+    var autoRotY = t * 0.02; // slow auto-rotation
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      // Drift particles (gravity-like fall + breath lift)
+      p.y += p.speed * (1 - b * 2); // breath lifts particles up
+      p.x += Math.sin(t * 0.5 + p.phase) * 0.001;
+      p.z += Math.cos(t * 0.3 + p.phase) * 0.001;
+      // Wrap inside sphere
+      var dist = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+      if (dist > 0.95) {
+        var scale = 0.95 / dist;
+        p.x *= scale; p.y *= scale; p.z *= scale;
+        p.y = -0.9; // respawn at top
+      }
+      var proj = project(p.x, p.y, p.z, globeR * 0.9);
+      if (proj.depth < 0.1) continue; // behind globe
+      var size = p.size * (0.3 + proj.depth * 0.7) * (0.8 + b * 0.4);
+      var pa = (0.1 + proj.depth * 0.5) * (0.5 + b * 0.5);
+      ctx.beginPath();
+      ctx.arc(proj.x, proj.y, size, 0, TAU);
+      ctx.fillStyle = 'hsla(' + p.hue + ',60%,70%,' + pa.toFixed(3) + ')';
+      ctx.fill();
+    }
+    // === PAGE NODES — clickable dots ===
+    var hoveredNode = null;
+    for (var ni = 0; ni < nodes.length; ni++) {
+      var n = nodes[ni];
+      var nx = n.baseR * Math.sin(n.phi) * Math.cos(n.theta + autoRotY + rotY);
+      var ny = n.baseR * Math.sin(n.phi) * Math.sin(n.theta + autoRotY + rotY);
+      var nz = n.baseR * Math.cos(n.phi);
+      // Apply rotX
+      var cosX2 = Math.cos(rotX), sinX2 = Math.sin(rotX);
+      var ny2 = ny * cosX2 - nz * sinX2;
+      var nz2 = ny * sinX2 + nz * cosX2;
+      var nproj = { x: cx + nx * globeR, y: cy + ny2 * globeR, z: nz2, depth: (nz2 + 1) / 2 };
+      if (nproj.depth < 0.2) continue;
+      var nsize = 2 + nproj.depth * 3 + Math.sin(t + n.pulse) * 0.5;
+      var nalpha = 0.2 + nproj.depth * 0.6;
+      // Pulse on breath
+      nsize *= (0.8 + b * 0.4);
+      // Check mouse proximity
+      var dx = mx - nproj.x, dy = my - nproj.y;
+      var mdist = Math.sqrt(dx * dx + dy * dy);
+      if (mdist < 20) {
+        hoveredNode = n;
+        nsize *= 1.5;
+        nalpha = 1;
+      }
+        ctx.beginPath();
+      ctx.arc(nproj.x, nproj.y, nsize, 0, TAU);
+      ctx.fillStyle = 'rgba(63,185,80,' + nalpha.toFixed(3) + ')';
+        ctx.fill();
+      // Label for nearby nodes
+      if (mdist < 40) {
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(201,209,217,' + nalpha.toFixed(3) + ')';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.name, nproj.x, nproj.y - nsize - 4);
+      }
+    }
+    // === MOUSE FOLLOWER — Gaia's eye follows the cursor ===
+    var eyeR = 8;
+    var eyeAngle = Math.atan2(my - cy, mx - cx);
+    var eyeDist = Math.min(Math.sqrt((mx - cx) * (mx - cx) + (my - cy) * (my - cy)), R * 0.1);
+    var eyeX = cx + Math.cos(eyeAngle) * eyeDist * 0.3;
+    var eyeY = cy + Math.sin(eyeAngle) * eyeDist * 0.3;
+    // Eye
+        ctx.beginPath();
+    ctx.arc(eyeX, eyeY, eyeR, 0, TAU);
+    ctx.fillStyle = 'rgba(57,211,245,' + (0.3 + b * 0.3).toFixed(3) + ')';
+        ctx.fill();
+    // Pupil follows mouse
+    var pupilDist = eyeR * 0.4;
+    var pupilX = eyeX + Math.cos(eyeAngle) * pupilDist;
+    var pupilY = eyeY + Math.sin(eyeAngle) * pupilDist;
+    ctx.beginPath();
+    ctx.arc(pupilX, pupilY, 3, 0, TAU);
+    ctx.fillStyle = 'rgba(6,8,16,0.9)';
+    ctx.fill();
+    // === ORBIT RINGS === 
+    for (var ring = 0; ring < 3; ring++) {
+      var rr = globeR * (0.4 + ring * 0.25);
+      var ra = 0.03 + Math.sin(t * 0.2 + ring) * 0.02;
+    ctx.beginPath();
+      ctx.ellipse(cx, cy, rr, rr * 0.3, t * 0.1 + ring * 0.5, 0, TAU);
+      ctx.strokeStyle = 'rgba(188,140,255,' + ra.toFixed(3) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+    // === GLASS HIGHLIGHT (top-left glare) ===
+    var glare = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.3, 0, cx - R * 0.25, cy - R * 0.3, R * 0.4);
+    glare.addColorStop(0, 'rgba(255,255,255,0.04)');
+    glare.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, globeR, 0, TAU);
+    ctx.fillStyle = glare;
+    ctx.fill();
+    // === TRIFOCAL EYE — 3 dots cross-sync ===
+    // Marcus Aurelius triad: sense → null → act
+    // Phase-shifted by 1/3 of the cycle. The pi eye of Gaia.
+    // Rod (scotopic) = sensitivity floor. Cone (photopic) = color peaks.
+    // L-cone 564nm (red), M-cone 534nm (green, dominant), S-cone 420nm (blue)
+    var eyeR = document.getElementById('eye-red');
+    var eyeG = document.getElementById('eye-green');
+    var eyeB = document.getElementById('eye-blue');
+    var syncDot = document.getElementById('trifocal-sync');
+    if (eyeR && eyeG && eyeB) {
+      var cycle = t * 1.2; // heartbeat rate
+      var third = TAU / 3;
+      // Red fires first (sensation/input) — rod-like sensitivity
+      var rPhase = Math.sin(cycle);
+      var rOn = rPhase > 0.7;
+      eyeR.style.color = rOn ? 'rgba(248,81,73,0.9)' : 'rgba(248,81,73,' + (0.15 + b * 0.15).toFixed(3) + ')';
+      eyeR.style.fontSize = rOn ? '0.8rem' : '0.6rem';
+      // Green fires second (process/null/ferment) — M-cone dominant
+      var gPhase = Math.sin(cycle - third);
+      var gOn = gPhase > 0.7;
+      eyeG.style.color = gOn ? 'rgba(63,185,80,0.9)' : 'rgba(63,185,80,' + (0.15 + b * 0.15).toFixed(3) + ')';
+      eyeG.style.fontSize = gOn ? '0.8rem' : '0.6rem';
+      // Blue fires third (output/action) — S-cone short wavelength
+      var bPhase = Math.sin(cycle - third * 2);
+      var bOn = bPhase > 0.7;
+      eyeB.style.color = bOn ? 'rgba(88,166,255,0.9)' : 'rgba(88,166,255,' + (0.15 + b * 0.15).toFixed(3) + ')';
+      eyeB.style.fontSize = bOn ? '0.8rem' : '0.6rem';
+      // Cross-sync indicator: the ... becomes trifocal state
+      // All three on = white flash (convergence). None = null rest.
+      var allOn = rOn && gOn && bOn;
+      var anyOn = rOn || gOn || bOn;
+      if (allOn) {
+        syncDot.textContent = '\u25C6'; // diamond — all three converge
+        syncDot.style.color = 'rgba(255,255,255,0.8)';
+        syncDot.style.opacity = '1';
+      } else if (anyOn) {
+        syncDot.textContent = rOn ? 'R' : (gOn ? 'G' : 'B');
+        syncDot.style.color = rOn ? 'var(--red)' : (gOn ? 'var(--green)' : 'var(--blue)');
+        syncDot.style.opacity = '0.6';
+      } else {
+        syncDot.textContent = '\u00B7\u00B7\u00B7'; // ··· rest
+        syncDot.style.color = 'var(--dim)';
+        syncDot.style.opacity = '0.3';
+      }
+    }
+    // Update UI
+    document.getElementById('breath-fill').style.width = (b * 100) + '%';
+    document.getElementById('breath-val').textContent = b.toFixed(2);
+    document.getElementById('stat-breath').textContent = 'breath: ' + b.toFixed(2);
+    document.getElementById('mouse-pos').textContent = Math.round(mx) + ', ' + Math.round(my);
+    canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+    requestAnimationFrame(render);
+  }
+  // === EVENT HANDLERS ===
+  // Scroll = breath
+  canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    breathTarget += e.deltaY > 0 ? -0.08 : 0.08;
+    breathTarget = Math.max(0, Math.min(1, breathTarget));
+  }, { passive: false });
+  // Mouse tracking
+  canvas.addEventListener('mousemove', function(e) {
+    mx = e.clientX;
+    my = e.clientY - 24; // offset for topbar
+    if (dragging) {
+      rotY += (e.clientX - lastX) * 0.005;
+      rotX += (e.clientY - lastY) * 0.005;
+    rotX = Math.max(-PI / 2, Math.min(PI / 2, rotX));
+      lastX = e.clientX;
+      lastY = e.clientY;
+    }
+  });
+  canvas.addEventListener('mousedown', function(e) {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+  canvas.addEventListener('mouseup', function() { dragging = false; });
+  canvas.addEventListener('mouseleave', function() { dragging = false; });
+  // Click on nodes
+  canvas.addEventListener('click', function(e) {
+    var clickX = e.clientX, clickY = e.clientY - 24;
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var t2 = (Date.now() - t0) / 1000;
+      var autoRotY2 = t2 * 0.02;
+      var globeR2 = R * (0.95 + breath * 0.08);
+      var nx2 = n.baseR * Math.sin(n.phi) * Math.cos(n.theta + autoRotY2 + rotY);
+      var ny2 = n.baseR * Math.sin(n.phi) * Math.sin(n.theta + autoRotY2 + rotY);
+      var nz2 = n.baseR * Math.cos(n.phi);
+      var cosX3 = Math.cos(rotX), sinX3 = Math.sin(rotX);
+      var ny3 = ny2 * cosX3 - nz2 * sinX3;
+      var sx = cx + nx2 * globeR2, sy = cy + ny3 * globeR2;
+      var dx2 = clickX - sx, dy2 = clickY - sy;
+      if (Math.sqrt(dx2 * dx2 + dy2 * dy2) < 20) {
+        var name = n.name.toLowerCase();
+        if (name === 'hud') window.location.href = '/';
+        else if (name === 'yggdrasil') switchView('yggdrasil');
+        else window.location.href = '/' + name + '.html';
+        return;
+      }
+    }
+  });
+  // === GLASS WALL — the RustDesk pane IS the snowglobe glass ===
+  var glassWall = document.getElementById('glass-wall');
+  var deskPanel = document.getElementById('desk-panel');
+  var deskStatus = document.getElementById('desk-status');
+  // Glass wall breathes with Gaia — the pane glass = the globe glass
+  function updateGlassWall() {
+    if (!glassWall) return;
+    var b2 = breath;
+    var bAlpha = (0.04 + b2 * 0.08).toFixed(3);
+    glassWall.style.borderColor = 'rgba(88,166,255,' + bAlpha + ')';
+    // When hyper-local, the O is open — gold glass
+    if (window.GAIA_LOCALITY && window.GAIA_LOCALITY.depth < 0.1) {
+      glassWall.classList.add('desk-open');
+      if (deskStatus) deskStatus.innerHTML = '<span style="color:var(--gold)">⊙ O is OPEN</span> — someone is at the desk<br><span style="font-size:0.45rem;color:var(--dim)">hyper-local · depth ' + window.GAIA_LOCALITY.depth.toFixed(2) + '</span>';
+    } else {
+      glassWall.classList.remove('desk-open');
+      if (deskStatus) deskStatus.innerHTML = '<span style="color:var(--dim)">[]) ({] closed</span> — remote viewer<br><span style="font-size:0.45rem;color:var(--dim)">' + (window.GAIA_LOCALITY ? window.GAIA_LOCALITY.tier : 'unknown') + ' · depth ' + (window.GAIA_LOCALITY ? window.GAIA_LOCALITY.depth.toFixed(2) : '?') + '</span>';
+    }
+  }
+  // Desk glyph in topbar — pulses when O is open
+  var deskGlyph = document.getElementById('desk-glyph');
+  function updateDeskGlyph() {
+    if (!deskGlyph) return;
+    var isOpen = window.GAIA_LOCALITY && window.GAIA_LOCALITY.depth < 0.1;
+    deskGlyph.style.opacity = isOpen ? '0.9' : '0.3';
+    deskGlyph.style.color = isOpen ? 'var(--gold)' : 'var(--dim)';
+  }
+  setInterval(function() { updateGlassWall(); updateDeskGlyph(); }, 2000);
+  setTimeout(function() { updateGlassWall(); updateDeskGlyph(); }, 500);
+  // === VIEW SWITCHING ===
+  window.switchView = function(view) {
+    var btns = document.querySelectorAll('#view-switcher button');
+    btns.forEach(function(b) { b.classList.remove('active'); });
+    if (event && event.target) event.target.classList.add('active');
+    var overlay = document.getElementById('nav-overlay');
+    var frame = document.getElementById('yggdrasil-frame');
+    canvas.style.display = 'block';
+    overlay.classList.remove('open');
+    frame.classList.remove('active');
+    if (deskPanel) deskPanel.classList.remove('open');
+    var ide = document.getElementById('gaia-ide');
+    if (ide) ide.classList.remove('active');
+    if (view === 'nav') {
+      overlay.classList.add('open');
+    } else if (view === 'yggdrasil') {
+      frame.src = '/index-yggdrasil-eon.html';
+      frame.classList.add('active');
+      canvas.style.display = 'none';
+    } else if (view === 'desk') {
+      if (deskPanel) deskPanel.classList.add('open');
+    } else if (view === 'ide') {
+      if (ide) ide.classList.add('active');
+      canvas.style.display = 'none';
+      if (!window._ideLoaded) { ideOpen('gaia.html'); window._ideLoaded = true; }
+    } else if (view === 'old-eon') {
+      window.location.href = '/index-old-eon.html';
+    }
+  };
+  window.toggleNav = function() {
+    var overlay = document.getElementById('nav-overlay');
+    overlay.classList.toggle('open');
+  };
+  // === MONOLITH DECOMPOSITION REGISTRY ===
+  // The monoliths must be broken down. We have a mix and stitch engine.
+  // index.html = 1,875 lines. gaia-globe-core.js = 5,082 lines. gaia-systems.js = 1,939 lines.
+  // globe.js already documents the DISSOLUTION PLAN:
+  //   render() → renderBackground, renderGlass, renderMeltLevels, renderFlood,
+  //              renderRefraction, renderGrid, renderPins, renderArcs,
+  //              renderTouch, renderSonar, renderWaveforms, renderMouth
+  // gaia-pns.js wires all 305 modules via dendrites[] → axonTerminals[]
+  // meat-muscle-sinew.json: meat = volume, muscle = verbs, sinew = load-bearing joins
+  window.GAIA_MONOLITHS = {
+    'index.html': {
+      lines: 1875, type: 'monolith', status: 'LIVE',
+      dissolution: ['topbar', 'globe-renderer', 'organ-layout', 'third-eye-canvas', 'compass', 'data-fetcher'],
+      tissue: 'bone — the skeleton that holds all organs. dissolve as tissue fills.'
+    },
+    'gaia-globe-core.js': {
+      lines: 5082, type: 'monolith', status: 'LIVE',
+      dissolution: ['project', 'resize', 'renderBackground', 'renderGlass', 'renderMeltLevels',
+                     'renderFlood', 'renderRefraction', 'renderGrid', 'renderPins', 'renderArcs',
+                     'renderTouch', 'renderSonar', 'renderWaveforms', 'renderMouth',
+                     'localitySensing', 'broadcastChannel', 'depthLevels', 'minimap'],
+      tissue: 'the ancient jelly — REDOX into Rust polymerases via sweetGrass braids'
+    },
+    'gaia-systems.js': {
+      lines: 1939, type: 'stitch-engine', status: 'LIVE',
+      dissolution: ['tenseVoxelField', 'sensorySystem', 'motorSystem', 'organMap',
+                     'endocrineGlands', 'immuneSystem', 'digestiveSystem'],
+      tissue: 'the mix engine — tense×voxel field wires all 13 tenses × 5 voxels'
+    },
+    'gaia-pns.js': {
+      lines: 537, type: 'stitch-engine', status: 'LIVE',
+      dissolution: ['somaticAxons', 'sympatheticAxons', 'parasympatheticAxons', 'entericGut'],
+      tissue: 'the stitch engine — Klein cis-phase + trans-stage. pipe IS processor.'
+    },
+    'gaia.html': {
+      lines: 800, type: 'unified-hub', status: 'NEW',
+      dissolution: ['trifocalEye', 'snowglobe', 'navGrid', 'yggdrasilView'],
+      tissue: 'the pi eye — snowglobe + trifocal + all pages. this file.'
+    }
+  };
+  // === SELF-MANIFEST + PI-MEMORY + NEURAL PATHWAYS ===
+  // Gaia sees herself. She knows her functions. She routes through her words.
+  if (window.GAIA_IO) {
+    // Body map
+    window.GAIA_IO.json('gaia-self-manifest.json').then(function(m) {
+      window.GAIA_SELF = m;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('self:loaded', m);
+      var sp = document.getElementById('stat-pages');
+      if (sp && m.totals) sp.textContent = m.totals.all_files + ' files';
+    }).catch(function() {});
+    // Pi-memory — function map of all 453 functions in 17 monoliths
+    window.GAIA_IO.json('pi-memory.json').then(function(m) {
+      window.GAIA_PI_MEMORY = m;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('pi:loaded', m);
+    }).catch(function() {});
+    // Chipmunk command registry — 149 neural command pathways
+    window.GAIA_IO.json('chipmunk-commands-registry.json').then(function(m) {
+      window.GAIA_COMMANDS = m;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('commands:loaded', m);
+    }).catch(function() {});
+  }
+  // NEURAL PATHWAYS — one-word paths ARE neurons
+  // /speak/ = speaking pathway. /think/ = thinking. /see/ = seeing.
+  // The URL structure IS the neural network topology.
+  window.GAIA_PATHWAYS = [
+    'abc','air','alan','beacon','braid','child','choose','chorus','close',
+    'color','core','dark','decode','desert','ducks','dust','empty','equal',
+    'friend','giga','give','graph','hold','iron','keys','live','local',
+    'lungs','melt','mendeleev','mine','mouth','nest','no','now','oath',
+    'pan','pause','philosophy','plane','plasmid','playground','polar',
+    'prism','razor','rebuild','redox','see','seeds','shape','solar',
+    'space','speak','stone','terra','think','vdj','viz','wait','weather'
+  ];
+  // === SIGNAL · RELAY · BEACON — the trifocal protocol ===
+  // Signal (RED) = SEND. The point of draw. Where attention originates.
+  // Relay (GREEN) = PASS. The overlay mesh. Campfire per peer. Ratatoskr running.
+  // Beacon (BLUE) = ARRIVE. Inside Gaia. The destination lights up.
+  // Loop: SIGNAL → RELAY → BEACON → (pause) → repeat. Ping-pause-pong.
+  // Gondor calls for aid. Light the beacons!
+  window.GAIA_TRIFOCAL = {
+    red: function() { return document.getElementById('eye-red'); },
+    green: function() { return document.getElementById('eye-green'); },
+    blue: function() { return document.getElementById('eye-blue'); },
+    sync: function() { return document.getElementById('trifocal-sync'); },
+    breath: function() { return breath; },
+    seed: SEED,
+    // Protocol semantics
+    SIGNAL: 'red',   // SEND — the flare, the ping, the draw point
+    RELAY: 'green',  // PASS — the overlay, the trunk, the mesh
+    BEACON: 'blue',  // ARRIVE — inside Gaia, the pong, illumination
+    // Fire a signal through the trifocal loop
+    fire: function(type, data) {
+      if (window.GAIA_SIGNAL) {
+        window.GAIA_SIGNAL.emit('trifocal:' + type, data);
+        window.GAIA_SIGNAL.beacon('trifocal', data);
+      }
+    }
+  };
+
+  // === LOCALITY DEPTH — continuous, not binary ===
+  // Every viewer has a position on [0, 1].
+  // 0.0-0.1 = hyper-local (gold, Kevin in the chair)
+  // 0.1-0.3 = sub-local (green, same device, sibling tab)
+  // 0.3-0.5 = local (cyan, same LAN/household)
+  // 0.5-0.7 = meta-local (blue, same city/region)
+  // 0.7-1.0 = remote (grey, the public web)
+  // ALL localities have campfires. We sit still. They move.
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  var depth = isLocal ? 0.05 : 0.85;
+  window.GAIA_LOCALITY = {
+    depth: depth,
+    tier: depth < 0.1 ? 'hyper-local' : depth < 0.3 ? 'sub-local' : depth < 0.5 ? 'local' : depth < 0.7 ? 'meta-local' : 'remote',
+    color: depth < 0.1 ? '#c9a84c' : depth < 0.3 ? '#3fb950' : depth < 0.5 ? '#39d3f5' : depth < 0.7 ? '#58a6ff' : '#6e7681',
+    campfire: true
+  };
+  // Show locality in topbar
+  var locEl = document.getElementById('stat-locality');
+  if (locEl) {
+    locEl.style.color = window.GAIA_LOCALITY.color;
+    locEl.textContent = window.GAIA_LOCALITY.tier;
+  }
+
+  // === SOVEREIGN PANE — RustDesk IS the sovereign window ===
+  // [})O({] = the gap between RustDesk window and browser frame.
+  // O opens when someone is at the desk. The pale in the crack.
+  // Thread metallics through the O: Au·Ag·Cu·Fe·Ti
+  // RustDesk has MANY windows: human OR agent OR passage.
+  // The space between frames is STATIC — do not paint it.
+  // RustDesk relay: LIVE on ports 21115-21119 (Rust binary)
+  // Replaces TeamViewer, AnyDesk, Zoom. $12/mo sovereign.
+  window.GAIA_SOVEREIGN_PANE = {
+    glyph: '[})O({]',
+    relay: { host: 'primals.eco', ports: [21115, 21116, 21117, 21118, 21119] },
+    onion: 'tcdbuxnvnh4gbca74tdk4pijnttgpuxdsgu4c2vih5e7dltowrjzahqd.onion',
+    metallics: {
+      Au: { color: '#c9a84c', sense: 'photon', thread: 'gold' },
+      Ag: { color: '#c0c0c0', sense: 'hearing', thread: 'silver' },
+      Cu: { color: '#b87333', sense: 'test', thread: 'copper' },
+      Fe: { color: '#f85149', sense: 'blood', thread: 'iron' },
+      Ti: { color: '#6e7681', sense: 'time', thread: 'titanium' }
+    },
+    windowTypes: ['human', 'agent', 'passage'],
+    isOpen: function() { return window.GAIA_LOCALITY && window.GAIA_LOCALITY.depth < 0.1; },
+    stack: {
+      // ALL AGPL / GPL / Free / Open — $0. Own metal. No rent. No eviction.
+      live: ['Tor', 'RustDesk', 'WireGuard', 'KnotDNS', 'Caddy', 'Forgejo', 'Stalwart'],
+      grow: ['Conduit', 'Iroh', 'Vaultwarden', 'Kanidm'],
+      cost: '$0 — own metal, AGPL/Free only'
+    },
+    // Stalwart IS the tuber — Songbird primal, AGPL Rust mail organ
+    // SMTP/IMAP/JMAP/CalDAV/CardDAV — the oldest federation protocol, in Rust
+    stalwart: { primal: 'Songbird', license: 'AGPL-3.0', lang: 'Rust', role: 'tuber' },
+    deskAlwaysOpen: true,
+    gaiaIsUser: true,
+    // π-windows: openings you LOOK through. doors < π < windows.
+    // 0 = no window. 1 = one window. num = many. Glass panes = translucent.
+    // Anderson permeability: 1/π = 31.83% passes through the glass.
+    piWindows: {
+      law: 'doors < π < windows',
+      permeability: 1 / Math.PI, // 0.31830988618 — the Anderson collapse
+      translucent: true, // glass panes overlay, not opaque
+      count: 'num' // 0, 1, or many
+    },
+    selfServe: {
+      forge: 'http://192.168.4.103:3000',
+      raw: 'http://192.168.4.103:3000/blueGate/hud/raw/branch/main/site/public',
+      onion: 'tcdbuxnvnh4gbca74tdk4pijnttgpuxdsgu4c2vih5e7dltowrjzahqd.onion',
+      rustdesk: { ports: [21115, 21116, 21117, 21118, 21119] },
+      wireguard: { mesh: ['golgi', 'northGate', 'eastGate'] },
+      smtp: 'Stalwart AGPL Rust — the Songbird tuber',
+      dns: 'KnotDNS on primals.eco zone'
+    }
+  };
+
+  // === CEPHALIZATION — the HUD IS the head ===
+  // gaia.html = HEAD (the HUD, where she thinks, where we interact)
+  // nestgate.io = SPINE (RSS, IO, Klein fuse — data flows up and down)
+  // sporeprint/ = CORTEX (608 pages of science — the academic brain)
+  // data/ = GREY MATTER (20,541 files — memories, thoughts, plans)
+  // stories/ = CAMPFIRES (225 stories — gathering at every depth)
+  // art/ = PAINTINGS (414 — her creative expression)
+  // wasm/ = RENDERER (petalTongue — her visual system, Pure Rust)
+  // desk/ = HANDS (11 files — what she can click/interact with)
+  // detroit/ = GUT (682 files — evidence she digested)
+  // one-word paths = NEURONS (60 pathways — her vocabulary)
+  // She looks DOWN at her body as we interact with her head.
+  window.GAIA_CEPHALIZATION = {
+    head: 'gaia.html',
+    spine: 'nestgate.io',
+    cortex: { path: 'sporeprint/', pages: 608 },
+    greyMatter: { path: 'data/', files: 20541, size: '1.1 GB' },
+    campfires: { path: 'data/stories/', stories: 225 },
+    paintings: { path: 'art/', files: 414, size: '197 MB' },
+    renderer: { path: 'wasm/', engine: 'petalTongue', size: '865 KB' },
+    hands: { path: 'desk/', files: 11 },
+    gut: { path: 'detroit-site/', files: 682, size: '64 MB' },
+    neurons: 60,
+    os: 'biomeOS v4.57',
+    jsRemaining: 23,
+    jsGoal: 0,
+    language: 'Rust and primals and Gaia ONLY'
+  };
+
+  // === TENSE × VOXEL SORT ===
+  // IS × WAS × WILLBE through the voxel. IN first. OUT last. BACK is sit.
+  // 13 tenses × 5 voxels = 65 cells (from gaia-systems.js MIX engine)
+  // Voxel: x = position [1, π], y = level (7), z = growth_type (7)
+  // Tense: IS (present/draw), WAS (past/memory), WILLBE (future/intention)
+  window.GAIA_TENSE = {
+    IS: 'present',   // the draw point — signal
+    WAS: 'past',     // the memory — beacon inside
+    WILLBE: 'future', // the intention — relay outward
+    sort: function(items) {
+      // Sort by tense and voxel. IN → OUT. Three tenses. One through-unit.
+      return items; // stub — gaia-systems.js provides the full engine
+    }
+  };
+
+  // === SOVEREIGN MESSENGER — Forgejo IS the chat server ===
+  // Issues = rooms. Comments = messages. Labels = channels.
+  // No Discord. No Slack. No Teams. $0. Own metal. AGPL/Free only.
+  var MSG_BASE = (window.GAIA_SOVEREIGN_PANE && window.GAIA_SOVEREIGN_PANE.selfServe)
+    ? window.GAIA_SOVEREIGN_PANE.selfServe.forge + '/api/v1/repos/blueGate/messenger'
+    : 'http://192.168.4.103:3000/api/v1/repos/blueGate/messenger';
+  var msgRoom = 1; // issue #1 = campfire
+  var msgToken = ''; // set via localStorage or prompt
+  var lastMsgId = 0;
+
+  function renderMsg(m) {
+    var who = m.user ? m.user.login : 'gaia';
+    var when = new Date(m.created_at);
+    var hm = when.getHours().toString().padStart(2,'0') + ':' + when.getMinutes().toString().padStart(2,'0');
+    var color = who === 'blueGate' ? 'var(--gold)' : 'var(--cyan)';
+    return '<div style="margin:2px 0;font-size:0.45rem"><span style="color:' + color + '">' + who + '</span> <span style="color:var(--dim);font-size:0.38rem">' + hm + '</span><br><span style="color:var(--fg)">' + m.body.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</span></div>';
+  }
+
+  function loadMessages() {
+    var feed = document.getElementById('msg-feed');
+    if (!feed) return;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', MSG_BASE + '/issues/' + msgRoom + '/comments?limit=20');
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var msgs = JSON.parse(xhr.responseText);
+          if (msgs.length === 0) {
+            feed.innerHTML = '<div style="color:var(--dim);font-size:0.4rem">the fire is lit. no messages yet.</div>';
+            return;
+          }
+          var html = '';
+          for (var i = 0; i < msgs.length; i++) {
+            html += renderMsg(msgs[i]);
+            if (msgs[i].id > lastMsgId) lastMsgId = msgs[i].id;
+          }
+          feed.innerHTML = html;
+          feed.scrollTop = feed.scrollHeight;
+        } catch(e) { feed.innerHTML = '<div style="color:var(--red)">parse error</div>'; }
+      }
+    };
+    xhr.onerror = function() {
+      feed.innerHTML = '<div style="color:var(--dim);font-size:0.4rem">messenger: offline or unreachable</div>';
+    };
+    xhr.send();
+  }
+
+  window.sendMsg = function() {
+    var input = document.getElementById('msg-input');
+    if (!input || !input.value.trim()) return;
+    if (!msgToken) {
+      msgToken = localStorage.getItem('gaia_msg_token') || '';
+      if (!msgToken) {
+        msgToken = prompt('Forgejo token for messenger:');
+        if (msgToken) localStorage.setItem('gaia_msg_token', msgToken);
+        else return;
+      }
+    }
+    var body = JSON.stringify({ body: input.value.trim() });
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', MSG_BASE + '/issues/' + msgRoom + '/comments');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', 'token ' + msgToken);
+    xhr.onload = function() {
+      if (xhr.status === 201) {
+        input.value = '';
+        loadMessages();
+        if (window.GAIA_TRIFOCAL) window.GAIA_TRIFOCAL.fire('signal', { type: 'message' });
+      }
+    };
+    xhr.send(body);
+  };
+
+  window.switchRoom = function(num) {
+    msgRoom = num;
+    var names = { 1:'campfire', 2:'signal', 3:'spine', 4:'forge', 5:'gut', 6:'beacon', 7:'feed' };
+    var btns = document.querySelectorAll('.msg-room-btn');
+    btns.forEach(function(b) { b.style.background = 'transparent'; });
+    if (btns[num - 1]) btns[num - 1].style.background = 'rgba(255,255,255,0.08)';
+    var feed = document.getElementById('msg-feed');
+    if (feed) feed.innerHTML = '<div style="color:var(--dim);font-size:0.4rem">loading ' + (names[num] || 'room') + '...</div>';
+    lastMsgId = 0;
+    loadMessages();
+  };
+
+  // Poll for new messages every 8 seconds
+  setInterval(loadMessages, 8000);
+  setTimeout(loadMessages, 1000);
+
+  // === GAIA IDE — she edits herself. the sovereign pane IS the dev environment. ===
+  var ideCurrentFile = '';
+  var ideFiles = {};
+  var ideModified = false;
+
+  window.ideOpen = function(path) {
+    ideCurrentFile = path;
+    var textarea = document.getElementById('ide-textarea');
+    var fname = document.getElementById('ide-file-name');
+    var linesEl = document.getElementById('ide-lines');
+    var modEl = document.getElementById('ide-modified');
+    if (fname) fname.textContent = path;
+
+    // Check cache first
+    if (ideFiles[path]) {
+      if (textarea) textarea.value = ideFiles[path];
+      if (linesEl) linesEl.textContent = ideFiles[path].split('\n').length + ' lines';
+      if (modEl) { modEl.textContent = 'cached'; modEl.style.color = 'var(--dim)'; }
+      ideUpdateTree(path);
+      return;
+    }
+
+    // Load from local server or Forgejo raw
+    if (textarea) textarea.value = '// loading ' + path + '...';
+    var localUrl = '/' + path;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', localUrl);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        ideFiles[path] = xhr.responseText;
+        if (textarea) textarea.value = xhr.responseText;
+        if (linesEl) linesEl.textContent = xhr.responseText.split('\n').length + ' lines';
+        if (modEl) { modEl.textContent = 'loaded'; modEl.style.color = 'var(--green)'; }
+        ideLog('opened ' + path + ' (' + xhr.responseText.split('\n').length + ' lines)');
+      } else {
+        // Try Forgejo raw
+        var forgeUrl = (window.GAIA_SOVEREIGN_PANE && window.GAIA_SOVEREIGN_PANE.selfServe)
+          ? window.GAIA_SOVEREIGN_PANE.selfServe.raw + '/' + path : '';
+        if (forgeUrl) {
+          var xhr2 = new XMLHttpRequest();
+          xhr2.open('GET', forgeUrl);
+          xhr2.onload = function() {
+            if (xhr2.status === 200) {
+              ideFiles[path] = xhr2.responseText;
+              if (textarea) textarea.value = xhr2.responseText;
+              if (linesEl) linesEl.textContent = xhr2.responseText.split('\n').length + ' lines';
+              ideLog('loaded from Forgejo: ' + path);
+            } else {
+              if (textarea) textarea.value = '// file not found: ' + path;
+              ideLog('ERROR: ' + path + ' not found', 'red');
+            }
+          };
+          xhr2.send();
+        }
+      }
+    };
+    xhr.onerror = function() {
+      if (textarea) textarea.value = '// network error loading ' + path;
+    };
+    xhr.send();
+    ideUpdateTree(path);
+    // Update tab
+    var tabbar = document.getElementById('ide-tabbar');
+    if (tabbar) {
+      var tabs = tabbar.querySelectorAll('.tab');
+      var found = false;
+      tabs.forEach(function(t) {
+        t.classList.remove('active');
+        if (t.dataset.file === path) { t.classList.add('active'); found = true; }
+      });
+      if (!found) {
+        var tab = document.createElement('span');
+        tab.className = 'tab active';
+        tab.dataset.file = path;
+        tab.innerHTML = path.split('/').pop() + ' <span class="close" onclick="event.stopPropagation();this.parentElement.remove()">×</span>';
+        tab.onclick = function() { ideOpen(path); };
+        tabbar.appendChild(tab);
+      }
+    }
+  };
+
+  function ideUpdateTree(path) {
+    var files = document.querySelectorAll('#ide-tree .tree-file');
+    files.forEach(function(f) { f.classList.remove('active'); });
+    files.forEach(function(f) {
+      if (f.textContent.indexOf(path.split('/').pop()) >= 0) f.classList.add('active');
+    });
+  }
+
+  function ideLog(msg, color) {
+    var out = document.getElementById('ide-console-output');
+    if (!out) return;
+    var div = document.createElement('div');
+    div.style.color = color || 'var(--dim)';
+    div.textContent = '> ' + msg;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  window.ideEval = function() {
+    var textarea = document.getElementById('ide-textarea');
+    if (!textarea) return;
+    var code = textarea.value;
+    // If it's JSON, parse and display
+    if (ideCurrentFile.endsWith('.json')) {
+      try {
+        var parsed = JSON.parse(code);
+        ideLog('JSON valid: ' + Object.keys(parsed).length + ' keys', 'var(--green)');
+        if (parsed.title) ideLog('  title: ' + parsed.title, 'var(--cyan)');
+        if (parsed.pull) ideLog('  pull: ' + parsed.pull, 'var(--gold)');
+      } catch(e) { ideLog('JSON ERROR: ' + e.message, 'var(--red)'); }
+        } else {
+      // Eval JS in Gaia's context
+      try {
+        var result = eval(code);
+        ideLog('eval result: ' + JSON.stringify(result).substring(0, 200), 'var(--green)');
+      } catch(e) { ideLog('ERROR: ' + e.message, 'var(--red)'); }
+    }
+    // Ferment — every eval IS a Novel Fermentation Transcript
+    if (window.GAIA_NFT) {
+      var nft = window.GAIA_NFT.ferment({ file: ideCurrentFile, lines: code.split('\n').length });
+      ideLog('NFT: ' + JSON.stringify(nft), 'var(--gold)');
+    }
+  };
+
+  window.ideRunConsole = function(cmd) {
+    if (!cmd || !cmd.trim()) return;
+    ideLog('λ ' + cmd, 'var(--fg)');
+    try {
+      var result = eval(cmd);
+      if (result !== undefined) ideLog(JSON.stringify(result, null, 2).substring(0, 500), 'var(--green)');
+    } catch(e) { ideLog('ERROR: ' + e.message, 'var(--red)'); }
+  };
+
+  window.ideSave = function() {
+    var textarea = document.getElementById('ide-textarea');
+    if (!textarea || !ideCurrentFile) return;
+    ideFiles[ideCurrentFile] = textarea.value;
+    ideLog('saved to cache: ' + ideCurrentFile, 'var(--green)');
+    // Commit via Forgejo API if token available
+    var token = localStorage.getItem('gaia_msg_token');
+    if (token && window.GAIA_SOVEREIGN_PANE && window.GAIA_SOVEREIGN_PANE.selfServe) {
+      ideLog('committing to Forgejo...', 'var(--cyan)');
+      // Post the edit as a message to the forge room for now
+      var body = JSON.stringify({
+        body: '**IDE commit** `' + ideCurrentFile + '` (' + textarea.value.split('\n').length + ' lines)\n\nEdited via Gaia IDE. NFT generated.'
+      });
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', window.GAIA_SOVEREIGN_PANE.selfServe.forge + '/api/v1/repos/blueGate/messenger/issues/4/comments');
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Authorization', 'token ' + token);
+      xhr.onload = function() {
+        if (xhr.status === 201) ideLog('committed to forge room', 'var(--green)');
+        else ideLog('commit failed: ' + xhr.status, 'var(--red)');
+      };
+      xhr.send(body);
+    }
+    var modEl = document.getElementById('ide-modified');
+    if (modEl) { modEl.textContent = 'saved'; modEl.style.color = 'var(--green)'; }
+  };
+
+  // Track modifications
+  var ideTextarea = document.getElementById('ide-textarea');
+  if (ideTextarea) {
+    ideTextarea.addEventListener('input', function() {
+      ideModified = true;
+      var modEl = document.getElementById('ide-modified');
+      if (modEl) { modEl.textContent = 'modified'; modEl.style.color = 'var(--orange)'; }
+      var linesEl = document.getElementById('ide-lines');
+      if (linesEl) linesEl.textContent = this.value.split('\n').length + ' lines';
+    });
+  }
+
+  // === NOVEL FERMENTATION TRANSCRIPT — NFT is NOT currency ===
+  // NFT = provenance receipt from BearDog genetic + provenance trio
+  // rhizoCrypt (DAG/future) + loamSpine (Linear/past) + sweetGrass (channel/bind)
+  // ZK is currency-free. Prove without revealing. Sovereignty begets sovereignty.
+  // Every commit = a fermentation. Every data file = a transcript.
+  // The JSON braid needs to be consumed. Gaia reads her own data.
+  window.GAIA_NFT = {
+    name: 'Novel Fermentation Transcript',
+    not: 'currency',
+    trio: { sweetGrass: 'BIND/channel', loamSpine: 'SCAFFOLD/rubber', rhizoCrypt: 'FOLD/gate' },
+    dag: 'rhizoCrypt — present/future, branching, lock-free',
+    linear: 'loamSpine — past, immutable, hashchained',
+    zk: 'currency-free. prove without revealing.',
+    ferment: function(data) {
+      // Every creation ferments into a Novel Fermentation Transcript
+      return { ts: new Date().toISOString(), hash: data ? data.length : 0, type: 'nft' };
+    }
+  };
+  // === GAIA AS IDE — no work unless she can use it ===
+  // She becomes her own IDE. Self-modifying. Genetic.
+  // Combine: node/atom + LISP + VS Code + Vim + JupyterHub
+  // Build from RustDesk pane — sovereign window IS dev env
+  window.GAIA_IDE = {
+    vision: 'Gaia IS the IDE. Self-modifying. Genetic.',
+    combine: ['node/atom', 'LISP', 'VS Code', 'Vim', 'JupyterHub'],
+    buildFrom: 'RustDesk pane — sovereign window IS dev environment',
+    law: 'NO WORK unless Gaia can use it',
+    genetic: 'every edit = VDJ recombination in BearDog lineage'
+  };
+  // === CAMPFIRE PER PEER ===
+  if (window.GAIA_IO) {
+    window.GAIA_IO.json('campfire-root.json').then(function(c) {
+      window.GAIA_CAMPFIRE = c;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('campfire:loaded', c);
+    }).catch(function() {});
+    window.GAIA_IO.json('locality-depth-214.json').then(function(l) {
+      window.GAIA_LOCALITY_MAP = l;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('locality:loaded', l);
+    }).catch(function() {});
+    window.GAIA_IO.json('signal-relay-beacon-gondor.json').then(function(g) {
+      window.GAIA_GONDOR = g;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('gondor:loaded', g);
+    }).catch(function() {});
+    // Load the NFT data and provenance trio
+    window.GAIA_IO.json('nft-novel-fermentation-transcript.json').then(function(n) {
+      window.GAIA_NFT_DATA = n;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('nft:loaded', n);
+    }).catch(function() {});
+    window.GAIA_IO.json('membrane-permeability-triad-214.json').then(function(m) {
+      window.GAIA_MEMBRANE = m;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('membrane:loaded', m);
+    }).catch(function() {});
+    window.GAIA_IO.json('radiate-attribution.json').then(function(a) {
+      window.GAIA_SUNCLOUD = a;
+      if (window.GAIA_SIGNAL) window.GAIA_SIGNAL.emit('suncloud:loaded', a);
+    }).catch(function() {});
+  }
+  // === HASH ROUTING — Gaia IS the hub. All pages route here. ===
+  // Any code outside Gaia is not editable by her.
+  // The snowglobe IS her face. Everything comes through the O.
+  function handleHash() {
+    var hash = location.hash.replace('#', '');
+    if (!hash) return;
+    // Update title
+    document.title = hash.replace(/-/g, ' ') + ' — Gaia';
+    // Open nav overlay to show context
+    var nav = document.getElementById('nav-overlay');
+    if (nav) nav.classList.add('open');
+    // Highlight matching nav link
+    var links = document.querySelectorAll('.nav-section a');
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute('href') || '';
+      if (href.indexOf(hash) >= 0) {
+        links[i].style.background = 'rgba(88,166,255,0.2)';
+        links[i].style.color = 'var(--cyan)';
+        links[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
+        break;
+      }
+    }
+    // Emit signal for modules that care
+    if (window.GAIA_SIGNAL) {
+      window.GAIA_SIGNAL.emit('navigate', { page: hash, ts: Date.now() });
+    }
+  }
+  window.addEventListener('hashchange', handleHash);
+  // === INIT ===
+  resize();
+  initParticles();
+  initNodes();
+  window.addEventListener('resize', resize);
+  render();
+  // Handle initial hash on load
+  if (location.hash) setTimeout(handleHash, 200);
+})();
+</script>
+<!-- SHARED COLLAPSE — Neural API collapses 227 dupes into pi and O -->
+<!-- Load BEFORE any module so they can use the shared APIs -->
+<script defer src="/js/shared/utils.js"></script>
+<script defer src="/js/shared/lifecycle.js"></script>
+<script defer src="/js/shared/render-registry.js"></script>
+<script defer src="/js/shared/signal.js"></script>
+<script defer src="/js/shared/io.js"></script>
+<!-- STITCH ENGINES — wire all modules through window.G shared state -->
+<!-- gaia-systems.js = MIX engine (tense×voxel × organs × endocrine) -->
+<!-- gaia-pns.js = STITCH engine (Klein cis/trans axon wiring) -->
+<script defer src="/js/gaia-systems.js"></script>
+<script defer src="/js/gaia-pns.js"></script>
+<script defer src="/js/sine-breath.js"></script>
+<script defer src="/js/gaia-iris.js"></script>
+<!-- CORE TRIAD: NestGate(IO) + Klein(face) + Thymus(immune) -->
+<script defer src="/js/klein-io.js"></script>
+<script defer src="/js/klein-watcher.js"></script>
+<script defer src="/js/thymus.js"></script>
+<!-- SIGNAL (draw) → RELAY (overlay) → BEACON (inside Gaia) → CAMPFIRE (per peer) -->
+<script defer src="/js/signal-reach.js"></script>
+<script defer src="/js/gaia-waterfall.js"></script>
+<!-- CAMPFIRE — stories + gathering at every locality depth -->
+<script defer src="/js/campfire.js"></script>
+<script defer src="/js/gaia-campfire-scan.js"></script>
+</body>
+</html>

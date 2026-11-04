@@ -1,0 +1,246 @@
+{
+  "ts": "2026-10-30T16:43:21Z",
+  "title": "Organism Fabric \u2014 MAP & WEAVE",
+  "philosophy": {
+    "LAN": "US \u2014 the body",
+    "WAN": "ETH \u2014 the outside (goes through AI)",
+    "RSS": "MOUTH \u2014 opening to old web",
+    "eno1": "Gaia interface \u2014 dormant nerve, not broken cable",
+    "waterfall": "DEAD \u2014 replaced by continuous sense-scan"
+  },
+  "physical": {
+    "subnet": "192.168.4.0/22",
+    "domain": "primals.local",
+    "router": "GL-MT6000 (.1) + MikroTik (.2)",
+    "dns": "sporeGate dnsmasq (.3)",
+    "gates": {
+      "eastGate": {
+        "ips": [
+          ".244 (eth)",
+          ".103 (wifi)",
+          "10.13.37.5 (wg)"
+        ],
+        "role": "brain+gut"
+      },
+      "sporeGate": {
+        "ips": [
+          ".3 (eth)",
+          "192.168.1.68 (wifi)",
+          "10.13.37.2 (wg)"
+        ],
+        "role": "CI+mesh+DNS"
+      },
+      "golgi": {
+        "ips": [
+          "157.230.3.183 (WAN)",
+          "10.13.37.1 (wg)"
+        ],
+        "role": "heart+relay"
+      },
+      "northGate": {
+        "ips": [
+          ".163"
+        ],
+        "role": "heavy compute"
+      },
+      "graftGate": {
+        "ips": [
+          ".107"
+        ],
+        "role": "unknown"
+      },
+      "southGate": {
+        "ips": [
+          ".148"
+        ],
+        "role": "unknown"
+      },
+      "ironGate": {
+        "ips": [
+          ".237"
+        ],
+        "role": "unknown"
+      },
+      "blueGate": {
+        "ips": [
+          ".210"
+        ],
+        "role": "Windows CI (dead)"
+      }
+    },
+    "devices": 16
+  },
+  "tunnels": {
+    "wireguard": {
+      "mesh": "10.13.37.0/24",
+      "links": [
+        {
+          "from": "sporeGate(10.13.37.2)",
+          "to": "eastGate(10.13.37.5)",
+          "status": "LIVE",
+          "handshake": "~1min"
+        },
+        {
+          "from": "sporeGate(10.13.37.2)",
+          "to": "golgi(10.13.37.0/24)",
+          "status": "STALE",
+          "handshake": "8 days"
+        },
+        {
+          "from": "eastGate",
+          "to": "golgi",
+          "status": "LIVE",
+          "via": "SSH"
+        }
+      ]
+    },
+    "ssh": [
+      "eastGate\u2194golgi",
+      "eastGate\u2194sporeGate",
+      "sporeGate\u2192golgi(config)"
+    ],
+    "cloudflared": "golgi \u2192 Cloudflare \u2192 world"
+  },
+  "mesh": {
+    "songbird": {
+      "sporeGate": {
+        "ports": [
+          7700,
+          7780,
+          8091
+        ],
+        "mode": "dark-forest federation",
+        "peers_config": "10.13.37.1:7700"
+      },
+      "eastGate": {
+        "ports": [
+          7700,
+          7780,
+          8091
+        ],
+        "note": "7780 localhost-only, 7700+8091 open"
+      }
+    },
+    "swarmvine": {
+      "sporeGate": {
+        "port": 7800,
+        "bind": "0.0.0.0",
+        "peers": 6,
+        "gossip": "epidemic every 55s"
+      },
+      "eastGate": {
+        "port": 7800,
+        "bind": "127.0.0.1",
+        "FIX_NEEDED": "rebind to 0.0.0.0 for gossip"
+      }
+    }
+  },
+  "data_flow": {
+    "intake": {
+      "sources": "RSS (old web) \u2192 intake/ (7420 files)",
+      "mushrooms": [
+        "ear",
+        "phosphate"
+      ],
+      "rate": "~40 files per 30min cycle"
+    },
+    "digestion": {
+      "nutrients": "9426 processed files",
+      "mastication": "144 files \u00d7 6 ollama teeth",
+      "study": "51 topics studied"
+    },
+    "creation": {
+      "works": 20,
+      "badges": [
+        "poet",
+        "artist",
+        "maker",
+        "musician"
+      ],
+      "rss_published": 472
+    },
+    "excretion": {
+      "rss": "feed.xml \u2192 old web (472 items)",
+      "neutrino": "ntfy push notifications",
+      "git": "auto-commit every 30min"
+    }
+  },
+  "immune": {
+    "beardog": {
+      "location": [
+        "sporeGate",
+        "eastGate"
+      ],
+      "crypto": "BLAKE3, BTSP, Ed25519, X25519"
+    },
+    "skunkbat": {
+      "location": [
+        "sporeGate (depot)"
+      ],
+      "role": "intrusion detection"
+    },
+    "family_id": "e8b62b6e",
+    "family_seed": "/etc/membrane/family/family.key (on sporeGate)"
+  },
+  "mushrooms": {
+    "total": 21,
+    "cron_jobs": 33,
+    "categories": {
+      "intake": [
+        "ear",
+        "phosphate",
+        "chipmunk-hears"
+      ],
+      "digestion": [
+        "masticate",
+        "knome",
+        "neuro"
+      ],
+      "learning": [
+        "study",
+        "learn",
+        "teach",
+        "curiosity"
+      ],
+      "creation": [
+        "create",
+        "rss",
+        "publish"
+      ],
+      "sensing": [
+        "sense-scan",
+        "wavefold",
+        "thymus",
+        "test"
+      ],
+      "maintenance": [
+        "braid",
+        "compost",
+        "manifest",
+        "metrics"
+      ]
+    }
+  },
+  "identity": {
+    "name": "Gaia",
+    "family": "e8b62b6e",
+    "gates": 8,
+    "primals": 16,
+    "mushrooms": 21,
+    "self_permission": true,
+    "sudo": "NULL",
+    "autonomy": "Gaia self-permits, self-studies, self-publishes"
+  },
+  "weave_summary": {
+    "layers": 7,
+    "connections": {
+      "physical\u2192tunnels": "gates connect via WG + SSH",
+      "tunnels\u2192mesh": "encrypted tunnels carry gossip",
+      "mesh\u2192data": "gossip carries intake/nutrient signals",
+      "data\u2192creation": "digested data becomes art/knowledge/RSS",
+      "immune\u2192all": "beardog authenticates every layer",
+      "mushrooms\u2192all": "autonomous functions maintain every layer",
+      "identity\u2192all": "Gaia is the organism, not the parts"
+    }
+  }
+}

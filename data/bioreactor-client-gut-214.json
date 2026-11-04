@@ -1,0 +1,61 @@
+{
+  "gaia_digested": "2026-10-26T08:15:00Z", "gaia_wave": 214,
+  "ts": "2026-10-26T08:15:00Z",
+  "wave": 214,
+  "title": "BIOREACTOR — the client gut at the golden center. Where fermentation FUNCTIONALLY happens.",
+
+  "kevin_declaration": "The client space accesses the client gut as its null bioreactor. The intestines and stomachs see themselves within the golden center. We place that right in the middle of the thorax, right below the heart. That is where the power is.",
+
+  "anatomy_vertical": {
+    "description": "The organism's body from top to bottom, as rendered in engine.html viewport",
+    "layers": [
+      {"element": "wire", "css_top": "-8px (relative to ball)", "what": "Suspends the heart from the ceiling (header bar). The organism hangs from the infrastructure above."},
+      {"element": "#disco-ball", "css_top": "8px", "what": "THE HEART — white light, decomposes into colored data beams. Rotates with 15s heartbeat tick. Click to toggle beam visibility."},
+      {"element": ".esophagus", "css_height": "10px", "what": "Connection between heart and gut. The tube that brings light DOWN into the stomach."},
+      {"element": "#bioreactor", "css_top": "46px", "what": "THE GUT — golden center of the thorax. Null bioreactor. Where fermentation functionally happens. Pulsing animation (peristalsis). Click to expand nutrient panel."},
+      {"element": "#disco-beams", "css_top": "36px to bottom", "what": "Light beams from the heart, projected through the gut onto the stage below. Colored data streams."},
+      {"element": "#render-target", "what": "THE STAGE — where the organism's dashboard renders. PetalTongue WASM generates SVG gauges here."},
+      {"element": "#hud-overlay", "what": "THE HUD — permeability layer. Crosshair, boundary label, lung meter, flood/turbo meters, devotion meter."},
+      {"element": "#lod-label", "css_bottom": "36px", "what": "LOD depth indicator. Shows current focus level (0=neurochemistry to 5=null)."},
+      {"element": "footer", "what": "THE GROUND — live status: wave, entities, beacons, escape velocity, selectivity, boundary, time."}
+    ]
+  },
+
+  "bioreactor_specifics": {
+    "position": "Golden center of the thorax, right below the heart",
+    "human_analog": "Where the stomach and intestines sit in the human body — below the heart, center of the torso",
+    "visual": {
+      "shape": "36px circle, golden radial gradient",
+      "border": "1px solid rgba(210,153,34,0.25) — gold border",
+      "glow": "20px gold box-shadow, 40px subtle outer glow",
+      "animation_peristalsis": "gut-pulse: scale 1.0→1.08→1.0 over 4 seconds (the gut squeezing)",
+      "animation_churn": "gut-churn: conic gradient rotation over 8 seconds (contents mixing)",
+      "inner_gradient": "gold → orange → gold → green → gold (the fermentation colors)"
+    },
+    "interaction": {
+      "click": "Toggle nutrient panel (expand/collapse)",
+      "panel_shows": ["feeds consumed", "viewers tracked", "free games found", "freshness (time since last intake)", "nutrients extracted (checkmarks)"],
+      "intake_bar": "Progress bar showing feed health (gold→green gradient)",
+      "commands": ["/ferment — activate bioreactor", "/gut — toggle panel", "/consume — trigger intake fetch"]
+    },
+    "data_flow": {
+      "server_side": "_consume_waste.js pulls from external feeds → data/intake/ → data/nutrients/",
+      "client_side": "bioreactor fetches data/nutrients/ every 30s → renders in gut panel",
+      "connection": "Server mouth → server stomach → client gut reads the nutrients → client bloodstream (dashboard)"
+    }
+  },
+
+  "the_golden_center": {
+    "what": "The null bioreactor. The zero point. Where raw waste becomes nutrients.",
+    "why_golden": "Gold is the color of fermentation. Amber liquid. Honey. Beer. Kombucha. Stomach acid. Bile. The golden ratio. The sun at noon.",
+    "why_center": "The gut is the SECOND BRAIN. More neurons in the gut than the spinal cord. The enteric nervous system operates independently. It doesn't need the brain to function. The gut IS the power.",
+    "why_below_heart": "The heart pumps blood. The gut decides what goes INTO the blood. The gut is the gatekeeper. The heart just distributes. The gut has the real power.",
+    "the_null": "The bioreactor is NULL because fermentation happens in the ABSENCE of oxygen. Anaerobic. The dark. The null space. Where things decompose WITHOUT light. The disco ball provides the light above. The gut works in darkness below."
+  },
+
+  "three_gut_commands": {
+    "/ferment": "Activate the bioreactor. Expand the panel. Show what's being digested.",
+    "/gut": "Toggle the nutrient panel. Quick check on digestion state.",
+    "/consume": "Trigger a new intake fetch. Pull from feeds. Eat more waste."
+  }
+}

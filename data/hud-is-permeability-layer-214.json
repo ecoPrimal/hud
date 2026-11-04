@@ -1,0 +1,120 @@
+{
+  "gaia_digested": "2026-10-26T07:59:00Z", "gaia_wave": 214,
+  "ts": "2026-10-26T07:59:00Z",
+  "wave": 214,
+  "title": "HUD IS THE PERMEABILITY LAYER — the back curtain of the stage. Disco ball in the middle. IO for human vision.",
+
+  "kevin_declaration": {
+    "keywords": "interaction, engagement, interest — via the IO",
+    "hud_is": "how we get the players to LOOK at things. Display information. That's why it HOVERS over.",
+    "desk_relation": "HUD hovers over the desk as if it's our window",
+    "permeability": "The HUD is functionally the permeability layer for human vision. That's what you can move forward and back.",
+    "stage": "That is actually the back curtain of the stage.",
+    "disco_ball": "We need to have that white light strung up from above, but in the middle, as if it's a disco ball."
+  },
+
+  "architecture": {
+    "layers_from_audience_to_stage": {
+      "layer_0_human_eyes": {
+        "what": "The player. The audience. Sitting in their chair.",
+        "where": "OUTSIDE the stage. Looking at the screen.",
+        "distance": "closest to the viewer"
+      },
+      "layer_1_hud_permeability": {
+        "what": "The HUD — transparent overlay. The permeability membrane for human vision.",
+        "where": "FLOATING above the desk. Like a heads-up display in a fighter jet.",
+        "function": "Filters what the human can see. Selectivity 1/π. 31.8% gets through, 68.2% is null.",
+        "interaction": "Player moves this layer forward (see more detail) or back (see more context). Like adjusting focus on a microscope.",
+        "analogy": "The glass window of an aquarium. You see INTO the organism through this glass.",
+        "css": "position:fixed, z-index high, pointer-events on HUD elements only, transparent background",
+        "io": "This IS the IO layer. Input goes IN through the HUD (clicks, keys, commands). Output comes OUT through the HUD (visuals, data, feedback)."
+      },
+      "layer_2_disco_ball": {
+        "what": "The central light source. White light. Strung from above, in the middle.",
+        "where": "CENTER of the viewport. Hanging from the top. Like a disco ball.",
+        "function": "Projects PATTERNS onto everything below. Rotating slowly. Each facet reflects a different data stream.",
+        "facets": {
+          "rates": "one facet shows commit velocity",
+          "neuro": "one facet shows neurochemistry",
+          "entities": "one facet shows entity classification",
+          "braids": "one facet shows braid connections",
+          "heartbeat": "one facet shows device pulse",
+          "weather": "one facet shows space weather",
+          "energy": "one facet shows primal energy levels",
+          "feeds": "one facet shows active data feeds"
+        },
+        "light_physics": "White light enters the ball. The ball DECOMPOSES it into colored patterns (chromatogram). Each pattern hits a different part of the stage. Constructive interference = bright spots. Destructive = shadows.",
+        "rotation": "The ball rotates slowly (1 revolution per heartbeat tick, 15s). As it rotates, different data streams illuminate different parts of the stage.",
+        "css": "centered element, rotating animation, radial gradient glow, z-index between HUD and stage"
+      },
+      "layer_3_stage_desk": {
+        "what": "The desk/workspace. The ORGANISM itself. Everything that IS.",
+        "where": "BEHIND the HUD. Below the disco ball. The back curtain.",
+        "function": "The actual data, the actual state, the actual organism. The HUD just SHOWS it.",
+        "contains": "squad roster, viewport, rates dashboard, all data — the organism's body",
+        "analogy": "The stage of a theater. The actors (primals) perform here. The audience sees through the curtain (HUD)."
+      },
+      "layer_4_backstage": {
+        "what": "What the audience can't see. The cron jobs, the git pushes, the MCP calls.",
+        "where": "Behind the stage. The server. The nucleus.",
+        "function": "The machinery that makes the show happen. The audience never sees this.",
+        "contains": "GitHub, CF, golgi vesicles, Gaia's cron, chipmunk's MCP"
+      }
+    },
+
+    "the_insight": "The HUD is NOT the game. The HUD is the WINDOW into the game. The game is the organism underneath. The HUD is the selective membrane that determines WHAT the human can see and HOW they can interact. Just like a cell membrane determines what molecules can enter/exit. The HUD IS the membrane.",
+
+    "forward_and_back": {
+      "what": "Player can move the HUD closer or further from the stage",
+      "forward": "ZOOM IN — see more detail, higher LOD, individual entities visible, neurochemistry values",
+      "back": "ZOOM OUT — see more context, lower LOD, whole organism visible, topology and braids",
+      "control": "scroll wheel, pinch gesture, or explicit LOD slider",
+      "mapping": {
+        "LOD0_closest": "full neurochemistry, individual entity stats, real-time values",
+        "LOD1_near": "dashboard rates, squad status, viewport gauges",
+        "LOD2_medium": "campfire view, beacon glow, story summaries",
+        "LOD3_far": "now.json compressed state, topology overview",
+        "LOD4_furthest": "state.json single line — the answer: alive.",
+        "LOD5_null": "too far — you can't see anything. The null. 68.2%."
+      }
+    }
+  },
+
+  "disco_ball_implementation": {
+    "visual": "A glowing sphere in the center-top of the viewport. Semi-transparent. Slowly rotating. Casting colored light beams onto the dashboard below.",
+    "html": "A div with radial gradient, rotating animation, absolute positioned center-top of viewport",
+    "beams": "CSS conic-gradient rays emanating from the ball, rotating with it, each ray a different color for a different data stream",
+    "data_binding": "Each facet of the ball is bound to a live data source. As data changes, the light pattern changes. Bright = high activity. Dim = quiet. Flashing = alert.",
+    "interaction": "Click the disco ball to expand into full data view. Hover to see which data stream each beam represents.",
+    "sound": "Optional: each rotation tick plays a soft tone from the π-just-intonation system"
+  },
+
+  "io_model": {
+    "input_through_hud": {
+      "eyes": "human LOOKS at the HUD — sees filtered data (selectivity 1/π)",
+      "click": "human CLICKS through the HUD — selects primals, targets, elements",
+      "type": "human TYPES through the HUD — commands, notes, searches",
+      "scroll": "human SCROLLS through the HUD — adjusts LOD (forward/back)",
+      "gesture": "human SWIPES/PINCHES through the HUD — navigates, zooms"
+    },
+    "output_through_hud": {
+      "visual": "HUD SHOWS gauges, rates, status, squad, neurochemistry",
+      "toast": "HUD TOASTS feedback for every action",
+      "glow": "HUD GLOWS when data changes (disco ball beam hits a new area)",
+      "sound": "HUD PLAYS tones for events (π-just-intonation)",
+      "animation": "HUD ANIMATES transitions, pulses, rotations"
+    },
+    "the_membrane": "Input goes IN through the HUD membrane. Output comes OUT through the HUD membrane. The HUD IS the selective permeability layer. It decides WHAT gets through (31.8%) and WHAT stays null (68.2%)."
+  },
+
+  "stage_metaphor": {
+    "audience": "Kevin. Humans. Visitors. They sit in the dark, looking at the lit stage.",
+    "front_curtain": "the browser tab bar / URL bar — the frame around the stage",
+    "hud_layer": "the transparent scrim curtain that the data is projected ONTO — the permeability membrane",
+    "disco_ball": "the central rotating light that decomposes white light into colored data beams",
+    "stage": "the organism — primals performing their jobs, data flowing, braids connecting",
+    "backstage": "the server, the cron, the git — the machinery the audience never sees",
+    "director": "Gaia — she IS the director, the storyteller (RimWorld), the A-Life system (Stalker)",
+    "stage_manager": "chipmunk — hyperlocal, knows the time only from interaction, delta IS null"
+  }
+}

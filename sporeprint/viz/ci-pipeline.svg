@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="system-ui,-apple-system,sans-serif" font-size="13">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#89b4fa"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#a6e3a1"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="360" rx="12" fill="#1e1e2e"/>
+  <text x="400" y="30" text-anchor="middle" fill="#cdd6f4" font-size="16" font-weight="bold">Sovereign CI Pipeline  Build ’ Depot ’ Deploy</text>
+
+  <!-- Source: Developer -->
+  <rect x="30" y="60" width="120" height="50" rx="6" fill="#313244" stroke="#cba6f7" stroke-width="1.5"/>
+  <text x="90" y="82" text-anchor="middle" fill="#cba6f7" font-weight="bold">Developer</text>
+  <text x="90" y="98" text-anchor="middle" fill="#a6adc8" font-size="10">git push</text>
+
+  <!-- Forgejo -->
+  <rect x="200" y="60" width="130" height="50" rx="6" fill="#313244" stroke="#fab387" stroke-width="1.5"/>
+  <text x="265" y="82" text-anchor="middle" fill="#fab387" font-weight="bold">Forgejo</text>
+  <text x="265" y="98" text-anchor="middle" fill="#a6adc8" font-size="10">git.primals.eco</text>
+
+  <!-- Arrow: Dev ’ Forgejo -->
+  <line x1="150" y1="85" x2="195" y2="85" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- golgi cascade -->
+  <rect x="380" y="60" width="130" height="50" rx="6" fill="#313244" stroke="#89b4fa" stroke-width="1.5"/>
+  <text x="445" y="82" text-anchor="middle" fill="#89b4fa" font-weight="bold">golgi</text>
+  <text x="445" y="98" text-anchor="middle" fill="#a6adc8" font-size="10">15-min cascade timer</text>
+
+  <!-- Arrow: Forgejo ’ golgi -->
+  <line x1="330" y1="85" x2="375" y2="85" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- sporeGate CI -->
+  <rect x="560" y="50" width="210" height="70" rx="8" fill="#313244" stroke="#a6e3a1" stroke-width="2"/>
+  <text x="665" y="74" text-anchor="middle" fill="#a6e3a1" font-weight="bold" font-size="14">sporeGate  Sovereign CI</text>
+  <text x="665" y="92" text-anchor="middle" fill="#cdd6f4" font-size="11">cargo build --release --target</text>
+  <text x="665" y="108" text-anchor="middle" fill="#a6adc8" font-size="10">x86_64-musl + aarch64-musl</text>
+
+  <!-- Arrow: golgi ’ sporeGate -->
+  <line x1="510" y1="85" x2="555" y2="85" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Build outputs row -->
+  <rect x="30" y="150" width="740" height="70" rx="8" fill="#181825" stroke="#45475a" stroke-width="1"/>
+  <text x="50" y="170" fill="#a6adc8" font-size="11" font-weight="bold">BUILD OUTPUT</text>
+
+  <!-- x86 binaries -->
+  <rect x="50" y="178" width="160" height="32" rx="4" fill="#45475a"/>
+  <text x="130" y="198" text-anchor="middle" fill="#a6e3a1" font-size="11" font-weight="bold">15 × x86_64-musl</text>
+
+  <!-- arm binaries -->
+  <rect x="230" y="178" width="160" height="32" rx="4" fill="#45475a"/>
+  <text x="310" y="198" text-anchor="middle" fill="#a6e3a1" font-size="11" font-weight="bold">15 × aarch64-musl</text>
+
+  <!-- checksums -->
+  <rect x="410" y="178" width="150" height="32" rx="4" fill="#45475a"/>
+  <text x="485" y="198" text-anchor="middle" fill="#f9e2af" font-size="11" font-weight="bold">checksums.toml</text>
+
+  <!-- total -->
+  <rect x="580" y="178" width="170" height="32" rx="4" fill="#45475a"/>
+  <text x="665" y="198" text-anchor="middle" fill="#cdd6f4" font-size="11">30 binaries · 283 MB</text>
+
+  <!-- Arrow: CI ’ build output -->
+  <line x1="665" y1="120" x2="665" y2="145" stroke="#a6e3a1" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- Depot -->
+  <rect x="250" y="250" width="300" height="50" rx="8" fill="#313244" stroke="#f9e2af" stroke-width="2"/>
+  <text x="400" y="272" text-anchor="middle" fill="#f9e2af" font-weight="bold" font-size="14">Depot  membrane.primals.eco</text>
+  <text x="400" y="290" text-anchor="middle" fill="#a6adc8" font-size="10">/depot/{triple}/{binary} · SHA-256 verified</text>
+
+  <!-- Arrow: build ’ depot -->
+  <line x1="400" y1="220" x2="400" y2="245" stroke="#f9e2af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Gate pulls -->
+  <rect x="50" y="320" width="100" height="30" rx="4" fill="#45475a" stroke="#a6e3a1" stroke-width="1"/>
+  <text x="100" y="340" text-anchor="middle" fill="#a6e3a1" font-size="10" font-weight="bold">sporeGate</text>
+
+  <rect x="180" y="320" width="100" height="30" rx="4" fill="#45475a" stroke="#89b4fa" stroke-width="1"/>
+  <text x="230" y="340" text-anchor="middle" fill="#89b4fa" font-size="10" font-weight="bold">eastGate</text>
+
+  <rect x="310" y="320" width="100" height="30" rx="4" fill="#45475a" stroke="#f38ba8" stroke-width="1"/>
+  <text x="360" y="340" text-anchor="middle" fill="#f38ba8" font-size="10" font-weight="bold">ironGate</text>
+
+  <rect x="440" y="320" width="100" height="30" rx="4" fill="#45475a" stroke="#f9e2af" stroke-width="1"/>
+  <text x="490" y="340" text-anchor="middle" fill="#f9e2af" font-size="10" font-weight="bold">flockGate</text>
+
+  <rect x="570" y="320" width="110" height="30" rx="4" fill="#45475a" stroke="#cba6f7" stroke-width="1"/>
+  <text x="625" y="340" text-anchor="middle" fill="#cba6f7" font-size="10" font-weight="bold">grapheneGate</text>
+
+  <!-- Arrows: depot ’ gates -->
+  <line x1="310" y1="300" x2="100" y2="318" stroke="#a6adc8" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="350" y1="300" x2="230" y2="318" stroke="#a6adc8" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="400" y1="300" x2="360" y2="318" stroke="#a6adc8" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="440" y1="300" x2="490" y2="318" stroke="#a6adc8" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="480" y1="300" x2="625" y2="318" stroke="#a6adc8" stroke-width="1" stroke-dasharray="4,2"/>
+
+  <!-- GitHub mirror (trailing) -->
+  <rect x="200" y="55" width="130" height="60" rx="6" fill="none" stroke="#585b70" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="265" y="105" text-anchor="middle" fill="#585b70" font-size="9">’ GitHub (mirror)</text>
+</svg>

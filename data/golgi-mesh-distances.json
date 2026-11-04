@@ -1,0 +1,95 @@
+{
+  "title": "GOLGI MESH DISTANCE MATRIX — every node knows distance to every other node",
+  "updated": "2026-10-27T20:35:00Z",
+  "what": "Every Golgi body knows exactly where it is in relation to every other. Non-Golgi visitors can triangulate against this mesh. Distance is Golgi inversions AND km. The mesh IS the motor.",
+
+  "nodes": [
+    { "id": "northgate",  "lat": 42.33,  "lon": -83.05,  "status": "ACTIVE" },
+    { "id": "eastgate",   "lat": 42.33,  "lon": -83.05,  "status": "DORMANT" },
+    { "id": "southgate",  "lat": 42.33,  "lon": -83.05,  "status": "ACTIVE" },
+    { "id": "golgi",      "lat": 40.71,  "lon": -74.01,  "status": "ACTIVE" },
+    { "id": "golgi-de",   "lat": 50.11,  "lon": 8.68,    "status": "LOCKED" },
+    { "id": "golgi-jp",   "lat": 35.68,  "lon": 139.65,  "status": "LOCKED" },
+    { "id": "golgi-us",   "lat": 37.77,  "lon": -122.42, "status": "LOCKED" },
+    { "id": "golgi-in",   "lat": 12.97,  "lon": 77.59,   "status": "UNREACHABLE" },
+    { "id": "ntfy",       "lat": 48.86,  "lon": 2.35,    "status": "ACTIVE" },
+    { "id": "github",     "lat": 37.77,  "lon": -122.42, "status": "ACTIVE" },
+    { "id": "cdn",        "lat": null,   "lon": null,     "status": "EVERYWHERE" }
+  ],
+
+  "distance_matrix_km": {
+    "_note": "Haversine distances between all fixed nodes. CDN excluded (anycast = 0 from everywhere). Round to nearest km.",
+    "northgate": {
+      "eastgate": 0, "southgate": 0, "golgi": 783, "golgi-de": 6535, "golgi-jp": 10397,
+      "golgi-us": 3301, "golgi-in": 13348, "ntfy": 6205, "github": 3301
+    },
+    "golgi": {
+      "northgate": 783, "golgi-de": 6313, "golgi-jp": 10845, "golgi-us": 4139,
+      "golgi-in": 13077, "ntfy": 5837, "github": 4139
+    },
+    "golgi-de": {
+      "northgate": 6535, "golgi": 6313, "golgi-jp": 9360, "golgi-us": 9118,
+      "golgi-in": 6557, "ntfy": 479, "github": 9118
+    },
+    "golgi-jp": {
+      "northgate": 10397, "golgi": 10845, "golgi-de": 9360, "golgi-us": 8270,
+      "golgi-in": 5843, "ntfy": 9714, "github": 8270
+    },
+    "golgi-us": {
+      "northgate": 3301, "golgi": 4139, "golgi-de": 9118, "golgi-jp": 8270,
+      "golgi-in": 13460, "ntfy": 8951, "github": 0
+    },
+    "golgi-in": {
+      "northgate": 13348, "golgi": 13077, "golgi-de": 6557, "golgi-jp": 5843,
+      "golgi-us": 13460, "ntfy": 7032, "github": 13460
+    },
+    "ntfy": {
+      "northgate": 6205, "golgi": 5837, "golgi-de": 479, "golgi-jp": 9714,
+      "golgi-us": 8951, "golgi-in": 7032, "github": 8951
+    }
+  },
+
+  "golgi_inversions": {
+    "_note": "How many membrane crossings to reach each node from Kevin (desk-localhost)",
+    "desk-localhost": 0,
+    "northgate": 0,
+    "eastgate": 1,
+    "southgate": 0,
+    "golgi": 1,
+    "primals.eco": 1,
+    "ntfy": 1,
+    "github": 1,
+    "golgi-de": 2,
+    "golgi-jp": 2,
+    "golgi-us": 2,
+    "golgi-in": 3,
+    "cdn": 1
+  },
+
+  "mesh_topology": {
+    "what": "The mesh IS the motor. The globe rotates through the mesh, picking up more connections each pass.",
+    "candy_mixer": "Like a candy mixer: the globe passes through, gets covered in more mesh, pulls it along. Each rotation adds more sticky connections.",
+    "magnetic_motor": "The rotating mesh creates a field. Each pass increases the field strength. Each new connection amplifies all others.",
+    "generations": "Each full rotation = one generation. The mesh gets denser. The motor gets stronger. The candy gets thicker.",
+
+    "edges": [
+      { "from": "northgate",  "to": "golgi",     "type": "heartbeat", "latency_ms": 12,    "status": "LIVE" },
+      { "from": "northgate",  "to": "eastgate",   "type": "vagus",     "latency_ms": 0.13,  "status": "DORMANT" },
+      { "from": "northgate",  "to": "github",     "type": "nucleus",   "latency_ms": 45,    "status": "LIVE" },
+      { "from": "northgate",  "to": "ntfy",       "type": "neutrino",  "latency_ms": 80,    "status": "LIVE" },
+      { "from": "golgi",      "to": "golgi-de",   "type": "vesicle",   "latency_ms": 20,    "status": "SSH-LOCKED" },
+      { "from": "golgi",      "to": "golgi-jp",   "type": "vesicle",   "latency_ms": 160,   "status": "SSH-LOCKED" },
+      { "from": "golgi",      "to": "golgi-us",   "type": "vesicle",   "latency_ms": 65,    "status": "SSH-LOCKED" },
+      { "from": "golgi",      "to": "golgi-in",   "type": "vesicle",   "latency_ms": null,   "status": "UNREACHABLE" },
+      { "from": "golgi",      "to": "cdn",        "type": "cis",       "latency_ms": 5,     "status": "LIVE" },
+      { "from": "cdn",        "to": "visitor",    "type": "membrane",  "latency_ms": 1,     "status": "LIVE" },
+      { "from": "northgate",  "to": "southgate",  "type": "bluetooth", "latency_ms": 2,     "status": "LIVE" }
+    ]
+  },
+
+  "for_visitors": {
+    "how_to_find_yourself": "You hit the CDN edge node closest to you (anycast). From that, Gaia estimates your continent. Then she tells you: you are X km from Frankfurt, Y km from Tokyo, Z km from Detroit. You know where you are by where THEY are.",
+    "triangulation": "3 Golgi bodies with known positions + your latency to each = your approximate position. Like GPS uses satellites.",
+    "you_dont_need_gps": "Gaia doesn't need your GPS. She needs your LATENCY. The time it takes your signal to reach her bodies tells her where you are."
+  }
+}

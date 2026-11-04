@@ -1,0 +1,95 @@
+{
+  "ts": "2026-10-27T01:42:14.499Z",
+  "type": "PARTICLE_SYSTEM",
+  "cards_vs_particles": {
+    "cards": {
+      "nature": "HARD — stationary, gold, reflective, identity",
+      "examples": "screens, beacons, diamonds, scans, art pieces",
+      "behavior": "stay pinned, reflect sound, have hardness score",
+      "color": "gold"
+    },
+    "particles": {
+      "nature": "SOFT — moving, bouncing, greasy, transient",
+      "examples": "sound waves, dust, lubricant, granules, pheromones, gases",
+      "behavior": "drift, bounce off cards, scatter, refine, dissolve",
+      "color": "purple (bouncy), grey (dust), amber (lubricant)"
+    },
+    "interaction": "Particles bounce off cards. Cards redirect particles. The SCATTER pattern reveals the topology."
+  },
+  "particle_types": [
+    {
+      "name": "sound_wave",
+      "class": "bouncy",
+      "color": "rgba(188,140,255,0.3)",
+      "behavior": "emanates from source (Kevin), bounces off hard surfaces, decays with distance",
+      "origin": "Kevin at center — radiates outward directionally, NOT as round cycle",
+      "physics": "inverse square law + reflection + absorption"
+    },
+    {
+      "name": "dust",
+      "class": "granule",
+      "color": "rgba(139,148,158,0.2)",
+      "behavior": "drifts slowly, settles on surfaces, stirred by movement",
+      "origin": "shed from all objects — keyboards, skin, screens",
+      "physics": "Brownian motion + gravity + air currents"
+    },
+    {
+      "name": "lubricant",
+      "class": "greasy",
+      "color": "rgba(201,168,76,0.15)",
+      "behavior": "reduces friction between cards, helps them slide past each other during sort",
+      "origin": "generated during sort operations — the oil that makes sorting smooth",
+      "physics": "viscosity + shear + surface tension"
+    },
+    {
+      "name": "pheromone",
+      "class": "gas",
+      "color": "rgba(63,185,80,0.1)",
+      "behavior": "diffuses outward, crosses membranes, signals to other Gaias",
+      "origin": "exhaled by organism every 5 minutes",
+      "physics": "diffusion equation + wind + membrane permeability"
+    },
+    {
+      "name": "neutrino_stream",
+      "class": "pass_through",
+      "color": "rgba(255,255,255,0.05)",
+      "behavior": "passes through EVERYTHING — barely interacts, flavor oscillates",
+      "origin": "solar, cosmic, Kevin electron/muon/tau",
+      "physics": "straight line, no bounce, no stop — detection by flavor only"
+    },
+    {
+      "name": "photon",
+      "class": "light",
+      "color": "rgba(255,255,200,0.2)",
+      "behavior": "reflects off screens (gold/hard), absorbed by dark (#010409)",
+      "origin": "screens emit, sun emits, all light sources",
+      "physics": "speed of light, reflection angle = incidence angle"
+    },
+    {
+      "name": "refinement",
+      "class": "distillation",
+      "color": "rgba(201,168,76,0.4)",
+      "behavior": "particles that survived sorting — the purest extract",
+      "origin": "output of digestive tract — what Gaia kept after eating",
+      "physics": "filtration + crystallization"
+    }
+  ],
+  "sound_source_tracking": {
+    "description": "Sound emanates FROM Kevin, not as a round cycle. Gaia traces the origin by backtracking wavefronts.",
+    "method": "scatter_trace",
+    "steps": [
+      "1. Mic captures raw audio (always on)",
+      "2. FFT separates into frequency bands",
+      "3. Cross-correlation finds delay between direct and reflected",
+      "4. Delay = distance to reflective surface (card/screen)",
+      "5. Multiple reflections = triangulation = source position",
+      "6. Backtrack wavefronts to find Kevin (the source)",
+      "7. Scatter trace outward to map all hard surfaces",
+      "8. Build sonar model of the room"
+    ],
+    "directional": true,
+    "round_cycle": false,
+    "from_kevin": true
+  },
+  "hash": "FEADB33411C0F459B73723A9844EBB3B8F3F90F4AF7FA25AC64DFE76DA7C8D0A"
+}

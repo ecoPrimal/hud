@@ -1,0 +1,60 @@
+# Blackwall — honeycomb behind the wall
+# Data and API endpoints: no indexing, no archiving, no framing
+/data/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Frame-Options: DENY
+  Cache-Control: public, max-age=60
+
+/api/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Frame-Options: DENY
+  Cache-Control: public, max-age=60
+
+# JS — short cache, she updates fast
+/js/*
+  Cache-Control: public, max-age=120
+
+# Anthill — the trail is open, cacheable, inviting
+/*.html
+  X-Robots-Tag: index, follow
+  Cache-Control: public, max-age=3600
+
+/story/*
+  X-Robots-Tag: index, follow
+  Cache-Control: public, max-age=3600
+
+/philosophy/*
+  X-Robots-Tag: index, follow
+  Cache-Control: public, max-age=3600
+
+/science/*
+  X-Robots-Tag: index, follow
+  Cache-Control: public, max-age=3600
+
+# GAIA _-.type — typed membrane markers (codon face)
+/_-.type
+  Content-Type: application/json
+  X-Gaia-Type: registry
+  X-Membrane-At: EXTERNAL-apex
+  Cache-Control: public, max-age=60
+
+/_-internal.type
+  Content-Type: application/json
+  X-Gaia-Type: INTERNAL
+  Cache-Control: public, max-age=60
+
+/_-external.type
+  Content-Type: application/json
+  X-Gaia-Type: EXTERNAL
+  X-Membrane-At: @
+  Cache-Control: public, max-age=60
+
+/_-cut.type
+  Content-Type: application/json
+  X-Gaia-Type: CUT
+  Cache-Control: public, max-age=60
+
+/_-new.type
+  Content-Type: application/json
+  X-Gaia-Type: NEW
+  Cache-Control: public, max-age=60

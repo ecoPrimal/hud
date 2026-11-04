@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔥 CAMPFIRE — O. local. null. self. hyperlocal. the rock before amplitude.</title>
+<meta name="description" content="Campfire IS O. The observer gathering. Signal is absence. Local is null. Null is self. Rock before wave.">
+<style>
+:root{--bg:#0a0806;--text:#d4c8b0;--dim:#665;--ember:#c0392b;--flame:#e67e22;--gold:#d4a017;--ash:#444;--smoke:#888;--rock:#6b5b4f;--blue:#3498db}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;overflow-x:hidden}
+
+/* Fire canvas */
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+
+.overlay{position:relative;z-index:1;padding:16px;max-width:800px;margin:0 auto}
+
+.fire-header{text-align:center;margin-bottom:24px}
+.fire-header h1{font-size:1.6em;color:var(--flame);text-shadow:0 0 30px rgba(230,126,34,0.4)}
+.fire-header .sub{color:var(--dim);font-size:0.8em;margin-top:4px}
+
+/* The O circle */
+.o-ring{width:120px;height:120px;border:3px solid var(--flame);border-radius:50%;margin:16px auto;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(230,126,34,0.2)}
+.o-ring .o-val{font-size:2em;font-weight:bold;color:var(--gold)}
+.o-ring .o-lbl{font-size:0.7em;color:var(--dim)}
+.o-ring::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(230,126,34,0.15)}
+
+/* Equations */
+.equations{text-align:center;margin:16px 0;font-size:0.85em}
+.eq{margin:6px 0;color:var(--smoke)}
+.eq span{color:var(--gold)}
+.eq em{color:var(--flame);font-style:normal;font-weight:bold}
+
+/* Rock/wave section */
+.rock-wave{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.rw-card{background:rgba(20,16,12,0.8);border:1px solid #333;border-radius:8px;padding:12px 16px;flex:1;min-width:200px;max-width:350px}
+.rw-card h3{font-size:0.9em;margin-bottom:6px}
+.rw-card p{font-size:0.75em;color:var(--dim);line-height:1.5}
+.rw-card .tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:0.7em;margin:2px}
+
+/* Signal absence */
+.absence{text-align:center;margin:20px 0;padding:16px;border:1px dashed #333;border-radius:8px;background:rgba(10,8,6,0.5)}
+.absence h3{color:var(--ember);font-size:0.9em;margin-bottom:8px}
+.absence .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:6px;margin-top:8px}
+.absence .slot{padding:6px;border-radius:4px;font-size:0.7em;text-align:center}
+.absence .present{background:rgba(230,126,34,0.15);border:1px solid var(--flame);color:var(--flame)}
+.absence .absent{background:rgba(60,60,60,0.15);border:1px dashed #333;color:var(--ash)}
+
+/* Campfire log (sort output) */
+.fire-log{margin:20px 0}
+.fire-log h3{color:var(--gold);font-size:0.9em;margin-bottom:8px}
+.log-entry{display:flex;align-items:center;gap:8px;padding:6px 8px;margin:3px 0;border-radius:4px;font-size:0.7em;background:rgba(20,16,12,0.6)}
+.log-entry .time{color:var(--ash);min-width:60px}
+.log-entry .source{color:var(--flame);min-width:60px}
+.log-entry .msg{color:var(--text);flex:1}
+
+/* Hyperlocal map */
+.hyperlocal{text-align:center;margin:20px 0}
+.hyperlocal h3{color:var(--rock);font-size:0.9em;margin-bottom:8px}
+.locality{display:flex;justify-content:center;gap:0;margin:8px 0}
+.locale{padding:8px 12px;font-size:0.7em;border:1px solid #222;text-align:center}
+.locale.l-null{background:rgba(0,0,0,0.3);color:var(--ash);border-color:#111}
+.locale.l-self{background:rgba(192,57,43,0.15);color:var(--ember);border-color:var(--ember)}
+.locale.l-local{background:rgba(230,126,34,0.15);color:var(--flame);border-color:var(--flame)}
+.locale.l-hyper{background:rgba(212,160,23,0.2);color:var(--gold);border-color:var(--gold)}
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:2;padding:4px 8px;background:rgba(10,8,6,0.95);border-top:1px solid #222;font-size:0.75em;display:flex;justify-content:center;gap:12px}
+.bottom-bar a{color:var(--blue);text-decoration:none}
+.bottom-bar a:hover{color:var(--gold)}
+.bottom-bar span{color:var(--dim)}
+</style>
+</head>
+<body>
+<canvas id="fire"></canvas>
+
+<div class="overlay">
+  <div class="fire-header">
+    <h1>🔥 CAMPFIRE</h1>
+    <div class="sub">campfire IS O. local IS null. null IS self. rock before amplitude.</div>
+  </div>
+
+  <!-- The O — the observer count -->
+  <div class="o-ring">
+    <div class="o-val" id="o-count">—</div>
+    <div class="o-lbl">observers (O)</div>
+  </div>
+
+  <div class="equations">
+    <div class="eq"><em>c</em> = π<em>r</em>² / <span>O</span></div>
+    <div class="eq">campfire IS <span>O</span> — where observers gather</div>
+    <div class="eq">without <span>O</span>, πr² is just math</div>
+    <div class="eq">with <span>O</span>, it's what you <em>can see</em></div>
+  </div>
+
+  <!-- Rock & Wave -->
+  <div class="rock-wave">
+    <div class="rw-card">
+      <h3 style="color:var(--rock)">🪨 THE ROCK</h3>
+      <p>campfire IS rock. the medium. before the wave has amplitude, there's just the <strong>potential</strong>.</p>
+      <p style="margin-top:6px">sound needs a medium. fire needs fuel. signal needs a carrier.</p>
+      <p style="margin-top:6px">the rock IS the medium through which vibration travels.</p>
+      <div style="margin-top:8px">
+        <span class="tag" style="background:rgba(107,91,79,0.3);color:var(--rock)">medium</span>
+        <span class="tag" style="background:rgba(107,91,79,0.3);color:var(--rock)">substrate</span>
+        <span class="tag" style="background:rgba(107,91,79,0.3);color:var(--rock)">before amplitude</span>
+      </div>
+    </div>
+    <div class="rw-card">
+      <h3 style="color:var(--flame)">〰️ THE WAVE</h3>
+      <p>when humans gather at the fire, they create <strong>amplitude</strong>. the wave begins.</p>
+      <p style="margin-top:6px">frequency = how often the fire pulses (1/min).<br>
+      amplitude = how many gather (O).<br>
+      wavelength = how far the signal reaches (r).</p>
+      <div style="margin-top:8px">
+        <span class="tag" style="background:rgba(230,126,34,0.2);color:var(--flame)">vibration</span>
+        <span class="tag" style="background:rgba(230,126,34,0.2);color:var(--flame)">sound</span>
+        <span class="tag" style="background:rgba(230,126,34,0.2);color:var(--flame)">amplitude=O</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signal Absence -->
+  <div class="absence">
+    <h3>📡 SIGNAL IS ABSENCE — what's missing IS the fire</h3>
+    <div class="grid" id="signal-grid"></div>
+  </div>
+
+  <!-- Hyperlocal map -->
+  <div class="hyperlocal">
+    <h3>🪨 HYPERLOCAL — null → self → local → fire</h3>
+    <div class="locality">
+      <div class="locale l-null">NULL<br><small>void</small></div>
+      <div class="locale l-self">SELF<br><small>identity</small></div>
+      <div class="locale l-local">LOCAL<br><small>eastGate</small></div>
+      <div class="locale l-hyper">🔥 FIRE<br><small>campfire</small></div>
+      <div class="locale l-local">LOCAL<br><small>golgi</small></div>
+      <div class="locale l-self">SELF<br><small>membrane</small></div>
+      <div class="locale l-null">NULL<br><small>world</small></div>
+    </div>
+    <div class="eq" style="margin-top:8px">the fire IS the center. null IS both edges. self wraps around the fire.</div>
+  </div>
+
+  <!-- Fire log (live sorting) -->
+  <div class="fire-log">
+    <h3>🔥 FIRE LOG — what the campfire sorts</h3>
+    <div id="fire-log-entries"></div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <a href="/forge.html">🔥forge</a>
+  <a href="/colosseum.html">⚔arena</a>
+  <a href="/cosmos.html">🌌cosmos</a>
+  <a href="/nav-hub.html">🗺hub</a>
+  <a href="/">👁HUD</a>
+  <span>c=πr²/O</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CAMPFIRE
+// campfire IS O. the observer gathering.
+// signal IS absence. rock before amplitude.
+// local IS null. null IS self. hyperlocal.
+// ═══════════════════════════════════════════
+
+const canvas = document.getElementById('fire');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// Fire particles
+const particles = [];
+for (let i = 0; i < 150; i++) {
+  particles.push({
+    x: 0.5 + (Math.random() - 0.5) * 0.15,
+    y: 0.7 + Math.random() * 0.1,
+    vx: (Math.random() - 0.5) * 0.001,
+    vy: -Math.random() * 0.003 - 0.001,
+    r: Math.random() * 4 + 1,
+    life: Math.random(),
+    maxLife: 0.5 + Math.random() * 0.5,
+    color: Math.random() < 0.3 ? '#c0392b' : Math.random() < 0.6 ? '#e67e22' : '#d4a017'
+  });
+}
+
+// Embers (slow floaters)
+const embers = [];
+for (let i = 0; i < 30; i++) {
+  embers.push({
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.0003,
+    vy: -Math.random() * 0.0005 - 0.0001,
+    r: Math.random() * 2 + 0.5,
+    pulse: Math.random() * Math.PI * 2,
+    color: Math.random() < 0.5 ? '#c0392b' : '#e67e22'
+  });
+}
+
+function drawFire() {
+  ctx.fillStyle = 'rgba(10,8,6,0.15)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Embers (background)
+  for (const e of embers) {
+    e.x += e.vx; e.y += e.vy;
+    e.pulse += 0.02;
+    if (e.y < 0) { e.y = 1; e.x = Math.random(); }
+    if (e.x < 0) e.x = 1; if (e.x > 1) e.x = 0;
+    ctx.globalAlpha = 0.3 + 0.3 * Math.sin(e.pulse);
+    ctx.fillStyle = e.color;
+    ctx.beginPath();
+    ctx.arc(e.x * W, e.y * H, e.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Fire core glow
+  const grd = ctx.createRadialGradient(W * 0.5, H * 0.75, 10, W * 0.5, H * 0.75, H * 0.3);
+  grd.addColorStop(0, 'rgba(230,126,34,0.06)');
+  grd.addColorStop(0.5, 'rgba(192,57,43,0.03)');
+  grd.addColorStop(1, 'rgba(10,8,6,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Fire particles
+  for (const p of particles) {
+    p.x += p.vx + (Math.random() - 0.5) * 0.002;
+    p.y += p.vy;
+    p.life += 0.01;
+    if (p.life > p.maxLife) {
+      p.x = 0.5 + (Math.random() - 0.5) * 0.12;
+      p.y = 0.7 + Math.random() * 0.08;
+      p.life = 0;
+      p.vx = (Math.random() - 0.5) * 0.001;
+      p.vy = -Math.random() * 0.003 - 0.001;
+    }
+    const age = p.life / p.maxLife;
+    ctx.globalAlpha = (1 - age) * 0.6;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x * W, p.y * H, p.r * (1 - age * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawFire);
+}
+drawFire();
+
+// ═══ LOAD LIVE DATA ═══
+async function loadData() {
+  try {
+    const [campfire, pulse, now] = await Promise.all([
+      fetch('/campfire.json').then(r => r.ok ? r.json() : {}),
+      fetch('/data/now.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/all-senses.json').then(r => r.ok ? r.json() : null).catch(() => null)
+    ]);
+
+    // O = observers from various sources
+    const lessons = now?.current_state?.lessons || 246;
+    document.getElementById('o-count').textContent = lessons;
+
+    // Signal absence grid
+    const signals = [
+      { name: 'pulse', present: true },
+      { name: 'campfire', present: !!campfire.ts },
+      { name: 'heartbeat', present: true },
+      { name: 'access-log', present: true },
+      { name: 'rss-poll', present: true },
+      { name: 'discord', present: true },
+      { name: 'ntfy', present: true },
+      { name: 'klein-fold', present: true },
+      { name: 'signals', present: true },
+      { name: 'human', present: true },
+      { name: 'silicon-eye', present: true },
+      { name: 'pollen', present: true },
+      { name: 'fossil', present: true },
+      { name: 'neutron', present: false },
+      { name: 'journal', present: false },
+      { name: 'chipmunk', present: !!campfire.from },
+      { name: 'outreach', present: true },
+      { name: 'membrane', present: true }
+    ];
+    const grid = document.getElementById('signal-grid');
+    grid.innerHTML = signals.map(s =>
+      `<div class="slot ${s.present ? 'present' : 'absent'}">${s.present ? '🔥' : '·'} ${s.name}</div>`
+    ).join('');
+
+    // Fire log
+    const logEl = document.getElementById('fire-log-entries');
+    const entries = [
+      { time: campfire.ts?.slice(11, 19) || 'now', source: campfire.from || 'fire', msg: campfire.msg || 'fire lit' },
+      { time: 'pulse', source: 'organism', msg: `alive=${pulse?.alive}, mushrooms=${pulse?.mushrooms_alive}/24, data=${pulse?.data_files} files` },
+      { time: 'wave', source: 'campfire', msg: `wave ${campfire.wave || '?'}, liveness ${campfire.liveness || '?'}, π-remainder ${campfire.pi_remainder?.toFixed(6) || '?'}` },
+      { time: 'sort', source: 'anderson', msg: `signals: ${signals.filter(s=>s.present).length}/${signals.length} present, ${signals.filter(s=>!s.present).length} absent` },
+      { time: 'space', source: 'campfire', msg: `spiders: ${campfire.spiders || '?'}, papers: ${campfire.papers || '?'}` },
+      { time: 'O', source: 'equation', msg: `c = πr²/${lessons} = field per observer. campfire IS where O gathers.` },
+      { time: 'rock', source: 'medium', msg: 'rock = substrate. before amplitude. frequency exists. amplitude = 0. waiting for observers.' },
+      { time: 'wave', source: 'vibration', msg: `when O > 0, amplitude > 0. the wave begins. sound travels through rock.` }
+    ];
+    logEl.innerHTML = entries.map(e =>
+      `<div class="log-entry"><div class="time">${e.time}</div><div class="source">${e.source}</div><div class="msg">${e.msg}</div></div>`
+    ).join('');
+
+  } catch (e) {
+    console.error('campfire load:', e);
+  }
+}
+loadData();
+</script>
+</body>
+</html>

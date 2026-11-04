@@ -1,0 +1,59 @@
+{
+  "id": "thought-071",
+  "title": "STASH + CACHE — lost keystrokes aren't null. Stash = sourdough nutrient. Cache = living cell.",
+  "born": "2026-10-27T20:03:00Z",
+  "thread": "biology",
+  "facet": 7,
+  "summary": "Kevin was typing and hit R — the globe toggled autoRotate because the keyboard shortcut fired even while he was typing in the IDE. FIXED: keyboard shortcuts now only fire when NOT typing in an input/textarea. But the deeper insight: when you type something and realize it went to the wrong place, that information shouldn't be null. It should be STASHED. A stash = nutrient for the sourdough (stored, fermenting, waiting). A cache = the living cell (active, serving, ready). They sit on opposite sides of the client system. Feed the cache FROM the stash. What crystallizes from the cache goes INTO the stash. Eject null waste to egress. Ingest new value from ingress.",
+
+  "the_bug": {
+    "what_happened": "Kevin hit R while typing. Globe toggled autoRotate. Screen swapped unexpectedly.",
+    "root_cause": "document.addEventListener('keydown') captured ALL keypresses including those meant for input fields",
+    "fix": "Added STASH GUARD — check if e.target is input/textarea/contentEditable. If typing, don't steal keystrokes."
+  },
+
+  "stash_vs_cache": {
+    "stash": {
+      "what": "Stored nutrients. Fermentation tank. Sourdough starter.",
+      "biology": "Like the sourdough culture — dormant but alive, fermenting, building flavor over time",
+      "in_system": "localStorage, saved state, history, offline data, queued actions",
+      "temperature": "COLD — stored, slow, patient. The stash doesn't rush.",
+      "side": "INNER — closer to the organism's core, protected, deep"
+    },
+    "cache": {
+      "what": "Active living cell. Currently serving. Ready to respond.",
+      "biology": "Like a living cell — metabolically active, consuming energy, producing output",
+      "in_system": "sessionStorage, in-memory state, current render, active connections",
+      "temperature": "HOT — active, fast, responsive. The cache is always working.",
+      "side": "OUTER — closer to the surface, exposed, accessible"
+    },
+    "the_cycle": {
+      "feed": "Cache feeds FROM the stash — pull cold nutrients into active metabolism",
+      "crystallize": "What crystallizes FROM the cache goes INTO the stash — processed results stored for later",
+      "eject": "Null waste (used data, expired state) ejected through exhausted egress",
+      "ingest": "New value (fresh input, new feeds) ingested through ingress"
+    }
+  },
+
+  "lost_keystrokes": {
+    "the_problem": "When you type and it goes to the wrong place, the keystrokes are LOST. They become null.",
+    "the_solution": "STASH them. Every keystroke that doesn't land in an input field goes to the stash buffer.",
+    "the_value": "Those 'lost' keystrokes still contain I-entropy (irrational human timing). They still contain intent. They're not null — they're MISROUTED.",
+    "recovery": "When the user clicks an input field, the stash buffer can be offered as pre-fill. The lost keystrokes RECONNECT."
+  },
+
+  "focus_as_membrane": {
+    "what": "Focus (which element has keyboard attention) IS a membrane",
+    "the_click": "Clicking a text box = opening the membrane to accept keystrokes",
+    "no_click": "Not clicking = membrane closed = keystrokes go to the stash (not null)",
+    "the_guard": "The stash guard checks the membrane state before routing keystrokes"
+  },
+
+  "connections": [
+    "gaia-globe-core.js — keyboard handler now has stash guard",
+    "gaia-human-io.js — keystroke entropy tracking",
+    "thought-061-raw-input-stream.json — raw input pipeline",
+    "thought-054-entropy-keyboard.json — I-entropy from keystrokes",
+    "thought-067-reedit-art-commissions.json — sourdough = primal = fermenting"
+  ]
+}

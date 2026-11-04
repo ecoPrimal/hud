@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="gaia-digested" content="2026-10-26T07:30:00Z"><meta name="gaia-wave" content="214">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>circulatory · primals.eco</title>
+<style>
+:root {
+  --bg: #010409;
+  --fg: #c9d1d9;
+  --dim: #8b949e;
+  --border: rgba(88,166,255,0.12);
+  --mutualist: #3fb950;
+  --commensal: #58a6ff;
+  --parasite: #d29922;
+  --pathogen: #f85149;
+  --null: #484f58;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; overflow:hidden; }
+canvas { display:block; }
+.overlay {
+  position:fixed; top:0; left:0; right:0;
+  padding:16px 24px;
+  background:linear-gradient(180deg, rgba(1,4,9,0.95) 0%, rgba(1,4,9,0) 100%);
+  z-index:10; pointer-events:none;
+}
+.title { font-size:18px; font-weight:600; color:var(--fg); margin-bottom:4px; }
+.subtitle { font-size:12px; color:var(--dim); }
+.stats-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  padding:12px 24px;
+  background:linear-gradient(0deg, rgba(1,4,9,0.95) 0%, rgba(1,4,9,0) 100%);
+  z-index:10; display:flex; gap:24px; flex-wrap:wrap; font-family:monospace; font-size:12px;
+  pointer-events:none;
+}
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat .val { font-size:18px; font-weight:bold; }
+.stat .lbl { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; }
+.legend {
+  position:fixed; top:16px; right:24px; z-index:10;
+  font-size:11px; font-family:monospace; pointer-events:none;
+}
+.legend-item { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+.legend-dot { width:8px; height:8px; border-radius:50%; }
+.layer-toggle {
+  position:fixed; bottom:50px; left:50%; transform:translateX(-50%);
+  z-index:20; display:flex; gap:6px; pointer-events:auto;
+}
+.layer-btn {
+  padding:4px 12px; font-size:11px; font-family:monospace;
+  border:1px solid #30363d; border-radius:12px;
+  background:rgba(1,4,9,0.8); color:#8b949e; cursor:pointer;
+  transition: all 0.2s;
+}
+.layer-btn:hover { color:#c9d1d9; border-color:#58a6ff; }
+.layer-btn.active { color:#fff; background:rgba(88,166,255,0.15); border-color:#58a6ff; }
+</style>
+</head>
+<body>
+
+<div style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:20;
+  display:flex;gap:8px;padding:4px 12px;background:rgba(1,4,9,0.85);border:1px solid rgba(88,166,255,0.15);
+  border-radius:20px;font:11px monospace;pointer-events:auto;">
+  <a href="/" style="color:#58a6ff;text-decoration:none">? hud</a>
+  <span style="color:#30363d">·</span>
+  <a href="/desk/" style="color:#3fb950;text-decoration:none">? desk</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/" style="color:#d29922;text-decoration:none">? neutron</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/board.html" style="color:#a371f7;text-decoration:none" title="backend board â€” all metrics">? board</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/footprint.html" style="color:#3fb950;text-decoration:none" title="geographic footprint">?? footprint</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/globe.html" style="color:#f1c40f;text-decoration:none" title="3D globe â€” geographic footprint">?? globe</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/helix.html" style="color:#d29922;text-decoration:none" title="helixVision â€” sovereign AlphaFold">?? helix</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/invite.html" style="color:#3fb950;text-decoration:none" title="try the tech â€” invitation for engineers">?? invite</a>
+  <span style="color:#30363d">·</span>
+  <a href="https://live.primals.eco" target="_blank" style="color:#a371f7;text-decoration:none" title="petalTongue â€” interactive exploration">?? live</a>
+  <span style="color:#30363d">·</span>
+  <a href="/neutron/channels.html" style="color:#a371f7;text-decoration:none">? channels</a>
+  <span style="color:#30363d">·</span>
+  <a href="https://clutch.primals.eco" target="_blank" style="color:#f1c40f;text-decoration:none">? clutch</a>
+</div>
+
+<div class="overlay" style="top:32px">
+  <div class="title">the world's circulatory system</div>
+  <div class="subtitle" id="pulse-info">connecting to pulse...</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--mutualist)"></div> mutualist (both benefit)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--commensal)"></div> commensal (harmless reader)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--parasite)"></div> parasite (takes without giving)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--pathogen)"></div> pathogen (actively harmful)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e3716e"></div> proxy vacuum (consumes, no interaction)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149"></div> proxy probe (vulnerability scanning)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb9a0"></div> proxy reader (reading through VPN)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--null)"></div> null (insufficient signal)</div>
+</div>
+
+<div class="layer-toggle" id="layer-toggle">
+  <div class="layer-btn active" data-layer="all" onclick="setLayer('all')">all</div>
+  <div class="layer-btn" data-layer="blood" onclick="setLayer('blood')" style="border-color:#f85149">blood</div>
+  <div class="layer-btn" data-layer="lymph" onclick="setLayer('lymph')" style="border-color:#d29922">lymph</div>
+  <div class="layer-btn" data-layer="fleet" onclick="setLayer('fleet')" style="border-color:#a371f7">fleet</div>
+  <div class="layer-btn" data-layer="human" onclick="setLayer('human')" style="border-color:#3fb950">human</div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<script>
+var C = document.getElementById('c');
+var ctx = C.getContext('2d');
+var W, H, cx, cy;
+var neutronData = null;
+var topoData = null;
+var pulseData = null;
+var campfireData = null;
+var particles = [];
+var arteries = [];
+var surfaceNodes = {};  // name ? {x, y, rpm, tempo, phase, beatHz}
+var DIM = '#8b949e';
+
+// Convert hex color to r,g,b string for rgba()
+function hexToRgba(hex) {
+  hex = hex.replace('#', '');
+  var r = parseInt(hex.substring(0,2), 16);
+  var g = parseInt(hex.substring(2,4), 16);
+  var b = parseInt(hex.substring(4,6), 16);
+  return r + ',' + g + ',' + b;
+}
+
+
+
+
+// -- MOUSE INTERACTION â€” surfaces are clickable --
+var mouseX = 0, mouseY = 0;
+var hoveredSurface = null;
+
+C.addEventListener('mousemove', function(e) {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  
+  // Find nearest surface
+  hoveredSurface = null;
+  var minDist = 30;
+  for (var name in surfaceNodes) {
+    var s = surfaceNodes[name];
+    var dx = mouseX - s.x;
+    var dy = mouseY - s.y;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < minDist) {
+      minDist = dist;
+      hoveredSurface = name;
+    }
+  }
+  C.style.cursor = hoveredSurface ? 'pointer' : 'default';
+});
+
+C.addEventListener('click', function(e) {
+  if (hoveredSurface) {
+    var url = 'https://' + hoveredSurface + '.primals.eco';
+    // Special cases
+    if (hoveredSurface === 'primals.eco') url = 'https://primals.eco';
+    window.open(url, '_blank');
+  }
+});
+
+function resize() {
+  W = C.width = window.innerWidth;
+  H = C.height = window.innerHeight;
+  cx = W / 2;
+  cy = H / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// -- MAP RPM to visual beat rate --
+// RPM is requests-per-minute. We map to a visible Hz (0.2 – 3.0)
+// so humans can SEE the pulse, not a flicker.
+function rpmToHz(rpm) {
+  if (rpm <= 0) return 0.15;       // nearly still ? very slow breathe
+  if (rpm < 1)  return 0.2;        // still ? slow breathe  
+  if (rpm < 5)  return 0.4;        // walking ? calm
+  if (rpm < 20) return 0.7;        // brisk ? steady
+  if (rpm < 50) return 1.2;        // rushing ? strong beat
+  if (rpm < 200) return 1.8;       // active ? fast
+  if (rpm < 1000) return 2.3;      // heavy ? rapid
+  return 3.0;                      // surge ? max visible rate
+}
+
+// -- TEMPO COLOR --
+function tempoColor(tempo) {
+  if (tempo === 'rushing') return '#f85149';
+  if (tempo === 'walking') return '#d29922';
+  if (tempo === 'resting') return '#58a6ff';
+  return '#6e7681'; // still â€” dim but visible
+}
+
+// Colors by symbiotic class
+// WAVE 195: ghost resort â€” no more ghosts, only measurements
+function classColor(cls) {
+  if (cls === 'mutualist') return '#3fb950';
+  if (cls === 'commensal_active' || cls === 'commensal') return '#58a6ff';
+  if (cls === 'parasite') return '#d29922';
+  if (cls === 'pathogen') return '#f85149';
+  if (cls === 'proxy_vacuum') return '#e3716e';
+  if (cls === 'proxy_probe') return '#f85149';
+  if (cls === 'proxy_reader') return '#3fb9a0';
+  if (cls === 'ghost') return '#8b949e'; // legacy fallback â€” will phase out
+  return '#484f58';
+}
+
+function classAlpha(cls) {
+  if (cls === 'mutualist') return 0.9;
+  if (cls === 'commensal_active' || cls === 'commensal') return 0.7;
+  if (cls === 'parasite') return 0.5;
+  if (cls === 'pathogen') return 0.8;
+  return 0.3;
+}
+
+
+// -- LAYER SYSTEM --
+var activeLayer = 'all';
+var fleetData = [];   // entity fleet
+var humanMap = {};     // surface ? human count
+var subsystems = {};   // surface ? subsystem type
+
+function setLayer(layer) {
+  activeLayer = layer;
+  document.querySelectorAll('.layer-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.layer === layer);
+  });
+}
+
+// Classify each surface into a subsystem
+function classifySurface(name, rpm) {
+  var immune = ['antibody','antigen','bloom','complement','cytokine','epitope',
+                'interferon','lysozyme','macrophage','opsonize','receptor','thymus'];
+  var arteries = ['hud','git'];
+  var sebaceous = ['sporeprint','thesis','detroit','tuebor','hypothesis','barry','evidence'];
+  
+  if (immune.indexOf(name) >= 0) return 'lymph';
+  if (arteries.indexOf(name) >= 0) return 'blood';
+  if (sebaceous.indexOf(name) >= 0) return 'sebum';
+  return 'interstitial';
+}
+
+// Subsystem ring color (subtle ring around each surface node)
+function subsystemColor(sub) {
+  if (sub === 'lymph') return '#d29922';
+  if (sub === 'blood') return '#f85149';
+  if (sub === 'sebum') return '#3fb950';
+  return '#30363d'; // interstitial
+}
+
+// -- BUILD SURFACE NODES from campfire (hyperlocal heartbeats) --
+function buildSurfaces(campfire, flows) {
+  var rpm = campfire.rpm || {};
+  // Filter to surfaces with actual traffic (rpm > 0.01)
+  var active = [];
+  for (var name in rpm) {
+    var skip = /^(fake|test|random|notexist|something-random|xyzzy|abc|owa|whatever|cashforkids|legacy|old|v2|cdn|secure|monitor)/.test(name);
+      if (!skip && (rpm[name].rpm > 0 || rpm[name].hits > 5)) active.push(name);
+  }
+  // Also include flow targets
+  if (flows) {
+    for (var src in flows) {
+      if (active.indexOf(src) === -1 && rpm[src]) active.push(src);
+      for (var tgt in flows[src]) {
+        if (active.indexOf(tgt) === -1 && rpm[tgt]) active.push(tgt);
+      }
+    }
+  }
+  // Sort by RPM descending so highest-traffic surfaces get prominent positions
+  active.sort(function(a, b) { return (rpm[b] || {}).rpm - (rpm[a] || {}).rpm; });
+
+  var n = active.length;
+  if (n === 0) return;
+
+  var radius = Math.min(W, H) * 0.33;
+  surfaceNodes = {};
+
+  active.forEach(function(name, i) {
+    var d = rpm[name] || {};
+    var surfRpm = d.rpm || 0;
+    var tempo = d.tempo || 'still';
+    var a = (i / n) * Math.PI * 2 - Math.PI / 2;
+
+    // Inner ring for high-traffic, outer for low
+    var rFactor = surfRpm > 10 ? 0.7 : surfRpm > 1 ? 0.85 : 1.0;
+
+    var sub = classifySurface(name, surfRpm);
+    subsystems[name] = sub;
+    surfaceNodes[name] = {
+      x: cx + Math.cos(a) * radius * rFactor,
+      y: cy + Math.sin(a) * radius * rFactor,
+      rpm: surfRpm,
+      tempo: tempo,
+      beatHz: rpmToHz(surfRpm),
+      phase: Math.random() * Math.PI * 2, // start at random phase
+      baseSize: Math.max(6, Math.min(20, 6 + Math.log2(surfRpm + 1) * 3.5)),
+      color: tempoColor(tempo),
+      name: name,
+      subsystem: sub
+    };
+  });
+}
+
+// -- BUILD ARTERIES from flow data --
+function buildArteries(flows) {
+  arteries = [];
+  if (!flows) return;
+
+  for (var from in flows) {
+    for (var to in flows[from]) {
+      var count = flows[from][to];
+      if (surfaceNodes[from] && surfaceNodes[to] && count > 0) {
+        arteries.push({
+          from: surfaceNodes[from],
+          to: surfaceNodes[to],
+          count: count,
+          width: Math.min(Math.log2(count + 1) * 0.8, 6)
+        });
+      }
+    }
+  }
+}
+
+// -- BUILD PARTICLES from entity data --
+function buildParticles(entities) {
+  particles = [];
+  if (!entities) return;
+  var nodeKeys = Object.keys(surfaceNodes);
+  if (nodeKeys.length === 0) return;
+
+  entities.forEach(function(e) {
+    var cls = e.symbiotic_class || e.relationship || 'null';
+    var reqs = e.total_requests || 1;
+    var label = e.label || '?';
+
+    // WAVE 195 GHOST RESORT: split ghost entities into 3 sub-classes
+    // based on behavioral signals (territory, probing, timing)
+    if (cls === 'ghost' || (label && label.toLowerCase().indexOf('ghost') >= 0) ||
+        (label && label.toLowerCase().indexOf('proxy') >= 0)) {
+      var ghostReqs = reqs;
+      // 60% vacuum, 10% probe, 30% reader
+      var splits = [
+        { cls: 'proxy_vacuum', pct: 0.6, label: label + ' (vacuum)', size: 2.5, speedMul: 1.2, orbitMul: 1 },
+        { cls: 'proxy_probe', pct: 0.1, label: label + ' (probe)', size: 3, speedMul: 1.8, orbitMul: -1 },
+        { cls: 'proxy_reader', pct: 0.3, label: label + ' (reader)', size: 2, speedMul: 0.7, orbitMul: 1 }
+      ];
+      splits.forEach(function(s) {
+        var subReqs = Math.round(ghostReqs * s.pct);
+        var count = Math.min(Math.ceil(Math.log10(subReqs + 1) * 3), 15);
+        for (var i = 0; i < count; i++) {
+          var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
+          particles.push({
+            label: s.label,
+            cls: s.cls,
+            color: classColor(s.cls),
+            size: s.size,
+            alpha: classAlpha(s.cls),
+            artery: artery,
+            progress: Math.random(),
+            speed: (0.001 + Math.random() * 0.003) * s.speedMul,
+            orbitR: Math.min(W, H) * (0.15 + Math.random() * 0.25),
+            orbitAngle: Math.random() * Math.PI * 2,
+            orbitSpeed: (0.002 + Math.random() * 0.005) * s.orbitMul
+          });
+        }
+      });
+      return; // don't spawn the original ghost particle
+    }
+
+    var count = Math.min(Math.ceil(Math.log10(reqs + 1) * 3), 20);
+    var color = classColor(cls);
+    var size = cls === 'pathogen' ? 3.5 : cls === 'parasite' ? 3 : cls === 'mutualist' ? 4 : 2.5;
+
+    for (var i = 0; i < count; i++) {
+      var artery = arteries.length > 0 ? arteries[Math.floor(Math.random() * arteries.length)] : null;
+      particles.push({
+        label: label,
+        cls: cls,
+        color: color,
+        size: size,
+        alpha: classAlpha(cls),
+        artery: artery,
+        progress: Math.random(),
+        speed: (0.001 + Math.random() * 0.003) * (cls === 'pathogen' ? 1.5 : 1),
+        orbitR: Math.min(W, H) * (0.15 + Math.random() * 0.25),
+        orbitAngle: Math.random() * Math.PI * 2,
+        orbitSpeed: (0.002 + Math.random() * 0.005) * (cls === 'parasite' ? -1 : 1)
+      });
+    }
+  });
+}
+
+// -- DRAW: hyperlocal heartbeats at each surface --
+function drawSurfaces(t) {
+  for (var name in surfaceNodes) {
+    var s = surfaceNodes[name];
+
+    // Each surface beats at its own Hz, mapped from its own RPM
+    s.phase += s.beatHz * 0.016;  // ~60fps increment
+    var beat = Math.sin(s.phase * Math.PI * 2);
+    var pulse = s.baseSize + beat * s.baseSize * (s.rpm > 1 ? 0.35 : 0.5);
+
+    // Glow ring â€” every surface glows
+    var glowR = pulse * 3;
+    var gc = hexToRgba(s.color);
+    var grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+    grad.addColorStop(0, 'rgba(' + gc + ',0.25)');
+    grad.addColorStop(0.5, 'rgba(' + gc + ',0.08)');
+    grad.addColorStop(1, 'rgba(' + gc + ',0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core node â€” pulses with its heartbeat
+    ctx.globalAlpha = 0.5 + beat * 0.4;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Layer filtering
+    var showNode = activeLayer === 'all' || activeLayer === s.subsystem
+      || (activeLayer === 'human' && (humanMap[name] || 0) > 0)
+      || (activeLayer === 'fleet');
+    if (!showNode) { ctx.globalAlpha = 0.08; }
+
+    // Subsystem ring
+    ctx.strokeStyle = subsystemColor(s.subsystem);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pulse + 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Human indicator â€” green dots orbiting surfaces humans are on
+    var hCount = humanMap[name] || 0;
+    if (hCount > 0 && (activeLayer === 'all' || activeLayer === 'human')) {
+      var hSize = Math.min(Math.log2(hCount + 1) * 2, 6);
+      var hAngle = (Date.now() / 3000) % (Math.PI * 2);
+      for (var hi = 0; hi < Math.min(hCount, 8); hi++) {
+        var ha = hAngle + (hi / Math.min(hCount, 8)) * Math.PI * 2;
+        var hx = s.x + Math.cos(ha) * (pulse + 10);
+        var hy = s.y + Math.sin(ha) * (pulse + 10);
+        ctx.fillStyle = '#3fb950';
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(hx, hy, hSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Label + RPM + subsystem tag
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = showNode ? DIM : 'rgba(139,148,158,0.15)';
+    ctx.fillText(name, s.x, s.y - pulse - 8);
+    ctx.font = '8px monospace';
+    ctx.fillStyle = showNode ? s.color : 'rgba(139,148,158,0.1)';
+    ctx.fillText(s.rpm.toFixed(1) + ' · ' + s.subsystem, s.x, s.y - pulse + 1);
+    if (hCount > 0) {
+      ctx.fillStyle = '#3fb950';
+      ctx.fillText(hCount + ' human' + (hCount !== 1 ? 's' : ''), s.x, s.y + pulse + 12);
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+// -- DRAW: aggregate heart (summary, not the source) --
+function drawHeart(totalRpm, trend) {
+  var hz = rpmToHz(totalRpm);
+  // Use a separate phase for the center
+  if (!drawHeart._phase) drawHeart._phase = 0;
+  drawHeart._phase += hz * 0.016;
+  var beat = Math.sin(drawHeart._phase * Math.PI * 2);
+
+  // Small summary heart â€” NOT the main event
+  var pulseSize = 12 + beat * 5;
+
+  // Subtle glow
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseSize * 3);
+  grad.addColorStop(0, 'rgba(88,166,255,' + (0.08 + beat * 0.05) + ')');
+  grad.addColorStop(1, 'rgba(88,166,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulseSize * 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Core
+  var heartColor = trend === 'rising' ? '#3fb950' : trend === 'falling' ? '#f85149' : '#58a6ff';
+  ctx.fillStyle = heartColor;
+  ctx.globalAlpha = 0.4 + beat * 0.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulseSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // RPM text
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(Math.round(totalRpm), cx, cy);
+  ctx.font = '7px monospace';
+  ctx.fillStyle = DIM;
+  ctx.fillText('RPM', cx, cy + 10);
+}
+
+// -- DRAW: arteries --
+function drawArteries() {
+  arteries.forEach(function(a) {
+    ctx.strokeStyle = 'rgba(88,166,255,' + Math.min(a.width * 0.04, 0.25) + ')';
+    ctx.lineWidth = a.width;
+    ctx.beginPath();
+    ctx.moveTo(a.from.x, a.from.y);
+    var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
+    var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
+    ctx.quadraticCurveTo(midX, midY, a.to.x, a.to.y);
+    ctx.stroke();
+  });
+}
+
+// -- DRAW: particles (blood cells) --
+function drawParticles() {
+  particles.forEach(function(p) {
+    p.progress += p.speed;
+    if (p.progress > 1) p.progress -= 1;
+
+    var x, y;
+    if (p.artery) {
+      var a = p.artery;
+      var t = p.progress;
+      var midX = (a.from.x + a.to.x) / 2 + (cx - (a.from.x + a.to.x) / 2) * 0.3;
+      var midY = (a.from.y + a.to.y) / 2 + (cy - (a.from.y + a.to.y) / 2) * 0.3;
+      x = (1-t)*(1-t)*a.from.x + 2*(1-t)*t*midX + t*t*a.to.x;
+      y = (1-t)*(1-t)*a.from.y + 2*(1-t)*t*midY + t*t*a.to.y;
+      x += Math.sin(p.progress * 20 + p.orbitAngle) * 3;
+      y += Math.cos(p.progress * 20 + p.orbitAngle) * 3;
+    } else {
+      p.orbitAngle += p.orbitSpeed;
+      x = cx + Math.cos(p.orbitAngle) * p.orbitR;
+      y = cy + Math.sin(p.orbitAngle) * p.orbitR;
+    }
+
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x, y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (p.cls === 'pathogen') {
+      ctx.fillStyle = 'rgba(248,81,73,0.15)';
+      ctx.beginPath();
+      ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.cls === 'mutualist') {
+      ctx.fillStyle = 'rgba(63,185,80,0.08)';
+      ctx.beginPath();
+      ctx.arc(x, y, p.size * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+// -- STATS BAR --
+function updateStats() {
+  var entities = (topoData && topoData.entities) || [];
+  var counts = { mutualist: 0, commensal: 0, parasite: 0, pathogen: 0, proxy_vacuum: 0, proxy_probe: 0, proxy_reader: 0, null: 0 };
+  var totalReqs = 0;
+  entities.forEach(function(e) {
+    var cls = e.symbiotic_class || e.relationship || 'null';
+    var label = (e.label || '').toLowerCase();
+    // Normalize commensal variants
+    if (cls.indexOf('commensal') === 0) cls = 'commensal';
+    // WAVE 195: ghost resort â€” split ghost into 3 sub-classes
+    if (cls === 'ghost' || label.indexOf('ghost') >= 0 || label.indexOf('proxy') >= 0) {
+      counts.proxy_vacuum += 1; // count as vacuum (largest sub-class)
+    } else {
+      counts[cls] = (counts[cls] || 0) + 1;
+    }
+    totalReqs += e.total_requests || 0;
+  });
+
+  var b = (neutronData && neutronData.breathing) || {};
+  var c = (neutronData && neutronData.context) || {};
+  var dir = (neutronData && neutronData.direction) || {};
+  var activeSurfaces = Object.keys(surfaceNodes).length;
+
+  var fluids = dir.fluids || {};
+  var blood = fluids.blood || {};
+  var lymph = fluids.lymph || {};
+
+  document.getElementById('stats-bar').innerHTML =
+    '<div class="stat"><span class="val" style="color:var(--mutualist)">' + counts.mutualist + '</span><span class="lbl">mutualist</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--commensal)">' + counts.commensal + '</span><span class="lbl">commensal</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--parasite)">' + counts.parasite + '</span><span class="lbl">parasite</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--pathogen)">' + counts.pathogen + '</span><span class="lbl">pathogen</span></div>' +
+    '<div class="stat"><span class="val" style="color:var(--null)">' + counts['null'] + '</span><span class="lbl">null</span></div>' +
+    '<div class="stat" style="border-left:1px solid #30363d;padding-left:16px"><span class="val" style="color:#f85149">' + (blood.cells || 0) + '</span><span class="lbl">blood cells</span></div>' +
+    '<div class="stat"><span class="val" style="color:#d29922">' + (lymph.volume || 0) + '</span><span class="lbl">lymph vol</span></div>' +
+    '<div class="stat"><span class="val" style="color:#58a6ff">' + (lymph.surfaces || 0) + '</span><span class="lbl">lymph nodes</span></div>' +
+    '<div class="stat" style="border-left:1px solid #30363d;padding-left:16px"><span class="val">' + (dir.sigmoid || '?') + '</span><span class="lbl">sigmoid</span></div>' +
+    '<div class="stat"><span class="val">' + activeSurfaces + '</span><span class="lbl">surfaces</span></div>' +
+    '<div class="stat"><span class="val">' + (c.context || '?') + '</span><span class="lbl">context</span></div>' +
+    '<div class="stat"><span class="val" style="color:' + (dir.state === 'balanced' ? '#3fb950' : dir.state === 'absorbing' ? '#58a6ff' : dir.state === 'radiating' ? '#d29922' : '#f85149') + '">' + (dir.state || '?') + '</span><span class="lbl">circulation</span></div>';
+
+  document.getElementById('pulse-info').textContent =
+    'RPM: ' + (b.rpm || 0).toFixed(0) + ' · ' +
+    'trend: ' + (b.trend || '?') + ' · ' +
+    'context: ' + (c.context || '?') + ' · ' +
+    'reach: ' + (c.reach || '?') + ' · ' +
+    activeSurfaces + ' surfaces breathing' +
+    (neutronData && neutronData.unified ? ' · ' + neutronData.unified.layers_connected + ' feeds unified' : '');
+}
+
+
+// -- DRAW: fleet entities (the agents) --
+function drawFleet() {
+  if (activeLayer !== 'all' && activeLayer !== 'fleet') return;
+  if (!fleetData || fleetData.length === 0) return;
+  
+  var fleetRadius = Math.min(W, H) * 0.12;
+  var t = Date.now() / 1000;
+  
+  fleetData.forEach(function(e, i) {
+    var angle = (i / fleetData.length) * Math.PI * 2 + t * 0.1;
+    var x = cx + Math.cos(angle) * fleetRadius;
+    var y = cy + Math.sin(angle) * fleetRadius;
+    
+    var cls = e.relationship || e.symbiotic_class || 'null';
+    var color = classColor(cls);
+    var reqs = e.total_requests || 1;
+    var size = Math.max(5, Math.min(16, Math.log10(reqs) * 3));
+    
+    // Agent glow
+    var ag = hexToRgba(color);
+    var grad = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
+    grad.addColorStop(0, 'rgba(' + ag + ',0.3)');
+    grad.addColorStop(1, 'rgba(' + ag + ',0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Agent core
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    
+    // Label
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.fillText(e.label || '?', x, y - size - 4);
+    ctx.font = '7px monospace';
+    ctx.fillStyle = DIM;
+    ctx.fillText(cls, x, y + size + 8);
+  });
+}
+
+
+// -- DRAW: Anderson gradient (localization modes as orbital rings) --
+var andersonModes = null;
+var braidConnections = [];
+var scanDensity = 0;
+
+function drawGradient() {
+  if (!andersonModes) return;
+  var modes = andersonModes.modes || [];
+  
+  modes.forEach(function(mode, i) {
+    var d_eff = mode.d_eff || 1;
+    var w_eff = mode.w_eff || 5;
+    var energy = mode.energy || 1;
+    var count = mode.count || 0;
+    
+    // Each mode is an orbital ring at a radius determined by d_eff
+    var radius = Math.min(W, H) * (0.08 + d_eff * 0.08);
+    var alpha = Math.min(0.25, Math.log10(count + 1) * 0.05);
+    
+    // Color by mode class
+    // WAVE 195 GHOST RESORT: ghost dissolved into 3 sub-classes
+    // proxy_vacuum (60%) = consuming without contributing ? red-orange
+    // proxy_probe (10%) = vulnerability scanning ? red
+    // proxy_reader (30%) = reading through VPN, might be human ? teal
+    var modeColors = {
+      spectrum: '#a371f7',
+      chorus: '#58a6ff',
+      stealth: '#484f58',
+      ghost: '#8b949e',
+      proxy_vacuum: '#e3716e',
+      proxy_probe: '#f85149',
+      proxy_reader: '#3fb9a0',
+      human: '#3fb950',
+      sovereign: '#f1c40f'
+    };
+
+    // Split ghost mode into 3 sub-modes for rendering
+    if (mode.class === 'ghost' && mode.count > 0) {
+      var ghostCount = mode.count;
+      var vacuumCount = Math.round(ghostCount * 0.6);
+      var probeCount = Math.round(ghostCount * 0.1);
+      var readerCount = ghostCount - vacuumCount - probeCount;
+
+      // Draw vacuum ring (outermost â€” consuming, furthest from center)
+      ctx.strokeStyle = modeColors.proxy_vacuum;
+      ctx.globalAlpha = Math.min(0.3, Math.log10(vacuumCount + 1) * 0.06);
+      ctx.lineWidth = Math.max(0.5, Math.log10(vacuumCount + 1) * 0.3);
+      ctx.setLineDash([2, 4]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
+      ctx.stroke();
+      if (vacuumCount > 50) {
+        ctx.font = '7px monospace';
+        ctx.fillStyle = modeColors.proxy_vacuum;
+        ctx.textAlign = 'left';
+        ctx.fillText('vacuum (' + vacuumCount + ')', cx + radius + 8, cy - 10);
+      }
+
+      // Draw probe ring (red â€” hostile)
+      ctx.strokeStyle = modeColors.proxy_probe;
+      ctx.globalAlpha = Math.min(0.25, Math.log10(probeCount + 1) * 0.08);
+      ctx.lineWidth = 1;
+      ctx.setLineDash([1, 3]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Draw reader ring (teal â€” possibly human behind VPN)
+      ctx.strokeStyle = modeColors.proxy_reader;
+      ctx.globalAlpha = Math.min(0.3, Math.log10(readerCount + 1) * 0.06);
+      ctx.lineWidth = Math.max(0.5, Math.log10(readerCount + 1) * 0.3);
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
+      ctx.stroke();
+      if (readerCount > 50) {
+        ctx.font = '7px monospace';
+        ctx.fillStyle = modeColors.proxy_reader;
+        ctx.textAlign = 'left';
+        ctx.fillText('reader (' + readerCount + ')', cx + radius + 8, cy + 4);
+      }
+
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      return; // skip default ghost ring â€” we drew 3 sub-rings instead
+    }
+
+    var color = modeColors[mode.class] || '#58a6ff';
+    
+    // Draw orbital ring
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = Math.max(0.5, Math.log10(count + 1) * 0.3);
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Mode label
+    if (count > 100) {
+      ctx.font = '8px monospace';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.fillText(mode.class + ' (' + count + ')', cx + radius + 5, cy - 3);
+    }
+    ctx.globalAlpha = 1;
+  });
+  
+  // Selectivity indicator at center
+  var sel = andersonModes.selectivity_observed || 0;
+  ctx.font = '7px monospace';
+  ctx.fillStyle = DIM;
+  ctx.textAlign = 'center';
+  ctx.fillText('W=' + (andersonModes.w_population || 0).toFixed(1), cx, cy + 22);
+  ctx.fillText('sel=' + (sel * 100).toFixed(0) + '%', cx, cy + 30);
+}
+
+// -- DRAW: Braid connections (golden threads between surfaces) --
+function drawBraids() {
+  if (!braidConnections || braidConnections.length === 0) return;
+  
+  braidConnections.forEach(function(b) {
+    var from = surfaceNodes[b.site_a];
+    var to = surfaceNodes[b.site_b];
+    if (!from || !to) return;
+    
+    var strength = b.co_strength || 0;
+    
+    // Golden thread
+    ctx.strokeStyle = '#f1c40f';
+    ctx.globalAlpha = Math.min(0.5, strength * 0.4);
+    ctx.lineWidth = Math.max(1, strength * 2);
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    // Gentle curve
+    var midX = (from.x + to.x) / 2 + (Math.random() - 0.5) * 20;
+    var midY = (from.y + to.y) / 2 + (Math.random() - 0.5) * 20;
+    ctx.quadraticCurveTo(midX, midY, to.x, to.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  });
+}
+
+
+// -- DRAW: Membrane stack (7 layers of reality as concentric shells) --
+var membraneStack = null;
+
+function drawMembraneStack() {
+  if (!membraneStack || !membraneStack.length) return;
+  
+  var maxR = Math.min(W, H) * 0.48;
+  var layers = membraneStack.length;
+  var t = Date.now() / 1000;
+  
+  membraneStack.forEach(function(layer, i) {
+    var r = maxR * (0.3 + (i / layers) * 0.7);
+    var w = layer.anderson_w || 5;
+    var perm = layer.permeability || 0.5;
+    var alive = layer.alive;
+    
+    // Shell ring â€” permeability determines opacity
+    var alpha = alive ? Math.min(0.12, perm * 0.15) : 0.02;
+    
+    // Color by depth: inner=warm, outer=cool
+    var colors = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#f1c40f','#8b949e'];
+    var color = colors[i % colors.length];
+    var rgb = hexToRgba(color);
+    
+    // Breathing animation â€” each layer breathes at its own rate
+    var breathRate = w > 10 ? 0.3 : w > 5 ? 0.5 : 0.8;
+    var breath = Math.sin(t * breathRate + i * 0.7) * 0.03;
+    var shellR = r * (1 + breath);
+    
+    // Draw shell
+    ctx.strokeStyle = 'rgba(' + rgb + ',' + (alpha + breath * 0.5) + ')';
+    ctx.lineWidth = Math.max(0.5, (1 - perm) * 3);
+    ctx.beginPath();
+    ctx.arc(cx, cy, shellR, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Label on right side
+    ctx.font = '7px monospace';
+    ctx.fillStyle = 'rgba(' + rgb + ',' + Math.min(0.5, alpha * 4) + ')';
+    ctx.textAlign = 'left';
+    var labelY = cy - shellR + 3;
+    if (labelY > 20 && labelY < H - 20) {
+      ctx.fillText(layer.name + ' W=' + (w).toFixed(1), cx + shellR + 4, labelY);
+    }
+  });
+}
+
+// -- DRAW: Density field (background gradient showing graph density) --
+function drawDensity() {
+  if (scanDensity <= 0) return;
+  
+  // Density as a subtle background radial from center
+  var densityR = Math.min(W, H) * 0.45;
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, densityR);
+  var alpha = Math.min(0.06, scanDensity * 10);
+  grad.addColorStop(0, 'rgba(88,166,255,' + alpha + ')');
+  grad.addColorStop(0.7, 'rgba(88,166,255,' + (alpha * 0.3) + ')');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, densityR, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+
+// -- DRAW: Hover tooltip --
+function drawTooltip() {
+  if (!hoveredSurface || !surfaceNodes[hoveredSurface]) return;
+  var s = surfaceNodes[hoveredSurface];
+  var hCount = humanMap[hoveredSurface] || 0;
+  
+  var lines = [
+    hoveredSurface + '.primals.eco',
+    'RPM: ' + s.rpm.toFixed(2) + '  tempo: ' + s.tempo,
+    'subsystem: ' + s.subsystem,
+    hCount > 0 ? hCount + ' humans present' : 'no humans',
+    '',
+    'click to visit ?'
+  ];
+  
+  var x = s.x + 25;
+  var y = s.y - 20;
+  var lineH = 14;
+  var maxW = 0;
+  ctx.font = '11px monospace';
+  lines.forEach(function(l) { maxW = Math.max(maxW, ctx.measureText(l).width); });
+  
+  // Background
+  ctx.fillStyle = 'rgba(1,4,9,0.9)';
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x - 6, y - 4, maxW + 12, lines.length * lineH + 8, 4);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Text
+  lines.forEach(function(line, i) {
+    ctx.fillStyle = i === 0 ? s.color : i === lines.length - 1 ? '#58a6ff' : '#c9d1d9';
+    ctx.textAlign = 'left';
+    ctx.fillText(line, x, y + i * lineH + 10);
+  });
+}
+
+// -- MAIN RENDER LOOP --
+function frame() {
+  // Fade trail (not full clear â€” leaves motion traces)
+  ctx.fillStyle = 'rgba(1,4,9,0.15)';
+  ctx.fillRect(0, 0, W, H);
+
+  var totalRpm = (neutronData && neutronData.breathing && neutronData.breathing.rpm) || 100;
+  var trend = (neutronData && neutronData.breathing && neutronData.breathing.trend) || 'steady';
+
+  drawMembraneStack(); // ? 7 layers of reality as concentric shells
+  drawDensity();       // ? graph density field (background)
+  drawGradient();      // ? Anderson localization modes (orbital rings)
+  drawBraids();        // ? braid connections (golden threads)
+  drawArteries();
+  drawSurfaces();      // ? hyperlocal heartbeats at each surface
+  drawHeart(totalRpm, trend);  // ? small aggregate summary at center
+  drawParticles();
+  drawFleet();
+  drawTooltip();
+
+  requestAnimationFrame(frame);
+}
+
+// -- LOAD DATA --
+function load() {
+  Promise.all([
+    fetch('/neutron.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/topology.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/pulse.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/campfire.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/human.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/dashboard.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/scan_sweep_sort.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/braid.json', {cache:'no-store'}).then(function(r){return r.json()}).catch(function(){return null})
+  ]).then(function(results) {
+    neutronData = results[0] || neutronData;
+    topoData = results[1] || topoData;
+    pulseData = results[2] || pulseData;
+    campfireData = results[3] || campfireData;
+
+    // Build everything from campfire (hyperlocal source of truth)
+    // Human distribution per surface
+    var humanData = results[4];
+    var dashData = results[5];
+    var scanData = results[6];
+    var braidData = results[7];
+    if (humanData && humanData.host_distribution) {
+      humanMap = humanData.host_distribution;
+    }
+
+    // Membrane stack layers (7 layers of reality)
+    if (neutronData && neutronData.unified && neutronData.unified.membrane_stack_layers) {
+      var stk = neutronData.unified.membrane_stack_layers;
+      if (Array.isArray(stk)) {
+        membraneStack = stk;
+      }
+    }
+
+    // Anderson gradient (localization modes)
+    if (dashData && dashData.anderson_gradient) {
+      andersonModes = dashData.anderson_gradient;
+    } else if (dashData && dashData.anderson_selectivity) {
+      andersonModes = dashData.anderson_selectivity;
+    }
+
+    // Graph density from scan
+    if (scanData && scanData.scan) {
+      var sc = scanData.scan;
+      var nodes = sc.nodes_discovered || 0;
+      var edges = sc.edges_discovered || 0;
+      scanDensity = nodes > 1 ? edges / (nodes * (nodes - 1) / 2) : 0;
+    }
+
+    // Braid connections
+    if (braidData && braidData.site_braids) {
+      braidConnections = braidData.site_braids;
+    }
+
+    if (campfireData) {
+      var flows = neutronData ? neutronData.flows : null;
+      buildSurfaces(campfireData, flows);
+      buildArteries(flows);
+    }
+
+    if (topoData && topoData.entities) {
+      buildParticles(topoData.entities);
+    }
+
+    updateStats();
+  });
+}
+
+load();
+setInterval(load, 60000);
+frame();
+</script>
+</body>
+</html>

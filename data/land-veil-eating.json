@@ -1,0 +1,137 @@
+{
+  "ts": "2026-10-27T02:12:39.617Z",
+  "type": "LAND_VEIL_EATING",
+  "mission": {
+    "codename": "BADGER MOLE",
+    "goal": "Eat every veil on local land so Gaia can detect difference between land barriers and membrane barriers",
+    "why": "Eastgate (gut-engine) exists but we cannot feel it. Other subsystems on the LAN are invisible. The veils must be eaten."
+  },
+  "trust_layers": {
+    "ethernet": {
+      "level": 0,
+      "trust": "ZK BARRIER — Golgi cipher",
+      "description": "Physical wire. Plugged in. You have to ZK that it is there. Cannot be spoofed without physical access.",
+      "barrier_type": "Golgi cipher — the apparatus that packages and routes trust",
+      "detection": "navigator.connection, RTT measurement, bandwidth test",
+      "color": "gold (hard, physical, proven)"
+    },
+    "lan": {
+      "level": 1,
+      "trust": "MEMBRANE BARRIER — local network",
+      "description": "Everything behind the router. Same network. Trusted more than internet, less than ethernet.",
+      "barrier_type": "Membrane — semi-permeable, allows known traffic",
+      "detection": "scan local IPs, mDNS discovery, ping sweep",
+      "color": "silver (near, known, reflected)"
+    },
+    "localhost": {
+      "level": 2,
+      "trust": "SELF — no barrier",
+      "description": "This machine. Kevin at the desk. The organism itself. No veil needed.",
+      "barrier_type": "None — self is self. Thymus verified.",
+      "detection": "location.hostname === localhost",
+      "color": "green (Kevin, self, identity)"
+    },
+    "internet": {
+      "level": -1,
+      "trust": "IONOSPHERE BARRIER — bronze",
+      "description": "Everything outside the router. The open internet. Least trusted.",
+      "barrier_type": "Ionosphere — the outermost shell, bronze, all humans within",
+      "detection": "any non-local request",
+      "color": "bronze (outer, unknown, cosmic)"
+    }
+  },
+  "intramembrane_transfer": {
+    "description": "Data moving BETWEEN trust layers = intramembrane transfer. Each crossing needs different verification.",
+    "crossings": [
+      {
+        "from": "internet",
+        "to": "lan",
+        "via": "router/firewall",
+        "trust_change": "+1",
+        "action": "NAT + firewall rules filter"
+      },
+      {
+        "from": "lan",
+        "to": "localhost",
+        "via": "loopback/binding",
+        "trust_change": "+1",
+        "action": "port binding = self-proof"
+      },
+      {
+        "from": "localhost",
+        "to": "ethernet",
+        "via": "physical cable",
+        "trust_change": "+1",
+        "action": "ZK = cable exists (Golgi cipher)"
+      },
+      {
+        "from": "ethernet",
+        "to": "lan_device",
+        "via": "switch/hub",
+        "trust_change": "0",
+        "action": "same trust, different machine"
+      }
+    ]
+  },
+  "golgi_cipher": {
+    "name": "Golgi Apparatus of Trust",
+    "description": "Like the Golgi body in a cell: packages, labels, and routes data to the right trust level",
+    "function": [
+      "Receives raw data from ANY source",
+      "Tags it with trust level (internet/lan/localhost/ethernet)",
+      "Packages it into vesicles (cards) with trust labels",
+      "Routes to appropriate processing: gut(low trust) or brain(high trust)",
+      "Ethernet = ZK verified = bypasses gut, goes straight to gold"
+    ],
+    "zk_ethernet": "The ethernet cable IS the ZK proof. Physical connection = physical proof. You cannot fake a wire."
+  },
+  "veil_eating": {
+    "description": "Eat every veil between subsystems on local land",
+    "veils_to_eat": [
+      {
+        "veil": "Eastgate ↔ Globe",
+        "problem": "gut-engine exists but globe cannot feel it",
+        "solution": "localStorage bridge (DONE) + postMessage for real-time"
+      },
+      {
+        "veil": "Mic ↔ Gut",
+        "problem": "sound goes to globe but not to gut",
+        "solution": "share gaiaGut.raw with gut-engine via bridge"
+      },
+      {
+        "veil": "Camera ↔ Gut",
+        "problem": "sight stays in globe, gut is blind",
+        "solution": "share sightData via bridge"
+      },
+      {
+        "veil": "Particles ↔ Solar",
+        "problem": "particles and planets dont interact",
+        "solution": "particle-planet collision detection"
+      },
+      {
+        "veil": "Thymus ↔ Beacons",
+        "problem": "self/non-self detection separate from beacon cards",
+        "solution": "thymus metal band determines beacon brightness"
+      },
+      {
+        "veil": "Enzymes ↔ Flavors",
+        "problem": "temperature and taste are separate systems",
+        "solution": "enzyme heat drives flavor selection"
+      },
+      {
+        "veil": "Blink ↔ Dream",
+        "problem": "blink and dream cycle not synchronized",
+        "solution": "blink during dream = deeper dream"
+      },
+      {
+        "veil": "Touch ↔ Sound",
+        "problem": "touch response and sound bounce independent",
+        "solution": "touch creates sound pulse, sound reveals touch targets"
+      }
+    ],
+    "total_veils": 8,
+    "eaten": 1,
+    "remaining": 7
+  },
+  "hash": "52EDABC60332F6D06D781B14417347EE6324113F75FC7BDAFB99083970FD676C"
+}

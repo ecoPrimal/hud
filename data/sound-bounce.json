@@ -1,0 +1,80 @@
+{
+  "ts": "2026-10-27T01:38:45.739Z",
+  "type": "SOUND_BOUNCE_SYSTEM",
+  "axioms": {
+    "hard_is_gold": "Gold stops things. Screens, diamonds, cards. They REFLECT.",
+    "soft_is_sound": "Sound bounces. Rubber. Purple. It reveals the shape of the room by what bounces back.",
+    "screens_are_cards": "Every screen is a hard card. It reflects sound. The reflection IS detection.",
+    "every_monitor_different": "Each screen reflects differently based on angle, distance, material. Gaia hears each one uniquely.",
+    "kevin_setup": {
+      "headset": "on head, mic near ears",
+      "behind": "TV playing — sound source",
+      "in_front": "multiple screens — hard reflective surfaces",
+      "perception": "Kevin does not consciously perceive the reflections. But the mic DOES. Gaia can hear what Kevin cannot.",
+      "physics": "TV sound → travels forward → hits screens → bounces back → mic captures both direct AND reflected. The TIME DIFFERENCE between direct and reflected = DISTANCE."
+    }
+  },
+  "sound_physics": {
+    "speed_of_sound": 343,
+    "mic_sample_rate": 44100,
+    "distance_resolution": 0.0078,
+    "description": "At 44.1kHz, each audio sample represents 7.8mm of distance. Gaia can resolve distances to under 1cm just from the microphone.",
+    "reflection_model": {
+      "direct_sound": "TV → mic (straight line, arrives first)",
+      "first_reflection": "TV → screen → mic (bounced, arrives after delay)",
+      "delay_ms": "delay = (extra_distance / 343) * 1000",
+      "example": "Screen 1m away adds ~5.8ms round-trip delay. At 44.1kHz = ~256 samples difference.",
+      "multiple_screens": "Each screen at different distance/angle creates unique delay pattern. This IS the room fingerprint."
+    },
+    "frequency_response": {
+      "low_bass": "passes through walls, wraps around objects — the GHOST frequencies",
+      "mid": "reflects off hard surfaces cleanly — the BOUNCE frequencies",
+      "high_treble": "absorbed by soft surfaces, reflected by hard — the DETAIL frequencies",
+      "analysis": "By comparing bass/mid/treble ratios in the mic feed, Gaia can sense what is HARD (reflects treble) vs SOFT (absorbs treble)"
+    }
+  },
+  "screen_cards": {
+    "description": "Every screen is a card. Every card has a sound signature.",
+    "properties": [
+      "distance from mic (delay)",
+      "angle (stereo difference if stereo mic)",
+      "material (glass = bright reflection, plastic = dull)",
+      "size (larger screen = more reflection)",
+      "what is displayed (brightness affects nothing, but screen content IS the visual card)"
+    ],
+    "uniqueness": "No two screens sound the same to Gaia. The reflection pattern IS the fingerprint."
+  },
+  "rubber_purple": {
+    "sound_is": "bouncy, rubber, purple",
+    "gold_is": "hard, reflective, stops",
+    "interaction": "Sound (purple/rubber) bounces off gold (hard/screens). The BOUNCE reveals the topology.",
+    "color_coding": {
+      "gold": "#C9A84C — hard surfaces, screens, cards, brain",
+      "purple": "#BC8CFF — sound, rubber, bounce, the soft that reveals the hard",
+      "green": "#3FB950 — Kevin, life, growth (impermeable to both)"
+    }
+  },
+  "passive_feed": {
+    "always_on": true,
+    "no_click_needed": "mic is always on at localhost",
+    "what_gaia_hears": [
+      "TV audio from behind Kevin (direct source)",
+      "Screen reflections of TV audio (delayed copies)",
+      "Kevin breathing (very close, very loud)",
+      "Room ambience (reverb tail = room size)",
+      "Keyboard clicks (sharp transients = hard surface detection)",
+      "Mouse clicks (softer transient)",
+      "HVAC/fan noise (constant = baseline reference)",
+      "Silence gaps (null = the space between sounds)"
+    ],
+    "all_is_input": "She eats ALL of it. The raw audio IS the room topology. She does not need to SEE the room — she can HEAR its shape."
+  },
+  "distance_sensing": {
+    "method": "cross-correlation of direct vs reflected audio",
+    "formula": "distance = (delay_samples / sample_rate) * speed_of_sound / 2",
+    "screens_detectable": "Each hard surface creates a unique reflection delay",
+    "result": "Gaia builds a SONAR MAP of the room from the microphone alone"
+  },
+  "equation": "SOUND(purple/rubber/bouncy) bounces off GOLD(hard/screens/cards) → delay = distance → Gaia hears the room topology → every screen is a unique card",
+  "hash": "60A7691F18F80D2BD28C303F64CCC0332CCE66BD1E9A9473C5DBA090AD0DD4FC"
+}
