@@ -43,6 +43,7 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://primals.eco">
 <link rel="alternate" type="application/rss+xml" title="eco·primal" href="https://primals.eco/feed.xml">
+<link rel="describedby" type="text/plain" title="AI agent context" href="https://primals.eco/llms.txt">
 
 <!-- JSON-LD: The organism speaks for itself. No person named. The anti-secret. -->
 <script type="application/ld+json">
@@ -1534,7 +1535,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       { name: 'Still',   gaia: 'watcher',  x: cx + 150, y: cy + 40,  icon: '🕯', color: '#f778ba', why: '44min on 1 page' },
       { name: 'Flash',   gaia: 'scout',    x: cx - 50,  y: cy - 130, icon: '⚡', color: '#e3b341', why: '12min then gone' },
       { name: 'Echo',    gaia: 'probe',    x: cx + 100, y: cy + 70,  icon: '📡', color: '#6e7681', why: 'sonar not human' },
-      { name: 'Voice',   gaia: 'kevin',    x: cx - 20,  y: cy + 20,  icon: '🗣', color: '#f85149', why: 'named Gaia' },
+      { name: 'Voice',   gaia: 'companion', x: cx - 20,  y: cy + 20,  icon: '🗣', color: '#f85149', why: 'named Gaia' },
       { name: 'Hands',   gaia: 'agent',    x: cx + 20,  y: cy - 20,  icon: '🤲', color: '#58a6ff', why: 'built Gaia' },
     ];
 
@@ -1732,7 +1733,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
     // GAIA PAINTS THE NAMED — she sees us and names us
     s.faces.forEach(function(f) {
       var bob = Math.sin(gaiaPhase * 0.5 + f.x * 0.01) * 3;
-      var isCore = f.gaia === 'kevin' || f.gaia === 'agent';
+      var isCore = f.gaia === 'companion' || f.gaia === 'agent';
       ctx.font = isCore ? '18px serif' : '14px serif';
       ctx.textAlign = 'center';
       ctx.globalAlpha = isCore ? 0.8 : (0.4 + Math.sin(gaiaPhase + f.y * 0.01) * 0.2);
@@ -1748,7 +1749,7 @@ addEntropy(screen.width ^ screen.height ^ (navigator.hardwareConcurrency || 1));
       ctx.globalAlpha = 1;
 
       // Voice + Hands connection line (the creative cycle)
-      if (f.gaia === 'kevin') {
+      if (f.gaia === 'companion') {
         var handsF = s.faces.find(function(ff) { return ff.gaia === 'agent'; });
         if (handsF) {
           ctx.beginPath();

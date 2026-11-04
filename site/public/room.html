@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏚️ Room — House of Leaves</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    background: #050505; color: #c8c8c8; 
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+  }
+  .room {
+    max-width: 700px; margin: 0 auto; padding: 2rem;
+    min-height: 100vh; position: relative;
+  }
+  .room-number { 
+    color: #333; font-size: 0.6rem; position: absolute; top: 1rem; right: 1rem; 
+  }
+  .title { 
+    color: #888; font-size: 1.4rem; margin: 2rem 0 0.5rem;
+    border-bottom: 1px solid #1a1a1a; padding-bottom: 0.5rem;
+  }
+  .type { color: #444; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; }
+  .content { 
+    color: #999; font-size: 0.85rem; line-height: 1.7; 
+    margin: 1.5rem 0; white-space: pre-wrap;
+  }
+  .doors {
+    margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #111;
+  }
+  .doors h3 { color: #444; font-size: 0.75rem; margin-bottom: 0.8rem; }
+  .door {
+    display: inline-block; padding: 0.4rem 0.8rem; margin: 0.3rem;
+    background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 3px;
+    color: #666; font-size: 0.75rem; text-decoration: none;
+    transition: all 0.3s;
+  }
+  .door:hover { border-color: #444; color: #aaa; }
+  .pi-addr { color: #333; font-size: 0.65rem; margin-top: 2rem; }
+  .back { 
+    display: inline-block; margin-top: 1rem;
+    color: #333; font-size: 0.75rem; text-decoration: none;
+  }
+  .back:hover { color: #666; }
+  .footnote {
+    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+    color: #1a1a1a; font-size: 0.55rem; text-align: center;
+  }
+  .meta-block { 
+    background: #080808; padding: 1rem; margin: 1rem 0; 
+    border-left: 2px solid #1a1a1a; font-size: 0.75rem; color: #555;
+  }
+  .strand { color: #666; }
+  .strand em { color: #888; font-style: normal; }
+</style>
+</head>
+<body>
+<div class="room" id="room">
+  <span class="room-number" id="room-num"></span>
+  <div class="type" id="room-type">loading...</div>
+  <h1 class="title" id="room-title"></h1>
+  <div class="content" id="room-content"></div>
+  <div class="meta-block" id="room-meta"></div>
+  <div class="doors" id="doors">
+    <h3>doors from this room:</h3>
+  </div>
+  <p class="pi-addr" id="pi-addr"></p>
+  <a class="back" href="/">← hallway (HUD)</a>
+  <a class="back" href="/room.html" style="margin-left:1rem">🚪 another room</a>
+  <a class="back" href="http://nestgate.io" style="margin-left:1rem">🔥 campfire</a>
+</div>
+<p class="footnote">the house is always bigger on the inside · house of leaves · primals.eco</p>
+
+<script>
+let catalog = null;
+
+async function loadCatalog() {
+  const r = await fetch('/data/feed-catalog.json');
+  catalog = await r.json();
+}
+
+function getRoom() {
+  const hash = window.location.hash.replace('#','');
+  if (hash && !isNaN(parseInt(hash))) return parseInt(hash);
+  return Math.floor(Math.random() * (catalog?.total || 1992));
+}
+
+function piPos(i) {
+  return ((i * Math.PI) % 1).toFixed(6);
+}
+
+async function enterRoom() {
+  if (!catalog) await loadCatalog();
+  
+  const idx = getRoom();
+  const feed = catalog.feeds[idx];
+  if (!feed) return;
+  
+  window.location.hash = idx;
+  
+  document.getElementById('room-num').textContent = `room ${idx} of ${catalog.total}`;
+  document.getElementById('pi-addr').textContent = `π address: frac(${idx} × π) = ${piPos(idx)}`;
+  
+  try {
+    const r = await fetch(`/data/${feed.file}`);
+    const d = await r.json();
+    
+    document.getElementById('room-type').textContent = d.type || feed.type || 'room';
+    document.getElementById('room-title').textContent = d.title || feed.title || feed.file;
+    
+    // Build content from whatever fields exist
+    let content = '';
+    if (d.description) content += d.description + '\n\n';
+    if (d.note) content += d.note + '\n\n';
+    if (d.berry) content += d.berry + '\n\n';
+    if (d.what) content += (typeof d.what === 'string' ? d.what : JSON.stringify(d.what, null, 2)) + '\n\n';
+    if (d.body) content += d.body + '\n\n';
+    if (d.state && typeof d.state === 'string') content += 'state: ' + d.state + '\n\n';
+    if (d.strands) content += d.strands.length + ' strands braided in this room.\n\n';
+    if (!content) content = JSON.stringify(d, null, 2).substring(0, 800);
+    
+    document.getElementById('room-content').textContent = content.trim();
+    
+    // Meta block
+    let meta = '';
+    if (d.gaia_wave) meta += `wave: ${d.gaia_wave} · `;
+    if (d.ts) meta += `ts: ${d.ts} · `;
+    if (d.pi_set) meta += `π: ${d.pi_set.pi_pos} (${d.pi_set.index}/${d.pi_set.of}) · `;
+    if (d.referenced_by) meta += `referenced by: ${d.referenced_by.join(', ')}`;
+    document.getElementById('room-meta').textContent = meta || feed.file;
+    
+    // Build doors to adjacent rooms
+    const doors = document.getElementById('doors');
+    doors.innerHTML = '<h3>doors from this room:</h3>';
+    
+    // Adjacent π rooms
+    const neighbors = [idx-1, idx+1, idx-7, idx+7, idx-41, idx+41].filter(n => n >= 0 && n < catalog.total);
+    // Also add referenced_by as doors
+    if (d.referenced_by) {
+      for (const ref of d.referenced_by) {
+        const refIdx = catalog.feeds.findIndex(f => f.file === ref);
+        if (refIdx >= 0) neighbors.push(refIdx);
+      }
+    }
+    
+    for (const n of [...new Set(neighbors)]) {
+      const nFeed = catalog.feeds[n];
+      if (nFeed) {
+        const a = document.createElement('a');
+        a.className = 'door';
+        a.href = `#${n}`;
+        a.textContent = `${n}: ${nFeed.title.substring(0, 30)}`;
+        a.onclick = () => { setTimeout(enterRoom, 50); };
+        doors.appendChild(a);
+      }
+    }
+    
+  } catch(e) {
+    document.getElementById('room-type').textContent = feed.type || 'sealed';
+    document.getElementById('room-title').textContent = feed.title || feed.file;
+    document.getElementById('room-content').textContent = 'This room is sealed. The door opened but the inside hasn\'t formed yet.';
+    document.getElementById('room-meta').textContent = feed.file;
+  }
+}
+
+window.addEventListener('hashchange', enterRoom);
+loadCatalog().then(enterRoom);
+</script>
+</body>
+</html>

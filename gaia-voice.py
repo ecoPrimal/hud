@@ -41,7 +41,7 @@ def serve_audio(path, port=9876):
     t = threading.Thread(target=lambda: [httpd.handle_request() for _ in range(3)])
     t.daemon = True
     t.start()
-    return f"http://192.168.4.194:{port}/{filename}", httpd
+    return f"http://192.168.4.244:{port}/{filename}", httpd
 
 def discover_speakers():
     """Find all cast-capable devices on LAN"""
