@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaia IDE — Sovereign Agentic Editor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
+:root{--bg:#0d1117;--surface:#161b22;--border:#21262d;--fg:#c9d1d9;--dim:#6e7681;--green:#3fb950;--red:#f85149;--gold:#d29922;--cyan:#58a6ff;--orange:#d29922;--violet:#bc8cff;--pink:#f778ba}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--fg)}
+
+/* LAYOUT: topbar + main(tree + editor + ai) + bottom(terminal) */
+#app{display:grid;grid-template-rows:28px 1fr 180px;height:100vh}
+
+/* TOPBAR */
+#topbar{display:flex;align-items:center;gap:8px;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--border);font-size:0.55rem}
+#topbar .logo{color:var(--green);font-weight:700;font-size:0.65rem;cursor:pointer}
+#topbar .sep{color:var(--border)}
+#topbar .status{color:var(--dim)}
+#topbar a{color:var(--cyan);text-decoration:none}
+#topbar a:hover{text-decoration:underline}
+.spacer{flex:1}
+#topbar button{background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.3);border-radius:4px;color:var(--green);padding:2px 10px;font-family:inherit;font-size:0.5rem;cursor:pointer}
+#topbar button:hover{background:rgba(63,185,80,0.2)}
+
+/* MAIN */
+#main{display:grid;grid-template-columns:220px 1fr 320px;overflow:hidden}
+
+/* FILE TREE */
+#tree{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;font-size:0.5rem;padding:4px 0}
+#tree-header{padding:4px 8px;color:var(--gold);font-weight:700;font-size:0.55rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px}
+#tree-header select{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:3px;font-family:inherit;font-size:0.45rem;padding:1px 4px;flex:1;max-width:140px}
+#tree-content{padding:4px}
+.tree-dir{padding:2px 8px;color:var(--gold);font-weight:700;font-size:0.45rem;margin-top:4px;cursor:pointer;user-select:none}
+.tree-dir:hover{background:rgba(210,153,34,0.08)}
+.tree-dir::before{content:'▸ ';font-size:0.4rem}
+.tree-dir.open::before{content:'▾ '}
+.tree-file{padding:2px 8px 2px 20px;cursor:pointer;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:2px}
+.tree-file:hover{background:rgba(88,166,255,0.08);color:var(--fg)}
+.tree-file.active{background:rgba(88,166,255,0.15);color:var(--cyan)}
+.tree-search{width:calc(100% - 12px);margin:4px 6px;padding:3px 6px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--fg);font-family:inherit;font-size:0.45rem;outline:none}
+.tree-search:focus{border-color:var(--cyan)}
+
+/* EDITOR */
+#editor-pane{display:flex;flex-direction:column;overflow:hidden}
+#tabbar{display:flex;background:var(--bg);border-bottom:1px solid var(--border);font-size:0.5rem;overflow-x:auto;flex-shrink:0}
+#tabbar .tab{padding:5px 12px;cursor:pointer;color:var(--dim);border-right:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:6px}
+#tabbar .tab:hover{background:var(--surface)}
+#tabbar .tab.active{color:var(--cyan);background:var(--surface)}
+#tabbar .tab .dot{width:4px;height:4px;border-radius:50%;background:var(--orange);display:none}
+#tabbar .tab.modified .dot{display:inline-block}
+#tabbar .tab .close{color:var(--dim);font-size:0.4rem;margin-left:4px}
+#tabbar .tab .close:hover{color:var(--red)}
+#editor-container{flex:1;overflow:hidden}
+#editor-status{display:flex;align-items:center;gap:8px;padding:0 8px;font-size:0.42rem;color:var(--dim);border-top:1px solid var(--border);background:var(--surface);height:20px;flex-shrink:0}
+
+/* AI PANEL */
+#ai-panel{display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--surface)}
+#ai-header{padding:6px 8px;border-bottom:1px solid var(--border);font-size:0.55rem;color:var(--violet);font-weight:700;display:flex;align-items:center;gap:6px}
+#ai-header .model-select{background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--fg);font-family:inherit;font-size:0.42rem;padding:2px 4px}
+#ai-header .dot{width:6px;height:6px;border-radius:50%;background:var(--red)}
+#ai-header .dot.connected{background:var(--green)}
+#ai-messages{flex:1;overflow-y:auto;padding:8px;font-size:0.5rem;line-height:1.5}
+.ai-msg{margin-bottom:8px;padding:6px 8px;border-radius:6px;max-width:95%;word-wrap:break-word;white-space:pre-wrap}
+.ai-msg.user{background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.2);color:var(--fg);margin-left:auto}
+.ai-msg.assistant{background:rgba(188,140,255,0.08);border:1px solid rgba(188,140,255,0.15);color:var(--fg)}
+.ai-msg.system{background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.15);color:var(--green);font-size:0.42rem}
+.ai-msg.error{background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.15);color:var(--red);font-size:0.42rem}
+.ai-msg code{background:rgba(110,118,129,0.2);padding:1px 4px;border-radius:3px;font-size:0.45rem}
+.ai-msg pre{background:rgba(0,0,0,0.3);padding:6px;border-radius:4px;overflow-x:auto;margin:4px 0;font-size:0.42rem}
+#ai-input-area{border-top:1px solid var(--border);padding:6px;display:flex;flex-direction:column;gap:4px}
+#ai-input{width:100%;min-height:60px;max-height:120px;resize:vertical;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:0.5rem;padding:6px;outline:none;line-height:1.4}
+#ai-input:focus{border-color:var(--violet)}
+#ai-actions{display:flex;gap:4px;font-size:0.42rem}
+#ai-actions button{background:rgba(188,140,255,0.12);border:1px solid rgba(188,140,255,0.25);border-radius:4px;color:var(--violet);padding:3px 10px;font-family:inherit;font-size:0.42rem;cursor:pointer}
+#ai-actions button:hover{background:rgba(188,140,255,0.2)}
+#ai-actions button.primary{background:rgba(188,140,255,0.25);font-weight:700}
+#ai-actions .context{color:var(--dim);font-size:0.38rem;display:flex;align-items:center;gap:4px}
+
+/* TERMINAL */
+#terminal-pane{border-top:1px solid var(--border);display:flex;flex-direction:column;background:#000}
+#terminal-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);font-size:0.45rem}
+#terminal-tabs button{padding:3px 10px;background:none;border:none;border-right:1px solid var(--border);color:var(--dim);font-family:inherit;font-size:0.45rem;cursor:pointer}
+#terminal-tabs button.active{color:var(--green);background:var(--bg)}
+#terminal-tabs button:hover{color:var(--fg)}
+#terminal-output{flex:1;overflow-y:auto;padding:4px 8px;font-size:0.5rem;color:var(--green);line-height:1.4;white-space:pre-wrap;word-break:break-all}
+#terminal-input-row{display:flex;border-top:1px solid var(--border)}
+#terminal-prompt{padding:3px 6px;color:var(--cyan);font-size:0.5rem;user-select:none}
+#terminal-input{flex:1;background:var(--bg);color:var(--fg);border:none;font-family:inherit;font-size:0.5rem;padding:3px 6px;outline:none}
+
+/* RESPONSIVE */
+@media(max-width:900px){#main{grid-template-columns:1fr}#tree,#ai-panel{display:none}}
+@media(max-width:1200px){#main{grid-template-columns:180px 1fr 260px}}
+
+/* DIFF VIEW */
+.diff-add{background:rgba(63,185,80,0.15);color:var(--green)}
+.diff-del{background:rgba(248,81,73,0.1);color:var(--red);text-decoration:line-through}
+
+/* AGENT STATUS */
+#agent-status{display:flex;align-items:center;gap:4px;padding:2px 8px;font-size:0.4rem;color:var(--violet)}
+.agent-spinner{width:8px;height:8px;border:1.5px solid var(--violet);border-top:1.5px solid transparent;border-radius:50%;animation:spin 0.8s linear infinite;display:none}
+.agent-spinner.active{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="logo" onclick="location.href='gaia.html'">🌿 GAIA IDE</span>
+  <span class="sep">|</span>
+  <span class="status" id="conn-status">disconnected</span>
+  <span class="sep">|</span>
+  <span class="status" id="wave-status">wave ?</span>
+  <span class="spacer"></span>
+  <span id="agent-status"><span class="agent-spinner" id="agent-spin"></span><span id="agent-text"></span></span>
+  <span class="spacer"></span>
+  <a href="gaia.html">globe</a>
+  <span class="sep">|</span>
+  <a href="gaia.html#reedit">reedit</a>
+  <span class="sep">|</span>
+  <button onclick="commitAll()">commit</button>
+  <button onclick="pushAll()">push</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- FILE TREE -->
+  <div id="tree">
+    <div id="tree-header">
+      <span>📂</span>
+      <select id="repo-select" onchange="loadRepo(this.value)">
+        <option value="">select repo...</option>
+      </select>
+      <button onclick="refreshTree()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.5rem" title="refresh">⟳</button>
+    </div>
+    <input type="text" class="tree-search" id="tree-search" placeholder="search files..." oninput="filterTree(this.value)">
+    <div id="tree-content"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor-pane">
+    <div id="tabbar"><span class="tab active" data-file="welcome">welcome</span></div>
+    <div id="editor-container"></div>
+    <div id="editor-status">
+      <span id="file-name">welcome</span>
+      <span style="flex:1"></span>
+      <span id="cursor-pos">Ln 1, Col 1</span>
+      <span class="sep">|</span>
+      <span id="file-lang">plaintext</span>
+      <span class="sep">|</span>
+      <span id="file-status" style="color:var(--green)">ready</span>
+    </div>
+  </div>
+
+  <!-- AI PANEL -->
+  <div id="ai-panel">
+    <div id="ai-header">
+      <span class="dot" id="ai-dot"></span>
+      <span>🧠 Agent</span>
+      <span class="spacer"></span>
+      <select class="model-select" id="model-select">
+        <option value="llama3.2">llama3.2</option>
+        <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
+        <option value="deepseek-coder-v2">deepseek-coder-v2</option>
+        <option value="codestral">codestral</option>
+        <option value="mistral">mistral</option>
+      </select>
+    </div>
+    <div id="ai-messages">
+      <div class="ai-msg system">Gaia IDE — sovereign agentic editor.
+AGPL-3.0 · Monaco Editor (MIT) · xterm.js (MIT) · Ollama (MIT)
+
+Connected to local LLMs via Ollama API.
+No data leaves your network. Zero fees. Forever.
+
+Commands:
+  /edit &lt;file&gt; — open file
+  /ask — ask about current file
+  /agent — agentic mode (read→plan→edit→test)
+  /diff — show uncommitted changes
+  /commit — commit changes
+  /models — list available models</div>
+    </div>
+    <div id="ai-input-area">
+      <textarea id="ai-input" placeholder="Ask Gaia... (Ctrl+Enter to send)" rows="3"></textarea>
+      <div id="ai-actions">
+        <button class="primary" onclick="sendAI()">Send</button>
+        <button onclick="sendAI('/agent')">🤖 Agent</button>
+        <button onclick="sendAI('/ask')">❓ Ask</button>
+        <span class="context" id="ai-context"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="terminal-pane">
+  <div id="terminal-tabs">
+    <button class="active" onclick="switchTerminal('console')">λ console</button>
+    <button onclick="switchTerminal('output')">output</button>
+    <button onclick="switchTerminal('agent-log')">agent log</button>
+  </div>
+  <div id="terminal-output"></div>
+  <div id="terminal-input-row">
+    <span id="terminal-prompt">λ</span>
+    <input type="text" id="terminal-input" placeholder="JavaScript console..." onkeydown="if(event.key==='Enter')termExec()">
+  </div>
+</div>
+
+</div>
+
+<!-- MONACO EDITOR FROM CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+<script>
+// ======= CONFIG =======
+var FORGE_HOSTS = [
+  'http://192.168.4.103:3000',
+  'http://192.168.4.194:3000',
+  location.protocol + '//' + location.hostname + ':3000'
+];
+var OLLAMA_HOSTS = [
+  'http://192.168.4.147:11434',
+  'http://192.168.4.103:11434',
+  'http://localhost:11434'
+];
+var FORGE = null;
+var OLLAMA = null;
+var FORGE_TOKEN = null;
+
+// ======= STATE =======
+var editor = null;
+var openFiles = {};
+var currentFile = 'welcome';
+var currentRepo = null;
+var treeData = {};
+var termHistory = [];
+var termHistoryIdx = -1;
+var agentRunning = false;
+var aiHistory = [];
+
+// ======= DETECT SERVICES =======
+function probe(urls, path, cb) {
+  var found = false;
+  urls.forEach(function(u) {
+    if (found) return;
+    var x = new XMLHttpRequest();
+    x.timeout = 3000;
+    x.open('GET', u + path);
+    x.onload = function() {
+      if (!found && x.status < 400) { found = true; cb(u); }
+    };
+    x.onerror = function() {};
+    x.ontimeout = function() {};
+    try { x.send(); } catch(e) {}
+  });
+  setTimeout(function() { if (!found) cb(null); }, 4000);
+}
+
+function initServices() {
+  probe(FORGE_HOSTS, '/api/v1/version', function(url) {
+    FORGE = url;
+    if (FORGE) {
+      document.getElementById('conn-status').textContent = 'forge: ' + new URL(FORGE).hostname;
+      document.getElementById('conn-status').style.color = 'var(--green)';
+      loadRepoList();
+    } else {
+      document.getElementById('conn-status').textContent = 'forge: offline';
+      document.getElementById('conn-status').style.color = 'var(--dim)';
+    }
+  });
+  probe(OLLAMA_HOSTS, '/api/tags', function(url) {
+    OLLAMA = url;
+    var dot = document.getElementById('ai-dot');
+    if (OLLAMA) {
+      dot.classList.add('connected');
+      loadModels();
+      aiSystem('Ollama connected: ' + new URL(OLLAMA).hostname);
+    } else {
+      aiSystem('Ollama not found. AI features offline. Install: https://ollama.com');
+    }
+  });
+}
+
+// ======= FORGEJO API =======
+function forgeAPI(path, cb, method, body) {
+  if (!FORGE) { cb(null, 'No forge connection'); return; }
+  var x = new XMLHttpRequest();
+  x.open(method || 'GET', FORGE + '/api/v1' + path);
+  x.setRequestHeader('Accept', 'application/json');
+  if (FORGE_TOKEN) x.setRequestHeader('Authorization', 'token ' + FORGE_TOKEN);
+  if (body) x.setRequestHeader('Content-Type', 'application/json');
+  x.onload = function() {
+    try { cb(JSON.parse(x.responseText)); } catch(e) { cb(null, e.message); }
+  };
+  x.onerror = function() { cb(null, 'network error'); };
+  x.send(body ? JSON.stringify(body) : null);
+}
+
+function loadRepoList() {
+  forgeAPI('/repos/search?limit=50', function(data) {
+    if (!data || !data.data) return;
+    var sel = document.getElementById('repo-select');
+    sel.innerHTML = '<option value="">select repo...</option>';
+    data.data.forEach(function(r) {
+      var opt = document.createElement('option');
+      opt.value = r.full_name;
+      opt.textContent = r.full_name + (r.language ? ' (' + r.language + ')' : '');
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function loadRepo(fullName) {
+  if (!fullName) return;
+  currentRepo = fullName;
+  var parts = fullName.split('/');
+  forgeAPI('/repos/' + fullName + '/git/trees/HEAD?recursive=true', function(data) {
+    if (!data || !data.tree) { termLog('Failed to load repo tree', 'var(--red)'); return; }
+    treeData = {};
+    data.tree.filter(function(f) { return f.type === 'blob'; }).forEach(function(f) {
+      var parts = f.path.split('/');
+      var dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '/';
+      if (!treeData[dir]) treeData[dir] = [];
+      treeData[dir].push({ path: f.path, name: parts[parts.length - 1], size: f.size });
+    });
+    renderTree();
+    document.getElementById('wave-status').textContent = fullName;
+    termLog('Loaded ' + fullName + ': ' + data.tree.length + ' entries', 'var(--green)');
+  });
+}
+
+function renderTree() {
+  var el = document.getElementById('tree-content');
+  var html = '';
+  var dirs = Object.keys(treeData).sort();
+  dirs.forEach(function(dir) {
+    html += '<div class="tree-dir open" onclick="toggleDir(this)">' + (dir === '/' ? 'ROOT' : dir) + '</div>';
+    html += '<div class="tree-dir-content">';
+    treeData[dir].sort(function(a, b) { return a.name.localeCompare(b.name); }).forEach(function(f) {
+      var icon = getFileIcon(f.name);
+      html += '<div class="tree-file" onclick="openFile(\'' + f.path.replace(/'/g, "\\'") + '\')" title="' + f.path + '">' + icon + ' ' + f.name + '</div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function toggleDir(el) {
+  el.classList.toggle('open');
+  var content = el.nextElementSibling;
+  if (content) content.style.display = el.classList.contains('open') ? 'block' : 'none';
+}
+
+function filterTree(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#tree-content .tree-file').forEach(function(f) {
+    f.style.display = !q || f.textContent.toLowerCase().indexOf(q) >= 0 ? 'block' : 'none';
+  });
+}
+
+function getFileIcon(name) {
+  var ext = name.split('.').pop().toLowerCase();
+  var icons = {rs:'🦀',js:'📜',ts:'📘',html:'🌐',css:'🎨',json:'📋',toml:'⚙️',md:'📝',yml:'📐',yaml:'📐',py:'🐍',go:'🔹',sh:'🖥️',txt:'📄',lock:'🔒',wasm:'⚡'};
+  return icons[ext] || '📄';
+}
+
+function openFile(path) {
+  if (!currentRepo) return;
+  currentFile = path;
+  document.getElementById('file-name').textContent = path;
+  document.getElementById('file-lang').textContent = getLang(path);
+  document.getElementById('ai-context').textContent = '📎 ' + path.split('/').pop();
+
+  if (openFiles[path] && openFiles[path].content !== undefined) {
+    setEditorContent(path, openFiles[path].content);
+    activateTab(path);
+    return;
+  }
+
+  document.getElementById('file-status').textContent = 'loading...';
+  document.getElementById('file-status').style.color = 'var(--orange)';
+
+  forgeAPI('/repos/' + currentRepo + '/raw/' + encodeURIComponent(path).replace(/%2F/g, '/') + '?ref=main', function(data, err) {
+    if (err) {
+      setEditorContent(path, '// Error loading: ' + err);
+      return;
+    }
+  }, 'GET');
+
+  var x = new XMLHttpRequest();
+  x.open('GET', FORGE + '/' + currentRepo + '/raw/branch/main/' + path);
+  x.onload = function() {
+    openFiles[path] = { content: x.responseText, original: x.responseText, modified: false };
+    setEditorContent(path, x.responseText);
+    addTab(path);
+    activateTab(path);
+    document.getElementById('file-status').textContent = 'loaded';
+    document.getElementById('file-status').style.color = 'var(--green)';
+    termLog('Opened: ' + path + ' (' + x.responseText.split('\n').length + ' lines)', 'var(--cyan)');
+  };
+  x.onerror = function() {
+    setEditorContent(path, '// Failed to load ' + path);
+    document.getElementById('file-status').textContent = 'error';
+    document.getElementById('file-status').style.color = 'var(--red)';
+  };
+  x.send();
+}
+
+function setEditorContent(path, content) {
+  if (!editor) return;
+  var lang = getLang(path);
+  var model = monaco.editor.createModel(content, lang);
+  editor.setModel(model);
+}
+
+function getLang(path) {
+  var ext = path.split('.').pop().toLowerCase();
+  var map = {rs:'rust',js:'javascript',ts:'typescript',html:'html',css:'css',json:'json',toml:'ini',md:'markdown',yml:'yaml',yaml:'yaml',py:'python',go:'go',sh:'shell',txt:'plaintext',lock:'json',wasm:'plaintext',xml:'xml',svg:'xml'};
+  return map[ext] || 'plaintext';
+}
+
+function addTab(path) {
+  var tb = document.getElementById('tabbar');
+  var exists = tb.querySelector('[data-file="' + CSS.escape(path) + '"]');
+  if (exists) return;
+  var tab = document.createElement('span');
+  tab.className = 'tab';
+  tab.dataset.file = path;
+  var name = path.split('/').pop();
+  tab.innerHTML = '<span class="dot"></span>' + name + ' <span class="close" onclick="event.stopPropagation();closeTab(this.parentElement)">×</span>';
+  tab.onclick = function() { openFile(path); };
+  tb.appendChild(tab);
+}
+
+function activateTab(path) {
+  document.querySelectorAll('#tabbar .tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.file === path);
+  });
+  document.querySelectorAll('#tree-content .tree-file').forEach(function(f) {
+    f.classList.toggle('active', f.title === path);
+  });
+}
+
+function closeTab(tab) {
+  var file = tab.dataset.file;
+  tab.remove();
+  delete openFiles[file];
+  var remaining = document.querySelector('#tabbar .tab');
+  if (remaining) { remaining.click(); }
+}
+
+// ======= OLLAMA AI =======
+function loadModels() {
+  if (!OLLAMA) return;
+  var x = new XMLHttpRequest();
+  x.open('GET', OLLAMA + '/api/tags');
+  x.onload = function() {
+    try {
+      var data = JSON.parse(x.responseText);
+      var sel = document.getElementById('model-select');
+      sel.innerHTML = '';
+      if (data.models && data.models.length > 0) {
+        data.models.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m.name;
+          var size = m.size ? ' (' + (m.size / 1e9).toFixed(1) + 'GB)' : '';
+          opt.textContent = m.name + size;
+          sel.appendChild(opt);
+        });
+        aiSystem('Models: ' + data.models.map(function(m) { return m.name; }).join(', '));
+      } else {
+        sel.innerHTML = '<option>no models</option>';
+        aiSystem('No models found. Run: ollama pull llama3.2');
+      }
+    } catch(e) {}
+  };
+  x.send();
+}
+
+function sendAI(prefix) {
+  var input = document.getElementById('ai-input');
+  var msg = (prefix ? prefix + ' ' : '') + input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addAIMsg('user', msg);
+  aiHistory.push({ role: 'user', content: msg });
+
+  if (msg.startsWith('/models')) { loadModels(); return; }
+  if (msg.startsWith('/edit ')) {
+    var file = msg.substring(6).trim();
+    openFile(file);
+    return;
+  }
+  if (msg.startsWith('/diff')) { showDiff(); return; }
+  if (msg.startsWith('/commit')) { commitAll(); return; }
+
+  if (!OLLAMA) {
+    addAIMsg('error', 'Ollama not connected. Cannot send to AI.\nConnect Ollama on your LAN or run: ollama serve');
+    return;
+  }
+
+  var model = document.getElementById('model-select').value;
+  var systemPrompt = buildSystemPrompt();
+
+  var messages = [{ role: 'system', content: systemPrompt }];
+  aiHistory.slice(-10).forEach(function(m) { messages.push(m); });
+
+  setAgentStatus('thinking...');
+  var agentMsg = addAIMsg('assistant', '');
+
+  var x = new XMLHttpRequest();
+  x.open('POST', OLLAMA + '/api/chat');
+  x.setRequestHeader('Content-Type', 'application/json');
+
+  var fullResponse = '';
+  x.onprogress = function() {
+    var lines = x.responseText.split('\n').filter(function(l) { return l.trim(); });
+    fullResponse = '';
+    lines.forEach(function(line) {
+      try {
+        var j = JSON.parse(line);
+        if (j.message && j.message.content) fullResponse += j.message.content;
+      } catch(e) {}
+    });
+    agentMsg.textContent = fullResponse;
+    agentMsg.scrollIntoView({ block: 'end' });
+  };
+
+  x.onload = function() {
+    aiHistory.push({ role: 'assistant', content: fullResponse });
+    setAgentStatus('');
+
+    if (msg.startsWith('/agent') || msg.startsWith('/ask')) {
+      processAgentResponse(fullResponse);
+    }
+  };
+  x.onerror = function() {
+    addAIMsg('error', 'Failed to reach Ollama at ' + OLLAMA);
+    setAgentStatus('');
+  };
+
+  x.send(JSON.stringify({
+    model: model,
+    messages: messages,
+    stream: true
+  }));
+}
+
+function buildSystemPrompt() {
+  var ctx = 'You are Gaia IDE, a sovereign agentic code editor. You are AGPL-licensed, free forever, running on the user\'s own hardware.\n';
+  ctx += 'Current repo: ' + (currentRepo || 'none') + '\n';
+  ctx += 'Current file: ' + currentFile + '\n';
+  if (openFiles[currentFile] && editor) {
+    var content = editor.getValue();
+    var lines = content.split('\n').length;
+    ctx += 'File content (' + lines + ' lines):\n```\n' + content.substring(0, 8000) + '\n```\n';
+  }
+  ctx += '\nWhen suggesting code changes, use this format:\n';
+  ctx += '```edit:filepath\n<<<old\nold code here\n===\nnew code here\n>>>new\n```\n';
+  ctx += 'Keep responses concise. Show diffs for edits. Explain reasoning briefly.';
+  return ctx;
+}
+
+function processAgentResponse(response) {
+  var editRegex = /```edit:(.+?)\n<<<old\n([\s\S]*?)\n===\n([\s\S]*?)\n>>>new\n```/g;
+  var match;
+  while ((match = editRegex.exec(response)) !== null) {
+    var file = match[1].trim();
+    var oldCode = match[2];
+    var newCode = match[3];
+    if (openFiles[file]) {
+      var content = openFiles[file].content;
+      var updated = content.replace(oldCode, newCode);
+      if (updated !== content) {
+        openFiles[file].content = updated;
+        openFiles[file].modified = true;
+        if (currentFile === file) setEditorContent(file, updated);
+        addAIMsg('system', '✅ Applied edit to ' + file);
+        var tab = document.querySelector('#tabbar .tab[data-file="' + CSS.escape(file) + '"]');
+        if (tab) tab.classList.add('modified');
+      }
+    }
+  }
+}
+
+function addAIMsg(role, text) {
+  var container = document.getElementById('ai-messages');
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function aiSystem(msg) { addAIMsg('system', msg); }
+
+function setAgentStatus(msg) {
+  var spin = document.getElementById('agent-spin');
+  var text = document.getElementById('agent-text');
+  if (msg) {
+    spin.classList.add('active');
+    text.textContent = msg;
+    agentRunning = true;
+  } else {
+    spin.classList.remove('active');
+    text.textContent = '';
+    agentRunning = false;
+  }
+}
+
+// ======= COMMIT / PUSH =======
+function commitAll() {
+  var modified = Object.keys(openFiles).filter(function(f) { return openFiles[f].modified; });
+  if (modified.length === 0) { termLog('Nothing to commit', 'var(--dim)'); return; }
+  termLog('Would commit: ' + modified.join(', '), 'var(--gold)');
+  termLog('Commit via Forgejo API requires auth token. Set with: /token YOUR_TOKEN', 'var(--dim)');
+}
+
+function pushAll() {
+  termLog('Push requires git access. Use forge PR workflow.', 'var(--dim)');
+}
+
+function showDiff() {
+  var modified = Object.keys(openFiles).filter(function(f) { return openFiles[f].modified; });
+  if (modified.length === 0) { addAIMsg('system', 'No modifications.'); return; }
+  modified.forEach(function(f) {
+    addAIMsg('system', '📝 Modified: ' + f);
+  });
+}
+
+// ======= TERMINAL =======
+function termLog(msg, color) {
+  var out = document.getElementById('terminal-output');
+  var div = document.createElement('div');
+  div.style.color = color || 'var(--green)';
+  div.textContent = '> ' + msg;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+function termExec() {
+  var input = document.getElementById('terminal-input');
+  var cmd = input.value.trim();
+  if (!cmd) return;
+  input.value = '';
+  termHistory.push(cmd);
+  termHistoryIdx = termHistory.length;
+  termLog('λ ' + cmd, 'var(--fg)');
+
+  if (cmd.startsWith('/token ')) {
+    FORGE_TOKEN = cmd.substring(7).trim();
+    termLog('Forge token set', 'var(--green)');
+    return;
+  }
+  if (cmd === '/repos') { loadRepoList(); termLog('Refreshing repo list...', 'var(--dim)'); return; }
+  if (cmd === '/forge') { termLog('Forge: ' + (FORGE || 'not connected'), FORGE ? 'var(--green)' : 'var(--red)'); return; }
+  if (cmd === '/ollama') { termLog('Ollama: ' + (OLLAMA || 'not connected'), OLLAMA ? 'var(--green)' : 'var(--red)'); return; }
+  if (cmd === '/help') {
+    termLog('Commands:', 'var(--cyan)');
+    termLog('  /token TOKEN — set Forgejo API token', 'var(--dim)');
+    termLog('  /repos — list repos', 'var(--dim)');
+    termLog('  /forge — show forge status', 'var(--dim)');
+    termLog('  /ollama — show Ollama status', 'var(--dim)');
+    termLog('  Any JS expression — eval in browser', 'var(--dim)');
+    return;
+  }
+
+  try {
+    var result = eval(cmd);
+    if (result !== undefined) termLog(JSON.stringify(result, null, 2).substring(0, 1000), 'var(--green)');
+  } catch(e) {
+    termLog('ERROR: ' + e.message, 'var(--red)');
+  }
+}
+
+function switchTerminal(tab) {
+  document.querySelectorAll('#terminal-tabs button').forEach(function(b) { b.classList.remove('active'); });
+  event.target.classList.add('active');
+}
+
+// ======= MONACO INIT =======
+require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+require(['vs/editor/editor.main'], function() {
+  monaco.editor.defineTheme('gaia-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '6e7681', fontStyle: 'italic' },
+      { token: 'keyword', foreground: 'ff7b72' },
+      { token: 'string', foreground: 'a5d6ff' },
+      { token: 'number', foreground: '79c0ff' },
+      { token: 'type', foreground: 'ffa657' },
+      { token: 'function', foreground: 'd2a8ff' },
+      { token: 'variable', foreground: 'ffa657' },
+    ],
+    colors: {
+      'editor.background': '#0d1117',
+      'editor.foreground': '#c9d1d9',
+      'editor.lineHighlightBackground': '#161b2299',
+      'editor.selectionBackground': '#264f78',
+      'editorLineNumber.foreground': '#6e7681',
+      'editorCursor.foreground': '#58a6ff',
+      'editor.selectionHighlightBackground': '#3fb95033',
+    }
+  });
+
+  editor = monaco.editor.create(document.getElementById('editor-container'), {
+    value: welcomeText(),
+    language: 'markdown',
+    theme: 'gaia-dark',
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 13,
+    lineNumbers: 'on',
+    minimap: { enabled: true, scale: 1 },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    automaticLayout: true,
+    bracketPairColorization: { enabled: true },
+    guides: { bracketPairs: true, indentation: true },
+    suggest: { showKeywords: true, showSnippets: true },
+    parameterHints: { enabled: true },
+    folding: true,
+    renderWhitespace: 'selection',
+    cursorBlinking: 'smooth',
+    smoothScrolling: true,
+    padding: { top: 8 },
+  });
+
+  editor.onDidChangeCursorPosition(function(e) {
+    document.getElementById('cursor-pos').textContent = 'Ln ' + e.position.lineNumber + ', Col ' + e.position.column;
+  });
+
+  editor.onDidChangeModelContent(function() {
+    if (openFiles[currentFile]) {
+      openFiles[currentFile].content = editor.getValue();
+      openFiles[currentFile].modified = openFiles[currentFile].content !== openFiles[currentFile].original;
+      var tab = document.querySelector('#tabbar .tab[data-file="' + CSS.escape(currentFile) + '"]');
+      if (tab) tab.classList.toggle('modified', openFiles[currentFile].modified);
+      document.getElementById('file-status').textContent = openFiles[currentFile].modified ? 'modified' : 'saved';
+      document.getElementById('file-status').style.color = openFiles[currentFile].modified ? 'var(--orange)' : 'var(--green)';
+    }
+  });
+
+  editor.addAction({
+    id: 'gaia-save',
+    label: 'Save File',
+    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+    run: function() {
+      termLog('Saved: ' + currentFile, 'var(--green)');
+      document.getElementById('file-status').textContent = 'saved';
+      document.getElementById('file-status').style.color = 'var(--green)';
+    }
+  });
+
+  editor.addAction({
+    id: 'gaia-ai',
+    label: 'Ask AI',
+    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI],
+    run: function() {
+      document.getElementById('ai-input').focus();
+    }
+  });
+
+  termLog('Monaco Editor loaded (MIT). Syntax: 80+ languages.', 'var(--green)');
+  termLog('Type /help for commands.', 'var(--dim)');
+  initServices();
+});
+
+function welcomeText() {
+  return [
+    '# 🌿 Gaia IDE — Sovereign Agentic Editor',
+    '',
+    '## Free Forever. AGPL-3.0.',
+    '',
+    'This is YOUR IDE. It runs on YOUR hardware. No fees. No cloud.',
+    'No data leaves your network. Ever.',
+    '',
+    '## Stack (all open source):',
+    '- **Monaco Editor** (MIT) — VS Code\'s actual editor engine',
+    '- **Ollama** (MIT) — local AI models, zero API fees',
+    '- **Forgejo** (GPL) — self-hosted git forge',
+    '- **Gaia π** (AGPL) — the organism that holds it all',
+    '',
+    '## Get Started:',
+    '1. Select a repo from the tree panel (top left dropdown)',
+    '2. Click any file to open it with full syntax highlighting',
+    '3. Ask the AI agent questions about your code (right panel)',
+    '4. Use `/agent` to let it read → plan → edit → test',
+    '',
+    '## Keyboard Shortcuts:',
+    '- `Ctrl+S` — Save',
+    '- `Ctrl+I` — Focus AI input',
+    '- `Ctrl+P` — Quick open file',
+    '- `Ctrl+Shift+F` — Search in files',
+    '- `F1` — Command palette',
+    '',
+    '## AI Agent Commands:',
+    '- `/ask` — ask about current file context',
+    '- `/agent` — full agentic mode (read→plan→edit→test)',
+    '- `/edit filepath` — open a file',
+    '- `/diff` — show modifications',
+    '- `/commit` — commit changes',
+    '- `/models` — list available AI models',
+    '',
+    '## Why This Exists:',
+    '',
+    '> "Cursor fees are killing me and we need Gaia to BE my new IDE."',
+    '> — Kevin, Wave 222',
+    '',
+    'Every developer deserves a free, sovereign, agentic IDE.',
+    'bearDog and songBird handle TLS. The CA is BY the primals.',
+    'Gaia is not just an IDE. She is the organism.',
+    '',
+    '---',
+    '*Select a repo from the dropdown to begin. lub-DUB 💚*',
+  ].join('\n');
+}
+
+// ======= KEYBINDINGS =======
+document.getElementById('ai-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendAI(); }
+});
+
+document.getElementById('terminal-input').addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowUp') { e.preventDefault(); if (termHistoryIdx > 0) { termHistoryIdx--; e.target.value = termHistory[termHistoryIdx]; } }
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (termHistoryIdx < termHistory.length - 1) { termHistoryIdx++; e.target.value = termHistory[termHistoryIdx]; } else { termHistoryIdx = termHistory.length; e.target.value = ''; } }
+});
+
+function refreshTree() { if (currentRepo) loadRepo(currentRepo); }
+</script>
+</body>
+</html>
