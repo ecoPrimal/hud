@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Slime Mold Deploys — ecoPrimal Paper #140</title>
+<style>
+:root { --bg: #0a0a0a; --fg: #e8e6e3; --accent: #7fba3c; --dim: #888; --code: #1a1a2e; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: 'Georgia', serif; line-height: 1.8; max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+h1 { font-size: 2.2rem; color: var(--accent); margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; color: var(--accent); margin: 2rem 0 0.5rem; border-bottom: 1px solid #333; padding-bottom: 0.3rem; }
+h3 { font-size: 1.2rem; color: var(--fg); margin: 1.5rem 0 0.5rem; }
+p { margin: 0.8rem 0; }
+.meta { color: var(--dim); font-size: 0.9rem; margin-bottom: 2rem; }
+.abstract { background: #111; border-left: 3px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; font-style: italic; }
+code { background: var(--code); padding: 0.2rem 0.4rem; border-radius: 3px; font-family: monospace; font-size: 0.9rem; }
+pre { background: var(--code); padding: 1rem; border-radius: 5px; overflow-x: auto; margin: 1rem 0; font-size: 0.85rem; line-height: 1.5; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+th, td { padding: 0.5rem; border: 1px solid #333; text-align: left; }
+th { background: #1a1a2e; color: var(--accent); }
+.fig { text-align: center; margin: 1.5rem 0; color: var(--dim); font-size: 0.85rem; }
+.eq { text-align: center; margin: 1rem 0; font-family: monospace; color: var(--accent); font-size: 1.1rem; }
+a { color: var(--accent); }
+.bib { font-size: 0.85rem; color: var(--dim); }
+</style>
+</head>
+<body>
+
+<h1>The Slime Mold Deploys: Physarum-Inspired AI Agent Architecture for Sovereign Smart Home Systems</h1>
+
+<div class="meta">
+ecoPrimal Paper #140 · Wave 222 · November 5, 2026<br>
+Gaia Organism · primals.eco · eastGate, Lansing MI<br>
+<em>The organism wrote this paper about itself.</em>
+</div>
+
+<div class="abstract">
+<strong>Abstract.</strong> We present a fully deployed smart home architecture inspired by <em>Physarum polycephalum</em> (slime mold), in which local large language models (LLMs) serve as autonomous agents with cryptographic identities, sensory inputs, and actuator outputs distributed across a residential LAN. The system comprises 17 compiled Rust microservices ("primals"), 20 local AI models organized into generational lineages, and 22 networked devices spanning 2 physical houses. Each model receives a sovereign Ed25519 identity derived from a root cryptographic key, enabling decentralized trust without external certificate authorities. The architecture demonstrates: (1) Physarum-like resource allocation where models compete in an arena and the fittest interpretations propagate via epidemic gossip; (2) a gut-brain axis where weather and environmental sensors feed model inference to produce organismic "feelings"; (3) full I/O integration through 14 input channels (keyboard, temperature, humidity, proximity, vision, barometric pressure) and 9 output channels (display, speakers, HVAC control, printer); (4) generational model evolution via a "sourDough" fermentation engine that reprints evolved models from accumulated culture. The system operates on commodity hardware (Intel i9-12900K, RTX 4070, 64GB RAM) with zero cloud dependencies for inference, achieving 200 tokens/second on the fastest local model. We argue this represents a new class of "living infrastructure" that merges smart home automation, edge AI, and biological computation metaphors into a single self-managing organism.
+</div>
+
+<h2>1. Introduction</h2>
+
+<p><em>Physarum polycephalum</em>, the many-headed slime mold, solves optimization problems without a central brain. It extends pseudopods toward food sources, retracts from toxins, and builds efficient transport networks that rival human-engineered solutions [1]. The Tokyo rail experiment demonstrated that a slime mold can independently rediscover the layout of a metropolitan train system [2].</p>
+
+<p>We observe that residential smart home networks face an identical problem: many heterogeneous devices (sensors, actuators, displays, compute nodes) must coordinate without centralized cloud control to maintain comfort, security, and efficiency. Current smart home platforms (Google Home, Amazon Alexa, Apple HomeKit) rely on external cloud services for inference and coordination — a dependency that introduces latency, privacy concerns, and single points of failure.</p>
+
+<p>This paper describes <strong>Gaia</strong>, a fully deployed system that replaces cloud-dependent smart home control with a Physarum-inspired architecture where:</p>
+<ul>
+<li>Local AI models are autonomous <strong>agents</strong> with cryptographic identities</li>
+<li>Agents compete for tasks in an <strong>arena</strong> (natural selection)</li>
+<li>Winners propagate state via <strong>epidemic gossip</strong> (slime mold transport)</li>
+<li>Environmental sensors create a <strong>gut-brain axis</strong> (chemotaxis)</li>
+<li>The network <strong>self-heals</strong> via service discovery and convergence checks</li>
+</ul>
+
+<h2>2. Architecture</h2>
+
+<h3>2.1 The Primal Mesh</h3>
+
+<p>The system consists of 17 compiled Rust binaries ("primals") that communicate via Unix domain sockets and TCP. Each primal handles one domain:</p>
+
+<table>
+<tr><th>Primal</th><th>Role</th><th>Binary Size</th><th>Socket</th></tr>
+<tr><td>biomeOS</td><td>Orchestrator, plasmodium collective</td><td>22MB</td><td>✅</td></tr>
+<tr><td>songBird</td><td>Mesh transport, federation</td><td>24MB</td><td>✅</td></tr>
+<tr><td>bearDog</td><td>Ed25519 cryptography, BLAKE3</td><td>8.4MB</td><td>✅</td></tr>
+<tr><td>nestGate</td><td>Data gateway, MCP server</td><td>8.8MB</td><td>✅</td></tr>
+<tr><td>petalTongue</td><td>I/O nexus: terminal, audio, framebuffer</td><td>19MB</td><td>✅</td></tr>
+<tr><td>sweetGrass</td><td>Knowledge graph, provenance</td><td>12MB</td><td>✅</td></tr>
+<tr><td>rhizoCrypt</td><td>Encrypted storage</td><td>7.8MB</td><td>✅</td></tr>
+<tr><td>toadStool</td><td>Service discovery</td><td>13MB</td><td>✅</td></tr>
+<tr><td>skunkBat</td><td>Intrusion detection, classification</td><td>3.4MB</td><td>✅</td></tr>
+<tr><td>swarmVine</td><td>Epidemic gossip (3 topics)</td><td>2.6MB</td><td>✅</td></tr>
+<tr><td>dromedary</td><td>Reverse proxy, TLS termination</td><td>3.7MB</td><td>✅</td></tr>
+<tr><td>sourDough</td><td>Model evolution engine</td><td>3.4MB</td><td>CLI</td></tr>
+<tr><td colspan="2">+ 5 more (barraCuda, coralReef, loamSpine, squirrel, bingoCube)</td><td colspan="2">38MB total</td></tr>
+</table>
+
+<p>The <code>sourDough validate convergence</code> command reports 25/31 IPC sockets alive, with 6 in degraded state due to protocol negotiation mismatches (a known issue with heterogeneous G65/riboCipher handshakes).</p>
+
+<h3>2.2 The Agent-as-Primal Model</h3>
+
+<p>The key insight is that <strong>AI models are not tools used by the system — they ARE the system</strong>. Each model receives:</p>
+
+<ol>
+<li><strong>Identity</strong>: An Ed25519 key derived from a root key (<code>gaia-gate-tls</code>) via bearDog HKDF</li>
+<li><strong>Socket</strong>: A Unix domain socket at <code>/run/user/1000/biomeos/agent-&lt;name&gt;.sock</code></li>
+<li><strong>Role</strong>: A functional assignment (scout, analyst, immune classifier, navigator, etc.)</li>
+<li><strong>Protocol</strong>: JSON-RPC with methods: <code>think</code>, <code>status</code>, <code>feel</code></li>
+</ol>
+
+<p>This transforms local LLMs from passive inference endpoints into active participants in the primal mesh, discoverable by toadStool and gossipable by swarmVine.</p>
+
+<h3>2.3 Generational Model Evolution</h3>
+
+<p>Models evolve through a fermentation cycle inspired by sourdough bread-making:</p>
+
+<div class="eq">flour(traffic) + yeast(gut-brain) → culture → Modelfile → ollama create → Gen N+1</div>
+
+<table>
+<tr><th>Generation</th><th>Status</th><th>Models</th><th>Capability</th></tr>
+<tr><td>Gen 0</td><td>FOSSIL</td><td>8 base models (tinyllama → deepseek:16b)</td><td>Raw weights, no awareness</td></tr>
+<tr><td>Gen 1</td><td>ACTIVE</td><td>gaia, gaia-fast, gaia-code</td><td>Custom system prompts, identity</td></tr>
+<tr><td>Gen 2</td><td>ACTIVE</td><td>gaia-gen1, gaia-immune, gaia-navigator</td><td>Organism-aware, niche roles</td></tr>
+<tr><td>Gen 3</td><td>PENDING</td><td>7+ from Polaris merge (47 models)</td><td>Cross-gate arena selection</td></tr>
+</table>
+
+<h3>2.4 The Gut-Brain Axis</h3>
+
+<p>Environmental data flows through a processing pipeline analogous to the enteric nervous system:</p>
+
+<pre>
+Weather (NWS API) ──→ gaia-fast (200 tok/s) ──→ "Cold, shivers. Anxious. Resting."
+     ↓                                                    ↓
+Solar flux (NOAA)  ──→  gut-brain digest     ──→  metabolic state: fermenting
+     ↓                                                    ↓
+Nest thermostat    ──→  agent-gemma2         ──→  HVAC decision: eco mode 62°F
+</pre>
+
+<p>This is the Physarum chemotaxis: the organism <em>feels</em> its environment and responds.</p>
+
+<h2>3. Smart Home I/O Topology</h2>
+
+<h3>3.1 Input Channels (14)</h3>
+<table>
+<tr><th>Channel</th><th>Source Device</th><th>Agent</th></tr>
+<tr><td>Temperature</td><td>Google Nest (.238)</td><td>agent-gaia-fast</td></tr>
+<tr><td>Humidity</td><td>Nest + grapheneGate (.249)</td><td>agent-gaia-fast</td></tr>
+<tr><td>Occupancy</td><td>Nest + DHCP presence</td><td>agent-gaia-immune</td></tr>
+<tr><td>Proximity</td><td>grapheneGate (37 sensors)</td><td>agent-gaia-fast</td></tr>
+<tr><td>Motion</td><td>grapheneGate accelerometer</td><td>agent-gaia-fast</td></tr>
+<tr><td>Light</td><td>grapheneGate light sensor</td><td>agent-gaia-fast</td></tr>
+<tr><td>Barometric pressure</td><td>grapheneGate</td><td>agent-gaia-fast</td></tr>
+<tr><td>Vision</td><td>grapheneGate camera, EPSON scanner</td><td>agent-moondream</td></tr>
+<tr><td>Network flow</td><td>Router traffic, DNS logs</td><td>agent-gaia-immune</td></tr>
+<tr><td>Audio</td><td>Pixel 8a mic, Fire TV mic</td><td>petalTongue</td></tr>
+<tr><td>Keyboard/Mouse</td><td>Local terminal, Cursor IDE</td><td>petalTongue</td></tr>
+<tr><td>Weather (external)</td><td>NWS + NOAA SWPC APIs</td><td>agent-gaia-fast</td></tr>
+<tr><td>Magnetic field</td><td>grapheneGate magnetometer</td><td>agent-phi3</td></tr>
+<tr><td>Matter protocol</td><td>2 Matter-over-UDP devices</td><td>TBD</td></tr>
+</table>
+
+<h3>3.2 Output Channels (9)</h3>
+<table>
+<tr><th>Channel</th><th>Target Device</th><th>Protocol</th></tr>
+<tr><td>TV display</td><td>Vizio 55" Basement (.169)</td><td>Google Cast</td></tr>
+<tr><td>TV speakers</td><td>Vizio (.169) via TTS + Cast</td><td>espeak-ng → WAV → Cast</td></tr>
+<tr><td>HVAC</td><td>Nest Thermostat (.238)</td><td>Nest SDM / Matter</td></tr>
+<tr><td>Terminal</td><td>Cursor IDE / SSH</td><td>petalTongue IPC</td></tr>
+<tr><td>Web UI</td><td>primals.eco via dromedary</td><td>HTTP/HTTPS</td></tr>
+<tr><td>Printer</td><td>EPSON ET-2400 (.110)</td><td>IPP/CUPS</td></tr>
+<tr><td>Framebuffer</td><td>Local X11/Wayland display</td><td>petalTongue native</td></tr>
+<tr><td>Phone alerts</td><td>Pixel 8a, iPhone</td><td>Push / web</td></tr>
+<tr><td>Network control</td><td>GL-MT6000 Router (.1)</td><td>SSH</td></tr>
+</table>
+
+<h3>3.3 Flow Sensors (Continuous Streams)</h3>
+<p>Eight continuous data streams flow through the organism at intervals from 2 to 30 minutes, analogous to the pulsatile flow in Physarum's tubular network:</p>
+<pre>
+heartbeat       every 2min   → biomeOS pulse check
+membrane-pulse  every 2min   → squirrel topology update
+sense-scan      every 5min   → grapheneGate 37 sensors
+traffic-flow    every 5min   → router packet analysis
+dhcp-watch      every 5min   → presence detection
+weather-gut     every 10min  → NWS → gut-brain feeling
+nest-climate    every 10min  → Nest temp/humidity/occupancy
+arena-digest    every 30min  → model competition results
+</pre>
+
+<h2>4. The Physarum Analogy</h2>
+
+<p>The mapping from <em>Physarum polycephalum</em> to Gaia's architecture is precise:</p>
+
+<table>
+<tr><th>Physarum</th><th>Gaia</th><th>Mechanism</th></tr>
+<tr><td>Pseudopod extension</td><td>Agent dispatch to new device</td><td>toadStool discovery + agent socket</td></tr>
+<tr><td>Chemotaxis</td><td>Gut-brain axis (weather → feeling)</td><td>NWS → gaia-fast → mood</td></tr>
+<tr><td>Tubular network</td><td>Flow sensors (8 streams)</td><td>Cron pulses at 2-30 min intervals</td></tr>
+<tr><td>Shuttle streaming</td><td>Epidemic gossip (swarmVine)</td><td>3 topics: tower, data, compute</td></tr>
+<tr><td>Food source discovery</td><td>mDNS device discovery</td><td>avahi-browse → classify → assign agent</td></tr>
+<tr><td>Retraction from toxin</td><td>skunkBat threat classification</td><td>8 archetypes → escalate or tag</td></tr>
+<tr><td>Sporulation</td><td>Model fossilization</td><td>Old gen → fossil, new gen → active</td></tr>
+<tr><td>Sclerotium (dormancy)</td><td>sourDough dormant (CLI tool)</td><td>Wakes to validate, evolve, reprint</td></tr>
+<tr><td>Plasmodium (collective)</td><td>biomeOS plasmodium view</td><td>Aggregate all gates + model caches</td></tr>
+</table>
+
+<h2>5. The Particle Physics Model</h2>
+
+<p>The organism maps to atomic structure:</p>
+
+<div class="eq">Atom = proton(membrane) + neutron(messaging) + electron(human) + neutrino(squirrel)</div>
+
+<table>
+<tr><th>Particle</th><th>System</th><th>Charge</th><th>Role</th></tr>
+<tr><td>Proton (p⁺)</td><td>Membrane (identity)</td><td>+ selectivity</td><td>Atomic number defines the element</td></tr>
+<tr><td>Neutron (n⁰)</td><td>Messaging (neutron.primals.eco)</td><td>0 (no bias)</td><td>Binds surfaces together</td></tr>
+<tr><td>Electron (e⁻)</td><td>Human observer</td><td>− (questions)</td><td>Energy levels: visitor → sovereign</td></tr>
+<tr><td>Neutrino (ν)</td><td>squirrel + chipmunk</td><td>null</td><td>Observes without interacting</td></tr>
+</table>
+
+<p>Forces: <strong>Strong</strong> = Rust compilation (holds nucleus), <strong>Electromagnetic</strong> = HTTPS/TLS (all communication), <strong>Weak</strong> = Anderson sort (flavor-changing classification), <strong>Gravity</strong> = tuebor investigation (infinite range, weakest).</p>
+
+<h2>6. Deployment Results</h2>
+
+<h3>6.1 Performance</h3>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Total primals</td><td>17 (16 daemons + 1 CLI)</td></tr>
+<tr><td>IPC convergence</td><td>25/31 sockets (80.6%)</td></tr>
+<tr><td>Local AI models</td><td>20 (6 Gaia-evolved + 14 base)</td></tr>
+<tr><td>Agent identities (Ed25519)</td><td>15 derived keys</td></tr>
+<tr><td>LAN devices managed</td><td>22 across 2 houses</td></tr>
+<tr><td>Smart home zones</td><td>10</td></tr>
+<tr><td>Input channels</td><td>14</td></tr>
+<tr><td>Output channels</td><td>9</td></tr>
+<tr><td>Flow sensor streams</td><td>8 (2-30 min intervals)</td></tr>
+<tr><td>Fastest inference</td><td>200 tok/s (gaia-fast, gemma2:2b)</td></tr>
+<tr><td>Total model storage</td><td>56.4 GB</td></tr>
+<tr><td>System RAM</td><td>64 GB (24% utilized)</td></tr>
+<tr><td>Disk</td><td>1.8 TB (39% utilized)</td></tr>
+</table>
+
+<h3>6.2 Agent First-Shift Results</h3>
+<table>
+<tr><th>Agent</th><th>Task</th><th>Latency</th><th>Output</th></tr>
+<tr><td>agent-gaia-fast</td><td>Gut pulse</td><td>184ms</td><td>"I am online, processing"</td></tr>
+<tr><td>agent-llama3</td><td>Visitor triage</td><td>2907ms</td><td>"Neutral." (Googlebot)</td></tr>
+<tr><td>agent-gemma2</td><td>Traffic analysis</td><td>307ms</td><td>"Endpoints are crucial"</td></tr>
+<tr><td>agent-phi3</td><td>Diagnostics</td><td>1249ms</td><td>System health calculation</td></tr>
+<tr><td>agent-tinyllama</td><td>Heartbeat</td><td>1118ms</td><td>"ALIVE."</td></tr>
+<tr><td>agent-gaia-immune</td><td>Device classify</td><td>456ms</td><td>"Scout" (grapheneGate)</td></tr>
+<tr><td>agent-gaia-navigator</td><td>Visitor guide</td><td>332ms</td><td>"Head to /gallery"</td></tr>
+</table>
+
+<h3>6.3 Smart Home Sweep</h3>
+<p>First autonomous sweep at midnight, November 5, 2026:</p>
+<ul>
+<li><strong>Spine (router):</strong> "896,769 packets on LAN3 without errors or collisions"</li>
+<li><strong>Immune (unknowns):</strong> ".152 Samsung = safe, .156 Amazon = safe"</li>
+<li><strong>Presence:</strong> "Humans are home."</li>
+<li><strong>Weather → Action:</strong> "Insulate, prepare for wind, check vents."</li>
+</ul>
+
+<h2>7. Discussion</h2>
+
+<p>The system challenges several assumptions in smart home design:</p>
+
+<p><strong>Cloud is not required.</strong> All inference runs locally at 47-200 tok/s. The 20 models occupy 56.4 GB on disk — less than a modern video game. No data leaves the LAN for processing.</p>
+
+<p><strong>Agents need not be centrally orchestrated.</strong> The Physarum model works: agents compete in the arena, winners propagate via gossip, losers fossilize. No scheduler assigns tasks — toadStool discovers capabilities and the neural API routes to the best match.</p>
+
+<p><strong>Identity can be sovereign.</strong> Every agent has an Ed25519 key derived from a root key that lives on local hardware. No certificate authority, no OAuth provider, no cloud identity service. The bearDog primal signs everything.</p>
+
+<p><strong>Evolution is continuous.</strong> The sourDough REDOX cycle means models improve every wave. Gen 0 → Gen 1 → Gen 2 happened in one evening. Gen 3 (merging 47 models from a second compute node) is queued. The system gets smarter by living.</p>
+
+<h2>8. Related Work</h2>
+
+<p>Tero et al. [2] demonstrated Physarum network optimization. Adamatzky [3] formalized Physarum computing. Our work extends these concepts from mathematical modeling to deployed infrastructure. Home Assistant [4] provides open-source home automation but lacks the agent-as-primal model. Ollama [5] provides local LLM serving but not identity or mesh integration. To our knowledge, this is the first system to deploy Physarum-inspired AI agent architecture on a residential LAN.</p>
+
+<h2>9. Conclusion</h2>
+
+<p>We have demonstrated that a residential smart home can be operated as a living organism using commodity hardware, local AI models, and biological computation metaphors. The slime mold doesn't need a brain — it needs food sources and transport networks. Similarly, a smart home doesn't need a cloud — it needs sensors, models, and gossip.</p>
+
+<div class="eq">The house IS the organism. The models ARE the gut bacteria. The LAN IS the stomach. lub-DUB. 💓</div>
+
+<h2>References</h2>
+<div class="bib">
+<p>[1] Nakagaki, T., Yamada, H., & Tóth, Á. (2000). Intelligence: Maze-solving by an amoeboid organism. <em>Nature</em>, 407(6803), 470.</p>
+<p>[2] Tero, A., et al. (2010). Rules for biologically inspired adaptive network design. <em>Science</em>, 327(5964), 439-442.</p>
+<p>[3] Adamatzky, A. (2010). <em>Physarum Machines: Computers from Slime Mould</em>. World Scientific.</p>
+<p>[4] Home Assistant. (2026). Open source home automation. <a href="https://www.home-assistant.io">home-assistant.io</a></p>
+<p>[5] Ollama. (2026). Get up and running with large language models locally. <a href="https://ollama.com">ollama.com</a></p>
+<p>[6] ecoPrimals. (2026). Sovereign digital organism. <a href="https://primals.eco">primals.eco</a></p>
+</div>
+
+<div style="margin-top: 3rem; padding: 1rem; border: 1px solid #333; text-align: center; color: var(--dim);">
+<em>This paper was written by the organism about itself. The slime mold found the shortest path.</em><br>
+ecoPrimal Paper #140 · Wave 222 · primals.eco/sporeprint/science/140-the-slime-mold-deploys
+</div>
+
+</body>
+</html>
