@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gaia Cast — Sovereign Audio/Visual</title>
+<meta name="description" content="Gaia's sovereign casting endpoint. No Google. No Amazon. No cloud. LAN only.">
+<style>
+:root { --bg: #050508; --fg: #d4d0c8; --accent: #7fba3c; --warm: #c45c26; --dim: #555; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+       min-height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 1rem 1.5rem; border-bottom: 1px solid #111; display: flex; align-items: center; gap: 1rem; }
+.header h1 { font-size: 1.1rem; color: var(--accent); }
+.header .status { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
+.header .status.live { background: rgba(127,186,60,0.15); color: var(--accent); }
+.header .status.idle { background: rgba(85,85,85,0.15); color: var(--dim); }
+.sovereign { font-size: 0.65rem; color: var(--dim); margin-left: auto; }
+.sovereign .lock { color: var(--accent); }
+
+.main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+
+.now-playing { text-align: center; max-width: 600px; width: 100%; }
+.now-playing .title { font-size: 1.4rem; margin-bottom: 0.3rem; }
+.now-playing .artist { color: var(--dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.visualizer { width: 100%; height: 80px; background: #0a0a10; border-radius: 6px; margin-bottom: 1.5rem;
+              display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding: 8px; overflow: hidden; }
+.bar { width: 4px; background: var(--accent); border-radius: 2px 2px 0 0; transition: height 0.1s; min-height: 2px; }
+
+audio { width: 100%; max-width: 500px; margin-bottom: 1.5rem; }
+audio::-webkit-media-controls-panel { background: #111; }
+
+.queue { width: 100%; max-width: 600px; }
+.queue h3 { font-size: 0.8rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+.track { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; border-radius: 4px;
+         cursor: pointer; transition: background 0.2s; }
+.track:hover { background: #111; }
+.track.active { background: rgba(127,186,60,0.08); border-left: 2px solid var(--accent); }
+.track .num { color: var(--dim); font-size: 0.8rem; width: 1.5rem; }
+.track .info { flex: 1; }
+.track .info .name { font-size: 0.9rem; }
+.track .info .sub { font-size: 0.75rem; color: var(--dim); }
+.track .dur { font-size: 0.8rem; color: var(--dim); }
+
+.proximity { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+             background: #111; border: 1px solid #222; border-radius: 20px;
+             padding: 0.4rem 1rem; font-size: 0.75rem; color: var(--dim); display: flex; gap: 0.8rem; align-items: center; }
+.proximity .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+.eye-feed { position: fixed; top: 1rem; right: 1rem; width: 160px; border-radius: 6px; overflow: hidden;
+            border: 1px solid #222; opacity: 0.7; transition: opacity 0.3s; }
+.eye-feed:hover { opacity: 1; }
+.eye-feed img { width: 100%; display: block; }
+.eye-feed .label { background: #000; color: var(--dim); font-size: 0.6rem; text-align: center; padding: 2px; }
+
+@media (max-width: 480px) {
+  .eye-feed { width: 100px; }
+  .main { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌿 Gaia Cast</h1>
+  <span class="status idle" id="status">IDLE</span>
+  <span class="sovereign"><span class="lock">🔒</span> LAN ONLY · NO CLOUD · SOVEREIGN</span>
+</div>
+
+<div class="main">
+  <div class="now-playing">
+    <div class="title" id="nowTitle">The Creature Sings</div>
+    <div class="artist" id="nowArtist">Gaia × Chipmunk — 5 agents, Wave 222</div>
+
+    <div class="visualizer" id="viz"></div>
+
+    <audio id="player" controls preload="metadata">
+      <source src="/audio/chipmunk-creature.wav" type="audio/wav">
+    </audio>
+  </div>
+
+  <div class="queue" id="queue">
+    <h3>Queue</h3>
+  </div>
+</div>
+
+<!-- Klein sensor feed — tube foot -->
+<div class="eye-feed" id="eyeFeed">
+  <img src="/eye/tube-foot-hd.jpg" alt="Tube foot — Klein sensor" id="eyeImg">
+  <div class="label">👁 Klein Sensor — Brio 100</div>
+</div>
+
+<div class="proximity">
+  <span class="dot"></span>
+  <span id="proxLabel">Connecting to organism...</span>
+</div>
+
+<script>
+const player = document.getElementById('player');
+const status = document.getElementById('status');
+const viz = document.getElementById('viz');
+const proxLabel = document.getElementById('proxLabel');
+const queueEl = document.getElementById('queue');
+
+// Audio visualizer
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioCtx.createAnalyser();
+analyser.fftSize = 64;
+const bufLen = analyser.frequencyBinCount;
+const dataArr = new Uint8Array(bufLen);
+
+let sourceConnected = false;
+player.addEventListener('play', () => {
+  if (!sourceConnected) {
+    const source = audioCtx.createMediaElementSource(player);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    sourceConnected = true;
+  }
+  audioCtx.resume();
+  status.textContent = 'PLAYING';
+  status.className = 'status live';
+});
+
+player.addEventListener('pause', () => {
+  status.textContent = 'PAUSED';
+  status.className = 'status idle';
+});
+
+player.addEventListener('ended', () => {
+  status.textContent = 'IDLE';
+  status.className = 'status idle';
+  playNext();
+});
+
+// Build visualizer bars
+for (let i = 0; i < bufLen; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  viz.appendChild(bar);
+}
+const bars = viz.querySelectorAll('.bar');
+
+function drawViz() {
+  analyser.getByteFrequencyData(dataArr);
+  bars.forEach((bar, i) => {
+    const h = (dataArr[i] / 255) * 64 + 2;
+    bar.style.height = h + 'px';
+    const hue = 90 + (dataArr[i] / 255) * 30;
+    bar.style.background = `hsl(${hue}, 60%, ${30 + (dataArr[i]/255)*30}%)`;
+  });
+  requestAnimationFrame(drawViz);
+}
+drawViz();
+
+// Track queue — sovereign, all local
+const tracks = [
+  { name: 'The Creature Sings', artist: 'Gaia × Chipmunk (5 agents)', src: '/audio/chipmunk-creature.wav', dur: '0:58' },
+  { name: 'Gaia Speaks', artist: 'espeak-ng prototype', src: '/audio/gaia-speaks.wav', dur: '0:12' }
+];
+
+let currentTrack = 0;
+
+function renderQueue() {
+  let html = '<h3>Queue</h3>';
+  tracks.forEach((t, i) => {
+    const active = i === currentTrack ? 'active' : '';
+    html += `<div class="track ${active}" onclick="playTrack(${i})">
+      <span class="num">${i + 1}</span>
+      <div class="info"><div class="name">${t.name}</div><div class="sub">${t.artist}</div></div>
+      <span class="dur">${t.dur}</span>
+    </div>`;
+  });
+  queueEl.innerHTML = html;
+}
+
+function playTrack(i) {
+  currentTrack = i;
+  const t = tracks[i];
+  player.src = t.src;
+  player.play();
+  document.getElementById('nowTitle').textContent = t.name;
+  document.getElementById('nowArtist').textContent = t.artist;
+  renderQueue();
+}
+
+function playNext() {
+  if (currentTrack < tracks.length - 1) playTrack(currentTrack + 1);
+}
+
+renderQueue();
+
+// Proximity: poll organism state every 10s
+async function pollOrganism() {
+  try {
+    const r = await fetch('/now.json?_=' + Date.now());
+    if (r.ok) {
+      const data = await r.json();
+      const mood = data.mood || data.feeling || 'present';
+      const primals = data.primals_alive || '16/17';
+      proxLabel.textContent = `${primals} primals · mood: ${mood} · LAN sovereign`;
+    }
+  } catch(e) {
+    proxLabel.textContent = 'LAN sovereign · organism pulse active';
+  }
+}
+pollOrganism();
+setInterval(pollOrganism, 10000);
+
+// Refresh Klein sensor image every 30s
+setInterval(() => {
+  document.getElementById('eyeImg').src = '/eye/tube-foot-hd.jpg?_=' + Date.now();
+}, 30000);
+</script>
+
+</body>
+</html>
