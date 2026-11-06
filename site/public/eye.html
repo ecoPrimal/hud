@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GAIA — Eye</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.eye-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  gap: 2px;
+  background: #111;
+}
+
+.camera-feed {
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.camera-feed img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.5s;
+}
+
+.camera-feed .label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.7);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.camera-feed .rec {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #f33;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  background: #f33;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.camera-feed .timestamp {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 10px;
+  color: #888;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 8px;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.camera-feed .overlay-grid {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.02) 2px, rgba(0,255,0,0.02) 4px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.status-bar {
+  grid-column: 1 / -1;
+  background: #0a0a0a;
+  border-top: 1px solid #1a1a1a;
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #666;
+  min-height: 36px;
+}
+
+.status-bar .organism {
+  color: #0f0;
+  font-weight: bold;
+}
+
+.status-bar .meta {
+  display: flex;
+  gap: 16px;
+}
+
+.status-bar .meta span {
+  color: #888;
+}
+
+.status-bar .meta .value {
+  color: #4f4;
+}
+
+/* Kevin presence indicator */
+.kevin-presence {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 2;
+  background: rgba(0,0,0,0.7);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kevin-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f80;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px #f80; }
+  50% { box-shadow: 0 0 12px #f80, 0 0 20px #f804; }
+}
+
+/* Fullscreen single camera mode */
+.camera-feed.fullscreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .eye-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr auto;
+  }
+}
+
+/* Scanline effect */
+.scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(0, 255, 0, 0.08);
+  z-index: 3;
+  animation: scanline-move 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanline-move {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+/* Night vision toggle */
+body.night-vision .camera-feed img {
+  filter: saturate(0) brightness(1.5) contrast(1.3);
+  mix-blend-mode: screen;
+}
+body.night-vision .camera-feed {
+  background: #001a00;
+}
+body.night-vision .camera-feed::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 255, 0, 0.05);
+  pointer-events: none;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="eye-container">
+  <!-- Camera 0: Rear — Room view -->
+  <div class="camera-feed" id="cam-rear" onclick="toggleFull(this)">
+    <img id="img-rear" src="data/eye-rear.jpg" alt="Rear camera — room view">
+    <div class="label">CAM 0 — ROOM</div>
+    <div class="rec"><div class="rec-dot"></div>LIVE</div>
+    <div class="overlay-grid"></div>
+    <div class="scanline"></div>
+    <div class="timestamp" id="ts-rear">—</div>
+    <div class="kevin-presence" id="kevin-indicator">
+      <div class="kevin-dot"></div>
+      <span id="kevin-text">KEVIN</span>
+    </div>
+  </div>
+
+  <!-- Camera 1: Front — looking out from Pixel -->
+  <div class="camera-feed" id="cam-front" onclick="toggleFull(this)">
+    <img id="img-front" src="data/eye-front.jpg" alt="Front camera">
+    <div class="label">CAM 1 — DESK</div>
+    <div class="rec"><div class="rec-dot"></div>LIVE</div>
+    <div class="overlay-grid"></div>
+    <div class="scanline"></div>
+    <div class="timestamp" id="ts-front">—</div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="organism">GAIA EYE</span>
+    <div class="meta">
+      <span>Source: <span class="value">grapheneGate (Pixel 8a)</span></span>
+      <span>Interval: <span class="value" id="interval">60s</span></span>
+      <span>Frames: <span class="value" id="frame-count">0</span></span>
+      <span>Battery: <span class="value" id="battery">—</span></span>
+      <span id="night-btn" onclick="toggleNight()" style="cursor:pointer; color:#4f4;">☾ NIGHT</span>
+      <span id="snap-btn" onclick="snapshot()" style="cursor:pointer; color:#4f4;">📷 SNAP</span>
+    </div>
+  </div>
+</div>
+
+<script>
+let frameCount = 0;
+let nightMode = false;
+
+function refreshImages() {
+  const ts = Date.now();
+  frameCount++;
+  document.getElementById('img-rear').src = 'data/eye-rear.jpg?' + ts;
+  document.getElementById('img-front').src = 'data/eye-front.jpg?' + ts;
+  document.getElementById('frame-count').textContent = frameCount;
+  document.getElementById('ts-rear').textContent = new Date().toLocaleTimeString();
+  document.getElementById('ts-front').textContent = new Date().toLocaleTimeString();
+}
+
+async function fetchMeta() {
+  try {
+    const r = await fetch('data/eye-state.json?' + Date.now());
+    const d = await r.json();
+    document.getElementById('interval').textContent = d.stream_interval_s + 's';
+    if (d.last_eye_log) {
+      const parts = d.last_eye_log.split(' ');
+      if (parts[1]) document.getElementById('ts-rear').textContent = parts[1];
+    }
+  } catch(e) {}
+
+  try {
+    const r = await fetch('data/pixel-live.json?' + Date.now());
+    const d = await r.json();
+    document.getElementById('battery').textContent = d.battery_pct + '% ' + d.charging;
+  } catch(e) {}
+
+  try {
+    const r = await fetch('data/kevin-state.json?' + Date.now());
+    const d = await r.json();
+    const ki = document.getElementById('kevin-indicator');
+    const kt = document.getElementById('kevin-text');
+    if (d.present !== false) {
+      ki.style.display = 'flex';
+      const bingo = d.bingo || {};
+      kt.textContent = 'KEVIN ' + (bingo.score || '?') + '/' + (bingo.max || 8) + ' ' + (d.house || '');
+    } else {
+      ki.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+function toggleFull(el) {
+  if (el.classList.contains('fullscreen')) {
+    el.classList.remove('fullscreen');
+  } else {
+    document.querySelectorAll('.camera-feed').forEach(c => c.classList.remove('fullscreen'));
+    el.classList.add('fullscreen');
+  }
+}
+
+function toggleNight() {
+  nightMode = !nightMode;
+  document.body.classList.toggle('night-vision', nightMode);
+  document.getElementById('night-btn').textContent = nightMode ? '☀ DAY' : '☾ NIGHT';
+}
+
+async function snapshot() {
+  try {
+    const r = await fetch('data/eye-rear.jpg');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gaia-eye-' + Date.now() + '.jpg';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { console.error('Snapshot failed:', e); }
+}
+
+// Refresh images every 15 seconds (even though new images arrive every 60s, catch them fresh)
+setInterval(refreshImages, 15000);
+setInterval(fetchMeta, 10000);
+
+// Initial load
+refreshImages();
+fetchMeta();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'n') toggleNight();
+  if (e.key === 'f') {
+    const rear = document.getElementById('cam-rear');
+    toggleFull(rear);
+  }
+  if (e.key === 's') snapshot();
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.camera-feed').forEach(c => c.classList.remove('fullscreen'));
+  }
+});
+</script>
+</body>
+</html>
