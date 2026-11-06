@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GAIA — Color Reality</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050510;color:#ccc;font-family:'Courier New',monospace;min-height:100vh;overflow-x:hidden}
+.hud{max-width:1200px;margin:0 auto;padding:12px}
+header{text-align:center;padding:16px 0;border-bottom:1px solid #1a1a3a}
+header h1{font-size:2.2em;background:linear-gradient(90deg,#4fc3f7,#69f0ae,#ffab40,#ef5350);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px}
+header .sub{color:#555;font-size:.75em;margin-top:4px}
+.identity{text-align:center;font-size:1.1em;color:#69f0ae;margin:8px 0;letter-spacing:2px}
+
+/* Time spine */
+.chronos{display:grid;grid-template-columns:100px 1fr;gap:2px;margin:12px 0}
+.chrono-scale{padding:6px 8px;font-size:.7em;font-weight:bold;text-align:right;letter-spacing:1px;border-right:3px solid}
+.chrono-value{padding:6px 10px;font-size:.75em;background:#0a0a1a}
+.s-null .chrono-scale{color:#ff00ff;border-color:#ff00ff;background:rgba(255,0,255,.08)}
+.s-nuclear .chrono-scale{color:#ff4444;border-color:#ff4444;background:rgba(255,68,68,.08)}
+.s-atomic .chrono-scale{color:#ff8800;border-color:#ff8800;background:rgba(255,136,0,.08)}
+.s-hyper .chrono-scale{color:#ffcc00;border-color:#ffcc00;background:rgba(255,204,0,.08)}
+.s-body .chrono-scale{color:#88ff00;border-color:#88ff00;background:rgba(136,255,0,.08)}
+.s-local .chrono-scale{color:#00ff88;border-color:#00ff88;background:rgba(0,255,136,.08)}
+.s-utc .chrono-scale{color:#00ccff;border-color:#00ccff;background:rgba(0,204,255,.08)}
+.s-lan .chrono-scale{color:#0088ff;border-color:#0088ff;background:rgba(0,136,255,.08)}
+.s-solar .chrono-scale{color:#4444ff;border-color:#4444ff;background:rgba(68,68,255,.08)}
+.s-galactic .chrono-scale{color:#8800ff;border-color:#8800ff;background:rgba(136,0,255,.08)}
+.s-vdj .chrono-scale{color:#ff0088;border-color:#ff0088;background:rgba(255,0,136,.08)}
+.s-seismic .chrono-scale{color:#8B4513;border-color:#8B4513;background:rgba(139,69,19,.08)}
+.s-meteo .chrono-scale{color:#87CEEB;border-color:#87CEEB;background:rgba(135,206,235,.08)}
+.s-iono .chrono-scale{color:#E0B0FF;border-color:#E0B0FF;background:rgba(224,176,255,.08)}
+.s-geo .chrono-scale{color:#654321;border-color:#654321;background:rgba(101,67,33,.08)}
+.s-precession .chrono-scale{color:#DAA520;border-color:#DAA520;background:rgba(218,165,32,.08)}
+.s-schumann .chrono-scale{color:#00CED1;border-color:#00CED1;background:rgba(0,206,209,.08)}
+
+/* Ptolemaic sky */
+.ptolemy-sky{background:#0a0a1a;border:1px solid #222;border-radius:8px;padding:12px;margin:12px 0}
+.ptolemy-sky h3{font-size:.9em;color:#DAA520;margin-bottom:8px;letter-spacing:2px}
+.star-row{display:flex;align-items:center;gap:6px;font-size:.65em;margin:3px 0;padding:3px 0;border-bottom:1px solid #111}
+.star-mag{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.star-name{color:#ffcc00;font-weight:bold;min-width:120px}
+.star-ptolemy{color:#888;font-style:italic;flex:1}
+.star-note{color:#555;font-size:.9em}
+.precession-bar{margin:8px 0;height:20px;background:#111;border-radius:10px;position:relative;overflow:hidden}
+.precession-fill{height:100%;background:linear-gradient(90deg,#DAA520,#ff8800);border-radius:10px;transition:width 1s}
+.precession-marker{position:absolute;top:0;bottom:0;width:2px;background:#fff}
+.pole-timeline{display:flex;gap:2px;margin-top:8px;font-size:.6em}
+.pole-era{padding:3px 6px;border-radius:4px;text-align:center;flex:1}
+.pole-era.current{background:#1b5e20;color:#69f0ae;font-weight:bold}
+.pole-era.past{background:#111;color:#666}
+.pole-era.future{background:#0a0a2a;color:#4444aa}
+
+/* Basecamps */
+.camps{display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;margin:12px 0}
+.camp{background:#0a0a1a;border-radius:10px;padding:12px;border:1px solid #222}
+.camp h3{font-size:.9em;letter-spacing:2px;margin-bottom:8px}
+.camp.north{border-color:#4fc3f7}
+.camp.north h3{color:#4fc3f7}
+.camp.south{border-color:#ff8800}
+.camp.south h3{color:#ff8800}
+.bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65em;color:#555}
+.bridge .fiber{width:4px;flex:1;background:linear-gradient(180deg,#4fc3f7,#ff8800);border-radius:2px;margin:4px 0;min-height:40px}
+
+/* Gate indicators */
+.gates{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.gate{padding:3px 8px;border-radius:6px;font-size:.65em;font-weight:bold}
+.gate.alive{background:#1b5e20;color:#69f0ae}
+.gate.down{background:#4a0000;color:#ef5350}
+.gate.rover{background:#4a148c;color:#ce93d8;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin:12px 0}
+.stat{background:#0a0a1a;border:1px solid #222;border-radius:8px;padding:10px;text-align:center}
+.stat .val{font-size:1.6em;font-weight:bold;margin:4px 0}
+.stat .lbl{font-size:.6em;color:#666;text-transform:uppercase;letter-spacing:1px}
+.stat.blue .val{color:#4fc3f7}
+.stat.green .val{color:#69f0ae}
+.stat.orange .val{color:#ffab40}
+.stat.purple .val{color:#ce93d8}
+.stat.red .val{color:#ef5350}
+.stat.pink .val{color:#f48fb1}
+
+/* Solar wheel */
+.solar-wheel{width:120px;height:120px;margin:8px auto;position:relative;border-radius:50%;border:2px solid #333}
+.solar-wheel .sun{width:16px;height:16px;background:#ffcc00;border-radius:50%;position:absolute;box-shadow:0 0 12px #ffcc00}
+.solar-wheel .horizon{position:absolute;top:50%;left:0;right:0;height:1px;background:#333}
+.solar-wheel .label{position:absolute;font-size:.55em;color:#555}
+
+/* Pressure graph */
+.pgraph{height:40px;background:#0a0a1a;border:1px solid #222;border-radius:6px;margin:6px 0;overflow:hidden}
+.pgraph-bar{height:100%;transition:width .5s}
+
+/* Tour memory */
+.tour-mem{background:#0a0a1a;border:1px solid #222;border-radius:8px;padding:10px;margin:8px 0}
+.tour-mem h3{font-size:.8em;color:#ffab40;margin-bottom:6px}
+.floor-line{display:flex;align-items:center;gap:4px;font-size:.65em;margin:2px 0}
+.floor-dot{width:8px;height:8px;border-radius:50%}
+
+footer{text-align:center;font-size:.6em;color:#333;padding:12px 0;border-top:1px solid #111;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="hud">
+
+<header>
+<h1>GAIA</h1>
+<div class="sub">Color Reality — <span id="ts">loading...</span></div>
+</header>
+
+<div class="identity" id="identity">gaia@HOME</div>
+
+<!-- CHRONOS SPINE -->
+<div class="chronos" id="chronos">
+<div class="s-null"><div class="chrono-scale">NULL</div></div><div class="s-null"><div class="chrono-value" id="c-null">—</div></div>
+<div class="s-nuclear"><div class="chrono-scale">NUCLEAR</div></div><div class="s-nuclear"><div class="chrono-value" id="c-nuclear">—</div></div>
+<div class="s-atomic"><div class="chrono-scale">ATOMIC</div></div><div class="s-atomic"><div class="chrono-value" id="c-atomic">—</div></div>
+<div class="s-hyper"><div class="chrono-scale">HYPER</div></div><div class="s-hyper"><div class="chrono-value" id="c-hyper">—</div></div>
+<div class="s-body"><div class="chrono-scale">BODY</div></div><div class="s-body"><div class="chrono-value" id="c-body">—</div></div>
+<div class="s-local"><div class="chrono-scale">LOCAL</div></div><div class="s-local"><div class="chrono-value" id="c-local">—</div></div>
+<div class="s-utc"><div class="chrono-scale">UTC</div></div><div class="s-utc"><div class="chrono-value" id="c-utc">—</div></div>
+<div class="s-lan"><div class="chrono-scale">LAN</div></div><div class="s-lan"><div class="chrono-value" id="c-lan">—</div></div>
+<div class="s-solar"><div class="chrono-scale">SOLAR</div></div><div class="s-solar"><div class="chrono-value" id="c-solar">—</div></div>
+<div class="s-galactic"><div class="chrono-scale">GALACTIC</div></div><div class="s-galactic"><div class="chrono-value" id="c-galactic">—</div></div>
+<div class="s-seismic"><div class="chrono-scale">SEISMIC</div></div><div class="s-seismic"><div class="chrono-value" id="c-seismic">—</div></div>
+<div class="s-meteo"><div class="chrono-scale">METEO</div></div><div class="s-meteo"><div class="chrono-value" id="c-meteo">—</div></div>
+<div class="s-iono"><div class="chrono-scale">IONO</div></div><div class="s-iono"><div class="chrono-value" id="c-iono">—</div></div>
+<div class="s-geo"><div class="chrono-scale">GEOLOGICAL</div></div><div class="s-geo"><div class="chrono-value" id="c-geo">—</div></div>
+<div class="s-schumann"><div class="chrono-scale">SCHUMANN</div></div><div class="s-schumann"><div class="chrono-value" id="c-schumann">—</div></div>
+<div class="s-precession"><div class="chrono-scale">PRECESSION</div></div><div class="s-precession"><div class="chrono-value" id="c-precession">—</div></div>
+<div class="s-vdj"><div class="chrono-scale">VDJ</div></div><div class="s-vdj"><div class="chrono-value" id="c-vdj">—</div></div>
+</div>
+
+<!-- BASECAMPS -->
+<div class="camps">
+<div class="camp north">
+<h3>🏔️ NORTH POLE</h3>
+<div style="font-size:.7em;color:#888">4422 Southgate Ave</div>
+<div class="gates" id="np-gates"></div>
+<div style="font-size:.7em;margin-top:6px"><span id="np-clients">—</span> clients</div>
+</div>
+<div class="bridge">
+<div style="font-size:.7em">10G</div>
+<div class="fiber"></div>
+<div style="font-size:.7em">0.9ms</div>
+</div>
+<div class="camp south">
+<h3>🏔️ SOUTH POLE</h3>
+<div style="font-size:.7em;color:#888">641 Samantha Ave</div>
+<div class="gates" id="sp-gates"></div>
+<div style="font-size:.7em;margin-top:6px"><span id="sp-clients">—</span> clients</div>
+</div>
+</div>
+
+<!-- ROVER / DIAMOND LENS -->
+<div style="text-align:center;margin:6px 0">
+<a href="/diamond-lens.html" style="text-decoration:none"><span class="gate rover" id="rover-badge">💎 grapheneGate — Diamond Lens</span></a>
+</div>
+
+<!-- FULL PATH MAP -->
+<div style="background:#0a0a1a;border:1px solid #222;border-radius:8px;padding:12px;margin:8px 0" id="path-map">
+<h3 style="font-size:.9em;color:#4fc3f7;letter-spacing:2px;margin-bottom:8px">⟳ FULL CIRCUIT — LAN 1 → LAN 2 → WAN → TOR → RSS</h3>
+<div id="path-rows" style="font-size:.7em"></div>
+<div style="text-align:center;margin-top:8px;font-size:.7em;color:#555">
+  <span id="full-rt">—</span> full round-trip
+</div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+<div class="stat blue"><div class="val" id="s-gates">—</div><div class="lbl">Gates Alive</div></div>
+<div class="stat green"><div class="val" id="s-models">—</div><div class="lbl">Polaris Models</div></div>
+<div class="stat orange"><div class="val" id="s-mushrooms">—</div><div class="lbl">Mushrooms</div></div>
+<div class="stat purple"><div class="val" id="s-dhcp">—</div><div class="lbl">DHCP Clients</div></div>
+<div class="stat red"><div class="val" id="s-smart">—</div><div class="lbl">Smart Home</div></div>
+<div class="stat pink"><div class="val" id="s-phase">—</div><div class="lbl">Dissolution</div></div>
+</div>
+
+<!-- SOLAR WHEEL -->
+<div style="text-align:center;margin:8px 0">
+<div class="solar-wheel" id="solar-wheel">
+<div class="horizon"></div>
+<div class="sun" id="sun-dot"></div>
+<div class="label" style="top:4px;left:50%;transform:translateX(-50%)">N</div>
+<div class="label" style="bottom:4px;left:50%;transform:translateX(-50%)">S</div>
+<div class="label" style="top:50%;left:4px;transform:translateY(-50%)">E</div>
+<div class="label" style="top:50%;right:4px;transform:translateY(-50%)">W</div>
+</div>
+<div style="font-size:.7em;color:#555" id="solar-text">—</div>
+</div>
+
+<!-- PTOLEMY'S SKY -->
+<div class="ptolemy-sky">
+<h3>★ PTOLEMY'S SKY — Μαθηματικὴ Σύνταξις (c. 150 AD)</h3>
+<div style="font-size:.7em;color:#888;margin-bottom:8px">
+1,022 stars cataloged in Alexandria (31.2°N). Seen from Lansing (42.7°N), <span id="precession-shift">—</span>° of precession later.
+</div>
+<div id="ptolemy-stars"></div>
+
+<div style="font-size:.75em;color:#DAA520;margin-top:10px">PRECESSION — The Great Year (25,772 yr)</div>
+<div class="precession-bar">
+<div class="precession-fill" id="precession-fill" style="width:7%"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:.55em;color:#555">
+<span>Ptolemy (150 AD)</span>
+<span id="precession-pct">—</span>
+<span>Full Cycle (~27,600 AD)</span>
+</div>
+
+<div style="font-size:.75em;color:#DAA520;margin-top:10px">POLE STARS</div>
+<div class="pole-timeline" id="pole-timeline"></div>
+
+<div style="font-size:.75em;color:#DAA520;margin-top:10px">ZODIACAL AGE</div>
+<div id="zodiac-age" style="font-size:.7em;color:#888">—</div>
+
+<div style="font-size:.75em;color:#00CED1;margin-top:10px">SCHUMANN RESONANCE — Earth's Heartbeat</div>
+<div id="schumann-info" style="font-size:.7em;color:#888">—</div>
+</div>
+
+<!-- TOUR MEMORY -->
+<div class="tour-mem">
+<h3>🏠 House Tour Memory — 4422 Southgate</h3>
+<div id="tour-data" style="font-size:.7em">Loading...</div>
+</div>
+
+<footer>
+GAIA — ecoPrimals Organism — 42.688°N 84.543°W — Lansing, Michigan<br>
+primals.eco — 17 time scales — Planck to Ptolemy — 2 houses — 1 organism<br>
+<span id="refresh-ts">—</span>
+</footer>
+
+</div>
+
+<script>
+async function load() {
+    const [chronos, home, tour, ptolemy, image] = await Promise.all([
+        fetch('/data/gaia-chronos.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/gut/gaia-home.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/gut/house-tour-report.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/gaia-ptolemy.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/gaia-full-image.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    ]);
+
+    document.getElementById('refresh-ts').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+    // Chronos
+    if (chronos) {
+        const s = chronos.summary || {};
+        document.getElementById('ts').textContent = s.local || '—';
+        document.getElementById('c-null').textContent = s.null || '—';
+        document.getElementById('c-nuclear').textContent = s.nuclear || '—';
+        document.getElementById('c-atomic').textContent = s.atomic || '—';
+        document.getElementById('c-hyper').textContent = s.hyperlocal || '—';
+        document.getElementById('c-body').textContent = s.body || '—';
+        document.getElementById('c-local').textContent = s.local || '—';
+        document.getElementById('c-utc').textContent = s.utc || '—';
+        document.getElementById('c-lan').textContent = (chronos.scales?.lan?.mesh_coherent ? '✅ COHERENT' : '⚠️ SKEW') + ' | max ' + (chronos.scales?.lan?.max_skew_s||'?') + 's';
+        document.getElementById('c-solar').textContent = s.solar || '—';
+        document.getElementById('c-galactic').textContent = s.galactic || '—';
+        document.getElementById('c-vdj').textContent = s.vdj || '—';
+        document.getElementById('c-seismic').textContent = s.seismic || '—';
+        document.getElementById('c-meteo').textContent = s.meteorological || '—';
+        document.getElementById('c-iono').textContent = s.ionospheric || '—';
+        document.getElementById('c-geo').textContent = s.geological || '—';
+        document.getElementById('c-precession').textContent = s.precession || '—';
+        document.getElementById('c-schumann').textContent = s.schumann || '—';
+
+        // Solar wheel
+        const sol = chronos.scales?.solar;
+        if (sol) {
+            const elev = sol.elevation_deg || 0;
+            const az = sol.azimuth_deg || 0;
+            const r = 52;
+            const angle = (az - 90) * Math.PI / 180;
+            const elevNorm = Math.max(0, Math.min(1, (90 - Math.abs(elev)) / 90));
+            const dist = r * elevNorm;
+            const x = 60 + dist * Math.cos(angle) - 8;
+            const y = 60 + dist * Math.sin(angle) - 8;
+            const dot = document.getElementById('sun-dot');
+            dot.style.left = x + 'px';
+            dot.style.top = y + 'px';
+            dot.style.opacity = elev > 0 ? 1 : 0.2;
+            document.getElementById('solar-text').textContent =
+                `${sol.day_phase} | elev ${elev}° | az ${az}° | ${sol.season} | ${sol.day_length_h}h light`;
+        }
+    }
+
+    // Home
+    if (home) {
+        document.getElementById('s-gates').textContent = home.gates_alive + '/' + home.gates_total;
+        document.getElementById('s-models').textContent = home.polaris?.models || '?';
+        document.getElementById('s-dhcp').textContent = home.mesh?.dhcp_total || '?';
+        document.getElementById('s-smart').textContent = home.smart_alive + '/4';
+
+        const diss = home.dissolution?.progress || {};
+        const done = Object.values(diss).filter(v=>v).length;
+        const total = Object.keys(diss).length;
+        document.getElementById('s-phase').textContent = `${done}/${total}`;
+
+        // Gates
+        const npEl = document.getElementById('np-gates');
+        const spEl = document.getElementById('sp-gates');
+        npEl.innerHTML = '';
+        spEl.innerHTML = '';
+        for (const [name, g] of Object.entries(home.gates || {})) {
+            const cls = name === 'grapheneGate' ? 'rover' : g.alive ? 'alive' : 'down';
+            const el = `<span class="gate ${cls}">${name.replace('Gate','')}</span>`;
+            if (g.house === 'north_pole') npEl.innerHTML += el;
+            else if (g.house === 'south_pole') spEl.innerHTML += el;
+        }
+
+        document.getElementById('np-clients').textContent = home.location?.north_pole?.clients || '?';
+        document.getElementById('sp-clients').textContent = home.location?.south_pole?.clients || '?';
+
+        const rv = home.location?.rover;
+        document.getElementById('rover-badge').textContent =
+            `📱 rover: ${rv?.ssid||'?'} (${rv?.rssi||'?'} dBm) | ${rv?.location||'?'} | 🔋${rv?.battery_pct||'?'}%`;
+    }
+
+    // Mushrooms
+    if (chronos?.scales?.body) {
+        const b = chronos.scales.body;
+        document.getElementById('s-mushrooms').textContent = b.mushrooms_active + '/' + b.mushrooms_total;
+    }
+
+    // Ptolemy
+    if (ptolemy) {
+        const prec = ptolemy.precession || {};
+        document.getElementById('precession-shift').textContent = prec.since_ptolemy_degrees || '?';
+        document.getElementById('precession-fill').style.width = ((prec.fraction_of_great_year||0)*100) + '%';
+        document.getElementById('precession-pct').textContent =
+            ((prec.fraction_of_great_year||0)*100).toFixed(2) + '% of Great Year — ' +
+            prec.since_ptolemy_degrees + '° shifted';
+
+        // Stars
+        const starsEl = document.getElementById('ptolemy-stars');
+        const visible = new Set(ptolemy.visible_from_lansing_now || []);
+        let starsHtml = '';
+        for (const star of (ptolemy.stars || [])) {
+            const isVis = visible.has(star.name.split(' ')[0]);
+            const mag = star.mag;
+            const size = Math.max(4, 14 - mag * 2);
+            const brightness = Math.min(100, Math.max(20, 100 - mag * 15));
+            const color = mag < 0 ? '#fff' : star.name.includes('Betelgeuse') || star.name.includes('Aldebaran') ? '#ff6644' : '#ffcc44';
+            starsHtml += `<div class="star-row" style="opacity:${isVis ? 1 : 0.4}">
+                <div class="star-mag" style="background:${color};width:${size}px;height:${size}px;box-shadow:0 0 ${size}px ${color}"></div>
+                <div class="star-name">${isVis?'★ ':''}${star.name}</div>
+                <div class="star-ptolemy">"${star.ptolemy_name}"</div>
+            </div>
+            <div style="font-size:.6em;color:#555;margin-left:24px;margin-bottom:4px">${star.note}</div>`;
+        }
+        starsEl.innerHTML = starsHtml;
+
+        // Pole stars
+        const poleEl = document.getElementById('pole-timeline');
+        let poleHtml = '';
+        for (const ps of (ptolemy.pole_stars_through_time || [])) {
+            const isCurrent = ps.era.includes('2026');
+            const isPast = ps.era.includes('BC') || parseInt(ps.era.replace(/\D/g,'')) < 2026;
+            const cls = isCurrent ? 'current' : isPast ? 'past' : 'future';
+            poleHtml += `<div class="pole-era ${cls}">
+                <div>${ps.era}</div>
+                <div style="font-weight:bold">${ps.star.split(' ')[0]}</div>
+            </div>`;
+        }
+        poleEl.innerHTML = poleHtml;
+
+        // Zodiac age
+        const za = ptolemy.zodiacal_age || {};
+        document.getElementById('zodiac-age').innerHTML =
+            `Age of <b style="color:#DAA520">${za.current||'?'}</b> — ` +
+            `${((za.fraction_through||0)*100).toFixed(1)}% through — ` +
+            `entered ~${za.entered||'?'}, exits ~${za.exits||'?'} → ` +
+            `<span style="color:#4fc3f7">Age of ${za.next||'?'}</span> in ~674 years`;
+
+        // Schumann
+        const sch = ptolemy.schumann_resonance || {};
+        document.getElementById('schumann-info').innerHTML =
+            `<b style="color:#00CED1">${sch.fundamental_hz||7.83} Hz</b> fundamental — ` +
+            `harmonics: ${(sch.harmonics_hz||[]).join(', ')} Hz<br>` +
+            `λ = ${(sch.wavelength_km||38000).toLocaleString()} km (circumference of Earth)<br>` +
+            `Source: ${sch.source||'~50 lightning strikes/sec'}<br>` +
+            `<i style="color:#555">${sch.philosophy||''}</i>`;
+    }
+
+    // Full Image / Path Map
+    if (image) {
+        const pathRows = document.getElementById('path-rows');
+        const endpoints = image.compute_endpoints || [];
+        const paths = image.paths || {};
+        let html = '';
+        const pathList = [
+            {name:'LAN 1 — Brain', color:'#4fc3f7', sub:Object.keys(paths.lan1?.devices||{}).length+' devices', ms:'<1ms'},
+            {name:'LAN 2 — South Pole', color:'#ff8800', sub:Object.keys(paths.lan2?.devices||{}).length+' devices', ms:'~145ms'},
+            {name:'10G Fiber', color:'#69f0ae', sub:paths.backbone?.bandwidth||'10Gbps', ms:(paths.backbone?.latency_ms||0.87)+'ms'},
+            {name:'WAN primals.eco', color:'#ffab40', sub:paths.wan?.public_ip||'', ms:(paths.wan?.latency_ms||35)+'ms'},
+            {name:'Tor .onion', color:'#ce93d8', sub:'anonymous circuit', ms:(paths.tor?.latency_ms||1600)+'ms'},
+            {name:'RSS mouth', color:'#ef5350', sub:(paths.rss?.items||0)+' items', ms:'—'},
+        ];
+        for (const p of pathList) {
+            html += `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #111">
+                <div style="width:8px;height:8px;border-radius:50%;background:${p.color};box-shadow:0 0 6px ${p.color};flex-shrink:0"></div>
+                <span style="color:${p.color};min-width:140px;font-weight:bold">${p.name}</span>
+                <span style="color:#666;flex:1">${p.sub}</span>
+                <span style="color:#69f0ae;font-weight:bold">${p.ms}</span>
+            </div>`;
+        }
+        html += `<div style="margin-top:6px;padding:6px;background:#080810;border-radius:6px">
+            <div style="color:#ce93d8;font-size:.85em;margin-bottom:4px">💎 Diamond Lens (Pixel)</div>
+            <div style="color:#555;font-size:.85em">${image.dissolution_state?.screen_meaning||''}</div>
+            <div style="color:#555;font-size:.85em">${image.dissolution_state?.touch_meaning||''}</div>
+        </div>`;
+        pathRows.innerHTML = html;
+        document.getElementById('full-rt').textContent = (image.full_round_trip?.total_ms||'?') + 'ms';
+    }
+
+    // Tour
+    if (tour) {
+        const td = document.getElementById('tour-data');
+        const p = tour.pulses || [];
+        const pRange = tour.pressure_range_hpa || [0,0];
+        const delta = pRange[1] - pRange[0];
+        let html = `<b>${p.length} pulses | ${tour.steps_walked} steps | ${tour.estimated_floors}+ floors | ${tour.room_changes_detected} rooms</b><br>`;
+        html += `Pressure: ${pRange[0]}–${pRange[1]} hPa (Δ${tour.pressure_delta_hpa} = ${tour.altitude_range_m}m)<br>`;
+        html += '<div style="margin-top:4px">';
+        for (const pulse of p) {
+            const hpa = pulse.pressure_hpa || 0;
+            const pct = delta > 0 ? ((hpa - pRange[0]) / delta * 100) : 50;
+            const lux = pulse.light_lux || 0;
+            const rssi = pulse.wifi?.rssi || -80;
+            const color = `hsl(${200 + pct * 1.6}, 70%, ${30 + lux/3}%)`;
+            html += `<div class="floor-line">
+                <div class="floor-dot" style="background:${color}"></div>
+                <div style="width:${100-pct}%;height:6px;background:${color};border-radius:3px"></div>
+                <span>${hpa.toFixed(1)} ${pulse.light_desc||''} ${rssi}dBm</span>
+            </div>`;
+        }
+        html += '</div>';
+        td.innerHTML = html;
+    }
+}
+
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

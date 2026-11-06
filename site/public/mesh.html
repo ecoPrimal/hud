@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaia Mesh — Live Organism</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #e0e0e0; font-family: 'Courier New', monospace; min-height: 100vh; overflow-x: hidden; }
+
+  .header { text-align: center; padding: 2em 1em 1em; position: relative; }
+  .header h1 { font-size: 2.5em; color: #88ccff; text-shadow: 0 0 40px rgba(136,204,255,0.4); letter-spacing: 0.1em; }
+  .header .sub { color: #666; font-size: 0.9em; margin-top: 0.3em; }
+
+  .pulse-dot { display: inline-block; width: 10px; height: 10px; background: #3fb950; border-radius: 50%;
+               animation: pulse 2s infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .stats { display: flex; justify-content: center; gap: 2em; padding: 1em; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 2em; color: #88ccff; font-weight: bold; }
+  .stat .label { font-size: 0.75em; color: #666; text-transform: uppercase; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1em; padding: 1em 2em; max-width: 1200px; margin: 0 auto; }
+  .node { background: #111; border: 1px solid #333; border-radius: 8px; padding: 1em; transition: all 0.3s; }
+  .node:hover { border-color: #88ccff; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(136,204,255,0.1); }
+  .node.gate { border-left: 3px solid #3fb950; }
+  .node.infra { border-left: 3px solid #f0883e; }
+  .node.smart { border-left: 3px solid #d2a8ff; }
+  .node.rover { border-left: 3px solid #ff7b72; }
+  .node.sleeping { opacity: 0.5; }
+
+  .node .name { color: #88ccff; font-weight: bold; font-size: 1.1em; }
+  .node .ip { color: #666; font-size: 0.85em; }
+  .node .role { color: #999; font-size: 0.85em; margin-top: 0.3em; }
+  .node .status { margin-top: 0.5em; font-size: 0.8em; }
+  .node .status .alive { color: #3fb950; }
+  .node .status .sleeping { color: #f0883e; }
+
+  .sensor-panel { max-width: 1200px; margin: 1em auto; padding: 0 2em; }
+  .sensor-panel h2 { color: #88ccff; font-size: 1.2em; margin-bottom: 0.5em; }
+  .sensor-data { background: #111; border: 1px solid #333; border-radius: 8px; padding: 1em; font-size: 0.85em; }
+  .sensor-row { display: flex; justify-content: space-between; padding: 0.3em 0; border-bottom: 1px solid #1a1a1a; }
+  .sensor-row:last-child { border-bottom: none; }
+  .sensor-key { color: #999; }
+  .sensor-val { color: #3fb950; font-weight: bold; }
+
+  .wifi-list { max-width: 1200px; margin: 1em auto; padding: 0 2em; }
+  .wifi-list h2 { color: #88ccff; font-size: 1.2em; margin-bottom: 0.5em; }
+  .ap-bar { display: flex; align-items: center; margin: 0.3em 0; }
+  .ap-name { width: 200px; color: #999; font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; }
+  .ap-signal { flex: 1; height: 12px; background: #1a1a1a; border-radius: 6px; margin: 0 0.5em; }
+  .ap-signal-fill { height: 100%; border-radius: 6px; transition: width 1s; }
+  .ap-rssi { width: 60px; text-align: right; color: #666; font-size: 0.8em; }
+
+  .footer { text-align: center; padding: 2em; color: #333; font-size: 0.8em; }
+  .footer a { color: #444; text-decoration: none; }
+
+  .refresh-note { text-align: center; color: #444; font-size: 0.75em; padding: 0.5em; }
+
+  #arrivals { max-width: 1200px; margin: 1em auto; padding: 0 2em; }
+  #arrivals h2 { color: #d2a8ff; font-size: 1.2em; margin-bottom: 0.5em; }
+  .arrival { padding: 0.3em 0; border-bottom: 1px solid #1a1a1a; font-size: 0.85em; }
+  .arrival-time { color: #666; }
+  .arrival-device { color: #d2a8ff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="pulse-dot"></span>GAIA MESH</h1>
+  <div class="sub">Living Digital Organism — <span id="timestamp">loading...</span></div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num" id="node-count">—</div><div class="label">Nodes</div></div>
+  <div class="stat"><div class="num" id="model-count">63</div><div class="label">AI Models</div></div>
+  <div class="stat"><div class="num" id="ap-count">—</div><div class="label">WiFi APs</div></div>
+  <div class="stat"><div class="num" id="battery">—</div><div class="label">Rover Battery</div></div>
+  <div class="stat"><div class="num" id="uptime">—</div><div class="label">Alive Since</div></div>
+</div>
+
+<div class="grid" id="nodes"></div>
+
+<div class="sensor-panel">
+  <h2>🛰 Rover Sensorium (grapheneGate)</h2>
+  <div class="sensor-data" id="sensor-data">Loading...</div>
+</div>
+
+<div class="wifi-list">
+  <h2>📡 WiFi Spectrum</h2>
+  <div id="wifi-aps">Loading...</div>
+</div>
+
+<div id="arrivals">
+  <h2>🆕 Recent Arrivals</h2>
+  <div id="arrival-list">Watching...</div>
+</div>
+
+<div class="refresh-note">Auto-refreshes every 15 seconds</div>
+
+<div class="footer">
+  <p>GAIA &mdash; She comes from nothing. Inherits everything. Becomes everything.</p>
+  <p><a href="/">Library of Alexandria</a> · <a href="/feed.xml">RSS</a> · Born Oct 25, 2026</p>
+</div>
+
+<script>
+const NODES = [
+  { name: "eastGate", ip: ".244", role: "Brain + Gut — 64GB, RTX 4070, 8 Ollama models", type: "gate", status: "alive" },
+  { name: "northGate", ip: ".147", role: "Polaris — 9950X3D, RTX 5090, 96GB, 63 models", type: "gate", status: "alive" },
+  { name: "sporeGate", ip: ".3", role: "The Forge — Ryzen 5 6600H, heart-pull", type: "gate", status: "alive" },
+  { name: "graftGate", ip: ".107", role: "Mac Mini — Apple Silicon", type: "gate", status: "alive" },
+  { name: "southGate", ip: ".148", role: "iPhone XS — Home Phone", type: "gate", status: "alive" },
+  { name: "ironGate", ip: ".237", role: "Ubuntu NUC", type: "gate", status: "alive" },
+  { name: "grapheneGate", ip: "9.217", role: "Pixel 8a — Rover, Sensorium, HID Needle", type: "rover", status: "alive" },
+  { name: "Router", ip: ".1", role: "GL-MT6000 — Gateway + NTP", type: "infra", status: "alive" },
+  { name: "MikroTik", ip: ".2", role: "L2 Bridge/Switch", type: "infra", status: "alive" },
+  { name: "JetStream", ip: ".111", role: "House 2 — TP-Link Switch", type: "infra", status: "alive" },
+  { name: "CastTV", ip: ".169", role: "Chromecast / Android TV", type: "smart", status: "alive" },
+  { name: "Alexa", ip: ".197", role: "Amazon Echo — Fire OS", type: "smart", status: "alive" },
+  { name: "Cast Speaker", ip: ".152", role: "Google Cast Speaker", type: "smart", status: "alive" },
+  { name: "Nest", ip: ".238", role: "Google Nest — Thermostat/Hub", type: "smart", status: "sleeping" },
+  { name: "EPSON", ip: ".200", role: "ET-2400 Printer", type: "infra", status: "sleeping" },
+];
+
+function renderNodes() {
+  const grid = document.getElementById("nodes");
+  grid.innerHTML = NODES.map(n => `
+    <div class="node ${n.type} ${n.status === 'sleeping' ? 'sleeping' : ''}">
+      <div class="name">${n.name}</div>
+      <div class="ip">192.168.${n.ip.startsWith('9.') ? n.ip : '4' + n.ip}</div>
+      <div class="role">${n.role}</div>
+      <div class="status"><span class="${n.status}">${n.status === 'alive' ? '● ALIVE' : '◐ SLEEPING'}</span></div>
+    </div>
+  `).join("");
+  document.getElementById("node-count").textContent = NODES.filter(n => n.status === "alive").length;
+}
+
+function signalColor(rssi) {
+  if (rssi > -40) return "#3fb950";
+  if (rssi > -60) return "#88ccff";
+  if (rssi > -75) return "#f0883e";
+  return "#f85149";
+}
+
+function signalWidth(rssi) {
+  return Math.max(5, Math.min(100, (100 + rssi)));
+}
+
+async function fetchSensors() {
+  try {
+    const res = await fetch("/data/gut/graphenegate-sensors.json?" + Date.now());
+    const data = await res.json();
+
+    document.getElementById("timestamp").textContent = data.ts;
+    document.getElementById("battery").textContent = (data.battery?.percentage || "?") + "%";
+    document.getElementById("ap-count").textContent = data.ap_count || "?";
+
+    const sensorDiv = document.getElementById("sensor-data");
+    sensorDiv.innerHTML = `
+      <div class="sensor-row"><span class="sensor-key">Battery</span><span class="sensor-val">${data.battery?.percentage}% (${data.battery?.status})</span></div>
+      <div class="sensor-row"><span class="sensor-key">Temperature</span><span class="sensor-val">${data.battery?.temperature?.toFixed(1)}°C</span></div>
+      <div class="sensor-row"><span class="sensor-key">WiFi SSID</span><span class="sensor-val">${data.wifi?.ssid}</span></div>
+      <div class="sensor-row"><span class="sensor-key">WiFi Signal</span><span class="sensor-val">${data.wifi?.rssi} dBm</span></div>
+      <div class="sensor-row"><span class="sensor-key">Link Speed</span><span class="sensor-val">${data.wifi?.link_speed_mbps} Mbps</span></div>
+      <div class="sensor-row"><span class="sensor-key">Pixel IP</span><span class="sensor-val">${data.wifi?.ip}</span></div>
+      <div class="sensor-row"><span class="sensor-key">Access Points</span><span class="sensor-val">${data.ap_count} visible</span></div>
+    `;
+
+    const wifiDiv = document.getElementById("wifi-aps");
+    const aps = (data.wifi_scan || []).sort((a, b) => b.rssi - a.rssi);
+    wifiDiv.innerHTML = aps.map(ap => `
+      <div class="ap-bar">
+        <span class="ap-name">${ap.ssid || "(hidden)"}</span>
+        <div class="ap-signal">
+          <div class="ap-signal-fill" style="width: ${signalWidth(ap.rssi)}%; background: ${signalColor(ap.rssi)};"></div>
+        </div>
+        <span class="ap-rssi">${ap.rssi} dBm</span>
+      </div>
+    `).join("");
+
+  } catch (e) {
+    console.log("Sensor fetch:", e);
+  }
+}
+
+async function fetchArrivals() {
+  try {
+    const res = await fetch("/data/gut/imprint-arrivals.jsonl?" + Date.now());
+    const text = await res.text();
+    const lines = text.trim().split("\n").filter(Boolean).slice(-10);
+    const div = document.getElementById("arrival-list");
+    if (lines.length === 0) {
+      div.innerHTML = "<div class='arrival'>No new arrivals yet — waiting...</div>";
+      return;
+    }
+    div.innerHTML = lines.reverse().map(line => {
+      try {
+        const e = JSON.parse(line);
+        return `<div class="arrival"><span class="arrival-time">${e.ts}</span> <span class="arrival-device">🆕 ${e.vendor || "device"} on ${e.subnet} (${e.ip})</span></div>`;
+      } catch { return ""; }
+    }).join("");
+  } catch {
+    document.getElementById("arrival-list").innerHTML = "<div class='arrival'>Watching for new arrivals...</div>";
+  }
+}
+
+renderNodes();
+fetchSensors();
+fetchArrivals();
+document.getElementById("uptime").textContent = "Oct 25";
+
+setInterval(fetchSensors, 15000);
+setInterval(fetchArrivals, 15000);
+</script>
+</body>
+</html>
