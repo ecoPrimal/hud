@@ -392,6 +392,9 @@ function render(){
   ctx.fillStyle=`rgba(105,240,174,${0.3+hbPhase*0.3})`;
   ctx.shadowColor='#69f0ae';ctx.shadowBlur=hbR*2;ctx.fill();ctx.shadowBlur=0;
   
+  // Kevin bingo cube
+  drawKevin();
+  
   // Beat counter (very subtle)
   ctx.fillStyle='rgba(105,240,174,0.08)';
   ctx.font='8px monospace';ctx.textAlign='right';
@@ -765,6 +768,55 @@ function stopAudio(){
   document.getElementById('btn-ambient')?.classList.remove('active');
 }
 
+// ═══ KEVIN STATE ═══
+let kevinData=null;
+function drawKevin(){
+  if(!kevinData) return;
+  const w=canvas.width, h=canvas.height;
+  const bg=kevinData.bingo||{};
+  const score=bg.score||0, max=bg.max||8;
+  
+  // Kevin bingo cube — bottom-left corner
+  const bx=12, by=h-80;
+  ctx.fillStyle='rgba(255,136,0,0.12)';
+  ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillText('KEVIN',bx,by-8);
+  ctx.font='7px monospace';
+  ctx.fillStyle='rgba(255,136,0,0.08)';
+  ctx.fillText(score+'/'+max+' cells',bx,by);
+  
+  // Draw bingo cells as a 2x4 grid
+  const cells=[
+    {k:'watch',label:'WRIST',icon:'⌚'},
+    {k:'polaris',label:'HEART',icon:'🔥'},
+    {k:'iphone',label:'ANCHOR',icon:'📱'},
+    {k:'cast',label:'EYES',icon:'📺'},
+    {k:'vizio',label:'SCREEN',icon:'🖥️'},
+    {k:'alexa',label:'VOICE',icon:'🎤'},
+    {k:'nest',label:'TEMP',icon:'🌡️'},
+    {k:'pixel',label:'BRAIN',icon:'💎',always:true}
+  ];
+  
+  const cw=28, ch=14, gap=2;
+  cells.forEach((c,i)=>{
+    const col=i%4, row=Math.floor(i/4);
+    const x=bx+col*(cw+gap), y=by+4+row*(ch+gap);
+    const lit=c.always||bg[c.k]===1;
+    ctx.fillStyle=lit?'rgba(255,136,0,0.4)':'rgba(40,40,40,0.3)';
+    ctx.fillRect(x,y,cw,ch);
+    ctx.fillStyle=lit?'rgba(255,200,100,0.8)':'rgba(80,80,80,0.3)';
+    ctx.font='6px monospace';ctx.textAlign='center';
+    ctx.fillText(c.label,x+cw/2,y+ch-3);
+  });
+  
+  // Kevin house indicator
+  const house=kevinData.house;
+  const houseText=house===1?'House 1':house===2?'House 2':'?';
+  ctx.fillStyle='rgba(255,136,0,0.15)';
+  ctx.font='7px monospace';ctx.textAlign='left';
+  ctx.fillText('📍'+houseText+' '+kevinData.wifi+' '+(kevinData.rssi||'')+'dBm',bx,by+36);
+}
+
 // ═══ DATA INGEST ═══
 async function fetchData(){
   // Rover scan
@@ -780,6 +832,11 @@ async function fetchData(){
       sD.temp=d.temperature_c;sD.wifi_rssi=d.wifi_rssi;
       if(d.battery_pct) sD.battery=d.battery_pct;
     }
+  }catch(e){}
+  // Kevin state
+  try{
+    const r=await fetch(EAST+'/data/kevin-state.json',{cache:'no-store'});
+    if(r.ok) kevinData=await r.json();
   }catch(e){}
 }
 
