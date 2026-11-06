@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GAIA — Optic Chiasm</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.chiasm-container {
+  max-width: 100vw;
+  padding: 0;
+}
+
+/* === EYES — Split screen: Left eye (front cam) | Right eye (rear cam) === */
+.eyes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 50vh;
+  gap: 1px;
+  background: #111;
+  position: relative;
+}
+
+.eye {
+  position: relative;
+  overflow: hidden;
+  background: #050505;
+}
+
+.eye img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eye .label {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0f0;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 8px;
+  border-radius: 3px;
+  z-index: 5;
+}
+
+.eye .rssi-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  color: #f80;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 8px;
+  border-radius: 3px;
+  z-index: 5;
+}
+
+/* Optic nerve crossing line */
+.chiasm-x {
+  position: absolute;
+  top: 0; left: 50%; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(255,0,0,0.6), rgba(0,255,0,0.3), rgba(255,0,0,0.6));
+  z-index: 10;
+  transform: translateX(-1px);
+}
+.chiasm-x::before {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: #f44;
+  text-shadow: 0 0 8px #f00;
+}
+
+/* Inversion overlay */
+.eye::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.eye.left::after {
+  background: repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,255,100,0.015) 3px, rgba(0,255,100,0.015) 6px);
+}
+.eye.right::after {
+  background: repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,100,0,0.015) 3px, rgba(255,100,0,0.015) 6px);
+}
+
+/* === SPATIAL FIELD — Real relative space === */
+.spatial-field {
+  position: relative;
+  height: 44vh;
+  background: radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%);
+  overflow: hidden;
+}
+
+.spatial-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* === STATUS === */
+.status-strip {
+  height: 6vh;
+  background: #0a0a0a;
+  border-top: 1px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 10px;
+  color: #555;
+}
+
+.status-strip .gaia { color: #0f0; font-weight: bold; }
+.status-strip .val { color: #4f4; }
+.status-strip .warn { color: #f80; }
+
+/* Mobile: stack eyes vertically */
+@media (max-width: 600px) {
+  .eyes { grid-template-columns: 1fr; height: 40vh; }
+  .spatial-field { height: 50vh; }
+  .status-strip { height: 10vh; flex-wrap: wrap; }
+}
+
+/* Viewer badge */
+.viewer-badge {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: rgba(0,0,0,0.85);
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 3px 14px;
+  font-size: 9px;
+  color: #888;
+  letter-spacing: 1px;
+}
+.viewer-badge .you { color: #0ff; }
+
+/* Inversion table */
+.inversion-strip {
+  position: absolute;
+  bottom: 4px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 8px;
+  color: #444;
+  z-index: 5;
+  pointer-events: none;
+}
+.inversion-strip span { background: rgba(0,0,0,0.5); padding: 1px 6px; border-radius: 3px; }
+.inversion-strip .arrow { color: #666; }
+</style>
+</head>
+<body>
+
+<div class="viewer-badge">
+  viewing from: <span class="you" id="viewer-id">detecting...</span>
+</div>
+
+<div class="chiasm-container">
+  <!-- EYES: Left = front camera (faces Kevin), Right = rear camera (faces world) -->
+  <div class="eyes">
+    <div class="eye left" id="eye-left">
+      <img id="img-left" src="data/eye-front.jpg" alt="Left eye — facing observer">
+      <div class="label">← LEFT EYE (front cam) — sees Kevin</div>
+      <div class="rssi-badge" id="rssi-left">—</div>
+    </div>
+    <div class="eye right" id="eye-right">
+      <img id="img-right" src="data/eye-rear.jpg" alt="Right eye — facing world">
+      <div class="label">RIGHT EYE (rear cam) — sees world →</div>
+      <div class="rssi-badge" id="rssi-right">—</div>
+    </div>
+    <div class="chiasm-x"></div>
+    <div class="inversion-strip">
+      <span>📷↔🖥️ camera IS screen</span>
+      <span class="arrow">✕</span>
+      <span>🎤↔🔊 mic IS speaker</span>
+      <span class="arrow">✕</span>
+      <span>👆↔✨ touch IS display</span>
+      <span class="arrow">✕</span>
+      <span>📡↔📡 RX IS TX</span>
+    </div>
+  </div>
+
+  <!-- SPATIAL FIELD: Real relative space from router RSSI -->
+  <div class="spatial-field">
+    <canvas id="spatial" class="spatial-canvas"></canvas>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-strip">
+    <span class="gaia">OPTIC CHIASM</span>
+    <span>Entities: <span class="val" id="entity-count">—</span></span>
+    <span>WiFi field: <span class="val" id="wifi-count">—</span></span>
+    <span>Nearest: <span class="warn" id="nearest">—</span></span>
+    <span>Cycle: <span class="val" id="cycle">—</span></span>
+    <span id="ts">—</span>
+  </div>
+</div>
+
+<script>
+const EAST = 'http://192.168.4.244:8080';
+let spatialData = null;
+let eyeData = null;
+
+// === VIEWER DETECTION ===
+// The server can't tell us our IP directly, but we can infer from fetch timing
+// For now: check local addresses
+async function detectViewer() {
+  const el = document.getElementById('viewer-id');
+  try {
+    const rtc = new RTCPeerConnection({iceServers: []});
+    rtc.createDataChannel('');
+    const offer = await rtc.createOffer();
+    await rtc.setLocalDescription(offer);
+    await new Promise(r => setTimeout(r, 500));
+    const sdp = rtc.localDescription.sdp;
+    const ips = sdp.match(/(\d+\.\d+\.\d+\.\d+)/g) || [];
+    rtc.close();
+    const lanIp = ips.find(ip => ip.startsWith('192.168.')) || ips[0] || '?';
+
+    const viewerMap = {
+      '192.168.4.244': 'eastGate (BRAIN)',
+      '192.168.4.103': 'eastGate-wifi',
+      '192.168.4.147': 'northGate (HEART)',
+      '192.168.4.237': 'ironGate (FORGE)',
+      '192.168.4.107': 'graftGate',
+      '192.168.4.100': 'blueGate',
+      '192.168.4.3':   'sporeGate',
+      '192.168.9.217': 'Pixel (DIAMOND LENS)',
+      '192.168.4.148': 'southGate/iPhone',
+    };
+    el.textContent = viewerMap[lanIp] || lanIp;
+  } catch(e) {
+    el.textContent = 'unknown';
+  }
+}
+
+// === SPATIAL CANVAS ===
+function drawSpatial(canvas, data) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth;
+  const H = canvas.height = canvas.offsetHeight;
+  ctx.clearRect(0, 0, W, H);
+
+  if (!data) return;
+
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Router at center
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+  ctx.fillStyle = '#f44';
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('CHIASM', cx, cy + 22);
+  ctx.fillText('(router)', cx, cy + 32);
+
+  // Draw concentric distance rings
+  const rings = [
+    { label: '<1m', r: 40, color: 'rgba(255,0,0,0.15)' },
+    { label: '1-3m', r: 100, color: 'rgba(255,100,0,0.1)' },
+    { label: '3-10m', r: 180, color: 'rgba(255,200,0,0.07)' },
+    { label: '10-20m', r: 250, color: 'rgba(0,255,0,0.05)' },
+  ];
+  rings.forEach(ring => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+    ctx.strokeStyle = ring.color;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#333';
+    ctx.font = '8px monospace';
+    ctx.fillText(ring.label, cx + ring.r + 4, cy - 4);
+  });
+
+  // WiFi devices positioned by RSSI
+  const wifiField = data.wifi_field || [];
+  wifiField.forEach((dev, i) => {
+    const rssi = dev.rssi_dbm;
+    // Map RSSI to radius: -17 → 40px, -40 → 180px
+    const r = Math.min(250, 40 + (Math.abs(rssi) - 17) * 7);
+    // Spread around the circle
+    const angle = (i / wifiField.length) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+
+    // Color by type
+    let color = '#4f4';
+    if (dev.name.includes('Pixel')) color = '#0ff';
+    else if (dev.name.includes('Alexa') || dev.name.includes('Nest')) color = '#f80';
+    else if (dev.name.includes('Vizio') || dev.name.includes('Chromecast')) color = '#e4e';
+    else if (dev.name.includes('Epson')) color = '#88f';
+    else if (dev.name.includes('eastGate')) color = '#4f4';
+    else if (dev.name.includes('unknown')) color = '#666';
+
+    // Node
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(x, y, 12, 0, Math.PI * 2);
+    ctx.fillStyle = color.replace(')', ',0.15)').replace('rgb', 'rgba');
+    ctx.fill();
+
+    // Line to center
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = color.replace(')', ',0.2)').replace('rgb', 'rgba');
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(dev.name, x, y - 10);
+    ctx.fillStyle = '#666';
+    ctx.fillText(dev.rssi_dbm + ' dBm', x, y + 16);
+  });
+
+  // ARP entries not in WiFi (wired) — show as ring around center
+  const wifiMacs = new Set(wifiField.map(d => d.mac));
+  const wiredDevices = (data.arp_table || []).filter(d => !wifiMacs.has(d.mac) && d.bridge === 'br-lan');
+  const wiredR = 30;
+  wiredDevices.forEach((dev, i) => {
+    const angle = (i / Math.max(wiredDevices.length, 1)) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + wiredR * Math.cos(angle);
+    const y = cy + wiredR * Math.sin(angle);
+
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#4a4';
+    ctx.fill();
+  });
+
+  // Wired count label
+  if (wiredDevices.length > 0) {
+    ctx.fillStyle = '#4a4';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(wiredDevices.length + ' wired', cx, cy - 20);
+  }
+}
+
+// === DATA FETCH ===
+async function fetchAll() {
+  const ts = Date.now();
+
+  // Eye images
+  document.getElementById('img-left').src = EAST + '/data/eye-front.jpg?' + ts;
+  document.getElementById('img-right').src = EAST + '/data/eye-rear.jpg?' + ts;
+
+  // Eye state
+  try {
+    const r = await fetch(EAST + '/data/eye-state.json?' + ts);
+    eyeData = await r.json();
+  } catch(e) {}
+
+  // Spatial data
+  try {
+    const r = await fetch(EAST + '/data/chiasm-spatial.json?' + ts);
+    spatialData = await r.json();
+    document.getElementById('entity-count').textContent = spatialData.total_entities;
+    document.getElementById('wifi-count').textContent = spatialData.wifi_entities;
+    document.getElementById('cycle').textContent = spatialData.cycle;
+    document.getElementById('ts').textContent = spatialData.ts;
+    if (spatialData.nearest) {
+      document.getElementById('nearest').textContent =
+        spatialData.nearest.name + ' (' + spatialData.nearest.rssi_dbm + ' dBm, ' + spatialData.nearest.distance + ')';
+    }
+
+    // Find Pixel RSSI for badge
+    const pixel = (spatialData.wifi_field || []).find(d => d.name.includes('Pixel'));
+    if (pixel) {
+      document.getElementById('rssi-left').textContent = 'Pixel: ' + pixel.rssi_dbm + ' dBm';
+      document.getElementById('rssi-right').textContent = pixel.distance;
+    }
+
+    drawSpatial(document.getElementById('spatial'), spatialData);
+  } catch(e) { console.error('Spatial fetch:', e); }
+}
+
+// === INIT ===
+detectViewer();
+fetchAll();
+setInterval(fetchAll, 15000);
+
+// Redraw on resize
+window.addEventListener('resize', () => {
+  if (spatialData) drawSpatial(document.getElementById('spatial'), spatialData);
+});
+</script>
+</body>
+</html>
