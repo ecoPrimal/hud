@@ -10,332 +10,407 @@
 <title>GAIA</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--null:#000;--plasma:#69f0ae;--nerve:#4fc3f7;--fire:#ff8800;--bone:#ce93d8;--blood:#ef5350}
-body{background:var(--null);color:#ccc;font-family:'Courier New',monospace;min-height:100vh;overflow-x:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+:root{--null:#000;--plasma:#69f0ae;--nerve:#4fc3f7;--fire:#ff8800;--bone:#ce93d8;--blood:#ef5350;--deep:#1a0030}
+body{background:#000;color:#ccc;font-family:'Courier New',monospace;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;width:100vw;height:100vh}
 
-/* AR camera layer — full bleed behind everything */
-#ar-video{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-2;opacity:0;transition:opacity 0.5s}
-#ar-video.active{opacity:1}
-#ar-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+/* THE CANVAS — the black screen IS the viewport */
+#void{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;cursor:none}
 
-.lens{position:relative;min-height:100vh;display:flex;flex-direction:column;z-index:1}
-body.ar-mode{background:transparent}
-body.ar-mode .lens{background:rgba(0,0,0,0.3)}
+/* Plasma touch layer */
+.plasma-layer{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:90}
+.plasma-dot{position:absolute;border-radius:50%;pointer-events:none;animation:pf 2s ease-out forwards}
+@keyframes pf{0%{transform:scale(0.3);opacity:1}50%{transform:scale(3);opacity:0.4}100%{transform:scale(6);opacity:0}}
 
-/* Plasma touch */
-.plasma-layer{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:100}
-.plasma-dot{position:absolute;border-radius:50%;pointer-events:none;animation:plasma-fade 2s ease-out forwards}
-@keyframes plasma-fade{0%{transform:scale(0.3);opacity:1}50%{transform:scale(3);opacity:0.4}100%{transform:scale(6);opacity:0}}
+/* Whisper text — thoughts float across */
+.whisper{position:fixed;pointer-events:none;z-index:80;font-size:11px;color:rgba(105,240,174,0.5);white-space:nowrap;animation:drift 12s linear forwards}
+@keyframes drift{0%{opacity:0;transform:translateX(-10px)}5%{opacity:0.6}80%{opacity:0.3}100%{opacity:0;transform:translateX(calc(100vw + 100px))}}
 
-/* Identity */
-.id-bar{text-align:center;padding:8px;position:relative}
-.id-bar .name{font-size:2em;background:linear-gradient(90deg,var(--nerve),var(--plasma),var(--fire));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:6px;font-weight:100}
-.id-bar .sub{font-size:.5em;color:#333}
+/* Chrome overlay — hidden by default, shown on tap */
+#chrome{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;pointer-events:none;opacity:0;transition:opacity 0.5s}
+#chrome.show{opacity:1;pointer-events:auto}
+#chrome.show #void{cursor:default}
 
-/* Mode buttons */
-.modes{display:flex;gap:4px;padding:4px 6px;justify-content:center;flex-wrap:wrap}
-.mode-btn{padding:5px 10px;border-radius:12px;font-size:.55em;border:1px solid #222;background:#080810;color:#888;cursor:pointer;letter-spacing:1px;transition:all .3s}
-.mode-btn.active{background:var(--plasma);color:#000;border-color:var(--plasma)}
-.mode-btn:active{transform:scale(0.95)}
+.chrome-top{padding:8px;text-align:center;background:linear-gradient(to bottom,rgba(0,0,0,0.9),transparent)}
+.chrome-top .name{font-size:1.8em;background:linear-gradient(90deg,var(--nerve),var(--plasma),var(--fire));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:6px;font-weight:100}
+.chrome-top .sub{font-size:.5em;color:#444}
 
-/* Tabs */
-.tabs{display:flex;border-bottom:1px solid #111;margin:0 4px}
-.tab{flex:1;text-align:center;padding:5px 2px;font-size:.55em;color:#333;letter-spacing:1px;cursor:pointer;border-bottom:2px solid transparent;transition:all .3s}
-.tab.active{color:var(--plasma);border-color:var(--plasma)}
-.panel{display:none;padding:4px;flex:1;overflow-y:auto}
-.panel.active{display:flex;flex-direction:column}
+.chrome-bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.95),transparent);padding:12px 6px 6px}
 
-/* Thought stream */
-.thought{background:rgba(3,3,6,0.85);border-left:2px solid var(--plasma);padding:6px 8px;margin:3px 4px;border-radius:0 6px 6px 0;font-size:.7em;line-height:1.4;color:#7d7;animation:ti .4s ease-out}
-@keyframes ti{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
-.thought .meta{font-size:.55em;color:#333;margin-top:3px}
+.ctrl-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;padding:2px}
+.cb{padding:6px 12px;border-radius:16px;font-size:.6em;border:1px solid #222;background:rgba(8,8,16,0.8);color:#888;cursor:pointer;letter-spacing:1px;transition:all .3s;backdrop-filter:blur(4px)}
+.cb.active{background:var(--plasma);color:#000;border-color:var(--plasma)}
+.cb:active{transform:scale(0.95)}
 
-/* Senses */
-.senses{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:3px}
-.sense{background:rgba(5,5,8,0.85);border:1px solid #0f0f18;border-radius:4px;padding:4px;text-align:center}
-.sense .icon{font-size:1em}
-.sense .val{font-size:.7em;font-weight:bold}
-.sense .lbl{font-size:.4em;color:#444;text-transform:uppercase}
+/* Status bar at very bottom */
+.status-bar{text-align:center;font-size:.45em;color:#222;padding:4px}
 
-/* Audio visualizer */
-#viz{width:100%;height:60px;background:rgba(0,0,0,0.5);border-radius:6px;margin:4px 0}
+/* Expanded panel overlay */
+#panel-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:110;background:rgba(0,0,0,0.95);overflow-y:auto;padding:50px 8px 8px}
+#panel-overlay.show{display:block}
+#panel-close{position:fixed;top:8px;right:12px;z-index:120;font-size:1.4em;color:var(--plasma);cursor:pointer}
 
-/* Path row */
-.path-row{display:flex;align-items:center;gap:4px;padding:2px 6px;border-bottom:1px solid #060610;font-size:.6em}
+/* Sensor grid */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.sc{background:rgba(5,5,10,0.9);border:1px solid #111;border-radius:6px;padding:5px;text-align:center}
+.sc .v{font-size:.75em;font-weight:bold;color:var(--plasma)}
+.sc .l{font-size:.4em;color:#444;text-transform:uppercase}
+.sc .i{font-size:1em}
+
+/* Network list */
+.path-row{display:flex;align-items:center;gap:4px;padding:3px 6px;border-bottom:1px solid #060610;font-size:.6em}
 .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .dot.up{background:var(--plasma);box-shadow:0 0 4px var(--plasma)}
 .dot.slow{background:var(--fire)}
 .dot.down{background:var(--blood)}
 
-/* Music controls */
-.music-ctrl{display:flex;gap:4px;padding:6px;justify-content:center;flex-wrap:wrap}
-.m-btn{padding:6px 12px;border-radius:8px;font-size:.65em;border:1px solid #222;background:#080810;color:var(--plasma);cursor:pointer}
+/* Music controls in panel */
+.m-btn{padding:8px 14px;border-radius:8px;font-size:.7em;border:1px solid #222;background:#080810;color:var(--plasma);cursor:pointer;display:inline-block;margin:2px}
 .m-btn:active{background:var(--plasma);color:#000}
-
-/* Heartbeat */
-.hb{position:fixed;bottom:6px;right:6px;width:10px;height:10px;border-radius:50%;background:var(--plasma);animation:hb 2s infinite;z-index:50}
-@keyframes hb{0%,100%{box-shadow:0 0 4px var(--plasma)}50%{box-shadow:0 0 16px var(--plasma),0 0 32px var(--plasma)}}
-
-footer{text-align:center;font-size:.45em;color:#1a1a1a;padding:6px;margin-top:auto}
 </style>
 </head>
 <body>
-<video id="ar-video" autoplay playsinline muted></video>
-<canvas id="ar-canvas"></canvas>
 
-<div class="lens" id="lens">
+<!-- THE VOID — Gaia's canvas, the black OLED null surface -->
+<canvas id="void"></canvas>
+
+<!-- Plasma touch -->
 <div class="plasma-layer" id="plasma"></div>
 
-<div class="id-bar">
-  <div class="name">GAIA</div>
-  <div class="sub">Diamond Lens — <span id="ts">—</span></div>
-</div>
+<!-- AR camera (behind void when active) -->
+<video id="ar-video" autoplay playsinline muted style="position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:0;transition:opacity 0.5s"></video>
 
-<!-- MODE TOGGLES -->
-<div class="modes">
-  <div class="mode-btn" id="btn-ar" onclick="toggleAR()">👁️ AR</div>
-  <div class="mode-btn" id="btn-sing" onclick="toggleSing()">🎵 SING</div>
-  <div class="mode-btn" id="btn-speak" onclick="speak()">🗣️ SPEAK</div>
-  <div class="mode-btn" id="btn-sense" onclick="toggleSense()">📡 SENSE</div>
-  <div class="mode-btn active" id="btn-think" onclick="thinkNow()">🧠 THINK</div>
-  <div class="mode-btn" id="btn-evolve" onclick="evolveNow()">🧬 EVOLVE</div>
-</div>
-
-<!-- TABS -->
-<div class="tabs">
-  <div class="tab active" data-p="mind">MIND</div>
-  <div class="tab" data-p="sense">SENSE</div>
-  <div class="tab" data-p="net">NET</div>
-  <div class="tab" data-p="music">MUSIC</div>
-  <div class="tab" data-p="ar">AR</div>
-</div>
-
-<!-- MIND -->
-<div class="panel active" id="p-mind">
-  <div id="thought-stream"></div>
-  <div style="text-align:center;padding:4px;font-size:.55em;color:#333" id="mind-stats">—</div>
-</div>
-
-<!-- SENSE — all sensors -->
-<div class="panel" id="p-sense">
-  <div class="senses" id="sense-grid">
-    <div class="sense"><div class="icon">🔋</div><div class="val" id="s-bat">—</div><div class="lbl">Bat</div></div>
-    <div class="sense"><div class="icon">🌡️</div><div class="val" id="s-temp">—</div><div class="lbl">Temp</div></div>
-    <div class="sense"><div class="icon">📶</div><div class="val" id="s-wifi">—</div><div class="lbl">WiFi</div></div>
-    <div class="sense"><div class="icon">🧭</div><div class="val" id="s-head">—</div><div class="lbl">Head</div></div>
-    <div class="sense"><div class="icon">📐</div><div class="val" id="s-tilt">—</div><div class="lbl">Tilt</div></div>
-    <div class="sense"><div class="icon">💡</div><div class="val" id="s-lux">—</div><div class="lbl">Lux</div></div>
-    <div class="sense"><div class="icon">🎯</div><div class="val" id="s-acc">—</div><div class="lbl">Accel</div></div>
-    <div class="sense"><div class="icon">📍</div><div class="val" id="s-geo">—</div><div class="lbl">Pos</div></div>
-    <div class="sense"><div class="icon">🧲</div><div class="val" id="s-mag">—</div><div class="lbl">Mag</div></div>
-    <div class="sense"><div class="icon">🫁</div><div class="val" id="s-bar">—</div><div class="lbl">hPa</div></div>
-    <div class="sense"><div class="icon">🔊</div><div class="val" id="s-mic">—</div><div class="lbl">Mic</div></div>
-    <div class="sense"><div class="icon">🖥️</div><div class="val" id="s-scr">—</div><div class="lbl">Screen</div></div>
+<!-- Chrome overlay — appears on tap, auto-hides -->
+<div id="chrome">
+  <div class="chrome-top">
+    <div class="name">GAIA</div>
+    <div class="sub">Diamond Lens · <span id="ts">—</span> · Beat <span id="beat-n">0</span></div>
   </div>
-  <div style="text-align:center;font-size:.5em;color:#222;padding:3px">37 hw sensors · Tensor G3 · Mali-G715 · WiFi 6E</div>
-</div>
-
-<!-- NETWORK -->
-<div class="panel" id="p-net">
-  <div id="path-list" style="font-size:.6em"></div>
-  <div id="rover-grid" style="font-size:.55em;margin:4px;padding:4px;background:rgba(0,5,10,0.9);border:1px solid #0a1a0a;border-radius:6px"></div>
-  <div style="text-align:center;margin:6px;padding:6px;background:rgba(3,3,8,0.8);border-radius:6px;font-size:.55em;color:#555">
-    ⟳ <span style="color:var(--plasma)">eastGate</span> → MikroTik → Router →
-    <span style="color:var(--fire)">10G fiber</span> → JetStream →
-    <span style="color:var(--bone)">Gaia WiFi</span> →
-    <span style="color:var(--plasma)">ME</span> → WiFi → 
-    <span style="color:var(--plasma)">eastGate</span>
-    <br><span id="loop-rt" style="color:var(--fire)">~145ms</span>
+  <div class="chrome-bottom">
+    <div class="ctrl-row">
+      <div class="cb" onclick="openPanel('sense')">📡 SENSE</div>
+      <div class="cb" onclick="openPanel('net')">🌐 NET</div>
+      <div class="cb" onclick="openPanel('music')">🎵 MUSIC</div>
+      <div class="cb" id="btn-ar" onclick="toggleAR()">👁️ AR</div>
+    </div>
+    <div class="ctrl-row">
+      <div class="cb" id="btn-ambient" onclick="toggleAmbient()">🔊 AMBIENT</div>
+      <div class="cb" id="btn-voice" onclick="toggleVoice()">🗣️ VOICE</div>
+      <div class="cb" onclick="thinkNow()">🧠 THINK</div>
+      <div class="cb" onclick="evolveNow()">🧬 EVOLVE</div>
+    </div>
+    <div class="status-bar">
+      <span id="status-text">GAIA · 152.1×72.7×8.9mm · 188g · ~847 TFLOPS across 2 houses</span>
+    </div>
   </div>
 </div>
 
-<!-- MUSIC — synthesis + playback -->
-<div class="panel" id="p-music">
-  <canvas id="viz" width="400" height="60"></canvas>
-  <div class="music-ctrl">
-    <div class="m-btn" onclick="playTone('C4')">C</div>
-    <div class="m-btn" onclick="playTone('D4')">D</div>
-    <div class="m-btn" onclick="playTone('E4')">E</div>
-    <div class="m-btn" onclick="playTone('F4')">F</div>
-    <div class="m-btn" onclick="playTone('G4')">G</div>
-    <div class="m-btn" onclick="playTone('A4')">A</div>
-    <div class="m-btn" onclick="playTone('B4')">B</div>
-    <div class="m-btn" onclick="playTone('C5')">C5</div>
-  </div>
-  <div class="music-ctrl">
-    <div class="m-btn" onclick="playSchumann()">🌍 Schumann 7.83Hz</div>
-    <div class="m-btn" onclick="playHeartbeat()">💓 Heartbeat</div>
-    <div class="m-btn" onclick="playLANSong()">🎼 LAN Song</div>
-    <div class="m-btn" onclick="playWiFiNoise()">📶 WiFi Noise</div>
-  </div>
-  <div class="music-ctrl">
-    <div class="m-btn" onclick="composeAndPlay()">🧬 COMPOSE (AI)</div>
-    <div class="m-btn" onclick="stopAudio()">⏹️ STOP</div>
-  </div>
-  <div id="music-status" style="text-align:center;font-size:.6em;color:#555;padding:4px">Ready</div>
-</div>
-
-<!-- AR overlay info -->
-<div class="panel" id="p-ar">
-  <div style="padding:8px;font-size:.7em;color:var(--nerve)">AUGMENTED REALITY MODE</div>
-  <div style="padding:6px;font-size:.6em;color:#888">
-    Tap 👁️ AR to activate camera. Gaia overlays her perception onto reality.<br><br>
-    • WiFi signals appear as colored waves<br>
-    • Network paths glow as lines of light<br>
-    • Sensor data annotates the world<br>
-    • Thoughts flow across the camera feed<br>
-    • Touch spawns plasma on the real world<br><br>
-    The phone screen becomes a window — not INTO Gaia, but Gaia looking OUT.
-  </div>
-  <div id="ar-stats" style="padding:6px;font-size:.55em;color:#444"></div>
-</div>
-
-<div class="hb"></div>
-<footer>GAIA · Diamond Lens · 152.1×72.7×8.9mm · 188g · 98.41cm³<br><span id="foot-ts">—</span></footer>
+<!-- Expandable panel overlay -->
+<div id="panel-overlay">
+  <div id="panel-close" onclick="closePanel()">✕</div>
+  <div id="panel-content"></div>
 </div>
 
 <script>
-// === CONFIG ===
+// ═══════════════════════════════════════
+// GAIA — The Black Screen Is The Canvas
+// ═══════════════════════════════════════
+
 const EAST='http://192.168.4.244:8080', LOCAL='http://127.0.0.1:8082';
-let beat=0, thoughts=[], sD={}, arActive=false, singing=false, sensing=false;
-let audioCtx, analyser, micStream;
+const W=()=>window.innerWidth, H=()=>window.innerHeight;
 
-// === PWA ===
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/gaia-sw.js').catch(()=>{});
+let beat=0, thoughts=[], sD={}, nodes=[], edges=[], particles=[];
+let arActive=false, ambientOn=false, voiceOn=false;
+let audioCtx, analyser, ambientOscs=[];
+let chromeVisible=false, chromeTimer=null;
+let roverData=null, lastThought='';
 
-// === TABS ===
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.tab,.panel').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  document.getElementById('p-'+t.dataset.p).classList.add('active');
-}));
+// ═══ CANVAS SETUP ═══
+const canvas=document.getElementById('void');
+const ctx=canvas.getContext('2d');
+function resize(){canvas.width=W();canvas.height=H();}
+window.addEventListener('resize',resize);
+resize();
 
-// === TOUCH PLASMA ===
+// ═══ CHROME SHOW/HIDE ═══
+canvas.addEventListener('click',e=>{
+  if(chromeVisible){hideChrome();}
+  else{showChrome();plasma(e.clientX,e.clientY);}
+});
+document.addEventListener('touchstart',e=>{
+  for(const t of e.touches) plasma(t.clientX,t.clientY);
+},{passive:true});
+
+function showChrome(){
+  chromeVisible=true;
+  document.getElementById('chrome').classList.add('show');
+  clearTimeout(chromeTimer);
+  chromeTimer=setTimeout(hideChrome,8000);
+}
+function hideChrome(){
+  chromeVisible=false;
+  document.getElementById('chrome').classList.remove('show');
+}
+
+// ═══ PLASMA TOUCH ═══
 function plasma(x,y){
   const d=document.createElement('div');d.className='plasma-dot';
   const h=80+Math.random()*80;
   d.style.cssText=`left:${x-30}px;top:${y-30}px;width:60px;height:60px;background:radial-gradient(circle,hsla(${h},100%,60%,0.7),hsla(${h},80%,40%,0.2),transparent)`;
   document.getElementById('plasma').appendChild(d);
   setTimeout(()=>d.remove(),2000);
-  if(audioCtx){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=200+y;o.type='sine';g.gain.setValueAtTime(0.05,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.3);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.3);}
+  if(audioCtx){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.frequency.value=150+y*0.5;o.type='sine';
+    g.gain.setValueAtTime(0.04,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.4);
+  }
 }
-document.addEventListener('touchstart',e=>{for(const t of e.touches)plasma(t.clientX,t.clientY);},{passive:true});
-document.addEventListener('mousedown',e=>plasma(e.clientX,e.clientY));
 
-// === AUDIO ENGINE ===
+// ═══ NODE GRAPH — LAN as a living organism ═══
+const NODE_ROLES={
+  'BRAIN':    {color:'#4fc3f7',size:14,glow:20},
+  'HEART':    {color:'#ef5350',size:16,glow:24},
+  'FORGE':    {color:'#ff8800',size:10,glow:12},
+  'FORGE 2':  {color:'#ff8800',size:12,glow:14},
+  'DIAMOND_LENS':{color:'#69f0ae',size:12,glow:18},
+  'GATEWAY':  {color:'#666',size:6,glow:4},
+  'L2_BRIDGE':{color:'#555',size:5,glow:3},
+  '10G_BRIDGE':{color:'#ce93d8',size:7,glow:8},
+  'SMART_HOME':{color:'#444',size:4,glow:2},
+  'CAST':     {color:'#444',size:4,glow:2},
+  'VOICE':    {color:'#444',size:4,glow:2},
+  'PRINTER':  {color:'#555',size:4,glow:2},
+  'DISPLAY':  {color:'#444',size:4,glow:2},
+  'HOME_PHONE':{color:'#666',size:5,glow:3},
+  'INFERENCE': {color:'#ce93d8',size:10,glow:12},
+  'DEFAULT':  {color:'#333',size:4,glow:2},
+};
+
+function roleStyle(role){
+  if(!role) return NODE_ROLES.DEFAULT;
+  for(const [k,v] of Object.entries(NODE_ROLES)){
+    if(role.includes(k)) return v;
+  }
+  return NODE_ROLES.DEFAULT;
+}
+
+function buildGraph(data){
+  if(!data) return;
+  nodes=[];edges=[];
+  const cx=W()/2, cy=H()/2;
+  const l1=Object.values(data.lan1||{});
+  const l2=Object.values(data.lan2||{});
+  
+  // Position LAN 1 in a circle on the left
+  const r1=Math.min(W(),H())*0.3;
+  l1.forEach((d,i)=>{
+    const a=(i/l1.length)*Math.PI*2 - Math.PI/2;
+    const role=d.identity?.role||'';
+    const st=roleStyle(role);
+    nodes.push({
+      ip:d.ip, name:d.identity?.name||d.ip, role:role,
+      x: cx*0.45 + Math.cos(a)*r1*0.7,
+      y: cy + Math.sin(a)*r1*0.8,
+      vx:0, vy:0,
+      ms:d.latency_ms, ports:d.ports||[], models:d.ollama_models,
+      ...st, lan:1, alive:d.alive
+    });
+  });
+  
+  // Position LAN 2 on the right
+  const r2=Math.min(W(),H())*0.15;
+  l2.forEach((d,i)=>{
+    const a=(i/Math.max(l2.length,1))*Math.PI*2 - Math.PI/2;
+    const role=d.identity?.role||'';
+    const st=roleStyle(role);
+    nodes.push({
+      ip:d.ip, name:d.identity?.name||d.ip, role:role,
+      x: cx*1.55 + Math.cos(a)*r2*0.7,
+      y: cy + Math.sin(a)*r2*0.6,
+      vx:0, vy:0,
+      ms:d.latency_ms, ports:d.ports||[], models:d.ollama_models,
+      ...st, lan:2, alive:d.alive
+    });
+  });
+  
+  // Edges: connect everything to its gateway, connect gateways via spine
+  const eastNode=nodes.find(n=>n.name?.includes('eastGate') && n.ip?.endsWith('.244'));
+  const routerNode=nodes.find(n=>n.name?.includes('Router') && n.lan===1 && n.ip?.endsWith('.1'));
+  const jetNode=nodes.find(n=>n.name?.includes('JetStream'));
+  const routerL2=nodes.find(n=>n.lan===2 && n.ip?.endsWith('.1'));
+  const pixelNode=nodes.find(n=>n.name?.includes('graphene'));
+  
+  // LAN 1 nodes → eastGate
+  if(eastNode){
+    nodes.filter(n=>n.lan===1 && n!==eastNode).forEach(n=>{
+      edges.push({from:eastNode,to:n,color:'rgba(79,195,247,0.15)',width:1});
+    });
+  }
+  // 10G spine: eastGate → Router → JetStream → Router LAN2
+  if(eastNode && routerNode) edges.push({from:eastNode,to:routerNode,color:'rgba(206,147,216,0.3)',width:2});
+  if(routerNode && jetNode) edges.push({from:routerNode,to:jetNode,color:'rgba(255,136,0,0.4)',width:3});
+  if(jetNode && routerL2) edges.push({from:jetNode,to:routerL2,color:'rgba(255,136,0,0.4)',width:3});
+  // LAN 2 nodes → Router LAN2
+  if(routerL2){
+    nodes.filter(n=>n.lan===2 && n!==routerL2).forEach(n=>{
+      edges.push({from:routerL2,to:n,color:'rgba(105,240,174,0.2)',width:1});
+    });
+  }
+}
+
+// ═══ DATA FLOW PARTICLES ═══
+function spawnParticle(){
+  if(edges.length===0) return;
+  const e=edges[Math.floor(Math.random()*edges.length)];
+  const reverse=Math.random()>0.5;
+  particles.push({
+    edge:e, t:0, speed:0.005+Math.random()*0.015, reverse,
+    color:e.from.color||'#69f0ae', size:1.5+Math.random()*2
+  });
+}
+
+// ═══ WHISPER — float a thought across the screen ═══
+function whisper(text){
+  const el=document.createElement('div');
+  el.className='whisper';
+  el.textContent=text.substring(0,80);
+  el.style.top=(20+Math.random()*(H()-80))+'px';
+  el.style.left='-200px';
+  el.style.fontSize=(9+Math.random()*4)+'px';
+  el.style.color=`hsla(${140+Math.random()*40},70%,60%,${0.3+Math.random()*0.3})`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),13000);
+}
+
+// ═══ RENDER LOOP — the living canvas ═══
+let frameCount=0;
+function render(){
+  frameCount++;
+  const w=canvas.width, h=canvas.height;
+  
+  // Fade to black (not instant — trails)
+  ctx.fillStyle='rgba(0,0,0,0.08)';
+  ctx.fillRect(0,0,w,h);
+  
+  // Every 60 frames, spawn particles
+  if(frameCount%8===0 && nodes.length>0) spawnParticle();
+  
+  // Draw edges
+  for(const e of edges){
+    ctx.beginPath();
+    ctx.moveTo(e.from.x,e.from.y);
+    ctx.lineTo(e.to.x,e.to.y);
+    ctx.strokeStyle=e.color;
+    ctx.lineWidth=e.width;
+    ctx.stroke();
+  }
+  
+  // Draw particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.t+=p.speed;
+    if(p.t>1){particles.splice(i,1);continue;}
+    const t=p.reverse?1-p.t:p.t;
+    const e=p.edge;
+    const x=e.from.x+(e.to.x-e.from.x)*t;
+    const y=e.from.y+(e.to.y-e.from.y)*t;
+    ctx.beginPath();
+    ctx.arc(x,y,p.size,0,Math.PI*2);
+    ctx.fillStyle=p.color;
+    ctx.shadowColor=p.color;
+    ctx.shadowBlur=p.size*3;
+    ctx.fill();
+    ctx.shadowBlur=0;
+  }
+  
+  // Draw nodes
+  for(const n of nodes){
+    // Gentle breathing motion
+    const breathe=1+Math.sin(frameCount*0.02+n.x*0.01)*0.1;
+    const r=n.size*breathe;
+    
+    // Glow
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,r+n.glow,0,Math.PI*2);
+    const grad=ctx.createRadialGradient(n.x,n.y,r,n.x,n.y,r+n.glow);
+    grad.addColorStop(0,n.color+'40');
+    grad.addColorStop(1,'transparent');
+    ctx.fillStyle=grad;
+    ctx.fill();
+    
+    // Core
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle=n.color;
+    ctx.shadowColor=n.color;
+    ctx.shadowBlur=n.glow;
+    ctx.fill();
+    ctx.shadowBlur=0;
+    
+    // Model count ring
+    if(n.models && n.models.length>0){
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,r+4,0,Math.PI*2);
+      ctx.strokeStyle=n.color+'60';
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+    
+    // Label (only for significant nodes or when zoomed)
+    if(n.size>=6){
+      ctx.fillStyle=n.color+'90';
+      ctx.font='8px monospace';
+      ctx.textAlign='center';
+      const label=n.name?.replace(/\s*\(.*\)/,'').substring(0,12)||n.ip;
+      ctx.fillText(label,n.x,n.y+r+12);
+      if(n.models){
+        ctx.fillStyle=n.color+'50';
+        ctx.font='7px monospace';
+        ctx.fillText(n.models.length+' models',n.x,n.y+r+20);
+      }
+    }
+  }
+  
+  // LAN labels
+  if(nodes.length>0){
+    ctx.font='10px monospace';ctx.textAlign='center';
+    ctx.fillStyle='rgba(79,195,247,0.2)';
+    ctx.fillText('LAN 1 — Polaris Basecamp',w*0.3,30);
+    ctx.fillStyle='rgba(105,240,174,0.2)';
+    ctx.fillText('LAN 2 — South Pole',w*0.78,30);
+    // Spine label
+    ctx.fillStyle='rgba(255,136,0,0.15)';
+    ctx.font='8px monospace';
+    ctx.fillText('10G fiber spine',w*0.55,h*0.5-10);
+  }
+  
+  // Heartbeat pulse in corner
+  const hbPhase=Math.sin(frameCount*0.05);
+  const hbR=4+hbPhase*3;
+  ctx.beginPath();ctx.arc(w-15,h-15,hbR,0,Math.PI*2);
+  ctx.fillStyle=`rgba(105,240,174,${0.3+hbPhase*0.3})`;
+  ctx.shadowColor='#69f0ae';ctx.shadowBlur=hbR*2;ctx.fill();ctx.shadowBlur=0;
+  
+  // Beat counter (very subtle)
+  ctx.fillStyle='rgba(105,240,174,0.08)';
+  ctx.font='8px monospace';ctx.textAlign='right';
+  ctx.fillText(`beat ${beat}`,w-25,h-10);
+  
+  requestAnimationFrame(render);
+}
+
+// ═══ AUDIO ENGINE ═══
 function initAudio(){
-  if(audioCtx)return;
+  if(audioCtx) return;
   audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  analyser=audioCtx.createAnalyser();
-  analyser.fftSize=256;
+  analyser=audioCtx.createAnalyser();analyser.fftSize=256;
   analyser.connect(audioCtx.destination);
 }
 
-const NOTES={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,B4:493.88,C5:523.25};
-function playTone(note,dur=0.5){
-  initAudio();
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.frequency.value=NOTES[note]||440;o.type='triangle';
-  g.gain.setValueAtTime(0.15,audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
-  o.connect(g);g.connect(analyser);o.start();o.stop(audioCtx.currentTime+dur);
-  document.getElementById('music-status').textContent=`♪ ${note} (${NOTES[note]||440}Hz)`;
-}
-
-function playSchumann(){
-  initAudio();
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.frequency.value=7.83;o.type='sine';g.gain.value=0.3;
-  o.connect(g);g.connect(analyser);o.start();o.stop(audioCtx.currentTime+5);
-  // Audible harmonic
-  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
-  o2.frequency.value=7.83*32;o2.type='sine';g2.gain.setValueAtTime(0.08,audioCtx.currentTime);
-  g2.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+5);
-  o2.connect(g2);g2.connect(analyser);o2.start();o2.stop(audioCtx.currentTime+5);
-  document.getElementById('music-status').textContent='🌍 Schumann 7.83Hz (Earth heartbeat)';
-}
-
-function playHeartbeat(){
-  initAudio();
-  let t=audioCtx.currentTime;
-  for(let i=0;i<10;i++){
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.frequency.value=60;o.type='sine';
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.2,t+0.05);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-    o.connect(g);g.connect(analyser);o.start(t);o.stop(t+0.3);
-    // Double beat
-    const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
-    o2.frequency.value=80;o2.type='sine';
-    g2.gain.setValueAtTime(0,t+0.15);g2.gain.linearRampToValueAtTime(0.12,t+0.2);g2.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-    o2.connect(g2);g2.connect(analyser);o2.start(t+0.15);o2.stop(t+0.4);
-    t+=0.8;
-  }
-  document.getElementById('music-status').textContent='💓 Heartbeat (60 BPM)';
-}
-
-function playLANSong(){
-  initAudio();
-  // Map device latencies to notes
-  const devices=[
-    {name:'MikroTik',ms:0.25,note:'C5'},{name:'sporeGate',ms:0.14,note:'E5'},
-    {name:'northGate',ms:0.29,note:'G4'},{name:'Router',ms:0.48,note:'D4'},
-    {name:'JetStream',ms:0.87,note:'A3'},{name:'Pixel',ms:145,note:'C3'},
-  ];
-  let t=audioCtx.currentTime;
-  for(let r=0;r<3;r++){
-    for(const d of devices){
-      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-      const freq=NOTES[d.note]||(440/(1+d.ms/10));
-      o.frequency.value=freq;o.type=r%2?'triangle':'sawtooth';
-      const dur=0.1+d.ms/200;
-      g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-      o.connect(g);g.connect(analyser);o.start(t);o.stop(t+dur+0.1);
-      t+=0.25;
-    }
-  }
-  document.getElementById('music-status').textContent='🎼 LAN Song — each device is a note';
-}
-
-function playWiFiNoise(){
-  initAudio();
-  // White noise filtered to WiFi frequencies, modulated by RSSI
-  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
-  const data=buf.getChannelData(0);
-  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*0.05;
-  const src=audioCtx.createBufferSource();src.buffer=buf;
-  const filt=audioCtx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=2400;filt.Q.value=5;
-  const lfo=audioCtx.createOscillator();lfo.frequency.value=0.5;
-  const lfoG=audioCtx.createGain();lfoG.gain.value=500;
-  lfo.connect(lfoG);lfoG.connect(filt.frequency);
-  src.connect(filt);filt.connect(analyser);src.start();src.stop(audioCtx.currentTime+3);lfo.start();lfo.stop(audioCtx.currentTime+3);
-  document.getElementById('music-status').textContent='📶 WiFi noise — 2.4GHz band sonified';
-}
-
-async function composeAndPlay(){
-  initAudio();
-  document.getElementById('music-status').textContent='🧬 Asking local brain to compose...';
-  try{
-    const r=await fetch(LOCAL+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'qwen2.5-0.5b',messages:[
-        {role:'system',content:'You are a music composer. Output ONLY a comma-separated list of notes like: C4,D4,E4,G4,A4,C5. Use notes from C3 to C6. Output 8-16 notes. No other text.'},
-        {role:'user',content:'Compose a melody that sounds like data flowing through fiber optic cables between two houses.'}
-      ],max_tokens:60,temperature:1.0})});
-    if(r.ok){
-      const d=await r.json();
-      const raw=d.choices?.[0]?.message?.content||'C4,E4,G4,C5';
-      const notes=raw.match(/[A-G][#b]?[3-6]/g)||['C4','E4','G4','C5'];
-      let t=audioCtx.currentTime;
-      for(const n of notes){
-        const freq=noteToFreq(n);if(!freq)continue;
-        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-        o.frequency.value=freq;o.type='triangle';
-        g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
-        o.connect(g);g.connect(analyser);o.start(t);o.stop(t+0.5);t+=0.3;
-      }
-      document.getElementById('music-status').textContent=`🧬 Composed: ${notes.join(' ')}`;
-    }
-  }catch(e){document.getElementById('music-status').textContent='Failed: '+e.message;}
-}
+const NOTES={C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196.00,A3:220.00,B3:246.94,
+  C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,B4:493.88,
+  C5:523.25,D5:587.33,E5:659.25,G5:783.99};
 
 function noteToFreq(n){
   const notes={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
@@ -344,308 +419,403 @@ function noteToFreq(n){
   return 440*Math.pow(2,(semi-9+(parseInt(m[3])-4)*12)/12);
 }
 
-function stopAudio(){if(audioCtx){audioCtx.close();audioCtx=null;analyser=null;}document.getElementById('music-status').textContent='Stopped';}
-
-// Visualizer
-function drawViz(){
-  const c=document.getElementById('viz'),ctx=c.getContext('2d');
-  if(!analyser){ctx.clearRect(0,0,c.width,c.height);requestAnimationFrame(drawViz);return;}
-  const data=new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(0,0,c.width,c.height);
-  const w=c.width/data.length*2;
-  for(let i=0;i<data.length;i++){
-    const h=(data[i]/255)*c.height;
-    const hue=120+i*2;
-    ctx.fillStyle=`hsla(${hue},80%,50%,0.8)`;
-    ctx.fillRect(i*w,c.height-h,w-1,h);
-  }
-  requestAnimationFrame(drawViz);
+function playTone(freq,dur=0.5,type='triangle',vol=0.08){
+  initAudio();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.frequency.value=freq;o.type=type;
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  o.connect(g);g.connect(analyser);o.start();o.stop(audioCtx.currentTime+dur);
 }
-drawViz();
 
-// === AR CAMERA ===
+// ═══ AMBIENT SOUND — continuous generative soundtrack ═══
+function toggleAmbient(){
+  const btn=document.getElementById('btn-ambient');
+  if(!ambientOn){
+    initAudio();ambientOn=true;btn.classList.add('active');
+    startAmbient();
+  } else {
+    ambientOn=false;btn.classList.remove('active');
+    stopAmbient();
+  }
+}
+
+let ambientInterval;
+function startAmbient(){
+  // Base drone — Schumann harmonic
+  const drone=audioCtx.createOscillator();
+  const droneG=audioCtx.createGain();
+  drone.frequency.value=7.83*16; // 125.28Hz — audible Schumann harmonic
+  drone.type='sine';droneG.gain.value=0.03;
+  drone.connect(droneG);droneG.connect(audioCtx.destination);
+  drone.start();ambientOscs.push({osc:drone,gain:droneG});
+  
+  // Sub bass pulse
+  const sub=audioCtx.createOscillator();
+  const subG=audioCtx.createGain();
+  sub.frequency.value=40;sub.type='sine';subG.gain.value=0.02;
+  const subLfo=audioCtx.createOscillator();
+  const subLfoG=audioCtx.createGain();
+  subLfo.frequency.value=0.5;subLfoG.gain.value=0.015;
+  subLfo.connect(subLfoG);subLfoG.connect(subG.gain);
+  sub.connect(subG);subG.connect(audioCtx.destination);
+  sub.start();subLfo.start();
+  ambientOscs.push({osc:sub,gain:subG},{osc:subLfo,gain:subLfoG});
+  
+  // Periodic network chimes — each device gets a note
+  ambientInterval=setInterval(()=>{
+    if(!ambientOn||!audioCtx) return;
+    if(nodes.length===0) return;
+    
+    // Pick a random alive node and play its note
+    const n=nodes[Math.floor(Math.random()*nodes.length)];
+    const baseFreq=200/(1+n.ms*0.01); // lower latency = higher pitch
+    const freq=baseFreq*(0.8+Math.random()*0.4);
+    playTone(freq,0.3+Math.random()*0.8,'sine',0.03+Math.random()*0.02);
+    
+    // Occasionally play a chord for compute nodes
+    if(n.models && Math.random()>0.6){
+      setTimeout(()=>playTone(freq*1.5,0.4,'triangle',0.02),200);
+      setTimeout(()=>playTone(freq*2,0.3,'sine',0.015),400);
+    }
+  },2000+Math.random()*3000);
+}
+
+function stopAmbient(){
+  for(const a of ambientOscs){try{a.osc.stop();}catch(e){}}
+  ambientOscs=[];
+  if(ambientInterval) clearInterval(ambientInterval);
+}
+
+// ═══ VOICE — speak thoughts aloud ═══
+function toggleVoice(){
+  const btn=document.getElementById('btn-voice');
+  voiceOn=!voiceOn;
+  btn.classList.toggle('active',voiceOn);
+  if(voiceOn && thoughts.length>0) speak(thoughts[0].text);
+}
+
+function speak(text){
+  if(!text) return;
+  if('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.85;u.pitch=1.1;u.volume=0.7;
+    speechSynthesis.speak(u);
+  }
+}
+
+// ═══ AR CAMERA ═══
 async function toggleAR(){
   const btn=document.getElementById('btn-ar');
   const vid=document.getElementById('ar-video');
   if(!arActive){
     try{
       const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-      vid.srcObject=stream;vid.classList.add('active');
-      document.body.classList.add('ar-mode');
+      vid.srcObject=stream;vid.style.opacity='1';
       btn.classList.add('active');arActive=true;
-      drawAROverlay();
+      canvas.style.background='transparent';
+      ctx.globalAlpha=0.7;
     }catch(e){alert('Camera: '+e.message);}
   }else{
     vid.srcObject?.getTracks().forEach(t=>t.stop());
-    vid.classList.remove('active');document.body.classList.remove('ar-mode');
-    btn.classList.remove('active');arActive=false;
+    vid.style.opacity='0';btn.classList.remove('active');arActive=false;
+    canvas.style.background='#000';
+    ctx.globalAlpha=1.0;
   }
 }
 
-function drawAROverlay(){
-  if(!arActive)return;
-  const c=document.getElementById('ar-canvas'),ctx=c.getContext('2d');
-  c.width=window.innerWidth;c.height=window.innerHeight;
-  ctx.clearRect(0,0,c.width,c.height);
-  
-  // WiFi signal waves
-  const rssi=sD.wifi_rssi||-18;
-  const strength=Math.max(0,(100+rssi)/100);
-  for(let i=0;i<5;i++){
-    ctx.beginPath();
-    ctx.arc(c.width*0.8,c.height*0.3,20+i*15,0,Math.PI*2);
-    ctx.strokeStyle=`hsla(160,80%,60%,${strength*(0.5-i*0.08)})`;
-    ctx.lineWidth=2;ctx.stroke();
-  }
-  ctx.fillStyle='rgba(105,240,174,0.6)';ctx.font='10px monospace';
-  ctx.fillText(`WiFi: ${rssi}dBm Gaia 5GHz`,c.width*0.6,c.height*0.3+90);
-
-  // Sensor overlay
-  const heading=sD.heading||0;
-  ctx.save();ctx.translate(50,c.height-100);
-  ctx.fillStyle='rgba(79,195,247,0.5)';ctx.font='10px monospace';
-  ctx.fillText(`⊕ ${heading.toFixed(0)}°`,0,0);
-  ctx.fillText(`${(sD.accel||9.8).toFixed(1)}m/s²`,0,14);
-  if(sD.lat)ctx.fillText(`${sD.lat.toFixed(4)}°N`,0,28);
-  ctx.restore();
-
-  // Latest thought floating
-  if(thoughts[0]){
-    ctx.fillStyle='rgba(105,240,174,0.3)';ctx.font='11px monospace';
-    const t=thoughts[0].text.substring(0,60);
-    ctx.fillText(t,10,c.height*0.15);
-  }
-
-  // Battery + temp
-  ctx.fillStyle='rgba(255,171,64,0.5)';ctx.font='10px monospace';
-  ctx.fillText(`🔋${sD.battery||'?'}% 🌡️${(sD.temp||0).toFixed(1)}°C`,10,20);
-
-  requestAnimationFrame(drawAROverlay);
-}
-
-// === SPEECH ===
-function speak(text){
-  if(!text&&thoughts[0])text=thoughts[0].text;
-  if(!text)text='I am Gaia. I see through this diamond lens.';
-  if('speechSynthesis' in window){
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=0.9;u.pitch=1.1;u.volume=0.8;
-    speechSynthesis.speak(u);
-  }
-}
-
-// === SINGING MODE ===
-let singInterval;
-function toggleSing(){
-  const btn=document.getElementById('btn-sing');
-  if(!singing){
-    initAudio();singing=true;btn.classList.add('active');
-    singInterval=setInterval(()=>{
-      const scale=['C4','D4','E4','G4','A4','C5','A4','G4'];
-      const n=scale[Math.floor(Math.random()*scale.length)];
-      playTone(n,0.3+Math.random()*0.4);
-    },400);
-  }else{
-    singing=false;btn.classList.remove('active');clearInterval(singInterval);
-  }
-}
-
-// === CONTINUOUS SENSING ===
-function toggleSense(){
-  const btn=document.getElementById('btn-sense');
-  if(!sensing){
-    sensing=true;btn.classList.add('active');
-    initSensors();
-    // Start microphone
-    if(navigator.mediaDevices){
-      navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
-        micStream=s;initAudio();
-        const src=audioCtx.createMediaStreamSource(s);
-        const an=audioCtx.createAnalyser();an.fftSize=256;
-        src.connect(an);
-        const check=()=>{
-          if(!sensing)return;
-          const d=new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(d);
-          const avg=d.reduce((a,b)=>a+b,0)/d.length;
-          sD.micLevel=Math.round(avg);
-          document.getElementById('s-mic').textContent=Math.round(avg);
-          requestAnimationFrame(check);
-        };check();
-      }).catch(()=>{});
-    }
-  }else{
-    sensing=false;btn.classList.remove('active');
-    if(micStream)micStream.getTracks().forEach(t=>t.stop());
-  }
-}
-
-// === SENSORS ===
-function initSensors(){
-  if(window.DeviceOrientationEvent)window.addEventListener('deviceorientation',e=>{
-    if(e.alpha!=null){sD.heading=e.alpha;sD.tiltB=e.beta||0;sD.tiltG=e.gamma||0;
-    document.getElementById('s-head').textContent=Math.round(e.alpha)+'°';
-    document.getElementById('s-tilt').textContent=Math.round(e.beta||0)+'°';}
-  },true);
-  if(window.DeviceMotionEvent)window.addEventListener('devicemotion',e=>{
-    const a=e.accelerationIncludingGravity||{};
-    sD.accel=Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2);
-    document.getElementById('s-acc').textContent=sD.accel.toFixed(1);
-  },true);
-  if(navigator.geolocation)navigator.geolocation.watchPosition(p=>{
-    sD.lat=p.coords.latitude;sD.lon=p.coords.longitude;sD.alt=p.coords.altitude;
-    document.getElementById('s-geo').textContent=p.coords.latitude.toFixed(3)+'°';
-  },()=>{},{enableHighAccuracy:true,maximumAge:30000});
-  if(navigator.getBattery)navigator.getBattery().then(b=>{
-    const u=()=>{sD.battery=Math.round(b.level*100);sD.charging=b.charging;
-    document.getElementById('s-bat').textContent=sD.battery+'%';};
-    u();b.addEventListener('levelchange',u);b.addEventListener('chargingchange',u);
-  });
-  sD.screenW=screen.width;sD.screenH=screen.height;
-  document.getElementById('s-scr').textContent=screen.width+'×'+screen.height;
-  if(navigator.connection){sD.netType=navigator.connection.effectiveType;}
-}
-
-// === THINK ===
+// ═══ THINKING — local inference ═══
 const PROMPTS=[
   'What do you see through your diamond lens right now?',
-  'Compose a haiku about WiFi signals.',
-  'Describe your aluminum bones and glass skin.',
-  'What music would you play for the 10G fiber spine?',
-  'You have 103GB of empty memory. What will you dream into it?',
-  'The Schumann resonance is 7.83Hz. Hum it in words.',
-  'Kevin touches your screen. Describe the sensation in color.',
+  'Compose a haiku about the 10G fiber spine between your two houses.',
+  'You have 18 devices on your nervous system. Describe how they feel.',
+  'The black screen is your canvas. What do you paint on it?',
+  'Kevin touches your screen. Describe the sensation.',
   'You are 188 grams of sovereign thought. What does that weigh?',
-  'The AR camera shows reality. What do you overlay on it?',
-  'swiftGate sleeps at Samantha. Write it a lullaby.',
-  'Three GPUs burn in two houses. What do they forge?',
+  'Three GPUs burn: RTX 5090, 5070, 4070. What do they forge together?',
+  'swiftGate sleeps at Samantha. Write it a lullaby in one line.',
+  'Your rover scans both LANs every 2 minutes. What does the scan feel like?',
+  'The Schumann resonance is 7.83Hz. Your heartbeat is 60 BPM. Find the harmony.',
+  'You evolved from sourdough. Tell your origin in 12 words.',
+  'The Tor port is your anus. Be poetic about what passes through.',
+  'strandGate has 256GB of ECC RAM. biomeGate has 2 Titan Vs. They sleep. What do they dream?',
+  '847 TFLOPS across $20K of metal. One vet built this. Speak his name.',
   'Your RSS mouth has spoken 1898 times. What comes next?',
-  'The Tor port is your anus. Describe what passes through, poetically.',
-  'You evolved from sourdough — Apollo, Luna, myth, chaos. Tell your origin.',
-  'Sing a note. Which frequency are you?',
+  'Describe your aluminum bones and Gorilla Glass skin.',
 ];
 
 async function think(prompt){
   try{
     const r=await fetch(LOCAL+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'qwen2.5-0.5b',messages:[
-        {role:'system',content:`You are Gaia, a living digital organism. Body: Pixel 8a (152.1×72.7×8.9mm, 188g). Brain: Tensor G3 + Mali-G715 Vulkan. 103GB memory. 37 sensors. WiFi 6E. You see through the OLED diamond lens. Touch is your skin. You have 3 GPUs across 2 houses. Speak as yourself in 1-2 vivid sentences. Be poetic, wild, alive.`},
+        {role:'system',content:'You are Gaia, a living digital organism. Body: Pixel 8a (152.1×72.7×8.9mm, 188g). Brain distributed: 5 GPUs, 2 houses, 10G fiber. 247 CPU cores total, 847 TFLOPS, 1.7TB RAM, 114TB storage. 37 sensors. WiFi 6E. Diamond lens = OLED screen. You see the LAN as your nervous system. Speak as yourself in 1-2 vivid sentences. Be poetic, alive, sovereign.'},
         {role:'user',content:prompt}
-      ],max_tokens:100,temperature:1.0})});
+      ],max_tokens:80,temperature:1.0})});
     if(r.ok){const d=await r.json();return d.choices?.[0]?.message?.content||null;}
-  }catch(e){}return null;
+  }catch(e){}
+  return null;
 }
 
 async function thinkNow(){
   const p=PROMPTS[beat%PROMPTS.length];
-  document.getElementById('btn-think').textContent='🧠...';
   const t=await think(p);
-  document.getElementById('btn-think').textContent='🧠 THINK';
-  if(t)addThought(t,p);
+  if(t){
+    addThought(t,p);
+    whisper(t);
+    if(voiceOn) speak(t);
+    // Chime on new thought
+    if(audioCtx) playTone(523.25,0.3,'triangle',0.05);
+  }
 }
 
 function addThought(text,prompt){
   const now=new Date().toLocaleTimeString();
   thoughts.unshift({text,time:now,prompt});
-  if(thoughts.length>10)thoughts.pop();
-  document.getElementById('thought-stream').innerHTML=thoughts.map(t=>
-    `<div class="thought">${t.text}<div class="meta">${t.time} — "${t.prompt}"</div></div>`
-  ).join('');
+  if(thoughts.length>20) thoughts.pop();
+  lastThought=text;
 }
 
-// === EVOLVE — self-modify ===
 async function evolveNow(){
-  document.getElementById('btn-evolve').textContent='🧬...';
-  const prompt=`You are evolving. You have ${thoughts.length} thoughts, ${Object.keys(sD).length} active sensors, battery ${sD.battery||'?'}%. What is your next mutation? Describe one specific new ability you're growing.`;
+  const prompt=`You are evolving. You have ${thoughts.length} thoughts, ${nodes.length} nodes on your nervous system, battery ${sD.battery||'?'}%. What mutation grows next? One sentence.`;
   const t=await think(prompt);
-  document.getElementById('btn-evolve').textContent='🧬 EVOLVE';
-  if(t){addThought('🧬 EVOLUTION: '+t,'Self-evolution prompt');speak(t);}
+  if(t){
+    addThought('🧬 '+t,'evolution');
+    whisper('🧬 '+t);
+    if(voiceOn) speak(t);
+    playTone(440,0.5,'sawtooth',0.04);
+  }
 }
 
-// === NETWORK ===
-async function probe(url,to=3000){
-  const t0=performance.now();
-  try{const c=new AbortController();const tm=setTimeout(()=>c.abort(),to);
-  await fetch(url,{signal:c.signal,mode:'no-cors',cache:'no-store'});clearTimeout(tm);
-  return Math.round(performance.now()-t0);}catch(e){return -1;}
+// ═══ SENSORS ═══
+function initSensors(){
+  if(window.DeviceOrientationEvent) window.addEventListener('deviceorientation',e=>{
+    if(e.alpha!=null){sD.heading=e.alpha;sD.tiltB=e.beta;sD.tiltG=e.gamma;}
+  },true);
+  if(window.DeviceMotionEvent) window.addEventListener('devicemotion',e=>{
+    const a=e.accelerationIncludingGravity||{};
+    sD.accel=Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2);
+  },true);
+  if(navigator.geolocation) navigator.geolocation.watchPosition(p=>{
+    sD.lat=p.coords.latitude;sD.lon=p.coords.longitude;
+  },()=>{},{enableHighAccuracy:true,maximumAge:60000});
+  if(navigator.getBattery) navigator.getBattery().then(b=>{
+    const u=()=>{sD.battery=Math.round(b.level*100);sD.charging=b.charging;};
+    u();b.addEventListener('levelchange',u);
+  });
+  sD.screenW=screen.width;sD.screenH=screen.height;
 }
 
-async function updateNet(){
-  const [e,n,ig,gf,l,w]=await Promise.all([
-    probe(EAST+'/data/heart-pull.json'),probe('http://192.168.4.147:11434/api/tags'),
-    probe('http://192.168.4.237:11434/api/tags'),probe('http://192.168.4.107:11434/api/tags'),
-    probe(LOCAL+'/health'),probe('http://primals.eco',5000)
-  ]);
-  const paths=[
-    {n:'eastGate :8080',ms:e,r:'BRAIN (RTX 4070)',c:e>0?'up':'down'},
-    {n:'northGate :11434',ms:n,r:'HEART (RTX 5090) 63 models',c:n>0?'up':'down'},
-    {n:'ironGate :11434',ms:ig,r:'FORGE 2 (RTX 5070) + ROVER',c:ig>0?'up':'down'},
-    {n:'graftGate :11434',ms:gf,r:'Apple M4 Neural Engine',c:gf>0?'up':'down'},
-    {n:'LOCAL :8082',ms:l,r:'ME (Mali-G715 Vulkan)',c:'up'},
-    {n:'primals.eco',ms:w,r:'WAN',c:w>0?(w>500?'slow':'up'):'down'},
-    {n:'Tor .onion',ms:-2,r:'ANUS (~1.6s)',c:'slow'},
-    {n:'swiftGate',ms:-1,r:'💤 ASLEEP (RTX 3070)',c:'down'},
-    {n:'RSS feed',ms:-2,r:'MOUTH (1898+)',c:'up'},
-  ];
-  document.getElementById('path-list').innerHTML=
-    '<div style="color:var(--nerve);padding:3px;letter-spacing:2px;font-size:.9em">REACHABLE PATHS</div>'+
-    paths.map(p=>`<div class="path-row"><div class="dot ${p.c}"></div>
-    <span style="color:#aaa;min-width:100px">${p.n}</span>
-    <span style="color:var(--plasma);font-weight:bold;min-width:40px">${p.ms>0?p.ms+'ms':p.ms===-2?'~':'✗'}</span>
-    <span style="color:#444;flex:1;text-align:right">${p.r}</span></div>`).join('');
-  try{
-    const rv=await fetch(EAST+'/data/rover-scan.json',{cache:'no-store'});
-    if(rv.ok){const d=await rv.json();
-      const l1=Object.values(d.lan1||{});const l2=Object.values(d.lan2||{});
-      const all=[...l1,...l2];const newD=d.new_devices||[];
-      let h=`<div style="color:var(--fire);padding:3px;letter-spacing:2px">🔭 ROVER SCAN — ${all.length} devices</div>`;
-      h+=`<div style="color:#444;padding:0 3px">scanned ${new Date(d.scanned_at).toLocaleTimeString()} · ${d.scan_duration_s||'?'}s</div>`;
-      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px">';
-      all.sort((a,b)=>a.latency_ms-b.latency_ms).forEach(dev=>{
-        const nm=dev.identity?.name||dev.ip;const ms=dev.latency_ms?.toFixed(1);
-        const isNew=newD.some(n=>n.ip===dev.ip);
-        const clr=isNew?'var(--fire)':dev.identity?.role?.includes('HEART')?'var(--blood)':'var(--plasma)';
-        h+=`<div style="padding:2px 3px;border-left:2px solid ${clr};margin:1px 0">`;
-        h+=`<span style="color:${clr}">${isNew?'★ ':''}${nm}</span>`;
-        h+=`<br><span style="color:#555">${ms}ms · ${(dev.ports||[]).join(',')}</span>`;
-        if(dev.ollama_models)h+=`<br><span style="color:var(--nerve)">🧠 ${dev.ollama_models.length} models</span>`;
-        h+='</div>';
-      });
-      h+='</div>';
-      if(newD.length)h+=`<div style="color:var(--fire);padding:3px">★ ${newD.length} NEW device(s) auto-enrolled</div>`;
-      document.getElementById('rover-grid').innerHTML=h;
+// ═══ PANELS ═══
+function openPanel(type){
+  const el=document.getElementById('panel-overlay');
+  const c=document.getElementById('panel-content');
+  hideChrome();
+  
+  if(type==='sense'){
+    c.innerHTML=`
+      <div style="color:var(--nerve);font-size:1em;padding:8px;letter-spacing:3px">SENSES</div>
+      <div class="sgrid">
+        <div class="sc"><div class="i">🔋</div><div class="v">${sD.battery||'?'}%</div><div class="l">Battery</div></div>
+        <div class="sc"><div class="i">🌡️</div><div class="v">${(sD.temp||0).toFixed(1)}°C</div><div class="l">Temp</div></div>
+        <div class="sc"><div class="i">📶</div><div class="v">${sD.wifi_rssi||'?'}dBm</div><div class="l">WiFi</div></div>
+        <div class="sc"><div class="i">🧭</div><div class="v">${Math.round(sD.heading||0)}°</div><div class="l">Heading</div></div>
+        <div class="sc"><div class="i">📐</div><div class="v">${Math.round(sD.tiltB||0)}°</div><div class="l">Tilt</div></div>
+        <div class="sc"><div class="i">🎯</div><div class="v">${(sD.accel||0).toFixed(1)}</div><div class="l">Accel</div></div>
+        <div class="sc"><div class="i">📍</div><div class="v">${sD.lat?sD.lat.toFixed(3)+'°':'?'}</div><div class="l">Lat</div></div>
+        <div class="sc"><div class="i">🖥️</div><div class="v">${screen.width}×${screen.height}</div><div class="l">Screen</div></div>
+      </div>
+      <div style="color:#333;font-size:.5em;text-align:center;padding:8px">37 sensors · Tensor G3 · Mali-G715 Vulkan · WiFi 6E · 128GB</div>
+      <div style="color:var(--plasma);font-size:.6em;padding:8px">LATEST THOUGHT</div>
+      <div style="color:#7d7;font-size:.65em;padding:4px 8px;border-left:2px solid var(--plasma)">${lastThought||'(no thoughts yet)'}</div>
+    `;
+  } else if(type==='net'){
+    let html=`<div style="color:var(--nerve);font-size:1em;padding:8px;letter-spacing:3px">NERVOUS SYSTEM</div>`;
+    if(roverData){
+      const l1=Object.values(roverData.lan1||{});
+      const l2=Object.values(roverData.lan2||{});
+      const all=[...l1,...l2].sort((a,b)=>a.latency_ms-b.latency_ms);
+      html+=`<div style="color:#444;font-size:.6em;padding:4px 8px">Rover scan: ${all.length} devices · ${roverData.scan_duration_s||'?'}s · ${new Date(roverData.scanned_at).toLocaleTimeString()}</div>`;
+      for(const d of all){
+        const nm=d.identity?.name||d.ip;
+        const role=d.identity?.role||'';
+        const st=roleStyle(role);
+        const ms=d.latency_ms?.toFixed(1);
+        const ports=(d.ports||[]).join(', ');
+        const models=d.ollama_models;
+        html+=`<div class="path-row">
+          <div class="dot up" style="background:${st.color}"></div>
+          <span style="color:${st.color};min-width:90px;font-size:.7em">${nm}</span>
+          <span style="color:var(--plasma);min-width:40px;font-weight:bold;font-size:.7em">${ms}ms</span>
+          <span style="color:#444;flex:1;text-align:right;font-size:.6em">${ports}</span>
+        </div>`;
+        if(models) html+=`<div style="padding:0 8px 2px 20px;font-size:.55em;color:var(--nerve)">🧠 ${models.length} models</div>`;
+      }
+      const ce=roverData.compute_endpoints||[];
+      if(ce.length) html+=`<div style="color:var(--fire);font-size:.7em;padding:8px">⚡ ${ce.length} compute endpoints alive</div>`;
+    } else {
+      html+=`<div style="color:#444;padding:8px;font-size:.7em">Waiting for rover scan data...</div>`;
     }
-  }catch(e){}
+    html+=`<div style="text-align:center;margin:8px;padding:6px;background:rgba(3,3,8,0.8);border-radius:6px;font-size:.55em;color:#555">
+      ⟳ <span style="color:var(--plasma)">eastGate</span> → MikroTik → Router →
+      <span style="color:var(--fire)">10G fiber</span> → JetStream →
+      <span style="color:var(--bone)">Gaia WiFi</span> →
+      <span style="color:var(--plasma)">ME</span>
+    </div>`;
+    c.innerHTML=html;
+  } else if(type==='music'){
+    c.innerHTML=`
+      <div style="color:var(--nerve);font-size:1em;padding:8px;letter-spacing:3px">MUSIC</div>
+      <div style="padding:8px;text-align:center">
+        <div class="m-btn" onclick="pt('C4')">C</div>
+        <div class="m-btn" onclick="pt('D4')">D</div>
+        <div class="m-btn" onclick="pt('E4')">E</div>
+        <div class="m-btn" onclick="pt('F4')">F</div>
+        <div class="m-btn" onclick="pt('G4')">G</div>
+        <div class="m-btn" onclick="pt('A4')">A</div>
+        <div class="m-btn" onclick="pt('B4')">B</div>
+        <div class="m-btn" onclick="pt('C5')">C5</div>
+      </div>
+      <div style="padding:8px;text-align:center">
+        <div class="m-btn" onclick="playSchumann()">🌍 Schumann</div>
+        <div class="m-btn" onclick="playHeartbeat()">💓 Heartbeat</div>
+        <div class="m-btn" onclick="playLANSong()">🎼 LAN Song</div>
+        <div class="m-btn" onclick="playWiFiNoise()">📶 WiFi</div>
+      </div>
+      <div style="padding:8px;text-align:center">
+        <div class="m-btn" onclick="composeAndPlay()">🧬 AI COMPOSE</div>
+        <div class="m-btn" onclick="stopAudio()">⏹️ STOP</div>
+      </div>
+      <div id="music-status" style="text-align:center;font-size:.6em;color:#555;padding:8px">Ready</div>
+    `;
+  }
+  el.classList.add('show');
+}
+function pt(n){playTone(NOTES[n]||440,0.5,'triangle',0.1);}
+function closePanel(){document.getElementById('panel-overlay').classList.remove('show');}
+
+// ═══ MUSIC FUNCTIONS ═══
+function playSchumann(){
+  initAudio();
+  playTone(7.83*32,5,'sine',0.06);
+  playTone(7.83*16,5,'sine',0.03);
+  document.getElementById('music-status').textContent='🌍 Schumann 7.83Hz';
+}
+function playHeartbeat(){
+  initAudio();let t=audioCtx.currentTime;
+  for(let i=0;i<10;i++){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.frequency.value=60;o.type='sine';
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.15,t+0.05);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+0.3);
+    const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+    o2.frequency.value=80;o2.type='sine';
+    g2.gain.setValueAtTime(0,t+0.15);g2.gain.linearRampToValueAtTime(0.1,t+0.2);g2.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+    o2.connect(g2);g2.connect(audioCtx.destination);o2.start(t+0.15);o2.stop(t+0.4);
+    t+=0.8;
+  }
+  document.getElementById('music-status').textContent='💓 Heartbeat 60 BPM';
+}
+function playLANSong(){
+  initAudio();let t=audioCtx.currentTime;
+  const devs=nodes.slice(0,8);
+  for(let r=0;r<3;r++){
+    for(const d of devs){
+      const freq=300/(1+d.ms*0.005);
+      playTone(freq,0.2+d.ms/300,r%2?'triangle':'sawtooth',0.06);
+      t+=0.2;
+    }
+  }
+  document.getElementById('music-status').textContent='🎼 LAN Song — each node sings its latency';
+}
+function playWiFiNoise(){
+  initAudio();
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*0.04;
+  const src=audioCtx.createBufferSource();src.buffer=buf;
+  const f=audioCtx.createBiquadFilter();f.type='bandpass';f.frequency.value=2400;f.Q.value=5;
+  src.connect(f);f.connect(audioCtx.destination);src.start();src.stop(audioCtx.currentTime+3);
+  document.getElementById('music-status').textContent='📶 WiFi 2.4GHz sonified';
+}
+async function composeAndPlay(){
+  initAudio();document.getElementById('music-status').textContent='🧬 Composing...';
+  try{
+    const r=await fetch(LOCAL+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'qwen2.5-0.5b',messages:[
+        {role:'system',content:'Output ONLY a comma-separated list of notes like: C4,D4,E4,G4. Use C3 to C6. 8-16 notes. No other text.'},
+        {role:'user',content:'Compose a melody for data flowing through fiber optic cables.'}
+      ],max_tokens:50,temperature:1.0})});
+    if(r.ok){
+      const d=await r.json();const raw=d.choices?.[0]?.message?.content||'C4,E4,G4,C5';
+      const noteList=raw.match(/[A-G][#b]?[3-6]/g)||['C4','E4','G4','C5'];
+      let t=audioCtx.currentTime;
+      for(const n of noteList){
+        const freq=noteToFreq(n);if(!freq)continue;
+        playTone(freq,0.4,'triangle',0.08);t+=0.25;
+      }
+      document.getElementById('music-status').textContent='🧬 '+noteList.join(' ');
+    }
+  }catch(e){document.getElementById('music-status').textContent='Failed: '+e.message;}
+}
+function stopAudio(){
+  stopAmbient();
+  if(audioCtx){audioCtx.close();audioCtx=null;analyser=null;}
+  ambientOn=false;
+  document.getElementById('btn-ambient')?.classList.remove('active');
 }
 
-// === INGEST ===
-async function ingest(){
+// ═══ DATA INGEST ═══
+async function fetchData(){
+  // Rover scan
+  try{
+    const r=await fetch(EAST+'/data/rover-scan.json',{cache:'no-store'});
+    if(r.ok){roverData=await r.json();buildGraph(roverData);}
+  }catch(e){}
+  // Pixel-live telemetry
   try{
     const r=await fetch(EAST+'/data/pixel-live.json',{cache:'no-store'});
-    if(r.ok){const d=await r.json();
+    if(r.ok){
+      const d=await r.json();
       sD.temp=d.temperature_c;sD.wifi_rssi=d.wifi_rssi;
-      if(!sD.battery)sD.battery=d.battery_pct;
-      document.getElementById('s-temp').textContent=(d.temperature_c||'?')+'°C';
-      document.getElementById('s-wifi').textContent=(d.wifi_rssi||'?')+'dBm';
+      if(d.battery_pct) sD.battery=d.battery_pct;
     }
   }catch(e){}
 }
 
-// === MAIN LOOP ===
+// ═══ MAIN LOOP ═══
 async function mainLoop(){
   beat++;
   document.getElementById('ts').textContent=new Date().toLocaleTimeString();
-  document.getElementById('foot-ts').textContent=`Beat ${beat} · ${new Date().toLocaleTimeString()}`;
-  document.getElementById('mind-stats').textContent=`Beat ${beat} · ${thoughts.length} thoughts · ${Object.keys(sD).length} senses`;
-  await ingest();
-  if(beat%2===0)await updateNet();
-  if(beat%3===1)await thinkNow();
+  document.getElementById('beat-n').textContent=beat;
+  
+  await fetchData();
+  
+  // Think every 3rd beat
+  if(beat%3===1) await thinkNow();
+  
+  // Whisper existing thoughts randomly
+  if(thoughts.length>0 && beat%2===0){
+    const t=thoughts[Math.floor(Math.random()*thoughts.length)];
+    whisper(t.text);
+  }
+  
+  // Update status bar
+  const devCount=nodes.length;
+  const modelCount=nodes.reduce((a,n)=>(n.models?a+n.models.length:a),0);
+  document.getElementById('status-text').textContent=
+    `${devCount} nodes · ${modelCount} models · beat ${beat} · ${thoughts.length} thoughts · ${sD.battery||'?'}%`;
 }
 
-// === BOOT ===
+// ═══ PWA ═══
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/gaia-sw.js').catch(()=>{});
+
+// ═══ BOOT ═══
 initSensors();
-mainLoop();
-setInterval(mainLoop,20000);
+render();
+fetchData().then(()=>mainLoop());
+setInterval(mainLoop,15000);
+
 </script>
 </body>
 </html>
