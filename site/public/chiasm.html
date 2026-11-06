@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GAIA — Optic Chiasm</title>
+<script src="js/relocalize.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -225,34 +226,12 @@ const EAST = 'http://192.168.4.244:8080';
 let spatialData = null;
 let eyeData = null;
 
-// === VIEWER DETECTION ===
-// The server can't tell us our IP directly, but we can infer from fetch timing
-// For now: check local addresses
+// === VIEWER DETECTION (via relocalize.js) ===
 async function detectViewer() {
   const el = document.getElementById('viewer-id');
   try {
-    const rtc = new RTCPeerConnection({iceServers: []});
-    rtc.createDataChannel('');
-    const offer = await rtc.createOffer();
-    await rtc.setLocalDescription(offer);
-    await new Promise(r => setTimeout(r, 500));
-    const sdp = rtc.localDescription.sdp;
-    const ips = sdp.match(/(\d+\.\d+\.\d+\.\d+)/g) || [];
-    rtc.close();
-    const lanIp = ips.find(ip => ip.startsWith('192.168.')) || ips[0] || '?';
-
-    const viewerMap = {
-      '192.168.4.244': 'eastGate (BRAIN)',
-      '192.168.4.103': 'eastGate-wifi',
-      '192.168.4.147': 'northGate (HEART)',
-      '192.168.4.237': 'ironGate (FORGE)',
-      '192.168.4.107': 'graftGate',
-      '192.168.4.100': 'blueGate',
-      '192.168.4.3':   'sporeGate',
-      '192.168.9.217': 'Pixel (DIAMOND LENS)',
-      '192.168.4.148': 'southGate/iPhone',
-    };
-    el.textContent = viewerMap[lanIp] || lanIp;
+    const v = await GaiaHUD.detect();
+    el.textContent = v.gate + ' (' + v.role + ') — ' + v.perspective;
   } catch(e) {
     el.textContent = 'unknown';
   }
